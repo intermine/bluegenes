@@ -14,8 +14,7 @@
     (fn []
       [:div (str "Hello from " @name ". This is the Home Page.")
        [:div [:a {:href "#/about"} "go to About Page"]]
-       [debug-panel]])))
-
+       [:div [:a {:href "#/debug"} "go to Debug Page"]]])))
 
 ;; about
 
@@ -29,6 +28,7 @@
 (defmulti panels identity)
 (defmethod panels :home-panel [] [home-panel])
 (defmethod panels :about-panel [] [about-panel])
+(defmethod panels :debug-panel [] [debug-panel])
 (defmethod panels :default [] [:div])
 
 (defn show-panel
