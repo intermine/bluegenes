@@ -1,6 +1,11 @@
 (ns re-frame-boiler.views
-    (:require [re-frame.core :as re-frame]))
+  (:require [re-frame.core :as re-frame]
+            [json-html.core :as json-html]))
 
+(defn debug-panel []
+  (let [app-db (re-frame/subscribe [:app-db])]
+    (fn []
+      [:div (json-html/edn->hiccup @app-db)])))
 
 ;; home
 
@@ -8,7 +13,8 @@
   (let [name (re-frame/subscribe [:name])]
     (fn []
       [:div (str "Hello from " @name ". This is the Home Page.")
-       [:div [:a {:href "#/about"} "go to About Page"]]])))
+       [:div [:a {:href "#/about"} "go to About Page"]]
+       [debug-panel]])))
 
 
 ;; about
@@ -17,7 +23,6 @@
   (fn []
     [:div "This is the About Page."
      [:div [:a {:href "#/"} "go to Home Page"]]]))
-
 
 ;; main
 
