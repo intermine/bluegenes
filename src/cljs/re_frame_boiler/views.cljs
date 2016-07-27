@@ -1,6 +1,7 @@
 (ns re-frame-boiler.views
   (:require [re-frame.core :as re-frame]
-            [json-html.core :as json-html]))
+            [json-html.core :as json-html]
+            [re-frame-boiler.components.nav :as nav]))
 
 (defn debug-panel []
   (let [app-db (re-frame/subscribe [:app-db])]
@@ -38,4 +39,6 @@
 (defn main-panel []
   (let [active-panel (re-frame/subscribe [:active-panel])]
     (fn []
-      [show-panel @active-panel])))
+      [:div
+       [nav/main]
+       [show-panel @active-panel]])))
