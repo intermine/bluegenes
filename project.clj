@@ -12,12 +12,9 @@
 
   :plugins [[lein-cljsbuild "1.1.3"]
             [lein-less "1.7.5"]
-            [lein-bower "0.5.1"]
-            [lein-npm "0.6.2"]]
+            [lein-bower "0.5.1"]]
 
   :bower-dependencies [[bootstrap "3.3.6"]]
-
-  :npm {:dependencies [[bootswatch "3.3.6"]]}
 
   :min-lein-version "2.5.3"
 

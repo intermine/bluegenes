@@ -3,13 +3,14 @@
 
 (defn main []
   (let [active-panel (subscribe [:active-panel])
-        app-name (subscribe [:name])
+        app-name     (subscribe [:name])
         panel-is     (fn [panel-key] (= @active-panel panel-key))]
     (fn []
-      [:nav.navbar.navbar-default
+      [:nav.navbar.navbar-default.down-shadow
        [:div.container-fluid
         [:div.navbar-header
-         [:a.navbar-brand {:href "#"} @app-name]
+         [:a.navbar-brand {:href "/#"} @app-name]
          [:ul.nav.navbar-nav
-          [:li {:class (if (panel-is :about-panel) "active")} [:a {:href "#/about"} "About"]]
-          [:li {:class (if (panel-is :debug-panel) "active")} [:a {:href "#/debug"} "Debug"]]]]]])))
+          [:li {:class (if (panel-is :home-panel) "active")} [:a {:href "/#"} "Home"]]
+          [:li {:class (if (panel-is :about-panel) "active")} [:a {:href "/#/about"} "About"]]
+          [:li {:class (if (panel-is :debug-panel) "active")} [:a {:href "/#/debug"} "Debug"]]]]]])))

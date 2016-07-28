@@ -1,7 +1,21 @@
 @import "../resources/public/vendor/bootstrap/less/bootstrap";
-@import "../node_modules/bootswatch/sandstone/bootswatch";
 @import "json-html";
+@import url(https://fonts.googleapis.com/css?family=Open+Sans:400,700,300);
+
+@import "components/navbar";
 
 body {
-    color:red;
+    font-family: 'Open Sans', sans-serif;
+    background: #f7f7f7;
+    color: #444444;
+}
+
+a {
+    color: #000;
+}
+
+.down-shadow {
+-webkit-box-shadow: 0px 2px 5px -1px rgba(0,0,0,0.13);
+-moz-box-shadow: 0px 2px 5px -1px rgba(0,0,0,0.13);
+box-shadow: 0px 2px 5px -1px rgba(0,0,0,0.13);
 }

@@ -13,9 +13,7 @@
 (defn home-panel []
   (let [name (re-frame/subscribe [:name])]
     (fn []
-      [:div (str "Hello from " @name ". This is the Home Page.")
-       [:div [:a {:href "#/about"} "go to About Page"]]
-       [:div [:a {:href "#/debug"} "go to Debug Page"]]])))
+      [:div (str "Hello from " @name ". This is the Home Page.")])))
 
 ;; about
 
@@ -41,4 +39,5 @@
     (fn []
       [:div
        [nav/main]
-       [show-panel @active-panel]])))
+       [:div.container
+        [show-panel @active-panel]]])))
