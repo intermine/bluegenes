@@ -40,4 +40,4 @@
       [:div
        [nav/main]
        [:div.container
-        [show-panel @active-panel]]])))
+        [:div.panel [show-panel @active-panel]]]])))

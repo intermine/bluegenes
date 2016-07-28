@@ -6822,6 +6822,9 @@ th.jh-key {
 }
 .navbar-default .navbar-brand {
   color: #6b6b6b;
+  background: #0dacfc;
+  color: white;
+  font-style: bold;
 }
 .navbar-default {
   font-size: 15px;
