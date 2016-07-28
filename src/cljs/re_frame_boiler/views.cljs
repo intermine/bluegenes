@@ -13,7 +13,7 @@
 (defn home-panel []
   (let [name (re-frame/subscribe [:name])]
     (fn []
-      [:div (str "Hello from " @name ". This is the Home Page.")])))
+      [:div [:h1 (str "Hello from " @name)]])))
 
 ;; about
 

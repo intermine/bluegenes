@@ -6820,6 +6820,10 @@ th.jh-key {
   color: #999;
   font-size: small;
 }
+.navbar-default .navbar-brand:hover {
+  background: #57c7ff;
+  color: white;
+}
 .navbar-default .navbar-brand {
   color: #6b6b6b;
   background: #0dacfc;
@@ -6870,6 +6874,12 @@ a {
   color: #000;
 }
 .down-shadow {
+  -webkit-box-shadow: 0px 2px 5px -1px rgba(0, 0, 0, 0.13);
+  -moz-box-shadow: 0px 2px 5px -1px rgba(0, 0, 0, 0.13);
+  box-shadow: 0px 2px 5px -1px rgba(0, 0, 0, 0.13);
+}
+.panel {
+  padding: 15px;
   -webkit-box-shadow: 0px 2px 5px -1px rgba(0, 0, 0, 0.13);
   -moz-box-shadow: 0px 2px 5px -1px rgba(0, 0, 0, 0.13);
   box-shadow: 0px 2px 5px -1px rgba(0, 0, 0, 0.13);
