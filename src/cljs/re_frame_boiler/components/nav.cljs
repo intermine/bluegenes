@@ -12,8 +12,8 @@
          [:a.navbar-brand {:href "/#"} @app-name]]
         [:ul.nav.navbar-nav
          [:li {:class (if (panel-is :home-panel) "active")} [:a {:href "/#"} "Home"]]
-         [:li {:class (if (panel-is :about-panel) "active")} [:a {:href "/#/about"} "About"]]
-         [:li {:class (if (panel-is :debug-panel) "active")} [:a {:href "/#/debug"} "Debug"]]]
+         [:li {:class (if (panel-is :about-panel) "active")} [:a {:href "/#/about"} "About"]]]
         [:ul.nav.navbar-nav.navbar-right
          [:li [:a {:href "/#"} [:i.fa.fa-cog]]]
-         [:li [:a {:href "/#"} [:i.fa.fa-user-times]]]]]])))
+         [:li [:a {:href "/#"} [:i.fa.fa-user-times]]]
+         [:li {:class (if (panel-is :debug-panel) "active")} [:a {:href "/#/debug"} [:i.fa.fa-bug]]]]]])))
