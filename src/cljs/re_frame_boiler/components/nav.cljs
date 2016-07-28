@@ -10,7 +10,7 @@
        [:div.container-fluid
         [:div.navbar-header
          [:a.navbar-brand {:href "/#"} @app-name]]
-        [:ul.nav.navbar-nav
+        [:ul.nav.navbar-nav.navbar-collapse
          [:li {:class (if (panel-is :home-panel) "active")} [:a {:href "/#"} "Home"]]
          [:li {:class (if (panel-is :about-panel) "active")} [:a {:href "/#/about"} "About"]]]
         [:ul.nav.navbar-nav.navbar-right
