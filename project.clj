@@ -14,7 +14,8 @@
             [lein-less "1.7.5"]
             [lein-bower "0.5.1"]]
 
-  :bower-dependencies [[bootstrap "3.3.6"]]
+  :bower-dependencies [[bootstrap "3.3.6"]
+                       [font-awesome "4.6.3"]]
 
   :min-lein-version "2.5.3"
 

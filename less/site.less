@@ -1,18 +1,29 @@
 @import "../resources/public/vendor/bootstrap/less/bootstrap";
+@import "../resources/public/vendor/font-awesome/less/font-awesome";
 @import "json-html";
 @import "overrides";
 @import "components/navbar";
+@import "variables";
+
+
 
 @import url(https://fonts.googleapis.com/css?family=Open+Sans:400,700,300);
 
 body {
     font-family: 'Open Sans', sans-serif;
-    background: #f7f7f7;
-    color: #444444;
+    background: @body-background-color;
+    color: @body-foreground-color;
+    margin-top: 70px;
 }
 
-a {
-    color: #000;
+a.callout {
+    color: @link-color;
+    border-bottom: 1px solid #c4c4c4;
+    padding: 2px;
+    text-decoration: none;
+    &:hover {
+        border-bottom: 1px solid @highlight-color;
+    }
 }
 
 .down-shadow {
