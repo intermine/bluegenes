@@ -8,7 +8,6 @@
               [re-frame-boiler.views :as views]
               [re-frame-boiler.config :as config]))
 
-
 (defn dev-setup []
   (when config/debug?
     (println "dev mode")

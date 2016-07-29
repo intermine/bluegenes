@@ -8,14 +8,17 @@
                  [compojure "1.5.0"]
                  [yogthos/config "0.8"]
                  [ring "1.4.0"]
-                 [json-html "0.4.0"]]
+                 [json-html "0.4.0"]
+                 [cljs-ajax "0.5.8"]
+                 [day8.re-frame/http-fx "0.0.4"]]
 
   :plugins [[lein-cljsbuild "1.1.3"]
             [lein-less "1.7.5"]
             [lein-bower "0.5.1"]]
 
   :bower-dependencies [[bootstrap "3.3.6"]
-                       [font-awesome "4.6.3"]]
+                       [font-awesome "4.6.3"]
+                       [flexboxgrid "6.3.0"]]
 
   :min-lein-version "2.5.3"
 

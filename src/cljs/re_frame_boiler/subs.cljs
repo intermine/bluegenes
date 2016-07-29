@@ -15,3 +15,8 @@
 (reg-sub
   :app-db
   (fn [db _] db))
+
+(reg-sub
+  :who-am-i
+  (fn [db _]
+    (:who-am-i db)))
