@@ -13,15 +13,18 @@
       [:li.list-group-item "TEST"]
       [:li.list-group-item "TEST"]]]))
 
-
-
-(defn main []
+(defn header []
   (let [name (re-frame/subscribe [:name])]
     (fn []
-      [:div.container
-       [:div.row [:h3 (str "Welcome to " @name)]]
-       [:div.row [search/main]]
-       [:hr]
-       [:div.row [templates]]
-       [:hr]
-       [:div.row [:span "test"]]])))
+      [:div.header
+       [:h3 (str "Welcome to " @name)]
+       [search/main]])))
+
+(defn main []
+  (fn []
+    [:div
+     [header]
+     [:div.container
+      [:div.row [templates]]
+      [:hr]
+      [:div.row [:span "test"]]]]))

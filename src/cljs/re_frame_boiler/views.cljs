@@ -35,5 +35,5 @@
     (fn []
       [:div
        [nav/main]
-       [:div.container
+       [:div
         [show-panel @active-panel]]])))

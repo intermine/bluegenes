@@ -5,6 +5,7 @@
   font-style: bold;
   -webkit-clip-path: polygon(0 0, 100% 0, 93% 100%, 0 100%);
   clip-path: polygon(0 0, 100% 0, 93% 100%, 0 100%);
+  margin: 0;
 }
 .navbar-default {
   font-size: 15px;

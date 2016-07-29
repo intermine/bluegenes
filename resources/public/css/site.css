@@ -9041,6 +9041,7 @@ th.jh-key {
   font-style: bold;
   -webkit-clip-path: polygon(0 0, 100% 0, 93% 100%, 0 100%);
   clip-path: polygon(0 0, 100% 0, 93% 100%, 0 100%);
+  margin: 0;
 }
 .navbar-default {
   font-size: 15px;
@@ -9081,7 +9082,6 @@ body {
   font-family: 'Open Sans', sans-serif;
   background: #f7f7f7;
   color: #444444;
-  margin-top: 70px;
 }
 a.callout {
   color: #000000;
@@ -9107,4 +9107,13 @@ div.logged-in {
   background: #00a8fc;
   color: white;
   padding: 3px;
+}
+div.header {
+  background: #3e3e3e;
+  margin-top: -20px;
+  padding: 30px;
+  color: white;
+  background: #e0e0e0;
+  color: black;
+  text-align: center;
 }
