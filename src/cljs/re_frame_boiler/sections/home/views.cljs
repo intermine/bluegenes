@@ -17,14 +17,18 @@
   (let [name (re-frame/subscribe [:name])]
     (fn []
       [:div.header
-       [:h3 (str "Welcome to " @name)]
        [search/main]])))
+
+(defn welcome []
+  (let [name (re-frame/subscribe [:name])]
+    (fn []
+      [:div.welcome
+       [:h3 "Welcome to Intermine"]])))
 
 (defn main []
   (fn []
     [:div
+     ;[welcome]
      [header]
-     [:div.container
-      [:div.row [templates]]
-      [:hr]
-      [:div.row [:span "test"]]]]))
+     [:div.container.padme
+      [:div.row [templates]]]]))

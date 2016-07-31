@@ -1,8 +1,11 @@
 (ns re-frame-boiler.handlers
-  (:require [re-frame.core :as re-frame :refer [reg-event reg-event-fx]]
+  (:require-macros [cljs.core.async.macros :refer [go go-loop]])
+  (:require [re-frame.core :as re-frame :refer [reg-event reg-event-fx reg-fx dispatch]]
             [re-frame-boiler.db :as db]
             [day8.re-frame.http-fx]
-            [ajax.core :as ajax]))
+            [ajax.core :as ajax]
+            [cljs.core.async :refer [put! chan <! >! timeout close!]]
+            [imjs.search :as search]))
 
 (reg-event
   :initialize-db
@@ -35,3 +38,19 @@
   :log-out
   (fn [db]
     (dissoc db :who-am-i)))
+
+(reg-event
+  :handle-suggestions
+  (fn [db [_ results]]
+    (assoc db :suggestion-results results)))
+
+(reg-fx
+  :suggest
+  (fn [val]
+    (go (dispatch [:handle-suggestions (<! (search/quicksearch val))]))))
+
+(reg-event-fx
+  :bounce-search
+  (fn [{db :db} [_ term]]
+    {:db      (assoc db :search-term term)
+     :suggest term}))

@@ -3827,6 +3827,7 @@ tbody.collapse.in {
   font-size: 18px;
   line-height: 1.3333333;
   border-radius: 6px;
+  height: 70px;
 }
 select.input-group-lg > .form-control,
 select.input-group-lg > .input-group-addon,
@@ -9034,6 +9035,15 @@ th.jh-key {
   background: #57c7ff;
   color: white;
 }
+.input-lg {
+  height: 70px;
+}
+.navbar {
+  margin-bottom: 0;
+}
+.padme {
+  padding: 20px 0 20px 0;
+}
 .navbar-default .navbar-brand {
   color: #6b6b6b;
   background: #0dacfc;
@@ -9093,22 +9103,22 @@ a.callout:hover {
   border-bottom: 1px solid #00a8fc;
 }
 .down-shadow {
-  -webkit-box-shadow: 0px 2px 5px -1px rgba(0, 0, 0, 0.13);
-  -moz-box-shadow: 0px 2px 5px -1px rgba(0, 0, 0, 0.13);
-  box-shadow: 0px 2px 5px -1px rgba(0, 0, 0, 0.13);
+  -webkit-box-shadow: 0px 2px 5px -1px rgba(0, 0, 0, 0.33);
+  -moz-box-shadow: 0px 2px 5px -1px rgba(0, 0, 0, 0.33);
+  box-shadow: 0px 2px 5px -1px rgba(0, 0, 0, 0.33);
 }
 .panel {
   padding: 15px;
-  -webkit-box-shadow: 0px 2px 5px -1px rgba(0, 0, 0, 0.13);
-  -moz-box-shadow: 0px 2px 5px -1px rgba(0, 0, 0, 0.13);
-  box-shadow: 0px 2px 5px -1px rgba(0, 0, 0, 0.13);
+  -webkit-box-shadow: 0px 2px 5px -1px rgba(0, 0, 0, 0.33);
+  -moz-box-shadow: 0px 2px 5px -1px rgba(0, 0, 0, 0.33);
+  box-shadow: 0px 2px 5px -1px rgba(0, 0, 0, 0.33);
 }
 div.logged-in {
   background: #00a8fc;
   color: white;
   padding: 3px;
 }
-div.header {
+div.welcome {
   background: #3e3e3e;
   margin-top: -20px;
   padding: 30px;
@@ -9116,4 +9126,15 @@ div.header {
   background: #e0e0e0;
   color: black;
   text-align: center;
+}
+div.header {
+  background: #3e3e3e;
+  padding: 30px;
+  color: white;
+  background: #e0e0e0;
+  color: black;
+  text-align: center;
+}
+.full-width {
+  width: 100%;
 }
