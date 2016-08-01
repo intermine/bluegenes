@@ -3827,7 +3827,6 @@ tbody.collapse.in {
   font-size: 18px;
   line-height: 1.3333333;
   border-radius: 6px;
-  height: 70px;
 }
 select.input-group-lg > .form-control,
 select.input-group-lg > .input-group-addon,
@@ -9035,9 +9034,6 @@ th.jh-key {
   background: #57c7ff;
   color: white;
 }
-.input-lg {
-  height: 70px;
-}
 .navbar {
   margin-bottom: 0;
 }
@@ -9129,7 +9125,6 @@ div.welcome {
 }
 div.header {
   background: #3e3e3e;
-  padding: 30px;
   color: white;
   background: #e0e0e0;
   color: black;
@@ -9137,4 +9132,7 @@ div.header {
 }
 .full-width {
   width: 100%;
+}
+.square {
+  border-radius: 0;
 }

@@ -12,7 +12,7 @@
   (let [results (subscribe [:suggestion-results])]
     (fn []
       [:div.dropdown
-       [:input.form-control.input-lg
+       [:input.form-control.input-lg.square
         {:data-toggle "dropdown"
          :type        "text"
          :placeholder "Search"
