@@ -9136,3 +9136,8 @@ div.header {
 .square {
   border-radius: 0;
 }
+.highlight {
+  color: white;
+  background: #00a8fc;
+  padding: 2px;
+}

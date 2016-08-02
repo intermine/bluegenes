@@ -47,7 +47,7 @@
 (reg-fx
   :suggest
   (fn [val]
-    (let [connection {:root  "www.flymine.org/query"}]
+    (let [connection {:root "www.flymine.org/query"}]
       (if (= "" val)
         (dispatch [:handle-suggestions nil])
         (go (dispatch [:handle-suggestions (<! (search/quicksearch connection val))]))))))

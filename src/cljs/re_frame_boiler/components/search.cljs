@@ -4,10 +4,15 @@
 
 
 (defn suggestion []
-  (fn [item]
-    [:div.list-group-item
-     [:h4.list-group-item-heading (:type item)]
-     [:p.list-group-item-text (interpose ", " (vals (:fields item)))]]))
+  (let [search-term (subscribe [:search-term])]
+    (fn [item]
+      (let [info   (clojure.string/join " " (interpose ", " (vals (:fields item))))
+            parsed (clojure.string/split info (re-pattern (str "(?i)" @search-term)))]
+        [:div.list-group-item
+         [:h4.list-group-item-heading (:type item)]
+         (into
+           [:p.list-group-item-text]
+           (interpose [:span.highlight @search-term] (map (fn [part] [:span part]) parsed)))]))))
 
 (defn main []
   (reagent/create-class
