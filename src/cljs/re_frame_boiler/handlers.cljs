@@ -42,14 +42,12 @@
 (reg-event
   :handle-suggestions
   (fn [db [_ results]]
-    (println "SUGGESTING" results)
     (assoc db :suggestion-results results)))
 
 (reg-fx
   :suggest
   (fn [val]
     (let [connection {:root  "www.flymine.org/query"}]
-      (println "nil" (type val))
       (if (= "" val)
         (dispatch [:handle-suggestions nil])
         (go (dispatch [:handle-suggestions (<! (search/quicksearch connection val))]))))))
