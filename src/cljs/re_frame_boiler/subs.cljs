@@ -20,3 +20,8 @@
   :who-am-i
   (fn [db _]
     (:who-am-i db)))
+
+(reg-sub
+  :suggestion-results
+  (fn [db _]
+    (:suggestion-results db)))

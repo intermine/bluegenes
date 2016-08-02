@@ -1,5 +1,6 @@
 (ns re-frame-boiler.components.nav
-  (:require [re-frame.core :as re-frame :refer [subscribe dispatch]]))
+  (:require [re-frame.core :as re-frame :refer [subscribe dispatch]]
+            [re-frame-boiler.components.search :as search]))
 
 (defn settings []
   (fn []
@@ -42,6 +43,7 @@
          [:li {:class (if (panel-is :home-panel) "active")} [:a {:href "/#"} "Home"]]
          [:li {:class (if (panel-is :about-panel) "active")} [:a {:href "/#/about"} "About"]]]
         [:ul.nav.navbar-nav.navbar-right
+         [:li [search/main]]
          [:li [:a {:href "/#"} [:i.fa.fa-question]]]
          [user]
          [settings]]]])))

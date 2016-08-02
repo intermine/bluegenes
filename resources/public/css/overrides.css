@@ -1,0 +1,10 @@
+.navbar-default .navbar-brand:hover {
+  background: #57c7ff;
+  color: white;
+}
+.navbar {
+  margin-bottom: 0;
+}
+.padme {
+  padding: 20px 0 20px 0;
+}

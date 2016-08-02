@@ -4,27 +4,37 @@
 
 
 
-(defn templates []
+(defn generic-section []
   (fn []
     [:div.panel
-     [:h2 "Templates"]
+     [:h2 "Some Component"]
      [:ul.list-group
-      [:li.list-group-item "TEST"]
-      [:li.list-group-item "TEST"]
-      [:li.list-group-item "TEST"]]]))
+      [:li.list-group-item "Data"]
+      [:li.list-group-item "More Data"]
+      [:li.list-group-item "And some more data"]]]))
+
+(defn footer []
+  (fn []
+    [:footer.footer
+     [:h1 "bottom"]]))
 
 (defn header []
   (let [name (re-frame/subscribe [:name])]
     (fn []
       [:div.header
-       [:h3 (str "Welcome to " @name)]
-       [search/main]])))
+       ;[search/main]
+       ])))
+
+(defn welcome []
+  (let [name (re-frame/subscribe [:name])]
+    (fn []
+      [:div.welcome
+       [:h3 "Welcome to Intermine"]])))
 
 (defn main []
   (fn []
     [:div
+     ;[welcome]
      [header]
-     [:div.container
-      [:div.row [templates]]
-      [:hr]
-      [:div.row [:span "test"]]]]))
+     [:div.container.padme
+      [:div.row [generic-section]]]]))
