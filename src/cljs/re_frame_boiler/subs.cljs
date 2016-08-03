@@ -13,6 +13,11 @@
     (:active-panel db)))
 
 (reg-sub
+  :panel-params
+  (fn [db _]
+    (:panel-params db)))
+
+(reg-sub
   :app-db
   (fn [db _] db))
 

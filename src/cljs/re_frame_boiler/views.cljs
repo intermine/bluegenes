@@ -3,7 +3,7 @@
             [json-html.core :as json-html]
             [re-frame-boiler.components.nav :as nav]
             [re-frame-boiler.sections.home.views :as home]
-            [re-frame-boiler.sections.lists.views :as list]
+            [re-frame-boiler.sections.assets.views :as assets]
             [imjs.user :as imjs]))
 
 (defn debug-panel []
@@ -25,7 +25,7 @@
 (defmethod panels :home-panel [] [home/main])
 (defmethod panels :about-panel [] [about-panel])
 (defmethod panels :debug-panel [] [debug-panel])
-(defmethod panels :list-panel [] [list/main])
+(defmethod panels :list-panel [] [assets/main])
 (defmethod panels :default [] [:div])
 
 (defn show-panel

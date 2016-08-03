@@ -30,5 +30,4 @@
        [:h2 "Lists"]
        [:div.container
         [:div.row
-         [:div.col-md-6.fix-height-400 [lists @im-lists]]
-         [:div.col-md-6 nil]]]])))
+         [:div.col-md-12.fix-height-400 [lists @im-lists]]]]])))
