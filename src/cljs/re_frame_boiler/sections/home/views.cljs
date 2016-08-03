@@ -1,6 +1,8 @@
 (ns re-frame-boiler.sections.home.views
   (:require [re-frame.core :as re-frame :refer [subscribe]]
-            [re-frame-boiler.components.search :as search]))
+            [re-frame-boiler.components.search :as search]
+            [re-frame-boiler.components.templates.views :as templates]
+            [re-frame-boiler.components.lists.views :as lists]))
 
 
 
@@ -37,4 +39,6 @@
      ;[welcome]
      [header]
      [:div.container.padme
+      [:div.row [templates/main]]
+      [:div.row [lists/main]]
       [:div.row [generic-section]]]]))

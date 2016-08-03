@@ -13,7 +13,8 @@
                  [cljs-ajax "0.5.8"]
                  [day8.re-frame/http-fx "0.0.4"]
                  [org.clojure/core.async "0.2.385"]
-                 [cljs-http "0.1.41"]]
+                 [cljs-http "0.1.41"]
+                 [venantius/accountant "0.1.7"]]
 
   :plugins [[lein-cljsbuild "1.1.3"]
             [lein-less "1.7.5"]

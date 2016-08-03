@@ -5,7 +5,8 @@
             [day8.re-frame.http-fx]
             [ajax.core :as ajax]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
-            [imjs.search :as search]))
+            [imjs.search :as search]
+            [imjs.assets :as assets]))
 
 (reg-event
   :initialize-db
@@ -14,8 +15,9 @@
 
 (reg-event
   :set-active-panel
-  (fn [db [_ active-panel]]
-    (assoc db :active-panel active-panel)))
+  (fn [db [_ active-panel panel-params]]
+    (assoc db :active-panel active-panel
+              :panel-params panel-params)))
 
 (reg-event
   :good-who-am-i
@@ -33,6 +35,12 @@
                   :response-format (ajax/json-response-format {:keywords? true})
                   :on-success      [:good-who-am-i]
                   :on-failure      [:bad-http-result]}}))
+
+
+(reg-event
+  :async-assoc
+  (fn [db [_ location-vec val]]
+    (assoc-in db location-vec val)))
 
 (reg-event
   :log-out
@@ -57,3 +65,21 @@
   (fn [{db :db} [_ term]]
     {:db      (assoc db :search-term term)
      :suggest term}))
+
+(reg-fx
+  :fetch-assets
+  (fn [connection]
+    (go (dispatch [:async-assoc [:assets :templates] (<! (assets/templates connection))]))
+    (go (dispatch [:async-assoc [:assets :lists] (<! (assets/lists connection))]))
+    (go (dispatch [:async-assoc [:assets :model] (<! (assets/model connection))]))))
+
+(reg-event-fx
+  :fetch-all-assets
+  (fn [{db :db}]
+    {:db           (assoc db :fetching-assets? true)
+     :fetch-assets {:root "www.flymine.org/query"}}))
+
+(reg-event
+  :select-template
+  (fn [db [_ id]]
+    (assoc db :selected-template id)))

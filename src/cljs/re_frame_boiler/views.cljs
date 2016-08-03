@@ -3,12 +3,13 @@
             [json-html.core :as json-html]
             [re-frame-boiler.components.nav :as nav]
             [re-frame-boiler.sections.home.views :as home]
+            [re-frame-boiler.sections.lists.views :as list]
             [imjs.user :as imjs]))
 
 (defn debug-panel []
   (let [app-db (re-frame/subscribe [:app-db])]
     (fn []
-      [:div (json-html/edn->hiccup @app-db)])))
+      [:div (json-html/edn->hiccup (dissoc @app-db :assets))])))
 
 
 ;; about
@@ -24,6 +25,7 @@
 (defmethod panels :home-panel [] [home/main])
 (defmethod panels :about-panel [] [about-panel])
 (defmethod panels :debug-panel [] [debug-panel])
+(defmethod panels :list-panel [] [list/main])
 (defmethod panels :default [] [:div])
 
 (defn show-panel

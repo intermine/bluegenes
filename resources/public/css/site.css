@@ -9040,6 +9040,11 @@ th.jh-key {
 .padme {
   padding: 20px 0 20px 0;
 }
+.nav-pills > li.active > a,
+.nav-pills > li.active > a:hover,
+.nav-pills > li.active > a:focus {
+  background-color: #00a8fc;
+}
 .navbar-default .navbar-brand {
   color: #6b6b6b;
   background: #0dacfc;
@@ -9139,5 +9144,9 @@ div.header {
 .highlight {
   color: white;
   background: #00a8fc;
-  padding: 2px;
+  padding: 0px;
+}
+.fix-height-400 {
+  max-height: 400px;
+  overflow-y: scroll;
 }

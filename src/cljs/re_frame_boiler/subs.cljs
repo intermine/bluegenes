@@ -30,3 +30,19 @@
   :search-term
   (fn [db _]
     (:search-term db)))
+
+(reg-sub
+  :templates
+  (fn [db _]
+    (:templates (:assets db))))
+
+(reg-sub
+  :lists
+  (fn [db _]
+    (:lists (:assets db))))
+
+(reg-sub
+  :selected-template
+  (fn [db _]
+    (let [template (:selected-template db)]
+      (-> db :assets :templates template))))

@@ -1,9 +1,10 @@
 @import "../resources/public/vendor/bootstrap/less/bootstrap";
 @import "../resources/public/vendor/font-awesome/less/font-awesome";
+@import "variables";
 @import "json-html";
 @import "overrides";
 @import "components/navbar";
-@import "variables";
+
 
 
 @import url(https://fonts.googleapis.com/css?family=Open+Sans:400,700,300);
@@ -70,5 +71,11 @@ div.header {
 .highlight {
     color: white;
     background: @highlight-color;
-    padding: 2px;
+    padding: 0px;
 }
+
+.fix-height-400 {
+    max-height: 400px;
+    overflow-y: scroll;
+}
+
