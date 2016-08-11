@@ -36,7 +36,7 @@
         app-name     (subscribe [:name])
         panel-is     (fn [panel-key] (= @active-panel panel-key))]
     (fn []
-      [:nav.navbar.navbar-default.down-shadow
+      [:nav.navbar.navbar-default.navbar-fixed-top.down-shadow
        [:div.container-fluid
         [:div.navbar-header
          [:span.navbar-brand {:href "/#"} @app-name]]
