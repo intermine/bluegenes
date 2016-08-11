@@ -1,6 +1,7 @@
 (ns re-frame-boiler.sections.home.texty
   (:require [re-frame.core :as re-frame]
-            [re-frame-boiler.components.search :as search]))
+            [re-frame-boiler.components.search :as search]
+            [re-frame-boiler.components.templates.views :as t]))
 
 (defn searchbox []
 [:div.search
@@ -74,7 +75,8 @@
       [:main.home.texty
         [searchbox]
         [:div.features
-          [templates]
+          ;[templates]
+         [t/main]
           [lists]
         ]
 

@@ -1,6 +1,7 @@
 (ns re-frame-boiler.components.nav
   (:require [re-frame.core :as re-frame :refer [subscribe dispatch]]
-            [re-frame-boiler.components.search :as search]))
+            [re-frame-boiler.components.search :as search]
+            [re-frame-boiler.components.progress_bar :as progress-bar]))
 
 (defn settings []
   (fn []
@@ -46,4 +47,5 @@
          [:li.search [search/main]]
          [:li [:a {:href "/#"} [:i.fa.fa-question]]]
          [user]
-         [settings]]]])))
+         [settings]]]
+       [progress-bar/main]])))

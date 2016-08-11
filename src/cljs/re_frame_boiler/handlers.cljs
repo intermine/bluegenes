@@ -83,3 +83,8 @@
   :select-template
   (fn [db [_ id]]
     (assoc db :selected-template id)))
+
+(reg-event
+  :test-progress-bar
+  (fn [db [_ percent]]
+    (assoc db :progress-bar-percent percent)))

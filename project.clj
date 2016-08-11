@@ -11,6 +11,7 @@
                  [ring "1.4.0"]
                  [json-html "0.4.0"]
                  [cljs-ajax "0.5.8"]
+                 [prismatic/dommy "1.1.0"]
                  [day8.re-frame/http-fx "0.0.4"]
                  [org.clojure/core.async "0.2.385"]
                  [cljs-http "0.1.41"]
@@ -63,6 +64,7 @@
                     :output-to       "resources/public/js/compiled/app.js"
                     :optimizations   :advanced
                     :closure-defines {goog.DEBUG false}
+                    :externs ["externs/marked.js"]
                     :pretty-print    false}}
     {:id           "test"
      :source-paths ["src/cljs" "test/cljs"]

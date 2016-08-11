@@ -1,5 +1,5 @@
 (ns re-frame-boiler.views
-  (:require [re-frame.core :as re-frame]
+  (:require [re-frame.core :as re-frame :refer [dispatch]]
             [json-html.core :as json-html]
             [re-frame-boiler.components.nav :as nav]
             [re-frame-boiler.sections.home.views :as home]
@@ -9,7 +9,14 @@
 (defn debug-panel []
   (let [app-db (re-frame/subscribe [:app-db])]
     (fn []
-      [:div (json-html/edn->hiccup (dissoc @app-db :assets))])))
+      [:div
+       [:div.panel.container
+        [:div.title "Global Progress Bar"]
+        [:button.btn
+         {:on-click (fn [x] (dispatch [:test-progress-bar (rand-int 101)]))} "Random"]
+        [:button.btn
+         {:on-click (fn [x] (dispatch [:test-progress-bar 0]))} "Hide"]]
+       (json-html/edn->hiccup (dissoc @app-db :assets))])))
 
 
 ;; about

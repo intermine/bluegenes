@@ -47,6 +47,11 @@
     (:lists (:assets db))))
 
 (reg-sub
+  :progress-bar-percent
+  (fn [db _]
+    (:progress-bar-percent db)))
+
+(reg-sub
   :selected-template
   (fn [db _]
     (let [template (:selected-template db)]
