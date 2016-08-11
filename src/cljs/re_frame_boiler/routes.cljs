@@ -7,10 +7,6 @@
             [goog.history.EventType :as EventType]
             [re-frame.core :as re-frame]))
 
-(accountant/configure-navigation!
-  {:nav-handler  (fn [path] (secretary/dispatch! path))
-   :path-exists? (fn [path] (secretary/locate-route path))})
-
 
 (defn hook-browser-navigation! []
   (doto (History.)
@@ -39,4 +35,13 @@
   (defroute "/assets/:type/:id" [type id]
             (re-frame/dispatch [:set-active-panel :list-panel {:type type :id id}]))
   ;; --------------------
-  (hook-browser-navigation!))
+
+  (accountant/configure-navigation!
+    {:nav-handler  (fn [path] (secretary/dispatch! path))
+     :path-exists? (fn [path] (secretary/locate-route path))})
+
+  (hook-browser-navigation!)
+
+
+
+  )
