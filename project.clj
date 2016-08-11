@@ -64,7 +64,6 @@
                     :output-to       "resources/public/js/compiled/app.js"
                     :optimizations   :advanced
                     :closure-defines {goog.DEBUG false}
-                    :externs ["externs/marked.js"]
                     :pretty-print    false}}
     {:id           "test"
      :source-paths ["src/cljs" "test/cljs"]
