@@ -2,7 +2,12 @@
   (:require [re-frame.core :as re-frame :refer [subscribe]]
             [re-frame-boiler.components.search :as search]
             [re-frame-boiler.components.templates.views :as templates]
-            [re-frame-boiler.components.lists.views :as lists]))
+            [re-frame-boiler.components.lists.views :as lists]
+            [re-frame-boiler.components.icons :as icons]
+            [re-frame-boiler.sections.home.circles :as circles]
+            [re-frame-boiler.sections.home.texty :as texty]
+            [re-frame-boiler.components.search :as search]))
+
 
 
 
@@ -18,7 +23,17 @@
 (defn footer []
   (fn []
     [:footer.footer
-     [:h1 "bottom"]]))
+      [:div
+       [:p "Powered by: "
+       [:a {:href "nope"}
+        [:img {:width "120px" :src "https://cdn.rawgit.com/intermine/design-materials/master/logos/intermine/intermine.png"}]]]
+        [:a {:href "nope"} "Cite"]
+        [:a {:href "nope"} "Contact"]
+        [:a {:href "nope"} "Blog"]]
+     [:div [:p "Funded by:" ]
+      [:a {:href "nope"} "Wellcome Trust"]
+      [:a {:href "nope"} "NIH"]
+     ]]))
 
 (defn header []
   (let [name (re-frame/subscribe [:name])]
@@ -35,10 +50,21 @@
 
 (defn main []
   (fn []
-    [:div
-     ;[welcome]
+    [:div.approot.red
+      [icons/icons]
+      ;[:svg.icon [:use {:xlinkHref "#icon-floppy-disk"}]]
+      ;[welcome]
      [header]
+;     [circles/main-panel]
+     [texty/main-panel]
      [:div.container.padme
-      [:div.row [templates/main]]
-      [:div.row [lists/main]]
-      [:div.row [generic-section]]]]))
+;<<<<<<< HEAD
+;      [:div.row [templates/main]]
+;      [:div.row [lists/main]]
+;      [:div.row [generic-section]]]]))
+;=======
+      ;[:div.row [generic-section]]
+      ]
+     [footer]
+     ]))
+

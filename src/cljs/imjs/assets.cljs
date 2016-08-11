@@ -2,7 +2,6 @@
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [ajax.core :refer [GET POST]]
             [cljs-http.client :as http]
-            [clojure.xml :as xml]
             [imjs.utils :as utils :refer [cleanse-url]]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]))
 

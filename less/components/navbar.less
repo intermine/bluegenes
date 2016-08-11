@@ -10,35 +10,70 @@
 .navbar-default {
     font-size: 15px;
     background-color: rgba(255, 255, 255, 1);
-    border-width: 0px;
-    border-radius: 0px;
+    border-width: 0;
+    border-radius: 0;
 }
-.navbar-default .navbar-nav>li>a {
+.navbar-default .navbar-nav > li > a {
     color: rgba(168, 168, 168, 1);
     background-color: rgba(248, 248, 248, 0);
 }
-.navbar-default .navbar-nav>li>a:hover,
-.navbar-default .navbar-nav>li>a:focus {
+.navbar-default .navbar-nav > li > a:focus,
+.navbar-default .navbar-nav > li > a:hover {
     color: rgba(51, 51, 51, 1);
     background-color: rgba(248, 248, 248, 0);
 }
-.navbar-default .navbar-nav>.active>a,
-.navbar-default .navbar-nav>.active>a:hover,
-.navbar-default .navbar-nav>.active>a:focus {
+.navbar-default .navbar-nav > .active > a,
+.navbar-default .navbar-nav > .active > a:focus,
+.navbar-default .navbar-nav > .active > a:hover {
     color: rgba(0, 168, 252, 1);
     background-color: rgba(255, 255, 255, 1);
 }
 .navbar-default .navbar-toggle {
     border-color: #ffffff;
 }
-.navbar-default .navbar-toggle:hover,
-.navbar-default .navbar-toggle:focus {
+.navbar-default .navbar-toggle:focus,
+.navbar-default .navbar-toggle:hover {
     background-color: #ffffff;
 }
 .navbar-default .navbar-toggle .icon-bar {
     background-color: #ffffff;
 }
-.navbar-default .navbar-toggle:hover .icon-bar,
-.navbar-default .navbar-toggle:focus .icon-bar {
+.navbar-default .navbar-toggle:focus .icon-bar,
+.navbar-default .navbar-toggle:hover .icon-bar {
     background-color: #ffffff;
+}
+@media (max-width:800px) {
+    .navbar-header
+    { align-self:flex-start
+    }
+    .navbar .container-fluid {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content:stretch;
+    }
+    .container > .navbar-collapse,
+    .container-fluid > .navbar-collapse {
+        &.navigation {
+            border-top: 0;
+            margin-bottom: 0;
+            margin-top: 5px;
+            flex-grow:1;
+            justify-content:space-around;
+            margin-left: 0;
+            display: flex;
+        }
+    }
+    .navbar-nav.buttons {
+        margin-top: 0;
+        display: flex;
+        flex-grow:1;
+        border-top:solid 1px #ccc;
+        justify-content:space-around;
+        margin-bottom: 0;
+        li {
+            &.search {
+                display: none;
+            }
+        }
+    }
 }

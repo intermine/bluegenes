@@ -39,11 +39,11 @@
        [:div.container-fluid
         [:div.navbar-header
          [:span.navbar-brand {:href "/#"} @app-name]]
-        [:ul.nav.navbar-nav.navbar-collapse
+        [:ul.nav.navbar-nav.navbar-collapse.navigation
          [:li {:class (if (panel-is :home-panel) "active")} [:a {:href "/#"} "Home"]]
          [:li {:class (if (panel-is :about-panel) "active")} [:a {:href "/#/about"} "About"]]]
-        [:ul.nav.navbar-nav.navbar-right
-         [:li [search/main]]
+        [:ul.nav.navbar-nav.navbar-right.buttons
+         [:li.search [search/main]]
          [:li [:a {:href "/#"} [:i.fa.fa-question]]]
          [user]
          [settings]]]])))

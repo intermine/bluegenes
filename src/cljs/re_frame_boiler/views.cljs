@@ -35,7 +35,6 @@
 (defn main-panel []
   (let [active-panel (re-frame/subscribe [:active-panel])]
     (fn []
-      [:div
+      [:div.approot
        [nav/main]
-       [:div
-        [show-panel @active-panel]]])))
+       [show-panel @active-panel]])))
