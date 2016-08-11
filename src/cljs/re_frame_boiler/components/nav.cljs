@@ -1,6 +1,7 @@
 (ns re-frame-boiler.components.nav
   (:require [re-frame.core :as re-frame :refer [subscribe dispatch]]
             [re-frame-boiler.components.search :as search]
+            [accountant.core :as accountant :refer [navigate!]]
             [re-frame-boiler.components.progress_bar :as progress-bar]))
 
 (defn settings []
@@ -8,7 +9,7 @@
     [:li.dropdown
      [:a.dropdown-toggle {:data-toggle "dropdown" :role "button"} [:i.fa.fa-cog]]
      [:ul.dropdown-menu
-      [:li [:a {:href "/#/debug"} [:i.fa.fa-terminal] " Developer"]]]]))
+      [:li [:a {:on-click #(navigate! "#/debug")} [:i.fa.fa-terminal] " Developer"]]]]))
 
 (defn logged-in [user]
   [:li.dropdown.active
@@ -39,13 +40,13 @@
       [:nav.navbar.navbar-default.navbar-fixed-top.down-shadow
        [:div.container-fluid
         [:div.navbar-header
-         [:span.navbar-brand {:href "/#"} @app-name]]
+         [:span.navbar-brand {:on-click #(navigate! "#/")} @app-name]]
         [:ul.nav.navbar-nav.navbar-collapse.navigation
-         [:li {:class (if (panel-is :home-panel) "active")} [:a {:href "/#"} "Home"]]
-         [:li {:class (if (panel-is :about-panel) "active")} [:a {:href "/#/about"} "About"]]]
+         [:li {:class (if (panel-is :home-panel) "active")} [:a {:on-click #(navigate! "#/")} "Home"]]
+         [:li {:class (if (panel-is :about-panel) "active")} [:a {:on-click #(navigate! "#/about")} "About"]]]
         [:ul.nav.navbar-nav.navbar-right.buttons
          [:li.search [search/main]]
-         [:li [:a {:href "/#"} [:i.fa.fa-question]]]
+         [:li [:a [:i.fa.fa-question]]]
          [user]
          [settings]]]
        [progress-bar/main]])))

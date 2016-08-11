@@ -4,18 +4,20 @@
             [re-frame-boiler.components.nav :as nav]
             [re-frame-boiler.sections.home.views :as home]
             [re-frame-boiler.sections.assets.views :as assets]
-            [imjs.user :as imjs]))
+            [imjs.user :as imjs]
+            [accountant.core :refer [navigate!]]))
 
 (defn debug-panel []
   (let [app-db (re-frame/subscribe [:app-db])]
     (fn []
       [:div
+       [:button.btn {:on-click #(navigate! "#/assets/lists/123")} "Route"]
        [:div.panel.container
         [:div.title "Global Progress Bar"]
         [:button.btn
-         {:on-click (fn [x] (dispatch [:test-progress-bar (rand-int 101)]))} "Random"]
+         {:on-click #(dispatch [:test-progress-bar (rand-int 101)])} "Random"]
         [:button.btn
-         {:on-click (fn [x] (dispatch [:test-progress-bar 0]))} "Hide"]]
+         {:on-click #(dispatch [:test-progress-bar 0])} "Hide"]]
        (json-html/edn->hiccup (dissoc @app-db :assets))])))
 
 
@@ -24,7 +26,7 @@
 (defn about-panel []
   (fn []
     [:div "This is the About Page."
-     [:div [:a.callout {:href "#/"} "go to Home Page"] ]]))
+     [:div [:a.callout {:on-click #(navigate! "#/")} "go to Home Page"] ]]))
 
 ;; main
 
