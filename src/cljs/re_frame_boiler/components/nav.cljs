@@ -1,7 +1,7 @@
 (ns re-frame-boiler.components.nav
-  (:require [re-frame.core :as re-frame :refer [subscribe dispatch]]
+  (:require [re-frame.core :refer [subscribe dispatch]]
             [re-frame-boiler.components.search :as search]
-            [accountant.core :as accountant :refer [navigate!]]
+            [accountant.core :refer [navigate!]]
             [re-frame-boiler.components.progress_bar :as progress-bar]))
 
 (defn settings []
@@ -28,9 +28,9 @@
 (defn user []
   (let [who-am-i (subscribe [:who-am-i])]
     (fn []
-     (if @who-am-i
-       [logged-in @who-am-i]
-       [anonymous]))))
+      (if @who-am-i
+        [logged-in @who-am-i]
+        [anonymous]))))
 
 (defn main []
   (let [active-panel (subscribe [:active-panel])

@@ -17,7 +17,7 @@
     (events/listen
       EventType/NAVIGATE
       (fn [event]
-        (secretary/dispatch! (.-token event))))
+        (accountant/navigate! (str "#" (.-token event)))))
     (.setEnabled true)))
 
 (defn app-routes []
