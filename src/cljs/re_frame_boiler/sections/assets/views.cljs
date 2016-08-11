@@ -5,9 +5,14 @@
             [re-frame-boiler.components.lists.views :as lists]))
 
 (defn main []
-  (let [params (subscribe [:panel-params])]
+  (let [params (subscribe [:panel-params])
+        assets (subscribe [:lists])]
     (fn []
       [:div
        [:div.container.padme
         [:div.row [:h1 "Assets"]]
-        [:div.row [:span (str "Display asset: " @params)]]]])))
+        [:div.row [:span (str "Display asset: " @params)]]
+        [:div.row [:span
+                   (filter #(= "PL FlyAtlas_tubules_top" (:name %))@assets)]]
+        ;[:div.row [:span (str @assets)]]
+        ]])))

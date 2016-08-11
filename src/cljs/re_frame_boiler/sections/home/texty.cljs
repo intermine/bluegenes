@@ -75,8 +75,8 @@
       [:main.home.texty
         [searchbox]
         [:div.features
-          ;[templates]
-         [t/main]
+          [templates]
+         ;[t/main]
           [lists]
         ]
 

@@ -55,8 +55,8 @@
       ;[:svg.icon [:use {:xlinkHref "#icon-floppy-disk"}]]
       ;[welcome]
      [header]
-;     [circles/main-panel]
-     [texty/main-panel]
+     [circles/main-panel]
+     ;[texty/main-panel]
      [:div.container.padme
 ;<<<<<<< HEAD
 ;      [:div.row [templates/main]]
