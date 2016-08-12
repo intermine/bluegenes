@@ -11,7 +11,7 @@
       (let [info   (clojure.string/join " " (interpose ", " (vals (:fields item))))
             parsed (clojure.string/split info (re-pattern (str "(?i)" @search-term)))]
         [:div.list-group-item
-         {:on-mouse-down (fn [x] (.log js/console (:id item)))}
+         {:on-mouse-down (fn [] (navigate! (str "#/objects/" (:id item))))}
          [:h4.list-group-item-heading (:type item)]
          (into
            [:p.list-group-item-text]
