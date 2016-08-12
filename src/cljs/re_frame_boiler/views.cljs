@@ -4,6 +4,7 @@
             [re-frame-boiler.components.nav :as nav]
             [re-frame-boiler.sections.home.views :as home]
             [re-frame-boiler.sections.assets.views :as assets]
+            [re-frame-boiler.sections.objects.views :as objects]
             [imjs.user :as imjs]
             [accountant.core :refer [navigate!]]))
 
@@ -11,7 +12,10 @@
   (let [app-db (re-frame/subscribe [:app-db])]
     (fn []
       [:div
-       [:button.btn {:on-click #(navigate! "#/assets/lists/123")} "Route"]
+       [:div.panel.container
+        [:div.title "Routes"]
+        [:button.btn {:on-click #(navigate! "#/assets/lists/123")} "Asset: List: (123)"]
+        [:button.btn {:on-click #(navigate! "#/objects/12345")} "Object (12345)"]]
        [:div.panel.container
         [:div.title "Global Progress Bar"]
         [:button.btn
@@ -35,6 +39,7 @@
 (defmethod panels :about-panel [] [about-panel])
 (defmethod panels :debug-panel [] [debug-panel])
 (defmethod panels :list-panel [] [assets/main])
+(defmethod panels :object-panel [] [objects/main])
 (defmethod panels :default [] [:div])
 
 (defn show-panel

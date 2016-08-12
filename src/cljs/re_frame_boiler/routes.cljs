@@ -34,6 +34,10 @@
 
   (defroute "/assets/:type/:id" [type id]
             (re-frame/dispatch [:set-active-panel :list-panel {:type type :id id}]))
+
+  (defroute "/objects/:id" [id]
+            (re-frame/dispatch [:set-active-panel :object-panel {:id id}]))
+
   ;; --------------------
 
   (accountant/configure-navigation!

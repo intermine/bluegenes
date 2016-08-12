@@ -1,6 +1,7 @@
 (ns re-frame-boiler.components.search
   (:require [reagent.core :as reagent]
             [re-frame.core :as re-frame :refer [subscribe dispatch]]
+            [accountant.core :refer [navigate!]]
             [dommy.core :as dommy :refer-macros [sel sel1]]))
 
 
