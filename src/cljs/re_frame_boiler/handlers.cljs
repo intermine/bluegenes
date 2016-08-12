@@ -5,8 +5,9 @@
             [day8.re-frame.http-fx]
             [ajax.core :as ajax]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
-            [imjs.search :as search]
-            [imjs.assets :as assets]))
+            [imcljs.search :as search]
+            [imcljs.assets :as assets]
+            [re-frame-boiler.sections.objects.handlers]))
 
 (reg-event
   :initialize-db
@@ -70,8 +71,9 @@
   :fetch-assets
   (fn [connection]
     (go (dispatch [:async-assoc [:assets :templates] (<! (assets/templates connection))]))
-    (go (dispatch [:async-assoc [:assets :lists] (<! (assets/lists connection))]))
-    (go (dispatch [:async-assoc [:assets :model] (<! (assets/model connection))]))))
+    ;(go (dispatch [:async-assoc [:assets :lists] (<! (assets/lists connection))]))
+    ;(go (dispatch [:async-assoc [:assets :model] (<! (assets/model connection))]))
+    ))
 
 (reg-event-fx
   :fetch-all-assets
@@ -88,3 +90,4 @@
   :test-progress-bar
   (fn [db [_ percent]]
     (assoc db :progress-bar-percent percent)))
+

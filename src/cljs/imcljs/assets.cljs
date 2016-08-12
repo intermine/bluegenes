@@ -1,14 +1,14 @@
-(ns imjs.assets
+(ns imcljs.assets
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [ajax.core :refer [GET POST]]
             [cljs-http.client :as http]
-            [imjs.utils :as utils :refer [cleanse-url]]
+            [imcljs.utils :as utils :refer [cleanse-url]]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]))
 
 (defn templates
   "Returns the results of a quicksearch"
   [{root :root token :token}]
-  (go (:templates (:body (<! (http/get (str (cleanse-url root) "/templates")
+  (go (:templates (:body (<! (http/get "http://www.flymine.org/query/service/templates"
                                        {:query-params      {:format "json"}
                                         :with-credentials? false}))))))
 
