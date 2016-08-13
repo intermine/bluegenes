@@ -4,7 +4,7 @@
             [re-frame-boiler.db :as db]
             [day8.re-frame.http-fx]
             [ajax.core :as ajax]
-            [cljs.core.async :refer [put! chan <! >! timeout close!]]
+            [cljs.core.async :as async :refer [put! chan <! >! timeout close! alts!]]
             [imjs.search :as search]
             [imjs.assets :as assets]))
 
@@ -69,14 +69,31 @@
 (reg-fx
   :fetch-assets
   (fn [connection]
-    (go (dispatch [:async-assoc [:assets :templates] (<! (assets/templates connection))]))
-    (go (dispatch [:async-assoc [:assets :lists] (<! (assets/lists connection))]))
-    (go (dispatch [:async-assoc [:assets :model] (<! (assets/model connection))]))))
+    (let [c1 (assets/templates connection)
+          c2 (assets/lists connection)
+          c3 (assets/model connection)
+          c4 (assets/summary-fields connection)]
+      (go-loop [channels [c1 c2 c3 c4]]
+        (let [[v p] (alts! channels)]
+          (if-not (and (nil? v) (empty? channels))
+            (let [remaining (remove #(= % p) channels)]
+              (println "V" v)
+              (if-not (empty? remaining)
+                (recur remaining)))))))))
+
+#_(reg-fx
+    :fetch-assets
+    (fn [connection]
+      (go (dispatch [:async-assoc [:assets :templates] (<! (assets/templates connection))]))
+      (go (dispatch [:async-assoc [:assets :lists] (<! (assets/lists connection))]))
+      (go (dispatch [:async-assoc [:assets :model] (<! (assets/model connection))]))
+      (go (dispatch [:async-assoc [:assets :summary-fields] (<! (assets/summary-fields connection))]))))
 
 (reg-event-fx
   :fetch-all-assets
   (fn [{db :db}]
-    {:db           (assoc db :fetching-assets? true)
+    {:db           (assoc db :fetching-assets? true
+                             :progress-bar-percent 50)
      :fetch-assets {:root "www.flymine.org/query"}}))
 
 (reg-event
