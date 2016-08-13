@@ -4,16 +4,10 @@
             [re-frame-boiler.db :as db]
             [day8.re-frame.http-fx]
             [ajax.core :as ajax]
-<<<<<<< HEAD
-            [cljs.core.async :as async :refer [put! chan <! >! timeout close! alts!]]
-            [imjs.search :as search]
-            [imjs.assets :as assets]))
-=======
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
             [imcljs.search :as search]
             [imcljs.assets :as assets]
             [re-frame-boiler.sections.objects.handlers]))
->>>>>>> d058a08aa14af414b8f3d23b6608ed2bb38cf83c
 
 (reg-event
   :initialize-db
@@ -42,7 +36,6 @@
                   :response-format (ajax/json-response-format {:keywords? true})
                   :on-success      [:good-who-am-i]
                   :on-failure      [:bad-http-result]}}))
-
 
 (reg-event
   :async-assoc
@@ -79,12 +72,17 @@
     (let [c1 (assets/templates connection)
           c2 (assets/lists connection)
           c3 (assets/model connection)
-          c4 (assets/summary-fields connection)]
+          c4 (assets/summary-fields connection)
+          locations {c1 [:assets :templates]
+                     c2 [:assets :lists]
+                     c3 [:assets :model]
+                     c4 [:assets :summary-fields]}]
       (go-loop [channels [c1 c2 c3 c4]]
         (let [[v p] (alts! channels)]
           (if-not (and (nil? v) (empty? channels))
             (let [remaining (remove #(= % p) channels)]
-              (println "V" v)
+              (dispatch [:test-progress-bar (* 100 (/ (- 4 (count remaining)) 4))])
+              (dispatch [:async-assoc (get locations p) v])
               (if-not (empty? remaining)
                 (recur remaining)))))))))
 
@@ -100,7 +98,7 @@
   :fetch-all-assets
   (fn [{db :db}]
     {:db           (assoc db :fetching-assets? true
-                             :progress-bar-percent 50)
+                             :progress-bar-percent 0)
      :fetch-assets {:root "www.flymine.org/query"}}))
 
 (reg-event

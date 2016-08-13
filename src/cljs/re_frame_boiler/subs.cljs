@@ -47,6 +47,11 @@
     (:lists (:assets db))))
 
 (reg-sub
+  :summary-fields
+  (fn [db _]
+    (:summary-fields (:assets db))))
+
+(reg-sub
   :progress-bar-percent
   (fn [db _]
     (:progress-bar-percent db)))

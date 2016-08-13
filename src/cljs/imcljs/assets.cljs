@@ -29,5 +29,5 @@
 (defn summary-fields
   "Returns the results of a quicksearch"
   [{root :root token :token}]
-  (go (:lists (:body (<! (http/get (str (cleanse-url root) "/summaryfields")
+  (go (:classes (:body (<! (http/get (str (cleanse-url root) "/summaryfields")
                                    {:with-credentials? false}))))))
