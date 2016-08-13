@@ -1,5 +1,5 @@
 (ns re-frame-boiler.sections.objects.views
-  (:require [re-frame.core :as re-frame :refer [subscribe]]
+  (:require [re-frame.core :as re-frame :refer [subscribe dispatch]]
             [re-frame-boiler.components.search :as search]
             [re-frame-boiler.components.templates.views :as templates]
             [re-frame-boiler.components.lists.views :as lists]))
@@ -16,3 +16,5 @@
                    (filter #(= "PL FlyAtlas_tubules_top" (:name %))@assets)]]
         ;[:div.row [:span (str @assets)]]
         ]])))
+
+

@@ -36,6 +36,7 @@
             (re-frame/dispatch [:set-active-panel :list-panel {:type type :id id}]))
 
   (defroute "/objects/:id" [id]
+            (re-frame/dispatch [:load-report id])
             (re-frame/dispatch [:set-active-panel :object-panel {:id id}]))
 
   ;; --------------------

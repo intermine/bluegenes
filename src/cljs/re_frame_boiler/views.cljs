@@ -5,7 +5,6 @@
             [re-frame-boiler.sections.home.views :as home]
             [re-frame-boiler.sections.assets.views :as assets]
             [re-frame-boiler.sections.objects.views :as objects]
-            [imjs.user :as imjs]
             [accountant.core :refer [navigate!]]))
 
 (defn debug-panel []

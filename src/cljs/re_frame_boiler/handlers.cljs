@@ -4,9 +4,16 @@
             [re-frame-boiler.db :as db]
             [day8.re-frame.http-fx]
             [ajax.core :as ajax]
+<<<<<<< HEAD
             [cljs.core.async :as async :refer [put! chan <! >! timeout close! alts!]]
             [imjs.search :as search]
             [imjs.assets :as assets]))
+=======
+            [cljs.core.async :refer [put! chan <! >! timeout close!]]
+            [imcljs.search :as search]
+            [imcljs.assets :as assets]
+            [re-frame-boiler.sections.objects.handlers]))
+>>>>>>> d058a08aa14af414b8f3d23b6608ed2bb38cf83c
 
 (reg-event
   :initialize-db
@@ -105,3 +112,4 @@
   :test-progress-bar
   (fn [db [_ percent]]
     (assoc db :progress-bar-percent percent)))
+

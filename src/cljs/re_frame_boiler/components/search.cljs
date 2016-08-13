@@ -11,6 +11,7 @@
       (let [info   (clojure.string/join " " (interpose ", " (vals (:fields item))))
             parsed (clojure.string/split info (re-pattern (str "(?i)" @search-term)))]
         [:div.list-group-item
+         {:on-mouse-down (fn [] (navigate! (str "#/objects/" (:id item))))}
          [:h4.list-group-item-heading (:type item)]
          (into
            [:p.list-group-item-text]
@@ -30,8 +31,7 @@
                             (fn []
                               [:div.dropdown
                                [:input.form-control.input-lg.square
-                                {:data-toggle "collapse"
-                                 :type        "text"
+                                {:type        "text"
                                  :value       @search-term
                                  :placeholder "Search"
                                  :on-change   #(dispatch [:bounce-search (-> % .-target .-value)])}]

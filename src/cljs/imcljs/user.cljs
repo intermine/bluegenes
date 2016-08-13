@@ -1,4 +1,4 @@
-(ns imjs.user
+(ns imcljs.user
   (:require [ajax.core :refer [GET POST]]))
 
 

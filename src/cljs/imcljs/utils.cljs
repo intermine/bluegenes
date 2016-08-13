@@ -1,4 +1,4 @@
-(ns imjs.utils)
+(ns imcljs.utils)
 
 (defn missing-http?- [val] (not (re-find #"^https?://" val)))
 
