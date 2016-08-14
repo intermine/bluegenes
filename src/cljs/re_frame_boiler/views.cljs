@@ -14,7 +14,7 @@
        [:div.panel.container
         [:div.title "Routes"]
         [:button.btn {:on-click #(navigate! "#/assets/lists/123")} "Asset: List: (123)"]
-        [:button.btn {:on-click #(navigate! "#/objects/12345")} "Object (12345)"]]
+        [:button.btn {:on-click #(navigate! "#/objects/type/12345")} "Object (12345)"]]
        [:div.panel.container
         [:div.title "Global Progress Bar"]
         [:button.btn

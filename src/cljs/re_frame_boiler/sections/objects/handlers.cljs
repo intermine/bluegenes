@@ -12,9 +12,10 @@
 
 (reg-fx
   :fetch-report
-  (fn [[id db]]
-    (let [q {:from   "Gene"
-             :select (-> db :assets :summary-fields :Gene)
+  (fn [[db type id]]
+    (let [type-kw (keyword type)
+          q {:from   type
+             :select (-> db :assets :summary-fields type-kw)
              :where  {:id id}}]
       (go (dispatch [:handle-report-summary (<! (search/raw-query-rows
                                                   {:root "www.flymine.org/query"}
@@ -23,6 +24,6 @@
 
 (reg-event-fx
   :load-report
-  (fn [{db :db} [_ id]]
+  (fn [{db :db} [_ type id]]
     {:db           (assoc db :fetching-report? true)
-     :fetch-report [id db]}))
+     :fetch-report [db type id]}))
