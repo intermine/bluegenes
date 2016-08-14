@@ -6,10 +6,10 @@
 
 (defn main []
   (let [params (subscribe [:panel-params])
-        summary-fields (subscribe [:summary-fields])]
+        report (subscribe [:report])]
     (fn []
       [:div
        [:div.container.padme
         [:div.row [:h1 "Report"]]
         [:div.row [:span (str "Object Params: " @params)]]
-        [:div.row [:span (str "summy" @summary-fields)]]]])))
+        [:div.row [:span (str "summy" @report)]]]])))

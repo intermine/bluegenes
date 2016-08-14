@@ -52,6 +52,11 @@
     (:summary-fields (:assets db))))
 
 (reg-sub
+  :report
+  (fn [db _]
+    (:report db)))
+
+(reg-sub
   :progress-bar-percent
   (fn [db _]
     (:progress-bar-percent db)))

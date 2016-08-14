@@ -14,16 +14,16 @@
                                                             :size 5}
                                         :with-credentials? false})))))))
 
-;(defn raw-query-rows
-;  "Returns IMJS row-style result"
-;  [service query options]
-;  (let [c (chan)]
-;    (-> (js/imcljs.Service. (clj->js service))
-;        (.query (clj->js query))
-;        (.then (fn [q]
-;                 (go (let [response (<! (http/post (str (cleanse-url (:root service)) "/query/results")
-;                                                   {:with-credentials? false
-;                                                    :form-params       (merge options {:query (.toXML q)})}))]
-;                       (>! c (-> response :body))
-;                       (close! c))))))
-;    c))
+(defn raw-query-rows
+  "Returns IMJS row-style result"
+  [service query options]
+  (let [c (chan)]
+    (-> (js/imjs.Service. (clj->js service))
+        (.query (clj->js query))
+        (.then (fn [q]
+                 (go (let [response (<! (http/post (str "http://" (:root service) "/service/query/results")
+                                                   {:with-credentials? false
+                                                    :form-params       (merge options {:query (.toXML q)})}))]
+                       (>! c (-> response :body))
+                       (close! c))))))
+    c))
