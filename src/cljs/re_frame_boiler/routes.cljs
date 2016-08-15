@@ -7,7 +7,6 @@
             [goog.history.EventType :as EventType]
             [re-frame.core :as re-frame]))
 
-
 (defn hook-browser-navigation! []
   (doto (History.)
     (events/listen
@@ -15,10 +14,6 @@
       (fn [event]
         (accountant/navigate! (str "#" (.-token event)))))
     (.setEnabled true)))
-
-;(defn route [uri &  params]
-;  (defroute "/" []
-;            ))
 
 (defn app-routes []
   (secretary/set-config! :prefix "#")
@@ -40,8 +35,9 @@
             (re-frame/dispatch [:set-active-panel :list-panel {:type type :id id}]))
 
   (defroute "/objects/:type/:id" [type id]
-            (re-frame/dispatch [:load-report type id])
-            (re-frame/dispatch [:set-active-panel :object-panel {:type type :id id}]))
+            (re-frame/dispatch [:set-active-panel :object-panel
+                                {:type type :id id}
+                                [:load-report type id]]))
 
   ;; --------------------
 
@@ -49,8 +45,4 @@
     {:nav-handler  (fn [path] (secretary/dispatch! path))
      :path-exists? (fn [path] (secretary/locate-route path))})
 
-  (hook-browser-navigation!)
-
-
-
-  )
+  (hook-browser-navigation!))

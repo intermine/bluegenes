@@ -3,7 +3,7 @@
   (:require [re-frame.core :as re-frame :refer [reg-event reg-event-fx reg-fx dispatch]]
             [re-frame-boiler.db :as db]
             [day8.re-frame.http-fx]
-            [day8.re-frame.async-flow-fx]
+            [day8.re-frame.forward-events-fx]
             [ajax.core :as ajax]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
             [imcljs.search :as search]
@@ -15,26 +15,29 @@
   (fn [_ _]
     db/default-db))
 
-(reg-event
-  :finished-handler
-  (fn [db]
-    (println "FINISHED HANDLER")
-    db))
-
-(defn boot-flow
-  []
-  (println "BOOT FLOWING")
-  {:rules [{:when :seen? :events :finished :dispatch [:finished-handler]}]})
+(reg-event-fx
+  :unqueue
+  (fn [{db :db}]
+    (merge {:db (-> db
+                    (assoc :active-panel (:active-panel (:queued db)))
+                    (assoc :panel-params (:panel-params (:queued db))))}
+           (if (:and-then (:queued db)) {:dispatch (:and-then (:queued db))}))))
 
 (reg-event-fx
   :set-active-panel
-  (fn [{db :db} [_ active-panel panel-params]]
+  (fn [{db :db} [_ active-panel panel-params evt]]
     (if (:fetching-assets? db)
-      {:db (assoc db :active-panel active-panel
-                     :panel-params panel-params)
-       :async-flow (boot-flow)}
-      {:db (assoc db :active-panel active-panel
-                     :panel-params panel-params)})))
+      ; Queue our route until the assets have been fetched
+      {:db             (assoc db :queued {:active-panel active-panel
+                                          :panel-params panel-params
+                                          :and-then     evt})
+       :forward-events {:register    :route-forwarder
+                        :events      #{:finished-loading-assets}
+                        :dispatch-to [:unqueue]}}
+      ; Otherwise route immediately, and fire an optional post-route event
+      (merge {:db (assoc db :active-panel active-panel
+                            :panel-params panel-params)}
+             (if evt {:dispatch evt})))))
 
 (reg-event
   :good-who-am-i
@@ -83,10 +86,9 @@
      :suggest term}))
 
 (reg-event
-  :finished
+  :finished-loading-assets
   (fn [db]
-    (println "finito")
-    db))
+    (assoc db :fetching-assets? false)))
 
 (reg-fx
   :fetch-assets
@@ -107,7 +109,7 @@
                      (dispatch [:async-assoc (get locations p) v])
                      (if-not (empty? remaining)
                        (recur remaining)
-                       (dispatch [:finished])))))))))
+                       (dispatch [:finished-loading-assets])))))))))
 
 #_(reg-fx
     :fetch-assets
@@ -133,4 +135,3 @@
   :test-progress-bar
   (fn [db [_ percent]]
     (assoc db :progress-bar-percent percent)))
-

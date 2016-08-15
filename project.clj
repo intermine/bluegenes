@@ -16,7 +16,8 @@
                  [org.clojure/core.async "0.2.385"]
                  [cljs-http "0.1.41"]
                  [venantius/accountant "0.1.7"]
-                 [day8.re-frame/async-flow-fx "0.0.5"]]
+                 [day8.re-frame/async-flow-fx "0.0.5"]
+                 [day8.re-frame/forward-events-fx "0.0.5"]]
 
   :plugins [[lein-cljsbuild "1.1.3"]
             [lein-less "1.7.5"]

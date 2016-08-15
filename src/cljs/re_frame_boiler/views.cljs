@@ -21,7 +21,7 @@
          {:on-click #(dispatch [:test-progress-bar (rand-int 101)])} "Random"]
         [:button.btn
          {:on-click #(dispatch [:test-progress-bar 0])} "Hide"]]
-       (json-html/edn->hiccup (dissoc @app-db :assets))])))
+       (json-html/edn->hiccup (dissoc @app-db :assets-bk))])))
 
 
 ;; about
