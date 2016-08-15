@@ -1,4 +1,4 @@
-(ns re-frame-boiler.components.report.summary
+(ns re-frame-boiler.sections.objects.components.summary
   (:require [re-frame.core :refer [subscribe dispatch]]
             [accountant.core :refer [navigate!]]))
 

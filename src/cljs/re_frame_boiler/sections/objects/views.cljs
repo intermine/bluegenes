@@ -1,6 +1,6 @@
 (ns re-frame-boiler.sections.objects.views
   (:require [re-frame.core :as re-frame :refer [subscribe dispatch]]
-            [re-frame-boiler.components.report.summary :as summary]))
+            [re-frame-boiler.sections.objects.components.summary :as summary]))
 
 (defn main []
   (let [params (subscribe [:panel-params])
