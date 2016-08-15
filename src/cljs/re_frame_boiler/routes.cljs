@@ -16,6 +16,10 @@
         (accountant/navigate! (str "#" (.-token event)))))
     (.setEnabled true)))
 
+;(defn route [uri &  params]
+;  (defroute "/" []
+;            ))
+
 (defn app-routes []
   (secretary/set-config! :prefix "#")
   ;; --------------------

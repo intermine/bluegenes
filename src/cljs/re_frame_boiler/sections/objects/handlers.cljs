@@ -8,7 +8,7 @@
 (reg-event
   :handle-report-summary
   (fn [db [_ summary]]
-    (assoc-in db [:report :summary] (:results summary))))
+    (assoc-in db [:report :summary] summary)))
 
 (reg-fx
   :fetch-report
@@ -20,10 +20,12 @@
       (go (dispatch [:handle-report-summary (<! (search/raw-query-rows
                                                   {:root "www.flymine.org/query"}
                                                   q
-                                                  {:format "jsonobjects"}))])))))
+                                                  {:format "json"}))])))))
 
 (reg-event-fx
   :load-report
   (fn [{db :db} [_ type id]]
-    {:db           (assoc db :fetching-report? true)
+    {:db           (-> db
+                       (assoc :fetching-report? true)
+                       (dissoc :report))
      :fetch-report [db type id]}))

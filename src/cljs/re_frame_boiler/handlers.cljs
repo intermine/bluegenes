@@ -3,6 +3,7 @@
   (:require [re-frame.core :as re-frame :refer [reg-event reg-event-fx reg-fx dispatch]]
             [re-frame-boiler.db :as db]
             [day8.re-frame.http-fx]
+            [day8.re-frame.async-flow-fx]
             [ajax.core :as ajax]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
             [imcljs.search :as search]
@@ -15,10 +16,25 @@
     db/default-db))
 
 (reg-event
+  :finished-handler
+  (fn [db]
+    (println "FINISHED HANDLER")
+    db))
+
+(defn boot-flow
+  []
+  (println "BOOT FLOWING")
+  {:rules [{:when :seen? :events :finished :dispatch [:finished-handler]}]})
+
+(reg-event-fx
   :set-active-panel
-  (fn [db [_ active-panel panel-params]]
-    (assoc db :active-panel active-panel
-              :panel-params panel-params)))
+  (fn [{db :db} [_ active-panel panel-params]]
+    (if (:fetching-assets? db)
+      {:db (assoc db :active-panel active-panel
+                     :panel-params panel-params)
+       :async-flow (boot-flow)}
+      {:db (assoc db :active-panel active-panel
+                     :panel-params panel-params)})))
 
 (reg-event
   :good-who-am-i
@@ -66,25 +82,32 @@
     {:db      (assoc db :search-term term)
      :suggest term}))
 
+(reg-event
+  :finished
+  (fn [db]
+    (println "finito")
+    db))
+
 (reg-fx
   :fetch-assets
   (fn [connection]
-    (let [c1 (assets/templates connection)
-          c2 (assets/lists connection)
-          c3 (assets/model connection)
-          c4 (assets/summary-fields connection)
+    (let [c1        (assets/templates connection)
+          c2        (assets/lists connection)
+          c3        (assets/model connection)
+          c4        (assets/summary-fields connection)
           locations {c1 [:assets :templates]
                      c2 [:assets :lists]
                      c3 [:assets :model]
                      c4 [:assets :summary-fields]}]
       (go-loop [channels [c1 c2 c3 c4]]
-        (let [[v p] (alts! channels)]
-          (if-not (and (nil? v) (empty? channels))
-            (let [remaining (remove #(= % p) channels)]
-              (dispatch [:test-progress-bar (* 100 (/ (- 4 (count remaining)) 4))])
-              (dispatch [:async-assoc (get locations p) v])
-              (if-not (empty? remaining)
-                (recur remaining)))))))))
+               (let [[v p] (alts! channels)]
+                 (if-not (and (nil? v) (empty? channels))
+                   (let [remaining (remove #(= % p) channels)]
+                     (dispatch [:test-progress-bar (* 100 (/ (- 4 (count remaining)) 4))])
+                     (dispatch [:async-assoc (get locations p) v])
+                     (if-not (empty? remaining)
+                       (recur remaining)
+                       (dispatch [:finished])))))))))
 
 #_(reg-fx
     :fetch-assets
