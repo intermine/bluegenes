@@ -31,6 +31,9 @@
   (defroute "/list" []
             (re-frame/dispatch [:set-active-panel :list-panel]))
 
+  (defroute "/templates" []
+            (re-frame/dispatch [:set-active-panel :templates-panel]))
+
   (defroute "/assets/:type/:id" [type id]
             (re-frame/dispatch [:set-active-panel :list-panel {:type type :id id}]))
 

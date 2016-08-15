@@ -1,6 +1,10 @@
+@import "../variables";
+
 .navbar-default .navbar-brand {
     color: rgba(107, 107, 107, 1);
     background: #0dacfc;
+    background: black;
+    background: @highlight-color;
     color: white;
     font-style: bold;
     -webkit-clip-path: polygon(0 0, 100% 0, 93% 100%, 0 100%);
@@ -25,7 +29,7 @@
 .navbar-default .navbar-nav > .active > a,
 .navbar-default .navbar-nav > .active > a:focus,
 .navbar-default .navbar-nav > .active > a:hover {
-    color: rgba(0, 168, 252, 1);
+    color: @highlight-color;
     background-color: rgba(255, 255, 255, 1);
 }
 .navbar-default .navbar-toggle {

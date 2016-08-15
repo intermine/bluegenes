@@ -20,7 +20,8 @@
   (fn [{db :db}]
     (merge {:db (-> db
                     (assoc :active-panel (:active-panel (:queued db)))
-                    (assoc :panel-params (:panel-params (:queued db))))}
+                    (assoc :panel-params (:panel-params (:queued db)))
+                    (dissoc db :queued))}
            (if (:and-then (:queued db)) {:dispatch (:and-then (:queued db))}))))
 
 (reg-event-fx
@@ -111,14 +112,6 @@
                        (recur remaining)
                        (dispatch [:finished-loading-assets])))))))))
 
-#_(reg-fx
-    :fetch-assets
-    (fn [connection]
-      (go (dispatch [:async-assoc [:assets :templates] (<! (assets/templates connection))]))
-      (go (dispatch [:async-assoc [:assets :lists] (<! (assets/lists connection))]))
-      (go (dispatch [:async-assoc [:assets :model] (<! (assets/model connection))]))
-      (go (dispatch [:async-assoc [:assets :summary-fields] (<! (assets/summary-fields connection))]))))
-
 (reg-event-fx
   :fetch-all-assets
   (fn [{db :db}]
@@ -127,11 +120,16 @@
      :fetch-assets {:root "www.flymine.org/query"}}))
 
 (reg-event
-  :select-template
-  (fn [db [_ id]]
-    (assoc db :selected-template id)))
-
-(reg-event
   :test-progress-bar
   (fn [db [_ percent]]
     (assoc db :progress-bar-percent percent)))
+
+(reg-event
+  :select-template
+  (fn [db [_ id]]
+    (assoc-in db [:components :template-chooser :selected-template] id)))
+
+(reg-event
+  :select-template-category
+  (fn [db [_ id]]
+    (assoc-in db [:components :template-chooser :selected-template-category] id)))

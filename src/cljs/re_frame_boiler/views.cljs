@@ -5,6 +5,7 @@
             [re-frame-boiler.sections.home.views :as home]
             [re-frame-boiler.sections.assets.views :as assets]
             [re-frame-boiler.sections.objects.views :as objects]
+            [re-frame-boiler.sections.templates.views :as templates]
             [accountant.core :refer [navigate!]]))
 
 (defn debug-panel []
@@ -21,7 +22,7 @@
          {:on-click #(dispatch [:test-progress-bar (rand-int 101)])} "Random"]
         [:button.btn
          {:on-click #(dispatch [:test-progress-bar 0])} "Hide"]]
-       (json-html/edn->hiccup (dissoc @app-db :assets-bk))])))
+       (json-html/edn->hiccup (dissoc @app-db :assets))])))
 
 
 ;; about
@@ -38,6 +39,7 @@
 (defmethod panels :about-panel [] [about-panel])
 (defmethod panels :debug-panel [] [debug-panel])
 (defmethod panels :list-panel [] [assets/main])
+(defmethod panels :templates-panel [] [templates/main])
 (defmethod panels :object-panel [] [objects/main])
 (defmethod panels :default [] [:div])
 

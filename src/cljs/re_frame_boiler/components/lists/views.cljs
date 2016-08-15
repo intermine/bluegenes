@@ -23,7 +23,7 @@
     (into [:div] (map (fn [l] [im-list l]) lists))))
 
 (defn main []
-  (let [im-lists      (subscribe [:lists])
+  (let [im-lists          (subscribe [:lists])
         selected-template (subscribe [:selected-template])]
     (fn []
       [:div.panel
@@ -31,3 +31,13 @@
        [:div.container
         [:div.row
          [:div.col-md-12.fix-height-400 [lists @im-lists]]]]])))
+
+
+(defn list-dropdown []
+  (let [lists (subscribe [:lists])]
+    (fn []
+      [:div.dropdown
+       [:button.btn.btn-primary.dropdown-toggle {:type "button" :data-toggle "dropdown"}
+        "Or Choose a List"]
+       (into [:ul.dropdown-menu] (map (fn [l]
+                                        [:li [:a (str (:name l))]]) @lists))])))
