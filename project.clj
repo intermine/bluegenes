@@ -17,7 +17,8 @@
                  [cljs-http "0.1.41"]
                  [venantius/accountant "0.1.7"]
                  [day8.re-frame/async-flow-fx "0.0.5"]
-                 [day8.re-frame/forward-events-fx "0.0.5"]]
+                 [day8.re-frame/forward-events-fx "0.0.5"]
+                 [com.rpl/specter "0.12.0"]]
 
   :plugins [[lein-cljsbuild "1.1.3"]
             [lein-less "1.7.5"]

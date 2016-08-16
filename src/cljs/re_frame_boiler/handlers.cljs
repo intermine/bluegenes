@@ -18,11 +18,13 @@
 (reg-event-fx
   :unqueue
   (fn [{db :db}]
+    (println "event to unqueue" (:and-then (:queued db)))
     (merge {:db (-> db
                     (assoc :active-panel (:active-panel (:queued db)))
                     (assoc :panel-params (:panel-params (:queued db)))
                     (dissoc db :queued))}
-           (if (:and-then (:queued db)) {:dispatch (:and-then (:queued db))}))))
+           (if (:and-then (:queued db))
+             {:dispatch (:and-then (:queued db))}))))
 
 (reg-event-fx
   :set-active-panel

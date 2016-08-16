@@ -44,7 +44,7 @@
         [:ul.nav.navbar-nav.navbar-collapse.navigation
          [:li {:class (if (panel-is :home-panel) "active")} [:a {:on-click #(navigate! "#/")} "Home"]]
          [:li {:class (if (panel-is :lists-panel) "active")} [:a {:on-click #(navigate! "#/assets")} "Lists"]]
-         [:li {:class (if (panel-is :about-panel) "active")} [:a {:on-click #(navigate! "#/templates")} "Templates"]]]
+         [:li {:class (if (panel-is :template-panel) "active")} [:a {:on-click #(navigate! "#/templates")} "Templates"]]]
         [:ul.nav.navbar-nav.navbar-right.buttons
          [:li.search [search/main]]
          [:li [:a [:i.fa.fa-question]]]

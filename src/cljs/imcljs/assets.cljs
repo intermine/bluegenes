@@ -22,9 +22,9 @@
 (defn model
   "Returns the results of a quicksearch"
   [{root :root token :token}]
-  (go (:lists (:body (<! (http/get (str (cleanse-url root) "/model")
-                                   {:query-params      {:format "json"}
-                                    :with-credentials? false}))))))
+  (go (:classes (:model (:body (<! (http/get (str (cleanse-url root) "/model")
+                                    {:query-params      {:format "json"}
+                                     :with-credentials? false})))))))
 
 (defn summary-fields
   "Returns the results of a quicksearch"

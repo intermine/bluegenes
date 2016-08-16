@@ -3,14 +3,15 @@
             [re-frame-boiler.sections.objects.components.summary :as summary]))
 
 (defn main []
-  (let [params (subscribe [:panel-params])
-        report (subscribe [:report])]
+  (let [params     (subscribe [:panel-params])
+        report     (subscribe [:report])
+        categories (subscribe [:template-chooser-categories])]
     (fn []
       [:div#wrapper
        [:div#sidebar-wrapper
-        [:ul.sidebar-nav
-         [:li.sidebar-brand
-          [:a "Categories"]]
-         [:li [:a "Category One"]]]]
+        (into [:ul.sidebar-nav
+               [:li.sidebar-brand
+                [:a "Categoriess"]]]
+              (map (fn [cat] [:li [:a cat]]) @categories))]
        [:div#page-content-wrapper
         [summary/main (:summary @report)]]])))
