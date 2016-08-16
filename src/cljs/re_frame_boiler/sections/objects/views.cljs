@@ -6,6 +6,11 @@
   (let [params (subscribe [:panel-params])
         report (subscribe [:report])]
     (fn []
-      [:div
-       [:div.container.padme
+      [:div#wrapper
+       [:div#sidebar-wrapper
+        [:ul.sidebar-nav
+         [:li.sidebar-brand
+          [:a "Categories"]]
+         [:li [:a "Category One"]]]]
+       [:div#page-content-wrapper
         [summary/main (:summary @report)]]])))

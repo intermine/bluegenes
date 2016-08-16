@@ -10,7 +10,7 @@
 
 (defn main []
   (fn [field-map]
-    [:div.container
+    [:div.container-fluid
      [:div.row
       [:div.col-xs-12
        [:h1 (str (:rootClass field-map) ": " (first (filter some? (first (:results field-map)))))]]]
