@@ -11,12 +11,13 @@
 (reg-event
   :handle-report-summary
   (fn [db [_ summary]]
-    (assoc-in db [:report :summary] summary)))
+    (-> db
+        (assoc-in [:report :summary] summary)
+        (assoc :fetching-report? false))))
 
 (reg-fx
   :fetch-report
   (fn [[db type id]]
-    (println "FETCHING REPORT")
     (let [type-kw (keyword type)
           q       {:from   type
                    :select (-> db :assets :summary-fields type-kw)
@@ -26,29 +27,16 @@
                                                   q
                                                   {:format "json"}))])))))
 
-;(defn constraint-of-type? [constraint type]
-;  (= type (filters/end-class model (:path constraint))))
-
-(defn has-constraint-filter [model [id value]]
-  (filter
-    (fn [con]
-      (filters/end-class model (:path con)))
-    (:where value))
-  true)
-
-(defn filter-report-by-type-constraint [model templates]
-  (filter #(has-constraint-filter model %) templates))
-
 (reg-event
   :filter-report-templates
-  (fn [db]
+  (fn [db [_ type]]
     (let [model     (-> db :assets :model)
           templates (-> db :assets :templates)]
       (assoc-in db [:report :templates]
                 (into {} (traverse
                            [s/ALL
                             (s/selected? s/LAST :where #(= 1 (count (filter (fn [c] (:editable c)) %)))
-                                         s/ALL :path #(= "Gene" (filters/end-class model %)))] templates))))))
+                                         s/ALL :path #(= type (filters/end-class model %)))] templates))))))
 
 
 (reg-event-fx
@@ -58,24 +46,7 @@
                        (assoc :fetching-report? true)
                        (dissoc :report))
      :fetch-report [db type id]
-     :dispatch     [:filter-report-templates]}))
+     :dispatch     [:filter-report-templates type]}))
 
-
-(def m {:k1 {:where [{:op    "="
-                      :value "A"}
-                     {:op    "ignore"
-                      :value "X"}]}
-        :k2 {:where [{:op    "<"
-                      :value "A"}
-                     {:op    "lookup"
-                      :value "C"}]}
-        :k3 {:where [{:op    "="
-                      :value "A"}
-                     {:op    "lookup"
-                      :value "E"}]}})
-
-#_(println "doene" (into {} (traverse [s/ALL (s/selected? s/LAST :where s/ALL :op #(= "=" %))] m)))
-
-; result
 
 

@@ -1,17 +1,28 @@
 (ns re-frame-boiler.sections.objects.views
   (:require [re-frame.core :as re-frame :refer [subscribe dispatch]]
-            [re-frame-boiler.sections.objects.components.summary :as summary]))
+            [re-frame-boiler.sections.objects.components.summary :as summary]
+            [re-frame-boiler.components.table :as table]))
 
 (defn main []
-  (let [params     (subscribe [:panel-params])
-        report     (subscribe [:report])
-        categories (subscribe [:template-chooser-categories])]
+  (let [params           (subscribe [:panel-params])
+        report           (subscribe [:report])
+        categories       (subscribe [:template-chooser-categories])
+        templates        (subscribe [:runnable-templates])
+        fetching-report? (subscribe [:fetching-report?])]
     (fn []
       [:div#wrapper
        [:div#sidebar-wrapper
         (into [:ul.sidebar-nav
                [:li.sidebar-brand
-                [:a "Categoriess"]]]
+                [:a "Categories"]]]
               (map (fn [cat] [:li [:a cat]]) @categories))]
        [:div#page-content-wrapper
-        [summary/main (:summary @report)]]])))
+        (if @fetching-report?
+          [:i.fa.fa-cog.fa-spin.fa-3x.fa-fw]
+          [:div
+           [:ol.breadcrumb
+            [:li [:a "Home"]]
+            [:li [:a "Search Results"]]
+            [:li.active [:a "Report"]]]
+           [summary/main (:summary @report)]
+           (into [:div.templates] (map (fn [[id details]] [table/main details]) @templates))])]])))
