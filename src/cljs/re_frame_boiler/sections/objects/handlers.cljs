@@ -27,17 +27,41 @@
                                                   q
                                                   {:format "json"}))])))))
 
+
 (reg-event
+  :filter-report-collections
+  (fn [db [_ type oid]]
+    (let [model          (-> db :assets :model)
+          templates      (-> db :assets :templates)
+          summary-fields (-> db :assets :summary-fields)
+          type-key       (keyword type)
+          collections    (-> db :assets :model type-key :collections)]
+      (assoc-in db [:report :collections] (map (fn [[_ {:keys [name referencedType] :as x}]]
+                                                 (let [summary-paths (-> referencedType keyword summary-fields)]
+                                                   ; Create a query for each collection
+                                                   {:from   type
+                                                    :select (map (fn [path]
+                                                                   (str name "."
+                                                                        (clojure.string/join "."
+                                                                                             (drop 1 (clojure.string/split path ".")))))
+                                                                 summary-paths)
+                                                    :where  {:id oid}})) collections)))))
+
+
+(reg-event-fx
   :filter-report-templates
-  (fn [db [_ type]]
+  (fn [{db :db} [_ type id]]
     (let [model     (-> db :assets :model)
           templates (-> db :assets :templates)]
-      (assoc-in db [:report :templates]
-                (into {} (traverse
-                           [s/ALL
-                            (s/selected? s/LAST :where #(= 1 (count (filter (fn [c] (:editable c)) %)))
-                                         s/ALL :path #(= type (filters/end-class model %)))] templates))))))
-
+      {:db       (assoc-in db [:report :templates]
+                           (into {} (traverse
+                                      [s/ALL
+                                       (s/selected?
+                                         s/LAST
+                                         :where #(= 1 (count (filter (fn [c] (:editable c)) %)))
+                                         s/ALL
+                                         :path #(= type (filters/end-class model %)))] templates)))
+       :dispatch [:filter-report-collections type id]})))
 
 (reg-event-fx
   :load-report
@@ -46,7 +70,7 @@
                        (assoc :fetching-report? true)
                        (dissoc :report))
      :fetch-report [db type id]
-     :dispatch     [:filter-report-templates type]}))
+     :dispatch     [:filter-report-templates type id]}))
 
 
 

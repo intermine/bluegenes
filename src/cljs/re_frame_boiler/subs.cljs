@@ -53,6 +53,11 @@
     (:templates (:report db))))
 
 (reg-sub
+  :collections
+  (fn [db _]
+    (:collections (:report db))))
+
+(reg-sub
   :template-chooser-categories
   :<- [:templates]
   (fn [templates]

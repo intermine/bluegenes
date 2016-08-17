@@ -17,9 +17,9 @@
                               (fn [error]
                                 (.error js/console error)))))))
 
-(defn main []
+(defn main [_ & [expanded]]
   (reagent/create-class
-    (let [expanded? (reagent.core/atom false)]
+    (let [expanded? (reagent.core/atom expanded)]
       {:component-did-mount  (partial handle expanded?)
        :component-did-update (partial handle expanded?)
        :reagent-render       (fn [query]
