@@ -7,7 +7,8 @@
 (defn settings []
   (fn []
     [:li.dropdown
-     [:a.dropdown-toggle {:data-toggle "dropdown" :role "button"} [:i.fa.fa-cog]]
+     [:a.dropdown-toggle {:on-click #(navigate! "#/debug")
+                          :data-toggle "dropdown" :role "button"} [:i.fa.fa-cog]]
      [:ul.dropdown-menu
       [:li [:a {:on-click #(navigate! "#/debug")} [:i.fa.fa-terminal] " Developer"]]]]))
 

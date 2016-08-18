@@ -36,16 +36,17 @@
           summary-fields (-> db :assets :summary-fields)
           type-key       (keyword type)
           collections    (-> db :assets :model type-key :collections)]
-      (assoc-in db [:report :collections] (map (fn [[_ {:keys [name referencedType] :as x}]]
+      (assoc-in db [:report :collections] (map (fn [[_ {:keys [name referencedType]}]]
                                                  (let [summary-paths (-> referencedType keyword summary-fields)]
                                                    ; Create a query for each collection
-                                                   {:from   type
-                                                    :select (map (fn [path]
-                                                                   (str name "."
-                                                                        (clojure.string/join "."
-                                                                                             (drop 1 (clojure.string/split path ".")))))
-                                                                 summary-paths)
-                                                    :where  {:id oid}})) collections)))))
+                                                   {:class referencedType
+                                                    :query {:from   type
+                                                            :select (map (fn [path]
+                                                                           (str name "."
+                                                                                (clojure.string/join "."
+                                                                                                     (drop 1 (clojure.string/split path ".")))))
+                                                                         summary-paths)
+                                                            :where  {:id oid}}})) collections)))))
 
 
 (reg-event-fx
