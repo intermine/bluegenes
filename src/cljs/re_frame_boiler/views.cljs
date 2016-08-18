@@ -6,7 +6,7 @@
             [re-frame-boiler.sections.assets.views :as assets]
             [re-frame-boiler.sections.objects.views :as objects]
             [re-frame-boiler.sections.templates.views :as templates]
-            [re-frame-boiler.components.querybuilder.views :as querybuilder]
+            [re-frame-boiler.components.querybuilder.views.main :as querybuilder]
             [accountant.core :refer [navigate!]]))
 
 (defn debug-panel []

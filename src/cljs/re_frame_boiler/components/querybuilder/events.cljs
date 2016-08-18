@@ -27,10 +27,41 @@
 (defn nth-child [z idx]
   (nth (iterate zip/right z) idx))
 
+(reg-event
+  :handle-count
+  (fn [db [_ count]]
+    (assoc-in db [:query-builder :count] count)))
 
+(reg-event
+  :qb-reset-query
+  (fn [db [_ count]]
+    (assoc-in db [:query-builder :query] nil)))
+
+(reg-fx
+  :run-query
+  (fn [query]
+    (go (dispatch [:handle-count (<! (search/raw-query-rows
+                                       {:root "www.flymine.org/query"}
+                                       query
+                                       {:format "count"}))]))))
+
+(reg-event-fx
+  :qb-run-query
+  (fn [{db :db}]
+    (let [query-data (-> db :query-builder :query)]
+      {:db        db
+       :run-query (update query-data :select (fn [views] (map (fn [view] (clojure.string/join "." view)) views)))})))
 
 (reg-event
   :qb-make-tree
   (fn [db]
     (let [model (-> db :assets :model)]
-      (assoc-in db [:query-builder :model-tree] (:Gene model)))))
+      (assoc-in db [:query-builder :query :from] "Gene"))))
+
+(reg-event
+  :qb-add-view
+  (fn [db [_ path-vec]]
+    (update-in db [:query-builder :query :select] (fn [views]
+                                                    (if (some #(= % path-vec) views)
+                                                      (remove #(= % path-vec) views)
+                                                      (conj views path-vec))))))

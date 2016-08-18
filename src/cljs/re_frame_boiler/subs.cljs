@@ -92,9 +92,14 @@
     (:summary-fields (:assets db))))
 
 (reg-sub
-  :model-tree
+  :query-builder-query
   (fn [db _]
-    (:model-tree (:query-builder db))))
+    (:query (:query-builder db))))
+
+(reg-sub
+  :query-builder-count
+  (fn [db _]
+    (:count (:query-builder db))))
 
 (reg-sub
   :report
