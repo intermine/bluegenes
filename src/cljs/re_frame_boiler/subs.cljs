@@ -58,6 +58,11 @@
     (:collections (:report db))))
 
 (reg-sub
+  :model
+  (fn [db _]
+    (:model (:assets db))))
+
+(reg-sub
   :template-chooser-categories
   :<- [:templates]
   (fn [templates]
@@ -85,6 +90,11 @@
   :summary-fields
   (fn [db _]
     (:summary-fields (:assets db))))
+
+(reg-sub
+  :model-tree
+  (fn [db _]
+    (:model-tree (:query-builder db))))
 
 (reg-sub
   :report

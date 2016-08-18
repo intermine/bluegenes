@@ -6,7 +6,8 @@
               [re-frame-boiler.subs]
               [re-frame-boiler.routes :as routes]
               [re-frame-boiler.views :as views]
-              [re-frame-boiler.config :as config]))
+              [re-frame-boiler.config :as config]
+              [re-frame-boiler.components.querybuilder.events]))
 
 (defn dev-setup []
   (when config/debug?
