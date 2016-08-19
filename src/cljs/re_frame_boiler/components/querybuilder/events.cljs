@@ -37,9 +37,17 @@
   (fn [db [_ count]]
     (assoc-in db [:query-builder :query] nil)))
 
+(reg-event
+  :add-constraint
+  (fn [db [_ constraint]]
+    (update-in db [:query-builder :query :where]
+               (fn [where]
+                 (conj where constraint)))))
+
 (reg-fx
   :run-query
   (fn [query]
+    (println "running query" query)
     (go (dispatch [:handle-count (<! (search/raw-query-rows
                                        {:root "www.flymine.org/query"}
                                        query
@@ -50,7 +58,13 @@
   (fn [{db :db}]
     (let [query-data (-> db :query-builder :query)]
       {:db        db
-       :run-query (update query-data :select (fn [views] (map (fn [view] (clojure.string/join "." view)) views)))})))
+       :run-query (-> query-data
+                      (update :select (fn [views] (map (fn [view] (clojure.string/join "." view)) views)))
+                      (update :where (fn [cons]
+                                       (map (fn [con]
+                                              {:path (clojure.string/join "." (:path con))
+                                               :op (:op con)
+                                               :value (:value con)}) cons))))})))
 
 (reg-event
   :qb-make-tree

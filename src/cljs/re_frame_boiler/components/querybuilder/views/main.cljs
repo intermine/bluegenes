@@ -1,8 +1,11 @@
 (ns re-frame-boiler.components.querybuilder.views.main
+  (:require-macros [com.rpl.specter.macros :refer [traverse select]])
   (:require [reagent.core :as reagent]
             [re-frame.core :as re-frame :refer [subscribe dispatch]]
             [json-html.core :as json]
-            [re-frame-boiler.components.querybuilder.views.constraints :as constraints]))
+            [com.rpl.specter :as s]
+            [re-frame-boiler.components.querybuilder.views.constraints :as constraints]
+            [json-html.core :as json-html]))
 
 
 (defn attribute []
@@ -45,6 +48,47 @@
                                  (keyword (:referencedType details))
                                  (conj path (:name details))]) (sort (-> @model class :collections))))))])))
 
+(def t ["Gene"
+        ["name"
+         "UTRS"
+         ["length"
+          "synonys"
+          ["value"]]]])
+
+#_(defn overview []
+    (fn [query]
+      [:span (str (reduce (fn [total next]
+                            (loop [f (first next) r (rest next) t total]
+                              (let [idx (.indexOf t f)]
+                                (println "index" (.indexOf t f))
+                                (if (< idx 0) (conj t f) t)))) [] (:select query)))]))
+
+(defn overview []
+  (fn [query]
+    (let [r (reduce (fn [total next]
+                      (assoc-in total next nil)) {} (:select query))]
+      (.log js/console "done" r)
+      (json-html/edn->hiccup r))))
+
+(defn overview-test []
+  (fn [query]
+    (let [t ["A"
+             ["SUB-A-1"
+              "SUB-A-2"
+              ["SUB-A-2-1"
+               "SUB-A-2-2"
+               ["SUB-A-2-2-1"]]]]]
+
+      #_["A"
+         ["SUB-A-1"
+          "SUB-A-2"
+          ["SUB-A-2-1"
+           "SUB-A-2-2"
+           ["SUB-A-2-2-1"
+            ; New:
+            "SUB-A-2-2-2"]]]])
+    [:span "test"]))
+
 (defn main []
   (let [query        (subscribe [:query-builder-query])
         result-count (subscribe [:query-builder-count])]
@@ -58,8 +102,11 @@
         [:div.col-sm-6
          [:div.row
           [:div.panel
+           [:h4 "Query Overview"]
+           [overview @query]]
+          [:div.panel
            [:h4 "Constraint Testing"]
-           [constraints/constraint ["Gene" "name"]]]
+           [constraints/constraint ["Gene" "symbol"]]]
           [:div.panel
            [:h4 "Query Structure"]
            [:span (json/edn->hiccup @query)]

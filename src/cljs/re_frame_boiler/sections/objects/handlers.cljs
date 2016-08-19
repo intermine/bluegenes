@@ -1,6 +1,6 @@
 (ns re-frame-boiler.sections.objects.handlers
   (:require-macros [cljs.core.async.macros :refer [go go-loop]]
-                   [com.rpl.specter.macros :refer [traverse]])
+                   [com.rpl.specter.macros :refer [traverse select transform]])
   (:require [re-frame.core :as re-frame :refer [reg-event reg-event-fx reg-fx dispatch]]
             [re-frame-boiler.db :as db]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
