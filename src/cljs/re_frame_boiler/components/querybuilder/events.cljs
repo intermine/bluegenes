@@ -28,21 +28,32 @@
   (nth (iterate zip/right z) idx))
 
 (reg-event
-  :handle-count
-  (fn [db [_ count]]
-    (assoc-in db [:query-builder :count] count)))
-
-(reg-event
   :qb-reset-query
   (fn [db [_ count]]
-    (assoc-in db [:query-builder :query] nil)))
+    (-> db
+      (assoc-in [:query-builder :query] nil)
+        (assoc-in [:query-builder :count] nil))))
+
+(defn next-letter [letter]
+  (let [alphabet (into [] "ABCDEFGHIJKLMNOPQRSTUVWXYZ")]
+    (first (rest (drop-while (fn [n] (not= n letter)) alphabet)))))
+
+(reg-event-fx
+  :add-constraint
+  (fn [{db :db} [_ constraint]]
+    {:db       (let [used-codes (last (sort (map :code (get-in db [:query-builder :query :where]))))
+                     next-code  (if (nil? used-codes) "A" (next-letter used-codes))]
+                 (-> db
+                     (update-in [:query-builder :query :where] (fn [where] (conj where (merge constraint {:code next-code}))))
+                     (assoc-in [:query-builder :constraint] nil)))
+     :dispatch [:qb-run-query]}))
 
 (reg-event
-  :add-constraint
-  (fn [db [_ constraint]]
-    (update-in db [:query-builder :query :where]
-               (fn [where]
-                 (conj where constraint)))))
+  :handle-count
+  (fn [db [_ count]]
+    (-> db
+        (assoc-in [:query-builder :count] count)
+        (assoc-in [:query-builder :counting?] false))))
 
 (reg-fx
   :run-query
@@ -57,25 +68,54 @@
   :qb-run-query
   (fn [{db :db}]
     (let [query-data (-> db :query-builder :query)]
-      {:db        db
+      {:db        (assoc-in db [:query-builder :counting?] true)
        :run-query (-> query-data
                       (update :select (fn [views] (map (fn [view] (clojure.string/join "." view)) views)))
                       (update :where (fn [cons]
                                        (map (fn [con]
-                                              {:path (clojure.string/join "." (:path con))
-                                               :op (:op con)
+                                              {:path  (clojure.string/join "." (:path con))
+                                               :op    (:op con)
                                                :value (:value con)}) cons))))})))
 
 (reg-event
   :qb-make-tree
   (fn [db]
     (let [model (-> db :assets :model)]
-      (assoc-in db [:query-builder :query :from] "Gene"))))
+      #_(assoc-in db [:query-builder :query]
+                  {:from   "Gene"
+                   :select [["Gene" "alleles" "alleleClass"]
+                            ["Gene" "secondaryIdentifier"]
+                            ["Gene" "primaryIdentifier"]]})
+      db)))
+
+(reg-event-fx
+  :qb-remove-select
+  (fn [{db :db} [_ path]]
+    (println "REMOVING SELECT")
+    {:db       (update-in db [:query-builder :query :select]
+                          (fn [views]
+                            (remove #(= % path) views)))
+     :dispatch :qb-run-query}))
+
+(reg-event-fx
+  :qb-remove-constraint
+  (fn [{db :db} [_ path]]
+    {:db       (update-in db [:query-builder :query :where]
+                          (fn [wheres]
+                            (remove #(= % path) wheres)))
+     :dispatch [:qb-run-query]}))
 
 (reg-event
+  :query-builder/add-filter
+  (fn [db [_ path]]
+    (assoc-in db [:query-builder :constraint] path)))
+
+(reg-event-fx
   :qb-add-view
-  (fn [db [_ path-vec]]
-    (update-in db [:query-builder :query :select] (fn [views]
-                                                    (if (some #(= % path-vec) views)
-                                                      (remove #(= % path-vec) views)
-                                                      (conj views path-vec))))))
+  (fn [{db :db} [_ path-vec]]
+    {:db       (update-in db [:query-builder :query :select]
+                          (fn [views]
+                            (if (some #(= % path-vec) views)
+                              (remove #(= % path-vec) views)
+                              (conj views path-vec))))
+     :dispatch [:qb-run-query]}))

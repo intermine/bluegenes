@@ -7,34 +7,28 @@
             [re-frame-boiler.components.querybuilder.views.constraints :as constraints]
             [json-html.core :as json-html]))
 
-
 (defn attribute []
   (let [qb-query (subscribe [:query-builder-query])]
-    (let [state     (reagent/atom false)
-          mouseover (reagent/atom false)]
-      (fn [name & [path]]
-        (let [path-vec (conj path name)]
-          [:div
-           {:class         (if (some (fn [x] (= x path-vec)) (:select @qb-query)) "active")
-            :on-mouse-over (fn [] (reset! mouseover true))
-            :on-mouse-out  (fn [] (reset! mouseover false))
-            :on-click      (fn [] (dispatch [:qb-add-view path-vec]))}
-           name
-           (if (or @mouseover @state)
-             [:span
-              [:i.fa.fa-eye.pad-left
-               {:on-click (fn [e]
-                            (.stopPropagation e)
-                            (dispatch [:qb-add-view path-vec]))}]
-              [:i.fa.fa-filter.pad-left]])])))))
+    (fn [name & [path]]
+      (let [path-vec (conj path name)]
+        [:div
+         [:div.btn.btn-default.btn.btn-xxs
+          {:class    (if (some (fn [x] (= x path-vec)) (:select @qb-query))
+                       "btn-primary"
+                       "btn-outline")
+           :on-click (fn [] (dispatch [:qb-add-view path-vec]))}
+          [:i.fa.fa-eye]]
+         [:div.btn.btn-default.btn-outline.btn-xxs
+          {:on-click (fn [] (dispatch [:query-builder/add-filter path-vec]))}
+          [:i.fa.fa-plus] [:i.fa.fa-filter]]
+         [:span.pad-left-5 name]]))))
 
 (defn tree [class & [path open?]]
   (let [model (subscribe [:model])
         open  (reagent/atom open?)]
     (fn [class]
-      ;(println "model" model)
       [:li
-       [:div {:on-click (fn [] (swap! open (fn [v] (not v))))}
+       [:span {:on-click (fn [] (swap! open (fn [v] (not v))))}
         (if @open
           [:i.fa.fa-minus-square.pad-right]
           [:i.fa.fa-plus-square.pad-right])
@@ -48,50 +42,41 @@
                                  (keyword (:referencedType details))
                                  (conj path (:name details))]) (sort (-> @model class :collections))))))])))
 
-(def t ["Gene"
-        ["name"
-         "UTRS"
-         ["length"
-          "synonys"
-          ["value"]]]])
+(defn flat->tree [paths]
+  (first (into [] (reduce (fn [total next] (assoc-in total next nil)) {} paths))))
 
-#_(defn overview []
-    (fn [query]
-      [:span (str (reduce (fn [total next]
-                            (loop [f (first next) r (rest next) t total]
-                              (let [idx (.indexOf t f)]
-                                (println "index" (.indexOf t f))
-                                (if (< idx 0) (conj t f) t)))) [] (:select query)))]))
+(defn tiny-constraint []
+  (fn [details]
+    [:span
+     [:span.pad-right-5 (str (:op details) " " (:value details))]
+     [:span.badge (:code details)]
+     [:i.fa.fa-times.pad-left-5
+      {:on-click (fn [] (dispatch [:qb-remove-constraint details]))}]]))
 
-(defn overview []
-  (fn [query]
-    (let [r (reduce (fn [total next]
-                      (assoc-in total next nil)) {} (:select query))]
-      (.log js/console "done" r)
-      (json-html/edn->hiccup r))))
-
-(defn overview-test []
-  (fn [query]
-    (let [t ["A"
-             ["SUB-A-1"
-              "SUB-A-2"
-              ["SUB-A-2-1"
-               "SUB-A-2-2"
-               ["SUB-A-2-2-1"]]]]]
-
-      #_["A"
-         ["SUB-A-1"
-          "SUB-A-2"
-          ["SUB-A-2-1"
-           "SUB-A-2-2"
-           ["SUB-A-2-2-1"
-            ; New:
-            "SUB-A-2-2-2"]]]])
-    [:span "test"]))
+(defn tree-view []
+  (let [query (subscribe [:query-builder-query])]
+    (fn [[k v] trail]
+      (let [trail (if (nil? trail) [k] trail)]
+        [:div
+         [:div
+          [:span {:class (if (nil? v)
+                           (if (not-empty (filter #(= trail %) (:select @query)))
+                             "label label-primary"
+                             "label label-default"))}
+           (str k)
+           (into [:span] (map (fn [c] [tiny-constraint c])
+                              (filter (fn [t] (= trail (:path t))) (:where @query))))]]
+         (if (map? v)
+           (into [:ol.tree]
+                 (map (fn [m]
+                        [:li [tree-view m
+                              (conj trail (first m))]]) v)))]))))
 
 (defn main []
-  (let [query        (subscribe [:query-builder-query])
-        result-count (subscribe [:query-builder-count])]
+  (let [query           (subscribe [:query-builder-query])
+        result-count    (subscribe [:query-builder-count])
+        counting?       (subscribe [:query-builder-counting?])
+        edit-constraint (subscribe [:current-constraint])]
     (fn []
       [:div.querybuilder
        [:div.row
@@ -101,17 +86,20 @@
           [:ol.tree [tree :Gene ["Gene"] true]]]]
         [:div.col-sm-6
          [:div.row
+          (if @edit-constraint
+            [:div.panel [constraints/constraint @edit-constraint]])
           [:div.panel
            [:h4 "Query Overview"]
-           [overview @query]]
-          [:div.panel
-           [:h4 "Constraint Testing"]
-           [constraints/constraint ["Gene" "symbol"]]]
+           [tree-view (flat->tree (concat (:select @query) (map :path (:where @query))))]
+           [:div
+            (if @counting?
+              [:i.fa.fa-cog.fa-spin.fa-1x.fa-fw]
+              (if @result-count
+                [:h3 (str @result-count " rows")]))]]
           [:div.panel
            [:h4 "Query Structure"]
-           [:span (json/edn->hiccup @query)]
-           [:button.btn.btn-primary {:on-click #(dispatch [:qb-run-query])} "Run Count"]
-           [:button.btn.btn-primary {:on-click #(dispatch [:qb-reset-query])} "Reset"]
-           [:div (str "count: " @result-count)]]]]]])))
+           ;[:span (json/edn->hiccup @query)]
+           ;[:button.btn.btn-primary {:on-click #(dispatch [:qb-run-query])} "Run Count"]
+           [:button.btn.btn-primary {:on-click #(dispatch [:qb-reset-query])} "Reset"]]]]]])))
 
 

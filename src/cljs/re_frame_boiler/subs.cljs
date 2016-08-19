@@ -102,6 +102,16 @@
     (:count (:query-builder db))))
 
 (reg-sub
+  :query-builder-counting?
+  (fn [db _]
+    (:counting? (:query-builder db))))
+
+(reg-sub
+  :current-constraint
+  (fn [db _]
+    (:constraint (:query-builder db))))
+
+(reg-sub
   :report
   (fn [db _]
     (:report db)))

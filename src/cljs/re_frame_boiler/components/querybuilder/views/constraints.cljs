@@ -7,12 +7,20 @@
 (def ops
   ["=" "!=" "CONTAINS" "<" "<=" ">" ">=" "LIKE" "NOT LIKE" "ONE OF" "NONE OF"])
 
-(defn op [path]
-  (let [state (reagent/atom {:op "=" :path path})]
+(defn list-dropdown []
+  (let [lists (subscribe [:lists])]
+    (fn []
+      [:div.dropdown
+       [:button.btn.btn-primary.dropdown-toggle {:type "button" :data-toggle "dropdown"}
+        [:i.fa.fa-list.pad-right-5] "List"]
+       (into [:ul.dropdown-menu] (map (fn [l]
+                                        [:li [:a (str (:name l))]]) @lists))])))
+
+(defn op []
+  (let [state (reagent/atom {:op "="})]
     (fn [path]
       [:div
-       [:div (str "path: " path)]
-       [:div (str "state: " @state)]
+       [:span (clojure.string/join " > " path)]
        [:div.input-group
         [:div.input-group-btn
          [:button.btn.btn-default.dropdown-toggle
@@ -24,12 +32,11 @@
                (map (fn [op] [:li {:on-click (fn [] (swap! state assoc :op op))} [:a op]])) ops)]
         [:input.form-control
          {:type      "text"
-          :value (:value @state)
+          :value     (:value @state)
           :on-change (fn [e] (swap! state assoc :value (.. e -target -value)))}]
-        [:div.input-group-btn
-         [:button.btn.btn-primary {:type "button"} [:i.fa.fa-list.pad-right-5] "List"]]]
+        [:div.input-group-btn [list-dropdown]]]
        [:button.btn.btn-success
-        {:on-click (fn [] (dispatch [:add-constraint @state]))} "Add"]])))
+        {:on-click (fn [] (dispatch [:add-constraint (merge @state {:path path})]))} "Add"]])))
 
 (defn constraint []
   (fn [path]
