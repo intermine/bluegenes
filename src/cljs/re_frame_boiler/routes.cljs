@@ -34,6 +34,9 @@
   (defroute "/templates" []
             (re-frame/dispatch [:set-active-panel :templates-panel]))
 
+  (defroute "/upload" []
+            (re-frame/dispatch [:set-active-panel :upload-panel]))
+
   (defroute "/querybuilder" []
             (re-frame/dispatch [:set-active-panel :querybuilder-panel
                                 nil
