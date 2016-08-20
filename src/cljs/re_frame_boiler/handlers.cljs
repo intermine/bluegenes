@@ -75,17 +75,21 @@
 
 (reg-fx
   :suggest
-  (fn [val]
-    (let [connection {:root "www.flymine.org/query"}]
-      (if (= "" val)
-        (dispatch [:handle-suggestions nil])
-        (go (dispatch [:handle-suggestions (<! (search/quicksearch connection val))]))))))
+  (fn [{:keys [c search-term]}]
+    (if (= "" search-term)
+      (dispatch [:handle-suggestions nil])
+      (go (dispatch [:handle-suggestions (<! c)])))))
 
 (reg-event-fx
   :bounce-search
   (fn [{db :db} [_ term]]
-    {:db      (assoc db :search-term term)
-     :suggest term}))
+    (let [connection   {:root "www.flymine.org/query"}
+          suggest-chan (search/quicksearch connection term)]
+      (if-let [c (:search-term-channel db)] (close! c))
+      {:db      (-> db
+                    (assoc :search-term-channel suggest-chan)
+                    (assoc :search-term term))
+       :suggest {:c suggest-chan :search-term term}})))
 
 (reg-event
   :finished-loading-assets
