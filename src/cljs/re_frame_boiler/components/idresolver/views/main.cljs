@@ -6,6 +6,8 @@
             [re-frame-boiler.components.idresolver.events]
             [re-frame-boiler.components.idresolver.subs]))
 
+(def ex "CG9151, FBgn0000099, CG3629, TfIIB, Mad, CG1775, CG2262, TWIST_DROME, tinman, runt, E2f, CG8817, FBgn0010433, CG9786, CG1034, ftz, FBgn0024250, FBgn0001251, tll, CG1374, CG33473, ato, so, CG16738, tramtrack,  CG2328, gt")
+
 (def separators (set ".,; "))
 
 (defn splitter
@@ -23,9 +25,8 @@
 (defn controls []
   (fn []
     [:div.btn-toolbar
-     [:button.btn.btn-primary
-      {:on-click (fn [] (dispatch [:idresolver/resolve "mad"]))}
-      "Upload"]]))
+     [:button.btn.btn-primary {:on-click (fn [] (dispatch [:idresolver/resolve (splitter ex)]))} "Example"]
+     [:button.btn.btn-primary {:on-click (fn [] (dispatch [:idresolver/clear]))} "Clear"]]))
 
 (defn input-box []
   (let [val (reagent/atom nil)]
@@ -42,6 +43,17 @@
                              (dispatch [:idresolver/resolve (splitter input)]))
                            (reset! val input))))}])))
 
+
+(defn input-item-duplicate []
+  (fn [[oid data]]
+    [:span.dropdown
+     [:span.dropdown-toggle
+      {:type "button"
+       :data-toggle "dropdown"} (:input data)]
+     (into [:ul.dropdown-menu]
+           (map (fn [result]
+                  [:li [:a (-> result :summary :symbol)]]) (:matches data)))]))
+
 (defn input-item [i]
   (let [result (subscribe [:idresolver/results-item (:input i)])]
     (fn [i]
@@ -49,8 +61,18 @@
                     "inactive"
                     (name (:status (second (first @result)))))]
         [:div.id-resolver-item {:class class}
-         [:i.fa.fa-check.fa-1x.fa-fw]
-         (:input i)]))))
+         (case (:status (second (first @result)))
+           :MATCH [:i.fa.fa-check.fa-1x.fa-fw]
+           :UNRESOLVED [:i.fa.fa-times]
+           :DUPLICATE [:i.fa.fa-clone]
+           :TYPE_CONVERTED [:i.fa.fa-random]
+           :OTHER [:i.fa.fa-exclamation]
+           [:i.fa.fa-cog.fa-spin.fa-1x.fa-fw])
+         [:span.pad-left-5
+
+          (if (= :DUPLICATE (:status (second (first @result))))
+            [input-item-duplicate (first @result)]
+            (:input i))]]))))
 
 (defn input-items []
   (let [bank (subscribe [:idresolver/bank])]
@@ -64,10 +86,18 @@
      [input-items]
      [input-box]]))
 
-(defn bank []
-  (let [bank (subscribe [:idresolver/bank])]
+(defn stats []
+  (let [bank       (subscribe [:idresolver/bank])
+        no-matches (subscribe [:idresolver/results-no-matches])
+        matches    (subscribe [:idresolver/results-matches])
+        duplicates (subscribe [:idresolver/results-duplicates])]
     (fn []
-      [:div (str "bank" @bank)])))
+      [:div
+       [:ul
+        [:li (str "entered" (count @bank))]
+        [:li (str "matches" (count @matches))]
+        [:li (str "no matches" (count @no-matches))]
+        [:li (str "duplicates" (count @duplicates))]]])))
 
 (defn results []
   (let [results (subscribe [:idresolver/results])]
@@ -85,8 +115,8 @@
   (fn []
     [:div.container
      [:h1 "List Upload"]
-     [spinner]
      [input-div]
      [controls]
-     [bank]
-     [results]]))
+     [stats]
+     ;[results]
+     ]))

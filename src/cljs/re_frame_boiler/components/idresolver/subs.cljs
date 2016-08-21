@@ -23,3 +23,24 @@
   (fn [results [_ input]]
     (filter (fn [[oid result]]
               (< -1 (.indexOf (:input result) input))) results)))
+
+(reg-sub
+  :idresolver/results-no-matches
+  :< [:idresolver/results]
+  (fn [results]
+    (filter (fn [[oid result]]
+              (= :UNRESOLVED (:status result))) results)))
+
+(reg-sub
+  :idresolver/results-matches
+  :< [:idresolver/results]
+  (fn [results]
+    (filter (fn [[oid result]]
+              (= :MATCH (:status result))) results)))
+
+(reg-sub
+  :idresolver/results-duplicates
+  :< [:idresolver/results]
+  (fn [results]
+    (filter (fn [[oid result]]
+              (= :DUPLICATE (:status result))) results)))

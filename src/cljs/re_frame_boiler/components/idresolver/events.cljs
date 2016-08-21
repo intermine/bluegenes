@@ -12,21 +12,23 @@
 (reg-event
   :handle-id
   (fn [db [_ id]]
-    (println "id" id)
-    (let [{{:keys [MATCH TYPE_CONVERTED OTHER
-                   WILDCARD DUPLICATE] :as resolved} :matches
-           unresolved                                :unresolved} id
-          tagged (remove empty? (mapcat (fn [[k v]]
-                                          (map (fn [r]
-                                                 (assoc r :status k)) v)) resolved))]
+    (let [{{:keys [MATCH TYPE_CONVERTED OTHER WILDCARD DUPLICATE] :as resolved} :matches
+           unresolved                                                           :unresolved} id
+          tagged    (remove empty? (mapcat (fn [[k v]] (map (fn [r] (assoc r :status k)) v)) resolved))
+          tagged-un (reduce (fn [total next] (assoc total next {:input [next] :status :UNRESOLVED})) {} unresolved)]
+
       (-> db
           (update-in [:idresolver :results]
                      (fn [results]
-                       (reduce (fn [total next-id]
-                                 (if-let [existing (get total (:id next-id))]
-                                   (update-in total [(:id next-id) :input] #(reduce conj % (:input next-id)))
-                                   (assoc total (:id next-id) next-id)))
-                               results tagged)))))))
+                       (merge tagged-un
+                              (reduce (fn [total next-id]
+                                        (merge total
+                                               (reduce (fn [n next-input]
+                                                         (assoc n next-input next-id)) {}
+                                                       (if (vector? (:input next-id))
+                                                         (:input next-id)
+                                                         [(:input next-id)]))))
+                                      results tagged))))))))
 
 (reg-fx
   :resolve-id
@@ -34,7 +36,8 @@
     (let [job (idresolver/resolve
                 {:root "www.flymine.org/query"}
                 {:identifiers (if (seq? id) id [id])
-                 :type        "Gene"})]
+                 :type        "Gene"
+                 :extra       "D. melanogaster"})]
       (go (dispatch [:handle-id (<! job)])))))
 
 (reg-event-fx
@@ -48,3 +51,13 @@
                                             (conj total {:input  next
                                                          :status :inactive})) bank id))))
      :resolve-id id}))
+
+(reg-event
+  :idresolver/clear
+  (fn [db]
+    (update-in db [:idresolver] assoc
+               :bank nil
+               :results nil
+               :resolving? false
+
+               )))

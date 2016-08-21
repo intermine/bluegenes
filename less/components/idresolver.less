@@ -10,6 +10,7 @@ div.id-resolver-item {
     border-radius: 4px;
     display: inline-block;
     float: left;
+    transition: all 1s;
     &.inactive {
         color: white;
         background: grey;
@@ -21,6 +22,18 @@ div.id-resolver-item {
     &.DUPLICATE {
         color: black;
         background: #dede00;
+    }
+    &.UNRESOLVED {
+        color: white;
+        background: red;
+    }
+    &.TYPE_CONVERTED {
+        color: white;
+        background: green;
+    }
+    &.OTHER {
+        color: white;
+        background: grey;
     }
 }
 
