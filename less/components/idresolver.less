@@ -4,6 +4,26 @@ div.idresolver {
     background: white;
 }
 
+div.id-resolver-item {
+    padding: 5px;
+    margin: 2px;
+    border-radius: 4px;
+    display: inline-block;
+    float: left;
+    &.inactive {
+        color: white;
+        background: grey;
+    }
+    &.MATCH {
+        color: white;
+        background: green;
+    }
+    &.DUPLICATE {
+        color: black;
+        background: #dede00;
+    }
+}
+
   input.freeform {
     float: left;
     padding: 9px 0;

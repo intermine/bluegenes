@@ -12,15 +12,28 @@
 (reg-event
   :handle-id
   (fn [db [_ id]]
-    (println "handling id" id)
-    db))
+    (println "id" id)
+    (let [{{:keys [MATCH TYPE_CONVERTED OTHER
+                   WILDCARD DUPLICATE] :as resolved} :matches
+           unresolved                                :unresolved} id
+          tagged (remove empty? (mapcat (fn [[k v]]
+                                          (map (fn [r]
+                                                 (assoc r :status k)) v)) resolved))]
+      (-> db
+          (update-in [:idresolver :results]
+                     (fn [results]
+                       (reduce (fn [total next-id]
+                                 (if-let [existing (get total (:id next-id))]
+                                   (update-in total [(:id next-id) :input] #(reduce conj % (:input next-id)))
+                                   (assoc total (:id next-id) next-id)))
+                               results tagged)))))))
 
 (reg-fx
   :resolve-id
   (fn [id]
     (let [job (idresolver/resolve
                 {:root "www.flymine.org/query"}
-                {:identifiers [id]
+                {:identifiers (if (seq? id) id [id])
                  :type        "Gene"})]
       (go (dispatch [:handle-id (<! job)])))))
 
@@ -29,5 +42,9 @@
   (fn [{db :db} [_ id]]
     {:db         (-> db
                      (assoc-in [:idresolver :resolving?] true)
-                     (update-in [:idresolver :bank] conj id))
+                     (update-in [:idresolver :bank]
+                                (fn [bank]
+                                  (reduce (fn [total next]
+                                            (conj total {:input  next
+                                                         :status :inactive})) bank id))))
      :resolve-id id}))
