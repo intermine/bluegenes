@@ -37,6 +37,16 @@
   (defroute "/upload" []
             (re-frame/dispatch [:set-active-panel :upload-panel]))
 
+  (defroute "/listanalysis/list/:name" [name]
+            (re-frame/dispatch [:set-active-panel :list-analysis-panel
+                                {:name name}
+                                [:listanalysis/run]]))
+
+  (defroute "/listanalysis/temp/:name" [name]
+            (re-frame/dispatch [:set-active-panel :list-analysis-panel
+                                {:temp name}
+                                [:listanalysis/run]]))
+
   (defroute "/querybuilder" []
             (re-frame/dispatch [:set-active-panel :querybuilder-panel
                                 nil

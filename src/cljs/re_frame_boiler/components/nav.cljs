@@ -7,8 +7,7 @@
 (defn settings []
   (fn []
     [:li.dropdown
-     [:a.dropdown-toggle {:on-click #(navigate! "#/debug")
-                          :data-toggle "dropdown" :role "button"} [:i.fa.fa-cog]]
+     [:a.dropdown-toggle {:data-toggle "dropdown" :role "button"} [:i.fa.fa-cog]]
      [:ul.dropdown-menu
       [:li [:a {:on-click #(navigate! "#/debug")} [:i.fa.fa-terminal] " Developer"]]]]))
 
@@ -46,7 +45,8 @@
          [:li {:class (if (panel-is :home-panel) "active")} [:a {:on-click #(navigate! "#/")} "Home"]]
          [:li {:class (if (panel-is :upload-panel) "active")} [:a {:on-click #(navigate! "#/upload")} "Upload"]]
          [:li {:class (if (panel-is :templates-panel) "active")} [:a {:on-click #(navigate! "#/templates")} "Templates"]]
-         [:li {:class (if (panel-is :querybuilder-panel) "active")} [:a {:on-click #(navigate! "#/querybuilder")} "Query Builder"]]]
+         [:li {:class (if (panel-is :querybuilder-panel) "active")} [:a {:on-click #(navigate! "#/querybuilder")} "Query Builder"]]
+         [:li {:class (if (panel-is :list-analysis-panel) "active")} [:a {:on-click #(navigate! "#/listanalysis")} "List Analysis"]]]
         [:ul.nav.navbar-nav.navbar-right.buttons
          [:li.search [search/main]]
          [:li [:a [:i.fa.fa-question]]]

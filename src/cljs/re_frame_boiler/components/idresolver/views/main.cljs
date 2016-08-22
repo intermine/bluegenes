@@ -26,7 +26,8 @@
   (fn []
     [:div.btn-toolbar
      [:button.btn.btn-primary {:on-click (fn [] (dispatch [:idresolver/resolve (splitter ex)]))} "Example"]
-     [:button.btn.btn-primary {:on-click (fn [] (dispatch [:idresolver/clear]))} "Clear"]]))
+     [:button.btn.btn-primary {:on-click (fn [] (dispatch [:idresolver/clear]))} "Clear"]
+     [:button.btn.btn-primary {:on-click (fn [] (dispatch [:idresolver/analyse]))} "Analyse"]]))
 
 (defn input-box []
   (let [val (reagent/atom nil)]
@@ -49,7 +50,9 @@
     [:span.dropdown
      [:span.dropdown-toggle
       {:type        "button"
-       :data-toggle "dropdown"} (:input data)]
+       :data-toggle "dropdown"}
+      (:input data)
+      [:span.caret]]
      (into [:ul.dropdown-menu]
            (map (fn [result]
                   [:li

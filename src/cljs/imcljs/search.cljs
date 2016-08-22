@@ -27,3 +27,20 @@
                        (>! c (-> response :body))
                        (close! c))))))
     c))
+
+
+(defn enrichment
+  "Get the results of using a list enrichment widget to calculate statistics for a set of objects."
+  [{root :root token :token} {:keys [ids list widget maxp correction population]}]
+  (go (:body (<! (http/post
+                   (str (cleanse-url root) "/list/enrichment")
+                   {:with-credentials? false
+                    :keywordize-keys?  true
+                    :form-params       (merge {:widget     widget
+                                               :maxp       maxp
+                                               :format     "json"
+                                               :correction correction}
+                                              (cond
+                                                ids {:ids (clojure.string/join "," ids)}
+                                                list {:list list})
+                                              (if-not (nil? population) {:population population}))})))))

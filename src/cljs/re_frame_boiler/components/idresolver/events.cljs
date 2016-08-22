@@ -7,6 +7,7 @@
             [imcljs.idresolver :as idresolver]
             [imcljs.filters :as filters]
             [com.rpl.specter :as s]
+            [accountant.core :refer [navigate!]]
             [clojure.zip :as zip]))
 
 
@@ -74,6 +75,20 @@
                :bank nil
                :results nil
                :resolving? false)))
+
+(reg-fx
+  :navigate
+  (fn [url]
+    (navigate! (str "#/" url))))
+
+(reg-event-fx
+  :idresolver/analyse
+  (fn [{db :db}]
+    (let [uid (str (gensym))]
+      {:db       (update-in db [:idresolver :saved]
+                            (fn [saved]
+                              (assoc saved uid (remove nil? (map (fn [[input {id :id}]] id) (-> db :idresolver :results))))))
+       :navigate (str "listanalysis/temp/" uid)})))
 
 (reg-event-db
   :idresolver/resolve-duplicate

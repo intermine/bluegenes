@@ -8,6 +8,7 @@
             [re-frame-boiler.sections.templates.views :as templates]
             [re-frame-boiler.components.querybuilder.views.main :as querybuilder]
             [re-frame-boiler.sections.upload.views :as upload]
+            [re-frame-boiler.sections.analyse.views :as analyse]
             [accountant.core :refer [navigate!]]))
 
 (defn debug-panel []
@@ -16,8 +17,10 @@
       [:div
        [:div.panel.container
         [:div.title "Routes"]
-        [:button.btn {:on-click #(navigate! "#/assets/lists/123")} "Asset: List: (123)"]
-        [:button.btn {:on-click #(navigate! "#/objects/type/12345")} "Object (12345)"]]
+        [:div.btn-toolbar
+         [:button.btn {:on-click #(navigate! "#/assets/lists/123")} "Asset: List: (123)"]
+         [:button.btn {:on-click #(navigate! "#/objects/type/12345")} "Object (12345)"]
+         [:button.btn {:on-click #(navigate! "#/listanalysis/list/PL FlyAtlas_midgut_top")} "List (PL FlyAtlas_midgut_top)"]]]
        [:div.panel.container
         [:div.title "Global Progress Bar"]
         [:button.btn
@@ -44,6 +47,7 @@
 (defmethod panels :templates-panel [] [templates/main])
 (defmethod panels :object-panel [] [objects/main])
 (defmethod panels :upload-panel [] [upload/main])
+(defmethod panels :list-analysis-panel [] [analyse/main])
 (defmethod panels :querybuilder-panel [] [:div.container [querybuilder/main]])
 (defmethod panels :default [] [:div])
 
