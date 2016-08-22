@@ -51,18 +51,13 @@
 (defn main []
   (fn []
     [:div.approot.red
-      [icons/icons]
-      ;[:svg.icon [:use {:xlinkHref "#icon-floppy-disk"}]]
-      ;[welcome]
+     [icons/icons]
+     ;[:svg.icon [:use {:xlinkHref "#icon-floppy-disk"}]]
+     ;[welcome]
      [header]
-     [circles/main-panel]
+          [circles/main-panel]
      ;[texty/main-panel]
      [:div.container.padme
-;<<<<<<< HEAD
-;      [:div.row [templates/main]]
-;      [:div.row [lists/main]]
-;      [:div.row [generic-section]]]]))
-;=======
       ;[:div.row [generic-section]]
       ]
      [footer]
