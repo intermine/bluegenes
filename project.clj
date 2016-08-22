@@ -22,11 +22,15 @@
 
   :plugins [[lein-cljsbuild "1.1.3"]
             [lein-less "1.7.5"]
-            [lein-bower "0.5.1"]]
+            [lein-bower "0.5.1"]
+            [lein-shell "0.5.0"]]
+
+  :aliases {"foreign" ["do"
+                       ["shell" "curl" "-o" "resources/public/vendor/imtables.js" "http://cdn.intermine.org/js/intermine/im-tables/2.0.0/imtables.min.js"]
+                       ["shell" "curl" "-o" "resources/public/vendor/im.min.js" "http://cdn.intermine.org/js/intermine/imjs/3.15.0/im.min.js"]]}
 
   :bower-dependencies [[bootstrap "3.3.6"]
-                       [font-awesome "4.6.3"]
-                       [flexboxgrid "6.3.0"]]
+                       [font-awesome "4.6.3"]]
 
   :min-lein-version "2.5.3"
 
@@ -35,7 +39,7 @@
   :clean-targets ^{:protect false} ["resources/public/js/compiled" "target"
                                     "test/js"]
 
-  :figwheel {:css-dirs ["resources/public/css"]
+  :figwheel {:css-dirs     ["resources/public/css"]
              :ring-handler re-frame-boiler.handler/dev-handler}
 
   :less {:source-paths ["less"]
@@ -58,17 +62,28 @@
                     :output-to            "resources/public/js/compiled/app.js"
                     :output-dir           "resources/public/js/compiled/out"
                     :asset-path           "js/compiled/out"
-                    :source-map-timestamp true}}
+                    :source-map-timestamp true
+                    ;:foreign-libs [{:file "resources/public/vendor/im.min.js"
+                    ;                :provides ["intermine.imjs"]}
+                    ;               {:file "resources/public/vendor/imtables.js"
+                    ;                :provides ["intermine.imtables"]}]
+                    }}
 
     {:id           "min"
      :source-paths ["src/cljs"]
-     :jar true
+     :jar          true
      :compiler     {:main            re-frame-boiler.core
                     :output-to       "resources/public/js/compiled/app.js"
-                    :externs ["externs/imjs.js"]
+                    :externs         ["externs/imjs.js"
+                                      "externs/imtables.js"]
                     :optimizations   :advanced
                     :closure-defines {goog.DEBUG false}
-                    :pretty-print    false}}
+                    :pretty-print    false
+                    ;:foreign-libs [{:file "resources/public/vendor/im.min.js"
+                    ;                :provides ["intermine.imjs"]}
+                    ;               {:file "resources/public/vendor/imtables.min.js"
+                    ;                :provides ["intermine.imtables"]}]
+                    }}
     {:id           "test"
      :source-paths ["src/cljs" "test/cljs"]
      :compiler     {:output-to     "resources/public/js/compiled/test.js"
