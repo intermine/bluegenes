@@ -58,7 +58,6 @@
 (reg-fx
   :run-query
   (fn [query]
-    (println "running query" query)
     (go (dispatch [:handle-count (<! (search/raw-query-rows
                                        {:root "www.flymine.org/query"}
                                        query
@@ -91,7 +90,6 @@
 (reg-event-fx
   :qb-remove-select
   (fn [{db :db} [_ path]]
-    (println "REMOVING SELECT")
     {:db       (update-in db [:query-builder :query :select]
                           (fn [views]
                             (remove #(= % path) views)))

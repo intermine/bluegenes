@@ -65,6 +65,7 @@
      :jar true
      :compiler     {:main            re-frame-boiler.core
                     :output-to       "resources/public/js/compiled/app.js"
+                    :externs ["externs/imjs.js"]
                     :optimizations   :advanced
                     :closure-defines {goog.DEBUG false}
                     :pretty-print    false}}
