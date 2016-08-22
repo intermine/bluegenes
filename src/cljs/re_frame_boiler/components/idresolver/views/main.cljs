@@ -118,5 +118,5 @@
      [input-div]
      [controls]
      [stats]
-     ;[results]
+     [results]
      ]))
