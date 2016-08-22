@@ -1,7 +1,7 @@
 (ns re-frame-boiler.components.querybuilder.events
   (:require-macros [cljs.core.async.macros :refer [go go-loop]]
                    [com.rpl.specter.macros :refer [traverse]])
-  (:require [re-frame.core :as re-frame :refer [reg-event reg-event-fx reg-fx dispatch]]
+  (:require [re-frame.core :as re-frame :refer [reg-event-db reg-event-fx reg-fx dispatch]]
             [re-frame-boiler.db :as db]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
             [imcljs.search :as search]
@@ -27,7 +27,7 @@
 (defn nth-child [z idx]
   (nth (iterate zip/right z) idx))
 
-(reg-event
+(reg-event-db
   :qb-reset-query
   (fn [db [_ count]]
     (-> db
@@ -48,7 +48,7 @@
                      (assoc-in [:query-builder :constraint] nil)))
      :dispatch [:qb-run-query]}))
 
-(reg-event
+(reg-event-db
   :handle-count
   (fn [db [_ count]]
     (-> db
@@ -77,7 +77,7 @@
                                                :op    (:op con)
                                                :value (:value con)}) cons))))})))
 
-(reg-event
+(reg-event-db
   :qb-make-tree
   (fn [db]
     (let [model (-> db :assets :model)]
@@ -105,7 +105,7 @@
                             (remove #(= % path) wheres)))
      :dispatch [:qb-run-query]}))
 
-(reg-event
+(reg-event-db
   :query-builder/add-filter
   (fn [db [_ path]]
     (assoc-in db [:query-builder :constraint] path)))

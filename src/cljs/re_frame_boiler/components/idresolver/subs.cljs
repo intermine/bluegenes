@@ -44,3 +44,10 @@
   (fn [results]
     (filter (fn [[oid result]]
               (= :DUPLICATE (:status result))) results)))
+
+(reg-sub
+  :idresolver/results-other
+  :< [:idresolver/results]
+  (fn [results]
+    (filter (fn [[oid result]]
+              (= :OTHER (:status result))) results)))

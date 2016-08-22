@@ -48,11 +48,15 @@
   (fn [[oid data]]
     [:span.dropdown
      [:span.dropdown-toggle
-      {:type "button"
+      {:type        "button"
        :data-toggle "dropdown"} (:input data)]
      (into [:ul.dropdown-menu]
            (map (fn [result]
-                  [:li [:a (-> result :summary :symbol)]]) (:matches data)))]))
+                  [:li
+                   {:on-click (fn [] (dispatch [:idresolver/resolve-duplicate
+                                                (:input data)
+                                                result]))}
+                   [:a (-> result :summary :symbol)]]) (:matches data)))]))
 
 (defn input-item [i]
   (let [result (subscribe [:idresolver/results-item (:input i)])]
@@ -78,7 +82,8 @@
   (let [bank (subscribe [:idresolver/bank])]
     (fn []
       (into [:div.input-items]
-            (map (fn [i] [input-item i]) (reverse @bank))))))
+            (map (fn [i]
+                   ^{:key (:input i)} [input-item i]) (reverse @bank))))))
 
 (defn input-div []
   (fn []
@@ -90,14 +95,35 @@
   (let [bank       (subscribe [:idresolver/bank])
         no-matches (subscribe [:idresolver/results-no-matches])
         matches    (subscribe [:idresolver/results-matches])
-        duplicates (subscribe [:idresolver/results-duplicates])]
+        duplicates (subscribe [:idresolver/results-duplicates])
+        other      (subscribe [:idresolver/results-other])]
     (fn []
-      [:div
-       [:ul
-        [:li (str "entered" (count @bank))]
-        [:li (str "matches" (count @matches))]
-        [:li (str "no matches" (count @no-matches))]
-        [:li (str "duplicates" (count @duplicates))]]])))
+      [:div.panel
+       [:div.row
+        [:div.col-md-4 [:h4
+                        (str "Total Identifiers: " (count @bank))]]
+        [:div.col-md-2 [:h4
+                        [:i.fa.fa-check.fa-1x.fa-fw]
+                        (str "Matches: " (count @matches))]]
+        [:div.col-md-2 [:h4
+                        [:i.fa.fa-clone]
+                        (str "Duplicates: " (count @duplicates))]]
+        [:div.col-md-2 [:h4
+                        [:i.fa.fa-times]
+                        (str "Not Found: " (count @no-matches))]]
+        [:div.col-md-2 [:h4
+                        [:i.fa.fa-exclamation]
+                        (str "Other: " (count @other))]]]
+       [:div [controls]]]
+
+      #_[:div
+         [:ul
+          [:li (str "entered" (count @bank))]
+          [:li (str "matches" (count @matches))]
+          [:li (str "no matches" (count @no-matches))]
+          [:li (str "duplicates" (count @duplicates))]]]
+
+      )))
 
 (defn results []
   (let [results (subscribe [:idresolver/results])]
@@ -116,7 +142,6 @@
     [:div.container
      [:h1 "List Upload"]
      [input-div]
-     [controls]
      [stats]
-     [results]
+     ;[results]
      ]))

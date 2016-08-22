@@ -1,6 +1,6 @@
 (ns re-frame-boiler.handlers
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
-  (:require [re-frame.core :as re-frame :refer [reg-event reg-event-fx reg-fx dispatch]]
+  (:require [re-frame.core :as re-frame :refer [reg-event-db reg-event-fx reg-fx dispatch]]
             [re-frame-boiler.db :as db]
             [day8.re-frame.http-fx]
             [day8.re-frame.forward-events-fx]
@@ -10,7 +10,7 @@
             [imcljs.assets :as assets]
             [re-frame-boiler.sections.objects.handlers]))
 
-(reg-event
+(reg-event-db
   :initialize-db
   (fn [_ _]
     db/default-db))
@@ -41,7 +41,7 @@
                             :panel-params panel-params)}
              (if evt {:dispatch evt})))))
 
-(reg-event
+(reg-event-db
   :good-who-am-i
   (fn [db [_ result]]
     (assoc db :who-am-i (:user result))))
@@ -58,17 +58,17 @@
                   :on-success      [:good-who-am-i]
                   :on-failure      [:bad-http-result]}}))
 
-(reg-event
+(reg-event-db
   :async-assoc
   (fn [db [_ location-vec val]]
     (assoc-in db location-vec val)))
 
-(reg-event
+(reg-event-db
   :log-out
   (fn [db]
     (dissoc db :who-am-i)))
 
-(reg-event
+(reg-event-db
   :handle-suggestions
   (fn [db [_ results]]
     (assoc db :suggestion-results results)))
@@ -91,7 +91,7 @@
                     (assoc :search-term term))
        :suggest {:c suggest-chan :search-term term}})))
 
-(reg-event
+(reg-event-db
   :finished-loading-assets
   (fn [db]
     (assoc db :fetching-assets? false)))
@@ -124,17 +124,17 @@
                              :progress-bar-percent 0)
      :fetch-assets {:root "www.flymine.org/query"}}))
 
-(reg-event
+(reg-event-db
   :test-progress-bar
   (fn [db [_ percent]]
     (assoc db :progress-bar-percent percent)))
 
-(reg-event
+(reg-event-db
   :select-template
   (fn [db [_ id]]
     (assoc-in db [:components :template-chooser :selected-template] id)))
 
-(reg-event
+(reg-event-db
   :select-template-category
   (fn [db [_ id]]
     (assoc-in db [:components :template-chooser :selected-template-category] id)))

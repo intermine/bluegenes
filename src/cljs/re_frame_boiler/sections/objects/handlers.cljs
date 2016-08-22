@@ -1,14 +1,14 @@
 (ns re-frame-boiler.sections.objects.handlers
   (:require-macros [cljs.core.async.macros :refer [go go-loop]]
                    [com.rpl.specter.macros :refer [traverse select transform]])
-  (:require [re-frame.core :as re-frame :refer [reg-event reg-event-fx reg-fx dispatch]]
+  (:require [re-frame.core :as re-frame :refer [reg-event-db reg-event-fx reg-fx dispatch]]
             [re-frame-boiler.db :as db]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
             [imcljs.search :as search]
             [imcljs.filters :as filters]
             [com.rpl.specter :as s]))
 
-(reg-event
+(reg-event-db
   :handle-report-summary
   (fn [db [_ summary]]
     (-> db
@@ -28,7 +28,7 @@
                                                   {:format "json"}))])))))
 
 
-(reg-event
+(reg-event-db
   :filter-report-collections
   (fn [db [_ type oid]]
     (let [model          (-> db :assets :model)

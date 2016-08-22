@@ -3,7 +3,7 @@
                  [org.clojure/clojurescript "1.9.89"]
                  [reagent "0.6.0-rc"]
                  [binaryage/devtools "0.6.1"]
-                 [re-frame "0.8.0-alpha4"]
+                 [re-frame "0.8.0"]
                  [secretary "1.2.3"]
                  [lein-cljsbuild "1.1.3"]
                  [compojure "1.5.0"]
