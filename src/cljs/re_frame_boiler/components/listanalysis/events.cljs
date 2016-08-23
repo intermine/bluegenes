@@ -33,29 +33,30 @@
 
 (reg-event-fx
   :listanalysis/run-all
-  (fn [{db :db}]
-    {:db            (assoc-in db [:list-analysis :results] nil)
-     :dispatch-many [[:listanalysis/run {:ids        (get-in db [:idresolver :saved (:temp (:panel-params db))])
-                                         :maxp       0.05
-                                         :widget     "pathway_enrichment"
-                                         :correction "Holm-Bonferroni"}]
-                     [:listanalysis/run {:ids        (get-in db [:idresolver :saved (:temp (:panel-params db))])
-                                         :maxp       0.05
-                                         :widget     "go_enrichment_for_gene"
-                                         :correction "Holm-Bonferroni"}]
-                     [:listanalysis/run {:ids        (get-in db [:idresolver :saved (:temp (:panel-params db))])
-                                         :maxp       0.05
-                                         :widget     "prot_dom_enrichment_for_gene"
-                                         :correction "Holm-Bonferroni"}]
-                     [:listanalysis/run {:ids        (get-in db [:idresolver :saved (:temp (:panel-params db))])
-                                         :maxp       0.05
-                                         :widget     "publication_enrichment"
-                                         :correction "Holm-Bonferroni"}]
-                     [:listanalysis/run {:ids        (get-in db [:idresolver :saved (:temp (:panel-params db))])
-                                         :maxp       0.05
-                                         :widget     "bdgp_enrichment"
-                                         :correction "Holm-Bonferroni"}]
-                     [:listanalysis/run {:ids        (get-in db [:idresolver :saved (:temp (:panel-params db))])
-                                         :maxp       0.05
-                                         :widget     "miranda_enrichment"
-                                         :correction "Holm-Bonferroni"}]]}))
+  (fn [{db :db} [_ target]]
+    (let [t (cond
+              (:list target) {:list (:list target)}
+              (:temp target) {:ids (get-in db [:idresolver :saved (:temp target)])})]
+      {:db            (assoc-in db [:list-analysis :results] nil)
+       :dispatch-many [[:listanalysis/run (merge t {:maxp       0.05
+                                                    :widget     "pathway_enrichment"
+                                                    :correction "Holm-Bonferroni"})]
+                       [:listanalysis/run (merge t {:maxp       0.05
+                                                    :widget     "go_enrichment_for_gene"
+                                                    :correction "Holm-Bonferroni"})]
+                       [:listanalysis/run (merge t {:maxp       0.05
+                                                    :widget     "prot_dom_enrichment_for_gene"
+                                                    :correction "Holm-Bonferroni"})]
+                       [:listanalysis/run (merge t {:maxp       0.05
+                                                    :widget     "publication_enrichment"
+                                                    :correction "Holm-Bonferroni"})]
+                       [:listanalysis/run (merge t {:maxp       0.05
+                                                    :widget     "bdgp_enrichment"
+                                                    :correction "Holm-Bonferroni"})]
+                       [:listanalysis/run (merge t {:maxp       0.05
+                                                    :widget     "miranda_enrichment"
+                                                    :correction "Holm-Bonferroni"})]]})))
+
+
+
+;                        [:listanalysis/run (merge t {:ids        (get-in db [:idresolver :saved (:temp (:panel-params db))])

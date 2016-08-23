@@ -18,6 +18,11 @@
     (-> db :idresolver :results)))
 
 (reg-sub
+  :idresolver/saved
+  (fn [db [_ id]]
+    (-> db :idresolver :saved (get id))))
+
+(reg-sub
   :idresolver/results-item
   :< [:idresolver/results]
   (fn [results [_ input]]
