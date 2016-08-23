@@ -36,37 +36,40 @@
      [:button.btn.btn-primary
       {:on-click (fn [] (dispatch [:listanalysis/run]))} "Run"]]))
 
-(defn form []
-  (fn []
-    [:div.panel
-     {:style {:width "50%" :font-size "12px"}}
-     [:form.form.form-sm
-      [:div.row
-       [:div.col-sm-5.form-group.form-xs
-        [:label.control-label "Test Correction"]
-        [:select.form-control
-         [:option "Holm-Bonferroni"]
-         [:option "Benjamini Hochber"]
-         [:option "Bonferroni"]
-         [:option "None"]]]
-       [:div.col-sm-3.form-group
-        [:label.control-label "Max p-value"]
-        [:select.form-control
-         [:option 0.05]
-         [:option 0.10]
-         [:option 1.00]]]
-       [:div.col-sm-4.form-group
-        [:label.control-label "Background Population"]
-        [:select.form-control
-         [:option 1]
-         [:option 2]
-         [:option 3]
-         [:option 4]]]]]
-     [results-table]
+(defn list-analysis []
+  (fn [enrichment-type]
+    [:div.panel.panel-default.enrichment
+     [:div.panel-heading enrichment-type]
+     [:div.panel-body
+      [:form.form.form-sm
+       [:div.row
+        [:div.col-sm-5.form-group.form-xs
+         [:label.control-label "Test Correction"]
+         [:select.form-control
+          [:option "Holm-Bonferroni"]
+          [:option "Benjamini Hochber"]
+          [:option "Bonferroni"]
+          [:option "None"]]]
+        [:div.col-sm-3.form-group
+         [:label.control-label "Max p-value"]
+         [:select.form-control
+          [:option 0.05]
+          [:option 0.10]
+          [:option 1.00]]]
+        [:div.col-sm-4.form-group
+         [:label.control-label "Background Population"]
+         [:select.form-control
+          [:option 1]
+          [:option 2]
+          [:option 3]
+          [:option 4]]]]]
+      [results-table]
+      [controls]]
+
      ;[results]
-     [controls]]))
+     ]))
 
 (defn main []
   (fn []
     [:div
-     [form]]))
+     [list-analysis "Pathway Enrichment"]]))

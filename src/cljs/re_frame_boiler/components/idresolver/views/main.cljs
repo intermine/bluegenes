@@ -101,23 +101,24 @@
         duplicates (subscribe [:idresolver/results-duplicates])
         other      (subscribe [:idresolver/results-other])]
     (fn []
-      [:div.panel
-       [:div.row
-        [:div.col-md-4 [:h4
-                        (str "Total Identifiers: " (count @bank))]]
-        [:div.col-md-2 [:h4
-                        [:i.fa.fa-check.fa-1x.fa-fw]
-                        (str "Matches: " (count @matches))]]
-        [:div.col-md-2 [:h4
-                        [:i.fa.fa-clone]
-                        (str "Duplicates: " (count @duplicates))]]
-        [:div.col-md-2 [:h4
-                        [:i.fa.fa-times]
-                        (str "Not Found: " (count @no-matches))]]
-        [:div.col-md-2 [:h4
-                        [:i.fa.fa-exclamation]
-                        (str "Other: " (count @other))]]]
-       [:div [controls]]]
+      [:div.panel.panel-default
+       [:div.panel-body
+        [:div.row
+         [:div.col-md-4 [:h4
+                         (str "Total Identifiers: " (count @bank))]]
+         [:div.col-md-2 [:h4
+                         [:i.fa.fa-check.fa-1x.fa-fw]
+                         (str "Matches: " (count @matches))]]
+         [:div.col-md-2 [:h4
+                         [:i.fa.fa-clone]
+                         (str "Duplicates: " (count @duplicates))]]
+         [:div.col-md-2 [:h4
+                         [:i.fa.fa-times]
+                         (str "Not Found: " (count @no-matches))]]
+         [:div.col-md-2 [:h4
+                         [:i.fa.fa-exclamation]
+                         (str "Other: " (count @other))]]]
+        [:div [controls]]]]
 
       #_[:div
          [:ul

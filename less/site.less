@@ -2,11 +2,11 @@
 @import "../resources/public/vendor/font-awesome/less/font-awesome";
 @import "variables";
 @import "json-html";
-@import "overrides";
 @import "components/navbar";
-
+@import "overrides";
 @import "components/progressbar";
-@import "components/report/summary.less";
+@import "components/report/summary";
+@import "components/enrichment";
 @import "variables";
 @import "simple-sidebar";
 @import "components/querybuilder";
@@ -49,8 +49,8 @@ a.callout {
     box-shadow: 0px -2px 5px -1px rgba(0,0,0,0.33);
 }
 .panel {
-    padding: 15px;
-    .down-shadow;
+    // padding: 15px;
+    // .down-shadow;
 }
 div.logged-in {
     background: @highlight-color;
@@ -177,3 +177,5 @@ td.skipped {
 .stressed {
     color: @highlight-color;
 }
+
+

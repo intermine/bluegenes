@@ -10,4 +10,4 @@
       [:div.container-fluid
        [:h2 [:span "List Analysis for "] [:span.stressed (str (:name @params))]]
        [:div.row
-        [:div.col-md-12 [listanalysis/main]]]])))
+        [:div.col-md-4 [listanalysis/main]]]])))
