@@ -99,18 +99,12 @@
               [:option 4]]]]
            ]
           [:div.table-container
-           [results-table type (:results @results)]]
-          ;[controls]
-          ])
-
-       ])))
+           [results-table type (:results @results)]]])])))
 
 (defn main []
   (fn [type]
     [:div
-     [list-analysis type]
-     ;[results]
-     ]))
+     [list-analysis type]]))
 
 
 

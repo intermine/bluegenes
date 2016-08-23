@@ -6,7 +6,7 @@
  * Licensed under MIT (https://github.com/BlackrockDigital/startbootstrap/blob/gh-pages/LICENSE)
  */
 
- @major-width: 175px;
+ @major-width: 50%;
 
  body {
     overflow-x: hidden;
@@ -29,10 +29,10 @@
 #sidebar-wrapper {
     z-index: 1000;
     position: fixed;
-    left: @major-width;
+    right: @major-width;
     width: 0;
     height: 100%;
-    margin-left: 0 - @major-width;
+    margin-right: 0 - @major-width;
     overflow-y: auto;
     background: #000;
     background: #d8d8d8;
@@ -109,7 +109,7 @@
 
 @media(min-width:768px) {
     #wrapper {
-        padding-left: @major-width;
+        padding-right: @major-width;
     }
 
     #wrapper.toggled {

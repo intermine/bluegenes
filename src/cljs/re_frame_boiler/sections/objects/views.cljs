@@ -13,20 +13,14 @@
         collections      (subscribe [:collections])
         fetching-report? (subscribe [:fetching-report?])]
     (fn []
-      [:div#wrapper
-       [:div#sidebar-wrapper
-        (into [:ul.sidebar-nav
-               [:li.sidebar-brand
-                [:a "Categories"]]]
-              (map (fn [cat] [:li [:a cat]]) @categories))]
-       [:div#page-content-wrapper
-        (if @fetching-report?
-          [:i.fa.fa-cog.fa-spin.fa-3x.fa-fw]
-          [:div
-           [:ol.breadcrumb
-            [:li [:a "Home"]]
-            [:li [:a "Search Results"]]
-            [:li.active [:a "Report"]]]
-           [summary/main (:summary @report)]
-           (into [:div.collections] (map (fn [query] [lighttable/main query]) @collections))
-           (into [:div.templates] (map (fn [[id details]] [table/main details]) @templates))])]])))
+      [:div.container-fluid
+       (if @fetching-report?
+         [:i.fa.fa-cog.fa-spin.fa-3x.fa-fw]
+         [:div
+          [:ol.breadcrumb
+           [:li [:a "Home"]]
+           [:li [:a "Search Results"]]
+           [:li.active [:a "Report"]]]
+          [summary/main (:summary @report)]
+          (into [:div.collections] (map (fn [query] [lighttable/main query]) @collections))
+          (into [:div.templates] (map (fn [[id details]] [table/main details]) @templates))])])))
