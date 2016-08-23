@@ -6,10 +6,29 @@
             [re-frame-boiler.components.listanalysis.subs]
             [dommy.core :as dommy :refer-macros [sel sel1]]))
 
+(def widget-fields {"Pathway Enrichment" [{:header "Pathway" :field :description}
+                                          {:header "Matches" :field :matches}
+                                          {:header "p-value" :field :p-value}]})
+
 (defn results []
   (let [results (subscribe [:listanalysis/results])]
     (fn []
       [:div (json-html/edn->hiccup @results)])))
+
+(defn results-row []
+  (fn [data]
+    (into [:tr]
+          (map (fn [{field :field}] [:td (field data)]) (get widget-fields "Pathway Enrichment")))))
+
+(defn results-table []
+  (let [results (subscribe [:listanalysis/results])]
+    (fn []
+      [:table.table
+       [:thead
+        (into [:tr]
+              (map (fn [header] [:th (:header header)]) (get widget-fields "Pathway Enrichment")))]
+       (into [:tbody]
+             (map (fn [result] [results-row result]) (:results @results)))])))
 
 (defn controls []
   (fn []
@@ -43,7 +62,8 @@
          [:option 2]
          [:option 3]
          [:option 4]]]]]
-     [results]
+     [results-table]
+     ;[results]
      [controls]]))
 
 (defn main []

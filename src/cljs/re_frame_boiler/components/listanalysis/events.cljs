@@ -6,12 +6,10 @@
             [imcljs.search :as search]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]))
 
-
-
 (reg-event-db
   :listanalysis/handle-results
   (fn [db [_ results]]
-    (assoc-in db [:list-analysis :results] (:results results))))
+    (assoc-in db [:list-analysis :results] results)))
 
 (reg-fx
   :listanalysis/get-enrichment
