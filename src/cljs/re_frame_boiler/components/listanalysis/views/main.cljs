@@ -6,29 +6,56 @@
             [re-frame-boiler.components.listanalysis.subs]
             [dommy.core :as dommy :refer-macros [sel sel1]]))
 
-(def widget-fields {"Pathway Enrichment" [{:header "Pathway" :field :description}
-                                          {:header "Matches" :field :matches}
-                                          {:header "p-value" :field :p-value}]})
+(def enrichment-config {:pathway_enrichment           {:title   "Pathway Enrichment"
+                                                       :returns [{:header "Pathway" :field :description}
+                                                                 {:header "Matches" :field :matches}
+                                                                 {:header "p-value" :field :p-value}]}
+                        :go_enrichment_for_gene       {:title   "Gene Ontology Enrichment"
+                                                       :returns [{:header "GO Term" :field :description}
+                                                                 {:header "Matches" :field :matches}
+                                                                 {:header "p-value" :field :p-value}]}
+                        :prot_dom_enrichment_for_gene {:title   "Protein Domain Enrichment"
+                                                       :returns [{:header "Protein Domain" :field :description}
+                                                                 {:header "Matches" :field :matches}
+                                                                 {:header "p-value" :field :p-value}]}
+
+
+                        :publication_enrichment       {:title   "Publication Enrichment"
+                                                       :returns [{:header "Protein Domain" :field :description}
+                                                                 {:header "Matches" :field :matches}
+                                                                 {:header "p-value" :field :p-value}]}
+                        :bdgp_enrichment              {:title   "BDGP Enrichment"
+                                                       :returns [{:header "Terms" :field :description}
+                                                                 {:header "Matches" :field :matches}
+                                                                 {:header "p-value" :field :p-value}]}
+                        :miranda_enrichment           {:title   "MiRNA Enrichment"
+                                                       :returns [{:header "X" :field :description}
+                                                                 {:header "Matches" :field :matches}
+                                                                 {:header "p-value" :field :p-value}]}})
+
 
 (defn results []
-  (let [results (subscribe [:listanalysis/results])]
+  (let [results (subscribe [:listanalysis/results-all])]
     (fn []
       [:div (json-html/edn->hiccup @results)])))
 
 (defn results-row []
   (fn [data]
     (into [:tr]
-          (map (fn [{field :field}] [:td (field data)]) (get widget-fields "Pathway Enrichment")))))
+          (map (fn [{field :field}] [:td (field data)]) (-> enrichment-config :pathway_enrichment :returns)))))
 
 (defn results-table []
-  (let [results (subscribe [:listanalysis/results])]
-    (fn []
-      [:table.table
-       [:thead
-        (into [:tr]
-              (map (fn [header] [:th (:header header)]) (get widget-fields "Pathway Enrichment")))]
-       (into [:tbody]
-             (map (fn [result] [results-row result]) (:results @results)))])))
+  (fn [type results]
+    [:div.table-container
+     [:table.table
+      [:thead
+       (into [:tr]
+             (map (fn [header]
+                    [:th (:header header)])
+                  (-> enrichment-config type :returns)))]
+      (into [:tbody]
+            (map (fn [result] [results-row result])
+                 (:results results)))]]))
 
 (defn controls []
   (fn []
@@ -36,40 +63,43 @@
      [:button.btn.btn-primary
       {:on-click (fn [] (dispatch [:listanalysis/run]))} "Run"]]))
 
-(defn list-analysis []
-  (fn [enrichment-type]
-    [:div.panel.panel-default.enrichment
-     [:div.panel-heading enrichment-type]
-     [:div.panel-body
-      [:form.form.form-sm
-       [:div.row
-        [:div.col-sm-5.form-group.form-xs
-         [:label.control-label "Test Correction"]
-         [:select.form-control
-          [:option "Holm-Bonferroni"]
-          [:option "Benjamini Hochber"]
-          [:option "Bonferroni"]
-          [:option "None"]]]
-        [:div.col-sm-3.form-group
-         [:label.control-label "Max p-value"]
-         [:select.form-control
-          [:option 0.05]
-          [:option 0.10]
-          [:option 1.00]]]
-        [:div.col-sm-4.form-group
-         [:label.control-label "Background Population"]
-         [:select.form-control
-          [:option 1]
-          [:option 2]
-          [:option 3]
-          [:option 4]]]]]
-      [results-table]
-      [controls]]
+(defn list-analysis [type]
+  (let [results           (subscribe [:listanalysis/results type])
+        enrichment-config (-> enrichment-config type)]
+    (fn []
+      [:div.panel.panel-default.enrichment
+       [:div.panel-heading (:title enrichment-config)]
+       [:div.panel-body
+        [:form.form.form-sm
+         [:div.row
+          [:div.col-sm-5.form-group.form-xs
+           [:label.control-label "Test Correction"]
+           [:select.form-control
+            [:option "Holm-Bonferroni"]
+            [:option "Benjamini Hochber"]
+            [:option "Bonferroni"]
+            [:option "None"]]]
+          [:div.col-sm-3.form-group
+           [:label.control-label "Max p-value"]
+           [:select.form-control
+            [:option 0.05]
+            [:option 0.10]
+            [:option 1.00]]]
+          [:div.col-sm-4.form-group
+           [:label.control-label "Background Population"]
+           [:select.form-control
+            [:option 1]
+            [:option 2]
+            [:option 3]
+            [:option 4]]]]]
+        [results-table type @results]
+        [controls]]
 
-     ;[results]
-     ]))
+       ])))
 
 (defn main []
-  (fn []
+  (fn [type]
     [:div
-     [list-analysis "Pathway Enrichment"]]))
+     [list-analysis type]
+     ;[results]
+     ]))

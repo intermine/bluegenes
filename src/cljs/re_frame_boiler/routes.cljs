@@ -40,12 +40,12 @@
   (defroute "/listanalysis/list/:name" [name]
             (re-frame/dispatch [:set-active-panel :list-analysis-panel
                                 {:name name}
-                                [:listanalysis/run]]))
+                                [:listanalysis/run-all]]))
 
   (defroute "/listanalysis/temp/:name" [name]
             (re-frame/dispatch [:set-active-panel :list-analysis-panel
                                 {:temp name}
-                                [:listanalysis/run]]))
+                                [:listanalysis/run-all]]))
 
   (defroute "/querybuilder" []
             (re-frame/dispatch [:set-active-panel :querybuilder-panel

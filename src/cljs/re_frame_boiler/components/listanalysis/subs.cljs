@@ -4,5 +4,10 @@
 
 (reg-sub
   :listanalysis/results
-  (fn [db]
+  (fn [db [_ widget]]
+    (-> db :list-analysis :results widget)))
+
+(reg-sub
+  :listanalysis/results-all
+  (fn [db _]
     (-> db :list-analysis :results)))
