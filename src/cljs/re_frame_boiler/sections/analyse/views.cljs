@@ -4,14 +4,10 @@
             [re-frame-boiler.components.listanalysis.views.main :as listanalysis]))
 
 (defn main []
-  (let [params (subscribe [:panel-params])
-        report (subscribe [:report])]
+  (let [params (subscribe [:panel-params])]
     (fn []
       [:div.container-fluid
-       [:button.btn.btn-default
-        {:on-click (fn [] (dispatch [:listanalysis/run-all]))}
-        "Run All"]
-       [:h2 [:span "List Analysis for "] [:span.stressed (str (:name @params))]]
+       [:h2 [:span "List Analysis for "] [:span.stressed (str (or (:name @params) (:temp @params)))]]
        [:div.row
         [:div.col-lg-4.col-md-6 [listanalysis/main :pathway_enrichment]]
         [:div.col-lg-4.col-md-6 [listanalysis/main :go_enrichment_for_gene]]

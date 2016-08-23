@@ -23,11 +23,13 @@
   (some? (some separators str)))
 
 (defn controls []
-  (fn []
-    [:div.btn-toolbar
-     [:button.btn.btn-primary {:on-click (fn [] (dispatch [:idresolver/resolve (splitter ex)]))} "Example"]
-     [:button.btn.btn-primary {:on-click (fn [] (dispatch [:idresolver/clear]))} "Clear"]
-     [:button.btn.btn-primary {:on-click (fn [] (dispatch [:idresolver/analyse]))} "Analyse"]]))
+  (let [results (subscribe [:idresolver/results])]
+    (fn []
+      [:div.btn-toolbar
+      [:button.btn.btn-primary {:on-click (fn [] (dispatch [:idresolver/resolve (splitter ex)]))} "Example"]
+      [:button.btn.btn-primary {:on-click (fn [] (dispatch [:idresolver/clear]))} "Clear"]
+      [:button.btn.btn-primary {:class (if (nil? @results) "disabled")
+                                :on-click (fn [] (if (some? @results) (dispatch [:idresolver/analyse])))} "Analyse"]])))
 
 (defn input-box []
   (let [val (reagent/atom nil)]

@@ -34,7 +34,7 @@
 (reg-event-fx
   :listanalysis/run-all
   (fn [{db :db}]
-    {:db            db
+    {:db            (assoc-in db [:list-analysis :results] nil)
      :dispatch-many [[:listanalysis/run {:ids        (get-in db [:idresolver :saved (:temp (:panel-params db))])
                                          :maxp       0.05
                                          :widget     "pathway_enrichment"

@@ -18,8 +18,6 @@
                                                        :returns [{:header "Protein Domain" :field :description}
                                                                  {:header "Matches" :field :matches}
                                                                  {:header "p-value" :field :p-value}]}
-
-
                         :publication_enrichment       {:title   "Publication Enrichment"
                                                        :returns [{:header "Protein Domain" :field :description}
                                                                  {:header "Matches" :field :matches}
@@ -46,8 +44,9 @@
 
 (defn results-table []
   (fn [type results]
-    [:div.table-container
-     [:table.table
+    (if (empty? results)
+      [:div.alert.alert-warning "No Results"]
+      [:table.table
       [:thead
        (into [:tr]
              (map (fn [header]
@@ -55,7 +54,7 @@
                   (-> enrichment-config type :returns)))]
       (into [:tbody]
             (map (fn [result] [results-row result])
-                 (:results results)))]]))
+                 results))])))
 
 (defn controls []
   (fn []
@@ -63,37 +62,46 @@
      [:button.btn.btn-primary
       {:on-click (fn [] (dispatch [:listanalysis/run]))} "Run"]]))
 
+
+(defn loading []
+  [:i.fa.fa-cog.fa-spin.fa-3x.fa-fw])
+
 (defn list-analysis [type]
   (let [results           (subscribe [:listanalysis/results type])
         enrichment-config (-> enrichment-config type)]
     (fn []
       [:div.panel.panel-default.enrichment
        [:div.panel-heading (:title enrichment-config)]
-       [:div.panel-body
-        [:form.form.form-sm
-         [:div.row
-          [:div.col-sm-5.form-group.form-xs
-           [:label.control-label "Test Correction"]
-           [:select.form-control
-            [:option "Holm-Bonferroni"]
-            [:option "Benjamini Hochber"]
-            [:option "Bonferroni"]
-            [:option "None"]]]
-          [:div.col-sm-3.form-group
-           [:label.control-label "Max p-value"]
-           [:select.form-control
-            [:option 0.05]
-            [:option 0.10]
-            [:option 1.00]]]
-          [:div.col-sm-4.form-group
-           [:label.control-label "Background Population"]
-           [:select.form-control
-            [:option 1]
-            [:option 2]
-            [:option 3]
-            [:option 4]]]]]
-        [results-table type @results]
-        [controls]]
+       (if-not @results
+         [:div.panel-body [:div.table-container [loading]]]
+         [:div.panel-body
+          [:form.form.form-sm
+           [:div.row
+            [:div.col-sm-5.form-group.form-xs
+             [:label.control-label "Test Correction"]
+             [:select.form-control
+              [:option "Holm-Bonferroni"]
+              [:option "Benjamini Hochber"]
+              [:option "Bonferroni"]
+              [:option "None"]]]
+            [:div.col-sm-3.form-group
+             [:label.control-label "Max p-value"]
+             [:select.form-control
+              [:option 0.05]
+              [:option 0.10]
+              [:option 1.00]]]
+            [:div.col-sm-4.form-group
+             [:label.control-label "Background Population"]
+             [:select.form-control
+              [:option 1]
+              [:option 2]
+              [:option 3]
+              [:option 4]]]]
+           ]
+          [:div.table-container
+           [results-table type (:results @results)]]
+          ;[controls]
+          ])
 
        ])))
 
@@ -103,3 +111,20 @@
      [list-analysis type]
      ;[results]
      ]))
+
+
+
+#_[:div.row
+   [:div.col-sm-12
+    [:div.form-group
+     [:label.control-label "Filter"]
+     [:input.form-control {:type        "text"
+                           :value       @textf
+                           :placeholder "Filter text..."
+                           :on-change   (fn [e] (reset! textf (.. e -target -value)))}]]]]
+
+#_[results-table type
+   (if @textf
+     (filter (fn [res]
+               (re-find (re-pattern (str "(?i)" @textf)) (:description res))) (:results @results))
+     (:results @results))]
