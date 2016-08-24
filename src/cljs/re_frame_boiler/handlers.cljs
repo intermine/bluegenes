@@ -128,13 +128,3 @@
   :test-progress-bar
   (fn [db [_ percent]]
     (assoc db :progress-bar-percent percent)))
-
-(reg-event-db
-  :select-template
-  (fn [db [_ id]]
-    (assoc-in db [:components :template-chooser :selected-template] id)))
-
-(reg-event-db
-  :select-template-category
-  (fn [db [_ id]]
-    (assoc-in db [:components :template-chooser :selected-template-category] id)))
