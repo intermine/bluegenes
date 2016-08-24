@@ -4,11 +4,15 @@
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
             [imcljs.search :as search]))
 
-(reg-event-db
+(reg-event-fx
   :template-chooser/choose-template
-  (fn [db [_ id]]
+  (fn [{db :db} [_ id]]
     (let [template (get-in db [:assets :templates id])]
-      (assoc-in db [:components :template-chooser :selected-template] template))))
+      {:db (update-in db [:components :template-chooser]
+                  assoc
+                  :selected-template template
+                  :count nil)
+       :dispatch [:template-chooser/run-count]})))
 
 (reg-event-db
   :template-chooser/set-category-filter
@@ -23,7 +27,7 @@
 (reg-event-fx
   :template-chooser/replace-constraint
   (fn [{db :db} [_ index value]]
-    {:db (assoc-in db [:components :template-chooser :selected-template :where index] value)
+    {:db       (assoc-in db [:components :template-chooser :selected-template :where index] value)
      :dispatch [:template-chooser/run-count]}))
 
 (reg-event-db

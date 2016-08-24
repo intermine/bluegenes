@@ -7,8 +7,33 @@
             [re-frame-boiler.components.templates.helpers :as helpers]
             [json-html.core :as json-html]))
 
+(def )
 
-(def ops ["=" "!=" "CONTAINS" "<" "<=" ">" ">=" "LIKE" "NOT LIKE" "ONE OF" "NONE OF" "LOOKUP"])
+(def ops [{:op         "="
+           :applies-to ["java.lang.String"
+                        "java.lang.Boolean"]}
+          {:op         "!="
+           :applies-to ["java.lang.String"]}
+          {:op         "CONTAINS"
+           :applies-to ["java.lang.String"]}
+          {:op         "<"
+           :applies-to ["java.lang.String"]}
+          {:op         "<="
+           :applies-to ["java.lang.String"]}
+          {:op         ">"
+           :applies-to ["java.lang.String"]}
+          {:op         ">="
+           :applies-to ["java.lang.String"]}
+          {:op         "LIKE"
+           :applies-to ["java.lang.String"]}
+          {:op         "NOT LIKE"
+           :applies-to ["java.lang.String"]}
+          {:op         "ONE OF"
+           :applies-to ["java.lang.String"]}
+          {:op         "NONE OF"
+           :applies-to ["java.lang.String"]}
+          {:op         "LOOKUP"
+           :applies-to ["java.lang.String"]}])
 
 (defn list-dropdown []
   (let [lists (subscribe [:lists])]
@@ -56,7 +81,7 @@
                                     (dispatch [:template-chooser/replace-constraint
                                                idx
                                                @state]))}
-                       [:a op]])) ops)]
+                       [:a op]])) (map :op ops))]
         [:input.form-control
          {:type      "text"
           :value     (:value @state)
@@ -109,7 +134,7 @@
         selected-template (subscribe [:selected-template])
         filter-state      (reagent/atom nil)
         result-count      (subscribe [:template-chooser/count])
-        counting? (subscribe [:template-chooser/counting?])]
+        counting?         (subscribe [:template-chooser/counting?])]
     (fn []
       [:div.container-fluid
        [:h2 "Popular Queries"]
@@ -126,17 +151,16 @@
               [:div.form-group
                [:label.control-label "Filter by category"]
                [categories]]]]]]
-          [:div.panel-body
+          [:div.panel-body.fix-height-400
            [templates @im-templates]]]]
         [:div.col-md-6
          [:div.panel.panel-default
           [:div.panel-heading "Constraints"]
           [:div.panel-body
            [form @selected-template]
-           ;(json-html/edn->hiccup @selected-template)
-           ]]
+           #_(json-html/edn->hiccup @selected-template)]]
          [:div.panel.panel-default
           [:div.panel-body
            (if @counting?
-             [:div.panel-heading [:i.fa.fa-cog.fa-spin.fa-1x.fa-fw]]
-             [:div.panel-heading (str @result-count "Results")])]]]]])))
+             [:i.fa.fa-cog.fa-spin.fa-1x.fa-fw]
+             [:h2 (str @result-count "Results")])]]]]])))
