@@ -4,8 +4,7 @@
             [re-frame-boiler.components.lists.views :as list-views]
             [json-html.core :as json]))
 
-(def ops
-  ["=" "!=" "CONTAINS" "<" "<=" ">" ">=" "LIKE" "NOT LIKE" "ONE OF" "NONE OF"])
+(def ops ["=" "!=" "CONTAINS" "<" "<=" ">" ">=" "LIKE" "NOT LIKE" "ONE OF" "NONE OF"])
 
 (defn list-dropdown []
   (let [lists (subscribe [:lists])]

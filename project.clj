@@ -19,6 +19,7 @@
                  [day8.re-frame/async-flow-fx "0.0.5"]
                  [day8.re-frame/forward-events-fx "0.0.5"]
                  [com.rpl/specter "0.12.0"]
+                 [servant "0.1.5"]
                  [inflections "0.12.2"]]
 
   :plugins [[lein-cljsbuild "1.1.3"]
