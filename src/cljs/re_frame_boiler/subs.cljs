@@ -92,26 +92,6 @@
     (:summary-fields (:assets db))))
 
 (reg-sub
-  :query-builder-query
-  (fn [db _]
-    (:query (:query-builder db))))
-
-(reg-sub
-  :query-builder-count
-  (fn [db _]
-    (:count (:query-builder db))))
-
-(reg-sub
-  :query-builder-counting?
-  (fn [db _]
-    (:counting? (:query-builder db))))
-
-(reg-sub
-  :current-constraint
-  (fn [db _]
-    (:constraint (:query-builder db))))
-
-(reg-sub
   :report
   (fn [db _]
     (:report db)))

@@ -28,7 +28,7 @@
   (nth (iterate zip/right z) idx))
 
 (reg-event-db
-  :qb-reset-query
+  :query-builder/reset-query
   (fn [db [_ count]]
     (-> db
       (assoc-in [:query-builder :query] nil)
@@ -39,36 +39,36 @@
     (first (rest (drop-while (fn [n] (not= n letter)) alphabet)))))
 
 (reg-event-fx
-  :add-constraint
+  :query-builder/add-constraint
   (fn [{db :db} [_ constraint]]
     {:db       (let [used-codes (last (sort (map :code (get-in db [:query-builder :query :where]))))
                      next-code  (if (nil? used-codes) "A" (next-letter used-codes))]
                  (-> db
                      (update-in [:query-builder :query :where] (fn [where] (conj where (merge constraint {:code next-code}))))
                      (assoc-in [:query-builder :constraint] nil)))
-     :dispatch [:qb-run-query]}))
+     :dispatch [:query-builder/run-query]}))
 
 (reg-event-db
-  :handle-count
+  :query-builder/handle-count
   (fn [db [_ count]]
     (-> db
         (assoc-in [:query-builder :count] count)
         (assoc-in [:query-builder :counting?] false))))
 
 (reg-fx
-  :run-query
+  :query-builder/run-query
   (fn [query]
-    (go (dispatch [:handle-count (<! (search/raw-query-rows
+    (go (dispatch [:query-builder/handle-count (<! (search/raw-query-rows
                                        {:root "www.flymine.org/query"}
                                        query
                                        {:format "count"}))]))))
 
 (reg-event-fx
-  :qb-run-query
+  :query-builder/run-query
   (fn [{db :db}]
     (let [query-data (-> db :query-builder :query)]
       {:db        (assoc-in db [:query-builder :counting?] true)
-       :run-query (-> query-data
+       :query-builder/run-query (-> query-data
                       (update :select (fn [views] (map (fn [view] (clojure.string/join "." view)) views)))
                       (update :where (fn [cons]
                                        (map (fn [con]
@@ -77,7 +77,7 @@
                                                :value (:value con)}) cons))))})))
 
 (reg-event-db
-  :qb-make-tree
+  :query-builder/make-tree
   (fn [db]
     (let [model (-> db :assets :model)]
       #_(assoc-in db [:query-builder :query]
@@ -88,20 +88,20 @@
       db)))
 
 (reg-event-fx
-  :qb-remove-select
+  :query-builder/remove-select
   (fn [{db :db} [_ path]]
     {:db       (update-in db [:query-builder :query :select]
                           (fn [views]
                             (remove #(= % path) views)))
-     :dispatch :qb-run-query}))
+     :dispatch :query-builder/run-query}))
 
 (reg-event-fx
-  :qb-remove-constraint
+  :query-builder/remove-constraint
   (fn [{db :db} [_ path]]
     {:db       (update-in db [:query-builder :query :where]
                           (fn [wheres]
                             (remove #(= % path) wheres)))
-     :dispatch [:qb-run-query]}))
+     :dispatch [:query-builder/run-query]}))
 
 (reg-event-db
   :query-builder/add-filter
@@ -109,11 +109,11 @@
     (assoc-in db [:query-builder :constraint] path)))
 
 (reg-event-fx
-  :qb-add-view
+  :query-builder/add-view
   (fn [{db :db} [_ path-vec]]
     {:db       (update-in db [:query-builder :query :select]
                           (fn [views]
                             (if (some #(= % path-vec) views)
                               (remove #(= % path-vec) views)
                               (conj views path-vec))))
-     :dispatch [:qb-run-query]}))
+     :dispatch [:query-builder/run-query]}))

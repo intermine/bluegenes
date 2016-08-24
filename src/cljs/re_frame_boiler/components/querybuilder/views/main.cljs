@@ -8,7 +8,7 @@
             [json-html.core :as json-html]))
 
 (defn attribute []
-  (let [qb-query (subscribe [:query-builder-query])]
+  (let [qb-query (subscribe [:query-builder/query])]
     (fn [name & [path]]
       (let [path-vec (conj path name)]
         [:div
@@ -16,7 +16,7 @@
           {:class    (if (some (fn [x] (= x path-vec)) (:select @qb-query))
                        "btn-primary"
                        "btn-outline")
-           :on-click (fn [] (dispatch [:qb-add-view path-vec]))}
+           :on-click (fn [] (dispatch [:query-builder/add-view path-vec]))}
           [:i.fa.fa-eye]]
          [:div.btn.btn-default.btn-outline.btn-xxs
           {:on-click (fn [] (dispatch [:query-builder/add-filter path-vec]))}
@@ -51,10 +51,10 @@
      [:span.pad-right-5 (str (:op details) " " (:value details))]
      [:span.badge (:code details)]
      [:i.fa.fa-times.pad-left-5
-      {:on-click (fn [] (dispatch [:qb-remove-constraint details]))}]]))
+      {:on-click (fn [] (dispatch [:query-builder/remove-constraint details]))}]]))
 
 (defn tree-view []
-  (let [query (subscribe [:query-builder-query])]
+  (let [query (subscribe [:query-builder/query])]
     (fn [[k v] trail]
       (let [trail (if (nil? trail) [k] trail)]
         [:div
@@ -73,33 +73,35 @@
                               (conj trail (first m))]]) v)))]))))
 
 (defn main []
-  (let [query           (subscribe [:query-builder-query])
-        result-count    (subscribe [:query-builder-count])
-        counting?       (subscribe [:query-builder-counting?])
-        edit-constraint (subscribe [:current-constraint])]
+  (let [query           (subscribe [:query-builder/query])
+        result-count    (subscribe [:query-builder/count])
+        counting?       (subscribe [:query-builder/counting?])
+        edit-constraint (subscribe [:query-builder/current-constraint])]
     (fn []
       [:div.querybuilder
        [:div.row
         [:div.col-sm-6
-         [:div.panel
-          [:h4 "Data Model"]
-          [:ol.tree [tree :Gene ["Gene"] true]]]]
+         [:div.panel.panel-default
+          [:div.panel-heading [:h4 "Data Model"]]
+          [:div.panel-body [:ol.tree [tree :Gene ["Gene"] true]]]]]
         [:div.col-sm-6
          [:div.row
           (if @edit-constraint
             [:div.panel [constraints/constraint @edit-constraint]])
-          [:div.panel
-           [:h4 "Query Overview"]
-           [tree-view (flat->tree (concat (:select @query) (map :path (:where @query))))]
-           [:div
-            (if @counting?
-              [:i.fa.fa-cog.fa-spin.fa-1x.fa-fw]
-              (if @result-count
-                [:h3 (str @result-count " rows")]))]]
-          [:div.panel
-           [:h4 "Query Structure"]
+          [:div.panel.panel-default
+           [:div.panel-heading [:h4 "Query Overview"]]
+           [:div.panel-body [tree-view (flat->tree (concat (:select @query) (map :path (:where @query))))]
+            [:div
+             (if @counting?
+               [:i.fa.fa-cog.fa-spin.fa-1x.fa-fw]
+               (if @result-count
+                 [:h3 (str @result-count " rows")]))]]]
+          [:div.panel.panel-default
+           [:div.panel-heading
+            [:h4 "Query Structure"]]
            ;[:span (json/edn->hiccup @query)]
            ;[:button.btn.btn-primary {:on-click #(dispatch [:qb-run-query])} "Run Count"]
-           [:button.btn.btn-primary {:on-click #(dispatch [:qb-reset-query])} "Reset"]]]]]])))
+           [:div.panel-body
+            [:button.btn.btn-primary {:on-click #(dispatch [:query-builder/reset-query])} "Reset"]]]]]]])))
 
 

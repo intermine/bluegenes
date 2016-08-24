@@ -8,7 +8,8 @@
             [re-frame-boiler.views :as views]
             [re-frame-boiler.config :as config]
             [re-frame-boiler.components.querybuilder.events]
-            [re-frame-boiler.components.listanalysis.core]))
+            [re-frame-boiler.components.listanalysis.core]
+            [re-frame-boiler.components.querybuilder.core]))
 
 (defn dev-setup []
   (when config/debug?

@@ -36,7 +36,7 @@
           :on-change (fn [e] (swap! state assoc :value (.. e -target -value)))}]
         [:div.input-group-btn [list-dropdown]]]
        [:button.btn.btn-success
-        {:on-click (fn [] (dispatch [:add-constraint (merge @state {:path path})]))} "Add"]])))
+        {:on-click (fn [] (dispatch [:query-builder/add-constraint (merge @state {:path path})]))} "Add"]])))
 
 (defn constraint []
   (fn [path]
