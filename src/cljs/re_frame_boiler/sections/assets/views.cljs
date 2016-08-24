@@ -12,7 +12,7 @@
        [:div.container.padme
         [:div.row [:h1 "Assets"]]
         [:div.row [:span (str "Display asset: " @params)]]
-        [:div.row [:span
+        #_[:div.row [:span
                    (filter #(= "PL FlyAtlas_tubules_top" (:name %))@assets)]]
         ;[:div.row [:span (str @assets)]]
         ]])))

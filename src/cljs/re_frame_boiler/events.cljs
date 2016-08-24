@@ -1,4 +1,4 @@
-(ns re-frame-boiler.handlers
+(ns re-frame-boiler.events
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [re-frame.core :as re-frame :refer [reg-event-db reg-event-fx reg-fx dispatch]]
             [re-frame-boiler.db :as db]

@@ -1,6 +1,6 @@
 (ns re-frame-boiler.subs
   (:require-macros [reagent.ratom :refer [reaction]])
-  (:require [re-frame.core :as re-frame :refer [reg-sub]]))
+  (:require [re-frame.core :refer [reg-sub]]))
 
 (reg-sub
   :name

@@ -48,9 +48,10 @@
   (let [categories        (subscribe [:template-chooser-categories])
         selected-category (subscribe [:selected-template-category])]
     (fn []
-      (into [:ul.nav.nav-pills [:li {:on-click #(dispatch [:select-template-category nil])
-                                     :class    (if (nil? @selected-category) "active")}
-                                [:a "All"]]]
+      (into [:ul.nav.nav-pills
+             [:li {:on-click #(dispatch [:select-template-category nil])
+                   :class    (if (nil? @selected-category) "active")}
+              [:a "All"]]]
             (map (fn [category] [:li {:on-click #(dispatch [:select-template-category category])
                                       :class    (if (= category @selected-category) "active")}
                                  [:a category]])
@@ -87,15 +88,42 @@
   (fn [templates]
     (into [:div] (map (fn [t] [template t]) templates))))
 
+(defn template-filter-fn [s [id details]]
+  (if s
+    (if-let [description (:description details)]
+      (re-find (re-pattern (str "(?i)" s)) (:description details)))
+    true))
+
+(defn template-filter []
+  (fn [filter-state]
+    [:input.form-control.input-lg {:type        "text"
+                                   :value       @filter-state
+                                   :placeholder "Filter text..."
+                                   :on-change   (fn [e] (reset! filter-state (.. e -target -value)))}]))
+
 (defn main []
   (let [im-templates      (subscribe [:templates-by-category])
-        selected-template (subscribe [:selected-template])]
+        selected-template (subscribe [:selected-template])
+        filter-state      (reagent/atom nil)]
     (fn []
-      [:div
+      [:div.container-fluid
        [:h2 "Popular Queries"]
-       [:div
-        [:div.row
-         [:div.col-md-12 [categories]]]
-        [:div.row
-         [:div.col-md-6.fix-height-400-IGNORE [templates @im-templates]]
-         [:div.col-md-6 [form @selected-template]]]]])))
+       [:div.row
+        [:div.col-md-6
+         [:div.panel.panel-default
+          [:div.panel-heading
+           [:div.row
+            [:div.col-md-12
+             [:form.form
+              [:div.form-group
+               [:label.control-label "Filter description"]
+               [template-filter filter-state]]
+              [:div.form-group
+               [:label.control-label "Filter by category"]
+               [categories]]]]]]
+          [:div.panel-body
+           [templates (filter (partial template-filter-fn @filter-state) @im-templates)]]]]
+        [:div.col-md-6
+         [:div.panel.panel-default
+          [:div.panel-heading "Constraints"]
+          [:div.panel-body [form @selected-template]]]]]])))
