@@ -18,7 +18,7 @@
 
 (defn table []
   (fn [results]
-    (let [skip-columns (homogeneous-columns (:results results))]
+    (let [skip-columns nil #_(homogeneous-columns (:results results))]
       [:table.table.small
        [:thead
         (into [:tr]
@@ -34,6 +34,12 @@
                                                   (str (apply str (take 50 (str value))) "...")
                                                   (str value))])) row))) (:results results)))])))
 
+(defn shell []
+  (fn [state]
+    (if (empty? (:results @state))
+      [:div.small (str (:class state) " - No Results")]
+      [:div [table @state]])))
+
 (defn handler [state e]
   (let [props (reagent/props e)
         node  (sel1 (reagent/dom-node e) :.im-target)]
@@ -45,11 +51,6 @@
 (defn main []
   (let [state (reagent/atom nil)]
     (reagent/create-class
-      {:component-did-mount (partial handler state)
-       :reagent-render      (fn [props]
-                              [:div
-                               (if (empty? (:results @state))
-                                 [:div.small (str (:class props) " - No Results")]
-                                 [:div
-                                  [:span (str (:class props) " (" (count (:results @state)) ")")]
-                                  [table @state]])])})))
+      {:component-did-mount  (partial handler state)
+       :component-did-update (partial handler state)
+       :reagent-render       (fn [] [shell state])})))

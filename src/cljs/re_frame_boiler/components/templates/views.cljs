@@ -4,7 +4,8 @@
             [re-frame-boiler.components.lists.views :as list-views]
             [re-frame-boiler.components.templates.helpers :as helpers]
             [json-html.core :as json-html]
-            [clojure.string :refer [split join]]))
+            [clojure.string :refer [split join]]
+            [re-frame-boiler.components.lighttable :as lighttable]))
 
 
 (def ops [{:op         "="
@@ -65,7 +66,6 @@
   (let [state (reagent/atom state)]
     (fn [idx constraint]
       [:div
-       ;(str @state)
        [:span (join " > " (take-last 2 (split (:path constraint) ".")))]
        [:div.input-group
         [:div.input-group-btn
@@ -87,10 +87,10 @@
           :on-change (fn [e] (swap! state assoc :value (.. e -target -value)))
           :on-blur   (fn [] (dispatch [:template-chooser/replace-constraint idx @state]))}]
         (if (= :class (:field-type constraint)) [:div.input-group-btn
-                                           (let [select-function (fn [name]
-                                                                   (swap! state assoc :value name :op "IN")
-                                                                   (dispatch [:template-chooser/replace-constraint idx @state]))]
-                                             [list-dropdown select-function])])]])))
+                                                 (let [select-function (fn [name]
+                                                                         (swap! state assoc :value name :op "IN")
+                                                                         (dispatch [:template-chooser/replace-constraint idx @state]))]
+                                                   [list-dropdown select-function])])]])))
 
 (defn form []
   (fn [constraints]
@@ -127,6 +127,11 @@
         :on-change   (fn [e]
                        (dispatch [:template-chooser/set-text-filter (.. e -target -value)]))}])))
 
+(defn add-commas [num]
+  (clojure.string/replace
+    (js/String. num)
+    (re-pattern "(\\d)(?=(\\d{3})+$)") "$1,"))
+
 (defn main []
   (let [im-templates         (subscribe [:templates-by-category])
         selected-template    (subscribe [:selected-template])
@@ -159,8 +164,11 @@
            ^{:key (:name @selected-template)} [form @selected-constraints]
            #_(json-html/edn->hiccup @selected-template)]]
          [:div.panel.panel-default
-          [:div.panel-heading]
+          [:div.panel-heading "Results"]
           [:div.panel-body
            (if @counting?
              [:i.fa.fa-cog.fa-spin.fa-1x.fa-fw]
-             [:h2 (str @result-count "Results")])]]]]])))
+             [:div
+              [:h2 (str @result-count " Rows")]
+              [lighttable/main {:query                @selected-template
+                                :no-repeats true}]])]]]]])))
