@@ -50,7 +50,7 @@
   (defroute "/querybuilder" []
             (re-frame/dispatch [:set-active-panel :querybuilder-panel
                                 nil
-                                [:qb-make-tree]]))
+                                [:query-builder/make-tree]]))
 
   (defroute "/assets/:type/:id" [type id]
             (re-frame/dispatch [:set-active-panel :list-panel {:type type :id id}]))

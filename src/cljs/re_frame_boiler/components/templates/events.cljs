@@ -1,6 +1,7 @@
 (ns re-frame-boiler.components.templates.events
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [re-frame.core :refer [reg-event-db reg-event-fx reg-fx dispatch]]
+            [re-frame.events]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
             [imcljs.search :as search]))
 

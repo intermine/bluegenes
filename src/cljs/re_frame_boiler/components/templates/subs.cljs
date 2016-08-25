@@ -1,7 +1,8 @@
 (ns re-frame-boiler.components.templates.subs
   (:require-macros [reagent.ratom :refer [reaction]])
   (:require [re-frame.core :as re-frame :refer [reg-sub]]
-            [re-frame-boiler.components.templates.helpers :as template-helpers]))
+            [re-frame-boiler.components.templates.helpers :as template-helpers]
+            [imcljs.filters :as filters]))
 
 (defn template-contains-string?
   "Return true if a template's description contains a string"
@@ -57,11 +58,27 @@
     (-> db :components :template-chooser :selected-template :name)))
 
 (reg-sub
+  :template-chooser/model
+  (fn [db _]
+    (:model (:assets db))))
+
+(reg-sub
   :selected-template
   (fn [db _]
     (get-in db [:components :template-chooser :selected-template])))
 
 (reg-sub
+  :template-chooser/selected-template-constraints
+  (fn [db]
+    (let [model       (get-in db [:assets :model])
+          constraints (get-in db [:components :template-chooser :selected-template :where])]
+      (map (fn [constraint]
+             (assoc constraint
+               :field-type (filters/path-type model (:path constraint)
+                                        (first (filter (fn [x] (contains? x :type )) constraints))))) constraints))))
+
+(reg-sub
   :selected-template-category
   (fn [db _]
     (get-in db [:components :template-chooser :selected-template-category])))
+

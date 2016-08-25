@@ -1,39 +1,36 @@
 (ns re-frame-boiler.components.templates.views
   (:require [reagent.core :as reagent]
-            [re-frame.core :as re-frame :refer [subscribe dispatch]]
-            [accountant.core :as accountant]
-            [secretary.core :as secretary]
+            [re-frame.core :refer [subscribe dispatch]]
             [re-frame-boiler.components.lists.views :as list-views]
             [re-frame-boiler.components.templates.helpers :as helpers]
-            [json-html.core :as json-html]))
+            [json-html.core :as json-html]
+            [clojure.string :refer [split join]]))
 
-(def )
 
 (def ops [{:op         "="
-           :applies-to ["java.lang.String"
-                        "java.lang.Boolean"]}
+           :applies-to [:string :boolean :integer :double :float]}
           {:op         "!="
-           :applies-to ["java.lang.String"]}
+           :applies-to [:string :boolean :integer :double :float]}
           {:op         "CONTAINS"
-           :applies-to ["java.lang.String"]}
+           :applies-to [:string]}
           {:op         "<"
-           :applies-to ["java.lang.String"]}
+           :applies-to [:integer :double :float]}
           {:op         "<="
-           :applies-to ["java.lang.String"]}
+           :applies-to [:integer :double :float]}
           {:op         ">"
-           :applies-to ["java.lang.String"]}
+           :applies-to [:integer :double :float]}
           {:op         ">="
-           :applies-to ["java.lang.String"]}
+           :applies-to [:integer :double :float]}
           {:op         "LIKE"
-           :applies-to ["java.lang.String"]}
+           :applies-to [:string]}
           {:op         "NOT LIKE"
-           :applies-to ["java.lang.String"]}
+           :applies-to [:string]}
           {:op         "ONE OF"
-           :applies-to ["java.lang.String"]}
+           :applies-to []}
           {:op         "NONE OF"
-           :applies-to ["java.lang.String"]}
+           :applies-to []}
           {:op         "LOOKUP"
-           :applies-to ["java.lang.String"]}])
+           :applies-to [:class]}])
 
 (defn list-dropdown []
   (let [lists (subscribe [:lists])]
@@ -60,12 +57,16 @@
                     [:a category]])
                  @categories)))))
 
+
+(defn applies-to? [type op]
+  (some? (some #{type} (:applies-to op))))
+
 (defn constraint [idx state]
   (let [state (reagent/atom state)]
     (fn [idx constraint]
       [:div
        ;(str @state)
-       [:span (:path constraint)]
+       [:span (join " > " (take-last 2 (split (:path constraint) ".")))]
        [:div.input-group
         [:div.input-group-btn
          [:button.btn.btn-default.dropdown-toggle
@@ -78,32 +79,29 @@
                       [:li
                        {:on-click (fn []
                                     (swap! state assoc :op op)
-                                    (dispatch [:template-chooser/replace-constraint
-                                               idx
-                                               @state]))}
-                       [:a op]])) (map :op ops))]
+                                    (dispatch [:template-chooser/replace-constraint idx @state]))}
+                       [:a op]])) (map :op (filter (partial applies-to? (:field-type constraint)) ops)))]
         [:input.form-control
          {:type      "text"
           :value     (:value @state)
           :on-change (fn [e] (swap! state assoc :value (.. e -target -value)))
           :on-blur   (fn [] (dispatch [:template-chooser/replace-constraint idx @state]))}]
-        [:div.input-group-btn
-         (let [select-function (fn [name]
-                                 (swap! state assoc :value name :op "IN")
-                                 (dispatch [:template-chooser/replace-constraint idx @state]))]
-           [list-dropdown select-function])]]])))
+        (if (= :class (:field-type constraint)) [:div.input-group-btn
+                                           (let [select-function (fn [name]
+                                                                   (swap! state assoc :value name :op "IN")
+                                                                   (dispatch [:template-chooser/replace-constraint idx @state]))]
+                                             [list-dropdown select-function])])]])))
 
 (defn form []
-  (fn [details]
+  (fn [constraints]
     [:div
-     ;(str details)
-     (if details
+     (if constraints
        (into [:form.form]
-             (map-indexed (fn [idx con]
-                            ; Constraints have temporary state so be sure to unmount them
-                            ; when the selected template changes
-                            ^{:key (:name details)}
-                            [constraint idx con]) (:where details))))]))
+             (map (fn [[idx con]]
+                    [constraint idx con])
+                  (keep-indexed (fn [idx con]
+                                  (if (:editable con)
+                                    [idx con])) constraints))))]))
 
 (defn template []
   (let [selected-template (subscribe [:selected-template])]
@@ -130,11 +128,12 @@
                        (dispatch [:template-chooser/set-text-filter (.. e -target -value)]))}])))
 
 (defn main []
-  (let [im-templates      (subscribe [:templates-by-category])
-        selected-template (subscribe [:selected-template])
-        filter-state      (reagent/atom nil)
-        result-count      (subscribe [:template-chooser/count])
-        counting?         (subscribe [:template-chooser/counting?])]
+  (let [im-templates         (subscribe [:templates-by-category])
+        selected-template    (subscribe [:selected-template])
+        filter-state         (reagent/atom nil)
+        result-count         (subscribe [:template-chooser/count])
+        counting?            (subscribe [:template-chooser/counting?])
+        selected-constraints (subscribe [:template-chooser/selected-template-constraints])]
     (fn []
       [:div.container-fluid
        [:h2 "Popular Queries"]
@@ -157,9 +156,10 @@
          [:div.panel.panel-default
           [:div.panel-heading "Constraints"]
           [:div.panel-body
-           [form @selected-template]
+           ^{:key (:name @selected-template)} [form @selected-constraints]
            #_(json-html/edn->hiccup @selected-template)]]
          [:div.panel.panel-default
+          [:div.panel-heading]
           [:div.panel-body
            (if @counting?
              [:i.fa.fa-cog.fa-spin.fa-1x.fa-fw]
