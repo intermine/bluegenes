@@ -87,7 +87,9 @@
         [:div.col-sm-6
          [:div.row
           (if @edit-constraint
-            [:div.panel [constraints/constraint @edit-constraint]])
+            [:div.panel.panel-default
+             [:div.panel-body
+              [constraints/constraint @edit-constraint]]])
           [:div.panel.panel-default
            [:div.panel-heading [:h4 "Query Overview"]]
            [:div.panel-body [tree-view (flat->tree (concat (:select @query) (map :path (:where @query))))]

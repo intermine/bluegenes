@@ -6,6 +6,4 @@
   (let [params (subscribe [:panel-params])
         report (subscribe [:report])]
     (fn []
-      [:div.container-fluid
-       [:div.row
-        [:div.col-md-12 [templates/main]]]])))
+      [templates/main])))

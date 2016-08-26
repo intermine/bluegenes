@@ -140,23 +140,22 @@
         counting?            (subscribe [:template-chooser/counting?])
         selected-constraints (subscribe [:template-chooser/selected-template-constraints])]
     (fn []
-      [:div.container-fluid
+      [:div.container-fluid.full-height
        [:h2 "Popular Queries"]
-       [:div.row
-        [:div.col-md-6
-         [:div.panel.panel-default
-          [:div.panel-heading
-           [:div.row
-            [:div.col-md-12
-             [:form.form
-              [:div.form-group
-               [:label.control-label "Filter description"]
-               [template-filter filter-state]]
-              [:div.form-group
-               [:label.control-label "Filter by category"]
-               [categories]]]]]]
-          [:div.panel-body.fix-height-400
-           [templates @im-templates]]]]
+       [:div.row.full-height
+        [:div.col-md-6.full-height
+         [:div.panel.panel-default.full-height
+          [:div.panel-heading "Templates"]
+          [:div.panel-body.full-height
+           [:form.form
+            [:div.form-group
+             [:label.control-label "Filter description"]
+             [template-filter filter-state]]
+            [:div.form-group
+             [:label.control-label "Filter by category"]
+             [categories]]]
+           [:div.full-height.overflow-y
+            [templates @im-templates]]]]]
         [:div.col-md-6
          [:div.panel.panel-default
           [:div.panel-heading "Constraints"]
@@ -170,5 +169,5 @@
              [:i.fa.fa-cog.fa-spin.fa-1x.fa-fw]
              [:div
               [:h2 (str @result-count " Rows")]
-              [lighttable/main {:query                @selected-template
+              [lighttable/main {:query      @selected-template
                                 :no-repeats true}]])]]]]])))

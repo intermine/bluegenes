@@ -26,10 +26,12 @@
   (let [results (subscribe [:idresolver/results])]
     (fn []
       [:div.btn-toolbar
-      [:button.btn.btn-primary {:on-click (fn [] (dispatch [:idresolver/resolve (splitter ex)]))} "Example"]
-      [:button.btn.btn-primary {:on-click (fn [] (dispatch [:idresolver/clear]))} "Clear"]
-      [:button.btn.btn-primary {:class (if (nil? @results) "disabled")
-                                :on-click (fn [] (if (some? @results) (dispatch [:idresolver/analyse])))} "Analyse"]])))
+       [:button.btn.btn-primary.btn-raised
+        {:class    (if (nil? @results) "disabled")
+         :on-click (fn [] (dispatch [:idresolver/clear]))} "Clear"]
+       [:button.btn.btn-success.btn-raised
+        {:class    (if (nil? @results) "disabled")
+         :on-click (fn [] (if (some? @results) (dispatch [:idresolver/analyse])))} "Analyse"]])))
 
 (defn input-box []
   (let [val (reagent/atom nil)]
@@ -92,9 +94,11 @@
 
 (defn input-div []
   (fn []
-    [:div.idresolver.form-control
-     [input-items]
-     [input-box]]))
+    [:div.panel.panel-default
+     [:div.panel-body
+      [:div.idresolver.form-control
+       [input-items]
+       [input-box]]]]))
 
 (defn stats []
   (let [bank       (subscribe [:idresolver/bank])
@@ -147,6 +151,7 @@
   (fn []
     [:div.container
      [:h1 "List Upload"]
+     [:a {:on-click (fn [] (dispatch [:idresolver/resolve (splitter ex)]))} "Example"]
      [input-div]
      [stats]
      ;[results]

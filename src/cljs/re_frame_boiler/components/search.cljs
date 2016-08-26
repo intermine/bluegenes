@@ -12,10 +12,13 @@
             parsed (clojure.string/split info (re-pattern (str "(?i)" @search-term)))]
         [:div.list-group-item
          {:on-mouse-down (fn [] (navigate! (str "#/objects/" (:type item) "/" (:id item))))}
-         [:h4.list-group-item-heading (:type item)]
-         (into
-           [:p.list-group-item-text]
-           (interpose [:span.highlight @search-term] (map (fn [part] [:span part]) parsed)))]))))
+         [:div.row-action-primary
+          [:i.fa.fa-cog.fa-spin.fa-3x.fa-fw]]
+         [:div.row-content
+          [:h4.list-group-item-heading (:type item)]
+          (into
+            [:div.list-group-item-text]
+            (interpose [:span.highlight @search-term] (map (fn [part] [:span part]) parsed)))]]))))
 
 (defn main []
   (reagent/create-class
@@ -36,5 +39,5 @@
                                  :placeholder "Search"
                                  :on-change   #(dispatch [:bounce-search (-> % .-target .-value)])}]
                                (if @results
-                                 [:div.dropdown-menu.full-width
-                                  (into [:div.list-group] (map (fn [r] [suggestion r]) @results))])])})))
+                                 [:div.dropdown-menu
+                                  (into [:div.list-group] (interpose [:div.list-group-separator] (map (fn [r] [suggestion r]) @results)))])])})))

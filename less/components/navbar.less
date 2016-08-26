@@ -2,9 +2,10 @@
 
 .navbar-default .navbar-brand {
     color: rgba(107, 107, 107, 1);
-    background: #0dacfc;
-    background: black;
-    background: @highlight-color;
+    // background: #0dacfc;
+    // background: black;
+    // background: @highlight-color;
+    background: #00544c;
     color: white;
     font-style: bold;
     -webkit-clip-path: polygon(0 0, 100% 0, 93% 100%, 0 100%);
@@ -33,7 +34,12 @@
 .navbar-default .navbar-nav > .active > a:focus,
 .navbar-default .navbar-nav > .active > a:hover {
     color: @highlight-color;
+    color: white;
     background-color: rgba(255, 255, 255, 1);
+}
+
+.navbar-default .navbar-nav > .active {
+    color: white;
 }
 .navbar-default .navbar-toggle {
     border-color: #ffffff;

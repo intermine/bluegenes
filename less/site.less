@@ -12,25 +12,30 @@
 @import "components/querybuilder";
 @import "components/idresolver";
 @import "components/home";
+@import "../resources/public/vendor/bootstrap-material-design/less/bootstrap-material-design";
 
-@import url(https://fonts.googleapis.com/css?family=Open+Sans:400,700,300);
-@import url(https://fonts.googleapis.com/css?family=Lora);
+// @import url(https://fonts.googleapis.com/css?family=Open+Sans:400,700,300);
+@import url(https://fonts.googleapis.com/css?family=Roboto:400,700,300);
 
 
 body {
-    font-family: 'Lora', sans-serif;
+    // font-family: 'Open Sans', sans-serif;
     background: @body-background-color;
     color: @body-foreground-color;
     margin-top: 50px;
-    font-family: 'Lora', serif;
+    font-family: 'Roboto', serif;
 }
-#app,
+
 body,
-html {
+html,
+ #app {
+    height: 100%;
     height: 100%;
 }
+
 .approot {
-    height: 94%;
+    // height: 94%;
+    height: 100%;
     box-sizing: border-box;
 }
 a.callout {
@@ -79,6 +84,15 @@ div.header {
 .full-width {
     width: 100%;
 }
+
+.full-height {
+    height: 100%;
+}
+
+.overflow-y {
+    overflow-y: auto;
+}
+
 .square {
     border-radius: 0;
 }
