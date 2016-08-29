@@ -1,9 +1,7 @@
 (ns re-frame-boiler.components.templates.views
   (:require [reagent.core :as reagent]
             [re-frame.core :refer [subscribe dispatch]]
-            [re-frame-boiler.components.lists.views :as list-views]
-            [re-frame-boiler.components.templates.helpers :as helpers]
-            [json-html.core :as json-html]
+            [accountant.core :refer [navigate!]]
             [clojure.string :refer [split join]]
             [re-frame-boiler.components.lighttable :as lighttable]))
 
@@ -132,6 +130,9 @@
     (js/String. num)
     (re-pattern "(\\d)(?=(\\d{3})+$)") "$1,"))
 
+
+(def func (fn [& args] (fn [args])))
+
 (defn main []
   (let [im-templates         (subscribe [:templates-by-category])
         selected-template    (subscribe [:selected-template])
@@ -170,4 +171,9 @@
              [:div
               [:h2 (str @result-count " Rows")]
               [lighttable/main {:query      @selected-template
-                                :no-repeats true}]])]]]]])))
+                                :no-repeats true}]
+              [:button.btn.btn-primary.btn-raised
+               {:on-click (fn []
+                            (dispatch ^:flush-dom [:results/set-query @selected-template])
+                            (navigate! "#/results"))}
+               "View Results"]])]]]]])))

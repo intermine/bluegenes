@@ -9,6 +9,8 @@
             [re-frame-boiler.components.querybuilder.views.main :as querybuilder]
             [re-frame-boiler.sections.upload.views :as upload]
             [re-frame-boiler.sections.analyse.views :as analyse]
+            [re-frame-boiler.sections.results.views :as results]
+            [re-frame-boiler.sections.saveddata.views :as saved-data]
             [accountant.core :refer [navigate!]]))
 
 (defn debug-panel []
@@ -47,7 +49,10 @@
 (defmethod panels :templates-panel [] [templates/main])
 (defmethod panels :object-panel [] [objects/main])
 (defmethod panels :upload-panel [] [upload/main])
+(defmethod panels :results-panel [] [results/main])
 (defmethod panels :list-analysis-panel [] [analyse/main])
+(defmethod panels :saved-data-panel [] [saved-data/main])
+
 (defmethod panels :querybuilder-panel [] [:div.container [querybuilder/main]])
 (defmethod panels :default [] [:div])
 

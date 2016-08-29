@@ -8,7 +8,9 @@
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
             [imcljs.search :as search]
             [imcljs.assets :as assets]
-            [re-frame-boiler.sections.objects.handlers]))
+            [re-frame-boiler.sections.objects.handlers]
+            [cljs-uuid-utils.core :as uuid]
+            [cljs-time.core :as t]))
 
 (reg-event-db
   :initialize-db
@@ -128,3 +130,11 @@
   :test-progress-bar
   (fn [db [_ percent]]
     (assoc db :progress-bar-percent percent)))
+
+(reg-event-db
+  :save-data
+  (fn [db [_ data]]
+    (assoc-in db [:saved-data (str (uuid/make-random-uuid))]
+
+               (merge data {:created (t/now)
+                            :updated (t/now)}))))

@@ -5,8 +5,8 @@
 (defn field []
   (fn [k v]
     [:div.col-sm-6.field-group
-     [:div.row.field-value (if (nil? v) "N/A" (str v))]
-     [:div.row.field-label (last (clojure.string/split k " > "))]]))
+     [:div.row.field-label [:h4 (last (clojure.string/split k " > "))]]
+     [:div.row.field-value (if (nil? v) "N/A" (str v))]]))
 
 (defn main []
   (fn [field-map]

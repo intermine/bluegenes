@@ -6,10 +6,31 @@
             [imcljs.search :as search]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]))
 
+
+(defn build-matches-query [query path-constraint identifier]
+  (update-in (js->clj (.parse js/JSON query) :keywordize-keys true) [:where]
+             conj {:path   path-constraint
+                   :op     "ONE OF"
+                   :values [identifier]}))
+
+(defn ncbi-link [identifier]
+  (str "http://www.ncbi.nlm.nih.gov/entrez/query.fcgi?cmd=Retrieve&db=PubMed&dopt=Abstract&list_uids="
+       identifier))
+
 (reg-event-db
   :listanalysis/handle-results
   (fn [db [_ widget-name results]]
-    (assoc-in db [:list-analysis :results (keyword widget-name)] results)))
+    (let [with-matches-query
+          (update-in results [:results]
+                     (fn [data]
+                       (map (fn [r]
+                              (assoc r :matches-query
+                                       (build-matches-query (:pathQuery results)
+                                                            (:pathConstraint results)
+                                                            (:identifier r))))
+                            data)))]
+      (assoc-in db [:list-analysis :results (keyword widget-name)] with-matches-query)
+      )))
 
 (reg-fx
   :listanalysis/get-enrichment

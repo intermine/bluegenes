@@ -7,15 +7,16 @@
   (let [props (reagent/props e)
         node  (sel1 (reagent/dom-node e) :.im-target)]
     (.configure js/imtables "TableCell.IndicateOffHostLinks" false)
-    (if @expanded? (-> (.loadTable js/imtables
-                                   node
-                                   (clj->js {:start 0 :size 25})
-                                   (clj->js {:service {:root "www.flymine.org/query"}
-                                             :query   props
-                                             :TableCell {:IndicateOffHostLinks false}}))
-                       (.then (fn [success] nil)
-                              (fn [error]
-                                (.error js/console error)))))))
+    (if @expanded?
+      (-> (.loadTable js/imtables
+                      node
+                      (clj->js {:start 0 :size 25})
+                      (clj->js {:service   {:root "www.flymine.org/query"}
+                                :query     props
+                                :TableCell {:IndicateOffHostLinks false}}))
+          (.then (fn [success] nil)
+                 (fn [error]
+                   (.error js/console error)))))))
 
 (defn main [_ & [expanded]]
   (reagent/create-class

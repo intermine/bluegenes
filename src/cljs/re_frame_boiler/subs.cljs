@@ -80,3 +80,8 @@
   :progress-bar-percent
   (fn [db _]
     (:progress-bar-percent db)))
+
+(reg-sub
+  :saved-data
+  (fn [db _]
+    (:saved-data db)))

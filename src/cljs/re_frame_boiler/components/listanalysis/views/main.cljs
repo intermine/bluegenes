@@ -40,21 +40,26 @@
 (defn results-row []
   (fn [data]
     (into [:tr]
-          (map (fn [{field :field}] [:td (field data)]) (-> enrichment-config :pathway_enrichment :returns)))))
+          (map (fn [{field :field}]
+                 [:td
+                  (if (= field :matches)
+                    [:a {:on-click (fn [] (println (:matches-query data)))} (field data)]
+                    [:span (field data)])])
+               (-> enrichment-config :pathway_enrichment :returns)))))
 
 (defn results-table []
   (fn [type results]
     (if (empty? results)
       [:div.alert.alert-warning "No Results"]
       [:table.table
-      [:thead
-       (into [:tr]
-             (map (fn [header]
-                    [:th (:header header)])
-                  (-> enrichment-config type :returns)))]
-      (into [:tbody]
-            (map (fn [result] [results-row result])
-                 results))])))
+       [:thead
+        (into [:tr]
+              (map (fn [header]
+                     [:th (:header header)])
+                   (-> enrichment-config type :returns)))]
+       (into [:tbody]
+             (map (fn [result] [results-row result])
+                  results))])))
 
 (defn controls []
   (fn []
@@ -96,8 +101,7 @@
               [:option 1]
               [:option 2]
               [:option 3]
-              [:option 4]]]]
-           ]
+              [:option 4]]]]]
           [:div.table-container
            [results-table type (:results @results)]]])])))
 

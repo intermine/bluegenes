@@ -20,7 +20,8 @@
                  [day8.re-frame/forward-events-fx "0.0.5"]
                  [com.rpl/specter "0.12.0"]
                  [servant "0.1.5"]
-                 [inflections "0.12.2"]]
+                 [com.lucasbradstreet/cljs-uuid-utils "1.0.2"]
+                 [com.andrewmcveigh/cljs-time "0.4.0"]]
 
   :plugins [[lein-cljsbuild "1.1.3"]
             [lein-less "1.7.5"]

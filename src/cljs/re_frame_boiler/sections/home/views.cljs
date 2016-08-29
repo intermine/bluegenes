@@ -23,17 +23,17 @@
 (defn footer []
   (fn []
     [:footer.footer
-      [:div
-       [:p "Powered by: "
+     [:div
+      [:p "Powered by: "
        [:a {:href "nope"}
         [:img {:width "120px" :src "https://cdn.rawgit.com/intermine/design-materials/master/logos/intermine/intermine.png"}]]]
-        [:a {:href "nope"} "Cite"]
-        [:a {:href "nope"} "Contact"]
-        [:a {:href "nope"} "Blog"]]
-     [:div [:p "Funded by:" ]
+      [:a {:href "nope"} "Cite"]
+      [:a {:href "nope"} "Contact"]
+      [:a {:href "nope"} "Blog"]]
+     [:div [:p "Funded by:"]
       [:a {:href "nope"} "Wellcome Trust"]
       [:a {:href "nope"} "NIH"]
-     ]]))
+      ]]))
 
 (defn header []
   (let [name (re-frame/subscribe [:name])]
@@ -55,11 +55,9 @@
      ;[:svg.icon [:use {:xlinkHref "#icon-floppy-disk"}]]
      ;[welcome]
      [header]
-          [circles/main-panel]
-     ;[texty/main-panel]
-     [:div.container.padme
-      ;[:div.row [generic-section]]
-      ]
+     [:div#wrapper
+      [circles/main-panel]]
+     [:div.container.padme]
      [footer]
      ]))
 

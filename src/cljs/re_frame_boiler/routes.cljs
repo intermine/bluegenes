@@ -52,6 +52,12 @@
                                 nil
                                 [:query-builder/make-tree]]))
 
+  (defroute "/results" []
+            (re-frame/dispatch [:set-active-panel :results-panel]))
+
+  (defroute "/saved-data" []
+            (re-frame/dispatch [:set-active-panel :saved-data-panel]))
+
   (defroute "/assets/:type/:id" [type id]
             (re-frame/dispatch [:set-active-panel :list-panel {:type type :id id}]))
 
