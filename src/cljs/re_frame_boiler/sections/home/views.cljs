@@ -55,8 +55,7 @@
      ;[:svg.icon [:use {:xlinkHref "#icon-floppy-disk"}]]
      ;[welcome]
      [header]
-     [:div#wrapper
-      [circles/main-panel]]
+     [circles/main-panel]
      [:div.container.padme]
      [footer]
      ]))

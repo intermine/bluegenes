@@ -4,7 +4,8 @@
             [json-html.core :as json-html]
             [re-frame-boiler.components.listanalysis.events]
             [re-frame-boiler.components.listanalysis.subs]
-            [dommy.core :as dommy :refer-macros [sel sel1]]))
+            [dommy.core :as dommy :refer-macros [sel sel1]]
+            [accountant.core :refer [navigate!]]))
 
 (def enrichment-config {:pathway_enrichment           {:title   "Pathway Enrichment"
                                                        :returns [{:header "Pathway" :field :description}
@@ -43,7 +44,10 @@
           (map (fn [{field :field}]
                  [:td
                   (if (= field :matches)
-                    [:a {:on-click (fn [] (println (:matches-query data)))} (field data)]
+                    [:a
+                     {:on-click (fn []
+                                  (dispatch ^:flush-dom [:results/set-query (:matches-query data)])
+                                  (navigate! "#/results"))} (field data)]
                     [:span (field data)])])
                (-> enrichment-config :pathway_enrichment :returns)))))
 
