@@ -8,18 +8,6 @@
             [redgenes.sections.home.texty :as texty]
             [redgenes.components.search :as search]))
 
-
-
-
-(defn generic-section []
-  (fn []
-    [:div.panel
-     [:h2 "Some Component"]
-     [:ul.list-group
-      [:li.list-group-item "Data"]
-      [:li.list-group-item "More Data"]
-      [:li.list-group-item "And some more data"]]]))
-
 (defn footer []
   (fn []
     [:footer.footer
@@ -35,28 +23,9 @@
       [:a {:href "nope"} "NIH"]
       ]]))
 
-(defn header []
-  (let [name (re-frame/subscribe [:name])]
-    (fn []
-      [:div.header
-       ;[search/main]
-       ])))
-
-(defn welcome []
-  (let [name (re-frame/subscribe [:name])]
-    (fn []
-      [:div.welcome
-       [:h3 "Welcome to Intermine"]])))
-
 (defn main []
   (fn []
-    [:div.approot.red
+    [:div.approot
      [icons/icons]
-     ;[:svg.icon [:use {:xlinkHref "#icon-floppy-disk"}]]
-     ;[welcome]
-     [header]
      [circles/main-panel]
-     [:div.container.padme]
-     [footer]
      ]))
-

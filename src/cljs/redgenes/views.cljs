@@ -40,6 +40,22 @@
     [:div "This is the About Page."
      [:div [:a.callout {:on-click #(navigate! "#/")} "go to Home Page"] ]]))
 
+
+(defn footer []
+ (fn []
+   [:footer.footer
+    [:div
+     [:p "Powered by: "
+      [:a {:href "nope"}
+       [:img {:width "120px" :src "https://cdn.rawgit.com/intermine/design-materials/master/logos/intermine/intermine.png"}]]]
+     [:a {:href "nope"} "Cite"]
+     [:a {:href "nope"} "Contact"]
+     [:a {:href "nope"} "Blog"]]
+    [:div [:p "Funded by:"]
+     [:a {:href "nope"} "Wellcome Trust"]
+     [:a {:href "nope"} "NIH"]
+     ]]))
+
 ;; main
 
 (defmulti panels identity)
@@ -67,4 +83,6 @@
     (fn []
       [:div.approot
        [nav/main]
-       [show-panel @active-panel]])))
+       [:main [show-panel @active-panel]]
+       [footer]
+       ])))
