@@ -31,6 +31,9 @@
   (defroute "/list" []
             (re-frame/dispatch [:set-active-panel :list-panel]))
 
+  (defroute "/help" []
+            (re-frame/dispatch [:set-active-panel :help-panel]))
+
   (defroute "/templates" []
             (re-frame/dispatch [:set-active-panel :templates-panel]))
 
