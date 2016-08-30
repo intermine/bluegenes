@@ -21,7 +21,8 @@
     (-> (js/imjs.Service. (clj->js service))
         (.query (clj->js query))
         (.then (fn [q]
-                 (go (let [response (<! (http/post (str "http://" (:root service) "/service/query/results")
+                 (go (let [root (utils/cleanse-url (:root service))
+                           response (<! (http/post (str root "/query/results")
                                                    {:with-credentials? false
                                                     :form-params       (merge options {:query (.toXML q)})}))]
                        (>! c (-> response :body))

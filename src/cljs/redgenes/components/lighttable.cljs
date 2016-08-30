@@ -43,7 +43,7 @@
 (defn handler [state e]
   (let [props (reagent/props e)
         node  (sel1 (reagent/dom-node e) :.im-target)]
-    (go (reset! state (<! (search/raw-query-rows {:root "www.flymine.org/query"}
+    (go (reset! state (<! (search/raw-query-rows {:root @(subscribe [:mine-url])}
                                                  (:query props)
                                                  {:size   5
                                                   :format "json"}))))))

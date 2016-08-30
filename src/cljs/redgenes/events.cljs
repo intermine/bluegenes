@@ -1,6 +1,6 @@
 (ns redgenes.events
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
-  (:require [re-frame.core :as re-frame :refer [reg-event-db reg-event-fx reg-fx dispatch]]
+  (:require [re-frame.core :as re-frame :refer [reg-event-db reg-event-fx reg-fx dispatch subscribe]]
             [redgenes.db :as db]
             [day8.re-frame.http-fx]
             [day8.re-frame.forward-events-fx]
@@ -53,7 +53,7 @@
   (fn [{:keys [db]} _]
     {:db         (assoc db :show-twirly true)
      :http-xhrio {:method          :get
-                  :uri             "http://www.flymine.org/query/service/user/whoami"
+                  :uri             (str @(subscribe [:mine-url]) "/service/user/whoami")
                   :params          {:token ""}
                   :timeout         8000
                   :response-format (ajax/json-response-format {:keywords? true})
@@ -85,7 +85,7 @@
 (reg-event-fx
   :bounce-search
   (fn [{db :db} [_ term]]
-    (let [connection   {:root "www.flymine.org/query"}
+    (let [connection   {:root @(subscribe [:mine-url])}
           suggest-chan (search/quicksearch connection term)]
       (if-let [c (:search-term-channel db)] (close! c))
       {:db      (-> db
@@ -124,7 +124,7 @@
   (fn [{db :db}]
     {:db           (assoc db :fetching-assets? true
                              :progress-bar-percent 0)
-     :fetch-assets {:root "www.flymine.org/query"}}))
+     :fetch-assets {:root @(subscribe [:mine-url])}}))
 
 (reg-event-db
   :test-progress-bar

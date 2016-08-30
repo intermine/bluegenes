@@ -8,6 +8,11 @@
     (:name db)))
 
 (reg-sub
+  :mine-url
+  (fn [db]
+    (:mine-url db)))
+
+(reg-sub
   :active-panel
   (fn [db _]
     (:active-panel db)))
