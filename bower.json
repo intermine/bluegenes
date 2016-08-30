@@ -1,0 +1,23 @@
+{
+  "name": "redgenes",
+  "homepage": "https://github.com/joshkh/redgenes",
+  "authors": [
+    "Joshua Heimbach <joshkh@gmail.com>"
+  ],
+  "description": "",
+  "main": "",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "resources/public/vendor",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "bootstrap-material-design": "0.5.10",
+    "font-awesome": "4.6.3",
+    "bootstrap": "^3.3.7"
+  }
+}

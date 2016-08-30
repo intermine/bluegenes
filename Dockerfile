@@ -22,7 +22,7 @@ WORKDIR /tmp
 RUN mkdir -p $LEIN_INSTALL \
   && wget --quiet https://github.com/technomancy/leiningen/archive/$LEIN_VERSION.tar.gz \
   && echo "Comparing archive checksum ..." \
-  && echo "871d2e308076d2e9edf457cffc9d15996c8d003e *$LEIN_VERSION.tar.gz" | sha1sum -c - \
+  && echo "b4624548ada176c1d122dd9867a1bed09706fcd0 *$LEIN_VERSION.tar.gz" | sha1sum -c - \
 
   && mkdir ./leiningen \
   && tar -xzf $LEIN_VERSION.tar.gz  -C ./leiningen/ --strip-components=1 \
@@ -41,10 +41,15 @@ RUN mkdir -p $LEIN_INSTALL \
 
 # Put the jar where lein script expects
   && rm leiningen-$LEIN_VERSION-standalone.zip.asc \
-  && mv leiningen-$LEIN_VERSION-standalone.zip /usr/share/java/leiningen-$LEIN_VERSION-standalone.jar
+  && mv leiningen-$LEIN_VERSION-standalone.zip /usr/share/java/leiningen-$LEIN_VERSION-standalone.jar \
+
+# Some REPLs (e.g., Figwheel) necessitate a readline wrapper.
+  &&  apt-get update && apt-get install rlfe && rm -rf /var/lib/apt/lists/*
 
 ENV PATH=$PATH:$LEIN_INSTALL
 ENV LEIN_ROOT 1
+
+RUN lein
 
 WORKDIR /usr/src/app
 
@@ -53,12 +58,10 @@ COPY . /usr/src/app
 WORKDIR /usr/src/app
 RUN npm install -g bower grunt-cli
 RUN npm install -g less
-
-RUN echo '{ "allow_root": true }' > /usr/src/app/.bowerrc
+RUN bower install
+RUN echo '@import "../../bootstrap/less/variables.less";'> '/usr/src/app/resources/public/vendor/bootstrap-material-design/less/_import-bs-less.less'
 
 RUN lein clean
-RUN lein bower install
-RUN echo "@import "../../bootstrap/less/variables.less";"> '/usr/src/app/resources/public/vendor/bootstrap-material-design/less/_import-bs-less.less'
 RUN lein less once
 RUN lein cljsbuild once dev
 CMD lein run

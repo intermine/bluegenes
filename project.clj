@@ -32,6 +32,8 @@
                        ["shell" "curl" "-o" "resources/public/vendor/imtables.js" "http://cdn.intermine.org/js/intermine/im-tables/2.0.0/imtables.min.js"]
                        ["shell" "curl" "-o" "resources/public/vendor/im.min.js" "http://cdn.intermine.org/js/intermine/imjs/3.15.0/im.min.js"]]}
 
+  :bower {:config-file ".bowerrc"}
+
   :bower-dependencies [[bootstrap "3.3.6"]
                        [font-awesome "4.6.3"]
                        [bootstrap-material-design "0.5.10"]]
