@@ -26,6 +26,10 @@
   (let [results (subscribe [:idresolver/results])]
     (fn []
       [:div.btn-toolbar
+       [:button.btn.btn-success.btn-raised
+        {:class    (if (nil? @results) "disabled")
+         :on-click (fn [] (dispatch [:idresolver/save-results]))}
+        "Save"]
        [:button.btn.btn-primary.btn-raised
         {:class    (if (nil? @results) "disabled")
          :on-click (fn [] (dispatch [:idresolver/clear]))} "Clear"]
