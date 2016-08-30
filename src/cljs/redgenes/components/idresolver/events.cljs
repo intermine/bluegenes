@@ -50,7 +50,7 @@
   :idresolver/resolve-id
   (fn [id]
     (let [job (idresolver/resolve
-                {:root "www.flymine.org/query"}
+                {:root @(subscribe [:mine-url])}
                 {:identifiers (if (seq? id) id [id])
                  :type        "Gene"
                  :extra       "D. melanogaster"})]

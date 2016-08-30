@@ -1,6 +1,6 @@
 (ns redgenes.components.templates.events
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
-  (:require [re-frame.core :refer [reg-event-db reg-event-fx reg-fx dispatch]]
+  (:require [re-frame.core :refer [reg-event-db reg-event-fx reg-fx dispatch subscribe]]
             [re-frame.events]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
             [imcljs.search :as search]))
@@ -48,7 +48,7 @@
   (fn [{db :db}]
     (let [query      (get-in db [:components :template-chooser :selected-template])
           count-chan (search/raw-query-rows
-                       {:root "www.flymine.org/query"}
+                       {:root @(subscribe [:mine-url])}
                        query
                        {:format "count"})
           new-db     (update-in db [:components :template-chooser] assoc

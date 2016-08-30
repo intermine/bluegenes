@@ -9,7 +9,7 @@
 (defn handle [e]
   (let [props (reagent/props e)
         node  (sel1 (reagent/dom-node e) :.im-target)]
-    (go (<! (search/raw-query-rows {:root "www.flymine.org/query"}
+    (go (<! (search/raw-query-rows {:root @(subscribe [:mine-url])}
                                    props
                                    {:format "json"})))))
 

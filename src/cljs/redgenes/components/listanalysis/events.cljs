@@ -1,7 +1,7 @@
 (ns redgenes.components.listanalysis.events
   (:require-macros [cljs.core.async.macros :refer [go go-loop]]
                    [com.rpl.specter.macros :refer [traverse]])
-  (:require [re-frame.core :as re-frame :refer [reg-event-db reg-event-fx reg-fx dispatch]]
+  (:require [re-frame.core :as re-frame :refer [reg-event-db reg-event-fx reg-fx dispatch subscribe]]
             [redgenes.db :as db]
             [imcljs.search :as search]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]))
@@ -42,7 +42,7 @@
   (fn [{db :db} [_ params]]
     (let [enrichment-chan
           (search/enrichment
-            {:root "www.flymine.org/query"}
+            {:root @(subscribe [:mine-url])}
             params)]
       {:db                          db
        :listanalysis/get-enrichment [(:widget params) enrichment-chan]})))

@@ -1,7 +1,7 @@
 (ns redgenes.sections.objects.handlers
   (:require-macros [cljs.core.async.macros :refer [go go-loop]]
                    [com.rpl.specter.macros :refer [traverse select transform]])
-  (:require [re-frame.core :as re-frame :refer [reg-event-db reg-event-fx reg-fx dispatch]]
+  (:require [re-frame.core :as re-frame :refer [reg-event-db reg-event-fx reg-fx dispatch subscribe]]
             [redgenes.db :as db]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
             [imcljs.search :as search]
@@ -23,7 +23,7 @@
                    :select (-> db :assets :summary-fields type-kw)
                    :where  {:id id}}]
       (go (dispatch [:handle-report-summary (<! (search/raw-query-rows
-                                                  {:root "www.flymine.org/query"}
+                                                  {:root @(subscribe [:mine-url])}
                                                   q
                                                   {:format "json"}))])))))
 
@@ -72,6 +72,3 @@
                        (dissoc :report))
      :fetch-report [db type id]
      :dispatch     [:filter-report-templates type id]}))
-
-
-

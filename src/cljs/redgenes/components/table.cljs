@@ -11,7 +11,7 @@
       (-> (.loadTable js/imtables
                       node
                       (clj->js {:start 0 :size 25})
-                      (clj->js {:service   {:root "www.flymine.org/query"}
+                      (clj->js {:service   {:root @(subscribe [:mine-url])}
                                 :query     props
                                 :TableCell {:IndicateOffHostLinks false}}))
           (.then (fn [success] nil)
