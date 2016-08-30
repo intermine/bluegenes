@@ -76,22 +76,17 @@
                :results nil
                :resolving? false)))
 
-#_(dispatch
-    [:save-data {:type  :query
-                 :label "My Saved world"
-                 :value @query}])
-
 (reg-event-fx
   :idresolver/save-results
   (fn [{db :db}]
     (let [ids     (remove nil? (map (fn [[_ {id :id}]] id) (-> db :idresolver :results)))
           results {:type  :query
-                   :label "List Upload"
-                   :value {:from "Gene"
+                   :label (str "Uploaded " (count ids) " Genes")
+                   :value {:from   "Gene"
                            :select "*"
-                           :where [{:path "id"
-                                    :op "ONE OF"
-                                    :values ids}]}}]
+                           :where  [{:path   "id"
+                                     :op     "ONE OF"
+                                     :values ids}]}}]
       {:db       db
        :dispatch [:save-data results]
        :navigate "saved-data"})))

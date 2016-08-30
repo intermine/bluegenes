@@ -7,7 +7,7 @@
             [accountant.core :refer [navigate!]]))
 
 
-(def build-in-formatter (tf/formatter "HH:mm dd/MM/YYYY"))
+(def build-in-formatter (tf/formatter "HH:mm:ss dd/MM/YYYY"))
 
 (defn sd []
   (fn [[id {:keys [created label type value]}]]
