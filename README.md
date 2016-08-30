@@ -7,7 +7,7 @@
 Download dependencies.
 
 ```
-lein bower install
+bower install
 ```
 
 Compile css file once.
