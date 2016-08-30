@@ -5,4 +5,4 @@
 (reg-sub
   :saved-data/all
   (fn [db]
-    (get-in db [:saved-data])))
+    (sort-by (fn [[_ {created :created}]] created) > (get-in db [:saved-data]))))

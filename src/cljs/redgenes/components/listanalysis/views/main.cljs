@@ -113,20 +113,3 @@
   (fn [type]
     [:div
      [list-analysis type]]))
-
-
-
-#_[:div.row
-   [:div.col-sm-12
-    [:div.form-group
-     [:label.control-label "Filter"]
-     [:input.form-control {:type        "text"
-                           :value       @textf
-                           :placeholder "Filter text..."
-                           :on-change   (fn [e] (reset! textf (.. e -target -value)))}]]]]
-
-#_[results-table type
-   (if @textf
-     (filter (fn [res]
-               (re-find (re-pattern (str "(?i)" @textf)) (:description res))) (:results @results))
-     (:results @results))]

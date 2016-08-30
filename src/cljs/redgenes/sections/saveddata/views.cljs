@@ -3,24 +3,28 @@
             [redgenes.sections.saveddata.events]
             [reagent.core :as reagent]
             [redgenes.sections.saveddata.subs]
-            [cljs-time.format :as tf]))
+            [cljs-time.format :as tf]
+            [accountant.core :refer [navigate!]]))
 
 
-(def build-in-formatter (tf/formatter "HH:mm dd/MM/YYYY"))
+(def build-in-formatter (tf/formatter "HH:mm:ss dd/MM/YYYY"))
 
 (defn sd []
   (fn [[id {:keys [created label type value]}]]
     [:div.col
      [:div.saved-data-item.panel.panel-default
-
       [:div.panel-heading
        [:div.save-bar
         [:i.fa.fa-2x.fa-times]
         [:i.fa.fa-2x.fa-star]]
        [:h3 (str label)]]
       [:div.panel-body
-
-       [:div (tf/unparse build-in-formatter created)]]]]))
+       [:div (tf/unparse build-in-formatter created)]
+       [:button.btn.btn-primary.btn-raised
+        {:on-click (fn []
+                     (dispatch ^:flush-dom [:results/set-query value])
+                     (navigate! "#/results"))}
+        "View"]]]]))
 
 (defn main []
   (let [saved-data (subscribe [:saved-data/all])]
