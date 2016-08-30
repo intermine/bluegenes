@@ -2,7 +2,7 @@
 
 ## Development Mode
 
-### Compile css:
+### Dependencies:
 
 Download dependencies.
 
