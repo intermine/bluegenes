@@ -1,10 +1,14 @@
-# re-frame-boiler
-
-A [re-frame](https://github.com/Day8/re-frame) application designed to ... well, that part is up to you.
+# redgenes
 
 ## Development Mode
 
 ### Compile css:
+
+Download dependencies.
+
+```
+lein bower install
+```
 
 Compile css file once.
 
