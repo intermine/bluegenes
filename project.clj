@@ -1,4 +1,4 @@
-(defproject re-frame-boiler "0.1.0-SNAPSHOT"
+(defproject redgenes "0.1.0-SNAPSHOT"
   :dependencies [[org.clojure/clojure "1.8.0"]
                  [org.clojure/clojurescript "1.9.89"]
                  [reagent "0.6.0-rc"]
@@ -44,7 +44,7 @@
                                     "test/js"]
 
   :figwheel {:css-dirs     ["resources/public/css"]
-             :ring-handler re-frame-boiler.handler/dev-handler}
+             :ring-handler redgenes.handler/dev-handler}
 
   :less {:source-paths ["less"]
          :target-path  "resources/public/css"}
@@ -61,8 +61,8 @@
   {:builds
    [{:id           "dev"
      :source-paths ["src/cljs"]
-     :figwheel     {:on-jsload "re-frame-boiler.core/mount-root"}
-     :compiler     {:main                 re-frame-boiler.core
+     :figwheel     {:on-jsload "redgenes.core/mount-root"}
+     :compiler     {:main                 redgenes.core
                     :output-to            "resources/public/js/compiled/app.js"
                     :output-dir           "resources/public/js/compiled/out"
                     :asset-path           "js/compiled/out"
@@ -76,7 +76,7 @@
     {:id           "min"
      :source-paths ["src/cljs"]
      :jar          true
-     :compiler     {:main            re-frame-boiler.core
+     :compiler     {:main            redgenes.core
                     :output-to       "resources/public/js/compiled/app.js"
                     :externs         ["externs/imjs.js"
                                       "externs/imtables.js"]
@@ -91,13 +91,13 @@
     {:id           "test"
      :source-paths ["src/cljs" "test/cljs"]
      :compiler     {:output-to     "resources/public/js/compiled/test.js"
-                    :main          re-frame-boiler.runner
+                    :main          redgenes.runner
                     :optimizations :none}}
     ]}
 
-  :main re-frame-boiler.server
+  :main redgenes.server
 
-  :aot [re-frame-boiler.server]
+  :aot [redgenes.server]
 
   :prep-tasks [["cljsbuild" "once" "min"] "compile"]
   )
