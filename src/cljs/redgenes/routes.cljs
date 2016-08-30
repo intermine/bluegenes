@@ -40,10 +40,13 @@
   (defroute "/upload" []
             (re-frame/dispatch [:set-active-panel :upload-panel]))
 
-  (defroute "/listanalysis/list/:name" [name]
-            (re-frame/dispatch [:set-active-panel :list-analysis-panel
-                                {:name name}
-                                [:listanalysis/run-all {:list name}]]))
+  (defroute "/listanalysis" []
+            (re-frame/dispatch [:set-active-panel :list-analysis-panel]))
+
+  ;(defroute "/listanalysis/list/:name" [name]
+  ;          (re-frame/dispatch [:set-active-panel :list-analysis-panel
+  ;                              {:name name}
+  ;                              [:listanalysis/run-all {:list name}]]))
 
   (defroute "/listanalysis/temp/:name" [name]
             (re-frame/dispatch [:set-active-panel :list-analysis-panel

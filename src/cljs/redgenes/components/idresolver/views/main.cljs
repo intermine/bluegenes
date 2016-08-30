@@ -35,7 +35,8 @@
          :on-click (fn [] (dispatch [:idresolver/clear]))} "Clear"]
        [:button.btn.btn-success.btn-raised
         {:class    (if (nil? @results) "disabled")
-         :on-click (fn [] (if (some? @results) (dispatch [:idresolver/analyse])))} "Analyse"]])))
+         :on-click (fn [] (if (some? @results)
+                            (dispatch [:idresolver/analyse])))} "Analyse"]])))
 
 (defn input-box []
   (let [val (reagent/atom nil)]

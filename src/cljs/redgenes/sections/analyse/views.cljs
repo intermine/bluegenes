@@ -6,15 +6,11 @@
 
 (defn main []
   (let [params (subscribe [:panel-params])
-        saved  (subscribe [:idresolver/saved (:temp @params)])]
+        target (subscribe [:listanalysis/target])]
     (fn []
       [:div#wrapper
        [:div#sidebar-wrapper
         [:div.container
-         [:div.row
-          [:div.col-md-12
-           [:h2 "Homology"]
-           [:span "TBD"]]]
          [:div.row
           [:div.col-md-12
            [:h2 "Enrichment Results"]]]]
@@ -32,18 +28,8 @@
         [:div.panel.panel-default
          [:div.panel-heading
           [:h2
-           [:span "List Analysis for "]
+           [:span "List analysis for "]
+           [:span.stressed (str (:label @target))]
            [:span.stressed (str (or (:name @params) (:temp @params)))]]]
          [:div.panel-body
-          (let [query (cond
-                        (:temp @params) {:from   "Gene"
-                                         :select "*"
-                                         :where  [{:path   "id"
-                                                   :op     "ONE OF"
-                                                   :values @saved}]}
-                        (:name @params) {:from   "Gene"
-                                         :select "*"
-                                         :where  [{:path  "Gene"
-                                                   :op    "IN"
-                                                   :value (:name @params)}]})]
-            [table/main query true])]]]])))
+          [table/main (:value @target) true]]]]])))

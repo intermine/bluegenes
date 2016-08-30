@@ -6,7 +6,6 @@
             [imcljs.search :as search]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]))
 
-
 (defn build-matches-query [query path-constraint identifier]
   (update-in (js->clj (.parse js/JSON query) :keywordize-keys true) [:where]
              conj {:path   path-constraint
@@ -55,25 +54,25 @@
 (reg-event-fx
   :listanalysis/run-all
   (fn [{db :db} [_ target]]
-    (let [t (cond
-              (:list target) {:list (:list target)}
-              (:temp target) {:ids (get-in db [:idresolver :saved (:temp target)])})]
-      {:db            (assoc-in db [:list-analysis :results] nil)
-       :dispatch-many [[:listanalysis/run (merge t {:maxp       0.05
-                                                    :widget     "pathway_enrichment"
-                                                    :correction "Holm-Bonferroni"})]
-                       [:listanalysis/run (merge t {:maxp       0.05
-                                                    :widget     "go_enrichment_for_gene"
-                                                    :correction "Holm-Bonferroni"})]
-                       [:listanalysis/run (merge t {:maxp       0.05
-                                                    :widget     "prot_dom_enrichment_for_gene"
-                                                    :correction "Holm-Bonferroni"})]
-                       [:listanalysis/run (merge t {:maxp       0.05
-                                                    :widget     "publication_enrichment"
-                                                    :correction "Holm-Bonferroni"})]
-                       [:listanalysis/run (merge t {:maxp       0.05
-                                                    :widget     "bdgp_enrichment"
-                                                    :correction "Holm-Bonferroni"})]
-                       [:listanalysis/run (merge t {:maxp       0.05
-                                                    :widget     "miranda_enrichment"
-                                                    :correction "Holm-Bonferroni"})]]})))
+    (let [selection (cond
+                      (= :query (:type target)) {:ids (:values (first (:where (:value target))))}
+                      (= :list (:type target)) {:list (:value target)})]
+      {:db            (assoc-in db [:list-analysis :target] target)
+       :dispatch-many [[:listanalysis/run (merge selection {:maxp       0.05
+                                                         :widget     "pathway_enrichment"
+                                                         :correction "Holm-Bonferroni"})]
+                       [:listanalysis/run (merge selection {:maxp       0.05
+                                                         :widget     "go_enrichment_for_gene"
+                                                         :correction "Holm-Bonferroni"})]
+                       [:listanalysis/run (merge selection {:maxp       0.05
+                                                         :widget     "prot_dom_enrichment_for_gene"
+                                                         :correction "Holm-Bonferroni"})]
+                       [:listanalysis/run (merge selection {:maxp       0.05
+                                                         :widget     "publication_enrichment"
+                                                         :correction "Holm-Bonferroni"})]
+                       [:listanalysis/run (merge selection {:maxp       0.05
+                                                         :widget     "bdgp_enrichment"
+                                                         :correction "Holm-Bonferroni"})]
+                       [:listanalysis/run (merge selection {:maxp       0.05
+                                                         :widget     "miranda_enrichment"
+                                                         :correction "Holm-Bonferroni"})]]})))
