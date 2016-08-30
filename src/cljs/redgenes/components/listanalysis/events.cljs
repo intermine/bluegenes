@@ -77,7 +77,3 @@
                        [:listanalysis/run (merge t {:maxp       0.05
                                                     :widget     "miranda_enrichment"
                                                     :correction "Holm-Bonferroni"})]]})))
-
-
-
-;                        [:listanalysis/run (merge t {:ids        (get-in db [:idresolver :saved (:temp (:panel-params db))])
