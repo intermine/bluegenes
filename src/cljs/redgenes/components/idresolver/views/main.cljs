@@ -38,20 +38,30 @@
         {:class    (if (nil? @results) "disabled")
          :on-click (fn [] (if (some? @results) (dispatch [:idresolver/analyse])))} "Analyse"]])))
 
+(defn submit-input [input]
+    (dispatch [:idresolver/resolve (splitter input)]))
+
 (defn input-box []
   (let [val (reagent/atom nil)]
     (fn []
       [:input.freeform
        {:type        "text"
-        :placeholder "Identifiers..."
+        :placeholder "Type identifiers here..."
         :value       @val
+        :on-key-press (fn [e]
+                      (let [keycode (.-charCode e)
+                            input (.. e -target -value)]
+                        (cond (= keycode 13)
+                          (do (reset! val "")
+                              (submit-input input))
+                        )))
         :on-change   (fn [e]
                        (let [input (.. e -target -value)]
                          (if (has-separator? input)
-                           (do
-                             (reset! val "")
-                             (dispatch [:idresolver/resolve (splitter input)]))
-                           (reset! val input))))}])))
+                           (do (reset! val "")
+                               (submit-input input))
+                           (reset! val input))
+                         ))}])))
 
 
 (defn input-item-duplicate []
@@ -103,7 +113,8 @@
      [:div.panel-body
       [:div.idresolver.form-control
        [input-items]
-       [input-box]]]]))
+       [input-box]
+      ]]]))
 
 (defn stats []
   (let [bank       (subscribe [:idresolver/bank])
@@ -155,8 +166,8 @@
 (defn main []
   (fn []
     [:div.container
-     [:h1 "List Upload"]
-     [:a {:on-click (fn [] (dispatch [:idresolver/resolve (splitter ex)]))} "Example"]
+     [:div.headerwithguidance [:h1 "List Upload"]
+     [:a.guidance {:on-click (fn [] (dispatch [:idresolver/resolve (splitter ex)]))} "[Show me an example]"]]
      [input-div]
      [stats]
      ;[results]
