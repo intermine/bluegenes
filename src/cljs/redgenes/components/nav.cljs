@@ -2,6 +2,7 @@
   (:require [re-frame.core :refer [subscribe dispatch]]
             [reagent.core :as reagent]
             [redgenes.components.search :as search]
+            [redgenes.components.tooltip.views :as tooltip]
             [accountant.core :refer [navigate!]]
             [redgenes.components.progress_bar :as progress-bar]))
 
@@ -52,7 +53,14 @@
             [:li {:class (if (panel-is :upload-panel) "active")} [:a {:on-click #(navigate! "#/upload")} "Upload"]]
             [:li {:class (if (panel-is :templates-panel) "active")} [:a {:on-click #(navigate! "#/templates")} "Templates"]]
             [:li {:class (if (panel-is :querybuilder-panel) "active")} [:a {:on-click #(navigate! "#/querybuilder")} "Query Builder"]]
-            [:li {:class (if (panel-is :saved-data) "active")} [:a {:on-click #(navigate! "#/saved-data")} (str "Saved Data (" (count (keys @saved-data)) ")")]]]
+            [:li {:class (if (panel-is :saved-data) "active")} [:a {:on-click #(navigate! "#/saved-data")} (str "Saved Data (" (count (keys @saved-data)) ")")]
+             ;;example tooltip. Include as last child, probably with some conditional to display and an event handler for saving the name
+             [tooltip/main
+              [:form.form-inline
+                [:label "Name: "
+                [:input.form-control {:autofocus true :type "text" :placeholder "(Optional) e.g. 'My saved data'"}]]
+                [:button.btn "Save"]]]
+             ]]
            [:ul.nav.navbar-nav.navbar-right.buttons
             [:li.search [search/main]]
             [:li [:a [:i.fa.fa-question]]]
