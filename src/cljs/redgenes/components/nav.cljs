@@ -63,7 +63,7 @@
              ]]
            [:ul.nav.navbar-nav.navbar-right.buttons
             [:li.search [search/main]]
-            [:li [:a [:i.fa.fa-question]]]
+            [:li [:a {:on-click #(navigate! "#/help")} [:i.fa.fa-question]]]
             [user]
             [settings]]]
           [progress-bar/main]])})))
