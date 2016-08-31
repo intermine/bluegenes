@@ -40,7 +40,7 @@
 (defn main-panel []
   (let [active-panel (re-frame/subscribe [:active-panel])]
     (fn []
-      [:main.home.circles
+      [:div.home.circles
        [searchbox]
        [:div.features
         [lists]
