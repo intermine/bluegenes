@@ -39,15 +39,16 @@ html,
     // height: 94%;
     height: 100%;
     box-sizing: border-box;
+    display:flex;
+    flex-direction:column;
 }
 
-html {margin-top:-5em;}
-.approot {
-display:flex;
-flex-direction:column;
+@annoyingscrollbars: 5em;
+html {margin-top:-@annoyingscrollbars;} //this margin directly offsets the annoying scrollbars
+main {
+  flex-grow:1;
+  margin-top:@annoyingscrollbars; //this margin directly offsets the annoying scrollbars that we were getting with a 100% page height and sticky header
 }
-main {flex-grow:1;
-margin-top:5em;}
 
 a.callout {
     color: @link-color;
@@ -206,7 +207,7 @@ td.skipped {
     color: @highlight-color;
 }
 
-//this is the best class name in the world. 
+//this is the best class name in the world.
 .LORD_FADER {
     /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#000000+0,000000+100&0+0,0.65+100 */
     background: -moz-linear-gradient(top,  rgba(0,0,0,0) 0%, rgba(0,0,0,0.33) 100%); /* FF3.6-15 */
