@@ -99,11 +99,23 @@
 (reg-event-fx
   :idresolver/analyse
   (fn [{db :db}]
-    (let [uid (str (gensym))]
-      {:db       (update-in db [:idresolver :saved]
-                            (fn [saved]
-                              (assoc saved uid (remove nil? (map (fn [[input {id :id}]] id) (-> db :idresolver :results))))))
-       :navigate (str "listanalysis/temp/" uid)})))
+    (let [uid     (str (gensym))
+          ids     (remove nil? (map (fn [[_ {id :id}]] id) (-> db :idresolver :results)))
+          results {:type  :query
+                   :label (str "Uploaded " (count ids) " Genes")
+                   :value {:from   "Gene"
+                           :select "*"
+                           :where  [{:path   "id"
+                                     :op     "ONE OF"
+                                     :values ids}]}}]
+      {:dispatch       [:listanalysis/run-all results]
+       :navigate (str "listanalysis")})))
+
+
+#_(fn [saved]
+    (assoc saved uid
+                 (remove nil? (map (fn [[input {id :id}]] id)
+                                   (-> db :idresolver :results)))))
 
 (reg-event-db
   :idresolver/resolve-duplicate

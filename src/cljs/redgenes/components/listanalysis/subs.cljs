@@ -8,6 +8,11 @@
     (-> db :list-analysis :results widget)))
 
 (reg-sub
+  :listanalysis/target
+  (fn [db]
+    (-> db :list-analysis :target)))
+
+(reg-sub
   :listanalysis/results-all
   (fn [db _]
     (-> db :list-analysis :results)))
