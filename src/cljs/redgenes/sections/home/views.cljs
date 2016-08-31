@@ -3,7 +3,6 @@
             [redgenes.components.search :as search]
             [redgenes.components.templates.views :as templates]
             [redgenes.components.lists.views :as lists]
-            [redgenes.components.icons :as icons]
             [redgenes.sections.home.circles :as circles]
             [redgenes.sections.home.texty :as texty]
             [redgenes.components.search :as search]))
@@ -26,6 +25,5 @@
 (defn main []
   (fn []
     [:div.approot
-     [icons/icons]
      [circles/main-panel]
      ]))

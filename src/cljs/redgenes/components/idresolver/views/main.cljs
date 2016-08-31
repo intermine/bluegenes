@@ -126,7 +126,7 @@
       [:div.panel.panel-default
        [:div.panel-body
         [:div.row.legend
-         [:div.col-md-4 [:h4
+         [:div.col-md-4 [:h4.title
                          (str "Total Identifiers: " (count @bank))]]
          [:div.col-md-2 [:h4.MATCH
                          [:i.fa.fa-check.fa-1x.fa-fw.MATCH]
@@ -166,8 +166,12 @@
 (defn main []
   (fn []
     [:div.container
-     [:div.headerwithguidance [:h1 "List Upload"]
-     [:a.guidance {:on-click (fn [] (dispatch [:idresolver/resolve (splitter ex)]))} "[Show me an example]"]]
+      [:div.headerwithguidance
+        [:h1 "List Upload"]
+        [:a.guidance {:on-click (fn [] (dispatch [:idresolver/resolve (splitter ex)]))} "[Show me an example]"]
+        [:div.tip [:svg.icon.icon-info [:use {:xlinkHref "#icon-info"}]]
+         "Tip: Press enter or space bar to submit the form"]
+      ]
      [input-div]
      [stats]
      ;[results]

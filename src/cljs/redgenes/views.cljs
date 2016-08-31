@@ -2,6 +2,7 @@
   (:require [re-frame.core :as re-frame :refer [dispatch]]
             [json-html.core :as json-html]
             [redgenes.components.nav :as nav]
+            [redgenes.components.icons :as icons]
             [redgenes.sections.home.views :as home]
             [redgenes.sections.assets.views :as assets]
             [redgenes.sections.objects.views :as objects]
@@ -82,6 +83,7 @@
   (let [active-panel (re-frame/subscribe [:active-panel])]
     (fn []
       [:div.approot
+        [icons/icons]
        [nav/main]
        [:main [show-panel @active-panel]]
        [footer]
