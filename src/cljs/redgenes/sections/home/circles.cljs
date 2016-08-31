@@ -32,8 +32,8 @@
    [:h3 "Help"]
    [:div.piccie [:a {:on-click #(navigate! "#/help")}
     [:svg.icon.icon-summary [:use {:xlinkHref "#icon-eh"}]]]]
-   [:div [:a "Tour"]
-    [:a "Docs/Help"]]
+   [:div [:a {:on-click #(navigate! "#/help")} "Tour"]
+    [:a {:on-click #(navigate! "#/help")} "Docs/Help"]]
    ])
 
 
