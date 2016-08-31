@@ -83,13 +83,15 @@
           results {:type  :query
                    :label (str "Uploaded " (count ids) " Genes")
                    :value {:from   "Gene"
+                           :title (str "Uploaded " (count ids) " Genes")
                            :select "*"
                            :where  [{:path   "id"
                                      :op     "ONE OF"
                                      :values ids}]}}]
       {:db       db
        :dispatch [:save-data results]
-       :navigate "saved-data"})))
+       ;:navigate "saved-data"
+       })))
 
 (reg-fx
   :navigate

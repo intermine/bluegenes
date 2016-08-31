@@ -23,11 +23,12 @@
   (some? (some separators str)))
 
 (defn controls []
-  (let [results (subscribe [:idresolver/results])]
+  (let [results (subscribe [:idresolver/results])
+        matches (subscribe [:idresolver/results-matches])]
     (fn []
       [:div.btn-toolbar
        [:button.btn.btn-success.btn-raised
-        {:class    (if (nil? @results) "disabled")
+        {:class    (if (empty? @matches) "disabled")
          :on-click (fn [] (dispatch [:idresolver/save-results]))}
         "Save"]
        [:button.btn.btn-primary.btn-raised
@@ -35,8 +36,7 @@
          :on-click (fn [] (dispatch [:idresolver/clear]))} "Clear"]
        [:button.btn.btn-success.btn-raised
         {:class    (if (nil? @results) "disabled")
-         :on-click (fn [] (if (some? @results)
-                            (dispatch [:idresolver/analyse])))} "Analyse"]])))
+         :on-click (fn [] (if (some? @results) (dispatch [:idresolver/analyse])))} "Analyse"]])))
 
 (defn input-box []
   (let [val (reagent/atom nil)]

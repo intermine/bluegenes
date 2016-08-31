@@ -90,3 +90,8 @@
   :saved-data
   (fn [db _]
     (:saved-data db)))
+
+(reg-sub
+  :tooltip
+  (fn [db]
+    (get-in db [:tooltip :saved-data])))

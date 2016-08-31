@@ -24,9 +24,14 @@
                      (fn [data]
                        (map (fn [r]
                               (assoc r :matches-query
-                                       (build-matches-query (:pathQuery results)
-                                                            (:pathConstraint results)
-                                                            (:identifier r))))
+                                       (merge (build-matches-query
+                                                (:pathQuery results)
+                                                (:pathConstraint results)
+                                                (:identifier r))
+                                              {:title (str
+                                                        (:title results)
+                                                        " - "
+                                                        (:description r))})))
                             data)))]
       (assoc-in db [:list-analysis :results (keyword widget-name)] with-matches-query)
       )))
@@ -59,20 +64,20 @@
                       (= :list (:type target)) {:list (:value target)})]
       {:db            (assoc-in db [:list-analysis :target] target)
        :dispatch-many [[:listanalysis/run (merge selection {:maxp       0.05
-                                                         :widget     "pathway_enrichment"
-                                                         :correction "Holm-Bonferroni"})]
+                                                            :widget     "pathway_enrichment"
+                                                            :correction "Holm-Bonferroni"})]
                        [:listanalysis/run (merge selection {:maxp       0.05
-                                                         :widget     "go_enrichment_for_gene"
-                                                         :correction "Holm-Bonferroni"})]
+                                                            :widget     "go_enrichment_for_gene"
+                                                            :correction "Holm-Bonferroni"})]
                        [:listanalysis/run (merge selection {:maxp       0.05
-                                                         :widget     "prot_dom_enrichment_for_gene"
-                                                         :correction "Holm-Bonferroni"})]
+                                                            :widget     "prot_dom_enrichment_for_gene"
+                                                            :correction "Holm-Bonferroni"})]
                        [:listanalysis/run (merge selection {:maxp       0.05
-                                                         :widget     "publication_enrichment"
-                                                         :correction "Holm-Bonferroni"})]
+                                                            :widget     "publication_enrichment"
+                                                            :correction "Holm-Bonferroni"})]
                        [:listanalysis/run (merge selection {:maxp       0.05
-                                                         :widget     "bdgp_enrichment"
-                                                         :correction "Holm-Bonferroni"})]
+                                                            :widget     "bdgp_enrichment"
+                                                            :correction "Holm-Bonferroni"})]
                        [:listanalysis/run (merge selection {:maxp       0.05
-                                                         :widget     "miranda_enrichment"
-                                                         :correction "Holm-Bonferroni"})]]})))
+                                                            :widget     "miranda_enrichment"
+                                                            :correction "Holm-Bonferroni"})]]})))
