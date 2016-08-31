@@ -125,20 +125,20 @@
     (fn []
       [:div.panel.panel-default
        [:div.panel-body
-        [:div.row
+        [:div.row.legend
          [:div.col-md-4 [:h4
                          (str "Total Identifiers: " (count @bank))]]
-         [:div.col-md-2 [:h4
-                         [:i.fa.fa-check.fa-1x.fa-fw]
+         [:div.col-md-2 [:h4.MATCH
+                         [:i.fa.fa-check.fa-1x.fa-fw.MATCH]
                          (str "Matches: " (count @matches))]]
-         [:div.col-md-2 [:h4
-                         [:i.fa.fa-clone]
+         [:div.col-md-2 [:h4.DUPLICATE
+                         [:i.fa.fa-clone.DUPLICATE]
                          (str "Duplicates: " (count @duplicates))]]
-         [:div.col-md-2 [:h4
-                         [:i.fa.fa-times]
+         [:div.col-md-2 [:h4.UNRESOLVED
+                         [:i.fa.fa-times.UNRESOLVED]
                          (str "Not Found: " (count @no-matches))]]
-         [:div.col-md-2 [:h4
-                         [:i.fa.fa-exclamation]
+         [:div.col-md-2 [:h4.OTHER
+                         [:i.fa.fa-exclamation.OTHER]
                          (str "Other: " (count @other))]]]
         [:div [controls]]]]
 

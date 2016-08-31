@@ -1,3 +1,33 @@
+.matchcolors{
+  text-shadow: 1px 1px 1px rgba(0,0,0,0.3);
+  &.inactive {
+      color: white;
+      background: grey;
+  }
+  &.MATCH {
+      color: white;
+      background: green;
+  }
+  &.DUPLICATE {
+      text-shadow: 1px 1px 1px rgba(255,255,255,0.2);
+      color: black;
+      background: #dede00;
+  }
+  &.UNRESOLVED {
+      color: white;
+      background: red;
+  }
+  &.TYPE_CONVERTED {
+      color: white;
+      background: green;
+  }
+  &.OTHER {
+      color: white;
+      background: green;
+  }
+
+}
+
 div.idresolver {
     width: 100%;
     background: white;
@@ -10,30 +40,7 @@ div.id-resolver-item {
     display: inline-block;
     float: left;
     transition: all 1s;
-    &.inactive {
-        color: white;
-        background: grey;
-    }
-    &.MATCH {
-        color: white;
-        background: green;
-    }
-    &.DUPLICATE {
-        color: black;
-        background: #dede00;
-    }
-    &.UNRESOLVED {
-        color: white;
-        background: red;
-    }
-    &.TYPE_CONVERTED {
-        color: white;
-        background: green;
-    }
-    &.OTHER {
-        color: white;
-        background: green;
-    }
+    .matchcolors;
 }
 
   input.freeform {
@@ -50,6 +57,15 @@ div.id-resolver-item {
       border-bottom: 1px solid black;
     }
   }
+
+.legend h4 {
+  i {
+    .matchcolors;
+    padding:4px;
+    border-radius:2px;
+    margin-right:3px;
+  }
+}
 
   .headerwithguidance  {
     display:flex;
