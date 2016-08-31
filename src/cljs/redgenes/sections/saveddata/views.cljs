@@ -10,15 +10,15 @@
 (def build-in-formatter (tf/formatter "HH:mm:ss dd/MM/YYYY"))
 
 (defn sd []
-  (fn [[id {:keys [created label type value]}]]
+  (fn [[id {:keys [created label type value] :as all}]]
     [:div.col
      [:div.saved-data-item.panel.panel-default
       [:div.panel-heading
        [:div.save-bar
         [:i.fa.fa-2x.fa-times]
-        [:i.fa.fa-2x.fa-star]]
-       [:h3 (str label)]]
+        [:i.fa.fa-2x.fa-star]]]
       [:div.panel-body
+       [:h3 (str label)]
        [:div (tf/unparse build-in-formatter created)]
        [:button.btn.btn-primary.btn-raised
         {:on-click (fn []
