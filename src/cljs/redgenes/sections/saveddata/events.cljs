@@ -21,8 +21,7 @@
   :saved-data/calculate-parts
   (fn [db]
     (let [model (get-in db [:assets :model])
-          items (get-in db [:saved-data :items])]
-      (println "DO" (im-filters/im-type model "Gene.homologues")))
+          items (get-in db [:saved-data :items])])
     db))
 
 (reg-event-fx
@@ -58,6 +57,22 @@
         (assoc-in [:tooltip :saved-data] nil))))
 
 (reg-event-db
-  :saved-data/add-editable-item
-  (fn [db [_ id]]
-    (update-in db [:saved-data :editor] conj id)))
+  :saved-data/set-type-filter
+  (fn [db [_ kw]]
+    (-> db
+        (assoc-in [:saved-data :editor :filter] kw))))
+
+(reg-event-db
+  :saved-data/toggle-editable-item
+  (fn [db [_ id path-info]]
+    (println "ADDING ID" id path-info)
+    (if (empty? (filter #(= path-info %) (get-in db [:saved-data :editor id])))
+      (update-in db [:saved-data :editor id] conj path-info)
+      (do
+        (println "ADDING")
+        (update-in db [:saved-data :editor id]
+                   (fn [items]
+                     (println "ITEMS" items)
+                     (remove #(= % path-info) items)))))))
+
+

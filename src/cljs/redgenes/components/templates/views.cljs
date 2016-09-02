@@ -172,6 +172,15 @@
               [:h2 (str @result-count " Rows")]
               [lighttable/main {:query      @selected-template
                                 :no-repeats true}]
+
+              [:button.btn.btn-primary.btn-raised
+               {:on-click
+                (fn []
+                  (dispatch
+                    [:save-data {:type  :query
+                                 :label (last (split (:title @selected-template) "-->"))
+                                 :value (assoc @selected-template :title (last (split (:title @selected-template) "-->")))}]))} "Save"]
+
               [:button.btn.btn-primary.btn-raised
                {:on-click (fn []
                             (dispatch ^:flush-dom [:results/set-query @selected-template])

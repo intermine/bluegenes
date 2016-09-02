@@ -47,4 +47,34 @@ div.saved-data-container {
     }
 }
 
+@editable-drawer-height: 300px;
+
+.transform(@transform) {
+    -webkit-transform: @transform;
+    -moz-transform: @transform;
+    -ms-transform: @transform; /* note that you have @trasnform here */
+    -o-transform: @transform;
+    transform: @transform;
+
+}
+
+.editable-items-drawer {
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    height: 300px;
+    background: white;
+    width: 100%;
+    transition: all 0.2s ease;
+    &.open {
+    opacity: 1;
+         .transform(translate(0, 0));
+    }
+
+    &.closed {
+        opacity: 0;
+         .transform(translate(0, @editable-drawer-height));
+    }
+}
+
 
