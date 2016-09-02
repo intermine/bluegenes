@@ -31,18 +31,34 @@
                   (keys deconstructed-query)))])))
 
 
+(defn editable-item []
+  (fn [[id {:keys [parts created label type value] :as all}]]
+    [:div.panel.panel-default
+     ;[:div.panel-heading]
+     [:div.panel-body
+      [:h3 (str label)]
+      [simple-breakdown parts]
+      [:button.btn.btn-primary.btn-raised
+       {:on-click (fn []
+                    (dispatch ^:flush-dom [:results/set-query value])
+                    (navigate! "#/results"))}
+       "View"]]]))
+
+
 (defn saved-data-item []
   (let [edit-mode (subscribe [:saved-data/edit-mode])]
     (fn [[id {:keys [parts created label type value] :as all}]]
       [:div.col
        [:div.saved-data-item.panel.panel-default
-        {:class (if @edit-mode "editing")}
+        {:class (if @edit-mode "editing")
+         :on-click (fn []
+                     (if @edit-mode
+                       (dispatch [:saved-data/add-editable-item id])))}
         [:div.panel-heading
          [:div.save-bar
           [:span (tf/unparse built-in-formatter created)]
           [:i.fa.fa-2x.fa-times]
-          [:i.fa.fa-2x.fa-star]
-          ]]
+          [:i.fa.fa-2x.fa-star]]]
         [:div.panel-body
          [:h3 (str label)]
          [simple-breakdown parts]
@@ -57,8 +73,19 @@
     [:div
      (json-html/edn->hiccup @saved-data-section)]))
 
+(defn editable-items []
+  (let [items (subscribe [:saved-data/editable-items])]
+    (fn []
+      [:div
+       [:h1 "Editable"]
+       (map (fn [item]
+              (println "item" item)
+              [editable-item item]) @items)])))
+
+
 (defn main []
-  (let [saved-data (subscribe [:saved-data/all])]
+  (let [saved-data (subscribe [:saved-data/all])
+        edit-mode  (subscribe [:saved-data/edit-mode])]
     (reagent/create-class
       {:component-did-mount
        (fn [e] (let [node (-> e reagent/dom-node js/$)]))
@@ -66,11 +93,14 @@
        (fn []
          [:div {:style {:margin-top "-10px"}}
           [toolbar]
+          [:div.edit-fade
+           {:class (if @edit-mode "show" "not-show")}]
           [:div.container-fluid
            [:h1 "Saved Data"]
            [:div.container
             [:span "Today"]
             (into [:div.grid-4_md-3_sm-1.saved-data-container]
                   (map (fn [e] [saved-data-item e]) @saved-data))]]
+          [editable-items]
           ;[debug]
           ])})))

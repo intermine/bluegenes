@@ -16,3 +16,16 @@
   :saved-data/section
   (fn [db]
     (:saved-data db)))
+
+(reg-sub
+  :saved-data/editable-ids
+  (fn [db]
+    (get-in db [:saved-data :editor])))
+
+(reg-sub
+  :saved-data/editable-items
+  :<- [:saved-data/editable-ids]
+  :<- [:saved-data/all]
+  (fn [[ids items]]
+    (filter (fn [[id]]
+              (some? (some #{id} ids))) items)))

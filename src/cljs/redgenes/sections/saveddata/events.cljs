@@ -56,3 +56,8 @@
     (-> db
         (assoc-in [:saved-data :items id :label] label)
         (assoc-in [:tooltip :saved-data] nil))))
+
+(reg-event-db
+  :saved-data/add-editable-item
+  (fn [db [_ id]]
+    (update-in db [:saved-data :editor] conj id)))
