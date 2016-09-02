@@ -69,7 +69,7 @@
          [:li {:class (if (panel-is :upload-panel) "active")} [:a {:on-click #(navigate! "#/upload")} "Upload"]]
          [:li {:class (if (panel-is :templates-panel) "active")} [:a {:on-click #(navigate! "#/templates")} "Templates"]]
          [:li {:class (if (panel-is :querybuilder-panel) "active")} [:a {:on-click #(navigate! "#/querybuilder")} "Query Builder"]]
-         [:li {:class (if (panel-is :saved-data) "active")} [:a {:on-click #(navigate! "#/saved-data")} (str "Saved Data (" (count (keys @saved-data)) ")")]
+         [:li {:class (if (panel-is :saved-data-panel) "active")} [:a {:on-click #(navigate! "#/saved-data")} (str "Saved Data (" (count (keys @saved-data)) ")")]
           ;;example tooltip. Include as last child, probably with some conditional to display and an event handler for saving the name
           (if @ttip [save-data-tooltip @ttip])]]
         [:ul.nav.navbar-nav.navbar-right.buttons
