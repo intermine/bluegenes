@@ -58,8 +58,9 @@ div.saved-data-container {
 
 }
 
-.editable-items-drawer {
+div.editable-items-drawer {
     position: fixed;
+    display: flex;
     left: 0;
     bottom: 0;
     height: 300px;
@@ -67,14 +68,19 @@ div.saved-data-container {
     width: 100%;
     transition: all 0.2s ease;
     &.open {
-    opacity: 1;
-         .transform(translate(0, 0));
+        opacity: 1;
+        .transform(translate(0, 0));
     }
 
     &.closed {
         opacity: 0;
-         .transform(translate(0, @editable-drawer-height));
+        .transform(translate(0, @editable-drawer-height));
     }
+
+    div.item {
+        background: green;
+        flex: 0 0;
+
+    }
+
 }
-
-

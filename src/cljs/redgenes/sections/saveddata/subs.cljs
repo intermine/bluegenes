@@ -29,6 +29,11 @@
     (get-in db [:saved-data :editor :filter])))
 
 (reg-sub
+  :saved-data/text-filter
+  (fn [db]
+    (get-in db [:saved-data :editor :text-filter])))
+
+(reg-sub
   :saved-data/editable-items
   :<- [:saved-data/editable-ids]
   :<- [:saved-data/all]
@@ -40,11 +45,30 @@
   (contains? parts type))
 
 (reg-sub
+  :saved-data/editor-items
+  :<- [:saved-data/all]
+  :<- [:saved-data/editable-ids]
+  (fn [[all editable-ids]]
+    (let [ids (map first editable-ids)]
+      (map second (filter (fn [[id]] (some? (some #{id} ids))) all)))))
+
+(defn has-text?
+  "Return true if a template's description contains a string"
+  [string [_ details]]
+  (if string
+    (if-let [description (:label details)]
+      (re-find (re-pattern (str "(?i)" string)) description)
+      false)
+    true))
+
+(reg-sub
   :saved-data/filtered-items
   :<- [:saved-data/all]
   :<- [:saved-data/edit-mode]
   :<- [:saved-data/type-filter]
+  :<- [:saved-data/text-filter]
   :<- [:saved-data/editable-ids]
-  (fn [[all edit-mode type-filter]]
+  (fn [[all edit-mode type-filter text-filter]]
     (cond->> all
-             (and edit-mode type-filter) (filter (partial saved-data-has-type? type-filter)))))
+             (and edit-mode type-filter) (filter (partial saved-data-has-type? type-filter))
+             text-filter (filter (partial has-text? text-filter)))))

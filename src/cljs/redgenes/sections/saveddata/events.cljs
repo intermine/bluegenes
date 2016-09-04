@@ -4,7 +4,8 @@
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
             [imcljs.filters :as im-filters]
             [cljs-uuid-utils.core :as uuid]
-            [cljs-time.core :as t]))
+            [cljs-time.core :as t]
+            [imcljs.operations :as operations]))
 
 (defn get-parts
   [model query]
@@ -63,23 +64,36 @@
                                    paths) (get-in db [:saved-data :editor :items])))]
       (if unset?
         (update-in db [:saved-data :editor] dissoc :filter)
-        (assoc-in db [:saved-data :editor :filter] kw)))
-    ))
+        (assoc-in db [:saved-data :editor :filter] kw)))))
 
 (reg-event-db
   :saved-data/toggle-editable-item
   (fn [db [_ id path-info]]
-    (let [exists-fn #(= path-info %)]
-      (if (empty? (filter exists-fn (get-in db [:saved-data :editor :items id])))
-        (update-in db [:saved-data :editor :items id] conj path-info)
-        (let [removed (update-in db [:saved-data :editor :items id] (fn [items] (remove exists-fn items)))]
-          (if (empty? (get-in removed [:saved-data :editor :items id]))
-            (update-in removed [:saved-data :editor :items] dissoc id)
-            removed))))))
+    (if (get-in db [:saved-data :editor :items id])
+      (update-in db [:saved-data :editor :items] dissoc id)
+      (assoc-in db [:saved-data :editor :items id] path-info))))
 
-;(reg-event-db
-;  :saved-data/perform-operation
-;  (fn [db]
-;    (let [ids])))
+(reg-event-db
+  :saved-data/perform-operation
+  (fn [db]
+    (let [selected-items (first (get-in db [:saved-data :editor :items]))]
+      (println "selected items" selected-items)
+      (let [q1 (assoc
+                 (get-in db [:saved-data :items (first selected-items) :value])
+                 :select [(:path (second selected-items))]
+                 :orderBy nil)]
+        (.log js/console q1)
+        (go (println "done" (<! (operations/operation
+                                  {:root "www.flymine.org/query"}
+                                  q1 q1)))))
+      db)))
+
+(reg-event-db
+  :saved-data/set-text-filter
+  (fn [db [_ value]]
+    (if (= value "")
+      (update-in db [:saved-data :editor] dissoc :text-filter)
+      (assoc-in db [:saved-data :editor :text-filter] value))))
+
 
 

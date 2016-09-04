@@ -19,7 +19,8 @@
 
 (defn operation [service query-one query-two]
   (let [channels (map (partial search/raw-query-rows service) [query-one query-two])]
-    (go (let [result-one (set (flatten (<! (first channels))))
-              result-two (set (flatten (<! (second channels))))]
-          (println "result-one" result-one)
-          (println "result-two" result-two)))))
+    (let [result-chan (chan)]
+      (go (let [result-one (set (flatten (:results (<! (first channels)))))
+                result-two (set (flatten (:results (<! (second channels)))))]
+            (>! result-chan [result-one result-two])))
+      result-chan)))

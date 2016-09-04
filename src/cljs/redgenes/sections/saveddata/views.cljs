@@ -11,22 +11,25 @@
 
 (def built-in-formatter (tf/formatter "HH:mm:ss dd/MM/YYYY"))
 
-#_(defn toolbar []
-  [:div.navbar.navbar-inverse
-   [:div.container-fluid
-    [:div.navbar-collapse.collapse.navbar-material-light-blue-collapse
-     [:ul.nav.navbar-nav
-      [:li.btn.btn-info.btn-raised
-       {:on-click (fn [] (dispatch [:saved-data/toggle-edit-mode]))} "Merge Lists"]]]]])
+(defn toggle-editor []
+  (dispatch [:saved-data/toggle-edit-mode]))
+
+(defn perform-merge []
+  (dispatch [:saved-data/perform-operation]))
+
+(defn set-text-filter [e]
+  (dispatch [:saved-data/set-text-filter (.. e -target -value)]))
 
 (defn toolbar []
-  [:div.btn.btn-info.btn-raised
-   {:on-click (fn [] (dispatch [:saved-data/toggle-edit-mode]))} "Merge Lists"])
+  [:div.btn-toolbar
+   [:div.btn.btn-info.btn-raised
+    {:on-click toggle-editor} "Merge Lists"]
+   [:div.btn.btn-info.btn-raised
+    {:on-click perform-merge} "Perform Op"]])
 
 (defn editable-breakdown []
   (let [saved-ids (subscribe [:saved-data/editable-ids])
-        model     (subscribe [:model])
-        allowed-types (mapcat (fn [[id details]] (map :type details)) @saved-ids)]
+        model     (subscribe [:model])]
     (fn [id deconstructed-query]
       [:div.panel.panel-default
        (into [:div.panel-body]
@@ -45,7 +48,7 @@
                                        {:on-click (fn []
                                                     (dispatch [:saved-data/toggle-editable-item id part-info]))}
                                        [:a (str (:path part-info))]]) paths))]
-                        (let [present? (not (empty? (filter #(= (first paths) %) (get-in @saved-ids [id]))))]
+                        (let [present? (= (first paths) (get-in @saved-ids [id]))]
                           [:div.category.btn
                            {:class (str (if present? "btn-success btn-raised" "btn-primary"))
                             :on-click
@@ -73,8 +76,9 @@
         [:div.panel-heading
          [:div.save-bar
           [:span (tf/unparse built-in-formatter created)]
-          [:i.fa.fa-2x.fa-times]
-          [:i.fa.fa-2x.fa-star]]]
+          ;[:i.fa.fa-2x.fa-times]
+          ;[:i.fa.fa-2x.fa-star]
+          ]]
         [:div.panel-body
          [:h3 (str label)]
          (if @edit-mode
@@ -86,24 +90,34 @@
                        (navigate! "#/results"))}
           "View"]]]])))
 
+(defn editor-item []
+  (fn [item]
+    [:div (:label item)]))
 
+(defn editor-options []
+  [:div.item
+   [:span.dropdown
+    [:button.btn.btn-primary.btn-raised.dropdown-toggle
+     {:type "button" :data-toggle "dropdown"}
+     "Test"]
+    [:ul.dropdown-menu
+     [:li [:a [:svg {:width "20px" :height "20px"}
+               [:circle {:cx           "10"
+                         :cy           "10"
+                         :r            "20"
+                         :stroke       "black"
+                         :stroke-width "1"}]]]]]]])
 
-(defn editable-item []
-  (fn [[id {:keys [parts created label type value] :as all}]]
-    [:div {:style {:border "1px solid blue"}}
-     [:h3 label]
-     (into [:ul]
-           (map (fn [part]
-                  [:li (str part)]) parts))]))
-
-(defn editable-items []
+(defn editor-drawer []
   (let [edit-mode (subscribe [:saved-data/edit-mode])
-        editor     (subscribe [:saved-data/editable-ids])]
+        items     (subscribe [:saved-data/editor-items])]
     (fn []
       [:div.editable-items-drawer
        {:class (if @edit-mode "open" "closed")}
-       [:h1 "Editable"]
-       [:span (str @editor)]])))
+       [:h1 "Merge results"]
+       [editor-options]
+       (into [:div]
+             (map (fn [item] [editor-item item])) @items)])))
 
 
 (defn debug []
@@ -111,9 +125,25 @@
     [:div
      (json-html/edn->hiccup (:editor @saved-data-section))]))
 
+
+
+(defn text-filter []
+  (let [text           (subscribe [:saved-data/text-filter])
+        filtered-items (subscribe [:saved-data/filtered-items])]
+    (fn []
+      [:div.panel.panel-default
+       {:class (cond
+                 (and @text (not-empty @filtered-items)) (str "panel-success")
+                 (empty? @filtered-items) (str "panel-warning"))}
+       [:div.panel-heading "Search"]
+       [:div.panel-body
+        [:form.form
+         [:input.form-control.input-lg.square
+          {:type      "text"
+           :on-change set-text-filter}]]]])))
+
 (defn main []
-  (let [saved-data (subscribe [:saved-data/all])
-        edit-mode  (subscribe [:saved-data/edit-mode])
+  (let [edit-mode      (subscribe [:saved-data/edit-mode])
         filtered-items (subscribe [:saved-data/filtered-items])]
     (reagent/create-class
       {:component-did-mount
@@ -125,11 +155,10 @@
           [:div.edit-fade
            {:class (if @edit-mode "show" "not-show")}]
           [:div.container-fluid
-           [:h1 "Saved Data"]
            [:div.container
-            [:span "Today"]
+            [text-filter]
             (into [:div.grid-4_md-3_sm-1.saved-data-container]
                   (map (fn [e] [saved-data-item e]) @filtered-items))]]
-          ;[editable-items]
-          [debug]
+          [editor-drawer]
+          ;[debug]
           ])})))
