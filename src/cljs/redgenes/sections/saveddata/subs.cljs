@@ -21,7 +21,7 @@
 (reg-sub
   :saved-data/editable-ids
   (fn [db]
-    (get-in db [:saved-data :editor])))
+    (get-in db [:saved-data :editor :items])))
 
 (reg-sub
   :saved-data/type-filter

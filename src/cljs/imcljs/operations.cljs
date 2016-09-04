@@ -1,0 +1,25 @@
+(ns imcljs.operations
+  (:require-macros [cljs.core.async.macros :refer [go go-loop]])
+  (:require [ajax.core :refer [GET POST]]
+            [cljs-http.client :as http]
+            [imcljs.utils :as utils :refer [cleanse-url]]
+            [clojure.set :as set :refer [union intersection difference]]
+            [imcljs.search :as search]
+            [cljs.core.async :refer [put! chan <! >! timeout close!]]))
+
+(defn quicksearch
+  "Returns the results of a quicksearch"
+  [{root :root token :token} term]
+  (let [root (utils/cleanse-url root)]
+    (go (:results (:body (<! (http/get (str root "/search")
+                                       {:query-params      {:q    term
+                                                            :size 5}
+                                        :with-credentials? false})))))))
+
+
+(defn operation [service query-one query-two]
+  (let [channels (map (partial search/raw-query-rows service) [query-one query-two])]
+    (go (let [result-one (set (flatten (<! (first channels))))
+              result-two (set (flatten (<! (second channels))))]
+          (println "result-one" result-one)
+          (println "result-two" result-two)))))

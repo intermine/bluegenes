@@ -27,7 +27,6 @@
   (let [saved-ids (subscribe [:saved-data/editable-ids])
         model     (subscribe [:model])
         allowed-types (mapcat (fn [[id details]] (map :type details)) @saved-ids)]
-    (println "allowed-types" allowed-types)
     (fn [id deconstructed-query]
       [:div.panel.panel-default
        (into [:div.panel-body]
@@ -121,8 +120,6 @@
        (fn [e] (let [node (-> e reagent/dom-node js/$)]))
        :reagent-render
        (fn []
-         (println (count @filtered-items))
-         ;[:div "test"]
          [:div {:style {:margin-top "-10px"}}
           [toolbar]
           [:div.edit-fade

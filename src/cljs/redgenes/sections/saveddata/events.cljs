@@ -59,20 +59,27 @@
 (reg-event-db
   :saved-data/set-type-filter
   (fn [db [_ kw]]
-    (-> db
-        (assoc-in [:saved-data :editor :filter] kw))))
+    (let [unset? (empty? (mapcat (fn [[_ paths]]
+                                   paths) (get-in db [:saved-data :editor :items])))]
+      (if unset?
+        (update-in db [:saved-data :editor] dissoc :filter)
+        (assoc-in db [:saved-data :editor :filter] kw)))
+    ))
 
 (reg-event-db
   :saved-data/toggle-editable-item
   (fn [db [_ id path-info]]
-    (println "ADDING ID" id path-info)
-    (if (empty? (filter #(= path-info %) (get-in db [:saved-data :editor id])))
-      (update-in db [:saved-data :editor id] conj path-info)
-      (do
-        (println "ADDING")
-        (update-in db [:saved-data :editor id]
-                   (fn [items]
-                     (println "ITEMS" items)
-                     (remove #(= % path-info) items)))))))
+    (let [exists-fn #(= path-info %)]
+      (if (empty? (filter exists-fn (get-in db [:saved-data :editor :items id])))
+        (update-in db [:saved-data :editor :items id] conj path-info)
+        (let [removed (update-in db [:saved-data :editor :items id] (fn [items] (remove exists-fn items)))]
+          (if (empty? (get-in removed [:saved-data :editor :items id]))
+            (update-in removed [:saved-data :editor :items] dissoc id)
+            removed))))))
+
+;(reg-event-db
+;  :saved-data/perform-operation
+;  (fn [db]
+;    (let [ids])))
 
 
