@@ -40,7 +40,8 @@
                            (-> data
                                (merge {:created (t/now)
                                        :updated (t/now)
-                                       :parts   (get-parts model (:value data))})))
+                                       :parts   (get-parts model (:value data))
+                                       :id new-id})))
        :dispatch [:open-saved-data-tooltip
                   {:label (:label data)
                    :id    new-id}]})))
@@ -77,13 +78,12 @@
   :saved-data/perform-operation
   (fn [db]
     (let [selected-items (first (get-in db [:saved-data :editor :items]))]
-      (println "selected items" selected-items)
       (let [q1 (assoc
                  (get-in db [:saved-data :items (first selected-items) :value])
                  :select [(:path (second selected-items))]
                  :orderBy nil)]
         (.log js/console q1)
-        (go (println "done" (<! (operations/operation
+        #_(go (println "done" (<! (operations/operation
                                   {:root "www.flymine.org/query"}
                                   q1 q1)))))
       db)))

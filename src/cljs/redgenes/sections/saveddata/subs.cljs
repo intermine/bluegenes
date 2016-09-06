@@ -5,8 +5,7 @@
 (reg-sub
   :saved-data/all
   (fn [db]
-    (sort-by (fn [[_ {created :created}]] created) > (get-in db [:saved-data :items]))))
-
+    (sort-by (fn [{created :created}] created) > (vals (get-in db [:saved-data :items])))))
 
 (reg-sub
   :saved-data/edit-mode
@@ -34,32 +33,31 @@
     (get-in db [:saved-data :editor :text-filter])))
 
 (reg-sub
-  :saved-data/editable-items
-  :<- [:saved-data/editable-ids]
-  :<- [:saved-data/all]
-  (fn [[ids items]]
-    (filter (fn [[id]]
-              (some? (some #{id} ids))) items)))
-
-(defn saved-data-has-type? [type [_ {parts :parts}]]
-  (contains? parts type))
-
-(reg-sub
   :saved-data/editor-items
   :<- [:saved-data/all]
   :<- [:saved-data/editable-ids]
   (fn [[all editable-ids]]
     (let [ids (map first editable-ids)]
-      (map second (filter (fn [[id]] (some? (some #{id} ids))) all)))))
+      (->> all
+           ; Only show datums that have been selected for editing
+           (filter (fn [{id :id}] (some? (some #{id} ids))))
+
+           ; Adjust their queries so only have a path to their database IDs
+           (map (fn [item]
+                  (assoc-in item [:value :select]
+                            (get-in editable-ids [(:id item) :path]))))))))
 
 (defn has-text?
-  "Return true if a template's description contains a string"
-  [string [_ details]]
+  "Return true if a label contains a string"
+  [string details]
   (if string
     (if-let [description (:label details)]
       (re-find (re-pattern (str "(?i)" string)) description)
       false)
     true))
+
+(defn saved-data-has-type? [type {parts :parts}]
+  (contains? parts type))
 
 (reg-sub
   :saved-data/filtered-items

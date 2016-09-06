@@ -1,3 +1,5 @@
+@import "variables";
+
 div.saved-data-container {
 
     .col {
@@ -62,6 +64,7 @@ div.editable-items-drawer {
     position: fixed;
     display: flex;
     left: 0;
+    padding: 10px;
     bottom: 0;
     height: 300px;
     background: white;
@@ -78,9 +81,36 @@ div.editable-items-drawer {
     }
 
     div.item {
-        background: green;
-        flex: 0 0;
+        // background: cornflowerblue;
+        flex: 1 0;
 
     }
 
+    div.blank-item {
+        border: 3px dashed grey;
+        border-radius: 5px;
+        padding: 10px;
+        flex: 1;
+    }
+
 }
+
+.venn {
+
+    .part {
+        stroke-width: 2;
+        stroke: darken(@highlight-color, 5%);
+        fill: white;
+
+        &:hover {
+            fill: #cde8ce;
+        }
+
+        &.selected {
+            fill: #4caf50;
+        }
+    }
+
+}
+
+

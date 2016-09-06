@@ -9,6 +9,99 @@
             [inflections.core :refer [plural]]))
 
 
+
+(defn circle-intersections
+  "Determines the pair of X and Y coordinates where two circles intersect."
+  [x0 y0 r0 x1 y1 r1]
+  (let [dx       (- x1 x0)
+        dy       (- y1 y0)
+        d        (.sqrt js/Math (+ (* dy dy) (* dx dx)))
+        a        (/ (+ (- (* r0 r0) (* r1 r1)) (* d d)) (* 2 d))
+        x2       (+ x0 (* dx (/ a d)))
+        y2       (+ y0 (* dy (/ a d)))
+        h        (.sqrt js/Math (- (* r0 r0) (* a a)))
+        rx       (* (* -1 dy) (/ h d))
+        ry       (* dx (/ h d))
+        xi       (+ x2 rx)
+        xi-prime (- x2 rx)
+        yi       (+ y2 ry)
+        yi-prime (- y2 ry)]
+    [xi xi-prime yi yi-prime]))
+
+(def width 300)
+(def height 300)
+
+(def anchor1 {:x (- (* .33 width) (/ width 2)) :y 0})
+(def anchor2 {:x (- (* .66 width) (/ width 2)) :y 0})
+(def radius (* .33 width))
+
+(println "anchor2" anchor2)
+
+(def center {:x 250 :y 250})
+;(def radius 150)
+
+
+(defn overlap []
+  (let [intersection-points (circle-intersections (:x anchor1) 0 radius (:x anchor2) 0 radius)]
+    (fn []
+
+      [:path.part
+       {:d (clojure.string/join
+             " "
+             ["M" (nth intersection-points 1) (nth intersection-points 3)
+              "A" radius radius 0 0 1
+              (nth intersection-points 0) (nth intersection-points 2)
+              "A" radius radius 0 0 1
+              (nth intersection-points 1) (nth intersection-points 3)
+              "Z"])}])))
+
+(defn circle2 []
+  (let []
+    (fn []
+      [:circle.part.selected
+       {:r radius}])))
+
+(defn circle1 []
+  (let []
+    (fn []
+      [:circle.part
+       {:r radius}])))
+
+(defn svg []
+  (fn []
+    [:svg.venn {:width width :height height}
+     [:g {:transform (str "translate(" (/ width 2) "," (/ height 2) ")")}
+      [:g {:transform (str "translate(" (:x anchor1) ",0)")} [circle1]]
+      [:g {:transform (str "translate(" (:x anchor2) ",0)")} [circle2]]
+      [overlap]
+      ]]))
+
+(defn main2 []
+  (fn []
+    [svg]))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
 (def built-in-formatter (tf/formatter "HH:mm:ss dd/MM/YYYY"))
 
 (defn toggle-editor []
@@ -70,7 +163,7 @@
 
 (defn saved-data-item []
   (let [edit-mode (subscribe [:saved-data/edit-mode])]
-    (fn [[id {:keys [parts created label type value] :as all}]]
+    (fn [{:keys [id parts created label type value] :as all}]
       [:div.col
        [:div.saved-data-item.panel.panel-default
         [:div.panel-heading
@@ -90,23 +183,34 @@
                        (navigate! "#/results"))}
           "View"]]]])))
 
+
+
+(defn editor-action []
+  [:div.item
+   #_[:span.dropdown
+      [:button.btn.btn-primary.btn-raised.dropdown-toggle
+       {:type "button" :data-toggle "dropdown"}
+       "Test"]
+      [:ul.dropdown-menu
+       [:li [:a "Test"]]]]
+   [:button.btn.btn-primary "All items"]
+   [:button.btn.btn-primary "A minus B"]
+   [:button.btn.btn-primary "B minus A"]
+   [:button.btn.btn-primary [:svg {:height "30" :width "60"}
+                             [:circle {:cx   "20" :cy "15" :r 15
+                                       :fill "cornflowerblue"}]
+                             [:circle {:cx   "40" :cy "15" :r 15
+                                       :fill "cornflowerblue"}]]]])
+
+(defn blank-item []
+  [:div.blank-item
+   [:h1 "Choose Item"]])
+
 (defn editor-item []
   (fn [item]
-    [:div (:label item)]))
-
-(defn editor-options []
-  [:div.item
-   [:span.dropdown
-    [:button.btn.btn-primary.btn-raised.dropdown-toggle
-     {:type "button" :data-toggle "dropdown"}
-     "Test"]
-    [:ul.dropdown-menu
-     [:li [:a [:svg {:width "20px" :height "20px"}
-               [:circle {:cx           "10"
-                         :cy           "10"
-                         :r            "20"
-                         :stroke       "black"
-                         :stroke-width "1"}]]]]]]])
+    [:div.blank-item
+     [:h4 (:label item)]
+     [:span (str (get-in item [:value :select]))]]))
 
 (defn editor-drawer []
   (let [edit-mode (subscribe [:saved-data/edit-mode])
@@ -114,10 +218,12 @@
     (fn []
       [:div.editable-items-drawer
        {:class (if @edit-mode "open" "closed")}
-       [:h1 "Merge results"]
-       [editor-options]
-       (into [:div]
-             (map (fn [item] [editor-item item])) @items)])))
+       (if (empty? @items)
+         [blank-item]
+         (let [comps (for [item @items] [editor-item item])]
+           (if (= 2 (count comps))
+             (interpose [main2] comps)
+             comps)))])))
 
 
 (defn debug []
@@ -151,6 +257,7 @@
        :reagent-render
        (fn []
          [:div {:style {:margin-top "-10px"}}
+
           [toolbar]
           [:div.edit-fade
            {:class (if @edit-mode "show" "not-show")}]
