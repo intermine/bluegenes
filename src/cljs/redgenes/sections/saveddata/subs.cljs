@@ -1,6 +1,9 @@
 (ns redgenes.sections.saveddata.subs
-  (:require-macros [reagent.ratom :refer [reaction]])
-  (:require [re-frame.core :refer [reg-sub]]))
+  (:require-macros [reagent.ratom :refer [reaction]]
+                   [com.rpl.specter.macros :refer [traverse select transform]])
+  (:require [re-frame.core :refer [reg-sub]]
+            [com.rpl.specter :as s]))
+
 
 (reg-sub
   :saved-data/all
@@ -20,7 +23,17 @@
 (reg-sub
   :saved-data/editable-ids
   (fn [db]
-    (get-in db [:saved-data :editor :items])))
+    (get-in db [:saved-data :editor :selected-items])))
+
+(reg-sub
+  :saved-data/editable-id
+  (fn [db [_ id {path :path}]]
+
+    (first (filter
+             (fn [item]
+               (= {:id id :path path} item))
+             (map #(select-keys % [:id :path])
+                  (get-in db [:saved-data :editor :selected-items]))))))
 
 (reg-sub
   :saved-data/type-filter
@@ -37,15 +50,18 @@
   :<- [:saved-data/all]
   :<- [:saved-data/editable-ids]
   (fn [[all editable-ids]]
-    (let [ids (map first editable-ids)]
-      (->> all
-           ; Only show datums that have been selected for editing
-           (filter (fn [{id :id}] (some? (some #{id} ids))))
+    (let [ids 1]
 
-           ; Adjust their queries so only have a path to their database IDs
-           (map (fn [item]
-                  (assoc-in item [:value :select]
-                            (get-in editable-ids [(:id item) :path]))))))))
+      "test"
+
+      #_(->> all
+             ; Only show datums that have been selected for editing
+             (filter (fn [{id :id}] (some? (some #{id} ids))))
+
+             ; Adjust their queries so only have a path to their database IDs
+             (map (fn [item]
+                    (assoc-in item [:value :select]
+                              (get-in editable-ids [(:id item) :path]))))))))
 
 (defn has-text?
   "Return true if a label contains a string"
@@ -58,6 +74,12 @@
 
 (defn saved-data-has-type? [type {parts :parts}]
   (contains? parts type))
+
+(reg-sub
+  :saved-data/merge-intersection
+  (fn [db]
+    (let [items (get-in db [:saved-data :editor :items])]
+      (some? (some true? (select [s/ALL s/LAST :keep :intersection] items))))))
 
 (reg-sub
   :saved-data/filtered-items

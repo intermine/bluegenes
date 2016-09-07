@@ -29,74 +29,54 @@
     [xi xi-prime yi yi-prime]))
 
 (def width 300)
-(def height 300)
+(def height 200)
 
 (def anchor1 {:x (- (* .33 width) (/ width 2)) :y 0})
 (def anchor2 {:x (- (* .66 width) (/ width 2)) :y 0})
 (def radius (* .33 width))
 
-(println "anchor2" anchor2)
+
 
 (def center {:x 250 :y 250})
 ;(def radius 150)
 
 
 (defn overlap []
-  (let [intersection-points (circle-intersections (:x anchor1) 0 radius (:x anchor2) 0 radius)]
+  (let [selected?           (subscribe [:saved-data/merge-intersection])
+        intersection-points (circle-intersections (:x anchor1) 0 radius (:x anchor2) 0 radius)]
     (fn []
-
       [:path.part
-       {:d (clojure.string/join
-             " "
-             ["M" (nth intersection-points 1) (nth intersection-points 3)
-              "A" radius radius 0 0 1
-              (nth intersection-points 0) (nth intersection-points 2)
-              "A" radius radius 0 0 1
-              (nth intersection-points 1) (nth intersection-points 3)
-              "Z"])}])))
+       {:class    (if @selected? "selected")
+        :d        (clojure.string/join
+                    " "
+                    ["M" (nth intersection-points 1) (nth intersection-points 3)
+                     "A" radius radius 0 0 1
+                     (nth intersection-points 0) (nth intersection-points 2)
+                     "A" radius radius 0 0 1
+                     (nth intersection-points 1) (nth intersection-points 3)
+                     "Z"])
+        :on-click (fn [] (dispatch [:saved-data/toggle-keep-intersections]))}])))
 
-(defn circle2 []
+(defn circ []
   (let []
+    (fn [{:keys [type path keep id]}]
+      [:g
+       [:circle.part
+        {:class    (if (:self keep) "selected")
+         :r        radius
+         :on-click (fn [x] (dispatch [:saved-data/toggle-keep id]))}]
+       [:text {:text-anchor "end"
+               :x           50} (str path)]])))
+
+(defn venn []
+  (let [editable-ids (subscribe [:saved-data/editable-ids])]
     (fn []
-      [:circle.part.selected
-       {:r radius}])))
-
-(defn circle1 []
-  (let []
-    (fn []
-      [:circle.part
-       {:r radius}])))
-
-(defn svg []
-  (fn []
-    [:svg.venn {:width width :height height}
-     [:g {:transform (str "translate(" (/ width 2) "," (/ height 2) ")")}
-      [:g {:transform (str "translate(" (:x anchor1) ",0)")} [circle1]]
-      [:g {:transform (str "translate(" (:x anchor2) ",0)")} [circle2]]
-      [overlap]
-      ]]))
-
-(defn main2 []
-  (fn []
-    [svg]))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+      (let [[item-1 item-2] (take 2 @editable-ids)]
+        [:svg.venn {:width width :height height}
+         [:g {:transform (str "translate(" (/ width 2) "," (/ height 2) ")")}
+          [:g {:transform (str "translate(" (:x anchor1) ",0)")} [circ item-1]]
+          [:g {:transform (str "translate(" (:x anchor2) ",0)")} [circ item-2]]
+          [overlap]]]))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -120,9 +100,51 @@
    [:div.btn.btn-info.btn-raised
     {:on-click perform-merge} "Perform Op"]])
 
+(defn breakdown-item [category-kw id path]
+  (let [model (subscribe [:model])
+        me    (subscribe [:saved-data/editable-id id path])
+        f     (subscribe [:saved-data/type-filter])]
+    (fn []
+      (let [display-name (plural (get-in @model [category-kw :displayName]))
+            can-click?   (if @f (= category-kw @f) true)]
+        [:div.category.btn
+         {:class (clojure.string/join
+                   " "
+                   [(if @me "btn-success btn-raised")
+                    (if (not can-click?) "disabled not-active" "btn-primary")])
+          :on-click
+                 (fn []
+                   (dispatch [:saved-data/toggle-editable-item id path])
+                   (dispatch [:saved-data/set-type-filter category-kw id]))}
+         (str display-name)]))))
+
+(defn breakdown-item-dropdown [category-kw id paths]
+  (let [model (subscribe [:model])
+        f     (subscribe [:saved-data/type-filter])
+        subs  (map (fn [p] (subscribe [:saved-data/editable-id id p])) paths)]
+    (fn []
+      (let [display-name (plural (get-in @model [category-kw :displayName]))
+            selected?    (some some? (map deref subs))
+            can-click? (if @f (= category-kw @f) true)]
+        [:div.dropdown
+         [:div.category.btn.dropdown-toggle
+          {:class       (clojure.string/join
+                          " "
+                          [(if selected? "btn-success btn-raised")
+                           (if (not can-click?) "disabled not-active" "btn-primary")])
+           :data-toggle "dropdown"}
+          (str display-name " ") [:span.caret]]
+         (into [:ul.dropdown-menu]
+               (map (fn [part-info]
+                      [:li
+                       {:on-click
+                        (fn []
+                          (dispatch [:saved-data/toggle-editable-item id part-info])
+                          (dispatch [:saved-data/set-type-filter category-kw id]))}
+                       [:a (str (:path part-info))]]) paths))]))))
+
 (defn editable-breakdown []
-  (let [saved-ids (subscribe [:saved-data/editable-ids])
-        model     (subscribe [:model])]
+  (let [model (subscribe [:model])]
     (fn [id deconstructed-query]
       [:div.panel.panel-default
        (into [:div.panel-body]
@@ -130,25 +152,10 @@
                     (let [display-name (plural (get-in @model [category-kw :displayName]))
                           path-count   (count paths)]
                       (if (> path-count 1)
-                        [:div.dropdown
-                         [:div.category.btn.btn-primary.dropdown-toggle
-                          {:data-toggle "dropdown"}
-                          (str display-name " ")
-                          [:span.caret]]
-                         (into [:ul.dropdown-menu]
-                               (map (fn [part-info]
-                                      [:li
-                                       {:on-click (fn []
-                                                    (dispatch [:saved-data/toggle-editable-item id part-info]))}
-                                       [:a (str (:path part-info))]]) paths))]
-                        (let [present? (= (first paths) (get-in @saved-ids [id]))]
-                          [:div.category.btn
-                           {:class (str (if present? "btn-success btn-raised" "btn-primary"))
-                            :on-click
-                                   (fn []
-                                     (dispatch [:saved-data/toggle-editable-item id (first paths)])
-                                     (dispatch [:saved-data/set-type-filter category-kw id]))}
-                           (str display-name)]))))
+                        ^{:key {:id id :paths paths}}
+                        [breakdown-item-dropdown category-kw id paths]
+                        ^{:key {:id id :paths (first paths)}}
+                        [breakdown-item category-kw id (first paths)])))
                   deconstructed-query))])))
 
 (defn simple-breakdown []
@@ -183,25 +190,6 @@
                        (navigate! "#/results"))}
           "View"]]]])))
 
-
-
-(defn editor-action []
-  [:div.item
-   #_[:span.dropdown
-      [:button.btn.btn-primary.btn-raised.dropdown-toggle
-       {:type "button" :data-toggle "dropdown"}
-       "Test"]
-      [:ul.dropdown-menu
-       [:li [:a "Test"]]]]
-   [:button.btn.btn-primary "All items"]
-   [:button.btn.btn-primary "A minus B"]
-   [:button.btn.btn-primary "B minus A"]
-   [:button.btn.btn-primary [:svg {:height "30" :width "60"}
-                             [:circle {:cx   "20" :cy "15" :r 15
-                                       :fill "cornflowerblue"}]
-                             [:circle {:cx   "40" :cy "15" :r 15
-                                       :fill "cornflowerblue"}]]]])
-
 (defn blank-item []
   [:div.blank-item
    [:h1 "Choose Item"]])
@@ -212,18 +200,35 @@
      [:h4 (:label item)]
      [:span (str (get-in item [:value :select]))]]))
 
+(defn editor-drawer-backup []
+  (let [edit-mode (subscribe [:saved-data/edit-mode])
+        items     (subscribe [:saved-data/editor-items])]
+    (fn []
+      (into [:div.editable-items-drawer
+             {:class (if @edit-mode "open" "closed")}]
+            (if (empty? @items)
+              [blank-item]
+              (let [comps (for [item @items] [editor-item item])]
+                (if (= 2 (count comps))
+                  (interpose [venn] comps)
+                  comps)))))))
+
+(defn merge-controls []
+  (let [items (subscribe [:saved-data/editor-items])]
+    (fn []
+      [:div
+       [:button.btn.btn-primary.btn-raised
+        {:on-click (fn []
+                     (dispatch [:saved-data/perform-operation]))} "Perform"]])))
+
 (defn editor-drawer []
   (let [edit-mode (subscribe [:saved-data/edit-mode])
         items     (subscribe [:saved-data/editor-items])]
     (fn []
       [:div.editable-items-drawer
        {:class (if @edit-mode "open" "closed")}
-       (if (empty? @items)
-         [blank-item]
-         (let [comps (for [item @items] [editor-item item])]
-           (if (= 2 (count comps))
-             (interpose [main2] comps)
-             comps)))])))
+       [:div.section [venn]]
+       [:div.section [merge-controls]]])))
 
 
 (defn debug []

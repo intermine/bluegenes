@@ -1,11 +1,14 @@
 (ns redgenes.sections.saveddata.events
-  (:require-macros [cljs.core.async.macros :refer [go go-loop]])
+  (:require-macros [cljs.core.async.macros :refer [go go-loop]]
+                   [com.rpl.specter.macros :refer [traverse select transform]])
   (:require [re-frame.core :refer [reg-event-db reg-event-fx reg-fx dispatch]]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
             [imcljs.filters :as im-filters]
             [cljs-uuid-utils.core :as uuid]
             [cljs-time.core :as t]
-            [imcljs.operations :as operations]))
+            [imcljs.operations :as operations]
+            [com.rpl.specter :as s]))
+
 
 (defn get-parts
   [model query]
@@ -41,7 +44,7 @@
                                (merge {:created (t/now)
                                        :updated (t/now)
                                        :parts   (get-parts model (:value data))
-                                       :id new-id})))
+                                       :id      new-id})))
        :dispatch [:open-saved-data-tooltip
                   {:label (:label data)
                    :id    new-id}]})))
@@ -61,31 +64,34 @@
 (reg-event-db
   :saved-data/set-type-filter
   (fn [db [_ kw]]
-    (let [unset? (empty? (mapcat (fn [[_ paths]]
-                                   paths) (get-in db [:saved-data :editor :items])))]
-      (if unset?
+    (let [clear? (> 1 (count (get-in db [:saved-data :editor :selected-items])))]
+      (if clear?
         (update-in db [:saved-data :editor] dissoc :filter)
         (assoc-in db [:saved-data :editor :filter] kw)))))
 
 (reg-event-db
   :saved-data/toggle-editable-item
   (fn [db [_ id path-info]]
-    (if (get-in db [:saved-data :editor :items id])
-      (update-in db [:saved-data :editor :items] dissoc id)
-      (assoc-in db [:saved-data :editor :items id] path-info))))
+    (let [loc               [:saved-data :editor :selected-items]
+          datum-description (merge {:id id} path-info)]
+      (if (empty? (filter #(= % datum-description) (get-in db loc)))
+        (update-in db loc (fnil conj []) datum-description)
+        (update-in db loc (fn [items] (into [] (remove #(= % datum-description) items))))))))
 
 (reg-event-db
   :saved-data/perform-operation
   (fn [db]
     (let [selected-items (first (get-in db [:saved-data :editor :items]))]
+      (let [i (seq selected-items)]
+        (println "I" i))
       (let [q1 (assoc
                  (get-in db [:saved-data :items (first selected-items) :value])
                  :select [(:path (second selected-items))]
                  :orderBy nil)]
         (.log js/console q1)
         #_(go (println "done" (<! (operations/operation
-                                  {:root "www.flymine.org/query"}
-                                  q1 q1)))))
+                                    {:root "www.flymine.org/query"}
+                                    q1 q1)))))
       db)))
 
 (reg-event-db
@@ -94,6 +100,29 @@
     (if (= value "")
       (update-in db [:saved-data :editor] dissoc :text-filter)
       (assoc-in db [:saved-data :editor :text-filter] value))))
+
+(reg-event-db
+  :saved-data/toggle-keep
+  (fn [db [_ id]]
+    (let [loc [:saved-data :editor :selected-items]]
+      (update-in db loc
+                 (partial map
+                          (fn [item] (if (= id (:id item))
+                                       (update-in item [:keep :self] not)
+                                       item)))))))
+
+(reg-event-db
+  :saved-data/toggle-keep-intersections
+  (fn [db [_ id]]
+    (let [current-value true]
+      (update-in db [:saved-data :editor :items]
+                 (fn [items]
+                   (let [selected? (some? (some true? (select [s/ALL s/LAST :keep :intersection] items)))]
+                     (transform [s/MAP-VALS]
+                                (fn [item]
+                                  (assoc-in item [:keep :intersection] (not selected?))) items)))))))
+
+
 
 
 
