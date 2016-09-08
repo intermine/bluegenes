@@ -1,6 +1,6 @@
 (ns redgenes.sections.home.texty
   (:require [re-frame.core :as re-frame]
-            [redgenes.components.search :as search]
+            [redgenes.components.search.typeahead :as search]
             [redgenes.components.templates.views :as t]))
 
 (defn searchbox []

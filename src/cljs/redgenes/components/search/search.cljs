@@ -1,4 +1,4 @@
-(ns redgenes.components.search
+(ns redgenes.components.search.typeahead
   (:require [reagent.core :as reagent]
             [re-frame.core :as re-frame :refer [subscribe dispatch]]
             [accountant.core :refer [navigate!]]

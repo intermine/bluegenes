@@ -6,6 +6,9 @@
             [re-frame.core :as re-frame :refer [subscribe dispatch]]
 ))
 
+;;;;TODO: Cleanse the API/state arguments being passed around from the functions here. This is legacy of an older bluegenes history and module based structure.
+;;;;TODO ALSO: abstract away from IMJS.
+
 (def search-results (reagent.core/atom {:results nil}))
 (def max-results 99);;todo - this is only used in a cond right now, won't modify number of results returned. IMJS was being tricky;
 
@@ -96,13 +99,14 @@
                  [resulthandler/result-row {:result result :state state :api api :search-term @search-term}])))]
         ])
 
-     (defn check-for-query-string-in-url []
-       "Splits out the search term from the URL, allowing repeatable external linking to searches"
-       (let [url (aget js/window "location" "href")
-             last-section (str/split url #"/search\?")]
-         (if (> (count last-section) 1) ;; if there's a query param, eg "someurl.com/#/timeline/search?fkh"
-           (re-frame/dispatch [:set-search-term (last last-section)])
-           nil)))
+    ;  (defn check-for-query-string-in-url []
+    ;    "Splits out the search term from the URL, allowing repeatable external linking to searches"
+    ;    (let [url (aget js/window "location" "href")
+    ;          last-section (str/split url #"/search\?")]
+    ;      (.log js/console "%clast-section" "color:hotpink;font-weight:bold;" (clj->js last-section) (count last-section))
+    ;      (if (> (count last-section) 1) ;; if there's a query param, eg "someurl.com/#/timeline/search?fkh"
+    ;        (re-frame/dispatch [:search/set-search-term (last last-section)])
+    ;        (last last-section))))
 
      (defn search-form [search-term api]
        "Visual form component which handles submit and change"
@@ -111,7 +115,7 @@
            (.preventDefault js/e)
            (let [input (.querySelector (.-target e) "input")
                  val (.-value input)]
-             (re-frame/dispatch [:set-search-term val])
+             (re-frame/dispatch [:search/set-search-term val])
              (submit-handler val api)
              (set! (.-value input) ""))
            )}
@@ -129,35 +133,16 @@
        (reagent/create-class
          {:reagent-render
            (fn render [{:keys [state upstream-data api]}]
-             (.log js/console "%cRender. Search term is '%s'" "color:hotpink;font-weight:bold;" @global-search-term)
              [search-form global-search-term api]
              )
            :component-will-mount (fn [this]
              (let [passed-in-state (:state (reagent/props this))
-                   query-string (check-for-query-string-in-url)
+                   ;query-string (check-for-query-string-in-url)
                    api (:api (reagent/props this))]
-               ;(reset! local-search-term (:input passed-in-state))
-               (swap! search-results assoc :query-string query-string)
-               ;populate the form from the url if there's a query param
                (cond (some? global-search-term)
-                 (do
-                   (.log js/console "%cMounted. Search term is '%s'" "color:cornflowerblue;font-weight:bold;" @global-search-term)              ;(reset! local-search-term @global-search-term)
-                   (submit-handler @global-search-term api)
-                   ))))
-           :component-did-update (fn [this]
-                     (.log js/console "%cUpdated. Search term is '%s'" "color:lightslategrey;font-weight:bold;" @global-search-term))
+                   (submit-handler @global-search-term api))
+               ))
            :component-will-update (fn [this]
              (let [api (:api (reagent/props this))]
-             (.log js/console "%cYay, I'm gonna update. Search term is '%s'" "color:seagreen;font-weight:bold;" @global-search-term)
-             (.log js/console "%cProps" "color:seagreen;font-weight:bold;" (clj->js (reagent/props this)))
-               ;(re-frame/dispatch [:set-search-term @local-search-term])
                (submit-handler @global-search-term api)))
-           :should-component-update (fn [this]
-               ;"Only update if there's a new search term. Otherwise we end up in a loop of updating forever and ever and ever and.... voom. DOS."
-               ;(.log js/console "%cShould I update? old search term is '%s', new is '%s'" "color:lightseagreen;font-weight:bold;" @local-search-term @global-search-term)
-               ;(not= @global-search-term @local-search-term)
-             )
-           :component-will-receive-props (fn [this]
-             (.log js/console "%cwill get props. Search term is '%s'" "color:yellowgreen;font-weight:bold;" @global-search-term))
-
      })))

@@ -34,15 +34,15 @@
 
       (defn controls [state]
         [:form.controls
-         [:div
          [:label
           [:input {:type "checkbox" :on-click
                    (fn [e]
                      ;;toggle highlight.
                      (swap! state assoc :highlight-results (.-checked (.-target e))))
                    }]
+          [:span.checkbox-material [:span.check]]
           "Highlight search terms in results (experimental, may be sluggish)"]
-         ]])
+         ])
 
 (defn facet-display [state api search searchterm]
   "Visual component which outputs the category filters."

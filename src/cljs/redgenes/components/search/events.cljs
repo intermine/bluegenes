@@ -6,4 +6,9 @@
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
             [imcljs.filters :as filters]
             [com.rpl.specter :as s]
-            [accountant.core :refer [navigate!]]))
+              [accountant.core :refer [navigate!]]))
+
+(reg-event-db
+  :search/set-search-term
+  (fn [db [_ search-term]]
+    (assoc db :search-term search-term)))

@@ -1,7 +1,7 @@
 (ns redgenes.components.nav
   (:require [re-frame.core :refer [subscribe dispatch]]
             [reagent.core :as reagent]
-            [redgenes.components.search :as search]
+            [redgenes.components.search.typeahead :as search]
             [redgenes.components.tooltip.views :as tooltip]
             [accountant.core :refer [navigate!]]
             [redgenes.components.progress_bar :as progress-bar]))
