@@ -5,6 +5,7 @@
             [redgenes.components.icons :as icons]
             [redgenes.sections.home.views :as home]
             [redgenes.sections.assets.views :as assets]
+            [redgenes.sections.search.views :as search]
             [redgenes.sections.objects.views :as objects]
             [redgenes.sections.templates.views :as templates]
             [redgenes.components.querybuilder.views.main :as querybuilder]
@@ -68,6 +69,7 @@
 (defmethod panels :templates-panel [] [templates/main])
 (defmethod panels :object-panel [] [objects/main])
 (defmethod panels :upload-panel [] [upload/main])
+(defmethod panels :search-panel [] [search/main])
 (defmethod panels :results-panel [] [results/main])
 (defmethod panels :explore-panel [] [explore/main])
 (defmethod panels :list-analysis-panel [] [analyse/main])
