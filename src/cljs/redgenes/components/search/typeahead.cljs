@@ -37,7 +37,15 @@
                                 {:type        "text"
                                  :value       @search-term
                                  :placeholder "Search"
-                                 :on-change   #(dispatch [:bounce-search (-> % .-target .-value)])}]
+                                 :on-change   #(dispatch [:bounce-search (-> % .-target .-value)])
+                                 ;Navigate to the main search results page if the user presses enter.
+                                 :on-key-press (fn [e]
+                                   (let [keycode (.-charCode e)
+                                         input (.. e -target -value)]
+                                     (cond (= keycode 13)
+                                       (navigate! "#/search")
+                                     ))
+                                                 )}]
                                (if @results
                                  [:div.dropdown-menu
                                   (into [:div.list-group] (interpose [:div.list-group-separator] (map (fn [r] [suggestion r]) @results)))])])})))

@@ -8,6 +8,7 @@
 
 ;;;;TODO: Cleanse the API/state arguments being passed around from the functions here. This is legacy of an older bluegenes history and module based structure.
 ;;;;TODO ALSO: abstract away from IMJS.
+;;;;TODO: probably abstract events to the events... :D this file is a mixture of views and handlers, but really we just want views in the view file.
 
 (def search-results (reagent.core/atom {:results nil}))
 (def max-results 99);;todo - this is only used in a cond right now, won't modify number of results returned. IMJS was being tricky;
@@ -99,14 +100,6 @@
                  [resulthandler/result-row {:result result :state state :api api :search-term @search-term}])))]
         ])
 
-    ;  (defn check-for-query-string-in-url []
-    ;    "Splits out the search term from the URL, allowing repeatable external linking to searches"
-    ;    (let [url (aget js/window "location" "href")
-    ;          last-section (str/split url #"/search\?")]
-    ;      (.log js/console "%clast-section" "color:hotpink;font-weight:bold;" (clj->js last-section) (count last-section))
-    ;      (if (> (count last-section) 1) ;; if there's a query param, eg "someurl.com/#/timeline/search?fkh"
-    ;        (re-frame/dispatch [:search/set-search-term (last last-section)])
-    ;        (last last-section))))
 
      (defn search-form [search-term api]
        "Visual form component which handles submit and change"

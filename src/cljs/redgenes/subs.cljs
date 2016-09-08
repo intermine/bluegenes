@@ -37,11 +37,6 @@
     (:suggestion-results db)))
 
 (reg-sub
-  :search-term
-  (fn [db _]
-    (:search-term db)))
-
-(reg-sub
   :fetching-report?
   (fn [db _]
     (:fetching-report? db)))
