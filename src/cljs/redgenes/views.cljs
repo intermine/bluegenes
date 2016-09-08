@@ -9,6 +9,7 @@
             [redgenes.sections.templates.views :as templates]
             [redgenes.components.querybuilder.views.main :as querybuilder]
             [redgenes.sections.upload.views :as upload]
+            [redgenes.sections.explore.views :as explore]
             [redgenes.sections.analyse.views :as analyse]
             [redgenes.sections.results.views :as results]
             [redgenes.sections.saveddata.views :as saved-data]
@@ -68,6 +69,7 @@
 (defmethod panels :object-panel [] [objects/main])
 (defmethod panels :upload-panel [] [upload/main])
 (defmethod panels :results-panel [] [results/main])
+(defmethod panels :explore-panel [] [explore/main])
 (defmethod panels :list-analysis-panel [] [analyse/main])
 (defmethod panels :saved-data-panel [] [saved-data/main])
 (defmethod panels :help-panel [] [help/main])
