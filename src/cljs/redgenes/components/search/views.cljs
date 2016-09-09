@@ -20,7 +20,7 @@
                                  [(get result-map key1) key1])))
        result-map))
 
-(defn results-handler [results mine api searchterm]
+(defn results-handler [results searchterm]
    "Store results in local state once the promise comes back."
    (if (:active-filter @search-results)
      ;;if we're resturning a filter result, leave the old facets intact.
@@ -34,23 +34,18 @@
        :facets {
          :organisms (sort-by-value (js->clj (aget results "facets" "organism.shortName")))
          :category (sort-by-value (js->clj (aget results "facets" "Category")))}}))
-   ((:append-state api) {:input searchterm :results @search-results}))
+   )
 
      (defn search
        "search for the given term via IMJS promise. Filter is optional"
-       [searchterm api & filter]
-         (let [mine (js/imjs.Service. (clj->js {:root "www.flymine.org/query"}))
+       [& filter]
+         (let [searchterm @(re-frame/subscribe [:search-term])
+               mine (js/imjs.Service. (clj->js {:root @(subscribe [:mine-url])}))
                search {:q searchterm :Category filter}
                id-promise (-> mine (.search (clj->js search)))]
            (-> id-promise (.then
                (fn [results]
-                 (results-handler results mine api searchterm))))))
-
-     (defn submit-handler [searchterm api]
-       "Adds search term to the state, and searches for the term"
-       ;(aset js/window "location" "href"
-       ;  (str "/#/timeline/search?" searchterm))
-         (search searchterm api))
+                 (results-handler results searchterm))))))
 
      (defn is-active-result? [result]
        "returns true is the result should be considered 'active' - e.g. if there is no filter at all, or if the result matches the active filter type."
@@ -75,14 +70,13 @@
          [:small " Displaying " (count-current-results) " of " (count-total-results @search-results) " results"])
 
      (defn load-more-results [api search-term]
-       (.log js/console (clj->js @search-term))
-       (search @search-term api (:active-filter @search-results))
+       (search (:active-filter @search-results))
        )
 
      (defn results-display [api search-term]
        "Iterate through results and output one row per result using result-row to format. Filtered results aren't output. "
        [:div.results
-         [:h4 "Results for '" @(re-frame/subscribe [:search-term]) "'"  [results-count]]
+         [:h4 "Results for '" @search-term "'"  [results-count]]
          [:form
            (doall (let [state search-results
              ;;active-results might seem redundant, but it outputs the results we have client side
@@ -104,19 +98,6 @@
      (defn search-form [search-term api]
        "Visual form component which handles submit and change"
        [:div.search-fullscreen
-         [:form.searchform {:on-submit (fn [e]
-           (.preventDefault js/e)
-           (let [input (.querySelector (.-target e) "input")
-                 val (.-value input)]
-             (re-frame/dispatch [:search/set-search-term val])
-             (submit-handler val api)
-             (set! (.-value input) ""))
-           )}
-
-             [:input {
-               :type "text"
-               :placeholder "Search for a gene, protein, disease, etc..."}]
-         [:button "Submit"]]
         [:div.response
            [filters/facet-display search-results api search @search-term]
            [results-display api search-term]]])
@@ -129,13 +110,11 @@
              [search-form global-search-term api]
              )
            :component-will-mount (fn [this]
-             (let [passed-in-state (:state (reagent/props this))
-                   ;query-string (check-for-query-string-in-url)
-                   api (:api (reagent/props this))]
+             (let [api (:api (reagent/props this))]
                (cond (some? global-search-term)
-                   (submit-handler @global-search-term api))
+                   (search))
                ))
            :component-will-update (fn [this]
              (let [api (:api (reagent/props this))]
-               (submit-handler @global-search-term api)))
+               (search)))
      })))

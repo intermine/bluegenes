@@ -11,3 +11,8 @@
   :quicksearch-selected-index
   (fn [db _]
     (:quicksearch-selected-index db)))
+
+(reg-sub
+  :suggestion-results
+  (fn [db _]
+    (:suggestion-results db)))

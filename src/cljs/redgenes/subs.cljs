@@ -33,11 +33,6 @@
     (:who-am-i db)))
 
 (reg-sub
-  :suggestion-results
-  (fn [db _]
-    (:suggestion-results db)))
-
-(reg-sub
   :fetching-report?
   (fn [db _]
     (:fetching-report? db)))

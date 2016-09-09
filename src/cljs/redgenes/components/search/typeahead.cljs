@@ -2,13 +2,13 @@
   (:require [reagent.core :as reagent]
             [re-frame.core :as re-frame :refer [subscribe dispatch]]
             [accountant.core :refer [navigate!]]
+            [redgenes.components.search.views :as views]
             [dommy.core :as dommy :refer-macros [sel sel1]]))
 
 (defn navigate-to
   "Navigate to the report page for the given item and reset the UI" [item]
     (dispatch [:search/reset-selection])
     (dispatch [:search/reset-quicksearch])
-    ()
     (navigate! (str "#/objects/" (:type item) "/" (:id item)))
   )
 
@@ -46,7 +46,8 @@
           (navigate-to selected-result)
           ;; go to the results page if they just type and press enter without
           ;; selecting a typeahead result
-          (navigate! "#/search"))
+          (do (navigate! "#/search")
+              (views/search)))
        ;;no matter what the result, stop showing the quicksearch, kthx.
        (.blur (. e -target)))
  )))
