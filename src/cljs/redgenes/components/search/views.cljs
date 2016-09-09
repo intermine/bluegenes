@@ -25,11 +25,12 @@
    (if (:active-filter @search-results)
      ;;if we're resturning a filter result, leave the old facets intact.
      (swap! search-results
-       assoc :results (.-results results))
+       assoc :results (.-results results) :term searchterm)
      ;;if we're returning a non-filtered result, add new facets to the atom
      (reset! search-results
        {
        :results  (.-results results)
+       :term searchterm
        :highlight-results (:highlight-results @search-results)
        :facets {
          :organisms (sort-by-value (js->clj (aget results "facets" "organism.shortName")))
@@ -76,7 +77,8 @@
      (defn results-display [api search-term]
        "Iterate through results and output one row per result using result-row to format. Filtered results aren't output. "
        [:div.results
-         [:h4 "Results for '" @search-term "'"  [results-count]]
+         [:h4 "Results for '" (:term @search-results) "'"  [results-count]]
+        (.log js/console "%csearch-results" "color:hotpink;font-weight:bold;" (clj->js @search-results))
          [:form
            (doall (let [state search-results
              ;;active-results might seem redundant, but it outputs the results we have client side
