@@ -1,41 +1,41 @@
 @import "variables";
 @import "../resources/public/vendor/bootstrap/less/variables";
 
-
 .navbar-default .navbar-brand:hover {
     background: #57c7ff;
     color: white;
 }
 
-.input-lg {
-
-}
+.input-lg {}
 
 .navbar {
     margin-bottom: 0;
 }
 
 .padme {
-    padding: 20px 0 20px 0;
+    padding: 20px 0;
 }
 
 .nav-pills > li.active > a,
-.nav-pills > li.active > a:hover,
-.nav-pills > li.active > a:focus {
+.nav-pills > li.active > a:focus,
+.nav-pills > li.active > a:hover {
     background-color: @highlight-color;
 }
 
-.list-group-item.active, .list-group-item.active:hover, .list-group-item.active:focus {
-    background-color: @highlight-color;
-    border-color: @highlight-color;
+.list-group {
+    .list-group-item.active,
+    .list-group-item.active:focus,
+    .list-group-item.active:hover {
+        background-color: @highlight-color;
+        border-color: @highlight-color;
+    }
+
+    .list-group-item.active .list-group-item-text,
+    .list-group-item.active:focus .list-group-item-text,
+    .list-group-item.active:hover .list-group-item-text {
+        color: white;
+    }
 }
-
-.list-group-item.active .list-group-item-text, .list-group-item.active:hover .list-group-item-text, .list-group-item.active:focus .list-group-item-text {
-    color: white;
-}
-
-
-
 
 .btn-outline {
     background-color: transparent;
@@ -43,61 +43,68 @@
 
 .btn-primary.btn-outline {
     color: @btn-primary-bg;
+
     &:hover {
-      background-color: @btn-primary-bg;
-          border-color: @btn-primary-border;
+        background-color: @btn-primary-bg;
+        border-color: @btn-primary-border;
     }
 }
 
 .btn-success.btn-outline {
     color: @btn-success-bg;
+
     &:hover {
-      background-color: @btn-success-bg;
-          border-color: @btn-success-border;
+        background-color: @btn-success-bg;
+        border-color: @btn-success-border;
     }
 }
 
 .btn-info.btn-outline {
     color: @btn-info-bg;
+
     &:hover {
-      background-color: @btn-info-bg;
-          border-color: @btn-info-border;
+        background-color: @btn-info-bg;
+        border-color: @btn-info-border;
     }
 }
 
 .btn-warning.btn-outline {
     color: @btn-warning-bg;
+
     &:hover {
-      background-color: @btn-warning-bg;
-          border-color: @btn-warning-border;
+        background-color: @btn-warning-bg;
+        border-color: @btn-warning-border;
     }
 }
 
 .btn-danger.btn-outline {
     color: @btn-danger-bg;
+
     &:hover {
-      background-color: @btn-danger-bg;
-          border-color: @btn-danger-border;
+        background-color: @btn-danger-bg;
+        border-color: @btn-danger-border;
     }
 }
 
+.btn-danger.btn-outline:hover,
+.btn-info.btn-outline:hover,
 .btn-primary.btn-outline:hover,
 .btn-success.btn-outline:hover,
-.btn-info.btn-outline:hover,
-.btn-warning.btn-outline:hover,
-.btn-danger.btn-outline:hover {
+.btn-warning.btn-outline:hover {
     color: #fff;
 }
-
 // Button outline style on inverse background
+
 .btn-outline-inverse {
     background-color: transparent;
     border-color: #fff;
     color: #fff;
+
     &:hover {
-      background-color: #fff;
+        background-color: #fff;
     }
 }
+
 .btn-primary.btn-outline-inverse:hover {
     color: @brand-primary;
 }

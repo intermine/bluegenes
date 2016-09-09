@@ -4,14 +4,24 @@
             [accountant.core :refer [navigate!]]
             [dommy.core :as dommy :refer-macros [sel sel1]]))
 
+(defn navigate-to
+  "Navigate to the report page for the given item" [item]
+    (dispatch [:search/reset-selection])
+    (navigate! (str "#/objects/" (:type item) "/" (:id item)))
+  )
 
-(defn suggestion []
+(defn suggestion
+  "The UI element and behaviour for a single suggestion in the dropdown" []
   (let [search-term (subscribe [:search-term])]
-    (fn [item]
+    (fn [item is-active?]
       (let [info   (clojure.string/join " " (interpose ", " (vals (:fields item))))
             parsed (clojure.string/split info (re-pattern (str "(?i)" @search-term)))]
         [:div.list-group-item
-         {:on-mouse-down (fn [] (navigate! (str "#/objects/" (:type item) "/" (:id item))))}
+         {:on-mouse-down (fn [e]
+                           (let [clicked-button (.-button e)]
+                              (cond (= clicked-button 0) ;;left click only pls.
+                                  (navigate-to item))))
+          :class (cond is-active? "active")}
          [:div.row-action-primary
           [:i.fa.fa-cog.fa-spin.fa-3x.fa-fw]]
          [:div.row-content
@@ -19,6 +29,34 @@
           (into
             [:div.list-group-item-text]
             (interpose [:span.highlight @search-term] (map (fn [part] [:span part]) parsed)))]]))))
+
+(defn monitor-enter-key [e]
+  (let [keycode (.-charCode e)
+        input (.. e -target -value)
+        active-selection (subscribe [:quicksearch-selected-index])
+        results (subscribe [:suggestion-results])
+        selected-result (nth @results @active-selection nil)]
+     (cond
+       (= keycode 13) ;;enter key is 13
+        (if selected-result
+          ;; go to the result direct if they're navigating with keyboard
+          ;; and they just pressed enter
+          (navigate-to selected-result)
+          ;; go to the results page if they just type and press enter without
+          ;; selecting a typeahead result
+          (navigate! "#/search"))
+ )))
+
+(defn monitor-arrow-keys
+  "Navigate the dropdown suggestions if the user presses up or down" [e]
+  (let [keycode (.-key e)
+        input (.. e -target -value)]
+     (cond
+       (= keycode "ArrowUp")
+         (dispatch [:search/move-selection :prev])
+       (= keycode "ArrowDown")
+         (dispatch [:search/move-selection :next])
+    )))
 
 (defn main []
   (reagent/create-class
@@ -39,13 +77,13 @@
                                  :placeholder "Search"
                                  :on-change   #(dispatch [:bounce-search (-> % .-target .-value)])
                                  ;Navigate to the main search results page if the user presses enter.
-                                 :on-key-press (fn [e]
-                                   (let [keycode (.-charCode e)
-                                         input (.. e -target -value)]
-                                     (cond (= keycode 13)
-                                       (navigate! "#/search")
-                                     ))
-                                                 )}]
-                               (if @results
+                                 :on-key-press (fn [e] (monitor-enter-key e))
+                                 ; Why is this separate from on-key-press, you ask? arrow keys don't trigger keypress events apparent. what meanies.
+                                 :on-key-up (fn [e] (monitor-arrow-keys e) )}]
+                              (if @results
                                  [:div.dropdown-menu
-                                  (into [:div.list-group] (interpose [:div.list-group-separator] (map (fn [r] [suggestion r]) @results)))])])})))
+                                  (into [:div.list-group]
+                                    (interpose [:div.list-group-separator]
+                                      (map-indexed  (fn [index result] (let [active-selection (subscribe [:quicksearch-selected-index])
+                                                                    is-active? (= index @active-selection)]
+                                                                [suggestion result is-active?])) @results)))])])})))
