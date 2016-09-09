@@ -16,13 +16,8 @@
 
 (defn set-selected! [row-data elem]
   "sets the selected result in the local state atom and emits that we 'have' this item to next steps / the next tool"
-  (swap! (:state row-data) assoc :selected-result (:result row-data))
-  (.log js/console "%crow-data" "color:hotpink;font-weight:bold;" (clj->js (:result row-data)) )
-
-  (.log js/console "%cinside results: " "color:darkseagreen;font-weight:bold;"
-        (:type (js->clj (:result row-data) :keywordize-keys true)))
-
-  (navigate! (str "#/objects/" (aget (:result row-data) "type") "/" (aget (:result row-data) "id")))
+    (swap! (:state row-data) assoc :selected-result (:result row-data))
+    (navigate! (str "#/objects/" (aget (:result row-data) "type") "/" (aget (:result row-data) "id")))
   )
 
 (defn row-structure [row-data contents]

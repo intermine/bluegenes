@@ -22,19 +22,16 @@
     background-color: @highlight-color;
 }
 
-.list-group {
+.search .list-group {
+  .list-group-item {border-left:solid 3px #fff;}
     .list-group-item.active,
     .list-group-item.active:focus,
     .list-group-item.active:hover {
-        background-color: @highlight-color;
-        border-color: @highlight-color;
+      border-left: solid 3px @highlight-color;
+      background: #eaeaea;
+      h4 {color:#000}
     }
 
-    .list-group-item.active .list-group-item-text,
-    .list-group-item.active:focus .list-group-item-text,
-    .list-group-item.active:hover .list-group-item-text {
-        color: white;
-    }
 }
 
 .btn-outline {

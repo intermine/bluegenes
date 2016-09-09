@@ -11,7 +11,7 @@
     (assoc db :search-term search-term)))
 
 (defn circular-index-finder
-  "Returns the index of a result item, such that going down at the bottom loops to the top and vice versa."
+  "Returns the index of a result item, such that going down at the bottom loops to the top and vice versa. Element -1 is 'show all'"
   [direction]
   (let [result-index (subscribe [:quicksearch-selected-index])
         results-count (count @(subscribe [:suggestion-results]))
@@ -21,8 +21,8 @@
         looped-number (cond
                         (>= next-number results-count)
                         ;;if we go past the end, loop to the start
-                          0
-                        (< next-number 0)
+                          -1
+                        (< next-number -1)
                         ;;if we go before the start, loop to the end.
                           (- results-count 1)
                         ;;if we fall through this far, next-number was in fact correct.

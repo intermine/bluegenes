@@ -5,11 +5,18 @@
             [redgenes.components.search.views :as views]
             [dommy.core :as dommy :refer-macros [sel sel1]]))
 
-(defn navigate-to
+(defn navigate-to-report
   "Navigate to the report page for the given item and reset the UI" [item]
     (dispatch [:search/reset-selection])
     (navigate! (str "#/objects/" (:type item) "/" (:id item)))
   )
+
+(defn navigate-to-full-results
+  "Navigate to the full results page. duh." []
+    (navigate! "#/search")
+    (views/search))
+
+
 
 (defn suggestion
   "The UI element and behaviour for a single suggestion in the dropdown" []
@@ -18,19 +25,21 @@
       (let [info   (clojure.string/join " " (interpose ", " (vals (:fields item))))
             parsed (clojure.string/split info (re-pattern (str "(?i)" @search-term)))]
         [:div.list-group-item
-         {:on-mouse-down (fn [e]
-                           (let [clicked-button (.-button e)]
-                              (cond (= clicked-button 0) ;;left click only pls.
-                                  (navigate-to item))))
+         {:on-mouse-down
+          (fn [e]
+            (let [clicked-button (.-button e)]
+              (cond (= clicked-button 0) ;;left click only pls.
+                  (navigate-to-report item))))
           :class (cond is-active? "active")}
-         [:div.row-action-primary
+      ;   [:div.row-action-primary
           ;[:i.fa.fa-cog.fa-spin.fa-3x.fa-fw]
-          ]
+      ;    ]
          [:div.row-content
           [:h4.list-group-item-heading (:type item)]
           (into
             [:div.list-group-item-text]
-            (interpose [:span.highlight @search-term] (map (fn [part] [:span part]) parsed)))]]))))
+            (interpose [:span.highlight @search-term] (map (fn [part] [:span part]) parsed)))]
+         ]))))
 
 (defn monitor-enter-key [e]
   (let [keycode (.-charCode e)
@@ -41,16 +50,16 @@
        (= keycode 13) ;;enter key is 13
         (do
           (if selected-result
-          ;; go to the result direct if they're navigating with keyboard
-          ;; and they just pressed enter
-          (navigate-to selected-result)
-          ;; go to the results page if they just type and press enter without
-          ;; selecting a typeahead result
-          (do (navigate! "#/search")
-              (views/search)))
-       ;;no matter what the result, stop showing the quicksearch, kthx.
-       (.blur (. e -target)))
- )))
+            ;; go to the result direct if they're navigating with keyboard
+            ;; and they just pressed enter
+            (navigate-to-report selected-result)
+            ;; go to the results page if they just type and press enter without
+            ;; selecting a typeahead result
+            (navigate-to-full-results))
+          ;; no matter what the result, stop showing the quicksearch when
+          ;; we press enter, kthx.
+          (.blur (. e -target))))
+ ))
 
 (defn monitor-arrow-keys
   "Navigate the dropdown suggestions if the user presses up or down" [e]
@@ -62,6 +71,21 @@
        (= keycode "ArrowDown")
          (dispatch [:search/move-selection :next])
     )))
+
+(defn show-all-results
+  "UI element within the dropdown to show all results." []
+  (let [active-selection (subscribe [:quicksearch-selected-index])
+        is-active? (= -1 @active-selection)]
+    [:div.show-all.list-group
+      {:on-mouse-down
+        (fn [e]   (let [clicked-button (.-button e)]
+          (cond (= clicked-button 0) ;;left click only pls.
+            (navigate-to-full-results))))
+}
+    [:div.list-group-item {:class (cond is-active? "active")}
+      [:h4 "Show all results"]]
+     [:div.list-group-separator]]
+  ))
 
 (defn main []
   (reagent/create-class
@@ -85,10 +109,12 @@
                                  :on-key-press (fn [e] (monitor-enter-key e))
                                  ; Why is this separate from on-key-press, you ask? arrow keys don't trigger keypress events apparent. what meanies.
                                  :on-key-up (fn [e] (monitor-arrow-keys e) )}]
-                              (if @results
-                                 [:div.dropdown-menu
+                              (if (> (count @results) 0)
+                                [:div.dropdown-menu
+                                  [show-all-results]
                                   (into [:div.list-group]
                                     (interpose [:div.list-group-separator]
                                       (map-indexed  (fn [index result] (let [active-selection (subscribe [:quicksearch-selected-index])
                                                                     is-active? (= index @active-selection)]
-                                                                [suggestion result is-active?])) @results)))])])})))
+                                                                [suggestion result is-active?])) @results)))
+                                  ])])})))
