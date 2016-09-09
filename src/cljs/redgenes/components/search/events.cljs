@@ -41,3 +41,8 @@
   (fn [db [_ direction-to-move]]
       (assoc db :quicksearch-selected-index -1)
 ))
+
+(reg-event-db :search/reset-quicksearch
+  (fn [db]
+    (assoc db :suggestion-results nil)
+))

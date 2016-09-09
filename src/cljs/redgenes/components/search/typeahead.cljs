@@ -5,8 +5,10 @@
             [dommy.core :as dommy :refer-macros [sel sel1]]))
 
 (defn navigate-to
-  "Navigate to the report page for the given item" [item]
+  "Navigate to the report page for the given item and reset the UI" [item]
     (dispatch [:search/reset-selection])
+    (dispatch [:search/reset-quicksearch])
+    ()
     (navigate! (str "#/objects/" (:type item) "/" (:id item)))
   )
 
@@ -32,19 +34,21 @@
 
 (defn monitor-enter-key [e]
   (let [keycode (.-charCode e)
-        input (.. e -target -value)
         active-selection (subscribe [:quicksearch-selected-index])
         results (subscribe [:suggestion-results])
         selected-result (nth @results @active-selection nil)]
      (cond
        (= keycode 13) ;;enter key is 13
-        (if selected-result
+        (do
+          (if selected-result
           ;; go to the result direct if they're navigating with keyboard
           ;; and they just pressed enter
           (navigate-to selected-result)
           ;; go to the results page if they just type and press enter without
           ;; selecting a typeahead result
           (navigate! "#/search"))
+       ;;no matter what the result, stop showing the quicksearch, kthx.
+       (.blur (. e -target)))
  )))
 
 (defn monitor-arrow-keys
