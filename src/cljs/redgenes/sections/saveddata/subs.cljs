@@ -58,6 +58,7 @@
                                           (first (filter #(= (:id item) (:id %)) editable-ids))
                                           [:path :type]))))))))
 
+
 (defn has-text?
   "Return true if a label contains a string"
   [string details]
@@ -73,8 +74,10 @@
 (reg-sub
   :saved-data/merge-intersection
   (fn [db]
+
     (let [items (get-in db [:saved-data :editor :selected-items])]
       (some? (some true? (select [s/ALL :keep :intersection] items))))))
+
 
 (reg-sub
   :saved-data/filtered-items

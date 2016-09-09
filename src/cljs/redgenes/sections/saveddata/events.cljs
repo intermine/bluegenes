@@ -61,9 +61,11 @@
         (update-in db [:saved-data :editor] dissoc :filter)
         (assoc-in db [:saved-data :editor :filter] kw)))))
 
+
 (defn index-of [e coll & [keys-to-match]]
   (first (keep-indexed #(if (= (if keys-to-match (select-keys e keys-to-match) e)
                                (if keys-to-match (select-keys %2 keys-to-match) %2)) %1) coll)))
+
 
 (reg-event-db
   :saved-data/toggle-editable-item
@@ -76,6 +78,7 @@
         (if-let [first-nil (index-of nil (get-in db loc))]
           (assoc-in db (conj loc first-nil) datum-description)
           (update-in db loc (fnil conj []) datum-description))))))
+
 
 (reg-event-db
   :saved-data/perform-operation
@@ -115,12 +118,13 @@
 (reg-event-db
   :saved-data/toggle-keep-intersections
   (fn [db]
-    (update-in db [:saved-data :editor :selected-items]
-               (fn [items]
-                 (let [selected? (some? (some true? (select [s/ALL :keep :intersection] items)))]
-                   (transform [s/ALL]
-                              (fn [item]
-                                (assoc-in item [:keep :intersection] (not selected?))) items))))))
+
+      (update-in db loc
+                 (partial map
+                          (fn [item] (if (= id (:id item))
+                                       (update-in item [:keep :self] not)
+                                       item))))))
+
 
 
 

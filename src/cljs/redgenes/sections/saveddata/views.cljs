@@ -116,6 +116,9 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
 (def built-in-formatter (tf/formatter "HH:mm:ss dd/MM/YYYY"))
 
 (defn toggle-editor []
@@ -157,7 +160,8 @@
     (fn []
       (let [display-name (plural (get-in @model [category-kw :displayName]))
             selected?    (some some? (map deref subs))
-            can-click?   (if @f (= category-kw @f) true)]
+
+            can-click? (if @f (= category-kw @f) true)]
         [:div.dropdown
          [:div.category.btn.dropdown-toggle
           {:class       (clojure.string/join
@@ -232,6 +236,7 @@
      [:h4 (:label item)]
      [:span (str (get-in item [:value :select]))]]))
 
+
 (defn merge-controls []
   (let [items (subscribe [:saved-data/editor-items])]
     (fn []
@@ -239,6 +244,7 @@
        [:button.btn.btn-primary.btn-raised
         {:on-click (fn []
                      (dispatch [:saved-data/perform-operation]))} "Perform"]])))
+
 
 (defn missing []
   [:h4 "Please select some data"])
@@ -269,6 +275,8 @@
            {:on-click perform-merge} "Perform Op"]]
          #_[:div.section [merge-controls]]
          ]))))
+
+
 
 
 (defn debug []
