@@ -7,6 +7,7 @@
             [ajax.core :as ajax]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
             [imcljs.search :as search]
+            [redgenes.components.search.events :as search-full]
             [imcljs.assets :as assets]
             [redgenes.sections.objects.handlers]
             [cljs-uuid-utils.core :as uuid]))

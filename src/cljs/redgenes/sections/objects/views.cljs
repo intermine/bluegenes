@@ -13,7 +13,7 @@
         collections      (subscribe [:collections])
         fetching-report? (subscribe [:fetching-report?])]
     (fn []
-      [:div.container-fluid
+      [:div.container-fluid.report
        (if @fetching-report?
          [:i.fa.fa-cog.fa-spin.fa-3x.fa-fw]
          [:div

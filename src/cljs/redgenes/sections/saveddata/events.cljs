@@ -21,18 +21,10 @@
                    (:select query)))))
 
 
-(reg-event-db
-  :saved-data/calculate-parts
-  (fn [db]
-    (let [model (get-in db [:assets :model])
-          items (get-in db [:saved-data :items])])
-    db))
-
 (reg-event-fx
   :saved-data/toggle-edit-mode
   (fn [{db :db}]
-    {:db       (update-in db [:saved-data :list-operations-enabled] not)
-     :dispatch [:saved-data/calculate-parts]}))
+    {:db (update-in db [:saved-data :list-operations-enabled] not)}))
 
 (reg-event-fx
   :save-data
@@ -64,20 +56,26 @@
 (reg-event-db
   :saved-data/set-type-filter
   (fn [db [_ kw]]
-    (let [clear? (> 1 (count (get-in db [:saved-data :editor :selected-items])))]
+    (let [clear? (> 1 (count (remove nil? (get-in db [:saved-data :editor :selected-items]))))]
       (if clear?
         (update-in db [:saved-data :editor] dissoc :filter)
         (assoc-in db [:saved-data :editor :filter] kw)))))
+
+(defn index-of [e coll & [keys-to-match]]
+  (first (keep-indexed #(if (= (if keys-to-match (select-keys e keys-to-match) e)
+                               (if keys-to-match (select-keys %2 keys-to-match) %2)) %1) coll)))
 
 (reg-event-db
   :saved-data/toggle-editable-item
   (fn [db [_ id path-info]]
     (let [loc               [:saved-data :editor :selected-items]
-          keys-to-match [:id :path :type]
-          datum-description (select-keys (merge {:id id} path-info) keys-to-match)]
-      (if (empty? (filter #(= datum-description (select-keys % keys-to-match)) (get-in db loc)))
-        (update-in db loc (fnil conj []) datum-description)
-        (update-in db loc (fn [items] (into [] (remove #(= (select-keys % keys-to-match) datum-description) items))))))))
+          keys-to-match     [:id :path :type]
+          datum-description (merge {:id id} path-info)]
+      (if-let [idx (index-of datum-description (get-in db loc) keys-to-match)]
+        (assoc-in db (conj loc idx) nil)
+        (if-let [first-nil (index-of nil (get-in db loc))]
+          (assoc-in db (conj loc first-nil) datum-description)
+          (update-in db loc (fnil conj []) datum-description))))))
 
 (reg-event-db
   :saved-data/perform-operation
@@ -106,15 +104,17 @@
   :saved-data/toggle-keep
   (fn [db [_ id]]
     (let [loc [:saved-data :editor :selected-items]]
-      (update-in db loc
-                 (partial map
-                          (fn [item] (if (= id (:id item))
-                                       (update-in item [:keep :self] not)
-                                       item)))))))
+      (if id
+        (update-in db loc
+                  (partial mapv
+                           (fn [item] (if (= id (:id item))
+                                        (update-in item [:keep :self] not)
+                                        item))))
+        db))))
 
 (reg-event-db
   :saved-data/toggle-keep-intersections
-  (fn [db ]
+  (fn [db]
     (update-in db [:saved-data :editor :selected-items]
                (fn [items]
                  (let [selected? (some? (some true? (select [s/ALL :keep :intersection] items)))]

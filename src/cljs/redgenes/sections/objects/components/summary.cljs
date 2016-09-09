@@ -4,17 +4,15 @@
 
 (defn field []
   (fn [k v]
-    [:div.col-sm-6.field-group
-     [:div.row.field-label [:h4 (last (clojure.string/split k " > "))]]
-     [:div.row.field-value (if (nil? v) "N/A" (str v))]]))
+    [:div.field
+     [:div.field-label [:h4 (last (clojure.string/split k " > "))]]
+     [:div.field-value (if (nil? v) "N/A" (str v))]]))
 
 (defn main []
   (fn [field-map]
-    [:div.container-fluid
-     [:div.row
-      [:div.col-xs-12
-       [:h1 (str (:rootClass field-map) ": " (first (filter some? (first (:results field-map)))))]]]
-     ;[:span (str field-map)]
-     (into [:div.row] (map (fn [f v] [field f v])
+    [:div.report-summary
+      [:div
+        [:h1 (str (:rootClass field-map) ": " (first (filter some? (first (:results field-map)))))]]
+        (into [:div.fields] (map (fn [f v] [field f v])
                            (:columnHeaders field-map)
                            (first (:results field-map))))]))

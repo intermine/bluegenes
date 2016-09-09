@@ -1,29 +1,37 @@
 @import "../../variables";
 
-div.summary-item {
-    width: 50%;
-    border: 1px solid green;
-}
+.report {
+    .breadcrumb {
+        padding-left: 2px;
+    }
 
-div.summary-container {
-    display: flex;
-    flex-wrap: wrap;
-    flex-direction: row;
-    border: 1px solid red;
-}
+    .field-label {
+        font-style: italic;
+        font-size: 0.8em;
+        padding-right: 5px;
+        color: @highlight-color;
+    }
 
-.field-label {
-    font-style: italic;
-    font-size: 0.8em;
-    padding-right: 5px;
-    color: @highlight-color;
-}
+    .field-value {
+        font-size: 1.2em;
+        padding-right: 5px;
+    }
 
-.field-value {
-    font-size: 1.2em;
-    padding-right: 5px;
-}
+    .field-group {
+        padding-bottom: 5px;
+    }
 
-.field-group {
-    padding-bottom: 5px;
+    .report-summary {
+        margin-bottom: 1em;
+
+        .fields {
+            display: flex;
+            flex-wrap: wrap;
+
+            .field {
+                flex-grow: 1;
+                min-width: 400px;
+            }
+        }
+    }
 }

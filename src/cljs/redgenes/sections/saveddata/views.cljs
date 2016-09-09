@@ -96,7 +96,7 @@
          :r        radius
          :on-click (fn [x] (dispatch [:saved-data/toggle-keep id]))}]
        #_[:text {:text-anchor "end"
-               :x           50} (str path)]])))
+                 :x           50} (str path)]])))
 
 (defn venn []
   (let [editable-ids (subscribe [:saved-data/editable-ids])]
@@ -232,19 +232,6 @@
      [:h4 (:label item)]
      [:span (str (get-in item [:value :select]))]]))
 
-(defn editor-drawer-backup []
-  (let [edit-mode (subscribe [:saved-data/edit-mode])
-        items     (subscribe [:saved-data/editor-items])]
-    (fn []
-      (into [:div.editable-items-drawer
-             {:class (if @edit-mode "open" "closed")}]
-            (if (empty? @items)
-              [blank-item]
-              (let [comps (for [item @items] [editor-item item])]
-                (if (= 2 (count comps))
-                  (interpose [venn] comps)
-                  comps)))))))
-
 (defn merge-controls []
   (let [items (subscribe [:saved-data/editor-items])]
     (fn []
@@ -253,28 +240,35 @@
         {:on-click (fn []
                      (dispatch [:saved-data/perform-operation]))} "Perform"]])))
 
+(defn missing []
+  [:h4 "Please select some data"])
+
 (defn editor-drawer []
   (let [edit-mode (subscribe [:saved-data/edit-mode])
         items     (subscribe [:saved-data/editor-items])]
     (fn []
       (let [[item-1 item-2] (into [] (take 2 @items))]
         [:div.editable-items-drawer.up-shadow
-        {:class (if @edit-mode "open" "closed")}
+         {:class (if @edit-mode "open" "closed")}
          [:div.venn
           [:div.section.align-right
-           [:h4 (:label item-1)]
-           [:h4 (:path (:selected item-1))]]
+           (if-not item-1 [missing]
+                          [:div
+                           [:h4 (:label item-1)]
+                           [:h4 (:path (:selected item-1))]])]
           [:div.section.cant-grow
            [:h4 "Genes"]
            [venn]]
           [:div.section.align-left
-           [:h4 (:label item-2)]
-           [:h4 (:path (:selected item-2))]]]
+           (if-not item-2 [missing]
+                          [:div
+                           [:h4 (:label item-2)]
+                           [:h4 (:path (:selected item-2))]])]]
          [:div.controls
           [:div.btn.btn-info.btn-raised
            {:on-click perform-merge} "Perform Op"]]
          #_[:div.section [merge-controls]]
-        ]))))
+         ]))))
 
 
 (defn debug []
@@ -318,5 +312,5 @@
             (into [:div.grid-4_md-3_sm-1.saved-data-container]
                   (map (fn [e] [saved-data-item e]) @filtered-items))]]
           [editor-drawer]
-          ;[debug]
+          [debug]
           ])})))

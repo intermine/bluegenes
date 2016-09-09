@@ -1,6 +1,6 @@
 (ns redgenes.sections.home.circles
   (:require [re-frame.core :as re-frame]
-            [redgenes.components.search :as search]
+            [redgenes.components.search.typeahead :as search]
             [accountant.core :refer [navigate!]]))
 
 (defn searchbox []
