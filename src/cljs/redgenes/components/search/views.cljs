@@ -78,7 +78,6 @@
        "Iterate through results and output one row per result using result-row to format. Filtered results aren't output. "
        [:div.results
          [:h4 "Results for '" (:term @search-results) "'"  [results-count]]
-        (.log js/console "%csearch-results" "color:hotpink;font-weight:bold;" (clj->js @search-results))
          [:form
            (doall (let [state search-results
              ;;active-results might seem redundant, but it outputs the results we have client side

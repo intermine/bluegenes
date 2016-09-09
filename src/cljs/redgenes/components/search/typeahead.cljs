@@ -8,7 +8,6 @@
 (defn navigate-to
   "Navigate to the report page for the given item and reset the UI" [item]
     (dispatch [:search/reset-selection])
-    (dispatch [:search/reset-quicksearch])
     (navigate! (str "#/objects/" (:type item) "/" (:id item)))
   )
 
@@ -25,7 +24,8 @@
                                   (navigate-to item))))
           :class (cond is-active? "active")}
          [:div.row-action-primary
-          [:i.fa.fa-cog.fa-spin.fa-3x.fa-fw]]
+          ;[:i.fa.fa-cog.fa-spin.fa-3x.fa-fw]
+          ]
          [:div.row-content
           [:h4.list-group-item-heading (:type item)]
           (into

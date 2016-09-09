@@ -1,5 +1,6 @@
 (ns redgenes.components.search.resultrow
   (:require [re-frame.core :as re-frame :refer [subscribe]]
+            [accountant.core :refer [navigate!]]
             [reagent.core :as reagent]))
 
 (defn is-selected? [result selected-result]
@@ -16,13 +17,13 @@
 (defn set-selected! [row-data elem]
   "sets the selected result in the local state atom and emits that we 'have' this item to next steps / the next tool"
   (swap! (:state row-data) assoc :selected-result (:result row-data))
-  ;;Todo: remove this dirty hard coding of the service URL
-  ((:has-something (:api row-data))
-   {:service {:root @(subscribe [:mine-url])}
-       :data {
-          :format "ids"
-          :payload [(.-id (:result row-data))]
-          :type (.-type (:result row-data))}}))
+  (.log js/console "%crow-data" "color:hotpink;font-weight:bold;" (clj->js (:result row-data)) )
+
+  (.log js/console "%cinside results: " "color:darkseagreen;font-weight:bold;"
+        (:type (js->clj (:result row-data) :keywordize-keys true)))
+
+  (navigate! (str "#/objects/" (aget (:result row-data) "type") "/" (aget (:result row-data) "id")))
+  )
 
 (defn row-structure [row-data contents]
   "This method abstracts away most of the common components for all the result-row baby methods."
