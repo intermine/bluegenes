@@ -9,6 +9,7 @@
             [redgenes.config :as config]
             [redgenes.components.listanalysis.core]
             [redgenes.components.querybuilder.core]
+            [redgenes.components.querybuilder.actions]
             [redgenes.components.templates.core]))
 
 (defn dev-setup []

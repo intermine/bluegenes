@@ -27,12 +27,12 @@
 (defn nth-child [z idx]
   (nth (iterate zip/right z) idx))
 
-(reg-event-db
-  :query-builder/reset-query
-  (fn [db [_ count]]
-    (-> db
-      (assoc-in [:query-builder :query] nil)
-        (assoc-in [:query-builder :count] nil))))
+(comment (reg-event-db
+   :query-builder/reset-query
+   (fn [db [_ count]]
+     (-> db
+       (assoc-in [:query-builder :query] nil)
+       (assoc-in [:query-builder :count] nil)))))
 
 (defn next-letter [letter]
   (let [alphabet (into [] "ABCDEFGHIJKLMNOPQRSTUVWXYZ")]
@@ -66,7 +66,7 @@
 (reg-event-fx
   :query-builder/run-query
   (fn [{db :db}]
-    (let [query-data (-> db :query-builder :query)]
+     (let [query-data (-> db :query-builder :query)]
       {:db        (assoc-in db [:query-builder :counting?] true)
        :query-builder/run-query (-> query-data
                       (update :select (fn [views] (map (fn [view] (clojure.string/join "." view)) views)))
