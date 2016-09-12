@@ -3,4 +3,6 @@
 (def default-db
   {:name "Intermine"
    :mine-url "http://www.flymine.org/query"
-   :quicksearch-selected-index -1})
+   :quicksearch-selected-index -1 ;;this defaults to select all in the quicksearch
+   :databrowser/whitelist #{"Gene", "Author","Protein", "Organism", "Publication", "GOAnnotation", "GOTerm", "Homologue", "DataSet"}
+   })
