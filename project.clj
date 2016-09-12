@@ -33,7 +33,7 @@
 
   :min-lein-version "2.5.3"
 
-  :source-paths ["src/clj"]
+  :source-paths ["src/clj" "src/cljs"]
 
   :clean-targets ^{:protect false} ["resources/public/js/compiled" "target"
                                     "test/js"]
@@ -94,5 +94,5 @@
 
   :aot [redgenes.server]
 
-  :prep-tasks [["cljsbuild" "once" "min"] "compile"]
+  ;:prep-tasks [["cljsbuild" "once" "min"] "compile"]
   )
