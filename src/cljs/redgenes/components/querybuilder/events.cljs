@@ -27,12 +27,12 @@
 (defn nth-child [z idx]
   (nth (iterate zip/right z) idx))
 
-(comment (reg-event-db
-   :query-builder/reset-query
-   (fn [db [_ count]]
-     (-> db
-       (assoc-in [:query-builder :query] nil)
-       (assoc-in [:query-builder :count] nil)))))
+(reg-event-db
+  :query-builder/reset-query
+  (fn [db [_ count]]
+    (-> db
+      (assoc-in [:query-builder :query] nil)
+      (assoc-in [:query-builder :count] nil))))
 
 (defn next-letter [letter]
   (let [alphabet (into [] "ABCDEFGHIJKLMNOPQRSTUVWXYZ")]

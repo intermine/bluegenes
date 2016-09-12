@@ -2,6 +2,7 @@
   (:require [reagent.core :as reagent]
             [re-frame.core :as re-frame]
             [devtools.core :as devtools]
+            [redgenes.utils]
             [redgenes.events]
             [redgenes.subs]
             [redgenes.routes :as routes]
@@ -9,7 +10,7 @@
             [redgenes.config :as config]
             [redgenes.components.listanalysis.core]
             [redgenes.components.querybuilder.core]
-            [redgenes.components.querybuilder.actions]
+            [redgenes.components.querybuilder.events]
             [redgenes.components.templates.core]))
 
 (defn dev-setup []
