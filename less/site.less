@@ -13,6 +13,8 @@
 @import "components/idresolver";
 @import "components/home";
 @import "components/tooltip";
+@import "components/databrowser";
+@import "components/search";
 @import "saved-data";
 @import "../resources/public/vendor/bootstrap-material-design/less/bootstrap-material-design";
 
@@ -21,17 +23,15 @@
 
 
 body {
-    // font-family: 'Open Sans', sans-serif;
     background: @body-background-color;
     color: @body-foreground-color;
     margin-top: 50px;
-    font-family: 'Roboto', serif;
+    font-family: 'Roboto', sans-serif;
 }
 
 body,
 html,
  #app {
-    height: 100%;
     height: 100%;
 }
 
@@ -41,6 +41,7 @@ html,
     box-sizing: border-box;
     display:flex;
     flex-direction:column;
+    margin: 0em 1em;
 }
 
 @annoyingscrollbars: 5em;

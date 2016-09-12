@@ -1,6 +1,6 @@
 (ns redgenes.components.progress_bar
   (:require [re-frame.core :as re-frame :refer [subscribe dispatch]]
-            [redgenes.components.search :as search]))
+            ))
 
 (defn main []
   (let [progress-bar-percent (subscribe [:progress-bar-percent])]

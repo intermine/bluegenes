@@ -40,9 +40,14 @@
   (defroute "/upload" []
             (re-frame/dispatch [:set-active-panel :upload-panel]))
 
+  (defroute "/explore" []
+            (re-frame/dispatch [:set-active-panel :explore-panel]))
+
+  (defroute "/search" []
+            (re-frame/dispatch [:set-active-panel :search-panel]))
+
   (defroute "/listanalysis" []
             (re-frame/dispatch [:set-active-panel :list-analysis-panel]))
-
   ;(defroute "/listanalysis/list/:name" [name]
   ;          (re-frame/dispatch [:set-active-panel :list-analysis-panel
   ;                              {:name name}

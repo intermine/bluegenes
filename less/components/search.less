@@ -1,0 +1,276 @@
+@import "../../resources/public/vendor/bootstrap/less/bootstrap";
+@import "../variables";
+@import "../../resources/public/vendor/bootstrap-material-design/less/bootstrap-material-design";
+
+.search-fullscreen {
+  font-size: 1.05em;
+  button,
+  input[type=text] {
+    float: left;
+    margin-right: 1em;
+  }
+  .close {
+    margin-top: -3px; //fix for bootswatch paper theme oddnesss
+  }
+  @spacer: 2em;
+  input,
+  button {
+    vertical-align: middle;
+    &[type="text"] {
+      height: @spacer * 1.5;
+      padding: 0 0 0 @spacer/4;
+      min-width: 300px;
+      width: 60%;
+    }
+  }
+  button {
+    border-radius: @border-radius;
+    margin-top:1px;
+    height: @spacer*1.5;
+    padding: 0 0 0 @spacer/4;
+    min-width: 10em;
+    font-family: Roboto, Helvetica, arial, sans-serif;
+    font-weight: 500;
+    text-transform: uppercase;
+    padding: 1em 5em;
+    float: right;
+    line-height: 0.3em;
+    vertical-align: middle;
+    background: @cta-color;
+    color: @cta-color-text;
+    box-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    border: 0;
+    text-shadow: 1px 1px 1px rgba(0,0,0,0.1);
+    &:hover {
+      transition: all 0.4s;
+      background: lighten(@cta-color,5%);
+      box-shadow: 3px 3px 4px rgba(0,0,0,0.3);
+    }
+    &:active {
+      box-shadow:0 0 0 0;
+      background: darken(@cta-color,5%);
+      transition: all 0.2s;
+    }
+  }
+  .searchform {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .response {
+    clear: both;
+    display: flex;
+    .facets {
+      order: 1;
+      @highlight: #ddd;
+      margin: 1em;
+      .result-type {
+        border-left: 0;
+        line-height: 1.5em;
+        background-color: #ccc;
+        color: @body-foreground-color;
+        margin:0;
+        min-width: 4em;
+        line-height: @spacer;
+        min-height: @spacer;
+        vertical-align: middle;
+        &.type-Gene {
+          background: @color-Gene;
+          color: #fff;
+        }
+        &.type-Publication {
+          background: @color-Publication;
+        }
+        &.type-Protein {
+          background: @color-Protein;
+        }
+      }
+      .active-filter {
+        background: @highlight;
+        border-radius: @border-radius;
+        padding: 0 @spacer/4;
+      }
+      .controls {
+        .checkbox;
+        label {
+          display: block;
+          font-weight: 300;
+        }
+      }
+
+      .result-type {
+        text-align: center;
+      }
+      table {
+        min-width: 200px;
+        border-collapse: separate;
+        border-spacing: 0 0.2em;
+      }
+      tr {
+        td:last-child {
+          padding-left: @spacer/4;
+        }
+        margin-top: 0.2em;
+        &.active {
+          background: @highlight;
+          td:first-child {
+            border-top-left-radius: @border-radius;
+            border-bottom-left-radius: @border-radius;
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 0;
+          }
+          td:last-child {
+            padding-right: @spacer/4;
+            background: @highlight;
+            border-bottom-right-radius: @border-radius;
+            border-top-right-radius: @border-radius;
+          }
+        }
+      }
+    }
+    .results {
+      order: 2;
+      margin: @spacer/2 @spacer/2 @spacer/2 @spacer;
+      .result {
+        border-bottom: solid 1px #e4e4e4;
+        .searchterm {
+          input[type=radio] {
+            margin: 0 @spacer/2;
+            vertical-align: middle;
+            padding-top: 4px;
+            &:before {
+              margin-top: 4px;
+              content: " ";
+            }
+          }
+          background-color: rgba(255,255,0,0.15);
+          padding: 0.1em;
+          margin: 0 -0.15em;
+        }
+        >span,
+        cite {
+          margin: 0.15em;
+        }
+        &:nth-child(even) {
+          background: @stripe-color;
+        }
+        &:hover {
+          background: #FFFDE7;
+        }
+        &.selected {
+          background: #FFECB3;
+        }
+        .details {
+          display: inline;
+        }
+      }
+      flex-grow: 4;
+      .default-description {
+        text-transform: capitalize;
+        display: inline-block;
+        vertical-align: middle;
+      }
+      .default-description:after {
+        content: ": ";
+      }
+      .description,
+      .default-value, .description span {
+        vertical-align: middle;
+        overflow: hidden;
+        max-width: 350px;
+        display: inline-block;
+        text-overflow: ellipsis;
+        height:2em;
+        //margin-left:0.2em;
+        margin: 0 0.25em;
+      }
+      .default-value {
+        white-space: nowrap;
+      }
+      .name,
+      .organism {
+        font-style: italic;
+      }
+    }
+  }
+  ul {
+    margin-left: 0;
+    padding-left: 0;
+  }
+  li {
+    list-style-type: none;
+    list-style-position: outside;
+    min-width: 2.5em;
+    .count {
+      &.result-type {
+        margin: 0 0.2em 0 0;
+      }
+      clear: left;
+      margin-right: 0.5em;
+      display: block;
+      float: left;
+    }
+  }
+  .result-type {
+    padding: 0 0.2em;
+    border-radius: @border-radius;
+    margin: 0.2em;
+  }
+}
+@media (max-width: @tiny-screen) {
+  .search {
+    button {
+      clear: both;
+      width: 100%;
+      box-sizing: border-box;
+      margin-top: 1em;
+      margin-left: 0;
+    }
+    input[type=text] {
+      clear: both;
+      width: 100%;
+      box-sizing: border-box;
+      margin-top: 1em;
+      min-width: auto;
+    }
+    .response {
+      flex-wrap: wrap;
+      .facets {
+        order: 2;
+        margin-left: 0;
+      }
+      .results {
+        order: 1;
+        margin-left: 0;
+      }
+      .description span {
+        line-height: 1.5em;
+        vertical-align: middle;
+        display: inline-block;
+        max-height: 3em;
+        overflow: hidden;
+      }
+    }
+  }
+}
+
+.result-type {
+  display: inline-block;
+  background: rgba(235,235,235,0.87);
+  color: @body-foreground-color;
+  min-width: 7em;
+  border-radius: @border-radius;
+  text-align: right;
+  margin: 0.15em;
+  padding: 0 0.2em;
+  border-left: solid 3px #999;
+  &.type-Gene {
+    border-left: solid 3px @color-Gene;
+  }
+  &.type-Publication {
+    border-left: solid 3px @color-Publication;
+  }
+  &.type-Protein {
+    border-left: solid 3px @color-Protein;
+  }
+}

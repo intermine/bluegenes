@@ -1,6 +1,5 @@
 (ns redgenes.sections.assets.views
   (:require [re-frame.core :as re-frame :refer [subscribe]]
-            [redgenes.components.search :as search]
             [redgenes.components.templates.views :as templates]
             [redgenes.components.lists.views :as lists]))
 

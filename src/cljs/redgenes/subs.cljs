@@ -1,6 +1,7 @@
 (ns redgenes.subs
   (:require-macros [reagent.ratom :refer [reaction]])
-  (:require [re-frame.core :refer [reg-sub]]))
+  (:require [re-frame.core :refer [reg-sub]]
+            [redgenes.components.search.subs :as search]))
 
 (reg-sub
   :name
@@ -30,16 +31,6 @@
   :who-am-i
   (fn [db _]
     (:who-am-i db)))
-
-(reg-sub
-  :suggestion-results
-  (fn [db _]
-    (:suggestion-results db)))
-
-(reg-sub
-  :search-term
-  (fn [db _]
-    (:search-term db)))
 
 (reg-sub
   :fetching-report?

@@ -1,11 +1,8 @@
 (ns redgenes.sections.home.views
   (:require [re-frame.core :as re-frame :refer [subscribe]]
-            [redgenes.components.search :as search]
             [redgenes.components.templates.views :as templates]
             [redgenes.components.lists.views :as lists]
-            [redgenes.sections.home.circles :as circles]
-            [redgenes.sections.home.texty :as texty]
-            [redgenes.components.search :as search]))
+            [redgenes.sections.home.circles :as circles]))
 
 (defn footer []
   (fn []
