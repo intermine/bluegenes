@@ -8,17 +8,15 @@
   [:div.filter [:h4 "Filter: "]
     (let [model (subscribe [:model])
           whitelist (subscribe [:databrowser/whitelist])]
-      (into [:div] (map
-       (fn [[k v]]
-         [:div.drilldown k
-        (.log js/console "%cv" "color:hotpink;font-weight:bold;" (clj->js k) (clj->js v))
-          ])
-      (keep
-        (fn [[k v]] (if (contains? @whitelist k)
-          k
-          (.log js/console "%ck" "color:hotpink;font-weight:bold;" (clj->js k) (contains? @whitelist k) (type @whitelist) ))
-        ) @model)))
-      (.log js/console "%c@whitelist" "color:hotpink;font-weight:bold;"  @whitelist )
+      (into [:div.filter-by]
+        (map (fn [[id vals]]
+               (cond (contains? @whitelist id)
+             [:p id])
+         ) @model)
+
+
+            )
+;      (.log js/console "%c@whitelist" "color:hotpink;font-weight:bold;"  @whitelist )
   )])
 
 (defn main []
