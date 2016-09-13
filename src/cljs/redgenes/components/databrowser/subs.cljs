@@ -11,9 +11,13 @@
     :databrowser/whitelisted-model
     (fn [db _]
       ;;We'll use these filtered values repeatedly so let's do it in one place
-      (let [model (:model (:assets db))
+      (let [root (:databrowser/root db)
+            model (:collections (root (:model (:assets db))))
+          ;  model (:model (:assets db))
             whitelist (:databrowser/whitelist db)]
-        (keep (fn [vals]
-          (cond (contains? whitelist (first vals)) vals)
-        ) model)
+        (.log js/console "model" (clj->js model))
+        ; (keep (fn [vals]
+        ;   (cond (contains? whitelist (first vals)) vals)
+        ; ) model)
+        (select-keys model whitelist)
   )))

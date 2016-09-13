@@ -7,9 +7,10 @@
   "Visual and interactive UI component allowing the userto view selected model properties in a textual form." []
   [:div.filter [:h4 "Filter: "]
     (let [model (subscribe [:databrowser/whitelisted-model])]
+      (.log js/console (clj->js @model))
       (into [:div.filter-by]
         (map (fn [[id vals]]
-             [:p (:name vals)]
+             [:p (get vals :displayName (:name vals))]
         ) @model))
   )])
 
@@ -18,18 +19,13 @@
   [:div.bubbles [:h2 "Explore: "]
     (let [model (subscribe [:databrowser/whitelisted-model])
           r 30]
-          (into [:svg {:version "1.1", :viewbox "0 0 500 500"}]
-            (map-indexed (fn [index [id vals]]
-              (let [r-positioned (* r (inc index))]
-              [:g [:circle {:r r, :cy r-positioned, :cx r-positioned :fill "rgba(80, 160, 240, 0.3)"}]
-              [:text {:x r-positioned :y r-positioned :text-anchor "middle"} (:name vals)]]
-            )) @model))
-
-
-
-      )
-
-])
+      (into [:svg {:version "1.1", :viewbox "0 0 500 500"}]
+        (map-indexed (fn [index [id vals]]
+          (let [r-positioned (* r (inc index))]
+          [:g [:circle {:r r, :cy r-positioned, :cx r-positioned :fill "rgba(80, 160, 240, 0.3)"}]
+          [:text {:x r-positioned :y r-positioned :text-anchor "middle"} (get vals :displayName (:name vals))]]
+      )) @model))
+)])
 
 (defn main []
   (fn []
