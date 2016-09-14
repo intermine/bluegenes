@@ -12,19 +12,13 @@
     (fn [db _]
       (:databrowser/root db)))
 
-
-
   (reg-sub
     :databrowser/whitelisted-model
-    (fn [db _]
+    (fn [db [_ start-from]]
       ;;We'll use these filtered values repeatedly so let's do it in one place
-      (let [root (:databrowser/root db)
-            model (:collections (root (:model (:assets db))))
-          ;  model (:model (:assets db))
+      (let [model (if (some? start-from)
+              (:collections (start-from (:model (:assets db))))
+              (:model (:assets db)))
             whitelist (:databrowser/whitelist db)]
-        (.log js/console "model" (clj->js model))
-        ; (keep (fn [vals]
-        ;   (cond (contains? whitelist (first vals)) vals)
-        ; ) model)
         (select-keys model whitelist)
   )))
