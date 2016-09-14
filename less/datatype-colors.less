@@ -1,0 +1,27 @@
+//define master colours for popular data types. Try to draw from 500 colours
+//here: https://www.google.com/design/spec/style/color.html# to keep the colours
+//visually distinct. They should be used ONLY for data type tagging, not general theming
+@color-Gene: #8BC34A;
+@color-Protein: #FFC107;
+@color-Publication: #2196F3;
+
+.type-Gene, .type-genes,  .type-gene, .type-homologues, .type-Homologue {
+  background: @color-Gene;
+  fill: @color-Gene;
+  color: #fff;
+}
+.type-Publication, .type-publications, .type-Author {
+  background: @color-Publication;
+  fill: @color-Publication;
+}
+.type-Protein, .type-proteins {
+  background: @color-Protein;
+  fill: @color-Protein;
+}
+
+.type-GOAnnotation, .type-GOTerm, .type-goAnnotation {
+  background:#9C27B0;
+  fill: #9C27B0;
+  color:#fff;
+  text {fill:#fff;}
+}

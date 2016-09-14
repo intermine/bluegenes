@@ -8,6 +8,13 @@
       (:databrowser/whitelist db)))
 
   (reg-sub
+    :databrowser/root
+    (fn [db _]
+      (:databrowser/root db)))
+
+
+
+  (reg-sub
     :databrowser/whitelisted-model
     (fn [db _]
       ;;We'll use these filtered values repeatedly so let's do it in one place
