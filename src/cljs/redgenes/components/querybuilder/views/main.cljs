@@ -65,12 +65,12 @@
                              "label label-default"))}
            (str k)
            (into [:span] (map (fn [c] [tiny-constraint c])
-                              (filter (fn [t] (= trail (:path t))) (:where @query))))]]
+                           (filter (fn [t] (= trail (:path t))) (:where @query))))]]
          (if (map? v)
            (into [:ol.tree]
-                 (map (fn [m]
-                        [:li [tree-view m
-                              (conj trail (first m))]]) v)))]))))
+             (map (fn [m]
+                    [:li [tree-view m
+                          (conj trail (first m))]]) v)))]))))
 
 (defn main []
   (let [query           (subscribe [:query-builder/query])

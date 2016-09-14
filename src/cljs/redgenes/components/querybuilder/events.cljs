@@ -41,11 +41,12 @@
 (reg-event-fx
   :query-builder/add-constraint
   (fn [{db :db} [_ constraint]]
-    {:db       (let [used-codes (last (sort (map :code (get-in db [:query-builder :query :where]))))
-                     next-code  (if (nil? used-codes) "A" (next-letter used-codes))]
-                 (-> db
-                     (update-in [:query-builder :query :where] (fn [where] (conj where (merge constraint {:code next-code}))))
-                     (assoc-in [:query-builder :constraint] nil)))
+    {:db
+      (let [used-codes (last (sort (map :code (get-in db [:query-builder :query :where]))))
+            next-code  (if (nil? used-codes) "A" (next-letter used-codes))]
+         (-> db
+             (update-in [:query-builder :query :where] (fn [where] (conj where (merge constraint {:code next-code}))))
+             (assoc-in [:query-builder :constraint] nil)))
      :dispatch [:query-builder/run-query]}))
 
 (reg-event-db

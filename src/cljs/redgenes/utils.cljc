@@ -17,46 +17,22 @@
     (assoc-in [:query-builder :query] nil)
     (assoc-in [:query-builder :count] nil)))
 
-(defn do-reg!
+(defn register!
   ([v]
-   (do-reg! @v (meta v)))
+   (register! @v (meta v)))
   ([f {reframe-key :reframe-key reframe-kind :reframe-kind naym :name}]
    #?(:cljs
-      (case (or reframe-kind (if (and naym (string/ends-with? naym "!")) :cofx :effect))
+      (case reframe-kind
         :effect (reg-event-db reframe-key f)
         :fx     (reg-fx reframe-key f)
         :cofx   (reg-event-fx reframe-key f))
       :clj
-        (println "would register" naym reframe-key reframe-kind (if (and naym (string/ends-with? naym "!")) :cofx :effect)))))
+        (println "would register" naym reframe-key reframe-kind))))
 
-(comment (do-reg!
+(comment (register!
    (comp test-reset-query (fn [db _] (println "something first") db))
    {:reframe-key  :query-builder/reset-query
     :reframe-kind :effect
     }))
 
 ;(do-reg! #'reset-query)
-
-(defn get-ns [filename]
-  (read-string (str "(" (slurp filename) ")")))
-
-(defn reframe-fns
-  ([form]
-    (filter
-      (comp #{'reg-event-db 'reg-event-fx 'reg-fx} first)
-      form)))
-
-(defn to-fn
-  "Returns a (defn..) form for the given (reg-event-... form"
-  ([[reframe-fn reframe-key fn-def]]
-    `(defn
-    ~(symbol (name reframe-key))
-       "Returns the x for the given y"
-       {
-        :reframe-key ~reframe-key
-        :reframe-kind
-                     ~(case (name reframe-fn)
-                        "reg-fx" :fx
-                        "reg-event-fx" :cofx
-                        "reg-event-db" :event)}
-     ~@(rest fn-def))))
