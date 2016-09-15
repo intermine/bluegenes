@@ -88,6 +88,11 @@
                             ["Gene" "primaryIdentifier"]]})
       db)))
 
+(reg-event-db
+  :query-builder/done-query!?
+  (fn [db]
+    (update-in db [:query-builder :queried?] not)))
+
 (reg-event-fx
   :query-builder/remove-select
   (fn [{db :db} [_ path]]

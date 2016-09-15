@@ -8,6 +8,11 @@
     (:query (:query-builder db))))
 
 (reg-sub
+  :query-builder/queried?
+  (fn [db _]
+    (get-in db [:query-builder :queried?])))
+
+(reg-sub
   :query-builder/count
   (fn [db _]
     (:count (:query-builder db))))
