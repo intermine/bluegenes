@@ -1,12 +1,13 @@
 (ns redgenes.components.querybuilder.events
   (:require-macros [cljs.core.async.macros :refer [go go-loop]]
-                   [com.rpl.specter.macros :refer [traverse]])
+                   [com.rpl.specter :refer [traverse]])
   (:require [re-frame.core :as re-frame :refer [reg-event-db reg-event-fx reg-fx dispatch subscribe]]
             [redgenes.db :as db]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
             [imcljs.search :as search]
             [imcljs.filters :as filters]
             [com.rpl.specter :as s]
+            [clojure.string :as string]
             [clojure.zip :as zip]))
 
 #_(def im-zipper (zip/zipper
@@ -66,14 +67,17 @@
                                        {:format "count"}))]))))
 
 (defn build-query
-  ([query-data]
-    (-> query-data
-      (update :select (fn [views] (map (fn [view] (clojure.string/join "." view)) views)))
-      (update :where (fn [cons]
-                       (map (fn [con]
-                              {:path  (clojure.string/join "." (:path con))
-                               :op    (:op con)
-                               :value (:value con)}) cons))))))
+  ([query]
+    (-> query
+      (update :select
+        (fn [views]
+          (map (fn [view] (string/join "." view)) views)))
+      (update :where
+        (fn [constraints]
+         (map (fn [constraint]
+                {:path  (string/join "." (:path constraint))
+                 :op    (:op constraint)
+                 :value (:value constraint)}) constraints))))))
 
 (reg-event-fx
   :query-builder/run-query

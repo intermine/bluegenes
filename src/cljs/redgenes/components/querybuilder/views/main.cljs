@@ -1,5 +1,5 @@
 (ns redgenes.components.querybuilder.views.main
-  (:require-macros [com.rpl.specter.macros :refer [traverse select]])
+  (:require-macros [com.rpl.specter :refer [traverse select]])
   (:require [reagent.core :as reagent]
             [re-frame.core :as re-frame :refer [subscribe dispatch]]
             [json-html.core :as json]
@@ -106,6 +106,12 @@
           [:div.panel.panel-default
            [:div.panel-heading
             [:h4 "Query Structure"]]
+            [:textarea
+                    {
+                     :cols  128
+                     :rows  8
+                     :style {:width "100%" :height "8em"}
+                     :value (str (build-query @query))}]
            (cond @queried? [table/main (build-query @query) true])
            ;[:span (json/edn->hiccup @query)]
            ;[:button.btn.btn-primary {:on-click #(dispatch [:qb-run-query])} "Run Count"]

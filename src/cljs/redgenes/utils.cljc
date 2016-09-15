@@ -29,10 +29,11 @@
       :clj
         (println "would register" naym reframe-key reframe-kind))))
 
-(comment (register!
+(comment
+  (register!
    (comp test-reset-query (fn [db _] (println "something first") db))
    {:reframe-key  :query-builder/reset-query
     :reframe-kind :effect
     }))
 
-;(do-reg! #'reset-query)
+;(register! #'reset-query)

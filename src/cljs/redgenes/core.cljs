@@ -9,7 +9,7 @@
             [redgenes.views :as views]
             [redgenes.config :as config]
             [redgenes.components.listanalysis.core]
-            [redgenes.components.querybuilder.core]
+            [redgenes.components.querybuilder.subs]
             [redgenes.components.querybuilder.events]
             [redgenes.components.templates.core]))
 
