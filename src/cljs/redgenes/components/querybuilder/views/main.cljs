@@ -4,8 +4,10 @@
             [re-frame.core :as re-frame :refer [subscribe dispatch]]
             [json-html.core :as json]
             [com.rpl.specter :as s]
+            [redgenes.components.querybuilder.events :refer [build-query]]
             [redgenes.components.querybuilder.views.constraints :as constraints]
             [redgenes.components.table :as table]
+
             [json-html.core :as json-html]))
 
 (defn attribute []
@@ -104,7 +106,7 @@
           [:div.panel.panel-default
            [:div.panel-heading
             [:h4 "Query Structure"]]
-           (cond @queried? [table/main @query true])
+           (cond @queried? [table/main (build-query @query) true])
            ;[:span (json/edn->hiccup @query)]
            ;[:button.btn.btn-primary {:on-click #(dispatch [:qb-run-query])} "Run Count"]
            [:div.panel-body

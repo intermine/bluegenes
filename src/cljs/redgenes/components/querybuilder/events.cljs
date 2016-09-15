@@ -64,18 +64,22 @@
                                        query
                                        {:format "count"}))]))))
 
+(defn build-query
+  ([query-data]
+    (-> query-data
+      (update :select (fn [views] (map (fn [view] (clojure.string/join "." view)) views)))
+      (update :where (fn [cons]
+                       (map (fn [con]
+                              {:path  (clojure.string/join "." (:path con))
+                               :op    (:op con)
+                               :value (:value con)}) cons))))))
+
 (reg-event-fx
   :query-builder/run-query
   (fn [{db :db}]
      (let [query-data (-> db :query-builder :query)]
-      {:db        (assoc-in db [:query-builder :counting?] true)
-       :query-builder/run-query (-> query-data
-                      (update :select (fn [views] (map (fn [view] (clojure.string/join "." view)) views)))
-                      (update :where (fn [cons]
-                                       (map (fn [con]
-                                              {:path  (clojure.string/join "." (:path con))
-                                               :op    (:op con)
-                                               :value (:value con)}) cons))))})))
+       {:db                      (assoc-in db [:query-builder :counting?] true)
+        :query-builder/run-query (build-query query-data)})))
 
 (reg-event-db
   :query-builder/make-tree
