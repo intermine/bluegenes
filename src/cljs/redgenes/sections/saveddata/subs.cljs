@@ -51,12 +51,11 @@
   :<- [:saved-data/editable-ids]
   (fn [[all editable-ids]]
     (let [ids (map :id editable-ids)]
-      (->> all
-           (filter (fn [item] (some? (some #{(:id item)} ids))))
-           (map (fn [item]
-                  (assoc item :selected (select-keys
-                                          (first (filter #(= (:id item) (:id %)) editable-ids))
-                                          [:path :type]))))))))
+      (reduce (fn [total next]
+                (let [found    (first (filter #(= next (:id %)) all))
+                      selected (first (filter #(= next (:id %)) editable-ids))]
+                  (conj total
+                        (assoc found :selected (select-keys selected [:path :type]))))) [] ids))))
 
 
 (defn has-text?

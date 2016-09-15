@@ -26,7 +26,9 @@
                                                    {:with-credentials? false
                                                     :form-params       (merge {:format "json"} options {:query (.toXML q)})}))]
                        (>! c (-> response :body))
-                       (close! c))))))
+                       (close! c))))
+               (fn [error]
+                 (println "ERROR" error))))
     c))
 
 

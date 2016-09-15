@@ -124,6 +124,9 @@
 (defn toggle-editor []
   (dispatch [:saved-data/toggle-edit-mode]))
 
+(defn count-all []
+  (dispatch [:saved-data/count-all]))
+
 (defn perform-merge []
   (dispatch [:saved-data/perform-operation]))
 
@@ -133,7 +136,9 @@
 (defn toolbar []
   [:div.btn-toolbar
    [:div.btn.btn-info.btn-raised
-    {:on-click toggle-editor} "Merge Lists"]])
+    {:on-click toggle-editor} "Merge Lists"]
+   [:div.btn.btn-info.btn-raised
+    {:on-click count-all} "Count All"]])
 
 (defn breakdown-item [category-kw id path]
   (let [model (subscribe [:model])
@@ -161,7 +166,7 @@
       (let [display-name (plural (get-in @model [category-kw :displayName]))
             selected?    (some some? (map deref subs))
 
-            can-click? (if @f (= category-kw @f) true)]
+            can-click?   (if @f (= category-kw @f) true)]
         [:div.dropdown
          [:div.category.btn.dropdown-toggle
           {:class       (clojure.string/join
@@ -206,7 +211,7 @@
 
 (defn saved-data-item []
   (let [edit-mode (subscribe [:saved-data/edit-mode])]
-    (fn [{:keys [id parts created label type value] :as all}]
+    (fn [{:keys [count id parts created label type value] :as all}]
       [:div.col
        [:div.saved-data-item.panel.panel-default
         [:div.panel-heading
@@ -217,6 +222,7 @@
           ]]
         [:div.panel-body
          [:h3 (str label)]
+         [:h3 (str count)]
          (if @edit-mode
            [editable-breakdown id parts]
            [simple-breakdown parts])
@@ -258,18 +264,20 @@
          {:class (if @edit-mode "open" "closed")}
          [:div.venn
           [:div.section.align-right
-           (if-not item-1 [missing]
-                          [:div
-                           [:h4 (:label item-1)]
-                           [:h4 (:path (:selected item-1))]])]
+           (if-not item-1
+             [missing]
+             [:div
+              [:h4 (:label item-1)]
+              [:h4 (:path (:selected item-1))]])]
           [:div.section.cant-grow
            [:h4 "Genes"]
            [venn]]
           [:div.section.align-left
-           (if-not item-2 [missing]
-                          [:div
-                           [:h4 (:label item-2)]
-                           [:h4 (:path (:selected item-2))]])]]
+           (if-not item-2
+             [missing]
+             [:div
+              [:h4 (:label item-2)]
+              [:h4 (:path (:selected item-2))]])]]
          [:div.controls
           [:div.btn.btn-info.btn-raised
            {:on-click perform-merge} "Perform Op"]]
@@ -282,7 +290,9 @@
 (defn debug []
   (let [saved-data-section (subscribe [:saved-data/section])]
     [:div
-     (json-html/edn->hiccup (:editor @saved-data-section))]))
+     (json-html/edn->hiccup (->
+                              (:editor @saved-data-section)
+                              (dissoc :results)))]))
 
 
 
