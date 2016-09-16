@@ -1,6 +1,6 @@
 (defproject redgenes "0.1.0-SNAPSHOT"
-  :dependencies [[org.clojure/clojure "1.8.0"]
-                 [org.clojure/clojurescript "1.9.89"]
+  :dependencies [[org.clojure/clojure "1.9.0-alpha12"]
+                 [org.clojure/clojurescript "1.9.229"]
                  [reagent "0.6.0"]
                  [binaryage/devtools "0.8.1"]
                  [re-frame "0.8.0"]
@@ -21,7 +21,8 @@
                  [com.rpl/specter "0.13.0"]
                  [servant "0.1.5"]
                  [com.lucasbradstreet/cljs-uuid-utils "1.0.2"]
-                 [com.andrewmcveigh/cljs-time "0.4.0"]]
+                 [com.andrewmcveigh/cljs-time "0.4.0"]
+                 [fipp "0.6.6"]]
 
   :plugins [[lein-cljsbuild "1.1.3"]
             [lein-less "1.7.5"]

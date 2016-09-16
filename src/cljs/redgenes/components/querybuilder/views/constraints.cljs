@@ -16,7 +16,7 @@
                                         [:li [:a (str (:name l))]]) @lists))])))
 
 (defn op []
-  (let [state (reagent/atom {:op "="})]
+  (let [state (reagent/atom {:q/op "="})]
     (fn [path]
       [:div
        [:span (clojure.string/join " > " path)]
@@ -25,17 +25,17 @@
          [:button.btn.btn-default.dropdown-toggle
           {:type        "button"
            :data-toggle "dropdown"}
-          (:op @state)
+          (:q/op @state)
           [:i.fa.fa-caret-down.pad-left-5]]
          (into [:ul.dropdown-menu]
-               (map (fn [op] [:li {:on-click (fn [] (swap! state assoc :op op))} [:a op]])) ops)]
+               (map (fn [op] [:li {:on-click (fn [] (swap! state assoc :q/op op))} [:a op]])) ops)]
         [:input.form-control
          {:type      "text"
-          :value     (:value @state)
-          :on-change (fn [e] (swap! state assoc :value (.. e -target -value)))}]
+          :value     (:q/value @state)
+          :on-change (fn [e] (swap! state assoc :q/value (.. e -target -value)))}]
         [:div.input-group-btn [list-dropdown]]]
        [:button.btn.btn-success
-        {:on-click (fn [] (dispatch [:query-builder/add-constraint (merge @state {:path path})]))} "Add"]])))
+        {:on-click (fn [] (dispatch [:query-builder/add-constraint (merge @state {:q/path path})]))} "Add"]])))
 
 (defn constraint []
   (fn [path]

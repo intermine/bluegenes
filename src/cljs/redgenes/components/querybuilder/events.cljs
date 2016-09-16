@@ -3,12 +3,14 @@
                    [com.rpl.specter :refer [traverse]])
   (:require [re-frame.core :as re-frame :refer [reg-event-db reg-event-fx reg-fx dispatch subscribe]]
             [redgenes.db :as db]
+            [redgenes.components.querybuilder.core :refer [build-query]]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
             [imcljs.search :as search]
             [imcljs.filters :as filters]
             [com.rpl.specter :as s]
             [clojure.string :as string]
-            [clojure.zip :as zip]))
+            [clojure.zip :as zip]
+            [cljs.reader :as reader]))
 
 #_(def im-zipper (zip/zipper
                    (fn branch? [node] true)
@@ -43,11 +45,11 @@
   :query-builder/add-constraint
   (fn [{db :db} [_ constraint]]
     {:db
-      (let [used-codes (last (sort (map :code (get-in db [:query-builder :query :where]))))
+      (let [used-codes (last (sort (map :q/code (get-in db [:query-builder :query :q/where]))))
             next-code  (if (nil? used-codes) "A" (next-letter used-codes))]
          (-> db
-             (update-in [:query-builder :query :where]
-               (fn [where] (conj where (merge constraint {:code next-code}))))
+             (update-in [:query-builder :query :q/where]
+               (fn [where] (conj where (merge constraint {:q/code next-code}))))
              (assoc-in [:query-builder :constraint] nil)))
      :dispatch [:query-builder/run-query]}))
 
@@ -65,19 +67,6 @@
                                        {:root @(subscribe [:mine-url])}
                                        query
                                        {:format "count"}))]))))
-
-(defn build-query
-  ([query]
-    (-> query
-      (update :select
-        (fn [views]
-          (map (fn [view] (string/join "." view)) views)))
-      (update :where
-        (fn [constraints]
-         (map (fn [constraint]
-                {:path  (string/join "." (:path constraint))
-                 :op    (:op constraint)
-                 :value (:value constraint)}) constraints))))))
 
 (reg-event-fx
   :query-builder/run-query
@@ -105,7 +94,7 @@
 (reg-event-fx
   :query-builder/remove-select
   (fn [{db :db} [_ path]]
-    {:db       (update-in db [:query-builder :query :select]
+    {:db       (update-in db [:query-builder :query :q/select]
                           (fn [views]
                             (remove #(= % path) views)))
      :dispatch :query-builder/run-query}))
@@ -113,7 +102,7 @@
 (reg-event-fx
   :query-builder/remove-constraint
   (fn [{db :db} [_ path]]
-    {:db       (update-in db [:query-builder :query :where]
+    {:db       (update-in db [:query-builder :query :q/where]
                           (fn [wheres]
                             (remove #(= % path) wheres)))
      :dispatch [:query-builder/run-query]}))
@@ -123,10 +112,20 @@
   (fn [db [_ path]]
     (assoc-in db [:query-builder :constraint] path)))
 
+(reg-event-db
+  :query-builder/set-logic
+  (fn [db [_ expression]]
+    (assoc-in db [:query-builder :query :q/logic] expression)))
+
+(reg-event-db
+  :query-builder/set-query
+  (fn [db [_ query-str]]
+    (assoc-in db [:query-builder :query] (reader/read-string query-str))))
+
 (reg-event-fx
   :query-builder/add-view
   (fn [{db :db} [_ path-vec]]
-    {:db       (update-in db [:query-builder :query :select]
+    {:db       (update-in db [:query-builder :query :q/select]
                           (fn [views]
                             (if (some #(= % path-vec) views)
                               (remove #(= % path-vec) views)
