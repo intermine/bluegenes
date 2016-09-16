@@ -10,8 +10,7 @@
             [redgenes.components.search.events :as search-full]
             [imcljs.assets :as assets]
             [redgenes.sections.objects.handlers]
-            [cljs-uuid-utils.core :as uuid]
-            [cljs-time.core :as t]))
+            [cljs-uuid-utils.core :as uuid]))
 
 (reg-event-db
   :initialize-db
@@ -132,25 +131,3 @@
   (fn [db [_ percent]]
     (assoc db :progress-bar-percent percent)))
 
-(reg-event-fx
-  :save-data
-  (fn [{db :db} [_ data]]
-    (let [new-id (str (uuid/make-random-uuid))]
-      {:db       (assoc-in db [:saved-data new-id]
-                           (merge data {:created (t/now)
-                                        :updated (t/now)}))
-       :dispatch [:open-saved-data-tooltip
-                  {:label (:label data)
-                   :id    new-id}]})))
-
-(reg-event-db
-  :open-saved-data-tooltip
-  (fn [db [_ data]]
-    (assoc-in db [:tooltip :saved-data] data)))
-
-(reg-event-db
-  :save-saved-data-tooltip
-  (fn [db [_ id label]]
-    (-> db
-        (assoc-in [:saved-data id :label] label)
-        (assoc-in [:tooltip :saved-data] nil))))

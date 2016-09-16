@@ -80,7 +80,7 @@
 (reg-sub
   :saved-data
   (fn [db _]
-    (:saved-data db)))
+    (:items (:saved-data db))))
 
 (reg-sub
   :tooltip
