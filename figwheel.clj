@@ -2,7 +2,7 @@
  '[figwheel-sidecar.repl-api :as ra]
  '[com.stuartsierra.component :as component]
  '[ring.component.jetty :refer [jetty-server]]
- '[ring.middleware.json :refer [wrap-json-response]]
+ '[ring.middleware.json :refer [wrap-json-response wrap-json-params]]
  '[ring.middleware.params :refer [wrap-params]]
  '[ring.util.response :refer [response]]
  '[redgenes.routes :as routes])
@@ -59,13 +59,16 @@
     config))
 
 (defn api [request]
-  (println request)
+  (println "request" request)
+  (println "body" (:body request) )
+;  (println "Test " (first (get (:params request) "paths")))
+  (println "params " (:params request))
   (routes/routes request))
 
 (def system
   (atom
    (component/system-map
-    :app-server (jetty-server {:app {:handler (wrap-params (wrap-json-response api))}, :port 3000})
+    :app-server (jetty-server {:app {:handler (wrap-json-response (wrap-params api))}, :port 3000})
     :figwheel   (map->Figwheel figwheel-config))))
 
 (defn start []

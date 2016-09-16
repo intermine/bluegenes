@@ -5,5 +5,7 @@
 
 
 (defn modelcount [paths]
-    {:Genes 14 :Genes.proteins 2 :hi (wcar* (car/get "Foo"))}
+    (println (str  "paths " (type (first paths)) " " paths))
+    (println "pathypoos" (map keyword (clojure.string/split paths #",")))
+    (select-keys (wcar* (car/get "model-count")) (map keyword (clojure.string/split paths #",")))
   )
