@@ -136,8 +136,8 @@
 (defn toolbar []
   [:div.btn-toolbar
    [:div.btn.btn-info.btn-raised
-    {:on-click toggle-editor} "Merge Lists"]
-   [:div.btn.btn-info.btn-raised
+    {:on-click toggle-editor} "Combine Results"]
+   #_[:div.btn.btn-info.btn-raised
     {:on-click count-all} "Count All"]])
 
 (defn breakdown-item [category-kw id path]
@@ -280,7 +280,7 @@
               [:h4 (:path (:selected item-2))]])]]
          [:div.controls
           [:div.btn.btn-info.btn-raised
-           {:on-click perform-merge} "Perform Op"]]
+           {:on-click perform-merge} "Save Results"]]
          #_[:div.section [merge-controls]]
          ]))))
 
@@ -330,5 +330,5 @@
             (into [:div.grid-4_md-3_sm-1.saved-data-container]
                   (map (fn [e] [saved-data-item e]) @filtered-items))]]
           [editor-drawer]
-          [debug]
+          ;[debug]
           ])})))
