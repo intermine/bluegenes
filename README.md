@@ -10,6 +10,12 @@ Download dependencies.
 bower install
 ```
 
+Fix a broken path in one of the bower dependencies.
+
+```
+$ echo '@import "../../bootstrap/less/variables.less";'>'resources/public/vendor/bootstrap-material-design/less/_import-bs-less.less'
+```
+
 Compile css file once.
 
 ```
