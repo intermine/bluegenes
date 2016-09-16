@@ -2,9 +2,17 @@
 
 ## Development Mode
 
-### Dependencies:
+## Prerequisites and Dependencies
 
-Download dependencies.
+You will need [Leiningen][lein] 2.0 or above installed (2.4+ to use the web-repl). This handles all
+java/clojure dependencies. As clojure is a JVM language, this requires a JDK (1.6+) be installed;
+please see your friendly java vendor for details.
+
+A [node-js][nodejs] environment is also required, which handles the
+installation of the javascript dependencies using [npm][npm] and
+[Bower][bower].
+
+### Download dependencies.
 
 ```
 bower install
@@ -66,3 +74,7 @@ If you only want to compile the clojurescript code:
 lein clean
 lein cljsbuild once min
 ```
+[lein]: https://github.com/technomancy/leiningen
+[bower]: http://bower.io/
+[npm]: https://www.npmjs.com/
+[nodejs]: https://nodejs.org/
