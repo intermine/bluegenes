@@ -134,8 +134,8 @@
 
 (reg-fx
   :perform-op
-  (fn [[q1 q2 op]]
-    (go (let [[r1 r2] (<! (operations/operation {:root "www.flymine.org/query"} q1 q2))
+  (fn [[mine-url q1 q2 op]]
+    (go (let [[r1 r2] (<! (operations/operation {:root mine-url} q1 q2))
               results (case op
                         :union (union r1 r2)
                         :intersection (intersection r1 r2)
@@ -159,7 +159,8 @@
   :saved-data/perform-operation
   (fn [{db :db}]
     (let [[item-1 item-2] (take 2 (get-in db [:saved-data :editor :selected-items]))
-          op (determine-op item-1 item-2)]
+          op (determine-op item-1 item-2)
+          mine-url (:mine-url db)]
       (let [q1 (assoc
                  (get-in db [:saved-data :items (:id item-1) :value])
                  :select [(:path item-1)]
@@ -174,7 +175,7 @@
 
         {:db         (assoc-in db [:saved-data :editor :editing?] true)
          :dispatch   [:saved-data/editor-is-editing true]
-         :perform-op [q1 q2 op]}))))
+         :perform-op [mine-url q1 q2 op]}))))
 
 
 (reg-event-db
@@ -184,17 +185,18 @@
 
 (reg-fx
   :count-me
-  (fn [[id query]]
+  (fn [[service id query]]
     (go (dispatch [:save-datum-count id (<! (search/raw-query-rows
-                                           {:root "www.flymine.org/query"}
-                                           query
-                                           {:format "count"}))]))))
+                                              {:root service}
+                                              query
+                                              {:format "count"}))]))))
 
 (reg-event-fx
   :saved-data/run-query-count
   (fn [{db :db} [_ [id {query :value}]]]
-    {:db       db
-     :count-me [id query]}))
+    (let [mine-url (:mine-url db)]
+      {:db       db
+       :count-me [mine-url id query]})))
 
 (reg-event-fx
   :saved-data/count-all

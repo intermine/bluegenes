@@ -137,7 +137,7 @@
   [:div.btn-toolbar
    [:div.btn.btn-info.btn-raised
     {:on-click toggle-editor} "Combine Results"]
-   #_[:div.btn.btn-info.btn-raised
+   [:div.btn.btn-info.btn-raised
     {:on-click count-all} "Count All"]])
 
 (defn breakdown-item [category-kw id path]
