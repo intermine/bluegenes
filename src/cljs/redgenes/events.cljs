@@ -48,6 +48,11 @@
   (fn [db [_ result]]
     (assoc db :who-am-i (:user result))))
 
+(reg-event-db
+  :update-mine-url
+  (fn [db [_ value]]
+    (assoc db :mine-url value)))
+
 (reg-event-fx
   :log-in
   (fn [{:keys [db]} _]
