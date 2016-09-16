@@ -64,19 +64,16 @@
 (reg-event-fx
   :save-data
   (fn [{db :db} [_ data]]
-    (let [new-id (str (uuid/make-random-uuid))
-          model  (get-in db [:assets :model])]
-      {:db       (assoc-in db [:saved-data :items new-id]
-                           (-> data
-                               (merge {:created (t/now)
-                                       :updated (t/now)
-                                       :parts   (get-parts model (:value data))
-                                       :id      new-id})))
-       :dispatch [:open-saved-data-tooltip
-                  {:label (:label data)
-                   :id    new-id}]})))
-
-
+    (let [new-id    (str (uuid/make-random-uuid))
+          model     (get-in db [:assets :model])
+          new-datum (-> data
+                        (merge {:created (t/now)
+                                :updated (t/now)
+                                :parts   (get-parts model (:value data))
+                                :id      new-id}))]
+      {:db            (assoc-in db [:saved-data :items new-id] new-datum)
+       :dispatch-many [[:open-saved-data-tooltip {:label (:label data) :id new-id}]
+                       [:saved-data/run-query-count [new-id new-datum]]]})))
 
 (reg-event-db
   :save-saved-data-tooltip
@@ -159,7 +156,7 @@
   :saved-data/perform-operation
   (fn [{db :db}]
     (let [[item-1 item-2] (take 2 (get-in db [:saved-data :editor :selected-items]))
-          op (determine-op item-1 item-2)
+          op       (determine-op item-1 item-2)
           mine-url (:mine-url db)]
       (let [q1 (assoc
                  (get-in db [:saved-data :items (:id item-1) :value])
