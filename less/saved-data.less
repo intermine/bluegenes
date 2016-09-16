@@ -17,8 +17,8 @@ div.saved-data-container {
 
     .category {
         font-size: 1em;
-        font-style: italic;
-        padding: 5px;
+       // font-style: italic;
+        padding: 3px;
         display: inline-block;
         margin: 2px;
     }
@@ -26,11 +26,17 @@ div.saved-data-container {
 
 }
 
+.spacer {
+    height: 1px;
+    box-shadow:inset 0px 0px 0px 1px #138076;
+    width: 100%;
+
+}
+
 .save-bar {
     position: relative;
     right: 0;
     top: 0;
-    text-align: right;
 }
 
 .edit-fade {
@@ -145,3 +151,37 @@ div.editable-items-drawer {
    color: important! lightgrey;
    opacity: 0.5;
 }
+
+.alert.alert-neutral {
+    background: #00544c;
+    color: white;
+}
+
+.sdi {
+    display: flex;
+    flex-direction: column;
+
+    .heading {
+        padding-bottom: 10px;
+        color: #93a5a3;
+    }
+}
+
+.grow {
+    flex: 1;
+}
+
+.foo-enter {
+  height: 0;
+  transition: height 0.27s ease-out;
+  }
+
+  .foo-leave {
+  height: 0;
+  transition: height 0.27s ease-out;
+  }
+
+  .foo-enter-active {
+  height: 2em;
+  opacity: 1;
+
