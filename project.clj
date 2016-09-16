@@ -27,8 +27,8 @@
                  [servant "0.1.5"]
                  [com.lucasbradstreet/cljs-uuid-utils "1.0.2"]
                  [com.andrewmcveigh/cljs-time "0.4.0"]
-                 [org.danielsz/system "0.3.1"]
-                 [com.taoensso/carmine "2.14.0"]]
+                 [com.taoensso/carmine "2.14.0"]
+                 [inflections "0.12.2"]]
 
   :plugins [[lein-cljsbuild "1.1.3"]
             [lein-less "1.7.5"]
@@ -37,6 +37,7 @@
   :aliases {"foreign" ["do"
                        ["shell" "curl" "-o" "resources/public/vendor/imtables.js" "http://cdn.intermine.org/js/intermine/im-tables/2.0.0/imtables.min.js"]
                        ["shell" "curl" "-o" "resources/public/vendor/im.min.js" "http://cdn.intermine.org/js/intermine/imjs/3.15.0/im.min.js"]]}
+
 
   :min-lein-version "2.5.3"
 

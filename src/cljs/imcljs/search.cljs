@@ -24,9 +24,11 @@
                  (go (let [root (utils/cleanse-url (:root service))
                            response (<! (http/post (str root "/query/results")
                                                    {:with-credentials? false
-                                                    :form-params       (merge options {:query (.toXML q)})}))]
+                                                    :form-params       (merge {:format "json"} options {:query (.toXML q)})}))]
                        (>! c (-> response :body))
-                       (close! c))))))
+                       (close! c))))
+               (fn [error]
+                 (println "ERROR" error))))
     c))
 
 
