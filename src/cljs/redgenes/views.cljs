@@ -17,9 +17,6 @@
             [redgenes.sections.help.views :as help]
             [accountant.core :refer [navigate!]]))
 
-(defn bob []
-  ())
-
 (defn debug-panel []
   (let [app-db (re-frame/subscribe [:app-db])]
     (fn []

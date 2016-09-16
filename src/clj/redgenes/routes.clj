@@ -1,10 +1,11 @@
 (ns redgenes.routes
   (:require [compojure.core :refer [GET POST defroutes context ANY]]
+            [redgenes.api.modelcount :refer [modelcount]]
             [ring.util.response :refer [response]]))
 
 
 (defroutes model-count
-  (POST "/" [paths] (println paths) (response {:Genes 14 :Genes.proteins 2}))
+  (POST "/" [paths] (response (modelcount paths)))
   )
 
 (defroutes routes
