@@ -3,7 +3,7 @@
                    [com.rpl.specter :refer [traverse]])
   (:require [re-frame.core :as re-frame :refer [reg-event-db reg-event-fx reg-fx dispatch subscribe]]
             [redgenes.db :as db]
-            [redgenes.components.querybuilder.core :refer [build-query]]
+            [redgenes.components.querybuilder.core :refer [build-query next-code]]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
             [imcljs.search :as search]
             [imcljs.filters :as filters]
@@ -37,16 +37,12 @@
       (assoc-in [:query-builder :query] nil)
       (assoc-in [:query-builder :count] nil))))
 
-(defn next-letter [letter]
-  (let [alphabet (into [] "ABCDEFGHIJKLMNOPQRSTUVWXYZ")]
-    (first (rest (drop-while (fn [n] (not= n letter)) alphabet)))))
-
 (reg-event-fx
   :query-builder/add-constraint
   (fn [{db :db} [_ constraint]]
     {:db
       (let [used-codes (last (sort (map :q/code (get-in db [:query-builder :query :q/where]))))
-            next-code  (if (nil? used-codes) "A" (next-letter used-codes))]
+            next-code  (if (nil? used-codes) "A" (next-code used-codes))]
          (-> db
              (update-in [:query-builder :query :q/where]
                (fn [where] (conj where (merge constraint {:q/code next-code}))))
@@ -115,7 +111,7 @@
 (reg-event-db
   :query-builder/set-logic
   (fn [db [_ expression]]
-    (assoc-in db [:query-builder :query :q/logic] expression)))
+    (assoc-in db [:query-builder :query :q/logic] (string/split expression #" "))))
 
 (reg-event-db
   :query-builder/set-query

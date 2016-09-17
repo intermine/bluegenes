@@ -1,4 +1,5 @@
 (ns redgenes.components.querybuilder.core
+  "Query Spec & core functions"
   (:require
     [clojure.string :as string]
     #?(:cljs [cljs.spec :as s]
@@ -31,26 +32,39 @@
 
 (s/def :q/closeparen #{")"})
 
-(s/def :q/code (into #{} (map (comp str char) (take 26 (iterate inc 65)))))
+(def alphabet
+  (map (comp str char)
+    (take 26 (iterate inc 65))))
+
+(def alphabet? (into #{} alphabet))
+
+(s/def :q/code alphabet?)
+
+(def next-code
+  (into {}
+    (map vector alphabet (rest alphabet))))
 
 (s/def :q/logicop #{"and" "or" "not"})
 
-(s/def :q/lc
+(s/def :q/logic
   (s/alt
-    :complex (s/cat :pair (s/+ (s/cat :code :q/code :logic :q/logicop)) :code :q/code)
+    :complex
+      (s/cat
+        :pair
+          (s/+
+            (s/cat
+              :code :q/code
+              :logic :q/logicop))
+        :code :q/code)
     :simple :q/code))
 
 (s/def :q/llc
   (s/cat :open :q/openparen ))
 
-(s/def :q/logic string?)
-
 (s/def :q/path (s/coll-of string?))
 
 ; "constraintLogic": "A or B",
 ; (A OR B) AND (C OR D)
-
-(s/def :q/code string?)
 
 (s/def :q/value (s/or :string string? :number number?))
 
@@ -69,13 +83,13 @@
 
 (s/def :q/query
   (s/keys
-    :req [:q/select :q/where]
+    :req [:q/select :q/where :q/logic]
     :opt [:q/thing]))
 
 (defn build-query
   "What the given query looks like
   now will shock you!"
-  ([{:keys [q/select q/where] :as query}]
+  ([{:keys [q/select q/where q/logic] :as query}]
     (-> {}
       (assoc :select
              (map (fn [view] (string/join "." view)) select))
@@ -84,4 +98,6 @@
                     {
                      :path  (string/join "." (:q/path constraint))
                      :op    (:q/op constraint)
-                     :value (:q/value constraint)}) where)))))
+                     :value (:q/value constraint)}) where))
+       (assoc :constraintLogic
+              (string/join " " logic)))))

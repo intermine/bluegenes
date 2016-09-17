@@ -5,10 +5,11 @@
             [json-html.core :as json]
             [com.rpl.specter :as s]
             [clojure.spec :as spec]
-            [redgenes.components.querybuilder.core :refer [build-query valid?]]
+            [redgenes.components.querybuilder.core :refer [build-query]]
             [redgenes.components.querybuilder.views.constraints :as constraints]
             [redgenes.components.table :as table]
-            [json-html.core :as json-html]))
+            [json-html.core :as json-html]
+            [clojure.string :as string]))
 
 (defn attribute []
   (let [qb-query (subscribe [:query-builder/query])]
@@ -103,16 +104,16 @@
              {
               :cols  128
               :rows  4
-              :style {:width      "calc(100% - 1em)" :height "4em"
+              :style {:width  "calc(100% - 1em)" :height "4em"
                       :border :none
                       :margin "1em"
                       :background
-                        (if (spec/valid? :q/query @query) "rgb(240,240,240)" :pink)}
-              :value (:q/logic @query)
+                              (if (spec/valid? :q/query @query) "rgb(240,240,240)" :pink)}
+              :value (string/join " " (:q/logic @query))
               :on-change
-                (fn [e]
-                  (dispatch [:query-builder/set-logic (.. e -target -value)]))
-                  }]
+                     (fn [e]
+                       (dispatch [:query-builder/set-logic (.. e -target -value)]))
+              }]
               [:textarea
                {
                 :cols  128
