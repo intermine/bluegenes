@@ -83,8 +83,8 @@
 
 (s/def :q/query
   (s/keys
-    :req [:q/select :q/where :q/logic]
-    :opt [:q/thing]))
+    :req [:q/select :q/where]
+    :opt [:q/logic]))
 
 (defn build-query
   "What the given query looks like

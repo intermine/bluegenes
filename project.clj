@@ -26,7 +26,8 @@
 
   :plugins [[lein-cljsbuild "1.1.3"]
             [lein-less "1.7.5"]
-            [lein-shell "0.5.0"]]
+            [lein-shell "0.5.0"]
+            [lein-cljfmt "0.5.5"]]
 
   :aliases {"foreign" ["do"
                        ["shell" "curl" "-o" "resources/public/vendor/imtables.js" "http://cdn.intermine.org/js/intermine/im-tables/2.0.0/imtables.min.js"]

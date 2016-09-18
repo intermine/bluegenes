@@ -9,6 +9,9 @@
 (defn get-ns [filename]
   (read-string (str "(" (slurp filename) ")")))
 
+(defn get-fns [ns]
+  (filter (comp #{'defn} first) ns))
+
 (defn reframe-fns
   ([form]
     (filter
