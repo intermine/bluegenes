@@ -97,7 +97,7 @@
   (-> db
     (assoc-in [:query-builder :query :q/logic]
       (try
-       (read-string (str "(" expression ")"))
+       (read-string (str "(" (string/upper-case expression) ")"))
        (catch #?(:clj Exception :cljs js/Error) e [])))
     (assoc-in [:query-builder :query :logic-str]
       expression)))

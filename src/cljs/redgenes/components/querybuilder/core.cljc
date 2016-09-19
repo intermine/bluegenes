@@ -55,7 +55,7 @@
 ; "constraintLogic": "A or B",
 ; (A OR B) AND (C OR D)
 
-(s/def :q/logicop #{'and 'or 'not})
+(s/def :q/logicop #{'AND 'OR 'NOT})
 
 (s/def :q/logic-expression
   (s/alt
