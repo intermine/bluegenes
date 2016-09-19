@@ -1,6 +1,6 @@
 (ns redgenes.sections.saveddata.events
   (:require-macros [cljs.core.async.macros :refer [go go-loop]]
-                   [com.rpl.specter.macros :refer [traverse select transform]])
+                   [com.rpl.specter :refer [traverse select transform]])
   (:require [re-frame.core :refer [reg-event-db reg-event-fx reg-fx dispatch]]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
             [imcljs.filters :as im-filters]

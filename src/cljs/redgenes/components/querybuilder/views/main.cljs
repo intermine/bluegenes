@@ -1,11 +1,15 @@
 (ns redgenes.components.querybuilder.views.main
-  (:require-macros [com.rpl.specter.macros :refer [traverse select]])
+  (:require-macros [com.rpl.specter :refer [traverse select]])
   (:require [reagent.core :as reagent]
             [re-frame.core :as re-frame :refer [subscribe dispatch]]
             [json-html.core :as json]
             [com.rpl.specter :as s]
+            [clojure.spec :as spec]
+            [redgenes.components.querybuilder.core :refer [build-query]]
             [redgenes.components.querybuilder.views.constraints :as constraints]
-            [json-html.core :as json-html]))
+            [redgenes.components.table :as table]
+            [json-html.core :as json-html]
+            [clojure.string :as string]))
 
 (defn attribute []
   (let [qb-query (subscribe [:query-builder/query])]
@@ -13,7 +17,7 @@
       (let [path-vec (conj path name)]
         [:div
          [:div.btn.btn-default.btn.btn-xxs
-          {:class    (if (some (fn [x] (= x path-vec)) (:select @qb-query))
+          {:class    (if (some (fn [x] (= x path-vec)) (:q/select @qb-query))
                        "btn-primary"
                        "btn-outline")
            :on-click (fn [] (dispatch [:query-builder/add-view path-vec]))}
@@ -48,8 +52,8 @@
 (defn tiny-constraint []
   (fn [details]
     [:span
-     [:span.pad-right-5 (str (:op details) " " (:value details))]
-     [:span.badge (:code details)]
+     [:span.pad-right-5 (str (:q/op details) " " (:q/value details))]
+     [:span.badge (:q/code details)]
      [:i.fa.fa-times.pad-left-5
       {:on-click (fn [] (dispatch [:query-builder/remove-constraint details]))}]]))
 
@@ -60,20 +64,22 @@
         [:div
          [:div
           [:span {:class (if (nil? v)
-                           (if (not-empty (filter #(= trail %) (:select @query)))
+                           (if (not-empty (filter #(= trail %) (:q/select @query)))
                              "label label-primary"
                              "label label-default"))}
            (str k)
            (into [:span] (map (fn [c] [tiny-constraint c])
-                              (filter (fn [t] (= trail (:path t))) (:where @query))))]]
+                           (filter (fn [t] (= trail (:q/path t))) (:q/where @query))))]]
          (if (map? v)
            (into [:ol.tree]
-                 (map (fn [m]
-                        [:li [tree-view m
-                              (conj trail (first m))]]) v)))]))))
+             (map (fn [m]
+                    [:li [tree-view m
+                          (conj trail (first m))]]) v)))]))))
 
 (defn main []
-  (let [query           (subscribe [:query-builder/query])
+  (let [
+        query           (subscribe [:query-builder/query])
+        queried?        (subscribe [:query-builder/queried?])
         result-count    (subscribe [:query-builder/count])
         counting?       (subscribe [:query-builder/counting?])
         edit-constraint (subscribe [:query-builder/current-constraint])]
@@ -92,7 +98,36 @@
               [constraints/constraint @edit-constraint]]])
           [:div.panel.panel-default
            [:div.panel-heading [:h4 "Query Overview"]]
-           [:div.panel-body [tree-view (flat->tree (concat (:select @query) (map :path (:where @query))))]
+           [:div.panel-body
+            [tree-view (flat->tree (concat (:q/select @query) (map :path (:q/where @query))))]
+            [:textarea
+             {
+              :cols  128
+              :rows  4
+              :style {:width  "calc(100% - 1em)" :height "4em"
+                      :border :none
+                      :margin "1em"
+                      :background
+                              (if (spec/valid? :q/query @query) "rgb(240,240,240)" :pink)}
+              :value (:logic-str @query)
+              :on-change
+                     (fn [e]
+                       (dispatch [:query-builder/set-logic (.. e -target -value)]))
+              }]
+              [:textarea
+               {
+                :cols  128
+                :rows  8
+                :style {:width      "calc(100% - 1em)" :height "8em"
+                        :border :none
+                        :margin "1em"
+                        :background
+                          (if (spec/valid? :q/query @query) "rgb(240,240,240)" :pink)}
+                :value (str @query)
+                :on-change
+                (fn [e]
+                  (dispatch [:query-builder/set-query (.. e -target -value)]))}]
+                [:button.btn.btn-primary {:on-click #(dispatch [:query-builder/reset-query])} "Reset"]
             [:div
              (if @counting?
                [:i.fa.fa-cog.fa-spin.fa-1x.fa-fw]
@@ -100,10 +135,12 @@
                  [:h3 (str @result-count " rows")]))]]]
           [:div.panel.panel-default
            [:div.panel-heading
-            [:h4 "Query Structure"]]
+            [:h4 "Results"]]
            ;[:span (json/edn->hiccup @query)]
            ;[:button.btn.btn-primary {:on-click #(dispatch [:qb-run-query])} "Run Count"]
            [:div.panel-body
-            [:button.btn.btn-primary {:on-click #(dispatch [:query-builder/reset-query])} "Reset"]]]]]]])))
+            (if (spec/valid? :q/query @query)
+            [table/main (build-query @query) true]
+            [:div {} (str (spec/explain-str :q/query @query))])]]]]]])))
 
 

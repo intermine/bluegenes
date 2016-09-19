@@ -1,6 +1,6 @@
 (ns redgenes.sections.saveddata.subs
   (:require-macros [reagent.ratom :refer [reaction]]
-                   [com.rpl.specter.macros :refer [traverse select transform]])
+                   [com.rpl.specter :refer [traverse select transform]])
   (:require [re-frame.core :refer [reg-sub]]
             [com.rpl.specter :as s]))
 
