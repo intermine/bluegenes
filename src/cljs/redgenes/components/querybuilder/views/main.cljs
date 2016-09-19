@@ -108,7 +108,7 @@
                       :border :none
                       :margin "1em"
                       :background
-                              (if (spec/valid? :q/query @query) "rgb(240,240,240)" :pink)}
+                              (if (spec/valid? :q/logic (:q/logic @query)) "rgb(240,240,240)" :pink)}
               :value (:logic-str @query)
               :on-change
                      (fn [e]

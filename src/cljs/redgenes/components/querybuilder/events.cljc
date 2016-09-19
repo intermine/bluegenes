@@ -31,8 +31,8 @@
                                       db
                                       [:query-builder :query :q/where]))))
                    next-code (if (nil? used-codes)
-                               "A"
-                               (next-code used-codes))]
+                               'A
+                               (symbol (next-code used-codes)))]
                (-> db
                  (update-in
                    [:query-builder :query :q/where]
@@ -96,7 +96,9 @@
   [db [_ expression]]
   (-> db
     (assoc-in [:query-builder :query :q/logic]
-      (string/split expression #" "))
+      (try
+       (read-string (str "(" expression ")"))
+       (catch #?(:clj Exception :cljs js/Error) e [])))
     (assoc-in [:query-builder :query :logic-str]
       expression)))
 
