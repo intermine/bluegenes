@@ -9,7 +9,8 @@
             [redgenes.components.querybuilder.views.constraints :as constraints]
             [redgenes.components.table :as table]
             [json-html.core :as json-html]
-            [clojure.string :as string]))
+            [clojure.string :as string]
+            [cljs.spec :as spec]))
 
 (defn attribute []
   (let [qb-query (subscribe [:query-builder/query])]
@@ -140,7 +141,7 @@
            ;[:button.btn.btn-primary {:on-click #(dispatch [:qb-run-query])} "Run Count"]
            [:div.panel-body
             (if (spec/valid? :q/query @query)
-            [table/main (build-query @query) true]
-            [:div {} (str (spec/explain-str :q/query @query))])]]]]]])))
+              [table/main (build-query @query) true]
+              [:div {} (str (spec/explain-str :q/query @query))])]]]]]])))
 
 

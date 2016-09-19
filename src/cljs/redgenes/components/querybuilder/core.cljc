@@ -59,18 +59,15 @@
 
 (s/def :q/logic-expression
   (s/alt
-    :complex
-    (s/cat
-      :expression :q/code
-      :logicoperation :q/logicop
-      :expression :q/code)
+    :complex (fn qwe [x] (list? x))
     :simple :q/code))
 
 (s/def :q/logic
-  (s/cat
-    :expression :q/logic-expression
-    :logicoperation :q/logicop
-    :expression :q/logic-expression))
+  (s/+
+    (s/cat
+     :expression1 :q/logic-expression
+     :logicoperation :q/logicop
+     :expression2 :q/logic-expression)))
 
 (s/def :q/path (s/coll-of string?))
 
