@@ -231,9 +231,3 @@
                (partial map
                         (fn [item]
                           (update-in item [:keep :intersection] not))))))
-
-
-
-
-
-

@@ -81,4 +81,3 @@
   :selected-template-category
   (fn [db _]
     (get-in db [:components :template-chooser :selected-template-category])))
-
