@@ -140,7 +140,7 @@
 
 (defn toolbar []
   [:div.btn-toolbar
-   [:div.btn.btn-warning.btn-raised
+   [:div.btn.btn-primary.btn-raised
     {:on-click toggle-editor}
     [:span [:i.fa.fa-pie-chart] " Combine Results"]]])
 
@@ -320,6 +320,7 @@
         [:form.form
          [:input.form-control.input-lg.square
           {:type      "text"
+           :placeholder "Filter text..."
            :style {:color "white"
                    :font-size "24px"}
            :on-change set-text-filter}]]]])))
@@ -332,12 +333,12 @@
        (fn [e] (let [node (-> e reagent/dom-node js/$)]))
        :reagent-render
        (fn []
-         [:div {:style {:margin-top "-10px"}}
+         [:div
           [:div.edit-fade
            {:class (if @edit-mode "show" "not-show")}]
           [:div.container-fluid
-           [toolbar]
            [text-filter]
+           [toolbar]
            [css-transition-group
             {:transition-name "foo"}
             (into [:div.grid-4_md-3_sm-1.saved-data-container]

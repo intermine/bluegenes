@@ -90,8 +90,6 @@
         (update-in db [:saved-data :editor] dissoc :filter)
         (assoc-in db [:saved-data :editor :filter] kw)))))
 
-
-
 (reg-event-db
   :saved-data/toggle-editable-item
   (fn [db [_ id path-info]]
@@ -150,7 +148,7 @@
           (dispatch [:save-data {:value query
                                  :type  :query
                                  :label "New Datum"}])
-          (dispatch [:saved-data/editor-is-editing false])))))
+          (dispatch [:saved-data/toggle-edit-mode])))))
 
 (reg-event-fx
   :saved-data/perform-operation
@@ -170,8 +168,8 @@
         ;(println "q1" q1)
         ;(println "q2" q2)
 
-        {:db         (assoc-in db [:saved-data :editor :editing?] true)
-         :dispatch   [:saved-data/editor-is-editing true]
+        {:db         (assoc-in db [:saved-data :editor :editing?] false)
+         :dispatch   [:saved-data/editor-is-editing false]
          :perform-op [mine-url q1 q2 op]}))))
 
 
