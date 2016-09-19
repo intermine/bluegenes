@@ -109,7 +109,7 @@
                       :margin "1em"
                       :background
                               (if (spec/valid? :q/query @query) "rgb(240,240,240)" :pink)}
-              :value (string/join " " (:q/logic @query))
+              :value (:logic-str @query)
               :on-change
                      (fn [e]
                        (dispatch [:query-builder/set-logic (.. e -target -value)]))

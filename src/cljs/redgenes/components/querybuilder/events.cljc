@@ -94,10 +94,11 @@
   "Returns the x for the given y"
   {:reframe-kind :event, :reframe-key :query-builder/set-logic}
   [db [_ expression]]
-  (assoc-in
-    db
-    [:query-builder :query :q/logic]
-    (string/split expression #" ")))
+  (-> db
+    (assoc-in [:query-builder :query :q/logic]
+      (string/split expression #" "))
+    (assoc-in [:query-builder :query :logic-str]
+      expression)))
 
 (defn set-query
   "Returns the x for the given y"
