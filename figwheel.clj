@@ -19,10 +19,6 @@
                      :output-dir           "resources/public/js/compiled/out"
                      :asset-path           "js/compiled/out"
                      :source-map-timestamp true
-                     ;:foreign-libs [{:file "resources/public/vendor/im.min.js"
-                     ;                :provides ["intermine.imjs"]}
-                     ;               {:file "resources/public/vendor/imtables.js"
-                     ;                :provides ["intermine.imtables"]}]
                      }}
 
      {:id           "min"
@@ -35,10 +31,6 @@
                      :optimizations   :advanced
                      :closure-defines {"goog.DEBUG" false}
                      :pretty-print    false
-                     ;:foreign-libs [{:file "resources/public/vendor/im.min.js"
-                     ;                :provides ["intermine.imjs"]}
-                     ;               {:file "resources/public/vendor/imtables.min.js"
-                     ;                :provides ["intermine.imtables"]}]
                      }}
      {:id           "test"
       :source-paths ["src/cljs" "test/cljs"]
@@ -59,16 +51,14 @@
     config))
 
 (defn api [request]
-  (println "request" request)
-  (println "body" (:body request) )
-;  (println "Test " (first (get (:params request) "paths")))
-  (println "params " (:params request))
-  (routes/routes request))
+  (wrap-json-response ;;turns a clojure response into json
+   (wrap-params       ;;reads the parameters of requesrs.
+     (routes/routes request))))
 
 (def system
   (atom
    (component/system-map
-    :app-server (jetty-server {:app {:handler (wrap-json-response (wrap-params api))}, :port 3000})
+    :app-server (jetty-server {:app {:handler api}, :port 3000})
     :figwheel   (map->Figwheel figwheel-config))))
 
 (defn start []
@@ -83,3 +73,5 @@
 
 (defn repl []
   (ra/cljs-repl))
+
+;;This file was composed with lots of help from the figwheel readme: https://github.com/bhauman/lein-figwheel 
