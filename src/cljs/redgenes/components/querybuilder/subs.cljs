@@ -8,6 +8,11 @@
     (:query (:query-builder db))))
 
 (reg-sub
+  :query-builder/used-codes
+  (fn [db _]
+    (:used-codes (:query-builder db))))
+
+(reg-sub
   :query-builder/queried?
   (fn [db _]
     (get-in db [:query-builder :queried?])))

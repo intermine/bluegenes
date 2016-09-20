@@ -1,6 +1,6 @@
 (ns redgenes.components.querybuilder.events
   (:require
-    [redgenes.components.querybuilder.core :refer [build-query next-code]]
+    [redgenes.components.querybuilder.core :refer [used-codes build-query next-code]]
     [com.rpl.specter :as s]
     [clojure.string :as string]
     [clojure.zip :as zip]
@@ -17,22 +17,21 @@
   [db [_ count]]
   (-> db
     (assoc-in [:query-builder :query] nil)
-    (assoc-in [:query-builder :count] nil)))
+    (assoc-in [:query-builder :count] nil)
+    (assoc-in [:query-builder :used-codes] nil)))
 
 (defn add-constraint-cofx
   "Returns the x for the given y"
   {:reframe-kind :cofx, :reframe-key :query-builder/add-constraint}
   [{db :db} [_ constraint]]
-  {:db       (let [used-codes (last
-                                (sort
-                                  (map
-                                    :q/code
-                                    (get-in
-                                      db
-                                      [:query-builder :query :q/where]))))
+  {:db       (let [used-codes
+                    (last (sort (map :q/code
+                                      (get-in
+                                        db
+                                        [:query-builder :query :q/where]))))
                    next-code (if (nil? used-codes)
-                               'A
-                               (symbol (next-code used-codes)))]
+                               "A"
+                               (next-code used-codes))]
                (-> db
                  (update-in
                    [:query-builder :query :q/where]

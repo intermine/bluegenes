@@ -36,21 +36,20 @@
   (map (comp str char)
     (take 26 (iterate inc 65))))
 
-(def next-letter
-  (into {} (map vector alphabet (rest (cycle alphabet)))))
+(defn next-letter [letter]
+  (first (rest (drop-while (fn [n] (not= n letter)) alphabet))))
 
 (def alphabet? (into #{} alphabet))
 
-(s/def :q/code symbol?)
+(s/def :q/code (comp alphabet? name))
 
 (defn next-code [code]
   (next-letter code))
 
 (defn used-codes
   ([db]
-   (into #{}
-     (map :q/code
-       (get-in db [:query-builder :query :q/where])))))
+   (map :q/code
+     (get-in db [:query-builder :query :q/where]))))
 
 ; "constraintLogic": "A or B",
 ; (A OR B) AND (C OR D)
