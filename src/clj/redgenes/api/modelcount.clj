@@ -1,6 +1,7 @@
 (ns redgenes.api.modelcount
   (:require [ring.util.response :refer [response]]
             [redgenes.redis :refer [wcar*]]
+            [redgenes.whitelist :as whitelist]
             [clojure.string :refer [split trim]]
             [redgenes.api.modelcountcacher :as cacher]
             [ring.middleware.params :refer [wrap-params]]
@@ -22,12 +23,10 @@
   ;;TODO: add mine to the options and make model-count a map containing mine keys and an array of counts
   ;; ie model-count : {flymine: [Gene, Gene.proteins, Proteins], mousemine: [Gene]} etc...
   ;;use hget for this: http://redis.io/topics/data-types-intro#redis-hashes
-  ;;TODO 2: when this gets more advanced ensure it is self documenting in some way. swagger, openapi, other?
-
-;;DIS GOOD  (println "======1" (:body (cacher/load-model)))
-
+  ;;TODO 2: when this gets more advanced ensure it is self documenting in some way. swagger, openapi,
 
 (defn cache []
   (println "KEYS ==" (keys (:body (cacher/load-model))))
+  (println "Whitelist" whitelist/whitelist)
   (println "model" (keys (:classes (:model (:body (cacher/load-model))))))
   )
