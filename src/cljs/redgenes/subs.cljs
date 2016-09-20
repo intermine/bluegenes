@@ -38,11 +38,6 @@
     (:fetching-report? db)))
 
 (reg-sub
-  :templates
-  (fn [db _]
-    (:templates (:assets db))))
-
-(reg-sub
   :runnable-templates
   (fn [db _]
     (:templates (:report db))))
@@ -80,7 +75,7 @@
 (reg-sub
   :saved-data
   (fn [db _]
-    (:saved-data db)))
+    (:items (:saved-data db))))
 
 (reg-sub
   :tooltip

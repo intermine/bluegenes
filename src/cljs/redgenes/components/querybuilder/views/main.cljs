@@ -4,13 +4,8 @@
             [re-frame.core :as re-frame :refer [subscribe dispatch]]
             [json-html.core :as json]
             [com.rpl.specter :as s]
-            [clojure.spec :as spec]
-            [redgenes.components.querybuilder.core :refer [build-query]]
             [redgenes.components.querybuilder.views.constraints :as constraints]
-            [redgenes.components.table :as table]
-            [json-html.core :as json-html]
-            [clojure.string :as string]
-            [cljs.spec :as spec]))
+            [json-html.core :as json-html]))
 
 (defn attribute []
   (let [qb-query (subscribe [:query-builder/query])]
@@ -18,7 +13,7 @@
       (let [path-vec (conj path name)]
         [:div
          [:div.btn.btn-default.btn.btn-xxs
-          {:class    (if (some (fn [x] (= x path-vec)) (:q/select @qb-query))
+          {:class    (if (some (fn [x] (= x path-vec)) (:select @qb-query))
                        "btn-primary"
                        "btn-outline")
            :on-click (fn [] (dispatch [:query-builder/add-view path-vec]))}
@@ -38,15 +33,14 @@
           [:i.fa.fa-minus-square.pad-right]
           [:i.fa.fa-plus-square.pad-right])
         class]
-       (if @open
-        (into [:ul]
-         (concat
-           (map (fn [[_ details]]
-                  [:li.leaf [attribute (:name details) path]]) (sort (-> @model class :attributes)))
-           (map (fn [[_ details]]
-                  [tree
-                   (keyword (:referencedType details))
-                   (conj path (:name details))]) (sort (-> @model class :collections))))))])))
+       (if @open (into [:ul]
+                       (concat
+                         (map (fn [[_ details]]
+                                [:li.leaf [attribute (:name details) path]]) (sort (-> @model class :attributes)))
+                         (map (fn [[_ details]]
+                                [tree
+                                 (keyword (:referencedType details))
+                                 (conj path (:name details))]) (sort (-> @model class :collections))))))])))
 
 (defn flat->tree [paths]
   (first (into [] (reduce (fn [total next] (assoc-in total next nil)) {} paths))))
@@ -54,8 +48,8 @@
 (defn tiny-constraint []
   (fn [details]
     [:span
-     [:span.pad-right-5 (str (:q/op details) " " (:q/value details))]
-     [:span.badge (:q/code details)]
+     [:span.pad-right-5 (str (:op details) " " (:value details))]
+     [:span.badge (:code details)]
      [:i.fa.fa-times.pad-left-5
       {:on-click (fn [] (dispatch [:query-builder/remove-constraint details]))}]]))
 
@@ -66,83 +60,47 @@
         [:div
          [:div
           [:span {:class (if (nil? v)
-                           (if (not-empty (filter #(= trail %) (:q/select @query)))
+                           (if (not-empty (filter #(= trail %) (:select @query)))
                              "label label-primary"
                              "label label-default"))}
            (str k)
            (into [:span] (map (fn [c] [tiny-constraint c])
-                           (filter (fn [t] (= trail (:q/path t))) (:q/where @query))))]]
+                              (filter (fn [t] (= trail (:path t))) (:where @query))))]]
          (if (map? v)
            (into [:ol.tree]
-             (map (fn [m]
-                    [:li [tree-view m
-                          (conj trail (first m))]]) v)))]))))
+                 (map (fn [m]
+                        [:li [tree-view m
+                              (conj trail (first m))]]) v)))]))))
 
 (defn main []
-  (let [
-        query           (subscribe [:query-builder/query])
-        queried?        (subscribe [:query-builder/queried?])
+  (let [query           (subscribe [:query-builder/query])
         result-count    (subscribe [:query-builder/count])
         counting?       (subscribe [:query-builder/counting?])
         edit-constraint (subscribe [:query-builder/current-constraint])]
     (fn []
-      [:div.container-fluid.full-height
-       [:div.row.full-height
-        [:div.col-md-6.full-height
-         [:div.panel.panel-default.full-height
+      [:div.querybuilder.row
+         [:div.col-sm-6
+         [:div.panel.panel-default
           [:div.panel-heading [:h4 "Data Model"]]
           [:div.panel-body [:ol.tree [tree :Gene ["Gene"] true]]]]]
-        [:div.col-md-6.full-height
-         [:div.row.full-height
+        [:div.col-sm-6
+         [:div
           (if @edit-constraint
             [:div.panel.panel-default
              [:div.panel-body
               [constraints/constraint @edit-constraint]]])
-          [:div.panel.panel-default.full-height
+          [:div.panel.panel-default
            [:div.panel-heading [:h4 "Query Overview"]]
-           [:div.panel-body
-            [tree-view (flat->tree (concat (:q/select @query) (map :path (:q/where @query))))]
-            [:textarea
-             {
-              :cols  128
-              :rows  4
-              :style {:width  "calc(100% - 1em)" :height "4em"
-                      :border :none
-                      :margin "1em"
-                      :background
-                              (if (spec/valid? :q/logic (:q/logic @query)) "rgb(240,240,240)" :pink)}
-              :value (:logic-str @query)
-              :on-change
-                     (fn [e]
-                       (dispatch [:query-builder/set-logic (.. e -target -value)]))
-              }]
-              [:textarea
-               {
-                :cols  128
-                :rows  8
-                :style {:width      "calc(100% - 1em)" :height "8em"
-                        :border :none
-                        :margin "1em"
-                        :background
-                          (if (spec/valid? :q/query @query) "rgb(240,240,240)" :pink)}
-                :value (str @query)
-                :on-change
-                (fn [e]
-                  (dispatch [:query-builder/set-query (.. e -target -value)]))}]
-                [:button.btn.btn-primary {:on-click #(dispatch [:query-builder/reset-query])} "Reset"]
-            (comment [:div
-              (if @counting?
-                [:i.fa.fa-cog.fa-spin.fa-1x.fa-fw]
-                (if @result-count
-                  [:h3 (str @result-count " rows")]))])]]
+           [:div.panel-body [tree-view (flat->tree (concat (:select @query) (map :path (:where @query))))]
+            [:div
+             (if @counting?
+               [:i.fa.fa-cog.fa-spin.fa-1x.fa-fw]
+               (if @result-count
+                 [:h3 (str @result-count " rows")]))]]]
           [:div.panel.panel-default
            [:div.panel-heading
-            [:h4 "Results"]]
+            [:h4 "Query Structure"]]
            ;[:span (json/edn->hiccup @query)]
            ;[:button.btn.btn-primary {:on-click #(dispatch [:qb-run-query])} "Run Count"]
            [:div.panel-body
-            (if (spec/valid? :q/query @query)
-              [table/main (build-query @query) true]
-              [:div {} (str (spec/explain-str :q/query @query))])]]]]]])))
-
-
+            [:button.btn.btn-primary {:on-click #(dispatch [:query-builder/reset-query])} "Reset"]]]]]])))
