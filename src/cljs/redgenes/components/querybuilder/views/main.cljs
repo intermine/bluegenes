@@ -78,14 +78,13 @@
         counting?       (subscribe [:query-builder/counting?])
         edit-constraint (subscribe [:query-builder/current-constraint])]
     (fn []
-      [:div.querybuilder
-       [:div.row
-        [:div.col-sm-6
+      [:div.querybuilder.row
+         [:div.col-sm-6
          [:div.panel.panel-default
           [:div.panel-heading [:h4 "Data Model"]]
           [:div.panel-body [:ol.tree [tree :Gene ["Gene"] true]]]]]
         [:div.col-sm-6
-         [:div.row
+         [:div
           (if @edit-constraint
             [:div.panel.panel-default
              [:div.panel-body
@@ -104,6 +103,4 @@
            ;[:span (json/edn->hiccup @query)]
            ;[:button.btn.btn-primary {:on-click #(dispatch [:qb-run-query])} "Run Count"]
            [:div.panel-body
-            [:button.btn.btn-primary {:on-click #(dispatch [:query-builder/reset-query])} "Reset"]]]]]]])))
-
-
+            [:button.btn.btn-primary {:on-click #(dispatch [:query-builder/reset-query])} "Reset"]]]]]])))
