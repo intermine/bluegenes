@@ -23,15 +23,13 @@
   "Returns the x for the given y"
   {:reframe-kind :cofx, :reframe-key :query-builder/add-constraint}
   [{db :db} [_ constraint]]
-  {:db       (let [used-codes (last
-                                (sort
-                                  (map
-                                    :q/code
-                                    (get-in
-                                      db
-                                      [:query-builder :query :q/where]))))
+  {:db       (let [used-codes
+                    (last (sort (map :q/code
+                                      (get-in
+                                        db
+                                        [:query-builder :query :q/where]))))
                    next-code (if (nil? used-codes)
-                               "A"
+                               "AA"
                                (next-code used-codes))]
                (-> db
                  (update-in

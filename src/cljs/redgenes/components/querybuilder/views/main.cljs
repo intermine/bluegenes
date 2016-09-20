@@ -128,11 +128,11 @@
                 (fn [e]
                   (dispatch [:query-builder/set-query (.. e -target -value)]))}]
                 [:button.btn.btn-primary {:on-click #(dispatch [:query-builder/reset-query])} "Reset"]
-            [:div
-             (if @counting?
-               [:i.fa.fa-cog.fa-spin.fa-1x.fa-fw]
-               (if @result-count
-                 [:h3 (str @result-count " rows")]))]]]
+            (comment [:div
+              (if @counting?
+                [:i.fa.fa-cog.fa-spin.fa-1x.fa-fw]
+                (if @result-count
+                  [:h3 (str @result-count " rows")]))])]]
           [:div.panel.panel-default
            [:div.panel-heading
             [:h4 "Results"]]

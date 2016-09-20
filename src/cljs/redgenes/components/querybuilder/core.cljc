@@ -33,7 +33,7 @@
 (s/def :q/closeparen #{")"})
 
 (def alphabet
-  (map (comp str char)
+  (map (comp (partial str "A") char)
     (take 26 (iterate inc 65))))
 
 (def alphabet? (into #{} alphabet))
