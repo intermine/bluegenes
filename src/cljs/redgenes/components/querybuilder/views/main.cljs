@@ -84,14 +84,13 @@
         counting?       (subscribe [:query-builder/counting?])
         edit-constraint (subscribe [:query-builder/current-constraint])]
     (fn []
-      [:div.querybuilder
-       [:div.row
-        [:div.col-sm-6
+      [:div.querybuilder.row
+         [:div.col-sm-6
          [:div.panel.panel-default
           [:div.panel-heading [:h4 "Data Model"]]
           [:div.panel-body [:ol.tree [tree :Gene ["Gene"] true]]]]]
         [:div.col-sm-6
-         [:div.row
+         [:div
           (if @edit-constraint
             [:div.panel.panel-default
              [:div.panel-body
@@ -141,6 +140,4 @@
            [:div.panel-body
             (if (spec/valid? :q/query @query)
             [table/main (build-query @query) true]
-            [:div {} (str (spec/explain-str :q/query @query))])]]]]]])))
-
-
+            [:div {} (str (spec/explain-str :q/query @query))])]]]]])))

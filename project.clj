@@ -3,6 +3,7 @@
   [figwheel-sidecar "0.5.4-7"]
                  [org.clojure/clojurescript "1.9.229"]
                  [reagent "0.6.0"]
+                 [cljsjs/react-with-addons "15.3.1-0"]
                  [binaryage/devtools "0.8.1"]
                  [re-frame "0.8.0"]
                  [secretary "1.2.3"]

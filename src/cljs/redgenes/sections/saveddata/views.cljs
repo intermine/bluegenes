@@ -4,12 +4,11 @@
             [reagent.core :as reagent]
             [redgenes.sections.saveddata.subs]
             [cljs-time.format :as tf]
+            [cljs-time.core :as t]
             [json-html.core :as json-html]
             [accountant.core :refer [navigate!]]
             [inflections.core :refer [plural]]
             [clojure.string :refer [join]]))
-
-
 
 (defn circle-intersections
   "Determines the pair of X and Y coordinates where two circles intersect."
@@ -118,8 +117,14 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(def css-transition-group
+  (reagent/adapt-react-class js/React.addons.CSSTransitionGroup))
 
-(def built-in-formatter (tf/formatter "HH:mm:ss dd/MM/YYYY"))
+
+(def built-in-formatter (tf/formatter "HH:mm dd/MM/YYYY"))
+
+(def time-formatter (tf/formatter "HH:mm"))
+(def date-formatter (tf/formatter "dd/MM/YYYY"))
 
 (defn toggle-editor []
   (dispatch [:saved-data/toggle-edit-mode]))
@@ -135,10 +140,9 @@
 
 (defn toolbar []
   [:div.btn-toolbar
-   [:div.btn.btn-info.btn-raised
-    {:on-click toggle-editor} "Combine Results"]
-   [:div.btn.btn-info.btn-raised
-    {:on-click count-all} "Count All"]])
+   [:div.btn.btn-primary.btn-raised
+    {:on-click toggle-editor}
+    [:span [:i.fa.fa-pie-chart] " Combine Results"]]])
 
 (defn breakdown-item [category-kw id path]
   (let [model (subscribe [:model])
@@ -187,42 +191,40 @@
 (defn editable-breakdown []
   (let [model (subscribe [:model])]
     (fn [id deconstructed-query]
-      [:div.panel.panel-default
-       (into [:div.panel-body]
-             (map (fn [[category-kw paths]]
-                    (let [display-name (plural (get-in @model [category-kw :displayName]))
-                          path-count   (count paths)]
-                      (if (> path-count 1)
-                        ^{:key {:id id :paths paths}}
-                        [breakdown-item-dropdown category-kw id paths]
-                        ^{:key {:id id :paths (first paths)}}
-                        [breakdown-item category-kw id (first paths)])))
-                  deconstructed-query))])))
+      (into [:div.panel.panel-body]
+            (map (fn [[category-kw paths]]
+                   (let [display-name (plural (get-in @model [category-kw :displayName]))
+                         path-count   (count paths)]
+                     (if (> path-count 1)
+                       ^{:key {:id id :paths paths}}
+                       [breakdown-item-dropdown category-kw id paths]
+                       ^{:key {:id id :paths (first paths)}}
+                       [breakdown-item category-kw id (first paths)])))
+                 deconstructed-query)))))
 
 (defn simple-breakdown []
   (let [model (subscribe [:model])]
     (fn [deconstructed-query]
-      [:div.panel.panel-default
-       (into [:div.panel-body]
-             (map (fn [category-kw]
-                    (let [display-name (plural (get-in @model [category-kw :displayName]))]
-                      [:div.category display-name]))
-                  (keys deconstructed-query)))])))
+      (into [:div]
+            (map (fn [category-kw]
+                   (let [display-name (plural (get-in @model [category-kw :displayName]))]
+                     [:div.category display-name]))
+                 (keys deconstructed-query))))))
 
-(defn saved-data-item []
+#_(defn saved-data-item []
   (let [edit-mode (subscribe [:saved-data/edit-mode])]
     (fn [{:keys [count id parts created label type value] :as all}]
       [:div.col
        [:div.saved-data-item.panel.panel-default
         [:div.panel-heading
          [:div.save-bar
-          [:span (tf/unparse built-in-formatter created)]
+          [:span.badge (str count "rows")]
+          [:span.pull-right (tf/unparse built-in-formatter created)]
           ;[:i.fa.fa-2x.fa-times]
           ;[:i.fa.fa-2x.fa-star]
           ]]
         [:div.panel-body
          [:h3 (str label)]
-         [:h3 (str count)]
          (if @edit-mode
            [editable-breakdown id parts]
            [simple-breakdown parts])
@@ -230,26 +232,39 @@
           {:on-click (fn []
                        (dispatch ^:flush-dom [:results/set-query value])
                        (navigate! "#/results"))}
-          "View"]]]])))
+          "View"]
+         ]]])))
 
-(defn blank-item []
-  [:div.blank-item
-   [:h1 "Choose Item"]])
-
-(defn editor-item []
-  (fn [item]
-    [:div.blank-item
-     [:h4 (:label item)]
-     [:span (str (get-in item [:value :select]))]]))
-
-
-(defn merge-controls []
-  (let [items (subscribe [:saved-data/editor-items])]
-    (fn []
-      [:div
-       [:button.btn.btn-primary.btn-raised
-        {:on-click (fn []
-                     (dispatch [:saved-data/perform-operation]))} "Perform"]])))
+(defn sdi []
+  (let [edit-mode (subscribe [:saved-data/edit-mode])]
+    (fn [{:keys [count id parts created label type value] :as all}]
+      [:div.col
+       [:div.sdi.alert.alert-neutral
+        [:div.heading
+         [:div.save-bar
+          {:style {:text-align "right"}}
+          [:i.fa.fa-trash-o]]
+         [:div.save-bar
+          [:span (str count "rows")]
+          [:span.pull-right
+           [:span (if (t/after? created (t/today-at-midnight))
+                    "Today"
+                    (tf/unparse date-formatter created))]
+           [:span (str " " (tf/unparse time-formatter created))]]]]
+        [:h4.grow (str label)]
+        [:div.spacer]
+        (if @edit-mode
+          [editable-breakdown id parts]
+          [simple-breakdown parts])
+        ;[:div.spacer]
+        [:div.btn-toolbar
+         {:style {:text-align "right"}}
+         [:button.btn.btn-primary.btn-raised
+          {:on-click (fn []
+                       (dispatch ^:flush-dom [:results/set-query value])
+                       (navigate! "#/results"))}
+          [:span "View"]]
+         ]]])))
 
 
 (defn missing []
@@ -280,12 +295,7 @@
               [:h4 (:path (:selected item-2))]])]]
          [:div.controls
           [:div.btn.btn-info.btn-raised
-           {:on-click perform-merge} "Save Results"]]
-         #_[:div.section [merge-controls]]
-         ]))))
-
-
-
+           {:on-click perform-merge} "Save Results"]]]))))
 
 (defn debug []
   (let [saved-data-section (subscribe [:saved-data/section])]
@@ -300,15 +310,19 @@
   (let [text           (subscribe [:saved-data/text-filter])
         filtered-items (subscribe [:saved-data/filtered-items])]
     (fn []
-      [:div.panel.panel-default
+      [:div.alert
        {:class (cond
-                 (and @text (not-empty @filtered-items)) (str "panel-success")
-                 (empty? @filtered-items) (str "panel-warning"))}
+                 (nil? @text) "alert-neutral"
+                 (and @text (not-empty @filtered-items)) (str "alert-neutral")
+                 (empty? @filtered-items) (str "alert-warning"))}
        [:div.panel-heading "Search"]
        [:div.panel-body
         [:form.form
          [:input.form-control.input-lg.square
           {:type      "text"
+           :placeholder "Filter text..."
+           :style {:color "white"
+                   :font-size "24px"}
            :on-change set-text-filter}]]]])))
 
 (defn main []
@@ -319,16 +333,17 @@
        (fn [e] (let [node (-> e reagent/dom-node js/$)]))
        :reagent-render
        (fn []
-         [:div {:style {:margin-top "-10px"}}
-
-          [toolbar]
+         [:div
           [:div.edit-fade
            {:class (if @edit-mode "show" "not-show")}]
           [:div.container-fluid
-           [:div.container
-            [text-filter]
+           [text-filter]
+           [toolbar]
+           [css-transition-group
+            {:transition-name "foo"}
             (into [:div.grid-4_md-3_sm-1.saved-data-container]
-                  (map (fn [e] [saved-data-item e]) @filtered-items))]]
+                  (map (fn [e]
+                         ^{:key (:id e)} [sdi e]) @filtered-items))]]
           [editor-drawer]
           ;[debug]
           ])})))
