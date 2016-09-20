@@ -33,38 +33,45 @@
 (s/def :q/closeparen #{")"})
 
 (def alphabet
-  (map (comp (partial str "A") char)
+  (map (comp str char)
     (take 26 (iterate inc 65))))
+
+(def next-letter
+  (into {} (map vector alphabet (rest (cycle alphabet)))))
 
 (def alphabet? (into #{} alphabet))
 
-(s/def :q/code alphabet?)
+(s/def :q/code symbol?)
 
-(def next-code
-  (into {}
-    (map vector alphabet (rest alphabet))))
+(defn next-code [code]
+  (next-letter code))
 
-(s/def :q/logicop #{"and" "or" "not"})
-
-(s/def :q/logic
-  (s/alt
-    :complex
-      (s/cat
-        :pair
-          (s/+
-            (s/cat
-              :code :q/code
-              :logic :q/logicop))
-        :code :q/code)
-    :simple :q/code))
-
-(s/def :q/llc
-  (s/cat :open :q/openparen ))
-
-(s/def :q/path (s/coll-of string?))
+(defn used-codes
+  ([db]
+   (into #{}
+     (map :q/code
+       (get-in db [:query-builder :query :q/where])))))
 
 ; "constraintLogic": "A or B",
 ; (A OR B) AND (C OR D)
+
+(s/def :q/logicop #{'AND 'OR 'NOT})
+
+(s/def :q/logic-expression
+  (s/or
+    :complex
+      (fn qwe [x]
+        (list? x))
+    :simple :q/code))
+
+(s/def :q/logic
+  (s/+
+    (s/cat
+     :expression1 :q/logic-expression
+     :logicoperation :q/logicop
+     :expression2 :q/logic-expression)))
+
+(s/def :q/path (s/coll-of string?))
 
 (s/def :q/value (s/or :string string? :number number?))
 
@@ -89,7 +96,7 @@
 (defn build-query
   "What the given query looks like
   now will shock you!"
-  ([{:keys [q/select q/where q/logic] :as query}]
+  ([{:keys [q/select q/where logic-str] :as query}]
     (-> {}
       (assoc :select
              (map (fn [view] (string/join "." view)) select))
@@ -99,5 +106,4 @@
                      :path  (string/join "." (:q/path constraint))
                      :op    (:q/op constraint)
                      :value (:q/value constraint)}) where))
-       (assoc :constraintLogic
-              (string/join " " logic)))))
+       (assoc :constraintLogic logic-str))))

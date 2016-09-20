@@ -9,7 +9,8 @@
             [redgenes.components.querybuilder.views.constraints :as constraints]
             [redgenes.components.table :as table]
             [json-html.core :as json-html]
-            [clojure.string :as string]))
+            [clojure.string :as string]
+            [cljs.spec :as spec]))
 
 (defn attribute []
   (let [qb-query (subscribe [:query-builder/query])]
@@ -37,14 +38,15 @@
           [:i.fa.fa-minus-square.pad-right]
           [:i.fa.fa-plus-square.pad-right])
         class]
-       (if @open (into [:ul]
-                       (concat
-                         (map (fn [[_ details]]
-                                [:li.leaf [attribute (:name details) path]]) (sort (-> @model class :attributes)))
-                         (map (fn [[_ details]]
-                                [tree
-                                 (keyword (:referencedType details))
-                                 (conj path (:name details))]) (sort (-> @model class :collections))))))])))
+       (if @open
+        (into [:ul]
+         (concat
+           (map (fn [[_ details]]
+                  [:li.leaf [attribute (:name details) path]]) (sort (-> @model class :attributes)))
+           (map (fn [[_ details]]
+                  [tree
+                   (keyword (:referencedType details))
+                   (conj path (:name details))]) (sort (-> @model class :collections))))))])))
 
 (defn flat->tree [paths]
   (first (into [] (reduce (fn [total next] (assoc-in total next nil)) {} paths))))
@@ -84,19 +86,19 @@
         counting?       (subscribe [:query-builder/counting?])
         edit-constraint (subscribe [:query-builder/current-constraint])]
     (fn []
-      [:div.querybuilder
-       [:div.row
-        [:div.col-sm-6
-         [:div.panel.panel-default
+      [:div.container-fluid.full-height
+       [:div.row.full-height
+        [:div.col-md-6.full-height
+         [:div.panel.panel-default.full-height
           [:div.panel-heading [:h4 "Data Model"]]
           [:div.panel-body [:ol.tree [tree :Gene ["Gene"] true]]]]]
-        [:div.col-sm-6
-         [:div.row
+        [:div.col-md-6.full-height
+         [:div.row.full-height
           (if @edit-constraint
             [:div.panel.panel-default
              [:div.panel-body
               [constraints/constraint @edit-constraint]]])
-          [:div.panel.panel-default
+          [:div.panel.panel-default.full-height
            [:div.panel-heading [:h4 "Query Overview"]]
            [:div.panel-body
             [tree-view (flat->tree (concat (:q/select @query) (map :path (:q/where @query))))]
@@ -108,8 +110,8 @@
                       :border :none
                       :margin "1em"
                       :background
-                              (if (spec/valid? :q/query @query) "rgb(240,240,240)" :pink)}
-              :value (string/join " " (:q/logic @query))
+                              (if (spec/valid? :q/logic (:q/logic @query)) "rgb(240,240,240)" :pink)}
+              :value (:logic-str @query)
               :on-change
                      (fn [e]
                        (dispatch [:query-builder/set-logic (.. e -target -value)]))
@@ -140,7 +142,7 @@
            ;[:button.btn.btn-primary {:on-click #(dispatch [:qb-run-query])} "Run Count"]
            [:div.panel-body
             (if (spec/valid? :q/query @query)
-            [table/main (build-query @query) true]
-            [:div {} (str (spec/explain-str :q/query @query))])]]]]]])))
+              [table/main (build-query @query) true]
+              [:div {} (str (spec/explain-str :q/query @query))])]]]]]])))
 
 

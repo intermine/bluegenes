@@ -42,6 +42,9 @@
        ~@(rest fn-def)))))
 
 (defn transform-fns
+  "
+  e.g. (spit './src/mynewnamespace.cljc' (transform-fns (get-ns './src/mynamespace.cljs')))
+  "
   ([forms]
     (map
       (fn [form]

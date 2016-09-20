@@ -23,14 +23,16 @@
   "Returns the x for the given y"
   {:reframe-kind :cofx, :reframe-key :query-builder/add-constraint}
   [{db :db} [_ constraint]]
-  {:db       (let [used-codes
-                    (last (sort (map :q/code
-                                      (get-in
-                                        db
-                                        [:query-builder :query :q/where]))))
+  {:db       (let [used-codes (last
+                                (sort
+                                  (map
+                                    :q/code
+                                    (get-in
+                                      db
+                                      [:query-builder :query :q/where]))))
                    next-code (if (nil? used-codes)
-                               "AA"
-                               (next-code used-codes))]
+                               'A
+                               (symbol (next-code used-codes)))]
                (-> db
                  (update-in
                    [:query-builder :query :q/where]
@@ -92,10 +94,13 @@
   "Returns the x for the given y"
   {:reframe-kind :event, :reframe-key :query-builder/set-logic}
   [db [_ expression]]
-  (assoc-in
-    db
-    [:query-builder :query :q/logic]
-    (string/split expression #" ")))
+  (-> db
+    (assoc-in [:query-builder :query :q/logic]
+      (try
+       (read-string (str "(" (string/upper-case expression) ")"))
+       (catch #?(:clj Exception :cljs js/Error) e [])))
+    (assoc-in [:query-builder :query :logic-str]
+      expression)))
 
 (defn set-query
   "Returns the x for the given y"
