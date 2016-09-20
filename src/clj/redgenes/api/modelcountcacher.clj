@@ -1,5 +1,7 @@
 (ns redgenes.api.modelcountcacher
-  (:require [clj.http :refer [get]]))
+  (:require [clj-http.client :as client]))
 
-  (def server1-conn {:pool {} :spec {:host "127.0.0.1" :port 6379}}) ; See `wcar` docstring for opts
-  (defmacro wcar* [& body] `(car/wcar server1-conn ~@body))
+
+(defn load-model []
+  (require '[clojure.core.async :as async :refer :all])
+  (client/get "http://beta.flymine.org/query/service/model?format=json" {:keywordize-keys? true :as :json}))

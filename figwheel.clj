@@ -50,16 +50,16 @@
     (ra/stop-figwheel!)
     config))
 
-(defn api [request]
-  (wrap-json-response ;;turns a clojure response into json
-   (wrap-params       ;;reads the parameters of requesrs.
-     (routes/routes request))))
+    (defn api [request]
+    ;  (wrap-json-response ;;turns a clojure response into json
+    ;   (wrap-params       ;;reads the parameters of requesrs.
+         (routes/routes request));))
 
-(def system
-  (atom
-   (component/system-map
-    :app-server (jetty-server {:app {:handler api}, :port 3000})
-    :figwheel   (map->Figwheel figwheel-config))))
+    (def system
+      (atom
+       (component/system-map
+        :app-server (jetty-server {:app {:handler (wrap-json-response (wrap-params api))}, :port 3000})
+        :figwheel   (map->Figwheel figwheel-config))))
 
 (defn start []
   (swap! system component/start))
@@ -74,4 +74,4 @@
 (defn repl []
   (ra/cljs-repl))
 
-;;This file was composed with lots of help from the figwheel readme: https://github.com/bhauman/lein-figwheel 
+;;This file was composed with lots of help from the figwheel readme: https://github.com/bhauman/lein-figwheel

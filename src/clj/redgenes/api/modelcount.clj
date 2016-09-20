@@ -2,6 +2,8 @@
   (:require [ring.util.response :refer [response]]
             [redgenes.redis :refer [wcar*]]
             [clojure.string :refer [split trim]]
+            [redgenes.api.modelcountcacher :as cacher]
+            [ring.middleware.params :refer [wrap-params]]
             [taoensso.carmine :as car :refer (wcar)]))
 
 
@@ -21,3 +23,11 @@
   ;; ie model-count : {flymine: [Gene, Gene.proteins, Proteins], mousemine: [Gene]} etc...
   ;;use hget for this: http://redis.io/topics/data-types-intro#redis-hashes
   ;;TODO 2: when this gets more advanced ensure it is self documenting in some way. swagger, openapi, other?
+
+;;DIS GOOD  (println "======1" (:body (cacher/load-model)))
+
+
+(defn cache []
+  (println "KEYS ==" (keys (:body (cacher/load-model))))
+  (println "model" (keys (:classes (:model (:body (cacher/load-model))))))
+  )

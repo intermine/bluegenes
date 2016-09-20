@@ -82,7 +82,6 @@
 (defmethod panels :list-analysis-panel [] [analyse/main])
 (defmethod panels :saved-data-panel [] [saved-data/main])
 (defmethod panels :help-panel [] [help/main])
-
 (defmethod panels :querybuilder-panel [] [:div.container [querybuilder/main]])
 (defmethod panels :default [] [:div])
 
