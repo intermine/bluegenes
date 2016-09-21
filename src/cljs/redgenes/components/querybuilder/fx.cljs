@@ -47,5 +47,6 @@
      #'redgenes.components.querybuilder.events/set-logic
      #'redgenes.components.querybuilder.events/set-query
      #'redgenes.components.querybuilder.events/add-view-cofx
+     #'redgenes.components.querybuilder.events/set-where-path
      #'run-query!]]
   (register! v))

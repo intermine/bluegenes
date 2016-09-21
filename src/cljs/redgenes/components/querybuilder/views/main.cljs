@@ -54,7 +54,9 @@
 (defn tiny-constraint []
   (fn [{:keys [:q/op :q/value :q/code] :as details} i]
     [:span
-     [:span.pad-right-5 (str " " op)]
+     [:span.pad-right-5.qb_constraint_op
+      {:on-click (fn [e] (dispatch [:query-builder/set-where-path [:q/where i :q/op]]))}
+      (str " " op)]
      [:input
       {:type      :text :value value :default-value 0
        :style {:color :grey}

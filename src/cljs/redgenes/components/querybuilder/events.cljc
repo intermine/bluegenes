@@ -41,11 +41,21 @@
    :dispatch [:query-builder/run-query]})
 
 (defn change-constraint-value
-  ""
+  "Returns the given db with the :q/where constraint value at given index
+  changed to given value"
   {:reframe-kind :event, :reframe-key :query-builder/change-constraint-value}
   [db [_ index value]]
   (-> db
     (assoc-in [:query-builder :query :q/where index :q/value] value)))
+
+(defn set-where-path
+  ""
+  {:reframe-kind :event, :reframe-key :query-builder/set-where-path}
+  [db [_ path]]
+  (-> db
+    (assoc-in
+      [:query-builder :query :path] path)))
+
 
 (defn handle-count
   "Returns the x for the given y"
