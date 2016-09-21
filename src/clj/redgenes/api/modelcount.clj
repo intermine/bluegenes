@@ -1,7 +1,6 @@
 (ns redgenes.api.modelcount
   (:require [ring.util.response :refer [response]]
             [redgenes.redis :refer [wcar*]]
-            [redgenes.whitelist :as whitelist]
             [clojure.string :refer [split trim]]
             [redgenes.api.modelcountcacher :as cacher]
             [ring.middleware.params :refer [wrap-params]]
@@ -25,8 +24,8 @@
   ;;use hget for this: http://redis.io/topics/data-types-intro#redis-hashes
   ;;TODO 2: when this gets more advanced ensure it is self documenting in some way. swagger, openapi,
 
-(defn cache []
-  (println "KEYS ==" (keys (:body (cacher/load-model))))
-  (println "Whitelist" whitelist/whitelist)
-  (println "model" (keys (:classes (:model (:body (cacher/load-model))))))
+(defn cache
+  "Methos to manually kick off a cache-refresh. probably will be moved to a batch job when this is fully developed. "
+  []
+  (cacher/load-model)
   )

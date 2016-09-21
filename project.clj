@@ -31,7 +31,8 @@
                  [com.andrewmcveigh/cljs-time "0.4.0"]
                  [com.taoensso/carmine "2.14.0"]
                  [inflections "0.12.2"]
-                 [fipp "0.6.6"]]
+                 [fipp "0.6.6"]
+                 [http-kit "2.1.18"]]
 
   :plugins [[lein-cljsbuild "1.1.3"]
             [lein-less "1.7.5"]
