@@ -25,10 +25,10 @@
   {:reframe-kind :cofx, :reframe-key :query-builder/add-constraint}
   [{db :db} [_ constraint]]
   {:db       (let [used-codes
-                    (last (sort (map :q/code
-                                      (get-in
-                                        db
-                                        [:query-builder :query :q/where]))))
+                   (last (sort (map :q/code
+                                 (get-in
+                                   db
+                                   [:query-builder :query :q/where]))))
                    next-code (if (nil? used-codes)
                                "A"
                                (next-code used-codes))]
@@ -36,9 +36,16 @@
                  (update-in
                    [:query-builder :query :q/where]
                    (fn [where]
-                     (conj where (merge constraint {:q/code next-code}))))
+                     (conj (or where []) (merge constraint {:q/code next-code}))))
                  (assoc-in [:query-builder :constraint] nil))),
    :dispatch [:query-builder/run-query]})
+
+(defn change-constraint-value
+  ""
+  {:reframe-kind :event, :reframe-key :query-builder/change-constraint-value}
+  [db [_ index value]]
+  (-> db
+    (assoc-in [:query-builder :query :q/where index :q/value] value)))
 
 (defn handle-count
   "Returns the x for the given y"

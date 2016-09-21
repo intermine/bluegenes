@@ -52,10 +52,14 @@
   (first (into [] (reduce (fn [total next] (assoc-in total next nil)) {} paths))))
 
 (defn tiny-constraint []
-  (fn [details]
+  (fn [{:keys [:q/op :q/value :q/code] :as details} i]
     [:span
-     [:span.pad-right-5 (str (:q/op details) " " (:q/value details))]
-     [:span.badge (:q/code details)]
+     [:span.pad-right-5 (str " " op)]
+     [:input
+      {:type      :text :value value :default-value 0
+       :style {:color :grey}
+       :on-change (fn [e] (dispatch [:query-builder/change-constraint-value i (.. e -target -value)]))}]
+     [:span.badge code]
      [:i.fa.fa-times.pad-left-5
       {:on-click (fn [] (dispatch [:query-builder/remove-constraint details]))}]]))
 
@@ -70,7 +74,8 @@
                              "label label-primary"
                              "label label-default"))}
            (str k)
-           (into [:span] (map (fn [c] [tiny-constraint c])
+           (into [:span] (map (fn [i c] [tiny-constraint c i])
+                           (range)
                            (filter (fn [t] (= trail (:q/path t))) (:q/where @query))))]]
          (if (map? v)
            (into [:ol.tree]
