@@ -37,6 +37,7 @@
     [
      #'redgenes.components.querybuilder.events/reset-query
      #'redgenes.components.querybuilder.events/add-constraint-cofx
+     #'redgenes.components.querybuilder.events/change-constraint-value
      #'redgenes.components.querybuilder.events/handle-count
      #'redgenes.components.querybuilder.events/run-query-cofx
      #'redgenes.components.querybuilder.events/make-tree
@@ -46,5 +47,6 @@
      #'redgenes.components.querybuilder.events/set-logic
      #'redgenes.components.querybuilder.events/set-query
      #'redgenes.components.querybuilder.events/add-view-cofx
+     #'redgenes.components.querybuilder.events/set-where-path
      #'run-query!]]
   (register! v))

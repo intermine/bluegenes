@@ -22,13 +22,15 @@
 
 (defn add-constraint-cofx
   "Returns the x for the given y"
-  {:reframe-kind :cofx, :reframe-key :query-builder/add-constraint}
+  {:reframe-kind :cofx,
+  :reframe-key :query-builder/add-constraint
+  :undo-str "add constraint"}
   [{db :db} [_ constraint]]
   {:db       (let [used-codes
-                    (last (sort (map :q/code
-                                      (get-in
-                                        db
-                                        [:query-builder :query :q/where]))))
+                   (last (sort (map :q/code
+                                 (get-in
+                                   db
+                                   [:query-builder :query :q/where]))))
                    next-code (if (nil? used-codes)
                                "A"
                                (next-code used-codes))]
@@ -36,9 +38,28 @@
                  (update-in
                    [:query-builder :query :q/where]
                    (fn [where]
-                     (conj where (merge constraint {:q/code next-code}))))
+                     (conj (or where []) (merge constraint {:q/code next-code}))))
                  (assoc-in [:query-builder :constraint] nil))),
    :dispatch [:query-builder/run-query]})
+
+(defn change-constraint-value
+  "Returns the given db with the :q/where constraint value at given index
+  changed to given value"
+  {:reframe-kind :event
+  :reframe-key :query-builder/change-constraint-value
+  :undo-str "change constraint value"}
+  [db [_ index value]]
+  (-> db
+    (assoc-in [:query-builder :query :q/where index :q/value] value)))
+
+(defn set-where-path
+  ""
+  {:reframe-kind :event, :reframe-key :query-builder/set-where-path}
+  [db [_ path]]
+  (-> db
+    (assoc-in
+      [:query-builder :query :path] path)))
+
 
 (defn handle-count
   "Returns the x for the given y"
@@ -75,7 +96,8 @@
 (defn remove-constraint-cofx
   "Returns the x for the given y"
   {:reframe-kind :cofx,
-   :reframe-key  :query-builder/remove-constraint}
+   :reframe-key  :query-builder/remove-constraint
+   :undo-str "remove constraint"}
   [{db :db} [_ path]]
   {:db       (update-in
                db
