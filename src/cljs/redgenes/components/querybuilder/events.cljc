@@ -13,7 +13,9 @@
 
 (defn reset-query
   "Returns the x for the given y"
-  {:reframe-kind :event, :reframe-key :query-builder/reset-query}
+  {:reframe-kind :event
+   :reframe-key :query-builder/reset-query
+   :undoable? true}
   [db [_ count]]
   (-> db
     (assoc-in [:query-builder :query] nil)
@@ -23,8 +25,9 @@
 (defn add-constraint-cofx
   "Returns the x for the given y"
   {:reframe-kind :cofx,
-  :reframe-key :query-builder/add-constraint
-  :undo-str "add constraint"}
+  :reframe-key   :query-builder/add-constraint
+  :undoable?     true
+  :undo-exp      "add constraint"}
   [{db :db} [_ constraint]]
   {:db       (let [used-codes
                    (last (sort (map :q/code
@@ -46,8 +49,9 @@
   "Returns the given db with the :q/where constraint value at given index
   changed to given value"
   {:reframe-kind :event
-  :reframe-key :query-builder/change-constraint-value
-  :undo-str "change constraint value"}
+   :reframe-key  :query-builder/change-constraint-value
+   :undoable?    true
+   :undo-exp     (fn [db [_ index value]] (str "change constraint " index " to " value))}
   [db [_ index value]]
   (-> db
     (assoc-in [:query-builder :query :q/where index :q/value] value)))
@@ -59,7 +63,6 @@
   (-> db
     (assoc-in
       [:query-builder :query :path] path)))
-
 
 (defn handle-count
   "Returns the x for the given y"
@@ -97,7 +100,8 @@
   "Returns the x for the given y"
   {:reframe-kind :cofx,
    :reframe-key  :query-builder/remove-constraint
-   :undo-str "remove constraint"}
+   :undoable?    true
+   :undo-exp     "remove constraint"}
   [{db :db} [_ path]]
   {:db       (update-in
                db
@@ -107,13 +111,17 @@
 
 (defn add-filter
   "Returns the x for the given y"
-  {:reframe-kind :event, :reframe-key :query-builder/add-filter}
+  {:reframe-kind :event,
+   :reframe-key :query-builder/add-filter
+   :undoable? true}
   [db [_ path]]
   (assoc-in db [:query-builder :constraint] path))
 
 (defn set-logic
   "Returns the x for the given y"
-  {:reframe-kind :event, :reframe-key :query-builder/set-logic}
+  {:reframe-kind :event
+   :reframe-key :query-builder/set-logic
+   :undoable? true}
   [db [_ expression]]
   (-> db
     (assoc-in [:query-builder :query :q/logic]
@@ -134,7 +142,9 @@
 
 (defn add-view-cofx
   "Returns the x for the given y"
-  {:reframe-kind :cofx, :reframe-key :query-builder/add-view}
+  {:reframe-kind :cofx
+   :reframe-key :query-builder/add-view
+   :undoable? true}
   [{db :db} [_ path-vec]]
   {:db       (update-in
                db

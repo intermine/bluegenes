@@ -8,22 +8,24 @@
 (defn register!
   ([v]
    (register! @v (meta v)))
-  ([f {reframe-key :reframe-key
+  ([f {reframe-key  :reframe-key
        reframe-kind :reframe-kind
-       naym :name
-       undoable? :undoable?
-       undo-str :undo-str :or {undoable? true}}]
+       naym         :name
+       undoable?    :undoable?
+       undo-exp     :undo-exp
+       :or {undoable? false}}]
+       (println ">>" (fn? undo-exp))
    #?(:cljs
       (case reframe-kind
         :event
           (if undoable?
             (reg-event-db reframe-key
-              (if undo-str (undoable undo-str) (undoable)) f)
+              (if undo-exp (undoable undo-exp) (undoable)) f)
             (reg-event-db reframe-key f))
         :cofx
           (if undoable?
             (reg-event-fx reframe-key
-              (if undo-str (undoable undo-str) (undoable)) f)
+              (if undo-exp (undoable undo-exp) (undoable)) f)
             (reg-event-fx reframe-key f))
          :fx     (reg-fx reframe-key f))
       :clj
@@ -37,3 +39,12 @@
     }))
 
 ;(register! #'reset-query)
+
+
+; A and B or B
+; (A and B) or B
+
+; A and B or B or A and A or B
+; (A and B) or B or (A and A) or B
+
+; (A and (B or A or (A and B))) or B or (A and A) or B

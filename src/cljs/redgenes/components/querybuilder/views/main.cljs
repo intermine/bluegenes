@@ -150,7 +150,8 @@
                     (map
                      (fn [explanation i]
                        [:div.undo.buttony
-                        {:on-click (fn [e] (dispatch [:undo i]))
+                        {:key i
+                          :on-click (fn [e] (dispatch [:undo i]))
                          :title    explanation}])
                      @undo-explanations (range (count @undo-explanations) 0 -1))]]
             (comment [:div
