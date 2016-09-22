@@ -64,7 +64,7 @@
     :simple :q/code))
 
 (s/def :q/logic
-  (s/+
+  (s/*
     (s/cat
      :expression1 :q/logic-expression
      :logicoperation :q/logicop

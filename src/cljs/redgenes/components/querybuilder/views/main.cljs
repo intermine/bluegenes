@@ -70,8 +70,9 @@
                              "label label-primary"
                              "label label-default"))}
            (str k)
-           (into [:span] (map (fn [c] [tiny-constraint c])
-                           (filter (fn [t] (= trail (:q/path t))) (:q/where @query))))]]
+           (into [:span]
+            (map (fn [c] [tiny-constraint c])
+              (filter (fn [t] (= trail (:q/path t))) (:q/where @query))))]]
          (if (map? v)
            (into [:ol.tree]
              (map (fn [m]
