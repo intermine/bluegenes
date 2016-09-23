@@ -5,7 +5,7 @@
             [json-html.core :as json]
             [com.rpl.specter :as s]
             [clojure.spec :as spec]
-            [redgenes.components.querybuilder.core :refer [build-query]]
+            [redgenes.components.querybuilder.core :refer [build-query where-tree]]
             [redgenes.components.querybuilder.views.constraints :as constraints]
             [redgenes.components.table :as table]
             [json-html.core :as json-html]
@@ -51,39 +51,41 @@
 (defn flat->tree [paths]
   (first (into [] (reduce (fn [total next] (assoc-in total next nil)) {} paths))))
 
-(defn tiny-constraint []
-  (fn [{:keys [:q/op :q/value :q/code] :as details} i]
-    [:span.qb-tiny-constraint
-     [:span.pad-right-5.qb-constraint-op
-      {:on-click (fn [e] (dispatch [:query-builder/set-where-path [:q/where i :q/op]]))}
-      (str " " op)]
-     [:input.qb-constraint-value
-      {:type      :text :value value :default-value 0
-        :size 9
-       :on-change (fn [e] (dispatch [:query-builder/change-constraint-value i (.. e -target -value)]))}]
-     [:span.badge code]
-     [:i.fa.fa-times.pad-left-5.buttony
-      {:on-click (fn [] (dispatch [:query-builder/remove-constraint details]))}]]))
+(defn tiny-constraint
+  [{:keys [:q/op :q/value :q/code] :as constraint} i]
+  [:li.qb-tiny-constraint
+    {:key i}
+   [:span.pad-right-5.qb-constraint-op
+    {:on-click (fn [e] (dispatch [:query-builder/set-where-path [:q/where i :q/op]]))}
+    (str " " op)]
+   [:input.qb-constraint-value
+    {:type      :text :value value :default-value 0
+     :size      9
+     :on-change (fn [e] (dispatch [:query-builder/change-constraint-value i (.. e -target -value)]))}]
+   [:span.badge code]
+   [:i.fa.fa-times.pad-left-5.buttony
+    {:on-click (fn [] (dispatch [:query-builder/remove-constraint constraint]))}]])
 
-(defn tree-view []
-  (let [query (subscribe [:query-builder/query])]
-    (fn [[k v] trail]
-      (let [trail (if (nil? trail) [k] trail)]
-        [:div
-         [:div
-          [:span {:class (if (nil? v)
-                           (if (not-empty (filter #(= trail %) (:q/select @query)))
-                             "label label-primary"
-                             "label label-default"))}
-           (str k)
-           (into [:span] (map (fn [i c] [tiny-constraint c i])
-                           (range)
-                           (filter (fn [t] (= trail (:q/path t))) (:q/where @query))))]]
-         (if (map? v)
-           (into [:ol.tree]
-             (map (fn [m]
-                    [:li [tree-view m
-                          (conj trail (first m))]]) v)))]))))
+(defn tree-view
+  ([query]
+    (tree-view query (where-tree query)))
+  ([{:keys [:q/select :q/where] :as query} clauses]
+     [:ul.query-tree
+      (map (partial tree-view query where) clauses)])
+    ([{:keys [:q/select] :as query} where [k v]]
+       [:li.query-item
+        {
+         :key   k
+         :class "qwe"}
+         k
+          (if (map? v)
+            [tree-view query v]
+            [:ul.query-constraint
+              {:key k}
+              (map
+                (fn [c i]
+                  [tiny-constraint c i])
+                  v (range))])]))
 
 (defn main []
   (let [
@@ -113,7 +115,7 @@
           [:div.panel.panel-default.full-height
            [:div.panel-heading [:h4 "Query Overview"]]
            [:div.panel-body
-            [tree-view (flat->tree (concat (:q/select @query) (map :path (:q/where @query))))]
+            [tree-view @query]
             [:textarea
              {
               :cols  128

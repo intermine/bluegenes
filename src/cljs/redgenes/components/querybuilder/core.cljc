@@ -51,6 +51,13 @@
    (map :q/code
      (get-in db [:query-builder :query :q/where]))))
 
+(defn where-tree
+  ([{:keys [:q/where]}]
+    (reduce
+      (fn [r {:keys [:q/path] :as c}]
+        (update-in r path (fn [z] (conj (or z []) c))))
+    {} where)))
+
 ; "constraintLogic": "A or B",
 ; (A OR B) AND (C OR D)
 

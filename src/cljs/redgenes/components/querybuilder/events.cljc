@@ -20,7 +20,8 @@
   (-> db
     (assoc-in [:query-builder :query] nil)
     (assoc-in [:query-builder :count] nil)
-    (assoc-in [:query-builder :used-codes] nil)))
+    (assoc-in [:query-builder :used-codes] nil)
+    (assoc-in [:query-builder :where-tree] nil)))
 
 (defn add-constraint-cofx
   "Returns the x for the given y"
@@ -93,7 +94,7 @@
   {:db       (update-in
                db
                [:query-builder :query :q/select]
-               (fn [views] (remove #(= % path) views)))
+               (fn [views] (dissoc views path)))
    :dispatch :query-builder/run-query})
 
 (defn remove-constraint-cofx
@@ -150,7 +151,8 @@
                db
                [:query-builder :query :q/select]
                (fn [views]
-                 (if (some #(= % path-vec) views)
-                   (remove #(= % path-vec) views)
-                   (conj views path-vec)))),
+                 (let [views (or views #{})]
+                  (if (views path-vec)
+                    (disj views path-vec)
+                    (conj views path-vec)))))
    :dispatch [:query-builder/run-query]})
