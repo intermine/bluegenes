@@ -68,24 +68,26 @@
 
 (defn tree-view
   ([query]
-    (tree-view query (where-tree query)))
-  ([{:keys [:q/select :q/where] :as query} clauses]
+    (tree-view query [] (where-tree query)))
+  ([query path things]
      [:ul.query-tree
-      (map (partial tree-view query where) clauses)])
-    ([{:keys [:q/select] :as query} where [k v]]
-       [:li.query-item
-        {
-         :key   k
-         :class "qwe"}
-         k
-          (if (map? v)
-            [tree-view query v]
-            [:ul.query-constraint
-              {:key k}
-              (map
-                (fn [c i]
-                  [tiny-constraint c i])
-                  v (range))])]))
+      (map (partial tree-view query things path) things)])
+  ([{:keys [:q/select] :as query} things path [k v]]
+   (let [path (conj path k)]
+    [:li.query-item
+     {
+      :key   k
+      :class (if (select path) "query-selected" "query-not-selected")
+      }
+     k
+     (if (map? v)
+       [tree-view query path v]
+       [:ul.query-constraint
+        {:key k}
+        (map
+          (fn [c i]
+            [tiny-constraint c i])
+          v (range))])])))
 
 (defn main []
   (let [
