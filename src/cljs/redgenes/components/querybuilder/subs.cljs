@@ -8,6 +8,11 @@
     (:query (:query-builder db))))
 
 (reg-sub
+  :query-builder/io-query
+  (fn [db _]
+    (:io-query (:query-builder db))))
+
+(reg-sub
   :query-builder/used-codes
   (fn [db _]
     (:used-codes (:query-builder db))))

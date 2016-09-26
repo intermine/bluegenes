@@ -141,6 +141,15 @@
     [:query-builder :query]
     (read-string query-str)))
 
+(defn update-io-query
+  "Returns the x for the given y"
+  {:reframe-kind :event, :reframe-key :query-builder/update-io-query}
+  [db [_ query]]
+  (assoc-in
+    db
+    [:query-builder :io-query]
+    (build-query query)))
+
 (defn add-view-cofx
   "Returns the x for the given y"
   {:reframe-kind :cofx

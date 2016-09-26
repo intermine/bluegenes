@@ -14,7 +14,7 @@
        undoable?    :undoable?
        undo-exp     :undo-exp
        :or {undoable? false}}]
-       (println ">>" (fn? undo-exp))
+      ;(println ">>" (fn? undo-exp))
    #?(:cljs
       (case reframe-kind
         :event

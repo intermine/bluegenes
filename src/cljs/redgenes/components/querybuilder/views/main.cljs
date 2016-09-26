@@ -77,7 +77,9 @@
     [:li.query-item
      {
       :key   k
-      :class (if (select path) "query-selected" "query-not-selected")
+      :class
+        (if (select path)
+        "query-selected" "query-not-selected")
       }
      k
      (if (map? v)
@@ -93,6 +95,7 @@
   (let [
         used-codes      (subscribe [:query-builder/used-codes])
         query           (subscribe [:query-builder/query])
+        io-query        (subscribe [:query-builder/io-query])
         queried?        (subscribe [:query-builder/queried?])
         result-count    (subscribe [:query-builder/count])
         counting?       (subscribe [:query-builder/counting?])
@@ -121,12 +124,12 @@
             [:textarea
              {
               :cols  128
-              :rows  4
-              :style {:width  "calc(100% - 1em)" :height "4em"
+              :rows  2
+              :style {:width  "calc(100% - 1em)" :height "2em"
                       :border :none
                       :margin "1em"
                       :background
-                              (if (spec/valid? :q/logic (:q/logic @query)) "rgb(240,240,240)" :pink)}
+                        (if (spec/valid? :q/logic (:q/logic @query)) "rgb(240,240,240)" :pink)}
               :value (:logic-str @query)
               :on-change
                      (fn [e]
@@ -147,6 +150,7 @@
                 (fn [e]
                   (dispatch [:query-builder/set-query (.. e -target -value)]))}]
                 [:button.btn.btn-primary {:on-click #(dispatch [:query-builder/reset-query])} "Reset"]
+                [:button.btn.btn-primary {:on-click #(dispatch [:query-builder/update-io-query @query])} "Update"]
                 [:button.btn.btn-primary {:on-click #(dispatch [:undo])} "Undo"]
                 [:button.btn.btn-primary {:on-click #(dispatch [:redo])} "Redo"]
                 [:span.btn
@@ -157,7 +161,14 @@
                         {:key i
                           :on-click (fn [e] (dispatch [:undo i]))
                          :title    explanation}])
-                     @undo-explanations (range (count @undo-explanations) 0 -1))]]
+                     @undo-explanations (range (count @undo-explanations) 0 -1))
+                     (map
+                       (fn [explanation i]
+                         [:div.redo.buttony
+                          {:key i
+                            :on-click (fn [e] (dispatch [:redo i]))
+                           :title    explanation}])
+                     @redo-explanations (range (count @redo-explanations) 0 -1))]]
             (comment [:div
               (if @counting?
                 [:i.fa.fa-cog.fa-spin.fa-1x.fa-fw]
@@ -169,8 +180,8 @@
            ;[:span (json/edn->hiccup @query)]
            ;[:button.btn.btn-primary {:on-click #(dispatch [:qb-run-query])} "Run Count"]
            [:div.panel-body
-            (if (spec/valid? :q/query @query)
-              [table/main (build-query @query) true]
-              [:div {} (str (spec/explain-str :q/query @query))])]]]]])))
-
-
+            (cond (not (spec/valid? :q/query @query))
+              [:div {} (str (spec/explain-str :q/query @query))])]
+           (cond @io-query
+            [:div.panel-body
+             [table/main @io-query true]])]]]])))

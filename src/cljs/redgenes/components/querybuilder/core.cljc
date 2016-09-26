@@ -58,24 +58,39 @@
         (update-in r path (fn [z] (conj (or z []) c))))
     {} where)))
 
+(defn to-list [s]
+  (read-string
+    (string/upper-case s)))
+
+(defn group-ands [l]
+  (if (symbol? l)
+    l
+  (reduce
+     (fn [r l]
+       (if (= 'AND (second l))
+        (conj r (map group-ands l))
+        (into r (map group-ands l))))
+     [] (partition-by #{'OR} l))))
+
+(defn to-prefix [x]
+  (if (symbol? x)
+    x
+    (cons (second x) (map to-prefix (take-nth 2 x)))))
+
 ; "constraintLogic": "A or B",
 ; (A OR B) AND (C OR D)
 
 (s/def :q/logicop #{'AND 'OR 'NOT})
 
-(s/def :q/logic-expression
+(s/def :q/listy
   (s/or
-    :complex
-      (fn qwe [x]
-        (list? x))
-    :simple :q/code))
+    :complex :q/logic
+    :simple symbol?))
 
 (s/def :q/logic
-  (s/*
-    (s/cat
-     :expression1 :q/logic-expression
-     :logicoperation :q/logicop
-     :expression2 :q/logic-expression)))
+  (s/cat
+    :logicop :q/logicop
+    :arguments (s/coll-of :q/listy)))
 
 (s/def :q/path (s/coll-of string?))
 
