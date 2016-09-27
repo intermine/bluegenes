@@ -2,8 +2,11 @@
   "Query Spec & core functions"
   (:require
     [clojure.string :as string]
+    [clojure.tools.reader.edn :as edn]
     #?(:cljs [cljs.spec :as s]
-       :clj [clojure.spec :as s])))
+       :clj
+    [clojure.spec :as s])
+    [clojure.tools.reader.edn :as edn]))
 
 ; TODO:
 ; tooltips for what icons/buttons mean before clicking
@@ -28,6 +31,8 @@
 
 (s/def :q/op #{"=" "!=" "CONTAINS" "<" "<=" ">" ">=" "LIKE" "NOT LIKE" "ONE OF" "NONE OF"})
 
+(def logicops #{'AND 'OR})
+
 (s/def :q/openparen #{"("})
 
 (s/def :q/closeparen #{")"})
@@ -36,8 +41,12 @@
   (map (comp str char)
     (take 26 (iterate inc 65))))
 
+(def alphabet-symbols (map symbol alphabet))
+
 (defn next-letter [letter]
   (first (rest (drop-while (fn [n] (not= n letter)) alphabet))))
+
+(def alphabet-symbol? (into #{} alphabet-symbols))
 
 (def alphabet? (into #{} alphabet))
 
@@ -59,38 +68,45 @@
     {} where)))
 
 (defn to-list [s]
-  (read-string
+  (edn/read-string
     (string/upper-case s)))
 
+(defn maybe-unwrap [x]
+  (if (and (or (vector? x) (list? x)) (== 1 (count x)))
+    (first x)
+    x))
+
 (defn group-ands [l]
-  (if (symbol? l)
-    l
-  (reduce
-     (fn [r l]
-       (if (= 'AND (second l))
-        (conj r (map group-ands l))
-        (into r (map group-ands l))))
-     [] (partition-by #{'OR} l))))
+  (maybe-unwrap
+    (if (symbol? l)
+     l
+     (reduce
+       (fn [r l]
+         (if (= 'AND (second l))
+           (conj r (map group-ands l))
+           (into r (map group-ands l))))
+       [] (partition-by #{'OR} l)))))
 
 (defn to-prefix [x]
   (if (symbol? x)
     x
-    (cons (second x) (map to-prefix (take-nth 2 x)))))
+    (cons (second x)
+      (map to-prefix (take-nth 2 x)))))
 
 ; "constraintLogic": "A or B",
 ; (A OR B) AND (C OR D)
 
-(s/def :q/logicop #{'AND 'OR 'NOT})
+(s/def :q/logicop logicops)
 
 (s/def :q/listy
   (s/or
-    :complex :q/logic
-    :simple symbol?))
+    :simple alphabet-symbol?
+    :complex :q/logic))
 
 (s/def :q/logic
   (s/cat
-    :logicop :q/logicop
-    :arguments (s/coll-of :q/listy)))
+    :op :q/logicop
+    :args (s/+ :q/listy)))
 
 (s/def :q/path (s/coll-of string?))
 
@@ -115,8 +131,7 @@
     :opt [:q/logic]))
 
 (defn build-query
-  "What the given query looks like
-  now will shock you!"
+  "Returns a query for the webservice"
   ([{:keys [q/select q/where logic-str] :as query}]
     (-> {}
       (assoc :select

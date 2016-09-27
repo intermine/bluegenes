@@ -1,11 +1,10 @@
 (ns redgenes.components.querybuilder.events
   (:require
-    [redgenes.components.querybuilder.core :refer [used-codes build-query next-code]]
+    [redgenes.components.querybuilder.core :as c :refer
+      [used-codes build-query next-code to-list]]
     [com.rpl.specter :as s]
     [clojure.string :as string]
-    [clojure.zip :as zip]
-    #?(:clj  [clojure.core :refer [read-string]]
-       :cljs [cljs.reader :refer [read-string]])))
+    [clojure.zip :as zip]))
 
 (defn child-classes [c] (keyword (:referencedType c)))
 
@@ -127,10 +126,10 @@
   (-> db
     (assoc-in [:query-builder :query :q/logic]
       (try
-       (read-string (str "(" (string/upper-case expression) ")"))
+        (c/to-prefix (c/group-ands (c/to-list (str "(" expression ")"))))
        (catch #?(:clj Exception :cljs js/Error) e [])))
     (assoc-in [:query-builder :query :logic-str]
-      expression)))
+      (string/upper-case expression))))
 
 (defn set-query
   "Returns the x for the given y"
@@ -139,7 +138,7 @@
   (assoc-in
     db
     [:query-builder :query]
-    (read-string query-str)))
+    (to-list query-str)))
 
 (defn update-io-query
   "Returns the x for the given y"
