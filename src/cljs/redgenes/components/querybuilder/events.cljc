@@ -17,7 +17,11 @@
    :undoable? true}
   [db [_ count]]
   (-> db
-    (assoc-in [:query-builder :query] nil)
+    (assoc-in [:query-builder :query] {
+                                       :q/select #{}
+                                       :q/where []
+                                       :constraint-paths #{}
+                                       })
     (assoc-in [:query-builder :count] nil)
     (assoc-in [:query-builder :used-codes] nil)
     (assoc-in [:query-builder :where-tree] nil)))
@@ -119,7 +123,7 @@
    :reframe-key  :query-builder/remove-constraint
    :undoable?    true
    :undo-exp     "remove constraint"}
-  [{db :db} [_ path]]
+  [{db :db} [_ path i]]
   {:db       (update-in
                db
                [:query-builder :query :q/where]
@@ -178,8 +182,9 @@
   [{db :db} event]
   {:db       (let [db (set-logic db event)]
                db
-               ;(update-io-query db [nil (get-in db [:query-builder :query])])
-               )
+               (if (get-in db [:query-builder :autoupdate?])
+                 (update-io-query db [nil (get-in db [:query-builder :query])])
+                 db))
    :dispatch [:query-builder/maybe-run-query]})
 
 (defn toggle-view

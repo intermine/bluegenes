@@ -76,7 +76,7 @@
      :on-change (fn [e] (dispatch [:query-builder/change-constraint-value i (.. e -target -value)]))}]
    [:span.badge code]
    [:i.fa.fa-times.pad-left-5.buttony
-    {:on-click (fn [] (dispatch [:query-builder/remove-constraint constraint]))}]])
+    {:on-click (fn [] (dispatch [:query-builder/remove-constraint constraint i]))}]])
 
 (defn tree-view
   ([query]
