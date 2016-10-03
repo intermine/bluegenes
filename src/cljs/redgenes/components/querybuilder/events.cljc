@@ -127,7 +127,7 @@
   {:db       (update-in
                db
                [:query-builder :query :q/where]
-               (fn [wheres] (remove #(= % path) wheres)))
+               (fn [wheres] (vec (remove #(= % path) wheres))))
    :dispatch [:query-builder/maybe-run-query]})
 
 (defn add-filter
