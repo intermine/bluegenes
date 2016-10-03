@@ -12,9 +12,10 @@
   ```paths=[Gene, Gene.proteins, Gene.x.y]```
   don't include the last bit (i.e. no attributes like `Gene.id`) since it's looking up keys in the db without a great level of intelligence.
   "
-  [paths]
+  [paths mine]
   ;;TODO / note 3: I couldn't for the life of me get parameters to parse an array of values into a vector. Who knows why. I'd really rather *not* be splitting strings. I tried various ring middlewares and the only one that works for json parameters seemed to be ring.middleware.params/wrap-params. See the figwheel.clj for deets.
   ;;TODO 4: For security's sake we need to generate a schema with spec.
+  (println paths mine)
   (select-keys (wcar* (car/get "model-count")) (map #(keyword (trim %)) (split paths #",")))
   )
 
@@ -26,6 +27,6 @@
 
 (defn cache
   "Methos to manually kick off a cache-refresh. probably will be moved to a batch job when this is fully developed. "
-  []
-  (cacher/load-model)
+  [mine]
+  (cacher/load-model mine)
   )

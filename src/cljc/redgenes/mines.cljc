@@ -1,4 +1,6 @@
-{:human
+(ns redgenes.mines)
+
+(def mines {:human
   {:id     :human
     :common "Human"
     :output? true
@@ -18,10 +20,10 @@
    :abbrev "D. melanogaster"
    :mine
     {:name "FlyMine"
-   ;  :url "beta.flymine.org/beta"
-   ;  :service {:root "beta.flymine.org/beta"}}}
-    :url "www.flymine.org/flymine"
-    :service {:root "www.flymine.org/flymine"}}}
+     :url "beta.flymine.org/beta"
+     :service {:root "beta.flymine.org/beta"}}}
+  ;  :url "www.flymine.org/flymine"
+  ;  :service {:root "www.flymine.org/flymine"}}}
  :mouse
   {:id     :mouse
    :common "Mouse"
@@ -80,4 +82,4 @@
     :service {:root "yeastmine.yeastgenome.org/yeastmine"}}}
 ;       :url "yeastmine-test.yeastgenome.org/yeastmine-dev"
 ;       :service {:root "yeastmine-test.yeastgenome.org/yeastmine-dev"}}}
- }
+ })
