@@ -93,6 +93,22 @@
     (cons (second x)
       (map to-prefix (take-nth 2 x)))))
 
+(defn simplify- [x]
+  (cond
+    (symbol? x) x
+    (== (count x) 2) (last x)
+    (and (> (count x) 1) (#{'AND 'OR 'and 'or} (first x)))
+    (let [l (cons (first x) (remove nil? (map simplify- (distinct (rest x)))))]
+      (if (== 2 (count l)) (last l) l))
+    :otherwise (last x)))
+
+
+(defn simplify
+  ([x]
+    (simplify x (simplify- x)))
+  ([x y]
+   y))
+
 ; "constraintLogic": "A or B",
 ; (A OR B) AND (C OR D)
 
@@ -128,7 +144,8 @@
 (s/def :q/query
   (s/keys
     :req [:q/select :q/where]
-    :opt [:q/logic]))
+    :opt [:q/logic]
+    :opt-un [::constraint-paths]))
 
 (defn build-query
   "Returns a query for the webservice"

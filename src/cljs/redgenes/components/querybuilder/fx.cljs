@@ -6,7 +6,8 @@
             [imcljs.filters :as filters]
             [redgenes.utils :refer [register!]]
             [redgenes.components.querybuilder.events :as events]
-            [clojure.string :as string]))
+            [clojure.string :as string]
+            [cljs.spec :as spec]))
 
 #_(def im-zipper (zip/zipper
                    (fn branch? [node] true)
@@ -21,8 +22,8 @@
                    (-> db :assets :model :Gene)))
 
 (defn run-query!
-   "Returns the x for the given y"
-   {:reframe-kind :fx, :reframe-key :query-builder/run-query}
+   "Runs the given query, returns a channel"
+   {:reframe-kind :fx, :reframe-key :query-builder/run-query!}
    [query]
    (go
      (dispatch
@@ -33,7 +34,14 @@
          query
          {:format "count"}))])))
 
-(doseq [v
+(defn maybe-run-query!
+  "Maybe runs the given query"
+  {:reframe-kind :fx, :reframe-key :query-builder/maybe-run-query!}
+  [{query :query query? :query?}]
+    (cond (and query? (spec/valid? :q/query query)) (run-query! query)))
+
+(doseq
+  [v
     [
      #'redgenes.components.querybuilder.events/reset-query
      #'redgenes.components.querybuilder.events/add-constraint-cofx
@@ -45,9 +53,14 @@
      #'redgenes.components.querybuilder.events/remove-constraint-cofx
      #'redgenes.components.querybuilder.events/add-filter
      #'redgenes.components.querybuilder.events/set-logic
+     #'redgenes.components.querybuilder.events/set-logic-cofx
      #'redgenes.components.querybuilder.events/set-query
+     #'redgenes.components.querybuilder.events/toggle-autoupdate
      #'redgenes.components.querybuilder.events/update-io-query
-     #'redgenes.components.querybuilder.events/add-view-cofx
+     #'redgenes.components.querybuilder.events/toggle-view-cofx
+     #'redgenes.components.querybuilder.events/maybe-run-query-cofx
      #'redgenes.components.querybuilder.events/set-where-path
-     #'run-query!]]
+     #'run-query!
+     #'maybe-run-query!
+     ]]
   (register! v))

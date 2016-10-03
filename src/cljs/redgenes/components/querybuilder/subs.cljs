@@ -36,3 +36,10 @@
   :query-builder/current-constraint
   (fn [db _]
     (:constraint (:query-builder db))))
+
+(doseq
+  [path [:autoupdate?]]
+  (reg-sub
+    (keyword (name :query-builder) (name path))
+    (fn [db _]
+      (get-in db [:query-builder path]))))

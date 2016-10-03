@@ -38,12 +38,14 @@
                                "A"
                                (next-code used-codes))]
                (-> db
+                 (update-in [:query-builder :query :constraint-paths]
+                   (fn [cs] (conj (or cs #{}) (:q/path constraint))))
                  (update-in
                    [:query-builder :query :q/where]
                    (fn [where]
                      (conj (or where []) (merge constraint {:q/code next-code}))))
                  (assoc-in [:query-builder :constraint] nil))),
-   :dispatch [:query-builder/run-query]})
+   :dispatch [:query-builder/run-query!]})
 
 (defn change-constraint-value
   "Returns the given db with the :q/where constraint value at given index
@@ -65,20 +67,35 @@
       [:query-builder :query :path] path)))
 
 (defn handle-count
-  "Returns the x for the given y"
+  "Adds the count"
   {:reframe-kind :event, :reframe-key :query-builder/handle-count}
   [db [_ count]]
   (-> db
     (assoc-in [:query-builder :count] count)
     (assoc-in [:query-builder :counting?] false)))
 
+(defn toggle-autoupdate
+  "Toggle autoupdate"
+  {:reframe-kind :event, :reframe-key :query-builder/toggle-autoupdate}
+  [db [_ count]]
+    (update-in db [:query-builder :autoupdate?] not))
+
 (defn run-query-cofx
-  "Returns the x for the given y"
-  {:reframe-kind :cofx, :reframe-key :query-builder/run-query}
+  "Returns a cofx for running the query"
+  {:reframe-kind :cofx, :reframe-key :query-builder/run-query!}
   [{db :db}]
   (let [query-data (-> db :query-builder :query)]
-    {:db                      (assoc-in db [:query-builder :counting?] true),
-     :query-builder/run-query (build-query query-data)}))
+    {:db                       (assoc-in db [:query-builder :counting?] true),
+     :query-builder/run-query! (build-query query-data)}))
+
+(defn maybe-run-query-cofx
+  "Returns a cofx for maybe running the query"
+  {:reframe-kind :cofx, :reframe-key :query-builder/maybe-run-query}
+  [{db :db}]
+  {:db                       db
+   :query-builder/maybe-run-query!
+     {:query  (build-query (get-in db [:query-builder :query]))
+      :query? (get-in db [:query-builder :autoupdate?])}})
 
 (defn make-tree
   "Returns the x for the given y"
@@ -94,10 +111,10 @@
                db
                [:query-builder :query :q/select]
                (fn [views] (dissoc views path)))
-   :dispatch :query-builder/run-query})
+   :dispatch :query-builder/maybe-run-query})
 
 (defn remove-constraint-cofx
-  "Returns the x for the given y"
+  "Returns "
   {:reframe-kind :cofx,
    :reframe-key  :query-builder/remove-constraint
    :undoable?    true
@@ -106,8 +123,8 @@
   {:db       (update-in
                db
                [:query-builder :query :q/where]
-               (fn [wheres] (remove #(= % path) wheres))),
-   :dispatch [:query-builder/run-query]})
+               (fn [wheres] (remove #(= % path) wheres)))
+   :dispatch [:query-builder/maybe-run-query]})
 
 (defn add-filter
   "Returns the x for the given y"
@@ -118,7 +135,7 @@
   (assoc-in db [:query-builder :constraint] path))
 
 (defn set-logic
-  "Returns the x for the given y"
+  "Parse the given logic expression to a list"
   {:reframe-kind :event
    :reframe-key :query-builder/set-logic
    :undoable? true}
@@ -126,7 +143,7 @@
   (-> db
     (assoc-in [:query-builder :query :q/logic]
       (try
-        (c/to-prefix (c/group-ands (c/to-list (str "(" expression ")"))))
+        (c/simplify (c/to-prefix (c/group-ands (c/to-list (str "(" expression ")")))))
        (catch #?(:clj Exception :cljs js/Error) e [])))
     (assoc-in [:query-builder :query :logic-str]
       (string/upper-case expression))))
@@ -149,18 +166,39 @@
     [:query-builder :io-query]
     (build-query query)))
 
-(defn add-view-cofx
+(defn set-logic-cofx
   "Returns the x for the given y"
-  {:reframe-kind :cofx
-   :reframe-key :query-builder/add-view
+  {:reframe-kind :cofx,
+   :reframe-key  :query-builder/set-logic!
+   :undoable?    true
+   :undo-exp     "set logic"}
+  [{db :db} event]
+  {:db       (let [db (set-logic db event)]
+               db
+               ;(update-io-query db [nil (get-in db [:query-builder :query])])
+               )
+   :dispatch [:query-builder/maybe-run-query]})
+
+(defn toggle-view
+  "Returns the x for the given y"
+  {:reframe-kind :event
+   :reframe-key :query-builder/toggle-view
    :undoable? true}
   [{db :db} [_ path-vec]]
-  {:db       (update-in
-               db
-               [:query-builder :query :q/select]
-               (fn [views]
-                 (let [views (or views #{})]
-                  (if (views path-vec)
-                    (disj views path-vec)
-                    (conj views path-vec)))))
-   :dispatch [:query-builder/run-query]})
+  (update-in
+    db
+    [:query-builder :query :q/select]
+    (fn [views]
+      (let [views (or views #{})]
+        (if (views path-vec)
+          (disj views path-vec)
+          (conj views path-vec))))))
+
+(defn toggle-view-cofx
+  "Returns the x for the given y"
+  {:reframe-kind :cofx
+   :reframe-key :query-builder/toggle-view!
+   :undoable? true}
+  [state event]
+  {:db (toggle-view state event)
+   :dispatch [:query-builder/run-query!]})

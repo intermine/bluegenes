@@ -18,13 +18,25 @@
       (let [path-vec (conj path name)]
         [:div
          [:div.btn.btn-default.btn.btn-xxs
-          {:class    (if (some (fn [x] (= x path-vec)) (:q/select @qb-query))
+          {
+           :title    (str
+                      (if ((:q/select @qb-query) path-vec) "Remove " "Add ")
+                       name
+                       (if ((:q/select @qb-query) path-vec) " from " " to ")
+                       "view")
+           :class    (if ((:q/select @qb-query) path-vec)
                        "btn-primary"
                        "btn-outline")
-           :on-click (fn [] (dispatch [:query-builder/add-view path-vec]))}
+           :on-click (fn [] (dispatch [:query-builder/toggle-view! path-vec]))}
           [:i.fa.fa-eye]]
          [:div.btn.btn-default.btn-outline.btn-xxs
-          {:on-click (fn [] (dispatch [:query-builder/add-filter path-vec]))}
+          {
+           :title    (str "Add constraint for " name)
+           :class
+                     (if ((get-in @qb-query [:constraint-paths]) path-vec)
+                       "btn-primary"
+                       "btn-outline")
+           :on-click (fn [] (dispatch [:query-builder/add-filter path-vec]))}
           [:i.fa.fa-plus] [:i.fa.fa-filter]]
          [:span.pad-left-5 name]]))))
 
@@ -71,6 +83,7 @@
     (tree-view query [] (where-tree query)))
   ([query path things]
      [:ul.query-tree
+      {:key (hash path)}
       (map (partial tree-view query things path) things)])
   ([{:keys [:q/select] :as query} things path [k v]]
    (let [path (conj path k)]
@@ -99,6 +112,7 @@
         queried?        (subscribe [:query-builder/queried?])
         result-count    (subscribe [:query-builder/count])
         counting?       (subscribe [:query-builder/counting?])
+        autoupdate?     (subscribe [:query-builder/autoupdate?])
         edit-constraint (subscribe [:query-builder/current-constraint])
         undos?          (subscribe [:undos?])
         redos?          (subscribe [:redos?])
@@ -133,7 +147,7 @@
               :value (:logic-str @query)
               :on-change
                      (fn [e]
-                       (dispatch [:query-builder/set-logic (.. e -target -value)]))
+                       (dispatch [:query-builder/set-logic! (.. e -target -value)]))
               }]
               [:div {} @used-codes]
               [:textarea
@@ -149,6 +163,10 @@
                 :on-change
                 (fn [e]
                   (dispatch [:query-builder/set-query (.. e -target -value)]))}]
+            [:div.buttony.autoupdate-button
+             {
+              :class (if @autoupdate? "selected-button" "")
+              :on-click #(dispatch [:query-builder/toggle-autoupdate])} ""]
                 [:button.btn.btn-primary {:on-click #(dispatch [:query-builder/reset-query])} "Reset"]
                 [:button.btn.btn-primary {:on-click #(dispatch [:query-builder/update-io-query @query])} "Update"]
                 [:button.btn.btn-primary {:on-click #(dispatch [:undo])} "Undo"]
@@ -169,11 +187,11 @@
                             :on-click (fn [e] (dispatch [:redo i]))
                            :title    explanation}])
                      @redo-explanations (range (count @redo-explanations) 0 -1))]]
-            (comment [:div
-              (if @counting?
-                [:i.fa.fa-cog.fa-spin.fa-1x.fa-fw]
-                (if @result-count
-                  [:h3 (str @result-count " rows")]))])]]
+            [:div
+             (if @counting?
+               [:i.fa.fa-cog.fa-spin.fa-1x.fa-fw]
+               (if @result-count
+                 [:h3 (str @result-count " rows")]))]]]
           [:div.panel.panel-default
            [:div.panel-heading
             [:h4 "Results"]]
