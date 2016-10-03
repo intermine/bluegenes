@@ -109,6 +109,12 @@
   ([x y]
    y))
 
+(defn prefix-infix
+  [x]
+  (if (symbol? x)
+    x
+    (interpose (first x) (map prefix-infix (rest x)))))
+
 ; "constraintLogic": "A or B",
 ; (A OR B) AND (C OR D)
 

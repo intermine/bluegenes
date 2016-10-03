@@ -140,13 +140,16 @@
    :reframe-key :query-builder/set-logic
    :undoable? true}
   [db [_ expression]]
-  (-> db
-    (assoc-in [:query-builder :query :q/logic]
-      (try
-        (c/simplify (c/to-prefix (c/group-ands (c/to-list (str "(" expression ")")))))
-       (catch #?(:clj Exception :cljs js/Error) e [])))
-    (assoc-in [:query-builder :query :logic-str]
-      (string/upper-case expression))))
+  (let [x (try
+            (c/simplify (c/to-prefix (c/group-ands (c/to-list (str "(" expression ")")))))
+            (catch #?(:clj Exception :cljs js/Error) e []))]
+    (-> db
+     (assoc-in [:query-builder :query :q/logic] x)
+      (assoc-in [:query-builder :query :logic-exp] (str (c/prefix-infix x)))
+     (assoc-in [:query-builder :query :logic-str]
+       (string/upper-case expression)
+       ;(str (c/prefix-infix x))
+       ))))
 
 (defn set-query
   "Returns the x for the given y"
