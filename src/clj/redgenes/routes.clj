@@ -10,11 +10,8 @@
   (context "/model/count" [paths]
     (GET "/cache" [mine] (cache mine)
       (response {:loading (str "We're caching counts for " mine "! Well done.")}))
+    (GET "/cacheall" [] (cacheall)
+      (response {:loading "We're caching counts for all mines! Please wait."}))
     (POST "/" [paths mine]
       (response (modelcount paths mine))))
-  (context "/model/cacheall" []
-    (GET "/" [] (cacheall)
-         (println "so far so good:")
-      (response {:loading "We're caching counts for all mines! Please wait."}))
-        )
   )
