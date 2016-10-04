@@ -6,7 +6,9 @@
 
 (defroutes routes
   (GET "/" [] (resource-response "index.html" {:root "public"}))
-  (resources "/"))
+  (resources "/")
+  ;(context "/api" [] webservice/routes)
+  )
 
 (def dev-handler (-> #'routes wrap-reload))
 

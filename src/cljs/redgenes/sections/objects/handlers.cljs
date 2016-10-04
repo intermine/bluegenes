@@ -1,6 +1,6 @@
 (ns redgenes.sections.objects.handlers
   (:require-macros [cljs.core.async.macros :refer [go go-loop]]
-                   [com.rpl.specter.macros :refer [traverse select transform]])
+                   [com.rpl.specter :refer [traverse select transform]])
   (:require [re-frame.core :as re-frame :refer [reg-event-db reg-event-fx reg-fx dispatch subscribe]]
             [redgenes.db :as db]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]

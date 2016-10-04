@@ -2,14 +2,18 @@
   (:require [reagent.core :as reagent]
             [re-frame.core :as re-frame]
             [devtools.core :as devtools]
+            [redgenes.utils]
             [redgenes.events]
             [redgenes.subs]
             [redgenes.routes :as routes]
             [redgenes.views :as views]
             [redgenes.config :as config]
             [redgenes.components.listanalysis.core]
-            [redgenes.components.querybuilder.core]
+            [redgenes.components.querybuilder.subs]
+            [redgenes.components.querybuilder.fx]
             [redgenes.components.templates.core]))
+
+
 
 (defn dev-setup []
   (when config/debug?
