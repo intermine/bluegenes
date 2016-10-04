@@ -149,7 +149,7 @@
             (catch #?(:clj Exception :cljs js/Error) e []))]
     (-> db
      (assoc-in [:query-builder :query :q/logic] x)
-      (assoc-in [:query-builder :query :logic-exp] (str (c/prefix-infix x)))
+      (assoc-in [:query-builder :query :logic-exp] (c/prefix-infix x))
      (assoc-in [:query-builder :query :logic-str]
        (string/upper-case expression)
        ;(str (c/prefix-infix x))
