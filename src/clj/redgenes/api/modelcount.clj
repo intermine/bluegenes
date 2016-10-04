@@ -44,6 +44,8 @@
 (defn modelcount-children "You may want to know the counts of all of the *children* of a given path."
   [parent mine]
   (let [responts (all-counts mine)
-        wanted-keys (filter (fn [k] (println "k: " k ) (starts-with? k parent)) (keys responts))]
+        wanted-keys (filter (fn [k] (starts-with? k parent)) (keys responts))]
     (select-keys responts wanted-keys)
 ))
+
+;;I can't use 'response' as a variable name because it means stuff in routing server responses. So I used "responts" instead. It's a thing of beauty. 

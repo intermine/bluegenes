@@ -38,7 +38,6 @@
 (defn second-level
   "Gets the second level of ids, i.e. Gene.proteins.id. In the future this will probably need to be more recursive-ish, but babysteps. Also, the model itself is recursive so we mustn't go too far and make the world explode."
   [whitelisted-model mine-name]
-  (println "What kind of magic spell to use?")
   (doall (map (fn [[parent vals]]
     (let [collections (select-keys (:collections (parent whitelisted-model)) config/whitelist)
           mine-url (mine-name-to-url mine-name)]
