@@ -93,21 +93,18 @@
     (cons (second x)
       (map to-prefix (take-nth 2 x)))))
 
-(defn simplify- [x]
-  (cond
-    (symbol? x) x
-    (== (count x) 2) (last x)
-    (and (> (count x) 1) (#{'AND 'OR 'and 'or} (first x)))
-      (let [l (cons (first x) (remove nil? (map simplify- (distinct (rest x)))))]
-        (if (== 2 (count l)) (last l) l))
-    :otherwise (last x)))
-
-
 (defn simplify
   ([x]
-    (simplify x (simplify- x)))
+    (cond
+     (symbol? x) x
+     (== (count x) 2) (last x)
+     (and (> (count x) 1) (#{'AND 'OR 'and 'or} (first x)))
+      (simplify x (cons (first x) (remove nil? (map simplify (distinct (rest x))))))
+     :and-if-all-else-fails (last x)))
   ([x y]
-   y))
+    (if (= x y)
+      x
+      (simplify y))))
 
 (defn prefix-infix
   [x]

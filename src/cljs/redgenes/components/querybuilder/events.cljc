@@ -124,11 +124,12 @@
    :undoable?    true
    :undo-exp     "remove constraint"}
   [{db :db} [_ path i]]
-  {:db       (update-in
-               db
-               [:query-builder :query :q/where]
-               (fn [wheres] (vec (remove #(= % path) wheres))))
-   :dispatch [:query-builder/maybe-run-query]})
+    {:db
+       (update-in
+         db
+         [:query-builder :query :q/where]
+         (fn [wheres] (vec (remove #(= % path) wheres))))
+     :dispatch [:query-builder/maybe-run-query]})
 
 (defn add-filter
   "Returns the x for the given y"

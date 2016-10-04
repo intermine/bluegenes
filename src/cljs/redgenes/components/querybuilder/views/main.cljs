@@ -82,14 +82,12 @@
   ([query]
     (tree-view query [] (where-tree query)))
   ([query path things]
-     [:ul.query-tree
-      {:key (hash path)}
-      (map (partial tree-view query things path) things)])
+   (into [:ul.query-tree]
+     (map (partial tree-view query things path) things)))
   ([{:keys [:q/select] :as query} things path [k v]]
    (let [path (conj path k)]
     [:li.query-item
      {
-      :key   k
       :class
         (if (select path)
         "query-selected" "query-not-selected")
@@ -98,10 +96,9 @@
      (if (map? v)
        [tree-view query path v]
        [:ul.query-constraint
-        {:key k}
         (map
           (fn [c i]
-            [tiny-constraint c i])
+            (with-meta [tiny-constraint c i] {:key i}))
           v (range))])])))
 
 (defn main []
