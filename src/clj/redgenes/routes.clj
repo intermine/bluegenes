@@ -16,7 +16,6 @@
     (POST "/" [paths mine]
       (response (modelcount paths mine)))
     (GET "/" [paths mine]
-      (println paths mine)
       (response (modelcount paths mine))
     ))
   )

@@ -8,6 +8,9 @@
             [taoensso.carmine :as car :refer (wcar)]
 ))
 
+(defn mine-name-to-url [mine-name]
+  (get-in mines/mines [(keyword mine-name) :mine :service :root]))
+
 (defn store-response [item mine thecount]
   (wcar* (car/hset (str "modelcount-" mine) item thecount))
   (println mine "(response: " item thecount ")")
@@ -32,14 +35,29 @@
         (store-response item mine-name (trim-newline body)) ;;success - store the stuff!
 ))))
 
+(defn second-level
+  "Gets the second level of ids, i.e. Gene.proteins.id. In the future this will probably need to be more recursive-ish, but babysteps. Also, the model itself is recursive so we mustn't go too far and make the world explode."
+  [whitelisted-model mine-name]
+  (println "What kind of magic spell to use?")
+  (doall (map (fn [[parent vals]]
+    (let [collections (select-keys (:collections (parent whitelisted-model)) config/whitelist)
+          mine-url (mine-name-to-url mine-name)]
+      (doall (map (fn [[collection-name vals]]
+        (let [path (str (name parent) "." (:name vals))]
+          (get-count path mine-name mine-url)
+      )) collections))
+    )) whitelisted-model))
+)
+
 (defn load-model [mine-name]
-  (let [mine-url (get-in mines/mines [(keyword mine-name) :mine :service :root])
+  (let [mine-url (mine-name-to-url mine-name)
         model (client/get
                (str "http://" mine-url "/service/model?format=json")
                {:keywordize-keys? true :as :json})
         whitelisted-model (select-keys (:classes (:model (:body model))) config/whitelist)
         promises (doall (map #(get-count % mine-name mine-url) (keys whitelisted-model)))
         ]
+    (second-level whitelisted-model mine-name)
     "ok"
 ))
 
