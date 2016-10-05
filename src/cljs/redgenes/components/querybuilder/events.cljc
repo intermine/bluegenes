@@ -62,6 +62,17 @@
   (-> db
     (assoc-in [:query-builder :query :q/where index :q/value] value)))
 
+(defn change-constraint-op
+  "Returns the given db with the :q/where constraint op at given index
+  changed to given value"
+  {:reframe-kind :event
+   :reframe-key  :query-builder/change-constraint-op
+   :undoable?    true
+   :undo-exp     (fn [db [_ index value]] (str "change constraint " index " to " value))}
+  [db [_ index op]]
+  (-> db
+    (assoc-in [:query-builder :query :q/where index :q/op] op)))
+
 (defn set-where-path
   ""
   {:reframe-kind :event, :reframe-key :query-builder/set-where-path}

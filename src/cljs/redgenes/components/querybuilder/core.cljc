@@ -15,19 +15,8 @@
 
 
 ; 11 most popular query constraints revealed!
-(def constraints
-  {
-    := "="
-    :!= "!="
-    :contains "CONTAINS"
-    :< "<"
-    :<= "<="
-    :> ">"
-    :>= ">="
-    :like "LIKE"
-    :not-like "NOT LIKE"
-    :one-of "ONE OF"
-    :none-of "NONE OF"})
+
+(def ops ["=" "!=" "CONTAINS" "<" "<=" ">" ">=" "LIKE" "NOT LIKE" "ONE OF" "NONE OF"])
 
 (s/def :q/op #{"=" "!=" "CONTAINS" "<" "<=" ">" ">=" "LIKE" "NOT LIKE" "ONE OF" "NONE OF"})
 

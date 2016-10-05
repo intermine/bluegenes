@@ -5,7 +5,7 @@
             [json-html.core :as json]
             [com.rpl.specter :as s]
             [clojure.spec :as spec]
-            [redgenes.components.querybuilder.core :refer [build-query where-tree]]
+            [redgenes.components.querybuilder.core :as c :refer [build-query where-tree]]
             [redgenes.components.querybuilder.views.constraints :as constraints]
             [redgenes.components.table :as table]
             [json-html.core :as json-html]
@@ -66,10 +66,21 @@
 (defn tiny-constraint
   [{:keys [:q/op :q/value :q/code] :as constraint} i]
   [:li.qb-tiny-constraint
-    {:key i}
-   [:span.pad-right-5.qb-constraint-op
-    {:on-click (fn [e] (dispatch [:query-builder/set-where-path [:q/where i :q/op]]))}
-    (str " " op)]
+   [:div.input-group-btn.but-inline
+    [:button.btn.btn-default.dropdown-toggle
+     {:type        "button"
+      :data-toggle "dropdown"}
+     op]
+    (into
+      [:ul.dropdown-menu.pad-right-5.qb-constraint-op {}]
+      (map
+        (fn [op]
+          [:li
+           {
+            :on-click
+            (fn [e] (dispatch [:query-builder/change-constraint-op i op]))
+            } [:a op]])
+        c/ops))]
    [:input.qb-constraint-value
     {:type      :text :value value :default-value 0
      :size      9
