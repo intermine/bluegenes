@@ -22,3 +22,14 @@
             whitelist (:databrowser/whitelist db)]
         (select-keys model whitelist)
   )))
+
+  (reg-sub
+    :databrowser/model-counts
+    (fn [db [_ mine]]
+      (mine (:databrowser/model-counts db))))
+
+(reg-sub
+ :databrowser/node-locations
+ (fn [db [_ node-name]]
+   (.log js/console "%cnode-name" "color:hotpink;font-weight:bold;" (clj->js node-name))
+   (node-name (:databrowser/node-locations db))))

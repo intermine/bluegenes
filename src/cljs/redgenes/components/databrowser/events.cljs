@@ -7,28 +7,28 @@
             [imcljs.counts :as counts]
             [accountant.core :refer [navigate!]]))
 
-(defn count-multiple-rows
-  "Given a set of items and a root, calculate paths and get counts for all of them."
-  [{root :root token :token} path]
-  (go (<! (counts/count-rows {:root @(subscribe [:mine-url])} "Gene.id")))
-  )
 
 (reg-event-fx
   :databrowser/fetch-all-counts
   (fn [{db :db}]
     {:db           (assoc db :fetching-counts? true)
-     :databrowser/fetch-counts {:connection
+     :databrowser/fetch-counts {
+      :connection
         {:root @(subscribe [:mine-url])}
-         :paths ["Gene.proteins" "Gene.dataSets"]} }))
+      :path "top"
+      } }))
 
 
 (reg-fx
   :databrowser/fetch-counts
-  (fn [{connection :connection paths :paths}]
-    (doall (map (fn [path]
-      (go (let [res (<! (counts/count-rows connection (str path ".id")))]
-            ;     (re-frame/dispatch [:save-count res])
-            (.log js/console "%cres" "color:hotpink;font-weight:bold;" (clj->js res))
+  (fn [{connection :connection path :path}]
+      (go (let [res (<! (counts/count-rows connection path))]
+            (re-frame/dispatch [:databrowser/save-counts :human res])
       ))
-    ) ["Gene" "Gene.dataSets" "Gene.proteins" "Gene.interactions"]))
     ))
+
+(reg-event-db
+ :databrowser/save-counts
+ (fn [db [_ mine-name counts]]
+   (assoc-in db [:databrowser/model-counts mine-name] counts)
+))

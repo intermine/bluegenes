@@ -13,4 +13,4 @@
   (go (:body (<! (http/get databrowser-root
                                    {:with-credentials? false
                                     :query-params {:mine "fly"
-                                                   :paths "top"}})))))
+                                                   :paths path}})))))
