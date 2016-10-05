@@ -5,10 +5,12 @@
             [imcljs.utils :refer [cleanse-url]])
 )
 
+(def databrowser-root "http://localhost:3000/model/count")
+
 (defn count-rows
   "Counts the number of a certain datatype given a suitable path for the query"
   [{root :root token :token} path]
-  (go (:body (<! (http/post (str (cleanse-url root) "/query/results")
+  (go (:body (<! (http/get databrowser-root
                                    {:with-credentials? false
-                                    :form-params {:format "count"
-                                                  :query (str "<query model=\"genomic\" view=\"" path "\"></query>")}})))))
+                                    :query-params {:mine "fly"
+                                                   :paths "top"}})))))
