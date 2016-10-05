@@ -1,14 +1,21 @@
 (ns redgenes.routes
   (:require [compojure.core :refer [GET POST defroutes context ANY]]
+            [compojure.route :refer [resources]]
+
             [redgenes.api.modelcount :refer [modelcount modelcount-children cache cacheall]]
-            [ring.util.response :refer [response]]))
+            [ring.util.response :refer [response resource-response]]))
 
 
 
 (defroutes routes
+  (GET "/" []
+       (println "Slime and snails")
+       (resource-response "index.html" {:root "public"}))
+  (resources "/")
+
   (GET "/version" [] (response {:version "0.1.0"}))
 
-  (context "/model/count" [paths]
+  (context "/api/model/count" [paths]
     (GET "/cache" [mine] (cache mine)
       (response {:loading (str "We're caching counts for " mine "! Well done.")}))
     (GET "/cacheall" [] (cacheall)

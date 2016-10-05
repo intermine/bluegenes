@@ -5,7 +5,7 @@
             [imcljs.utils :refer [cleanse-url]])
 )
 
-(def databrowser-root "http://localhost:3000/model/count")
+(def databrowser-root "api/model/count")
 
 (defn count-rows
   "Counts the number of a certain datatype given a suitable path for the query"
