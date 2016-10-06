@@ -20,10 +20,10 @@
          [:div.btn.btn-default.btn.btn-xxs
           {
            :title    (str
-                      (if ((:q/select @qb-query) path-vec) "Remove " "Add "
+                      (if ((:q/select @qb-query) path-vec) "Remove " "Add ")
                        naym
                        (if ((:q/select @qb-query) path-vec) " from " " to ")
-                       "view"))
+                       "view")
            :class    (if ((:q/select @qb-query) path-vec)
                        "btn-primary"
                        "btn-outline")
@@ -80,8 +80,8 @@
           [:li
            {
             :on-click
-            (fn [e] (dispatch [:query-builder/change-constraint-op i op])
-             [:a op])}])
+            (fn [e] (dispatch [:query-builder/change-constraint-op i op]))
+            } [:a op]])
         c/ops))]
    [:input.qb-constraint-value
     {:type      :text :value value :default-value 0
@@ -92,8 +92,8 @@
     {:on-click (fn [] (dispatch [:query-builder/remove-constraint constraint i]))}]])
 
 (defn tree-view
-  ([query
-    (tree-view query [] (where-tree query))])
+  ([query]
+    (tree-view query [] (where-tree query)))
   ([query path things]
    (into [:ul.query-tree]
      (map (partial tree-view query things path) things)))
@@ -102,9 +102,9 @@
     [:li.query-item
      {
       :class
-        (if (select path))
-        "query-selected" "query-not-selected"}
-
+        (if (select path)
+        "query-selected" "query-not-selected")
+      }
      k
      (if (map? v)
        [tree-view query path v]
@@ -127,15 +127,15 @@
         undos?          (subscribe [:undos?])
         redos?          (subscribe [:redos?])
         undo-explanations       (subscribe [:undo-explanations])
-        redo-explanations       (subscribe [:redo-explanations])]
-
+        redo-explanations       (subscribe [:redo-explanations])
+        ]
     (fn []
       [:div.querybuilder.row
        [:div.col-sm-6
         [:div.panel.panel-default
          [:div.panel-heading [:h4 "Data Model"]]
-         [:div.panel-body [:ol.tree [tree :Gene ["Gene"] true]]]
-         [:div.col-sm-6]
+         [:div.panel-body [:ol.tree [tree :Gene ["Gene"] true]]]]]
+         [:div.col-sm-6
          [:div
           (if @edit-constraint
             [:div.panel.panel-default
@@ -158,7 +158,7 @@
               :on-change
                      (fn [e]
                        (dispatch [:query-builder/set-logic! (.. e -target -value)]))
-
+              }]
               [:div {} @used-codes]
               [:textarea
                {
@@ -172,11 +172,11 @@
                 :value (str @query)
                 :on-change
                 (fn [e]
-                  (dispatch [:query-builder/set-query (.. e -target -value)]))}]}]
+                  (dispatch [:query-builder/set-query (.. e -target -value)]))}]
             [:div.buttony.autoupdate-button
              {
               :class (if @autoupdate? "selected-button" "")
-              :on-click #(dispatch [:query-builder/toggle-autoupdate])} ""
+              :on-click #(dispatch [:query-builder/toggle-autoupdate])} ""]
                 [:button.btn.btn-primary {:on-click #(dispatch [:query-builder/reset-query])} "Reset"]
                 [:button.btn.btn-primary {:on-click #(dispatch [:query-builder/update-io-query @query])} "Update"]
                 [:button.btn.btn-primary {:on-click #(dispatch [:undo])} "Undo"]
@@ -189,14 +189,14 @@
                         {:key i
                           :on-click (fn [e] (dispatch [:undo i]))
                          :title    explanation}])
-                     @undo-explanations (range (count @undo-explanations) 0 -1)
+                     @undo-explanations (range (count @undo-explanations) 0 -1))
                      (map
                        (fn [explanation i]
                          [:div.redo.buttony
                           {:key i
                             :on-click (fn [e] (dispatch [:redo i]))
-                           :title    explanation}]))
-                     @redo-explanations (range (count @redo-explanations) 0 -1))]]]
+                           :title    explanation}])
+                     @redo-explanations (range (count @redo-explanations) 0 -1))]]
             [:div
              (if @counting?
                [:i.fa.fa-cog.fa-spin.fa-1x.fa-fw]
@@ -212,4 +212,4 @@
               [:div {} (str (spec/explain-str :q/query @query))])]
            (cond @io-query
             [:div.panel-body
-             [table/main @io-query true]])]]]]])))
+             [table/main @io-query true]])]]]])))

@@ -4,8 +4,7 @@
     [clojure.string :as string]
     [clojure.tools.reader.edn :as edn]
     #?(:cljs [cljs.spec :as s]
-       :clj)
-    [clojure.spec :as s]
+       :clj [clojure.spec :as s])
     [clojure.tools.reader.edn :as edn]))
 
 ; TODO:
@@ -50,11 +49,11 @@
      (get-in db [:query-builder :query :q/where]))))
 
 (defn where-tree
-  ([{:keys [:q/where]}
-    (reduce
-      (fn [r {:keys [:q/path] :as c}]
-        (update-in r path (fn [z] (conj (or z []) c)))))
-    {} where]))
+  ([{:keys [:q/where]}]
+   (reduce
+     (fn [r {:keys [:q/path] :as c}]
+       (update-in r path (fn [z] (conj (or z []) c))))
+     {} where)))
 
 (defn to-list [s]
   (edn/read-string
@@ -83,17 +82,17 @@
       (map to-prefix (take-nth 2 x)))))
 
 (defn simplify
-  ([x
-    (cond
+  ([x]
+   (cond
      (symbol? x) x
      (== (count x) 2) (last x)
-     (and (> (count x) 1) (#{'AND 'OR 'and 'or} (first x))
-      (simplify x (cons (first x) (remove nil? (map simplify (distinct (rest x)))))))
-     :and-if-all-else-fails (last x))])
-  ([x y
-    (if (= x y)
-      x
-      (simplify y))]))
+     (and (> (count x) 1) (#{'AND 'OR 'and 'or} (first x)))
+      (simplify x (cons (first x) (remove nil? (map simplify (distinct (rest x))))))
+     :and-if-all-else-fails (last x)))
+  ([x y]
+   (if (= x y)
+     x
+     (simplify y))))
 
 (defn prefix-infix
   [x]
@@ -141,14 +140,14 @@
 
 (defn build-query
   "Returns a query for the webservice"
-  ([{:keys [q/select q/where logic-str] :as query}
-    (-> {}
-      (assoc :select
-             (map (fn [view] (string/join "." view)) select))
-      (assoc :where
-             (map (fn [constraint]
-                    {
-                     :path  (string/join "." (:q/path constraint))
-                     :op    (:q/op constraint)
-                     :value (:q/value constraint)}) where)
-       (assoc :constraintLogic logic-str)))]))
+  ([{:keys [q/select q/where logic-str] :as query}]
+   (-> {}
+     (assoc :select
+            (map (fn [view] (string/join "." view)) select))
+     (assoc :where
+            (map (fn [constraint]
+                   {
+                    :path  (string/join "." (:q/path constraint))
+                    :op    (:q/op constraint)
+                    :value (:q/value constraint)}) where))
+     (assoc :constraintLogic logic-str))))
