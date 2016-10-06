@@ -56,7 +56,7 @@
   changed to given value"
   {:reframe-kind :event
    :reframe-key  :query-builder/change-constraint-value
-   :undoable?    (== 1 2)
+   :undoable?    true
    :undo-exp     :use-this-fn-due-to-static-metadata-in-cljs}
   ([_ db [_ index value]]
    (str "change constraint value to " value))
