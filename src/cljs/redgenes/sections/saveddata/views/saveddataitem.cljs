@@ -97,9 +97,9 @@
          {:style {:text-align "right"}}
          [:button.btn.btn-primary.btn-raised
           {:on-click (fn []
-                       (dispatch ^:flush-dom [:results/set-query value])
+                       (dispatch ^:flush-dom [:saved-data/view-query id])
                        ;(println "set query" value)
-                       (navigate! "#/results")
+
                        )}
           [:span "View"]]
          ]

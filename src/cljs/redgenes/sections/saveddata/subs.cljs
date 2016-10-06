@@ -8,20 +8,18 @@
 
 (defn list->sd
   [list]
-  {:sd/created (t/now)
-   :sd/updated (t/now)
-   :sd/count   (:size list)
-   :sd/id      (:name list)
-   :sd/type    :list
-   :sd/label   (:title list)
-   :sd/value   list})
+  {(:name list) {:sd/created (t/now)
+                 :sd/updated (t/now)
+                 :sd/count   (:size list)
+                 :sd/id      (:name list)
+                 :sd/type    :list
+                 :sd/label   (:title list)
+                 :sd/value   list}})
 
 (reg-sub
   :saved-data/all
   (fn [db]
-    (sort-by (fn [{created :sd/created}] created) > (concat
-                                                   (vals (get-in db [:saved-data :items]))
-                                                   (map list->sd (get-in db [:assets :lists]))))))
+    (sort-by (fn [{created :sd/created}] created) > (vals (get-in db [:saved-data :items])))))
 
 (reg-sub
   :saved-data/edit-mode

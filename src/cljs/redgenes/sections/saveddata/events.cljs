@@ -9,6 +9,7 @@
             [imcljs.operations :as operations]
             [imcljs.search :as search]
             [clojure.spec :as s]
+            [accountant.core :refer [navigate!]]
             [redgenes.interceptors :refer [abort-spec]]
             [clojure.set :refer [union intersection difference]]))
 
@@ -91,6 +92,47 @@
 
 (reg-event-fx :save-data [(abort-spec saved-data-spec)] save-data-fn)
 
+(defn list->sd
+  [list]
+  {(:name list) {:sd/created (t/now)
+                 :sd/updated (t/now)
+                 :sd/count   (:size list)
+                 :sd/id      (:name list)
+                 :sd/type    :list
+                 :sd/label   (:title list)
+                 :sd/value   list}})
+
+(defn create-query-from-list [db value]
+  (let [summary-fields (get-in db [:assets :summary-fields (keyword (:type value))])]
+    {:from   (:type value)
+     :select summary-fields
+     :where  [{:path  (:type value)
+               :op    "IN"
+               :value (:name value)}]}))
+
+(reg-fx
+  :navigate
+  (fn [url]
+    (navigate! (str "#/" url))))
+
+(reg-event-fx
+  :saved-data/view-query
+  (fn [{db :db} [_ id]]
+    (let [saved-data (get-in db [:saved-data :items id])
+          query      (case (:sd/type saved-data)
+                       :query (println (:sd/value saved-data))
+                       :list (create-query-from-list db (:sd/value saved-data)))]
+      {:db         db
+       :dispatch [:results/set-query query]
+       :navigate "results"}
+      )
+    ))
+
+(reg-event-db
+  :saved-data/load-lists
+  (fn [db]
+    (update-in db [:saved-data :items]
+               merge (into {} (map list->sd (get-in db [:assets :lists]))))))
 
 (reg-event-db
   :save-saved-data-tooltip
