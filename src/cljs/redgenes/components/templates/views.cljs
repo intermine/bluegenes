@@ -6,6 +6,9 @@
             [redgenes.components.lighttable :as lighttable]))
 
 
+
+
+
 (def ops [{:op         "="
            :applies-to [:string :boolean :integer :double :float]}
           {:op         "!="
@@ -42,6 +45,22 @@
                     [:li
                      {:on-click (fn [] (update-fn (:name l)))}
                      [:a (str (:name l))]]) @lists))])))
+
+(defn list-saveddata []
+  (let [lists (subscribe [:saved-data/filtered-items])]
+    (fn [update-fn]
+      [:div.dropdown
+       [:button.btn.btn-primary.dropdown-toggle {:type "button" :data-toggle "dropdown"}
+        [:i.fa.fa-list.pad-right-5] "SD"]
+       (into [:ul.dropdown-menu.dropdown-menu-right]
+             (map (fn [l]
+                    ;(.log js/console l)
+                    [:li
+                     {:on-click (fn [] (update-fn (:name l)))}
+                     [:a (str (:sd/label l))]]) @lists))])))
+
+
+
 (defn categories []
   (let [categories        (subscribe [:template-chooser-categories])
         selected-category (subscribe [:selected-template-category])]
@@ -88,7 +107,7 @@
                                                  (let [select-function (fn [name]
                                                                          (swap! state assoc :value name :op "IN")
                                                                          (dispatch [:template-chooser/replace-constraint idx @state]))]
-                                                   [list-dropdown select-function])])]])))
+                                                   [list-saveddata select-function])])]])))
 
 (defn form []
   (fn [constraints]
@@ -133,6 +152,7 @@
 
 (def func (fn [& args] (fn [args])))
 
+
 (defn main []
   (let [im-templates         (subscribe [:templates-by-category])
         selected-template    (subscribe [:selected-template])
@@ -141,13 +161,66 @@
         counting?            (subscribe [:template-chooser/counting?])
         selected-constraints (subscribe [:template-chooser/selected-template-constraints])]
     (fn []
-      [:div.container-fluid.full-height
+      [:div.x-body
+       [:div.x-section
+        [:div.x-container
+         [:div.pane.x-container
+          [:div.pane-heading "Popular Queries"]
+          [:div.pane-body.x-container
+           [:div.form-group
+            [:label.control-label "Filter by category"]
+            [categories]]
+           [:div.form-group
+            [:label.control-label "Filter description"]
+            [template-filter filter-state]]
+           [:div.x-scrollable-content
+            [templates @im-templates]]]]]]
+       [:div.x-section
+        [:div.pane
+         [:div.pane-heading "Constraints"]
+         [:div.pane-body
+          ^{:key (:name @selected-template)} [form @selected-constraints]
+          #_(json-html/edn->hiccup @selected-template)]]
+        [:div.panel.panel-default
+         [:div.panel-heading "Results"]
+         [:div.panel-body
+          (if @counting?
+            [:i.fa.fa-cog.fa-spin.fa-1x.fa-fw]
+            [:div
+             [:h2 (str @result-count " Rows")]
+             [lighttable/main {:query      @selected-template
+                               :no-repeats true}]
+             [:button.btn.btn-primary.btn-raised
+              {:on-click
+               (fn []
+                 (dispatch
+                   [:save-data {:sd/type    :query
+                                :sd/service :flymine
+                                :sd/label   (last (split (:title @selected-template) "-->"))
+                                :sd/value   (assoc @selected-template :title (last (split (:title @selected-template) "-->")))}]))} "Save"]
+
+             [:button.btn.btn-primary.btn-raised
+              {:on-click (fn []
+                           (dispatch ^:flush-dom [:results/set-query @selected-template])
+                           (navigate! "#/results"))}
+              "View Results"]])]]]])))
+
+
+(defn main-old []
+  (let [im-templates         (subscribe [:templates-by-category])
+        selected-template    (subscribe [:selected-template])
+        filter-state         (reagent/atom nil)
+        result-count         (subscribe [:template-chooser/count])
+        counting?            (subscribe [:template-chooser/counting?])
+        selected-constraints (subscribe [:template-chooser/selected-template-constraints])]
+    (fn []
+      [:div.container-fluid
        [:h2 "Popular Queries"]
-       [:div.row.full-height
-        [:div.col-md-6.full-height
-         [:div.panel.panel-default.full-height
+       [:div.row
+        [:div.col-md-6
+         [:div.panel.panel-default
           [:div.panel-heading "Templates"]
-          [:div.panel-body.full-height
+          [:div.panel-body
            [:form.form
             [:div.form-group
              [:label.control-label "Filter description"]
@@ -155,7 +228,7 @@
             [:div.form-group
              [:label.control-label "Filter by category"]
              [categories]]]
-           [:div.full-height.overflow-y
+           [:div.overflow-y
             [templates @im-templates]]]]]
         [:div.col-md-6
          [:div.panel.panel-default

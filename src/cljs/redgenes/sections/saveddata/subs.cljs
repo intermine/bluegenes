@@ -2,13 +2,26 @@
   (:require-macros [reagent.ratom :refer [reaction]]
                    [com.rpl.specter :refer [traverse select transform]])
   (:require [re-frame.core :refer [reg-sub]]
-            [com.rpl.specter :as s]))
+            [com.rpl.specter :as s]
+            [cljs-time.core :as t]))
 
+
+(defn list->sd
+  [list]
+  {:sd/created (t/now)
+   :sd/updated (t/now)
+   :sd/count   (:size list)
+   :sd/id      (:name list)
+   :sd/type    :list
+   :sd/label   (:title list)
+   :sd/value   list})
 
 (reg-sub
   :saved-data/all
   (fn [db]
-    (sort-by (fn [{created :created}] created) > (vals (get-in db [:saved-data :items])))))
+    (sort-by (fn [{created :sd/created}] created) > (concat
+                                                   (vals (get-in db [:saved-data :items]))
+                                                   (map list->sd (get-in db [:assets :lists]))))))
 
 (reg-sub
   :saved-data/edit-mode
@@ -28,7 +41,6 @@
 (reg-sub
   :saved-data/editable-id
   (fn [db [_ id {path :path}]]
-
     (first (filter
              (fn [item]
                (= {:id id :path path} item))
@@ -41,6 +53,11 @@
     (get-in db [:saved-data :editor :filter])))
 
 (reg-sub
+  :saved-data/list-filter
+  (fn [db]
+    (get-in db [:saved-data :editor :list-filter])))
+
+(reg-sub
   :saved-data/text-filter
   (fn [db]
     (get-in db [:saved-data :editor :text-filter])))
@@ -50,30 +67,29 @@
   :<- [:saved-data/all]
   :<- [:saved-data/editable-ids]
   (fn [[all editable-ids]]
-    (let [ids (map :id editable-ids)]
+    (let [ids (map :sd/id editable-ids)]
       (reduce (fn [total next]
-                (let [found    (first (filter #(= next (:id %)) all))
-                      selected (first (filter #(= next (:id %)) editable-ids))]
+                (let [found    (first (filter #(= next (:sd/id %)) all))
+                      selected (first (filter #(= next (:sd/id %)) editable-ids))]
                   (conj total
-                        (assoc found :selected (select-keys selected [:path :type]))))) [] ids))))
+                        (assoc found :selected (select-keys selected [:path :sd/type]))))) [] ids))))
 
 
 (defn has-text?
   "Return true if a label contains a string"
   [string details]
   (if string
-    (if-let [description (:label details)]
+    (if-let [description (:sd/label details)]
       (re-find (re-pattern (str "(?i)" string)) description)
       false)
     true))
 
-(defn saved-data-has-type? [type {parts :parts}]
+(defn saved-data-has-type? [type {parts :sd/parts}]
   (contains? parts type))
 
 (reg-sub
   :saved-data/merge-intersection
   (fn [db]
-
     (let [items (get-in db [:saved-data :editor :selected-items])]
       (some? (some true? (select [s/ALL :keep :intersection] items))))))
 

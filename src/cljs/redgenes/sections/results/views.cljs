@@ -9,11 +9,12 @@
   (let [query (subscribe [:results/query])]
     (fn []
       [:div.container-fluid
-       [:div.row [:h1 (str "Results for " (:title @query))]]
+       ;[:div.row [:h1 (str "Results for " (:title @query))]]
        [:button.btn.btn-primary.btn-raised
         {:on-click (fn []
                      (dispatch
-                       [:save-data {:type  :query
-                                    :label (last (split (:title @query) "-->"))
-                                    :value (assoc @query :title (last (split (:title @query) "-->")))}]))} "Save"]
+                       [:save-data {:sd/type  :query
+                                    :sd/service :flymine
+                                    :sd/label (last (split (:title @query) "-->"))
+                                    :sd/value (assoc @query :title (last (split (:title @query) "-->")))}]))} "Save"]
        (if @query [table/main @query true])])))
