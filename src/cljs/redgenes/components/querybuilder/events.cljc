@@ -56,11 +56,13 @@
   changed to given value"
   {:reframe-kind :event
    :reframe-key  :query-builder/change-constraint-value
-   :undoable?    true
-   :undo-exp     (fn [db [_ index value]] (str "change constraint " index " to " value))}
-  [db [_ index value]]
-  (-> db
-    (assoc-in [:query-builder :query :q/where index :q/value] value)))
+   :undoable?    (== 1 2)
+   :undo-exp     :use-this-fn-due-to-static-metadata-in-cljs}
+  ([_ db [_ index value]]
+   (str "change constraint value to " value))
+  ([db [_ index value]]
+   (-> db
+     (assoc-in [:query-builder :query :q/where index :q/value] value))))
 
 (defn change-constraint-op
   "Returns the given db with the :q/where constraint op at given index
@@ -68,10 +70,12 @@
   {:reframe-kind :event
    :reframe-key  :query-builder/change-constraint-op
    :undoable?    true
-   :undo-exp     (fn [db [_ index value]] (str "change constraint " index " to " value))}
-  [db [_ index op]]
-  (-> db
-    (assoc-in [:query-builder :query :q/where index :q/op] op)))
+   :undo-exp     :use-this-fn-due-to-static-metadata-in-cljs}
+  ([_ db [_ index op]]
+   (str "change constraint operation to " op))
+  ([db [_ index op]]
+   (-> db
+     (assoc-in [:query-builder :query :q/where index :q/op] op))))
 
 (defn set-where-path
   ""
