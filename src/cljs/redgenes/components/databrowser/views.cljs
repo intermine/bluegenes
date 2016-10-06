@@ -42,10 +42,16 @@
             r (Math/sqrt (/ area pi))
             r-positioned (* default-r (inc index))
             subscribed-location (subscribe [:databrowser/node-locations id])
-            actual-location (if (map? @subscribed-location) @subscribed-location {:x r-positioned :y r-positioned})]
-            (.log js/console "%cactual-location" "color:hotpink;font-weight:bold;" (clj->js actual-location))
-          [:g [:circle.bubble {:r r, :cy (:y actual-location), :cx (:x actual-location) :class (str "type-" (name id))}]
-          [bubbletext actual-location id]]
+            actual-location (if (map? @subscribed-location) @subscribed-location {:x r-positioned :y r-positioned :radius r})]
+            ;(.log js/console "%cactual-location" "color:hotpink;font-weight:bold;" (clj->js actual-location))
+          [:g
+           [:circle.bubble
+            {:r (:radius actual-location)
+             :cy (:y actual-location)
+             :cx (:x actual-location)
+             :class (str "type-" (name id))
+            }]
+            [bubbletext actual-location id]]
       )) @model))
 ]))
 
