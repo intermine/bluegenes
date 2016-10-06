@@ -120,7 +120,7 @@
   (fn [{db :db} [_ id]]
     (let [saved-data (get-in db [:saved-data :items id])
           query      (case (:sd/type saved-data)
-                       :query (println (:sd/value saved-data))
+                       :query (:sd/value saved-data)
                        :list (create-query-from-list db (:sd/value saved-data)))]
       {:db         db
        :dispatch [:results/set-query query]
@@ -237,7 +237,6 @@
 (reg-event-db
   :save-datum-count
   (fn [db [_ id c]]
-    (println "DATUM" c)
     (assoc-in db [:saved-data :items id :sd/count] c)))
 
 (reg-fx
@@ -251,7 +250,6 @@
 (reg-event-fx
   :saved-data/run-query-count
   (fn [{db :db} [_ [id {query :sd/value}]]]
-    (println "running query count")
     (let [mine-url (:mine-url db)]
       {:db       db
        :count-me [mine-url id query]})))

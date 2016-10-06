@@ -110,7 +110,7 @@
           [:div.container-fluid
            [text-filter]
            [toolbar]
-           (into [:div.grid-4_md-3_sm-3_xs-1.saved-data-container]
+           (into [:div.grid-5_md-4_sm-3_xs-1.saved-data-container]
                  (map (fn [e]
                         ^{:key (:id e)} [saved-data-item/main e]) @filtered-items))]
           [editor-drawer]
