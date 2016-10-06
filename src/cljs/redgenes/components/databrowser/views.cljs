@@ -32,26 +32,18 @@
           model (subscribe [:databrowser/model-counts :human])
           default-r 50]
           [:div.bubbles [:h2 "Explore " @root ":"]
-      (into [:svg {:version "1.1", :view-box "0 0 500 500"}]
+      (into [:svg {:version "1.1"}]
 
         (map-indexed (fn [index [id val]]
-          (let [
-            ; area (* 100 val)
-            ; r (Math/log2 (Math/sqrt (/ area pi)))
-            area (* (Math/log2 val) 100)
-            r (Math/sqrt (/ area pi))
-            r-positioned (* default-r (inc index))
-            subscribed-location (subscribe [:databrowser/node-locations id])
-            actual-location (if (map? @subscribed-location) @subscribed-location {:x r-positioned :y r-positioned :radius r})]
-            ;(.log js/console "%cactual-location" "color:hotpink;font-weight:bold;" (clj->js actual-location))
+          (let [location @(subscribe [:databrowser/node-locations id])]
           [:g
            [:circle.bubble
-            {:r (:radius actual-location)
-             :cy (:y actual-location)
-             :cx (:x actual-location)
+            {:r (:r location)
+             :cy (:y location)
+             :cx (:x location)
              :class (str "type-" (name id))
             }]
-            [bubbletext actual-location id]]
+            [bubbletext location id]]
       )) @model))
 ]))
 
