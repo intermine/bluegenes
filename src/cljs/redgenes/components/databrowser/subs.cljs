@@ -31,5 +31,4 @@
 (reg-sub
  :databrowser/node-locations
  (fn [db [_ node-name]]
-   (.log js/console "%cnode-name" "color:hotpink;font-weight:bold;" (clj->js node-name))
    (node-name (:databrowser/node-locations db))))

@@ -29,8 +29,7 @@
 (defn bubbles
   "Visual and interactive UI component allowing user to view model properties more visually than the text filters. " []
     (let [root (subscribe [:databrowser/root])
-          model (subscribe [:databrowser/model-counts :human])
-          default-r 50]
+          model (subscribe [:databrowser/model-counts :human])]
           [:div.bubbles [:h2 "Explore " @root ":"]
       (into [:svg {:version "1.1"}]
 
