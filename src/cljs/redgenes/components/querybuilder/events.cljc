@@ -20,8 +20,8 @@
     (assoc-in [:query-builder :query] {
                                        :q/select #{}
                                        :q/where []
-                                       :constraint-paths #{}
-                                       })
+                                       :constraint-paths #{}})
+
     (assoc-in [:query-builder :count] nil)
     (assoc-in [:query-builder :used-codes] nil)
     (assoc-in [:query-builder :where-tree] nil)))
@@ -29,9 +29,9 @@
 (defn add-constraint-cofx
   "Returns the x for the given y"
   {:reframe-kind :cofx,
-  :reframe-key   :query-builder/add-constraint
-  :undoable?     true
-  :undo-exp      "add constraint"}
+   :reframe-key   :query-builder/add-constraint
+   :undoable?     true
+   :undo-exp      "add constraint"}
   [{db :db} [_ constraint]]
   {:db       (let [used-codes
                    (last (sort (map :q/code
@@ -97,7 +97,7 @@
   "Toggle autoupdate"
   {:reframe-kind :event, :reframe-key :query-builder/toggle-autoupdate}
   [db [_ count]]
-    (update-in db [:query-builder :autoupdate?] not))
+  (update-in db [:query-builder :autoupdate?] not))
 
 (defn run-query-cofx
   "Returns a cofx for running the query"
@@ -139,12 +139,12 @@
    :undoable?    true
    :undo-exp     "remove constraint"}
   [{db :db} [_ path i]]
-    {:db
-       (update-in
-         db
-         [:query-builder :query :q/where]
-         (fn [wheres] (vec (remove #(= % path) wheres))))
-     :dispatch [:query-builder/maybe-run-query]})
+  {:db
+     (update-in
+       db
+       [:query-builder :query :q/where]
+       (fn [wheres] (vec (remove #(= % path) wheres))))
+   :dispatch [:query-builder/maybe-run-query]})
 
 (defn add-filter
   "Returns the x for the given y"
@@ -165,11 +165,11 @@
             (catch #?(:clj Exception :cljs js/Error) e []))]
     (-> db
      (assoc-in [:query-builder :query :q/logic] x)
-      (assoc-in [:query-builder :query :logic-exp] (c/prefix-infix x))
+     (assoc-in [:query-builder :query :logic-exp] (c/prefix-infix x))
      (assoc-in [:query-builder :query :logic-str]
-       (string/upper-case expression)
+       (string/upper-case expression)))))
        ;(str (c/prefix-infix x))
-       ))))
+
 
 (defn set-query
   "Returns the x for the given y"

@@ -37,8 +37,8 @@
 (defn maybe-run-query!
   "Maybe runs the given query"
   {:reframe-kind :fx, :reframe-key :query-builder/maybe-run-query!}
-  [{query :query query? :query?}]
-    (cond (and query? (spec/valid? :q/query query)) (run-query! query)))
+  [{query :query query? :query?
+    (cond (and query? (spec/valid? :q/query query)) (run-query! query))}])
 
 (doseq
   [v
@@ -62,6 +62,6 @@
      #'redgenes.components.querybuilder.events/maybe-run-query-cofx
      #'redgenes.components.querybuilder.events/set-where-path
      #'run-query!
-     #'maybe-run-query!
-     ]]
+     #'maybe-run-query!]]
+
   (register! v))

@@ -51,8 +51,8 @@
   (register!
    (comp test-reset-query (fn [db _] (println "something first") db))
    {:reframe-key  :query-builder/reset-query
-    :reframe-kind :effect
-    }))
+    :reframe-kind :effect}))
+
 
 ;(register! #'reset-query)
 

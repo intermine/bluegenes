@@ -12,4 +12,12 @@
      :q/where []
      :constraint-paths #{}
      }
-    }})
+    }
+   })
+
+
+
+
+(comment
+  :q/something is for query builder
+  :sd/something is for saved data)
