@@ -14,14 +14,14 @@
 
 (defn attribute []
   (let [qb-query (subscribe [:query-builder/query])]
-    (fn [name & [path]]
-      (let [path-vec (conj path name)]
+    (fn [{naym :name tipe :type} & [path]]
+      (let [path-vec (conj path naym)]
         [:div
          [:div.btn.btn-default.btn.btn-xxs
           {
            :title    (str
                       (if ((:q/select @qb-query) path-vec) "Remove " "Add ")
-                       name
+                       naym
                        (if ((:q/select @qb-query) path-vec) " from " " to ")
                        "view")
            :class    (if ((:q/select @qb-query) path-vec)
@@ -31,14 +31,14 @@
           [:i.fa.fa-eye]]
          [:div.btn.btn-default.btn-outline.btn-xxs
           {
-           :title    (str "Add constraint for " name)
+           :title    (str "Add constraint for " naym)
            :class
                      (if ((get-in @qb-query [:constraint-paths]) path-vec)
                        "btn-primary"
                        "btn-outline")
            :on-click (fn [] (dispatch [:query-builder/add-filter path-vec]))}
           [:i.fa.fa-plus] [:i.fa.fa-filter]]
-         [:span.pad-left-5 name]]))))
+         [:span.pad-left-5 {:title tipe} naym]]))))
 
 (defn tree [class & [path open?]]
   (let [model (subscribe [:model])
@@ -54,11 +54,13 @@
         (into [:ul]
          (concat
            (map (fn [[_ details]]
-                  [:li.leaf [attribute (:name details) path]]) (sort (-> @model class :attributes)))
+                  [:li.leaf [attribute details path]])
+            (sort (-> @model class :attributes)))
            (map (fn [[_ details]]
                   [tree
                    (keyword (:referencedType details))
-                   (conj path (:name details))]) (sort (-> @model class :collections))))))])))
+                   (conj path (:name details))])
+             (sort (-> @model class :collections))))))])))
 
 (defn flat->tree [paths]
   (first (into [] (reduce (fn [total next] (assoc-in total next nil)) {} paths))))
