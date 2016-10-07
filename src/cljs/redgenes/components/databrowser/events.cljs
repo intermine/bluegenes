@@ -44,35 +44,58 @@ r))
          (not= c1 c2))
 ))
 
-(defn de-collide [x y]
-  (:assoc y {:collidey? "ohno"}))
 
 (defn check-for-collision [mymap]
+  "returns a list of colliding bubbles"
   (let [themap (vec mymap)]
     (doall (reduce (fn [new-map [id2 circle2]]
-      (doall (reduce (fn [new-map2 [id3 circle3]]
+      (let [inner-layer (doall (reduce (fn [new-map2 [id3 circle3]]
         (if (collides? circle2 circle3)
           (do
             (.log js/console "%cclash" "color:cornflowerblue;" id2 id3)
-            (assoc new-map2 id3 (de-collide circle2 circle3)))
+            (assoc new-map2 id3 (assoc circle3 :collides-with circle2)))
           new-map2)
       )
-       new-map themap))
+       new-map themap))]
 
-      )
+       inner-layer))
   {} themap))))
+
+
+(defn de-collide [[id coords] locations]
+  ;(assoc-in locations )
+  (.log js/console "XX" id coords)
+  locations)
+
+(defn resolve-collisions [locs]
+  (let [collisions (check-for-collision locs)]
+    (if (seq collisions)
+      (do (.log js/console "%cCOLLISIONS:" "border-bottom:solid 3px red" collisions)
+        (doall (map #(de-collide % locs) collisions))
+        )
+      (.log js/console "%cno collisions" "border-bottom:solid 3px darkseagreen"))
+))
 
 (defn calculate-node-locations [counts]
   (let [numeric-counts (map (fn [[a b]] [a (int b)]) counts) ;;they were strings
         sorted-counts (reverse (sort-by second numeric-counts)) ;;now they're ordered from large to small
         center (/ viewport 2)
-        central-node {(first (first sorted-counts)) {:x center :y center :r (radius-from-count (second (first sorted-counts)))}}
+        central-node {(first (first sorted-counts))
+          {:x center
+           :y center
+           :r (radius-from-count (second (first sorted-counts)))
+           :name (first (first sorted-counts))}}
         locs (reduce (fn [new-map [k v]]
           (let [radius (radius-from-count v)]
-          (assoc new-map k {:x (random-coord viewport radius) :y (random-coord viewport radius) :r radius}))
+          (assoc new-map k
+           {:x (random-coord viewport radius)
+            :y (random-coord viewport radius)
+            :r radius
+            :name k}))
     ) central-node (rest sorted-counts))]
 
-    (.log js/console "%cCollisions" "border-bottom:solid 1px green;" (check-for-collision locs))
+    (resolve-collisions locs)
+    (.log js/console "%cCollisions" "border-bottom:solid 1px green;" )
 
     locs))
 
