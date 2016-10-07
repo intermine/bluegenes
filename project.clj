@@ -2,7 +2,7 @@
   :dependencies [[org.clojure/clojure "1.9.0-alpha12"]
                  [org.clojure/clojurescript "1.9.229"]
                  [reagent "0.6.0"]
-                 [binaryage/devtools "0.8.1"]
+                 [binaryage/devtools "0.8.2"]
                  [re-frame "0.8.0"]
                  [secretary "1.2.3"]
                  [lein-cljsbuild "1.1.4"]
@@ -13,7 +13,7 @@
                  [cljs-ajax "0.5.8"]
                  [prismatic/dommy "1.1.0"]
                  [org.clojure/core.async "0.2.391"]
-                 [cljs-http "0.1.41"]
+                 [cljs-http "0.1.42"]
                  [venantius/accountant "0.1.7"]
                  [day8.re-frame/http-fx "0.0.4"]
                  [day8.re-frame/async-flow-fx "0.0.6"]
@@ -58,38 +58,59 @@
     }}
 
   :cljsbuild
-  {:builds
-   [{:id           "dev"
+  {
+   :builds
+   {
+    :dev
+    {
      :source-paths ["src/cljs"]
      :figwheel     {:on-jsload "redgenes.core/mount-root"}
      :compiler     {
                     :main                 redgenes.core
-                    :optimizations        :simple
-                    ;:output-to            "resources/public/js/compiled/app.js"
-                    :output-dir           "resources/public/js"
-                    :asset-path           "js/compiled/out"
+                    :optimizations        :none
+                    :output-to            "resources/public/js/compiled/app.js"
+                    :output-dir           "resources/public/js/compiled"
+                    :asset-path           "js"
                     :source-map-timestamp true
-                    :modules
-                    {
-                     :app
-                     {
-                      :output-to           "resources/public/js/app.js"
-                      :entries #{redgenes}
-                     }
-                     :query-builder
-                     {
-                      :output-to           "resources/public/js/qb.js"
-                      :entries #{redgenes.components.querybuilder}
-                     }
-                    }
-
+                    :pretty-print         true
                     ;:foreign-libs [{:file "resources/public/vendor/im.min.js"
                     ;                :provides ["intermine.imjs"]}
                     ;               {:file "resources/public/vendor/imtables.js"
                     ;                :provides ["intermine.imtables"]}]
                     }}
+    :modules
+    {
+     :source-paths ["src/cljs"]
+     :figwheel     {:on-jsload "redgenes.core/mount-root"}
+     :compiler     {
+                    :main                 redgenes.core
+                    :optimizations        :whitespace
+                    ;:output-to            "resources/public/js/compiled/app.js"
+                    :output-dir           "resources/public/js"
+                    :asset-path           "js"
+                    :source-map           true
+                    :source-map-timestamp true
+                    :pretty-print         true
+                    :modules
+                                          {
+                                           :app
+                                           {
+                                            :output-to "resources/public/js/app.js"
+                                            :entries   #{"redgenes.core"}
+                                            }
+                                           :query-builder
+                                           {
+                                            :output-to "resources/public/js/qb.js"
+                                            :entries
+                                             #{
+                                              "redgenes.components.querybuilder.views.main"
+                                              }
+                                            }
+                                           }
+                    }}
 
-    {:id           "min"
+    :min
+    {
      :source-paths ["src/cljs"]
      :jar          true
      :compiler     {:main            redgenes.core
@@ -104,12 +125,13 @@
                     ;               {:file "resources/public/vendor/imtables.min.js"
                     ;                :provides ["intermine.imtables"]}]
                     }}
-    {:id           "test"
+    :test
+    {
      :source-paths ["src/cljs" "test/cljs"]
      :compiler     {:output-to     "resources/public/js/compiled/test.js"
                     :main          redgenes.runner
                     :optimizations :none}}
-    ]}
+    }}
 
   :main redgenes.server
 

@@ -1,11 +1,11 @@
 (ns redgenes.utils
   ""
   (:require
-    #?(:cljs [re-frame.core :as re-frame :refer [reg-event-db reg-event-fx reg-fx]])
+    #?(:cljs [re-frame.core :as re-frame :refer [reg-event-db reg-event-fx reg-fx reg-sub]])
     #?(:cljs [day8.re-frame.undo :as undo :refer [undoable]])
     [clojure.string :as string]))
 
-(defn register!
+(defn ^:export register!
   "
   Helper for registering re-frame events
   using metadata of their vars
@@ -46,6 +46,24 @@
           (reg-fx reframe-key f))
       :clj
         (println "would register" naym reframe-key reframe-kind))))
+
+
+(defn ^:export register-all!
+  ([vars]
+    (doseq
+     [v vars]
+     (register! v))))
+
+(defn ^:export reg-all-subs!
+  ([queries]
+   #?(:cljs
+    (doseq
+      [[path kw] queries]
+      (reg-sub
+        (or kw (keyword (name :query-builder) (name path)))
+        (fn [db _]
+          (get-in db [:query-builder path]))))
+          :clj (println "reg these subs" queries))))
 
 (comment
   (register!

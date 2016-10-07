@@ -1,3 +1,15 @@
 (ns redgenes.components.querybuilder.subs
-  (:require-macros [reagent.ratom :refer [reaction]])
-  (:require [re-frame.core :as re-frame :refer [reg-sub]]))
+  (:require
+    [redgenes.utils :refer [reg-all-subs!]]))
+
+(reg-all-subs!
+  [
+   [:autoupdate?]
+   [:constraint :query-builder/current-constraint]
+   [:counting?]
+   [:count]
+   [:queried?]
+   [:used-codes]
+   [:io-query]
+   [:query]
+   ])

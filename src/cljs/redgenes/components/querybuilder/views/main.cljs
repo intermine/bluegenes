@@ -5,6 +5,8 @@
             [json-html.core :as json]
             [com.rpl.specter :as s]
             [clojure.spec :as spec]
+            [redgenes.components.querybuilder.events]
+            [redgenes.components.querybuilder.subs]
             [redgenes.components.querybuilder.core :as c :refer [build-query where-tree]]
             [redgenes.components.querybuilder.views.constraints :as constraints]
             [redgenes.components.table :as table]
@@ -114,7 +116,7 @@
             (with-meta [tiny-constraint c i] {:key i}))
           v (range))])])))
 
-(defn main []
+(defn ^:export main []
   (let [
         used-codes      (subscribe [:query-builder/used-codes])
         query           (subscribe [:query-builder/query])
