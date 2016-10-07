@@ -15,7 +15,10 @@
   (reg-sub
     :databrowser/root
     (fn [db _]
-      (:databrowser/root db)))
+      (if (some? (:databrowser/root db))
+        (:databrowser/root db)
+        "InterMine")
+      ))
 
   (reg-sub
     :databrowser/whitelisted-model

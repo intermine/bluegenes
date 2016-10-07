@@ -65,7 +65,6 @@
       @highlight: #ddd;
       margin: 1em;
       .result-type {
-        border-left: 0;
         line-height: 1.5em;
         background-color: #ccc;
         color: @body-foreground-color;
@@ -74,15 +73,20 @@
         line-height: @spacer;
         min-height: @spacer;
         vertical-align: middle;
+        border:0;
         &.type-Gene {
           background: @color-Gene;
           color: #fff;
         }
-        &.type-Publication {
+        &.type-Publication, &.type-Author {
           background: @color-Publication;
         }
         &.type-Protein {
           background: @color-Protein;
+        }
+        &.type-GOTerm {
+          background: @color-GO;
+          color: #fff;
         }
       }
       .active-filter {
@@ -263,6 +267,7 @@
   text-align: right;
   margin: 0.15em;
   padding: 0 0.2em;
+  border-width:0;
   border-left: solid 3px #999;
   &.type-Gene {
     border-left: solid 3px @color-Gene;

@@ -10,17 +10,18 @@
 
 (def pi (.-PI js/Math))
 (def viewport (subscribe [:databrowser/viewport]));; this wants to be dynamic when it grows up
-(def padding 30);; pad dem bubbles
+(def margin 30) ;;marginize dem bubbles
+(def padding 10) ;; pad dem bubbles
 (defn center [] {:x (/ (:x @viewport) 2) :y (/ (:y @viewport) 2)})
 
 (defn radius-from-count "like it sounds. strategy is to correlate the area to the log of the count, then whack it up in size a bit because we want to see these silly little dots." [count]
   (let [area (* (Math/log2 count) 100)
         r (Math/sqrt (/ area pi))]
-r))
+(+ r padding)))
 
 
 (defn random-coord [max-coord radius]
-  (let [r (+ radius padding)
+  (let [r (+ radius margin)
         x (* max-coord (.random js/Math))]
     (cond ;;these conds stop it from banging into the walls
       (< max-coord (+ r x))
@@ -55,14 +56,10 @@ r))
     (doall (reduce (fn [new-map [id2 circle2]]
       (let [inner-layer (doall (reduce (fn [new-map2 [id3 circle3]]
         (if (collides? circle2 circle3)
-          (do
-            (.log js/console "%cclash" "color:cornflowerblue;" id2 id3)
-            (assoc new-map2 id3 (assoc circle3 :collides-with circle2)))
-          new-map2)
-      )
+          (assoc new-map2 id3 (assoc circle3 :collides-with circle2))
+          new-map2))
        new-map themap))]
-
-       inner-layer))
+    inner-layer))
   {} themap))))
 
 

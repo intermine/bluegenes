@@ -10,21 +10,32 @@
 
 (def pi (.-PI js/Math))
 
+(defn short-quantity [val]
+  (let [v (int val)]
+    (cond
+      (> v 10000)
+        (str (int (/ v 1000)) "k")
+      (> v 1000)
+        (str (/ v 1000) "k")
+      :else v)
+    ))
+
 (defn visual-filter
   "Visual and interactive UI component allowing the userto view selected model properties in a textual form." []
   [:div.filter [:h4 "Filter: "]
     (let [root (subscribe [:databrowser/root])
           model (subscribe [:databrowser/model-counts :human])]
-      (into [:div.filter-by]
+      (into [:ul.filter-by]
         (map (fn [[id val]]
-          [:p id " " [:span.quantity val]]
-;          [:p (find-name vals)]
+          [:li {:class (str "type-" (name id))
+                :title (str (name id) " " val)} id " " [:span.quantity (short-quantity val)]]
         ) @model))
   )])
 
 (defn bubbletext [location text]
-  [:g [:text.shadow {:x (:x location) :y (:y location) :text-anchor "middle" :style {:stroke-width 2}} text]
-  [:text.bubbletext {:x (:x location) :y (:y location) :text-anchor "middle"} text]])
+  ;;the extra 4px are to offset the height of the text.
+  [:g [:text.shadow {:x (:x location) :y (+ 4 (:y location)) :text-anchor "middle" :style {:stroke-width 2}} text]
+  [:text.bubbletext {:x (:x location) :y (+ 4 (:y location)) :text-anchor "middle"} text]])
 
 (defn bubbles
   "Visual and interactive UI component allowing user to view model properties more visually than the text filters. " []
@@ -58,6 +69,7 @@
         [bubbles]
       [:div.preview
         [:h3 "Preview your data"]
+       [:div "Try clicking on a bubble on the left to get a preview of the data available."]
        [:button {:on-click #((dispatch [:databrowser/fetch-all-counts (viewport-coords)]))} "DO IT NOW" ]]
        ;[:div (map (fn [[k v]] [:div (clj->js k) v]) @(subscribe [:databrowser/model-counts :human]))]
      ])
