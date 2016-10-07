@@ -31,11 +31,11 @@
     (let [root (subscribe [:databrowser/root])
           model (subscribe [:databrowser/model-counts :human])]
           [:div.bubbles [:h2 "Explore " @root ":"]
-      (into [:svg {:version "1.1"}]
+      (into [:svg.bubblegraph {:version "1.1"}]
 
         (map-indexed (fn [index [id val]]
           (let [location @(subscribe [:databrowser/node-locations id])]
-          [:g
+          [:g {:class id}
            [:circle.bubble
             {:r (:r location)
              :cy (:y location)
@@ -46,6 +46,10 @@
       )) @model))
 ]))
 
+(defn viewport-coords []
+  {:y (.-clientHeight (.querySelector js/document ".bubblegraph"))
+   :x (.-clientWidth (.querySelector js/document ".bubblegraph"))})
+
 (defn main [] (reagent/create-class
   {:reagent-render
     (fn []
@@ -53,11 +57,11 @@
         [visual-filter]
         [bubbles]
       [:div.preview
-        [:h3 "Preview your data"]]
+        [:h3 "Preview your data"]
+       [:button {:on-click #((dispatch [:databrowser/fetch-all-counts (viewport-coords)]))} "DO IT NOW" ]]
        ;[:div (map (fn [[k v]] [:div (clj->js k) v]) @(subscribe [:databrowser/model-counts :human]))]
-        [:button {:on-click #((dispatch [:databrowser/fetch-all-counts]))} "DO IT NOW" ]
      ])
-   :component-did-mount #(dispatch [:databrowser/fetch-all-counts])
+   :component-did-mount #(dispatch [:databrowser/fetch-all-counts (viewport-coords)])
 
   })
 )

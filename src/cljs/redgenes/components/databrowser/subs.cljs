@@ -8,6 +8,11 @@
       (:databrowser/whitelist db)))
 
   (reg-sub
+    :databrowser/viewport
+    (fn [db _]
+      (:databrowser/viewport db)))
+
+  (reg-sub
     :databrowser/root
     (fn [db _]
       (:databrowser/root db)))

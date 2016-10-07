@@ -9,9 +9,9 @@
             [accountant.core :refer [navigate!]]))
 
 (def pi (.-PI js/Math))
-(def viewport 500);; this wants to be dynamic when it grows up
+(def viewport (subscribe [:databrowser/viewport]));; this wants to be dynamic when it grows up
 (def padding 30);; pad dem bubbles
-(def center (/ viewport 2))
+(defn center [] {:x (/ (:x @viewport) 2) :y (/ (:y @viewport) 2)})
 
 (defn radius-from-count "like it sounds. strategy is to correlate the area to the log of the count, then whack it up in size a bit because we want to see these silly little dots." [count]
   (let [area (* (Math/log2 count) 100)
@@ -24,7 +24,7 @@ r))
         x (* max-coord (.random js/Math))]
     (cond ;;these conds stop it from banging into the walls
       (< max-coord (+ r x))
-        (- r max-coord)
+        (- max-coord r)
       (> r x)
         r
       :else x)
@@ -37,10 +37,13 @@ r))
     (+ (Math/pow (- x1 x2) 2)
        (Math/pow (- y1 y2) 2))))
 
-(defn collides? [c1 c2]
+(defn collides?
+  "given two sets of circle coords, check if they collide at all.
+  Essentially, the distance between their centres needs to be greater than
+  the sum of their radiuses for this to be true. Also, a circle can't collide with itself."
+  [c1 c2]
   (let [distance-between-centers (distance [(:x c1) (:y c1)] [(:x c2) (:y c2)])
         radius-sum (+ (:r c1) (:r c2))]
-    ;(.log js/console "%cdistance-between-centers" "color:darkseagreen;" distance-between-centers radius-sum (>= radius-sum distance-between-centers))
     (and (>= radius-sum distance-between-centers)
          (not= c1 c2))
 ))
@@ -68,8 +71,8 @@ r))
   "The biggest node always goes smack in the centre"
   [sorted-counts]
   {(first (first sorted-counts))
-    {:x center
-     :y center
+    {:x (:x (center))
+     :y (:y (center))
      :r (radius-from-count (second (first sorted-counts)))
      :name (first (first sorted-counts))}})
 
@@ -77,8 +80,8 @@ r))
   "chooses a random location on the playing board and creats a coord & radius set for the circle"
   [k v]
   (let [radius (radius-from-count v)]
-    {:x (random-coord viewport radius)
-     :y (random-coord viewport radius)
+    {:x (random-coord (:x @viewport) radius)
+     :y (random-coord (:y @viewport) radius)
      :r radius
      :name k}
   ))
@@ -92,6 +95,7 @@ r))
         collisions (check-for-collision (assoc locs k possible-location))]
     (if (empty? collisions)
       possible-location    ;;this is a good place to be a baby bubble.
+    ;  possible-location
       (new-bubble k v locs);;try again, there are collisions
       )
 ))
@@ -109,14 +113,15 @@ r))
 
 (reg-event-fx
   :databrowser/fetch-all-counts
-  (fn [{db :db}]
-    {:db (assoc db :fetching-counts? true)
+  (fn [args [_ xy]]
+    (let [db (:db args)]
+    {:db (-> (assoc db :fetching-counts? true)
+             (assoc :databrowser/viewport xy))
      :databrowser/fetch-counts {
       :connection
         {:root @(subscribe [:mine-url])}
       :path "top"
-      } }))
-
+      } })))
 
 (reg-fx
   :databrowser/fetch-counts
@@ -134,4 +139,10 @@ r))
      (assoc :fetching-counts? false)
      (assoc :databrowser/node-locations (calculate-node-locations counts))
    )
+))
+
+(reg-event-db
+ :databrowser/viewport
+ (fn [db [_ xy]]
+  (assoc db :databrowser/viewport xy)
 ))
