@@ -11,6 +11,7 @@
 (def pi (.-PI js/Math))
 (def viewport 500);; this wants to be dynamic when it grows up
 (def padding 30);; pad dem bubbles
+(def center (/ viewport 2))
 
 (defn radius-from-count "like it sounds. strategy is to correlate the area to the log of the count, then whack it up in size a bit because we want to see these silly little dots." [count]
   (let [area (* (Math/log2 count) 100)
@@ -76,22 +77,27 @@ r))
       (.log js/console "%cno collisions" "border-bottom:solid 3px darkseagreen"))
 ))
 
+(defn build-central-node [sorted-counts]
+  {(first (first sorted-counts))
+    {:x center
+     :y center
+     :r (radius-from-count (second (first sorted-counts)))
+     :name (first (first sorted-counts))}})
+
+(defn assign-random-location [k v]
+  (let [radius (radius-from-count v)]
+  {:x (random-coord viewport radius)
+   :y (random-coord viewport radius)
+   :r radius
+   :name k}
+  ))
+
 (defn calculate-node-locations [counts]
   (let [numeric-counts (map (fn [[a b]] [a (int b)]) counts) ;;they were strings
         sorted-counts (reverse (sort-by second numeric-counts)) ;;now they're ordered from large to small
-        center (/ viewport 2)
-        central-node {(first (first sorted-counts))
-          {:x center
-           :y center
-           :r (radius-from-count (second (first sorted-counts)))
-           :name (first (first sorted-counts))}}
+        central-node (build-central-node sorted-counts)
         locs (reduce (fn [new-map [k v]]
-          (let [radius (radius-from-count v)]
-          (assoc new-map k
-           {:x (random-coord viewport radius)
-            :y (random-coord viewport radius)
-            :r radius
-            :name k}))
+          (assoc new-map k (assign-random-location k v))
     ) central-node (rest sorted-counts))]
 
     (resolve-collisions locs)
