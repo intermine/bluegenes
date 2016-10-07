@@ -62,11 +62,27 @@
    [{:id           "dev"
      :source-paths ["src/cljs"]
      :figwheel     {:on-jsload "redgenes.core/mount-root"}
-     :compiler     {:main                 redgenes.core
-                    :output-to            "resources/public/js/compiled/app.js"
-                    :output-dir           "resources/public/js/compiled/out"
+     :compiler     {
+                    :main                 redgenes.core
+                    :optimizations        :simple
+                    ;:output-to            "resources/public/js/compiled/app.js"
+                    :output-dir           "resources/public/js"
                     :asset-path           "js/compiled/out"
                     :source-map-timestamp true
+                    :modules
+                    {
+                     :app
+                     {
+                      :output-to           "resources/public/js/app.js"
+                      :entries #{redgenes}
+                     }
+                     :query-builder
+                     {
+                      :output-to           "resources/public/js/qb.js"
+                      :entries #{redgenes.components.querybuilder}
+                     }
+                    }
+
                     ;:foreign-libs [{:file "resources/public/vendor/im.min.js"
                     ;                :provides ["intermine.imjs"]}
                     ;               {:file "resources/public/vendor/imtables.js"
