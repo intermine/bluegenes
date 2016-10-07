@@ -85,7 +85,6 @@
      :compiler     {
                     :main                 redgenes.core
                     :optimizations        :whitespace
-                    ;:output-to            "resources/public/js/compiled/app.js"
                     :output-dir           "resources/public/js"
                     :asset-path           "js"
                     :source-map           true
@@ -105,6 +104,11 @@
                                              #{
                                               "redgenes.components.querybuilder.views.main"
                                               }
+                                            }
+                                           :main
+                                           {
+                                            :output-to "resources/public/js/main.js"
+                                            :entries   #{"redgenes.main"}
                                             }
                                            }
                     }}
