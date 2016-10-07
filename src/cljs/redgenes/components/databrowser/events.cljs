@@ -63,47 +63,49 @@ r))
   {} themap))))
 
 
-(defn de-collide [[id coords] locations]
-  ;(assoc-in locations )
-  (.log js/console "XX" id coords)
-  locations)
 
-(defn resolve-collisions [locs]
-  (let [collisions (check-for-collision locs)]
-    (if (seq collisions)
-      (do (.log js/console "%cCOLLISIONS:" "border-bottom:solid 3px red" collisions)
-        (doall (map #(de-collide % locs) collisions))
-        )
-      (.log js/console "%cno collisions" "border-bottom:solid 3px darkseagreen"))
-))
-
-(defn build-central-node [sorted-counts]
+(defn build-central-node
+  "The biggest node always goes smack in the centre"
+  [sorted-counts]
   {(first (first sorted-counts))
     {:x center
      :y center
      :r (radius-from-count (second (first sorted-counts)))
      :name (first (first sorted-counts))}})
 
-(defn assign-random-location [k v]
+(defn assign-random-location
+  "chooses a random location on the playing board and creats a coord & radius set for the circle"
+  [k v]
   (let [radius (radius-from-count v)]
-  {:x (random-coord viewport radius)
-   :y (random-coord viewport radius)
-   :r radius
-   :name k}
+    {:x (random-coord viewport radius)
+     :y (random-coord viewport radius)
+     :r radius
+     :name k}
   ))
 
-(defn calculate-node-locations [counts]
+(defn new-bubble
+  "Generates a location for the bubble, checks if it's overlapping, and tries again if it is"
+  ;;todo: this could cause an endless loop if there's just not enough room on the screen.
+  ;;Maybe limit to x tries per bubble
+  [k v locs]
+  (let [possible-location (assign-random-location k v)
+        collisions (check-for-collision (assoc locs k possible-location))]
+    (if (empty? collisions)
+      possible-location    ;;this is a good place to be a baby bubble.
+      (new-bubble k v locs);;try again, there are collisions
+      )
+))
+
+(defn calculate-node-locations
+  "Given counts, generate a coord set and sizes for the bubbles, and ensure that they don't overlap."
+  [counts]
   (let [numeric-counts (map (fn [[a b]] [a (int b)]) counts) ;;they were strings
         sorted-counts (reverse (sort-by second numeric-counts)) ;;now they're ordered from large to small
         central-node (build-central-node sorted-counts)
         locs (reduce (fn [new-map [k v]]
-          (assoc new-map k (assign-random-location k v))
+          (assoc new-map k (new-bubble k v new-map))
     ) central-node (rest sorted-counts))]
-
-    (resolve-collisions locs)
-    (.log js/console "%cCollisions" "border-bottom:solid 1px green;" )
-
-    locs))
+  locs))
 
 (reg-event-fx
   :databrowser/fetch-all-counts
