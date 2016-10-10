@@ -37,16 +37,20 @@
 (defn shell []
   (fn [state]
     (if (empty? (:results @state))
-      [:div.small (str (:class state) " - No Results")]
-      [:div [table @state]])))
+      [:div.small.no-results (str (:class @state) " - No Results") ]
+      [:div.lt [table @state]])))
 
 (defn handler [state e]
   (let [props (reagent/props e)
         node  (sel1 (reagent/dom-node e) :.im-target)]
-    (go (reset! state (<! (search/raw-query-rows {:root @(subscribe [:mine-url])}
+    (go (let [new-results (<! (search/raw-query-rows {:root @(subscribe [:mine-url])}
                                                  (:query props)
                                                  {:size   5
-                                                  :format "json"}))))))
+                                                  :format "json"}))]
+      ;; assoc the original class so we can say what has no results
+      (reset! state (assoc new-results :class (:class props)))
+      ))
+    ))
 
 (defn main []
   (let [state (reagent/atom nil)]
