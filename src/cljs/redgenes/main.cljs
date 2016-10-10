@@ -2,7 +2,7 @@
 
 (enable-console-print!)
 
-(defn init []
+(defn ^:export init []
   (println "hi!")
   (let [
         e (.createElement js/document "div")

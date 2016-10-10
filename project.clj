@@ -70,9 +70,10 @@
                     :optimizations        :none
                     :output-to            "resources/public/js/compiled/app.js"
                     :output-dir           "resources/public/js/compiled"
-                    :asset-path           "js"
+                    :asset-path           "js/compiled"
                     :source-map-timestamp true
                     :pretty-print         true
+                    :parallel-build       true
                     ;:foreign-libs [{:file "resources/public/vendor/im.min.js"
                     ;                :provides ["intermine.imjs"]}
                     ;               {:file "resources/public/vendor/imtables.js"
@@ -83,33 +84,32 @@
      :source-paths ["src/cljs"]
      :figwheel     {:on-jsload "redgenes.core/mount-root"}
      :compiler     {
-                    :main                 redgenes.core
-                    :optimizations        :whitespace
+                    :optimizations        :simple
                     :output-dir           "resources/public/js"
-                    :asset-path           "js"
                     :source-map           true
                     :source-map-timestamp true
                     :pretty-print         true
+                    :parallel-build       true
                     :modules
                                           {
-                                           :app
-                                           {
-                                            :output-to "resources/public/js/app.js"
-                                            :entries   #{"redgenes.core"}
-                                            }
-                                           :query-builder
-                                           {
-                                            :output-to "resources/public/js/qb.js"
-                                            :entries
-                                             #{
-                                              "redgenes.components.querybuilder.views.main"
+                                             :app
+                                             {
+                                              :output-to  "resources/public/js/app.js"
+                                              :entries    #{"redgenes.core"}
                                               }
-                                            }
-                                           :main
-                                           {
-                                            :output-to "resources/public/js/main.js"
-                                            :entries   #{"redgenes.main"}
-                                            }
+                                             :query-builder
+                                             {
+                                              :output-to  "resources/public/js/qb.js"
+                                              :entries
+                                                          #{
+                                                            "redgenes.components.querybuilder.views.main"
+                                                            }
+                                              }
+                                             :main
+                                             {
+                                              :output-to  "resources/public/js/main.js"
+                                              :entries    #{"redgenes.main"}
+                                              }
                                            }
                     }}
 
