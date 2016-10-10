@@ -2,6 +2,7 @@
   (:require [reagent.core :as reagent]
             [re-frame.core :as re-frame]
             [devtools.core :as devtools]
+            [redgenes.modules :as modules]
             [redgenes.utils]
             [redgenes.events]
             [redgenes.subs]
@@ -27,3 +28,5 @@
   (re-frame/dispatch [:fetch-all-assets])
   (dev-setup)
   (mount-root))
+
+(modules/set-loaded! "app")

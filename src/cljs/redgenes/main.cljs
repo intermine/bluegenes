@@ -12,8 +12,9 @@
         t (.. e (appendChild t))
         ]
       (.. js/document (getElementById "app") (appendChild e)))
-  (println ">>"
-    (modules/with-modules {"q" [] "w" []})))
+  (modules/set-modules!
+    (modules/with-modules {"app" [] "main" [] "qb" []}))
+  (modules/load-module! "app"))
 
 
 ; (cljs/build "src/cljs" (get-in (into {} (map vec (partition 2 (rest (read-string (slurp "project.clj")))))) [:cljsbuild :builds :modules :compiler]))
