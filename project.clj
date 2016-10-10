@@ -108,7 +108,7 @@
                                              :main
                                              {
                                               :output-to  "resources/public/js/main.js"
-                                              :entries    #{"redgenes.main"}
+                                              :entries    #{"redgenes.main" "redgenes.modules"}
                                               }
                                            }
                     }}
