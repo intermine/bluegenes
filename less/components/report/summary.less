@@ -35,10 +35,31 @@
         }
     }
 
-.collections {
-  display:flex;
-  flex-direction: column;}
-  //put light table results before "empty" boxes. Because empty is so boring.
-  .lt {order:1;}
-  .no-results {order:1000;}
+    .collections {
+        display: flex;
+        flex-direction: column;
+    }
+    //put light table results before "empty" boxes. Because empty is so boring.
+    .lt {
+        order: 1;
+    }
+
+    .no-results {
+        order: 1000;
+    }
+}
+
+.homologuelinks {
+    display: flex;
+
+    .onemine {
+        flex-grow: 1;
+    }
+
+    li,
+    ul {
+        list-style-type: none;
+        margin-left: 0;
+        padding-left: 0;
+    }
 }

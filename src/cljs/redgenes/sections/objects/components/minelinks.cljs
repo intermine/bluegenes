@@ -104,7 +104,8 @@
     [:h5 "Homologues in other Mines"]
     (if (some? @search-results)
       ;;if there are results
-      [:div.DDD
+      [:div
+       (.log js/console "%c@search-results" "color:banana;font-weight:bold;" (clj->js @search-results))
         [status-list]
         [successful-homologue-results]
         ;;let's tell them we have no homologues if no mines have results,
