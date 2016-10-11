@@ -91,7 +91,7 @@
            (doall
              ^{:key k}
              [:div.onemine
-               [:h6 (:name this-mine)]
+               [:h6 (:name (:mine this-mine))]
                [:div.subtitle (:abbrev this-mine)]
                [:div (list-homologues homies (:url this-mine))]])
       ))))
@@ -101,7 +101,7 @@
 (defn homologue-links []
   "Visual link show component that shows one result per mine"
   [:div.outbound
-    [:h5 "Homologues in other Mines"]
+    [:h4 "Homologues in other Mines"]
     (if (some? @search-results)
       ;;if there are results
       [:div
