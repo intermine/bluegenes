@@ -102,10 +102,11 @@
                     (assoc :search-term term))
        :suggest {:c suggest-chan :search-term term}})))
 
-(reg-event-db
+(reg-event-fx
   :finished-loading-assets
-  (fn [db]
-    (assoc db :fetching-assets? false)))
+  (fn [{db :db}]
+    {:db (assoc db :fetching-assets? false)
+     :dispatch [:saved-data/load-lists]}))
 
 (reg-fx
   :fetch-assets

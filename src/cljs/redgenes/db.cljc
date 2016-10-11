@@ -11,3 +11,4 @@
    :databrowser/root nil ;The default place to start in the data browser at /explore
    :databrowser/node-locations {:Homologue {:x 120 :y 224 :radius 50} :Protein {:x 200 :y 300 :radius 17}}
    })
+

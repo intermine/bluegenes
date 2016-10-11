@@ -127,14 +127,15 @@
   :idresolver/save-results
   (fn [{db :db}]
     (let [ids     (remove nil? (map (fn [[_ {id :id}]] id) (-> db :idresolver :results)))
-          results {:type  :query
-                   :label (str "Uploaded " (count ids) " Genes")
-                   :value {:from   "Gene"
-                           :title (str "Uploaded " (count ids) " Genes")
-                           :select "*"
-                           :where  [{:path   "id"
-                                     :op     "ONE OF"
-                                     :values ids}]}}]
+          results {:sd/type    :query
+                   :sd/service :flymine
+                   :sd/label   (str "Uploaded " (count ids) " Genes")
+                   :sd/value   {:from   "Gene"
+                                :title  (str "Uploaded " (count ids) " Genes")
+                                :select (get-in db [:assets :summary-fields :Gene])
+                                :where  [{:path   "Gene.id"
+                                          :op     "ONE OF"
+                                          :values ids}]}}]
       {:db       db
        :dispatch [:save-data results]
        ;:navigate "saved-data"
@@ -157,14 +158,8 @@
                            :where  [{:path   "id"
                                      :op     "ONE OF"
                                      :values ids}]}}]
-      {:dispatch       [:listanalysis/run-all results]
+      {:dispatch [:listanalysis/run-all results]
        :navigate (str "listanalysis")})))
-
-
-#_(fn [saved]
-    (assoc saved uid
-                 (remove nil? (map (fn [[input {id :id}]] id)
-                                   (-> db :idresolver :results)))))
 
 (reg-event-db
   :idresolver/resolve-duplicate
