@@ -95,18 +95,19 @@
         selected (subscribe [:idresolver/selected])]
     (reagent/create-class
       {:component-did-mount
-       (fn [this]
-         (let [node (reagent/dom-node this)]
-
-           (dommy/listen! node :click
-                          #(dispatch [:idresolver/toggle-selected input]))))
+       (fn [])
        :reagent-render
        (fn [i]
          (let [class (if (empty? @result)
                        "inactive"
                        (name (:status (second (first @result)))))
                class (if (some #{input} @selected) (str class " selected") class)]
-           [:div.id-resolver-item {:class class}
+           [:div.id-resolver-item
+            {:class class
+             :on-click (fn [e]
+                         (.preventDefault e)
+                         (.stopPropagation e)
+                         (dispatch [:idresolver/toggle-selected input]) )}
             (case (:status (second (first @result)))
               :MATCH [:i.fa.fa-check.fa-1x.fa-fw]
               :UNRESOLVED [:i.fa.fa-times]
@@ -160,6 +161,7 @@
         :on-click      (fn [evt]
                          (.preventDefault evt)
                          (.stopPropagation evt)
+                         (dispatch [:idresolver/clear-selected])
                          (.focus (sel1 :#identifierinput)))
         :on-drag-over  (partial handle-drag-over drag-state)
         :on-drag-leave (fn [] (reset! drag-state false))
