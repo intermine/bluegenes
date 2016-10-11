@@ -35,7 +35,7 @@
        [:button.btn.btn-warning.btn-raised
         {:class    (if (empty? @selected) "disabled")
          :on-click (fn [] (dispatch [:idresolver/delete-selected]))}
-        "Remove"]
+        (str "Remove (" (count @selected) ")")]
        [:button.btn.btn-success.btn-raised
         {:class    (if (empty? @matches) "disabled")
          :on-click (fn [] (dispatch [:idresolver/save-results]))}
