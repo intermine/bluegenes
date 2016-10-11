@@ -59,14 +59,16 @@
 (reg-event-fx
   :idresolver/resolve
   (fn [{db :db} [_ id]]
-    {:db                    (-> db
-                                (assoc-in [:idresolver :resolving?] true)
-                                (update-in [:idresolver :bank]
-                                           (fn [bank]
-                                             (reduce (fn [total next]
-                                                       (conj total {:input  next
-                                                                    :status :inactive})) bank id))))
-     :idresolver/resolve-id id}))
+    {:db
+     (-> db
+         (assoc-in [:idresolver :resolving?] true)
+         (update-in [:idresolver :bank]
+                    (fn [bank]
+                      (distinct (reduce (fn [total next]
+                                 (conj total {:input  next
+                                              :status :inactive})) bank id)))))
+     :idresolver/resolve-id
+     id}))
 
 (defn toggle-into-collection [coll val]
   (if-let [found (some #{val} coll)]
@@ -100,10 +102,10 @@
 (reg-event-fx
   :idresolver/delete-selected
   (fn [{db :db}]
-    (let [selected   (get-in db [:idresolver :selected])]
-      {:db       (assoc-in db [:idresolver :selected] '())
+    (let [selected (get-in db [:idresolver :selected])]
+      {:db         (assoc-in db [:idresolver :selected] '())
        :dispatch-n [[:idresolver/remove-from-bank selected]
-                  [:idresolver/remove-from-results selected]]})))
+                    [:idresolver/remove-from-results selected]]})))
 
 (reg-event-db
   :idresolver/clear
@@ -111,7 +113,8 @@
     (update-in db [:idresolver] assoc
                :bank nil
                :results nil
-               :resolving? false)))
+               :resolving? false
+               :selected '())))
 
 (reg-event-db
   :idresolver/toggle-select-multi
