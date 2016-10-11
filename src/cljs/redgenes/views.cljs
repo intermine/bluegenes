@@ -11,6 +11,7 @@
             [redgenes.components.querybuilder.views.main :as querybuilder]
             [redgenes.sections.upload.views :as upload]
             [redgenes.sections.explore.views :as explore]
+            [redgenes.mines :as remote-mines]
             [redgenes.sections.analyse.views :as analyse]
             [redgenes.sections.results.views :as results]
             [redgenes.sections.saveddata.views :as saved-data]
@@ -21,14 +22,28 @@
   (let [mine-url (re-frame/subscribe [:mine-url])]
     (fn []
       [:div
-       [:div.panel.container
-        [:input.form-control.input-lg
-         {:type      "Text"
-          :value     @mine-url
-          :on-change (fn [e] (dispatch [:update-mine-url (.. e -target -value)]))}]
+        [:div.panel.container
+          [:form.form-inline
+            [:label "Current mine URL"
+              [:input.form-control.input-lg
+                {:type      "Text"
+                :value     @mine-url
+                :on-change (fn [e] (dispatch [:update-mine-url (.. e -target -value)]))}]]
+
+        [:label "You can paste a mine URL above, or select one here:"
+          (into [:select.form-control
+            {:on-change (fn [e] (dispatch [:update-mine-url (str "http://" (aget e "target" "value"))]))
+             :value "select-one"}
+                 [:option {:disabled true :value "select-one"} "Select a new mine URL"]]
+            (map (fn [[id details]]
+              [:option
+               {:value (:url (:mine details))} (:common details)]) remote-mines/mines))]
+
         [:button.btn.btn-primary.btn-raised
-         {:on-click (fn [] (re-frame/dispatch [:fetch-all-assets]))}
-         "Update Assets"]
+         {:on-click (fn [e]
+                      (.preventDefault js/e)
+                      (re-frame/dispatch [:fetch-all-assets]))}
+         "Update Assets"]]
         #_[:div.title "Routes"]
         #_[:div.btn-toolbar
            [:button.btn {:on-click #(navigate! "#/assets/lists/123")} "Asset: List: (123)"]
