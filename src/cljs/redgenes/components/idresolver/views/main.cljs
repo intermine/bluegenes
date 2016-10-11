@@ -24,44 +24,52 @@
 
 (defn controls []
   (let [results (subscribe [:idresolver/results])
-        matches (subscribe [:idresolver/results-matches])]
+        matches (subscribe [:idresolver/results-matches])
+        selected (subscribe [:idresolver/selected])]
     (fn []
       [:div.btn-toolbar
+       [:button.btn.btn-warning.btn-raised
+        {:class    (if (nil? @results) "disabled")
+         :on-click (fn [] (dispatch [:idresolver/clear]))}
+        "Clear"]
+       [:button.btn.btn-warning.btn-raised
+        {:class    (if (empty? @selected) "disabled")
+         :on-click (fn [] (dispatch [:idresolver/delete-selected]))}
+        "Remove"]
        [:button.btn.btn-success.btn-raised
         {:class    (if (empty? @matches) "disabled")
          :on-click (fn [] (dispatch [:idresolver/save-results]))}
-        "Save"]
+        "Quick Save"]
        [:button.btn.btn-primary.btn-raised
         {:class    (if (nil? @results) "disabled")
-         :on-click (fn [] (dispatch [:idresolver/clear]))} "Clear"]
-       [:button.btn.btn-success.btn-raised
-        {:class    (if (nil? @results) "disabled")
-         :on-click (fn [] (if (some? @results) (dispatch [:idresolver/analyse])))} "Analyse"]])))
+         :on-click (fn [] (if (some? @results) (dispatch [:idresolver/analyse])))}
+        "View Results"]])))
 
-(defn submit-input [input]
-    (dispatch [:idresolver/resolve (splitter input)]))
+
+;
+
+(defn submit-input [input] (dispatch [:idresolver/resolve (splitter input)]))
 
 (defn input-box []
   (let [val (reagent/atom nil)]
     (fn []
       [:input.freeform
-       {:type        "text"
-        :placeholder "Type identifiers here..."
-        :value       @val
+       {:type         "text"
+        :placeholder  "Type identifiers here..."
+        :value        @val
         :on-key-press (fn [e]
-                      (let [keycode (.-charCode e)
-                            input (.. e -target -value)]
-                        (cond (= keycode 13)
-                          (do (reset! val "")
-                              (submit-input input))
-                        )))
-        :on-change   (fn [e]
-                       (let [input (.. e -target -value)]
-                         (if (has-separator? input)
-                           (do (reset! val "")
-                               (submit-input input))
-                           (reset! val input))
-                         ))}])))
+                        (let [keycode (.-charCode e)
+                              input   (.. e -target -value)]
+                          (cond (= keycode 13)
+                                (do
+                                  (reset! val "")
+                                  (submit-input input)))))
+        :on-change    (fn [e]
+                        (let [input (.. e -target -value)]
+                          (if (has-separator? input)
+                            (do
+                              (reset! val "")
+                              (submit-input input)) (reset! val input))))}])))
 
 
 (defn input-item-duplicate []
@@ -75,30 +83,41 @@
      (into [:ul.dropdown-menu]
            (map (fn [result]
                   [:li
-                   {:on-click (fn [] (dispatch [:idresolver/resolve-duplicate
+                   {:on-click (fn [e]
+                                (.preventDefault e)
+                                (dispatch [:idresolver/resolve-duplicate
                                                 (:input data)
                                                 result]))}
                    [:a (-> result :summary :symbol)]]) (:matches data)))]))
 
-(defn input-item [i]
-  (let [result (subscribe [:idresolver/results-item (:input i)])]
-    (fn [i]
-      (let [class (if (empty? @result)
-                    "inactive"
-                    (name (:status (second (first @result)))))]
-        [:div.id-resolver-item {:class class}
-         (case (:status (second (first @result)))
-           :MATCH [:i.fa.fa-check.fa-1x.fa-fw]
-           :UNRESOLVED [:i.fa.fa-times]
-           :DUPLICATE [:i.fa.fa-clone]
-           :TYPE_CONVERTED [:i.fa.fa-random]
-           :OTHER [:i.fa.fa-exclamation]
-           [:i.fa.fa-cog.fa-spin.fa-1x.fa-fw])
-         [:span.pad-left-5
+(defn input-item [{:keys [input] :as i}]
+  (let [result (subscribe [:idresolver/results-item input])
+        selected (subscribe [:idresolver/selected])]
+    (reagent/create-class
+      {:component-did-mount
+       (fn [this]
+         (let [node (reagent/dom-node this)]
+           (dommy/listen! node :click
+                          #(dispatch [:idresolver/toggle-selected input]))))
+       :reagent-render
+       (fn [i]
+         (let [class (if (empty? @result)
+                       "inactive"
+                       (name (:status (second (first @result)))))
+               class (if (some #{input} @selected) (str class " selected") class)]
+           [:div.id-resolver-item {:class class}
+            (case (:status (second (first @result)))
+              :MATCH [:i.fa.fa-check.fa-1x.fa-fw]
+              :UNRESOLVED [:i.fa.fa-times]
+              :DUPLICATE [:i.fa.fa-clone]
+              :TYPE_CONVERTED [:i.fa.fa-random]
+              :OTHER [:i.fa.fa-exclamation]
+              [:i.fa.fa-cog.fa-spin.fa-1x.fa-fw])
+            [:span.pad-left-5
 
-          (if (= :DUPLICATE (:status (second (first @result))))
-            [input-item-duplicate (first @result)]
-            (:input i))]]))))
+             (if (= :DUPLICATE (:status (second (first @result))))
+               [input-item-duplicate (first @result)]
+               (:input i))]]))})))
 
 (defn input-items []
   (let [bank (subscribe [:idresolver/bank])]
@@ -114,7 +133,7 @@
       [:div.idresolver.form-control
        [input-items]
        [input-box]
-      ]]]))
+       ]]]))
 
 (defn stats []
   (let [bank       (subscribe [:idresolver/bank])
@@ -151,10 +170,10 @@
 
       )))
 
-(defn results []
-  (let [results (subscribe [:idresolver/results])]
+(defn debugger []
+  (let [everything (subscribe [:idresolver/everything])]
     (fn []
-      [:div (json-html/edn->hiccup @results)])))
+      [:div (json-html/edn->hiccup @everything)])))
 
 (defn spinner []
   (let [resolving? (subscribe [:idresolver/resolving?])]
@@ -163,16 +182,53 @@
         [:i.fa.fa-cog.fa-spin.fa-1x.fa-fw]
         [:i.fa.fa-check]))))
 
+(defn selected []
+  (let [selected (subscribe [:idresolver/selected])]
+    (fn []
+      [:div "selected: " (str @selected)])))
+
+(defn delete-selected-handler [e]
+  (let [keycode (.-charCode e)]
+    (cond
+      (= keycode 127) (dispatch [:idresolver/delete-selected])
+      :else nil)))
+
+(defn key-down-handler [e]
+  (case (.. e -keyIdentifier)
+    "Control" (dispatch [:idresolver/toggle-select-multi true])
+    "Shift" (dispatch [:idresolver/toggle-select-range true])
+    nil))
+
+(defn key-up-handler [e]
+  (case (.. e -keyIdentifier)
+    "Control" (dispatch [:idresolver/toggle-select-multi false])
+    "Shift" (dispatch [:idresolver/toggle-select-range false])
+    nil))
+
+(defn attach-body-events []
+
+  (dommy/unlisten! (sel1 :body) :keypress delete-selected-handler)
+  (dommy/listen! (sel1 :body) :keypress delete-selected-handler)
+
+  (dommy/unlisten! (sel1 :body) :keydown key-down-handler)
+  (dommy/listen! (sel1 :body) :keydown key-down-handler)
+
+  (dommy/unlisten! (sel1 :body) :keyup key-up-handler)
+  (dommy/listen! (sel1 :body) :keyup key-up-handler))
+
 (defn main []
-  (fn []
-    [:div.container
-      [:div.headerwithguidance
-        [:h1 "List Upload"]
-        [:a.guidance {:on-click (fn [] (dispatch [:idresolver/resolve (splitter ex)]))} "[Show me an example]"]
-        [:div.tip [:svg.icon.icon-info [:use {:xlinkHref "#icon-info"}]]
-         "Tip: Press enter or space bar to submit the form"]
-      ]
-     [input-div]
-     [stats]
-     ;[results]
-     ]))
+  (reagent/create-class
+    {:component-did-mount attach-body-events
+     :reagent-render
+     (fn []
+       [:div.container
+        [:div.headerwithguidance
+         [:h1 "List Upload"]
+         [:a.guidance {:on-click (fn [] (dispatch [:idresolver/resolve (splitter ex)]))} "[Show me an example]"]
+         [:div.tip [:svg.icon.icon-info [:use {:xlinkHref "#icon-info"}]]
+          "Tip: Press enter or space bar to submit the form"]]
+        [input-div]
+        [stats]
+        ;[selected]
+        ;[debugger]
+        ])}))
