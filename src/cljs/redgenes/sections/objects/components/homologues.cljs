@@ -55,14 +55,10 @@
              ]
    })
 
-(defn map-local-homologue-response [data]
-  "formats the get-local-homologues response to match the default homologue response shape, so they can be output using the same logic."
-  {:homologues (map (fn [homie] {:homologue homie}) data)})
-
 (defn get-local-homologues [original-service remote-service q type organism]
   "If the remote mine says it has no homologues for a given identifier, query the local mine instead. It may be that there *are* homologues, but the remote mine doesn't know about them. If the local mine returns identifiers, verify them on the remote server and return them to the user."
   (let [c (chan)]
-    (.log js/console "%c getting local homologues for" "border-bottom:wheat solid 3px" (clj->js remote-service))
+  ;  (.log js/console "%c getting local homologues for" "border-bottom:wheat solid 3px" (clj->js remote-service))
     (go (let [
               ;;get the list of homologues from the local mine
               local-homologue-results (<! (raw-query-rows {:root @(subscribe [:mine-url])}
@@ -77,9 +73,7 @@
                  remote-homologue-query   (local-homologue-query local-homologue-list type organism)
                  ;;look up the list of identifers we just made on the remote mine to
                  ;;get the correct objectid to link to
-                 remote-homologue-results (<! (raw-query-rows remote-service remote-homologue-query    {:root @(subscribe [:mine-url])}))
-                  z (.log js/console "%cremote-homologue-results" "color:hotpink;font-weight:bold;" (clj->js remote-homologue-results) (clj->js local-homologue-list))
-                 ]
+                 remote-homologue-results (<! (raw-query-rows remote-service remote-homologue-query    {:root @(subscribe [:mine-url])}))]
                 ;;put the results in the channel
                   (>! c remote-homologue-results)))
             (>! c {})))) c))
