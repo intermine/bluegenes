@@ -1,7 +1,8 @@
 (ns redgenes.subs
   (:require-macros [reagent.ratom :refer [reaction]])
   (:require [re-frame.core :refer [reg-sub]]
-            [redgenes.components.search.subs :as search]))
+    [redgenes.components.databrowser.subs]
+    [redgenes.components.search.subs]))
 
 (reg-sub
   :name

@@ -14,6 +14,7 @@
 @import "components/home";
 @import "components/tooltip";
 @import "components/databrowser";
+@import "datatype-colors";
 @import "components/search";
 @import "components/templates";
 @import "saved-data";
@@ -37,17 +38,18 @@ html,
 }
 
 .approot {
-    // height: 94%;
     height: 100%;
     box-sizing: border-box;
     display:flex;
     flex-direction:column;
     margin: 0em 1em;
+    flex-grow:1;
 }
 
 @annoyingscrollbars: 5em;
 html {margin-top:-@annoyingscrollbars;} //this margin directly offsets the annoying scrollbars
 main {
+  display:flex;
   flex-grow:1;
   margin-top:@annoyingscrollbars; //this margin directly offsets the annoying scrollbars that we were getting with a 100% page height and sticky header
 }

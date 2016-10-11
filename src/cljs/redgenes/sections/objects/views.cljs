@@ -22,5 +22,5 @@
            [:li [:a "Search Results"]]
            [:li.active [:a "Report"]]]
           [summary/main (:summary @report)]
-          (into [:div.collections] (map (fn [query] [lighttable/main query]) @collections))
+          (into [:div.collections] (map (fn [query] [lighttable/main query {:title true}]) @collections))
           (into [:div.templates] (map (fn [[id details]] [table/main details]) @templates))])])))

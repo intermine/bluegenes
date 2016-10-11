@@ -1,0 +1,56 @@
+//define master colours for popular data types. Try to draw from 500 colours
+//here: https://www.google.com/design/spec/style/color.html# to keep the colours
+//visually distinct. They should be used ONLY for data type tagging, not general theming
+@color-Gene: #8BC34A;
+@color-Protein: #FFC107;
+@color-Publication: #2196F3;
+@color-Organism: #E91E63;
+@color-Interaction: #FF5722;
+@color-GO: #9C27B0;
+
+@color-Nuffink: #ccc; // for things that aren't exciting enough to get their own colour
+
+.type-DataSet {
+  background: @color-Nuffink;
+  fill: @color-Nuffink;
+  border: solid 3px @color-Nuffink;
+}
+
+.type-Gene, .type-genes,  .type-gene, .type-homologues, .type-Homologue {
+  background: @color-Gene;
+  fill: @color-Gene;
+  color: #fff;
+  border: solid 3px @color-Gene;
+
+}
+.type-Publication, .type-publications, .type-Author {
+  background: @color-Publication;
+  fill: @color-Publication;
+  border: solid 3px @color-Publication;
+
+}
+.type-Protein, .type-proteins {
+  background: @color-Protein;
+  fill: @color-Protein;
+  border: solid 3px @color-Protein;
+}
+
+.type-GOAnnotation, .type-GOTerm, .type-goAnnotation {
+  background:@color-GO;
+  fill: @color-GO;
+  border: solid 3px @color-GO;
+  color:#fff;
+  text {fill:#fff;}
+}
+
+.type-Organism {
+  background:@color-Organism;
+  fill:@color-Organism;
+  border:solid 3px @color-Organism;
+}
+
+.type-interactions, .type-Interaction {
+  background:@color-Interaction;
+  fill:@color-Interaction;
+  border:solid 3px @color-Interaction;
+}

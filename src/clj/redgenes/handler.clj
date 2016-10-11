@@ -1,15 +1,12 @@
 (ns redgenes.handler
   (:require [compojure.core :refer [GET defroutes]]
-            [compojure.route :refer [resources]]
+            [redgenes.routes :as api]
             [ring.util.response :refer [resource-response]]
+            [ring.middleware.json :refer [wrap-json-response wrap-json-params]]
+            [ring.middleware.params :refer [wrap-params]]
             [ring.middleware.reload :refer [wrap-reload]]))
 
-(defroutes routes
-  (GET "/" [] (resource-response "index.html" {:root "public"}))
-  (resources "/")
-  ;(context "/api" [] webservice/routes)
-  )
 
-(def dev-handler (-> #'routes wrap-reload))
+(def dev-handler (-> #'api/routes wrap-reload wrap-json-response wrap-params))
 
-(def handler routes)
+(def handler (-> #'api/routes wrap-json-response wrap-params))

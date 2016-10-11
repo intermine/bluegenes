@@ -5,12 +5,6 @@ It is set up to expect a localhost:6379 redis already running, perhaps via
 
 This command should create a redis install with the correct port open, assuming you have docker.
 
-To launch all the things for dev purposes, run
-
-```rlwrap lein run -m clojure.main --init figwheel.clj -r```
-
-This will initialise the clojure side of things in a jetty server, and create an endpoint on port 3000 you can query.
-
 The following endpoints exist:
 
 ### Caching model counts
@@ -18,7 +12,7 @@ The following endpoints exist:
 Because it can take several seconds to return results for a count depending on the mine and query depth.
 
 #### How?
-There is a script to automatically grab the correct url from `redgenes/src/cljc/mines.cljc`, go to the mine(s), and grab top level whitelisted model counts.  The whitelist at `redgenes/src/cljc/whitelist.cljc` exists for two reasons:
+There is a script to automatically grab the correct url for known mines from `redgenes/src/cljc/mines.cljc`, go to the mine(s), and grab top level whitelisted model counts.  The whitelist at `redgenes/src/cljc/whitelist.cljc` exists for two reasons:
 1. There is a need for a simplified model for the data browser
 2. The model is recursive. Simplifying things makes it harder to create endless loops and make the world explode.
 
@@ -28,15 +22,15 @@ One day this will be done via batch job, but right now we have to generate the c
 
 #### Caching a single mine
 
-```GET http://www.whateverserver.com:3000/model/count/cache?mine=mine-name ```
+```GET http://www.whateverserver.com:3449/api/model/count/cache?mine=mine-name ```
  where mine-name might be fly, e.g.  
-```GET http://www.whateverserver.com:3000/model/count/cache?mine=fly```
+```GET http://www.whateverserver.com:3449/api/model/count/cache?mine=fly```
 
 There must be a valid `:fly` mine configuration under `redgenes/src/cljc/mines.cljc` for this to work.
 
 #### Caching all known mines in the mines.cljc file:
 
-```GET http://www.whateverserver.com:3000/model/count/cacheall```
+```GET http://www.whateverserver.com:3449/api/model/count/cacheall```
 
 This'll grab all the ones you need. Want another? add it to the file. simples.
 
@@ -47,7 +41,7 @@ Awesome, so they're cached! How do I get the details?
 
 Sure! here you go.
 
-```GET http://www.whateverserver.com:3000/model/count?mine=zebrafish&paths=top```
+```GET http://www.whateverserver.com:3449/api/model/count?mine=zebrafish&paths=top```
 
 Output:
 
@@ -65,7 +59,7 @@ Output:
 
 #### How about just the specific paths I need?
 
-```GET http://www.whateverserver.com:3000/model/count?mine=rat&paths=Gene,Protein,Gene.interactions,Author```
+```GET http://www.whateverserver.com:3449/api/model/count?mine=rat&paths=Gene,Protein,Gene.interactions,Author```
 
 Output:
 
@@ -82,7 +76,7 @@ Output:
 
 Yep!
 
-```GET http://www.whateverserver.com:3000/model/count/children?mine=yeast&path=Gene```
+```GET http://www.whateverserver.com:3449/api/model/count/children?mine=yeast&path=Gene```
 
 Output:
 

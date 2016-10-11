@@ -58,7 +58,7 @@
     (def system
       (atom
        (component/system-map
-        :app-server (jetty-server {:app {:handler (wrap-json-response (wrap-params api))}, :port 3000})
+        :app-server (jetty-server {:app {:handler (wrap-json-response (wrap-params api))}, :port 3449})
         :figwheel   (map->Figwheel figwheel-config))))
 
 (defn start []
