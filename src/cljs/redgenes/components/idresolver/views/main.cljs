@@ -53,7 +53,7 @@
 (defn input-box []
   (let [val (reagent/atom nil)]
     (fn []
-      [:input.freeform
+      [:input#identifierinput.freeform
        {:type         "text"
         :placeholder  "Type identifiers here..."
         :value        @val
@@ -97,6 +97,7 @@
       {:component-did-mount
        (fn [this]
          (let [node (reagent/dom-node this)]
+
            (dommy/listen! node :click
                           #(dispatch [:idresolver/toggle-selected input]))))
        :reagent-render
@@ -156,12 +157,16 @@
       [:div#dropzone1.panel.panel-default
        {
         :on-drop       (partial handle-drop-over drag-state)
+        :on-click      (fn [evt]
+                         (.preventDefault evt)
+                         (.stopPropagation evt)
+                         (.focus (sel1 :#identifierinput)))
         :on-drag-over  (partial handle-drag-over drag-state)
         :on-drag-leave (fn [] (reset! drag-state false))
         :on-drag-end   (fn [] (reset! drag-state false))
         :on-drag-exit  (fn [] (reset! drag-state false))}
        [:div.panel-body.transitions
-        {:class         (if @drag-state "dragging")}
+        {:class (if @drag-state "dragging")}
         [:div.idresolver.form-control
          [input-items]
          [input-box]
