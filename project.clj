@@ -50,7 +50,8 @@
                                     "test/js"]
 
   :figwheel {:css-dirs     ["resources/public/css"]
-             :ring-handler redgenes.handler/dev-handler}
+             :ring-handler redgenes.handler/dev-handler
+             :reload-clj-files {:cljc true}}
 
   :less {:source-paths ["less"]
          :target-path  "resources/public/css"}

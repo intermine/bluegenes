@@ -8,7 +8,12 @@
             [cljs-time.core :as t]
             [imcljs.operations :as operations]
             [imcljs.search :as search]
+            [clojure.spec :as s]
+            [accountant.core :refer [navigate!]]
+            [redgenes.interceptors :refer [abort-spec]]
             [clojure.set :refer [union intersection difference]]))
+
+
 
 (def event-namespace :saved-data)
 
@@ -54,29 +59,80 @@
                        :path (str (im-filters/trim-path-to-class model path) ".id")))
                    (:select query)))))
 
-
+(defn validate-spec-and-throw
+  "If data does not validate to a spec then throw the reason"
+  [spec data]
+  (if-not (s/valid? spec data) (do (throw (s/explain-str spec data)))))
 
 (when-event :open-saved-data-tooltip (put-at [:tooltip :saved-data]))
 (when-event (ekw :toggle-edit-mode) (update-at [:saved-data :list-operations-enabled] not))
 (when-event (ekw :save-operation-results) (put-at [:saved-data :editor :results]))
 (when-event (ekw :editor-is-editing) (put-at [:saved-data :editor :editing?]))
 
+
+(defn one-of? [haystack needle] (some? (some #{needle} haystack)))
+
+(s/def :sd/type (s/and keyword? (partial one-of? [:list :query])))
+(s/def :sd/service keyword?)
+
+(def saved-data-spec (s/keys :req [:sd/type :sd/value :sd/service]))
+
+(defn save-data-fn [{db :db} [_ data]]
+  (let [new-id (str (uuid/make-random-uuid))
+        model  (get-in db [:assets :model])]
+    {:db       (assoc-in db [:saved-data :items new-id]
+                         (cond-> data
+                                 true (merge {:sd/created (t/now)
+                                              :sd/updated (t/now)
+                                              :sd/id      new-id})
+                                 (= :query (:sd/type data)) (assoc :sd/parts (get-parts model (:sd/value data)))))
+     :dispatch [:open-saved-data-tooltip
+                {:label (:label data)
+                 :id    new-id}]}))
+
+(reg-event-fx :save-data [(abort-spec saved-data-spec)] save-data-fn)
+
+(defn list->sd
+  [list]
+  {(:name list) {:sd/created (t/now)
+                 :sd/updated (t/now)
+                 :sd/count   (:size list)
+                 :sd/id      (:name list)
+                 :sd/type    :list
+                 :sd/label   (:title list)
+                 :sd/value   list}})
+
+(defn create-query-from-list [db value]
+  (let [summary-fields (get-in db [:assets :summary-fields (keyword (:type value))])]
+    {:from   (:type value)
+     :select summary-fields
+     :where  [{:path  (:type value)
+               :op    "IN"
+               :value (:name value)}]}))
+
+(reg-fx
+  :navigate
+  (fn [url]
+    (navigate! (str "#/" url))))
+
 (reg-event-fx
-  :save-data
-  (fn [{db :db} [_ data]]
-    (let [new-id (str (uuid/make-random-uuid))
-          model  (get-in db [:assets :model])]
-      {:db       (assoc-in db [:saved-data :items new-id]
-                           (-> data
-                               (merge {:created (t/now)
-                                       :updated (t/now)
-                                       :parts   (get-parts model (:value data))
-                                       :id      new-id})))
-       :dispatch [:open-saved-data-tooltip
-                  {:label (:label data)
-                   :id    new-id}]})))
+  :saved-data/view-query
+  (fn [{db :db} [_ id]]
+    (let [saved-data (get-in db [:saved-data :items id])
+          query      (case (:sd/type saved-data)
+                       :query (:sd/value saved-data)
+                       :list (create-query-from-list db (:sd/value saved-data)))]
+      {:db         db
+       :dispatch [:results/set-query query]
+       :navigate "results"}
+      )
+    ))
 
-
+(reg-event-db
+  :saved-data/load-lists
+  (fn [db]
+    (update-in db [:saved-data :items]
+               merge (into {} (map list->sd (get-in db [:assets :lists]))))))
 
 (reg-event-db
   :save-saved-data-tooltip
@@ -159,7 +215,7 @@
   :saved-data/perform-operation
   (fn [{db :db}]
     (let [[item-1 item-2] (take 2 (get-in db [:saved-data :editor :selected-items]))
-          op (determine-op item-1 item-2)
+          op       (determine-op item-1 item-2)
           mine-url (:mine-url db)]
       (let [q1 (assoc
                  (get-in db [:saved-data :items (:id item-1) :value])
@@ -181,7 +237,7 @@
 (reg-event-db
   :save-datum-count
   (fn [db [_ id c]]
-    (assoc-in db [:saved-data :items id :count] c)))
+    (assoc-in db [:saved-data :items id :sd/count] c)))
 
 (reg-fx
   :count-me
@@ -193,7 +249,7 @@
 
 (reg-event-fx
   :saved-data/run-query-count
-  (fn [{db :db} [_ [id {query :value}]]]
+  (fn [{db :db} [_ [id {query :sd/value}]]]
     (let [mine-url (:mine-url db)]
       {:db       db
        :count-me [mine-url id query]})))
