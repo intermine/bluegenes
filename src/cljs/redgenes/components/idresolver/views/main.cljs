@@ -24,19 +24,29 @@
 
 (defn controls []
   (let [results (subscribe [:idresolver/results])
-        matches (subscribe [:idresolver/results-matches])]
+        matches (subscribe [:idresolver/results-matches])
+        selected (subscribe [:idresolver/selected])]
     (fn []
       [:div.btn-toolbar
+       [:button.btn.btn-warning.btn-raised
+        {:class    (if (nil? @results) "disabled")
+         :on-click (fn [] (dispatch [:idresolver/clear]))}
+        "Clear"]
+       [:button.btn.btn-warning.btn-raised
+        {:class    (if (empty? @selected) "disabled")
+         :on-click (fn [] (dispatch [:idresolver/delete-selected]))}
+        "Remove"]
        [:button.btn.btn-success.btn-raised
         {:class    (if (empty? @matches) "disabled")
          :on-click (fn [] (dispatch [:idresolver/save-results]))}
-        "Save"]
+        "Quick Save"]
        [:button.btn.btn-primary.btn-raised
         {:class    (if (nil? @results) "disabled")
-         :on-click (fn [] (dispatch [:idresolver/clear]))} "Clear"]
-       [:button.btn.btn-success.btn-raised
-        {:class    (if (nil? @results) "disabled")
-         :on-click (fn [] (if (some? @results) (dispatch [:idresolver/analyse])))} "Analyse"]])))
+         :on-click (fn [] (if (some? @results) (dispatch [:idresolver/analyse])))}
+        "View Results"]])))
+
+
+;
 
 (defn submit-input [input] (dispatch [:idresolver/resolve (splitter input)]))
 
