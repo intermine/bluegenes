@@ -1,3 +1,13 @@
+.noselect {
+  -webkit-touch-callout: none; /* iOS Safari */
+  -webkit-user-select: none;   /* Chrome/Safari/Opera */
+  -khtml-user-select: none;    /* Konqueror */
+  -moz-user-select: none;      /* Firefox */
+  -ms-user-select: none;       /* Internet Explorer/Edge */
+  user-select: none;           /* Non-prefixed version, currently
+                                  not supported by any browser */
+}
+
 .matchcolors{
   text-shadow: 1px 1px 1px rgba(0,0,0,0.3);
   &.inactive {
@@ -31,16 +41,25 @@
 div.idresolver {
     width: 100%;
     background: white;
+    .noselect;
 }
 
 div.id-resolver-item {
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
     padding: 5px;
     margin: 2px;
     border-radius: 4px;
     display: inline-block;
     float: left;
-    transition: all 1s;
+    height: 40px;
+    transition: background 1s;
     .matchcolors;
+
+    &.selected {
+        border: 3px solid red;
+    }
 }
 
   input.freeform {
