@@ -23,8 +23,8 @@
   (some? (some separators str)))
 
 (defn controls []
-  (let [results (subscribe [:idresolver/results])
-        matches (subscribe [:idresolver/results-matches])
+  (let [results  (subscribe [:idresolver/results])
+        matches  (subscribe [:idresolver/results-matches])
         selected (subscribe [:idresolver/selected])]
     (fn []
       [:div.btn-toolbar
@@ -86,12 +86,12 @@
                    {:on-click (fn [e]
                                 (.preventDefault e)
                                 (dispatch [:idresolver/resolve-duplicate
-                                                (:input data)
-                                                result]))}
+                                           (:input data)
+                                           result]))}
                    [:a (-> result :summary :symbol)]]) (:matches data)))]))
 
 (defn input-item [{:keys [input] :as i}]
-  (let [result (subscribe [:idresolver/results-item input])
+  (let [result   (subscribe [:idresolver/results-item input])
         selected (subscribe [:idresolver/selected])]
     (reagent/create-class
       {:component-did-mount
@@ -126,14 +126,46 @@
             (map (fn [i]
                    ^{:key (:input i)} [input-item i]) (reverse @bank))))))
 
+(defn handle-drag-over [state-atom evt]
+  (reset! state-atom true)
+  (.stopPropagation evt)
+  (.preventDefault evt)
+  (set! (.-dropEffect (.-dataTransfer evt)) "copy"))
+
+(defn handle-drop-over [state-atom evt]
+  (reset! state-atom false)
+  (.stopPropagation evt)
+  (.preventDefault evt)
+  (let [files (.-files (.-dataTransfer evt))]
+    (dotimes [i (.-length files)]
+      (let [rdr      (js/FileReader.)
+            the-file (aget files i)]
+        (set! (.-onload rdr)
+              (fn [e]
+                (let [file-content (.-result (.-target e))
+                      file-name    (if (= ";;; " (.substr file-content 0 4))
+                                     (let [idx (.indexOf file-content "\n\n")]
+                                       (.slice file-content 4 idx))
+                                     (.-name the-file))]
+                  (submit-input file-content))))
+        (.readAsText rdr the-file)))))
+
 (defn input-div []
-  (fn []
-    [:div.panel.panel-default
-     [:div.panel-body
-      [:div.idresolver.form-control
-       [input-items]
-       [input-box]
-       ]]]))
+  (let [drag-state (reagent/atom false)]
+    (fn []
+      [:div#dropzone1.panel.panel-default
+       {
+        :on-drop       (partial handle-drop-over drag-state)
+        :on-drag-over  (partial handle-drag-over drag-state)
+        :on-drag-leave (fn [] (reset! drag-state false))
+        :on-drag-end   (fn [] (reset! drag-state false))
+        :on-drag-exit  (fn [] (reset! drag-state false))}
+       [:div.panel-body.transitions
+        {:class         (if @drag-state "dragging")}
+        [:div.idresolver.form-control
+         [input-items]
+         [input-box]
+         ]]])))
 
 (defn stats []
   (let [bank       (subscribe [:idresolver/bank])
@@ -216,9 +248,14 @@
   (dommy/unlisten! (sel1 :body) :keyup key-up-handler)
   (dommy/listen! (sel1 :body) :keyup key-up-handler))
 
+(defn dropzone []
+  (fn []
+    [:div#dropzone1.dropzone [:h1 "Drop Here"]]))
+
 (defn main []
   (reagent/create-class
-    {:component-did-mount attach-body-events
+    {:component-did-mount
+     attach-body-events
      :reagent-render
      (fn []
        [:div.container
@@ -227,6 +264,7 @@
          [:a.guidance {:on-click (fn [] (dispatch [:idresolver/resolve (splitter ex)]))} "[Show me an example]"]
          [:div.tip [:svg.icon.icon-info [:use {:xlinkHref "#icon-info"}]]
           "Tip: Press enter or space bar to submit the form"]]
+        ;[dropzone]
         [input-div]
         [stats]
         ;[selected]

@@ -26,6 +26,7 @@
   &.UNRESOLVED {
       color: white;
       background: red;
+      background: repeating-linear-gradient( 45deg, #9F0000, #9F0000 10px, #BD0000 10px, #BD0000 20px );
   }
   &.TYPE_CONVERTED {
       color: white;
@@ -45,9 +46,7 @@ div.idresolver {
 }
 
 div.id-resolver-item {
-    box-sizing: border-box;
-    -moz-box-sizing: border-box;
-    -webkit-box-sizing: border-box;
+
     padding: 5px;
     margin: 4px;
     border-radius: 4px;
@@ -57,10 +56,14 @@ div.id-resolver-item {
     transition: background 1s;
     .matchcolors;
 
+    border: 4px solid transparent;
+
     &.selected {
-        border: 3px solid red;
+        border: 4px dotted black;
     }
 }
+
+
 
   input.freeform {
     float: left;
@@ -95,4 +98,23 @@ div.id-resolver-item {
   .guidance {margin-left:1em;}
   .tip {flex-grow:1; text-align:right;
     svg {margin-right:4px;}}
+}
+
+.dropzone {
+    border: 5px dotted lightgrey;
+    width: 300px;
+    height: 200px;
+    margin: 20px;
+    padding: 20px;
+}
+
+
+.dragging {
+    -webkit-box-shadow: 0px 0px 13px 0px #009688;
+    -moz-box-shadow:    0px 0px 13px 0px #009688;
+    box-shadow:         0px 0px 13px 0px #009688;
+}
+
+.transitions {
+    transition: all 0.2s ease;
 }

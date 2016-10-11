@@ -32,6 +32,10 @@
   (fn [db]
     (get-in db [:idresolver])))
 
+#_#_
+(def banana 1)
+(def cake 2)
+
 (reg-sub
   :idresolver/results-item
   :< [:idresolver/results]
