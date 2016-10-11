@@ -23,21 +23,26 @@
     (fn []
       [:div
         [:div.panel.container
-          [:form.form-inline
-            [:label "Current mine URL"
-              [:input.form-control.input-lg
+          [:form
+           [:div.form-group.form-inline
+            [:label "Current mine URL: "
+              [:input.form-control
                 {:type      "Text"
                 :value     @mine-url
-                :on-change (fn [e] (dispatch [:update-mine-url (.. e -target -value)]))}]]
+                :on-change (fn [e] (dispatch [:update-mine-url (.. e -target -value)]))}]]]
 
-        [:label "You can paste a mine URL above, or select one here:"
-          (into [:select.form-control
+        [:legend "You can paste a mine URL above, or select one of these:"]
+          (into [:div.form-group.mine-choice
             {:on-change (fn [e] (dispatch [:update-mine-url (str "http://" (aget e "target" "value"))]))
              :value "select-one"}
-                 [:option {:disabled true :value "select-one"} "Select a new mine URL"]]
+                 ]
             (map (fn [[id details]]
-              [:option
-               {:value (:url (:mine details))} (:common details)]) remote-mines/mines))]
+              [:label {:class (cond (= @mine-url (str "http://" (:url (:mine details)))) "checked")} [:input
+               {:type "radio"
+                :name "urlradios"
+                :id id
+                :defaultChecked (= @mine-url (str "http://" (:url (:mine details))))
+                :value (:url (:mine details))} ] (:common details)]) remote-mines/mines))
 
         [:button.btn.btn-primary.btn-raised
          {:on-click (fn [e]
