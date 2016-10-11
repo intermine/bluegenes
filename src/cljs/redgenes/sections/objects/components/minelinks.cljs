@@ -47,7 +47,8 @@
    "No known homologues found in: "
     (doall
       (map (fn [mine]
-        (:name (:mine (mine remote-mines/mines)))) empty-mines))])
+        ^{:key mine}
+        [:span.no-homies (:name (:mine (mine remote-mines/mines)))]) empty-mines))])
 
 (defn status-waiting-for-homologues []
   "Visually output mine list for which we still have no results."
@@ -114,7 +115,7 @@
       ;;if there are no results
       [:div.disabled
         [:svg.icon.icon-external [:use {:xlinkHref "#icon-question"}]]
-       " Want to see homologues? Search for something above, then select a search result to see more details."])
+       "Loading..."])
 
       ])
 
@@ -128,6 +129,6 @@
         (load-data x))
       :component-will-update (fn []
         (reset! search-results nil))
-      :component-did-update (fn [this old-props]
+      :component-did-update (fn [this]
           (load-data x);)
           )})))

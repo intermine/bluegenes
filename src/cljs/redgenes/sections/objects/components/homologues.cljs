@@ -55,10 +55,6 @@
              ]
    })
 
-(defn map-local-homologue-response [data]
-  "formats the get-local-homologues response to match the default homologue response shape, so they can be output using the same logic."
-  {:homologues (map (fn [homie] {:homologue homie}) data)})
-
 (defn get-local-homologues [original-service remote-service q type organism]
   "If the remote mine says it has no homologues for a given identifier, query the local mine instead. It may be that there *are* homologues, but the remote mine doesn't know about them. If the local mine returns identifiers, verify them on the remote server and return them to the user."
   (let [c (chan)]
