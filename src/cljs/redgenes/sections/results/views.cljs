@@ -100,8 +100,11 @@
 (defn enrichment-results []
   (let [all-enrichment-results (subscribe [:results/enrichment-results])]
     (fn []
-      (into [:div] (map (fn [[widget-name details]]
-                          [enrichment-results-preview widget-name (:results details)]) @all-enrichment-results)))))
+      (if (nil? (vals @all-enrichment-results))
+        [:div [:h4 "No Results"]]
+        (into [:div] (map (fn [[widget-name details]]
+                            [enrichment-results-preview widget-name (:results details)])
+                          @all-enrichment-results))))))
 
 (defn text-filter []
   (let [value (subscribe [:results/text-filter])]
