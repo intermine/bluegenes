@@ -23,8 +23,8 @@
   (some? (some separators str)))
 
 (defn controls []
-  (let [results (subscribe [:idresolver/results])
-        matches (subscribe [:idresolver/results-matches])
+  (let [results  (subscribe [:idresolver/results])
+        matches  (subscribe [:idresolver/results-matches])
         selected (subscribe [:idresolver/selected])]
     (fn []
       [:div.btn-toolbar
@@ -35,7 +35,7 @@
        [:button.btn.btn-warning.btn-raised
         {:class    (if (empty? @selected) "disabled")
          :on-click (fn [] (dispatch [:idresolver/delete-selected]))}
-        "Remove"]
+        (str "Remove (" (count @selected) ")")]
        [:button.btn.btn-success.btn-raised
         {:class    (if (empty? @matches) "disabled")
          :on-click (fn [] (dispatch [:idresolver/save-results]))}
@@ -53,7 +53,7 @@
 (defn input-box []
   (let [val (reagent/atom nil)]
     (fn []
-      [:input.freeform
+      [:input#identifierinput.freeform
        {:type         "text"
         :placeholder  "Type identifiers here..."
         :value        @val
@@ -86,38 +86,42 @@
                    {:on-click (fn [e]
                                 (.preventDefault e)
                                 (dispatch [:idresolver/resolve-duplicate
-                                                (:input data)
-                                                result]))}
+                                           (:input data)
+                                           result]))}
                    [:a (-> result :summary :symbol)]]) (:matches data)))]))
 
 (defn input-item [{:keys [input] :as i}]
-  (let [result (subscribe [:idresolver/results-item input])
+  (let [result   (subscribe [:idresolver/results-item input])
         selected (subscribe [:idresolver/selected])]
     (reagent/create-class
       {:component-did-mount
-       (fn [this]
-         (let [node (reagent/dom-node this)]
-           (dommy/listen! node :click
-                          #(dispatch [:idresolver/toggle-selected input]))))
+       (fn [])
        :reagent-render
        (fn [i]
          (let [class (if (empty? @result)
                        "inactive"
                        (name (:status (second (first @result)))))
                class (if (some #{input} @selected) (str class " selected") class)]
-           [:div.id-resolver-item {:class class}
-            (case (:status (second (first @result)))
-              :MATCH [:i.fa.fa-check.fa-1x.fa-fw]
-              :UNRESOLVED [:i.fa.fa-times]
-              :DUPLICATE [:i.fa.fa-clone]
-              :TYPE_CONVERTED [:i.fa.fa-random]
-              :OTHER [:i.fa.fa-exclamation]
-              [:i.fa.fa-cog.fa-spin.fa-1x.fa-fw])
-            [:span.pad-left-5
+           [:div.id-resolver-item-container
+            {:class (if (some #{input} @selected) "selected")}
+            [:div.id-resolver-item
+             {:class    class
+              :on-click (fn [e]
+                          (.preventDefault e)
+                          (.stopPropagation e)
+                          (dispatch [:idresolver/toggle-selected input]))}
+             (case (:status (second (first @result)))
+               :MATCH [:i.fa.fa-check.fa-1x.fa-fw]
+               :UNRESOLVED [:i.fa.fa-times]
+               :DUPLICATE [:i.fa.fa-clone]
+               :TYPE_CONVERTED [:i.fa.fa-random]
+               :OTHER [:i.fa.fa-exclamation]
+               [:i.fa.fa-cog.fa-spin.fa-1x.fa-fw])
+             [:span.pad-left-5
 
-             (if (= :DUPLICATE (:status (second (first @result))))
-               [input-item-duplicate (first @result)]
-               (:input i))]]))})))
+              (if (= :DUPLICATE (:status (second (first @result))))
+                [input-item-duplicate (first @result)]
+                (:input i))]]]))})))
 
 (defn input-items []
   (let [bank (subscribe [:idresolver/bank])]
@@ -126,14 +130,51 @@
             (map (fn [i]
                    ^{:key (:input i)} [input-item i]) (reverse @bank))))))
 
+(defn handle-drag-over [state-atom evt]
+  (reset! state-atom true)
+  (.stopPropagation evt)
+  (.preventDefault evt)
+  (set! (.-dropEffect (.-dataTransfer evt)) "copy"))
+
+(defn handle-drop-over [state-atom evt]
+  (reset! state-atom false)
+  (.stopPropagation evt)
+  (.preventDefault evt)
+  (let [files (.-files (.-dataTransfer evt))]
+    (dotimes [i (.-length files)]
+      (let [rdr      (js/FileReader.)
+            the-file (aget files i)]
+        (set! (.-onload rdr)
+              (fn [e]
+                (let [file-content (.-result (.-target e))
+                      file-name    (if (= ";;; " (.substr file-content 0 4))
+                                     (let [idx (.indexOf file-content "\n\n")]
+                                       (.slice file-content 4 idx))
+                                     (.-name the-file))]
+                  (submit-input file-content))))
+        (.readAsText rdr the-file)))))
+
 (defn input-div []
-  (fn []
-    [:div.panel.panel-default
-     [:div.panel-body
-      [:div.idresolver.form-control
-       [input-items]
-       [input-box]
-       ]]]))
+  (let [drag-state (reagent/atom false)]
+    (fn []
+      [:div#dropzone1.panel.panel-default
+       {
+        :on-drop       (partial handle-drop-over drag-state)
+        :on-click      (fn [evt]
+                         (.preventDefault evt)
+                         (.stopPropagation evt)
+                         (dispatch [:idresolver/clear-selected])
+                         (.focus (sel1 :#identifierinput)))
+        :on-drag-over  (partial handle-drag-over drag-state)
+        :on-drag-leave (fn [] (reset! drag-state false))
+        :on-drag-end   (fn [] (reset! drag-state false))
+        :on-drag-exit  (fn [] (reset! drag-state false))}
+       [:div.panel-body.transitions
+        {:class (if @drag-state "dragging")}
+        [:div.idresolver.form-control
+         [input-items]
+         [input-box]
+         ]]])))
 
 (defn stats []
   (let [bank       (subscribe [:idresolver/bank])
@@ -216,9 +257,14 @@
   (dommy/unlisten! (sel1 :body) :keyup key-up-handler)
   (dommy/listen! (sel1 :body) :keyup key-up-handler))
 
+(defn dropzone []
+  (fn []
+    [:div#dropzone1.dropzone [:h1 "Drop Here"]]))
+
 (defn main []
   (reagent/create-class
-    {:component-did-mount attach-body-events
+    {:component-did-mount
+     attach-body-events
      :reagent-render
      (fn []
        [:div.container
@@ -227,6 +273,7 @@
          [:a.guidance {:on-click (fn [] (dispatch [:idresolver/resolve (splitter ex)]))} "[Show me an example]"]
          [:div.tip [:svg.icon.icon-info [:use {:xlinkHref "#icon-info"}]]
           "Tip: Press enter or space bar to submit the form"]]
+        ;[dropzone]
         [input-div]
         [stats]
         ;[selected]

@@ -108,6 +108,11 @@
                     [:idresolver/remove-from-results selected]]})))
 
 (reg-event-db
+  :idresolver/clear-selected
+  (fn [db]
+    (assoc-in db [:idresolver :selected] '())))
+
+(reg-event-db
   :idresolver/clear
   (fn [db]
     (update-in db [:idresolver] assoc
