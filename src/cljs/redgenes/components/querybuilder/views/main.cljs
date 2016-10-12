@@ -81,14 +81,24 @@
         (fn [op]
           [:li
            {
+            :on-blur
+            (fn [e]
+              (dispatch [:query-builder/run-query!])
+              (dispatch [:query-builder/update-io-query]))
             :on-click
             (fn [e] (dispatch [:query-builder/change-constraint-op i op]))
             } [:a op]])
         c/ops))]
    [:input.qb-constraint-value
-    {:type      :text :value value :default-value 0
-     :size      9
-     :on-change (fn [e] (dispatch [:query-builder/change-constraint-value i (.. e -target -value)]))}]
+    {:type :text :value value :default-value 0
+     :size 9
+     :on-change
+           (fn [e] (dispatch [:query-builder/change-constraint-value i (.. e -target -value)]))
+     :on-blur
+           (fn [e]
+             (dispatch [:query-builder/run-query!])
+             (dispatch [:query-builder/update-io-query]))
+     }]
    [:span.badge code]
    [:i.fa.fa-times.pad-left-5.buttony
     {:on-click (fn [] (dispatch [:query-builder/remove-constraint constraint i]))}]])
@@ -157,6 +167,10 @@
                       :background
                         (if (spec/valid? :q/logic (:q/logic @query)) "rgb(240,240,240)" :pink)}
               :value (:logic-str @query)
+              :on-blur
+                     (fn [e]
+                       (dispatch [:query-builder/run-query!])
+                       (dispatch [:query-builder/update-io-query]))
               :on-change
                      (fn [e]
                        (dispatch [:query-builder/set-logic! (.. e -target -value)]))
@@ -180,7 +194,10 @@
               :class (if @autoupdate? "selected-button" "")
               :on-click #(dispatch [:query-builder/toggle-autoupdate])} ""]
                 [:button.btn.btn-primary {:on-click #(dispatch [:query-builder/reset-query])} "Reset"]
-                [:button.btn.btn-primary {:on-click #(dispatch [:query-builder/update-io-query @query])} "Update"]
+            (if (spec/valid? :q/query @query)
+              [:button.btn.btn-primary
+                {:on-click #(dispatch [:query-builder/update-io-query])} "Update"]
+              [:button.btn.btn-primary.not-working {} "Update"])
                 [:button.btn.btn-primary {:on-click #(dispatch [:undo])} "Undo"]
                 [:button.btn.btn-primary {:on-click #(dispatch [:redo])} "Redo"]
                 [:span.btn

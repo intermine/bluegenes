@@ -4,7 +4,7 @@
     [redgenes.components.querybuilder.core :as c :refer
       [used-codes build-query next-code to-list]]
     #?(:cljs [re-frame.core :as re-frame :refer [dispatch subscribe]])
-    #?(:cljs [cljs.spec :as spec])
+    #?(:cljs [cljs.spec :as spec] :clj [clojure.spec :as spec])
     #?(:cljs [cljs.core.async :refer [put! chan <! >! timeout close!]])
     #?(:cljs [imcljs.search :as search])
     #?(:cljs [imcljs.filters :as filters])
@@ -69,6 +69,7 @@
                      (conj (or where []) (merge constraint {:q/code next-code}))))
                  (assoc-in [:query-builder :constraint] nil))),
    :dispatch [:query-builder/run-query!]})
+
 
 (defn change-constraint-value
   "Returns the given db with the :q/where constraint value at given index
@@ -202,11 +203,14 @@
 (defn update-io-query
   "Returns the x for the given y"
   {:reframe-kind :event, :reframe-key :query-builder/update-io-query}
-  [db [_ query]]
-  (assoc-in
-    db
-    [:query-builder :io-query]
-    (build-query query)))
+  [{{query :query} :query-builder :as db} _]
+  (println "ioq" query (spec/valid? :q/query query) (get-in db [:query-builder :io-query]))
+  (if (spec/valid? :q/query query)
+    (assoc-in
+     db
+     [:query-builder :io-query]
+     (build-query query))
+    db))
 
 (defn set-logic-cofx
   "Returns the x for the given y"
@@ -247,28 +251,30 @@
    :dispatch [:query-builder/run-query!]})
 
 
-#?(:cljs
-  (defn run-query!
+(defn run-query!
    "Runs the given query, returns a channel"
-   {:reframe-kind :fx, :reframe-key :query-builder/run-query!}
+  {:reframe-kind :fx, :reframe-key :query-builder/run-query!}
    [query]
-   (go
-     (dispatch
-       [:query-builder/handle-count
-        (<!
-          (search/raw-query-rows
-            {:root @(subscribe [:mine-url])}
-            query
-            {:format "count"}))]))))
+        #?(:cljs
+                (go
+                  (dispatch
+                    [:query-builder/handle-count
+                     (<!
+                       (search/raw-query-rows
+                         {:root @(subscribe [:mine-url])}
+                         query
+                         {:format "count"}))]))
+           :clj (println "run query")))
 
-#?(:cljs
-  (defn maybe-run-query!
+(defn maybe-run-query!
    "Maybe runs the given query"
-   {:reframe-kind :fx, :reframe-key :query-builder/maybe-run-query!}
+        {:reframe-kind :fx, :reframe-key :query-builder/maybe-run-query!}
    [{query :query query? :query?}]
-   (cond
-     (and query? (spec/valid? :q/query query))
-     (run-query! query))))
+        #?(:cljs
+                (cond
+                  (and query? (spec/valid? :q/query query))
+                  (run-query! query))
+           :clj (println "maybe run query")))
 
 (def my-events
   [
