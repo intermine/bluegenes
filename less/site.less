@@ -56,6 +56,31 @@ main {
     margin-top: @annoyingscrollbars; //this margin directly offsets the annoying scrollbars that we were getting with a 100% page height and sticky header
 }
 
+//smaller screens:
+@media (max-width:800px) {
+  @as: 10em;
+
+  html {
+  //    margin-top: -@as;
+  }
+  main {
+      margin-top: @as;
+  }
+}
+
+//EVEN smaller screens:
+@media (max-width:539px) {
+  @as: 10em;
+
+  html {
+  //    margin-top: -@as;
+  }
+  main {
+      margin-top: @as;
+  }
+}
+
+
 a.callout {
     color: @link-color;
     border-bottom: 1px solid #c4c4c4;
