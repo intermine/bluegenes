@@ -1,10 +1,9 @@
 (ns redgenes.sections.objects.components.minelinks
   (:require-macros [cljs.core.async.macros :refer [go]])
-   (:require [re-frame.core :as re-frame]
+   (:require [re-frame.core :as re-frame :refer [subscribe]]
      [cljs.core.async :refer [put! chan <! >! timeout close!]]
      [redgenes.sections.objects.components.homologues :refer [homologues]]
      [reagent.core :as reagent]
-     [redgenes.mines :as remote-mines]
     )
   )
 
@@ -12,7 +11,7 @@
 
 (defn load-data [id]
   "Loads homologues from each mine."
-    (doall (for [[minename details] remote-mines/mines]
+    (doall (for [[minename details] @(subscribe [:mines])]
 
       (go (let [
         svc    {:root @(re-frame/subscribe [:mine-url])}
@@ -48,7 +47,7 @@
     (doall
       (map (fn [mine]
         ^{:key mine}
-        [:span.no-homies (:name (:mine (mine remote-mines/mines)))]) empty-mines))])
+        [:span.no-homies (:name (:mine (mine @(subscribe [:mines]))))]) empty-mines))])
 
 (defn status-waiting-for-homologues []
   "Visually output mine list for which we still have no results."
@@ -56,7 +55,7 @@
    [:svg.icon.icon-waiting [:use {:xlinkHref "#icon-waiting"}]]
    "Awaiting results from: "
     (doall
-      (for [[k v] remote-mines/mines]
+      (for [[k v] @(subscribe [:mines])]
         (do
 ;(.log js/console "%ck" "color:hotpink;font-weight:bold;" (clj->js k) (clj->js v))
         (cond (nil? (k @search-results))
@@ -65,7 +64,7 @@
 
 (defn status-list []
   "Give the user status of mines for which we are still loading or have no results for"
-  (let [mine-names (set (keys remote-mines/mines))
+  (let [mine-names (set (keys @(subscribe [:mines])))
         active-mines (set (keys @search-results))
         waiting-mines (clojure.set/difference mine-names active-mines)
         empty-mines (keys (filter (fn [[k v]] (empty? (:results v))) @search-results))
@@ -84,7 +83,7 @@
   "visually outputs results for each mine that has more than 0 homologues."
      [:div.homologuelinks
      (doall (for [[k v] @search-results]
-       (let [this-mine (k remote-mines/mines)
+       (let [this-mine (k @(subscribe [:mines]))
 ;       (.log js/console "%cvals" "color:red;font-weight:bold;" v)
              homies (:results v)]
          (if (> (count homies) 0)

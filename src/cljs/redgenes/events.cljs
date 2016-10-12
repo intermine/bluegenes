@@ -52,10 +52,35 @@
   (fn [db [_ result]]
     (assoc db :who-am-i (:user result))))
 
-(reg-event-db
-  :update-mine-url
-  (fn [db [_ value]]
-    (assoc db :mine-url value)))
+(reg-event-fx
+  :set-active-mine
+  (fn [{:keys [db]} [_ value]]
+    {:db (assoc db :mine-name value)
+     :dispatch [:fetch-all-assets]}))
+
+(reg-event-fx
+  :new-temporary-mine
+  (fn [{:keys [db]} [_ new-url]]
+    (let [url
+      (if (clojure.string/starts-with? new-url "http://")
+        (subs new-url 7)
+        new-url)]
+        (.log js/console "%curl" "color:hotpink;font-weight:bold;" (clj->js url))
+      {:db
+        (assoc db :temporary-mine {:temporary-mine {
+          ;;we can make this more dynamic when we're grown up
+         :id     :temporary-mine
+         :common "New Organism"
+         :status {:status :na}
+         :output? true
+         :abbrev "New Organism"
+         :mine
+          {:name "New Organism"
+           :url url
+           :service {:root url}}}}
+               :mine-name :temporary-mine)
+       :dispatch [:fetch-all-assets]})))
+
 
 (reg-event-fx
   :log-in

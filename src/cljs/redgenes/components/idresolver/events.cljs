@@ -53,7 +53,7 @@
                 {:root @(subscribe [:mine-url])}
                 {:identifiers (if (seq? id) id [id])
                  :type        "Gene"
-                 :extra       "D. melanogaster"})]
+                 :extra       @(subscribe [:mine-default-organism])})]
       (go (dispatch [:handle-id (<! job)])))))
 
 (reg-event-fx

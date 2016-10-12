@@ -1,7 +1,7 @@
 (ns redgenes.components.icons)
 
 ;;TO USE AN SVG INLINE, do it like so:
-;;[:svg.icon.icon-share [:use {:xlinkHref "#icon-share"}]]
+;;[:svg.icon.icon-search [:use {:xlinkHref "#icon-search"}]]
 ;;The definitions of icons are below ) use the part after # in the symbol
 ;;tag as identifiers.
 

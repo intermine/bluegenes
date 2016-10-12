@@ -1,5 +1,5 @@
 (ns redgenes.views
-  (:require [re-frame.core :as re-frame :refer [dispatch]]
+  (:require [re-frame.core :as re-frame :refer [subscribe dispatch]]
             [json-html.core :as json-html]
             [redgenes.components.nav :as nav]
             [redgenes.components.icons :as icons]
@@ -11,7 +11,6 @@
             [redgenes.components.querybuilder.views.main :as querybuilder]
             [redgenes.sections.upload.views :as upload]
             [redgenes.sections.explore.views :as explore]
-            [redgenes.mines :as remote-mines]
             [redgenes.sections.analyse.views :as analyse]
             [redgenes.sections.results.views :as results]
             [redgenes.sections.saveddata.views :as saved-data]
@@ -19,21 +18,20 @@
             [accountant.core :refer [navigate!]]))
 
 (defn debug-panel []
-  (let [mine-url (re-frame/subscribe [:mine-url])]
+  (let [mine-url (re-frame/subscribe [:mine-url])
+        mine-name (re-frame/subscribe [:mine-name])]
     (fn []
       [:div
         [:div.panel.container
+          [:h3 "Current mine: "]
+          [:p (:name (:mine (@mine-name @(subscribe [:mines])))) " at "
+            [:a {:href @mine-url} @mine-url]]
           [:form
-           [:div.form-group.form-inline
-            [:label "Current mine URL: "
-              [:input.form-control
-                {:type      "Text"
-                :value     @mine-url
-                :on-change (fn [e] (dispatch [:update-mine-url (.. e -target -value)]))}]]]
 
-        [:legend "You can paste a mine URL above, or select one of these:"]
+
+        [:legend "Select a new mine to draw data from:"]
           (into [:div.form-group.mine-choice
-            {:on-change (fn [e] (dispatch [:update-mine-url (str "http://" (aget e "target" "value"))]))
+            {:on-change (fn [e] (dispatch [:set-active-mine (keyword (aget e "target" "value")) ]))
              :value "select-one"}
                  ]
             (map (fn [[id details]]
@@ -42,13 +40,20 @@
                 :name "urlradios"
                 :id id
                 :defaultChecked (= @mine-url (str "http://" (:url (:mine details))))
-                :value (:url (:mine details))} ] (:common details)]) remote-mines/mines))
+                :value id} ] (:common details)]) @(subscribe [:mines])))
+                ;;this needs more work in the form of a default organism for queries like homologues and ID resolution. 
+                ; [:div.form-group
+                ;  [:label "Paste a new mine URL here if it's not in the list above: "
+                ;    [:input.form-control
+                ;      {:type      "Text"
+                ;      :defaultValue     "http://"
+                ;      :on-change (fn [e] (dispatch [:new-temporary-mine (.. e -target -value) (keyword "Other")]))}]]]
 
         [:button.btn.btn-primary.btn-raised
          {:on-click (fn [e]
                       (.preventDefault js/e)
-                      (re-frame/dispatch [:fetch-all-assets]))}
-         "Update Assets"]]
+                      )}
+         "Save"]]
         #_[:div.title "Routes"]
         #_[:div.btn-toolbar
            [:button.btn {:on-click #(navigate! "#/assets/lists/123")} "Asset: List: (123)"]
@@ -60,7 +65,7 @@
            {:on-click #(dispatch [:test-progress-bar (rand-int 101)])} "Random"]
           [:button.btn
            {:on-click #(dispatch [:test-progress-bar 0])} "Hide"]]
-       #_(json-html/edn->hiccup (dissoc @app-db :assets))])))
+       #_(json-html/edn->hiccup @(subscribe [:mines]))])))
 
 
 ;; about
