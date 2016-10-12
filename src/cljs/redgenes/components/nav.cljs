@@ -53,6 +53,11 @@
            :on-blur (fn []
                       (dispatch [:save-saved-data-tooltip (:id tooltip-data) @label]))}])})))
 
+(defn active-mine-logo []
+  [:span.logo {:class @(subscribe [:mine-name])}
+  ]
+  )
+
 (defn main []
   (let [active-panel (subscribe [:active-panel])
         app-name     (subscribe [:name])
@@ -63,7 +68,7 @@
       [:nav.navbar.navbar-default.navbar-fixed-top.down-shadow
        [:div.container-fluid
         [:div.navbar-header
-         [:span.navbar-brand {:on-click #(navigate! "#/")} @app-name]]
+         [:span.navbar-brand {:on-click #(navigate! "#/")} [active-mine-logo] @app-name]]
         [:ul.nav.navbar-nav.navbar-collapse.navigation
          [:li {:class (if (panel-is :home-panel) "active")} [:a {:on-click #(navigate! "#/")} "Home"]]
          [:li {:class (if (panel-is :upload-panel) "active")} [:a {:on-click #(navigate! "#/upload")} "Upload"]]
