@@ -102,24 +102,26 @@
                        "inactive"
                        (name (:status (second (first @result)))))
                class (if (some #{input} @selected) (str class " selected") class)]
-           [:div.id-resolver-item
-            {:class class
-             :on-click (fn [e]
-                         (.preventDefault e)
-                         (.stopPropagation e)
-                         (dispatch [:idresolver/toggle-selected input]) )}
-            (case (:status (second (first @result)))
-              :MATCH [:i.fa.fa-check.fa-1x.fa-fw]
-              :UNRESOLVED [:i.fa.fa-times]
-              :DUPLICATE [:i.fa.fa-clone]
-              :TYPE_CONVERTED [:i.fa.fa-random]
-              :OTHER [:i.fa.fa-exclamation]
-              [:i.fa.fa-cog.fa-spin.fa-1x.fa-fw])
-            [:span.pad-left-5
+           [:div.id-resolver-item-container
+            {:class (if (some #{input} @selected) "selected")}
+            [:div.id-resolver-item
+             {:class    class
+              :on-click (fn [e]
+                          (.preventDefault e)
+                          (.stopPropagation e)
+                          (dispatch [:idresolver/toggle-selected input]))}
+             (case (:status (second (first @result)))
+               :MATCH [:i.fa.fa-check.fa-1x.fa-fw]
+               :UNRESOLVED [:i.fa.fa-times]
+               :DUPLICATE [:i.fa.fa-clone]
+               :TYPE_CONVERTED [:i.fa.fa-random]
+               :OTHER [:i.fa.fa-exclamation]
+               [:i.fa.fa-cog.fa-spin.fa-1x.fa-fw])
+             [:span.pad-left-5
 
-             (if (= :DUPLICATE (:status (second (first @result))))
-               [input-item-duplicate (first @result)]
-               (:input i))]]))})))
+              (if (= :DUPLICATE (:status (second (first @result))))
+                [input-item-duplicate (first @result)]
+                (:input i))]]]))})))
 
 (defn input-items []
   (let [bank (subscribe [:idresolver/bank])]

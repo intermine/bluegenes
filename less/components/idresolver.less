@@ -1,71 +1,84 @@
 .noselect {
-  -webkit-touch-callout: none; /* iOS Safari */
-  -webkit-user-select: none;   /* Chrome/Safari/Opera */
-  -khtml-user-select: none;    /* Konqueror */
-  -moz-user-select: none;      /* Firefox */
-  -ms-user-select: none;       /* Internet Explorer/Edge */
-  user-select: none;           /* Non-prefixed version, currently
+    -webkit-touch-callout: none;
+    /* iOS Safari */
+
+    -webkit-user-select: none;
+    /* Chrome/Safari/Opera */
+
+    -khtml-user-select: none;
+    /* Konqueror */
+
+    -moz-user-select: none;
+    /* Firefox */
+
+    -ms-user-select: none;
+    /* Internet Explorer/Edge */
+
+    user-select: none;
+    /* Non-prefixed version, currently
                                   not supported by any browser */
 }
-
-.matchcolors{
-  text-shadow: 1px 1px 1px rgba(0,0,0,0.3);
-  &.inactive {
-      color: white;
-      background: grey;
-  }
-  &.MATCH {
-      color: white;
-      background: green;
-  }
-  &.DUPLICATE {
-      text-shadow: 1px 1px 1px rgba(255,255,255,0.2);
-      color: black;
-      background: #dede00;
-  }
-  &.UNRESOLVED {
-      color: white;
-      background: red;
-      background: repeating-linear-gradient( 45deg, #9F0000, #9F0000 10px, #BD0000 10px, #BD0000 20px );
-  }
-  &.TYPE_CONVERTED {
-      color: white;
-      background: green;
-  }
-  &.OTHER {
-      color: white;
-      background: green;
-  }
-
+.matchcolors {
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.3);
+    &.inactive {
+        color: white;
+        background: grey;
+    }
+    &.MATCH {
+        color: white;
+        background: green;
+    }
+    &.DUPLICATE {
+        text-shadow: 1px 1px 1px rgba(255, 255, 255, 0.2);
+        color: black;
+        background: #dede00;
+    }
+    &.UNRESOLVED {
+        color: white;
+        background: red;
+        background: repeating-linear-gradient( 45deg, #9F0000, #9F0000 10px, #BD0000 10px, #BD0000 20px);
+    }
+    &.TYPE_CONVERTED {
+        color: white;
+        background: green;
+    }
+    &.OTHER {
+        color: white;
+        background: green;
+    }
 }
-
 div.idresolver {
     width: 100%;
     background: white;
     .noselect;
 }
-
+div.id-resolver-item-container {
+    margin: 1px;
+    border: 2px solid transparent;
+    border-radius: 4px;
+    &.selected {
+        border: 2px dotted #bbc5c4;
+        background: #009688;
+    }
+}
 div.id-resolver-item {
-
     padding: 5px;
-    margin: 4px;
+    margin: 2px;
     border-radius: 4px;
     display: inline-block;
-    float: left;
     height: 40px;
     transition: background 1s;
     .matchcolors;
-
-    border: 4px solid transparent;
-
     &.selected {
-        border: 4px dotted black;
+        transition: background 0.2s;
+        background: #009688
     }
 }
-
-
-
-  input.freeform {
+div.input-items {
+    display: flex;
+    flex-wrap: wrap;
+}
+input.freeform {
     float: left;
     padding: 9px 0;
     border: none;
@@ -76,30 +89,35 @@ div.id-resolver-item {
     flex: 1 0;
     outline: none;
     &:focus {
-      border-bottom: 1px solid black;
+        border-bottom: 1px solid black;
     }
-  }
-
+}
 .legend h4 {
-  &.title {margin-left:0.5em}
-  i {
-    .matchcolors;
-    padding:4px;
-    border-radius:2px;
-    margin-right:3px;
-  }
+    &.title {
+        margin-left: 0.5em
+    }
+    i {
+        .matchcolors;
+        padding: 4px;
+        border-radius: 2px;
+        margin-right: 3px;
+    }
 }
-
-  .headerwithguidance  {
-    display:flex;
-    justify-content:flex-start;
-    align-items:baseline;
-
-  .guidance {margin-left:1em;}
-  .tip {flex-grow:1; text-align:right;
-    svg {margin-right:4px;}}
+.headerwithguidance {
+    display: flex;
+    justify-content: flex-start;
+    align-items: baseline;
+    .guidance {
+        margin-left: 1em;
+    }
+    .tip {
+        flex-grow: 1;
+        text-align: right;
+        svg {
+            margin-right: 4px;
+        }
+    }
 }
-
 .dropzone {
     border: 5px dotted lightgrey;
     width: 300px;
@@ -107,14 +125,11 @@ div.id-resolver-item {
     margin: 20px;
     padding: 20px;
 }
-
-
 .dragging {
     -webkit-box-shadow: 0px 0px 13px 0px #009688;
-    -moz-box-shadow:    0px 0px 13px 0px #009688;
-    box-shadow:         0px 0px 13px 0px #009688;
+    -moz-box-shadow: 0px 0px 13px 0px #009688;
+    box-shadow: 0px 0px 13px 0px #009688;
 }
-
 .transitions {
     transition: all 0.2s ease;
 }
