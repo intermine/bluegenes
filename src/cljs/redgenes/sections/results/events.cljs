@@ -84,7 +84,6 @@
 (reg-event-fx
   :results/run
   (fn [{db :db} [_ params]]
-    (println "RUNNING")
     (let [enrichment-chan
           (search/enrichment
             {:root @(subscribe [:mine-url])}
