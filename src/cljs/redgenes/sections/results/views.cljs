@@ -4,6 +4,7 @@
             [redgenes.components.table :as table]
             [redgenes.sections.results.events]
             [redgenes.sections.results.subs]
+            [redgenes.components.bootstrap :refer [popover tooltip]]
             [clojure.string :refer [split]]))
 
 (def enrichment-config {:pathway_enrichment           {:title   "Pathways"
@@ -33,26 +34,7 @@
 
 (def sidebar-hover (reagent/atom false))
 
-(defn popover []
-  (reagent/create-class
-    {:component-did-mount
-     (fn [this]
-       (let [node (reagent/dom-node this)] (.popover (-> node js/$))))
-     :reagent-render
-     (fn [[element attributes & rest]]
-       [element (-> attributes
-                    (assoc :data-html true)
-                    (assoc :data-container "body")
-                    (update :data-content reagent/render-to-static-markup)) rest])}))
 
-(defn tooltip []
-  (reagent/create-class
-    {:component-did-mount
-     (fn [this]
-       (let [node (reagent/dom-node this)] (.tooltip (-> node js/$))))
-     :reagent-render
-     (fn [[element attributes & rest]]
-       [element attributes rest])}))
 
 
 (defn enrichment-result-row []
