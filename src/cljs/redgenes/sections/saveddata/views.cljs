@@ -104,10 +104,10 @@
        (fn [e] (let [node (-> e reagent/dom-node js/$)]))
        :reagent-render
        (fn []
-         [:div
+         [:div.container
           [:div.edit-fade
            {:class (if @edit-mode "show" "not-show")}]
-          [:div.container-fluid
+          [:div
            [text-filter]
            [toolbar]
            (into [:div.grid-5_md-4_sm-3_xs-1.saved-data-container]
