@@ -159,15 +159,18 @@
   (fn [{db :db}]
     (let [uid     (str (gensym))
           ids     (remove nil? (map (fn [[_ {id :id}]] id) (-> db :idresolver :results)))
+          summary-fields (get-in db [:assets :summary-fields :Gene])
           results {:type  :query
                    :label (str "Uploaded " (count ids) " Genes")
                    :value {:from   "Gene"
-                           :select "*"
-                           :where  [{:path   "id"
+                           :select summary-fields
+                           :where  [{:path   "Gene.id"
                                      :op     "ONE OF"
                                      :values ids}]}}]
-      {:dispatch [:listanalysis/run-all results]
-       :navigate (str "listanalysis")})))
+      {:dispatch [:results/set-query (:value results)]
+       :navigate (str "results")})))
+
+
 
 (reg-event-db
   :idresolver/resolve-duplicate
