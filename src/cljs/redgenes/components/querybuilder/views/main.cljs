@@ -174,7 +174,7 @@
                        (dispatch [:query-builder/update-io-query]))
               :on-change
                      (fn [e]
-                       (dispatch [:query-builder/set-logic! (.. e -target -value)]))
+                       (dispatch [:query-builder/set-logic (.. e -target -value)]))
               }]
               [:div {} @used-codes]
               [:textarea
@@ -204,11 +204,15 @@
                 [:span.btn
                   [:div.undos
                     (map
-                     (fn [explanation i]
-                       [:div.undo.buttony
-                        {:key i
-                          :on-click (fn [e] (dispatch [:undo i]))
-                         :title    explanation}])
+                     (fn [ex i]
+                       (let [
+                             {explanation :explanation c :count} (if (map? ex) ex {:explanation ex})
+                             cc (str "count-" c)]
+                         [:div.undo.buttony
+                          {:key      i
+                           :class cc
+                           :on-click (fn [e] (dispatch [:undo i]))
+                           :title    (str explanation " : " c)}]))
                      @undo-explanations (range (count @undo-explanations) 0 -1))
                      (map
                        (fn [explanation i]
