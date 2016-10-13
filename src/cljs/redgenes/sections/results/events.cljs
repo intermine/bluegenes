@@ -1,6 +1,5 @@
 (ns redgenes.sections.results.events
-  (:require-macros [cljs.core.async.macros :refer [go go-loop]]
-                   [servant.macros :refer [defservantfn]])
+  (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [re-frame.core :refer [reg-event-db reg-event-fx reg-fx dispatch subscribe]]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
             [imcljs.filters :as filters]
@@ -155,4 +154,3 @@
   :results/handle-results
   (fn [db [_ widget-name results]]
     (assoc-in db [:results :enrichment-results (keyword widget-name)] results)))
-
