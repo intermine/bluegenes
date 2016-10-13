@@ -107,5 +107,5 @@
      (for [[k value] details]
        (if (and (not= k "name") (not= k "description"))
        ^{:key k}
-       [:span [:span.default-description (subs k 140)] [:span.default-value value]]))
+       [:span [:span.default-description k] [:span.default-value value]]))
   ])]))
