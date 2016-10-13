@@ -6,69 +6,29 @@
 
 .navbar.navbar-default .navbar-brand {
     .transition;
-    color: rgba(107, 107, 107, 1);
     @bg: #00544c;
     background: @bg;
-    &:hover {background:lighten(@bg,15%);
-    text-shadow:1px 1px 1px rgba(0,0,0,0.17)}
+
+    &:hover {
+        background: lighten(@bg,15%);
+        text-shadow: 1px 1px 1px rgba(0,0,0,0.17);
+    }
     color: white;
     font-style: bold;
     -webkit-clip-path: polygon(0 0, 100% 0, 93% 100%, 0 100%);
     clip-path: polygon(0 0, 100% 0, 93% 100%, 0 100%);
-    //margin: 0;
 }
 
 .navbar-default {
-  svg {fill:rgba(255,255,255,0.84);}
-    background-color: rgba(255, 255, 255, 1);
+    svg {
+        fill: rgba(255,255,255,0.84);
+    }
     border-width: 0;
     border-radius: 0;
 }
 
-.navbar-default .navbar-nav > li > a {
-    color: rgba(168, 168, 168, 1);
-    background-color: rgba(248, 248, 248, 0);
-    font-size: 1em;
-}
-
-.navbar-default .navbar-nav > li > a:focus,
-.navbar-default .navbar-nav > li > a:hover {
-    color: rgba(51, 51, 51, 1);
-    background-color: rgba(248, 248, 248, 0);
-}
-
-.navbar-default .navbar-nav > .active > a,
-.navbar-default .navbar-nav > .active > a:focus,
-.navbar-default .navbar-nav > .active > a:hover {
-    color: @highlight-color;
-    .transition;
-    color: white;
-    background-color: rgba(255, 255, 255, 1);
-}
-
-.navbar-default .navbar-nav > .active {
-    .transition;
-    color: white;
-}
-
-.navbar-default .navbar-toggle {
-    border-color: #ffffff;
-}
-
-.navbar-default .navbar-toggle:focus,
-.navbar-default .navbar-toggle:hover {
-    background-color: #ffffff;
-}
-
-.navbar-default .navbar-toggle .icon-bar {
-    background-color: #ffffff;
-}
-
-.navbar-default .navbar-toggle:focus .icon-bar,
-.navbar-default .navbar-toggle:hover .icon-bar {
-    background-color: #ffffff;
-}
 @media (max-width:800px) {
+
     .navbar-header {
         align-self: flex-start;
     }
@@ -79,6 +39,8 @@
         }
 
         .container-fluid {
+            margin-left:0;
+            padding-left:2px;
             display: flex;
             flex-wrap: wrap;
             justify-content: stretch;
@@ -101,6 +63,7 @@
         li {
             .transition;
             padding: 0;
+            &.homelink {display:none;}
 
             a {
                 .transition;
