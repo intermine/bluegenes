@@ -70,7 +70,7 @@
         [:ul.nav.navbar-nav.navbar-collapse.navigation
         [:li [:div.navbar-header
         [:span.navbar-brand {:on-click #(navigate! "#/")} [active-mine-logo] @app-name]]]
-         [:li {:class (if (panel-is :home-panel) "active")} [:a {:on-click #(navigate! "#/")} "Home"]]
+         [:li.homelink {:class (if (panel-is :home-panel) "active")} [:a {:on-click #(navigate! "#/")} "Home"]]
          [:li {:class (if (panel-is :upload-panel) "active")} [:a {:on-click #(navigate! "#/upload")} "Upload"]]
          [:li {:class (if (panel-is :templates-panel) "active")} [:a {:on-click #(navigate! "#/templates")} "Templates"]]
          [:li {:class (if (panel-is :querybuilder-panel) "active")} [:a {:on-click #(navigate! "#/querybuilder")} "Query\u00A0Builder"]]

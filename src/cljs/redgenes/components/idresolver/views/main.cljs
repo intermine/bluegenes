@@ -7,7 +7,11 @@
             [redgenes.components.icons :as icons]
             [redgenes.components.idresolver.subs]))
 
-(def ex "CG9151, FBgn0000099, CG3629, TfIIB, Mad, CG1775, CG2262, TWIST_DROME, tinman, runt, E2f, CG8817, FBgn0010433, CG9786, CG1034, ftz, FBgn0024250, FBgn0001251, tll, CG1374, CG33473, ato, so, CG16738, tramtrack,  CG2328, gt")
+(defn ex []
+  (let [active-mine (subscribe [:mine-name])
+        mines (subscribe [:mines])
+        example-text (:idresolver-example (@active-mine @mines))]
+example-text))
 
 (def separators (set ".,; "))
 
@@ -273,13 +277,13 @@
     [:div#dropzone1.dropzone [:h1 "Drop Here"]]))
 
 (defn help-panel []
-  [:div.panel.container
-   [:h4 [:svg.icon.icon-info [:use {:xlinkHref "#icon-info"}]] " Tips:"]
+  [:div.panel.panel-default
+   [:div.panel-body [:h4 [:svg.icon.icon-info [:use {:xlinkHref "#icon-info"}]] " Tips:"]
    [:ul
     [:li "Want to remove more than one item at a time? Try pressing"
    [:strong " Shift "] " or " [:strong "Ctrl"] " to select multiple identifiers at once."]
     [:li "When you're typing in identifiers, press "
-     [:strong "space"] " or " [:strong "enter"] " to submit the form."]]])
+     [:strong "space"] " or " [:strong "enter"] " to submit the form."]]]])
 
 (defn main []
   (reagent/create-class
@@ -290,7 +294,7 @@
        [:div.container.idresolverupload
         [:div.headerwithguidance
          [:h1 "List Upload"]
-         [:a.guidance {:on-click (fn [] (dispatch [:idresolver/resolve (splitter ex)]))} "[Show me an example]"]
+         [:a.guidance {:on-click (fn [] (dispatch [:idresolver/resolve (splitter (ex))]))} "[Show me an example]"]
          [:div.tip]]
         ;[dropzone]
         [input-div]
