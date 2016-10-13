@@ -11,6 +11,8 @@
             [redgenes.sections.saveddata.events]))
 
 
+
+
 (defn build-matches-query [query path-constraint identifier]
   (update-in (js->clj (.parse js/JSON query) :keywordize-keys true) [:where]
              conj {:path   path-constraint
