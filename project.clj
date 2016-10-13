@@ -24,7 +24,6 @@
                  [day8.re-frame/async-flow-fx "0.0.6"]
                  [day8.re-frame/forward-events-fx "0.0.5"]
                  [com.rpl/specter "0.13.0"]
-                 [servant "0.1.5"]
                  [com.lucasbradstreet/cljs-uuid-utils "1.0.2"]
                  [com.andrewmcveigh/cljs-time "0.4.0"]
                  [com.taoensso/carmine "2.14.0"]
