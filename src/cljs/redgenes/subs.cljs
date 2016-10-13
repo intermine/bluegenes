@@ -25,7 +25,6 @@
   (fn [db]
     (let [mine-name (:mine-name db)
           organism (:abbrev (mine-name (merge-mines db)))]
-      (.log js/console "%cmine" "color:hotpink;font-weight:bold;" (clj->js (mine-name db)) organism mine-name)
 organism)))
 
 (reg-sub :mines

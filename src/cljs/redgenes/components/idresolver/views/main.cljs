@@ -4,6 +4,7 @@
             [json-html.core :as json-html]
             [dommy.core :as dommy :refer-macros [sel sel1]]
             [redgenes.components.idresolver.events]
+            [redgenes.components.icons :as icons]
             [redgenes.components.idresolver.subs]))
 
 (def ex "CG9151, FBgn0000099, CG3629, TfIIB, Mad, CG1775, CG2262, TWIST_DROME, tinman, runt, E2f, CG8817, FBgn0010433, CG9786, CG1034, ftz, FBgn0024250, FBgn0001251, tll, CG1374, CG33473, ato, so, CG16738, tramtrack,  CG2328, gt")
@@ -51,8 +52,9 @@
 (defn submit-input [input] (dispatch [:idresolver/resolve (splitter input)]))
 
 (defn input-box []
+  (reagent/create-class
   (let [val (reagent/atom nil)]
-    (fn []
+    {:reagent-render (fn []
       [:input#identifierinput.freeform
        {:type         "text"
         :placeholder  "Type identifiers here..."
@@ -69,7 +71,8 @@
                           (if (has-separator? input)
                             (do
                               (reset! val "")
-                              (submit-input input)) (reset! val input))))}])))
+                              (submit-input input)) (reset! val input))))}])
+     :component-did-mount (fn [this] (.focus (reagent/dom-node this)))})))
 
 
 (defn input-item-duplicate []
@@ -154,6 +157,11 @@
                   (submit-input file-content))))
         (.readAsText rdr the-file)))))
 
+(defn drag-and-drop-prompt []
+  [:div.upload-file
+   [:svg.icon.icon-file [:use {:xlinkHref "#icon-file"}]]
+    [:p "All your identifiers in a text file? Try dragging and dropping it here."]])
+
 (defn input-div []
   (let [drag-state (reagent/atom false)]
     (fn []
@@ -171,10 +179,12 @@
         :on-drag-exit  (fn [] (reset! drag-state false))}
        [:div.panel-body.transitions
         {:class (if @drag-state "dragging")}
-        [:div.idresolver.form-control
-         [input-items]
-         [input-box]
-         ]]])))
+        [:div.idresolver
+          [input-items]
+          [input-box]
+         ]
+        [drag-and-drop-prompt]
+        ]])))
 
 (defn stats []
   (let [bank       (subscribe [:idresolver/bank])
@@ -267,7 +277,7 @@
      attach-body-events
      :reagent-render
      (fn []
-       [:div.container
+       [:div.container.idresolverupload
         [:div.headerwithguidance
          [:h1 "List Upload"]
          [:a.guidance {:on-click (fn [] (dispatch [:idresolver/resolve (splitter ex)]))} "[Show me an example]"]
