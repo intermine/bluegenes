@@ -15,18 +15,18 @@
             [cljs.spec :as spec]))
 
 (defn attribute []
-  (let [qb-query (subscribe [:query-builder/query])]
+  (let [query (subscribe [:query-builder/query])]
     (fn [{naym :name tipe :type} & [path]]
       (let [path-vec (conj path naym)]
         [:div
          [:div.btn.btn-default.btn.btn-xxs
           {
            :title    (str
-                      (if ((:q/select @qb-query) path-vec) "Remove " "Add ")
+                      (if ((:q/select @query) path-vec) "Remove " "Add ")
                        naym
-                       (if ((:q/select @qb-query) path-vec) " from " " to ")
+                       (if ((:q/select @query) path-vec) " from " " to ")
                        "view")
-           :class    (if ((:q/select @qb-query) path-vec)
+           :class    (if ((:q/select @query) path-vec)
                        "btn-primary"
                        "btn-outline")
            :on-click (fn [] (dispatch [:query-builder/toggle-view! path-vec]))}
@@ -35,10 +35,10 @@
           {
            :title    (str "Add constraint for " naym)
            :class
-                     (if ((get-in @qb-query [:constraint-paths]) path-vec)
+                     (if ((get-in @query [:constraint-paths]) path-vec)
                        "btn-primary"
                        "btn-outline")
-           :on-click (fn [] (dispatch [:query-builder/add-filter path-vec]))}
+           :on-click (fn [] (dispatch [:query-builder/add-filter path-vec tipe]))}
           [:i.fa.fa-plus] [:i.fa.fa-filter]]
          [:span.pad-left-5 {:title tipe} naym]]))))
 
@@ -68,7 +68,7 @@
   (first (into [] (reduce (fn [total next] (assoc-in total next nil)) {} paths))))
 
 (defn tiny-constraint
-  [{:keys [:q/op :q/value :q/code] :as constraint} i]
+  [{:keys [:q/op :q/value :q/code tipe] :as constraint} i]
   [:li.qb-tiny-constraint
    [:div.input-group-btn.but-inline
     [:button.btn.btn-default.dropdown-toggle
@@ -88,7 +88,7 @@
             :on-click
             (fn [e] (dispatch [:query-builder/change-constraint-op i op]))
             } [:a op]])
-        c/ops))]
+        (or (constraints/ops-for-type tipe) c/ops)))]
    [:input.qb-constraint-value
     {:type :text :value value :default-value 0
      :size 9

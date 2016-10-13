@@ -119,13 +119,27 @@
   [db [_ count]]
   (update-in db [:query-builder :autoupdate?] not))
 
+(defn update-io-query
+  "Returns the x for the given y"
+  {:reframe-kind :event, :reframe-key :query-builder/update-io-query}
+  [{{query :query} :query-builder :as db} _]
+  (println "ioq" query (spec/valid? :q/query query) (get-in db [:query-builder :io-query]))
+  (if (spec/valid? :q/query query)
+    (assoc-in
+      db
+      [:query-builder :io-query]
+      (build-query query))
+    db))
+
 (defn run-query-cofx
   "Returns a cofx for running the query"
   {:reframe-kind :cofx, :reframe-key :query-builder/run-query!}
   [{db :db}]
   (let [query-data (-> db :query-builder :query)]
-    {:db                       (assoc-in db [:query-builder :counting?] true),
-     :query-builder/run-query! (build-query query-data)}))
+    {:db (assoc-in db [:query-builder :counting?] true),
+     :query-builder/maybe-run-query!
+         {:query  (get-in db [:query-builder :query])
+          :query? (get-in db [:query-builder :autoupdate?])}}))
 
 (defn maybe-run-query-cofx
   "Returns a cofx for maybe running the query"
@@ -171,8 +185,8 @@
   {:reframe-kind :event,
    :reframe-key :query-builder/add-filter
    :undoable? true}
-  [db [_ path]]
-  (assoc-in db [:query-builder :constraint] path))
+  [db [_ path tipe]]
+  (assoc-in db [:query-builder :constraint] {:path path :tipe tipe}))
 
 (defn set-logic
   "Parse the given logic expression to a list"
@@ -190,7 +204,6 @@
        (string/upper-case expression)))))
        ;(str (c/prefix-infix x))
 
-
 (defn set-query
   "Returns the x for the given y"
   {:reframe-kind :event, :reframe-key :query-builder/set-query}
@@ -199,18 +212,6 @@
     db
     [:query-builder :query]
     (to-list query-str)))
-
-(defn update-io-query
-  "Returns the x for the given y"
-  {:reframe-kind :event, :reframe-key :query-builder/update-io-query}
-  [{{query :query} :query-builder :as db} _]
-  (println "ioq" query (spec/valid? :q/query query) (get-in db [:query-builder :io-query]))
-  (if (spec/valid? :q/query query)
-    (assoc-in
-     db
-     [:query-builder :io-query]
-     (build-query query))
-    db))
 
 (defn set-logic-cofx
   "Returns the x for the given y"
@@ -272,8 +273,8 @@
    [{query :query query? :query?}]
         #?(:cljs
                 (cond
-                  (and query? (spec/valid? :q/query query))
-                  (run-query! query))
+                  (spec/valid? :q/query query)
+                  (run-query! (build-query query)))
            :clj (println "maybe run query")))
 
 (def my-events
