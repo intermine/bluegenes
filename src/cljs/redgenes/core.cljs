@@ -23,6 +23,7 @@
                   (.getElementById js/document "app")))
 
 (defn ^:export init []
+  (println "starting app")
   (routes/app-routes)
   (re-frame/dispatch-sync [:initialize-db])
   (re-frame/dispatch [:fetch-all-assets])

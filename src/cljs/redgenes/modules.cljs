@@ -51,12 +51,9 @@
   "Loads module from the network if necessary. Always returns a
   channel that will be closed when the module is loaded (sometimes
   immediately)"
-  [id]
-  (let [chan (a/chan)]
-    (.execOnLoad (module-manager/getInstance) id
-      (fn []
-        (a/close! chan)))
-    chan))
+  [id f]
+  (.log js/console (module-manager/getInstance))
+  (.execOnLoad (module-manager/getInstance) id f))
 
 (defn set-loaded! [naym]
   (.setLoaded (module-manager/getInstance) naym))
