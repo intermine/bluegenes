@@ -45,11 +45,11 @@
                     [:td p-value]]]]]))
 
 (defn enrichment-result-row []
-  (fn [{:keys [description matches p-value matches-query] :as row}]
+  (fn [{:keys [description matches p-value matches-query] :as row} details]
     [:li.enrichment-item
      {:on-click (fn []
-                  (dispatch [:results/add-to-history (assoc matches-query
-                                                       :title description)]))}
+
+                  (dispatch [:results/add-to-history row details]))}
      [popover [:span {:data-content   [popover-table matches p-value]
                       :data-placement "left"
                       :data-trigger   "hover"}
@@ -66,14 +66,15 @@
 
 (defn enrichment-results-preview []
   (let [text-filter (subscribe [:results/text-filter])]
-    (fn [widget-name results]
+    (fn [[widget-name {:keys [results] :as details}]]
+      ;(.log js/console "RESULTS" results)
       [:div
        [:h4
         {:class (if (empty? results) "greyout")}
         (str (get-in enrichment-config [widget-name :title])
              " (" (count results) ")")]
        (into [:ul.enrichment-list]
-             (map (fn [row] [enrichment-result-row row])
+             (map (fn [row] [enrichment-result-row row details])
                   (take 5 (filter
                             (fn [{:keys [description]}]
                               (has-text? @text-filter description))
@@ -85,8 +86,8 @@
     (fn []
       (if (nil? (vals @all-enrichment-results))
         [:div [:h4 "No Results"]]
-        (into [:div] (map (fn [[widget-name details]]
-                            [enrichment-results-preview widget-name (:results details)])
+        (into [:div] (map (fn [enrichment-response]
+                            [enrichment-results-preview enrichment-response])
                           @all-enrichment-results))))))
 
 (defn text-filter []
@@ -130,7 +131,7 @@
   (let [history       (subscribe [:results/history])
         history-index (subscribe [:results/history-index])]
     (fn []
-      [:div
+      [:div.breadcrumb-container
        [:i.fa.fa-clock-o]
        (into [:ul.breadcrumb.inline]
              (map-indexed
@@ -152,10 +153,11 @@
        [:div.row
         [:div.col-md-9.col-sm-12
          [:div.panel.panel-default
-          [:div.panel-body
+          [:div.panel-body.autoscroll
            (if @query [table/main @query true])]]]
         [:div.col-md-3.col-sm-12
-         [side-bar]]]])))
+         [side-bar]
+         ]]])))
 
 ;[:button.btn.btn-primary.btn-raised
 ; {:on-click (fn []

@@ -1,5 +1,6 @@
 (ns redgenes.sections.results.events
-  (:require-macros [cljs.core.async.macros :refer [go go-loop]])
+  (:require-macros [cljs.core.async.macros :refer [go go-loop]]
+                   [servant.macros :refer [defservantfn]])
   (:require [re-frame.core :refer [reg-event-db reg-event-fx reg-fx dispatch subscribe]]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
             [imcljs.filters :as filters]
@@ -8,7 +9,7 @@
             [day8.re-frame.http-fx]
             [ajax.core :as ajax]
             [dommy.core :refer-macros [sel sel1]]
-            [redgenes.sections.saveddata.events :as sd]))
+            [redgenes.sections.saveddata.events]))
 
 
 (defn build-matches-query [query path-constraint identifier]
@@ -16,6 +17,19 @@
              conj {:path   path-constraint
                    :op     "ONE OF"
                    :values [identifier]}))
+
+; Could be useful later?
+(reg-event-db
+  :worker
+  (fn [db]
+    (let [worker (-> (js/Worker. "/workers/filtertext.js")
+                     (aset "onmessage" (fn [r] (println "result" (.. r -data)))))]
+      (.postMessage worker (clj->js ["e" "title" [{:title "the little book of calm"}
+                                                  {:title "the cat in the hat"}
+                                                  {:title "sailing for dummies"}]])))
+    db))
+
+
 
 (reg-event-fx
   :results/set-text-filter
@@ -37,9 +51,17 @@
 
 (reg-event-fx
   :results/add-to-history
-  (fn [{db :db} [_ query]]
+  (fn [{db :db} [_ {identifier :identifier} details]]
     (let [model    (get-in db [:assets :model])
-          previous (get-in db [:results :query])]
+          previous (get-in db [:results :query])
+          query    (merge (build-matches-query
+                            (:pathQuery details)
+                            (:pathConstraint details)
+                            identifier)
+                          {:title (str
+                                    (:title details)
+                                    " - "
+                                    (:description details))})]
       {:db       (-> db
                      (update-in [:results :history] conj query)
                      (update-in [:results] assoc
@@ -112,6 +134,7 @@
                                                     :correction "Holm-Bonferroni"})]]})))
 
 
+
 (reg-event-fx
   :results/run
   (fn [{db :db} [_ params]]
@@ -131,19 +154,5 @@
 (reg-event-db
   :results/handle-results
   (fn [db [_ widget-name results]]
-    (let [with-matches-query
-          (update-in results [:results]
-                     (fn [data]
-                       (map (fn [r]
-                              (assoc r :matches-query
-                                       (merge (build-matches-query
-                                                (:pathQuery results)
-                                                (:pathConstraint results)
-                                                (:identifier r))
-                                              {:title (str
-                                                        (:title results)
-                                                        " - "
-                                                        (:description r))})))
-                            data)))]
-      (assoc-in db [:results :enrichment-results (keyword widget-name)] with-matches-query))))
+    (assoc-in db [:results :enrichment-results (keyword widget-name)] results)))
 
