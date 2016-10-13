@@ -66,7 +66,7 @@
   (let [mine-url (re-frame/subscribe [:mine-url])
         mine-name (re-frame/subscribe [:mine-name])]
     (fn []
-      [:div
+      [:div.developer
           [mine-config mine-url mine-name]
           [iconview]
        ])))

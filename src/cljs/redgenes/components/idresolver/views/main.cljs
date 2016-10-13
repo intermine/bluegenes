@@ -4,6 +4,7 @@
             [json-html.core :as json-html]
             [dommy.core :as dommy :refer-macros [sel sel1]]
             [redgenes.components.idresolver.events]
+            [redgenes.components.icons :as icons]
             [redgenes.components.idresolver.subs]))
 
 (def ex "CG9151, FBgn0000099, CG3629, TfIIB, Mad, CG1775, CG2262, TWIST_DROME, tinman, runt, E2f, CG8817, FBgn0010433, CG9786, CG1034, ftz, FBgn0024250, FBgn0001251, tll, CG1374, CG33473, ato, so, CG16738, tramtrack,  CG2328, gt")
@@ -51,8 +52,9 @@
 (defn submit-input [input] (dispatch [:idresolver/resolve (splitter input)]))
 
 (defn input-box []
+  (reagent/create-class
   (let [val (reagent/atom nil)]
-    (fn []
+    {:reagent-render (fn []
       [:input#identifierinput.freeform
        {:type         "text"
         :placeholder  "Type identifiers here..."
@@ -69,7 +71,8 @@
                           (if (has-separator? input)
                             (do
                               (reset! val "")
-                              (submit-input input)) (reset! val input))))}])))
+                              (submit-input input)) (reset! val input))))}])
+     :component-did-mount (fn [this] (.focus (reagent/dom-node this)))})))
 
 
 (defn input-item-duplicate []
@@ -154,6 +157,11 @@
                   (submit-input file-content))))
         (.readAsText rdr the-file)))))
 
+(defn drag-and-drop-prompt []
+  [:div.upload-file
+   [:svg.icon.icon-file [:use {:xlinkHref "#icon-file"}]]
+    [:p "All your identifiers in a text file? Try dragging and dropping it here."]])
+
 (defn input-div []
   (let [drag-state (reagent/atom false)]
     (fn []
@@ -169,12 +177,14 @@
         :on-drag-leave (fn [] (reset! drag-state false))
         :on-drag-end   (fn [] (reset! drag-state false))
         :on-drag-exit  (fn [] (reset! drag-state false))}
-       [:div.panel-body.transitions
+       [:div.panel-body.transitions.eenput
         {:class (if @drag-state "dragging")}
-        [:div.idresolver.form-control
-         [input-items]
-         [input-box]
-         ]]])))
+        [:div.idresolver
+          [input-items]
+          [input-box]
+         ]
+        [drag-and-drop-prompt]
+        ]])))
 
 (defn stats []
   (let [bank       (subscribe [:idresolver/bank])
@@ -185,6 +195,7 @@
     (fn []
       [:div.panel.panel-default
        [:div.panel-body
+        [:div [controls]]
         [:div.row.legend
          [:div.col-md-4 [:h4.title
                          (str "Total Identifiers: " (count @bank))]]
@@ -200,7 +211,7 @@
          [:div.col-md-2 [:h4.OTHER
                          [:i.fa.fa-exclamation.OTHER]
                          (str "Other: " (count @other))]]]
-        [:div [controls]]]]
+        ]]
 
       #_[:div
          [:ul
@@ -261,21 +272,30 @@
   (fn []
     [:div#dropzone1.dropzone [:h1 "Drop Here"]]))
 
+(defn help-panel []
+  [:div.panel.container
+   [:h4 [:svg.icon.icon-info [:use {:xlinkHref "#icon-info"}]] " Tips:"]
+   [:ul
+    [:li "Want to remove more than one item at a time? Try pressing"
+   [:strong " Shift "] " or " [:strong "Ctrl"] " to select multiple identifiers at once."]
+    [:li "When you're typing in identifiers, press "
+     [:strong "space"] " or " [:strong "enter"] " to submit the form."]]])
+
 (defn main []
   (reagent/create-class
     {:component-did-mount
      attach-body-events
      :reagent-render
      (fn []
-       [:div.container
+       [:div.container.idresolverupload
         [:div.headerwithguidance
          [:h1 "List Upload"]
          [:a.guidance {:on-click (fn [] (dispatch [:idresolver/resolve (splitter ex)]))} "[Show me an example]"]
-         [:div.tip [:svg.icon.icon-info [:use {:xlinkHref "#icon-info"}]]
-          "Tip: Press enter or space bar to submit the form"]]
+         [:div.tip]]
         ;[dropzone]
         [input-div]
         [stats]
+        [help-panel]
         ;[selected]
         ;[debugger]
         ])}))
