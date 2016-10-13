@@ -130,6 +130,7 @@
   (let [
         used-codes      (subscribe [:query-builder/used-codes])
         query           (subscribe [:query-builder/query])
+        cl              (subscribe [:query-builder/constraintLogic])
         io-query        (subscribe [:query-builder/io-query])
         queried?        (subscribe [:query-builder/queried?])
         result-count    (subscribe [:query-builder/count])
@@ -220,7 +221,7 @@
              (if @counting?
                [:i.fa.fa-cog.fa-spin.fa-1x.fa-fw]
                (if @result-count
-                 [:h3 (str @result-count " rows")]))]]]
+                 [:h3 (str @result-count " rows " (:constraintLogic (build-query @query)))]))]]]
           [:div.panel.panel-default
            [:div.panel-heading
             [:h4 "Results"]]

@@ -2,7 +2,7 @@
   #?(:cljs (:require-macros [cljs.core.async.macros :refer [go go-loop]]))
   (:require
     [redgenes.components.querybuilder.core :as c :refer
-      [used-codes build-query next-code to-list]]
+      [build-query next-code to-list]]
     #?(:cljs [re-frame.core :as re-frame :refer [dispatch subscribe]])
     #?(:cljs [cljs.spec :as spec] :clj [clojure.spec :as spec])
     #?(:cljs [cljs.core.async :refer [put! chan <! >! timeout close!]])

@@ -141,15 +141,9 @@
     :opt [:q/logic]
     :opt-un [::constraint-paths]))
 
-(defn maybe-with-logic
-  [s logic-str]
-  (if (= "" logic-str)
-    s
-    (assoc s :constraintLogic logic-str)))
-
 (defn build-query
   "Returns a query for the webservice"
-  ([{:keys [q/select q/where logic-str] :as query}]
+  ([{:keys [q/select q/where q/logic logic-str] :as query}]
    (-> {}
      (assoc :select
             (map (fn [view] (string/join "." view)) select))
@@ -159,4 +153,10 @@
                     :path  (string/join "." (:q/path constraint))
                     :op    (:q/op constraint)
                     :value (:q/value constraint)}) where))
-     (maybe-with-logic logic-str))))
+     (assoc :constraintLogic
+            (if logic
+              logic-str
+              (apply str
+                (interpose " "
+                  (interpose 'OR
+                    (map :q/code where)))))))))
