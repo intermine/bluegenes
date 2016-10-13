@@ -177,7 +177,7 @@
         :on-drag-leave (fn [] (reset! drag-state false))
         :on-drag-end   (fn [] (reset! drag-state false))
         :on-drag-exit  (fn [] (reset! drag-state false))}
-       [:div.panel-body.transitions
+       [:div.panel-body.transitions.eenput
         {:class (if @drag-state "dragging")}
         [:div.idresolver
           [input-items]
@@ -195,6 +195,7 @@
     (fn []
       [:div.panel.panel-default
        [:div.panel-body
+        [:div [controls]]
         [:div.row.legend
          [:div.col-md-4 [:h4.title
                          (str "Total Identifiers: " (count @bank))]]
@@ -210,7 +211,7 @@
          [:div.col-md-2 [:h4.OTHER
                          [:i.fa.fa-exclamation.OTHER]
                          (str "Other: " (count @other))]]]
-        [:div [controls]]]]
+        ]]
 
       #_[:div
          [:ul
@@ -271,6 +272,15 @@
   (fn []
     [:div#dropzone1.dropzone [:h1 "Drop Here"]]))
 
+(defn help-panel []
+  [:div.panel.container
+   [:h4 [:svg.icon.icon-info [:use {:xlinkHref "#icon-info"}]] " Tips:"]
+   [:ul
+    [:li "Want to remove more than one item at a time? Try pressing"
+   [:strong " Shift "] " or " [:strong "Ctrl"] " to select multiple identifiers at once."]
+    [:li "When you're typing in identifiers, press "
+     [:strong "space"] " or " [:strong "enter"] " to submit the form."]]])
+
 (defn main []
   (reagent/create-class
     {:component-did-mount
@@ -281,11 +291,11 @@
         [:div.headerwithguidance
          [:h1 "List Upload"]
          [:a.guidance {:on-click (fn [] (dispatch [:idresolver/resolve (splitter ex)]))} "[Show me an example]"]
-         [:div.tip [:svg.icon.icon-info [:use {:xlinkHref "#icon-info"}]]
-          "Tip: Press enter or space bar to submit the form"]]
+         [:div.tip]]
         ;[dropzone]
         [input-div]
         [stats]
+        [help-panel]
         ;[selected]
         ;[debugger]
         ])}))
