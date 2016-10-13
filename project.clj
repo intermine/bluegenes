@@ -32,7 +32,7 @@
                  [fipp "0.6.6"]
                  [http-kit "2.1.18"]]
 
-  :plugins [[lein-cljsbuild "1.1.3"]
+  :plugins [[lein-cljsbuild "1.1.4"]
             [lein-less "1.7.5"]
             [lein-shell "0.5.0"]
             [lein-cljfmt "0.5.5"]]
