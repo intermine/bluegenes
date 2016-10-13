@@ -7,6 +7,11 @@
             [redgenes.components.bootstrap :refer [popover tooltip]]
             [clojure.string :refer [split]]))
 
+
+(def css-transition-group
+  (reagent/adapt-react-class js/React.addons.CSSTransitionGroup))
+
+
 (def enrichment-config {:pathway_enrichment           {:title   "Pathways"
                                                        :returns [{:header "Pathway" :field :description}
                                                                  {:header "Matches" :field :matches}
@@ -81,14 +86,21 @@
                             results))))])))
 
 
+
+
 (defn enrichment-results []
   (let [all-enrichment-results (subscribe [:results/enrichment-results])]
     (fn []
       (if (nil? (vals @all-enrichment-results))
         [:div [:h4 "No Results"]]
-        (into [:div] (map (fn [enrichment-response]
-                            [enrichment-results-preview enrichment-response])
-                          @all-enrichment-results))))))
+        [:div.demo
+         [css-transition-group
+          {:transition-name          "fade"
+           :transition-enter-timeout 500
+           :transition-leave-timeout 500}
+          (map (fn [enrichment-response]
+                 ^{:key (first enrichment-response)} [enrichment-results-preview enrichment-response])
+               @all-enrichment-results)]]))))
 
 (defn text-filter []
   (let [value (subscribe [:results/text-filter])]
@@ -105,24 +117,20 @@
 (defn side-bar []
   (let [query-parts (subscribe [:results/query-parts])
         value       (subscribe [:results/text-filter])]
-    (reagent/create-class
-      {:component-did-mount
-       (fn [this])
-       :reagent-render
-       (fn []
-         [:div.sidebar
-          {:on-mouse-enter (fn [] (reset! sidebar-hover true))
-           :on-mouse-leave (fn [] (reset! sidebar-hover false))}
-          [:div
-           [:h3.inline "Enrichment Statistics"]
-           [tooltip [:i.fa.fa-question-circle
-                     {:title          "The p-value is the probability that result occurs by chance, thus a lower p-value indicates greater enrichment."
-                      :data-trigger   "hover"
-                      :data-placement "bottom"}]]]
-          [:div.expandable
-           {:class (if (or @sidebar-hover @value) "present" "gone")}
-           [text-filter]]
-          [enrichment-results]])})))
+    (fn []
+      [:div.sidebar
+       {:on-mouse-enter (fn [] (reset! sidebar-hover true))
+        :on-mouse-leave (fn [] (reset! sidebar-hover false))}
+       [:div
+        [:h3.inline "Enrichment Statistics"]
+        [tooltip [:i.fa.fa-question-circle
+                  {:title          "The p-value is the probability that result occurs by chance, thus a lower p-value indicates greater enrichment."
+                   :data-trigger   "hover"
+                   :data-placement "bottom"}]]]
+       [:div.expandable
+        {:class (if (or @sidebar-hover @value) "present" "gone")}
+        [text-filter]]
+       [enrichment-results]])))
 
 (defn adjust-str-to-length [length string]
   (if (< length (count string)) (str (clojure.string/join (take (- length 3) string)) "...") string))
@@ -142,8 +150,10 @@
                     [tooltip
                      [:a
                       {:data-placement "bottom"
-                       :title title
-                       :on-click (fn [x] (dispatch [:results/load-from-history idx]))} adjsuted-title]]])) @history))])))
+                       :title          title
+                       :on-click       (fn [x] (dispatch [:results/load-from-history idx]))} adjsuted-title]]])) @history))])))
+
+
 
 (defn main []
   (let [query (subscribe [:results/query])]
@@ -158,6 +168,11 @@
         [:div.col-md-3.col-sm-12
          [side-bar]
          ]]])))
+
+
+
+
+
 
 ;[:button.btn.btn-primary.btn-raised
 ; {:on-click (fn []

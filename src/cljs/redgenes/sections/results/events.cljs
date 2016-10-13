@@ -1,6 +1,5 @@
 (ns redgenes.sections.results.events
-  (:require-macros [cljs.core.async.macros :refer [go go-loop]]
-                   [servant.macros :refer [defservantfn]])
+  (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [re-frame.core :refer [reg-event-db reg-event-fx reg-fx dispatch subscribe]]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
             [imcljs.filters :as filters]
@@ -10,6 +9,8 @@
             [ajax.core :as ajax]
             [dommy.core :refer-macros [sel sel1]]
             [redgenes.sections.saveddata.events]))
+
+
 
 
 (defn build-matches-query [query path-constraint identifier]
