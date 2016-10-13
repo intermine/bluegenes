@@ -30,7 +30,31 @@
                                                   {:title "sailing for dummies"}]])))
     db))
 
+(reg-event-db
+  :save-summary-fields
+  (fn [db [_ response]]
+    (assoc-in db [:results :summary-values] response)))
 
+(reg-fx
+  :get-summary-values
+  (fn [c]
+    (go (dispatch [:save-summary-fields (<! c)]))))
+
+(reg-event-fx
+  :results/get-item-details
+  (fn [{db :db} [_ identifier path-constraint]]
+    (let [model (get-in db [:assets :model])
+          class (keyword (filters/end-class model path-constraint))
+          summary-fields (get-in db [:assets :summary-fields class])
+          summary-chan (search/raw-query-rows
+                         {:root @(subscribe [:mine-url])}
+                         {:from   class
+                          :select summary-fields
+                          :where  [{:path  (last (clojure.string/split path-constraint "."))
+                                    :op    "="
+                                    :value identifier}]})]
+      {:db                 (assoc-in db [:results :summary-chan] summary-chan)
+       :get-summary-values summary-chan})))
 
 (reg-event-fx
   :results/set-text-filter
