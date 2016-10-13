@@ -31,6 +31,18 @@
            (if (:and-then (:queued db))
              {:dispatch (:and-then (:queued db))}))))
 
+
+; Usage:
+;{:db        db
+; :do-imcljs {:on-success [:store-value]
+;             :on-failure [:notify-failure]
+;             :function   [imcljs/query {:root "www.flymine.org/query"}]}}
+;(reg-fx
+;  :do-imcljs
+;  (fn [{:keys [on-success on-failure function params]}]
+;    (go (let [results (<! (apply function params))]
+;          (println "finished")))))
+
 (reg-event-fx
   :set-active-panel
   (fn [{db :db} [_ active-panel panel-params evt]]

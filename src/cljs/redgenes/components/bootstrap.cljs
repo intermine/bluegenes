@@ -14,6 +14,9 @@
     {:component-did-mount
      (fn [this]
        (let [node (reagent/dom-node this)] (.popover (-> node js/$))))
+     :component-will-unmount
+     (fn [this]
+       (let [node (reagent/dom-node this)] (.remove (-> ".popover" js/$))))
      :reagent-render
      (fn [[element attributes & rest]]
        [element (-> attributes
@@ -33,8 +36,7 @@
      (fn [this]
        (let [node (reagent/dom-node this)] (.tooltip (-> node js/$))))
      :reagent-render
-     (fn [[element attributes & rest]]
-       [element attributes rest])}))
+     (fn [[element attributes & rest]] [element attributes rest])}))
 
 
 

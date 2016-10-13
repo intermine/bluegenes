@@ -162,7 +162,8 @@
           summary-fields (get-in db [:assets :summary-fields :Gene])
           results {:type  :query
                    :label (str "Uploaded " (count ids) " Genes")
-                   :value {:from   "Gene"
+                   :value {:title (str "Uploaded " (count ids) " Genes")
+                           :from   "Gene"
                            :select summary-fields
                            :where  [{:path   "Gene.id"
                                      :op     "ONE OF"

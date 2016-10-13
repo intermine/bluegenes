@@ -7,6 +7,7 @@
             [clojure.spec :as s]
             [day8.re-frame.http-fx]
             [ajax.core :as ajax]
+            [dommy.core :refer-macros [sel sel1]]
             [redgenes.sections.saveddata.events :as sd]))
 
 
@@ -27,8 +28,38 @@
     (let [model (get-in db [:assets :model])]
       {:db       (update-in db [:results] assoc
                             :query query
+                            :history [query]
+                            :history-index 0
                             :query-parts (filters/get-parts model query)
                             :enrichment-results nil)
+       :dispatch [:results/enrich]})))
+
+
+(reg-event-fx
+  :results/add-to-history
+  (fn [{db :db} [_ query]]
+    (let [model    (get-in db [:assets :model])
+          previous (get-in db [:results :query])]
+      {:db       (-> db
+                     (update-in [:results :history] conj query)
+                     (update-in [:results] assoc
+                                :query query
+                                :history-index (inc (get-in db [:results :history-index]))
+                                :query-parts (filters/get-parts model query)
+                                :enrichment-results nil))
+       :dispatch [:results/enrich]})))
+
+(reg-event-fx
+  :results/load-from-history
+  (fn [{db :db} [_ index]]
+    (let [model (get-in db [:assets :model])
+          query (get-in db [:results :history index])]
+      {:db       (-> db
+                     (update-in [:results] assoc
+                                :query query
+                                :history-index index
+                                :query-parts (filters/get-parts model query)
+                                :enrichment-results nil))
        :dispatch [:results/enrich]})))
 
 (reg-event-fx

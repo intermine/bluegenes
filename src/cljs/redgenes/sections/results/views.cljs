@@ -34,25 +34,26 @@
 
 (def sidebar-hover (reagent/atom false))
 
-
-
+(defn popover-table []
+  (fn [matches p-value]
+    [:div [:table [:tbody
+                   [:tr
+                    [:td "Matches"]
+                    [:td matches]]
+                   [:tr
+                    [:td "p-value"]
+                    [:td p-value]]]]]))
 
 (defn enrichment-result-row []
-  (fn [{:keys [description matches p-value]}]
+  (fn [{:keys [description matches p-value matches-query] :as row}]
     [:li.enrichment-item
-     [popover
-      [:span {:data-content   [:div
-                               [:table
-                                [:tbody
-                                 [:tr
-                                  [:td "Matches"]
-                                  [:td matches]]
-                                 [:tr
-                                  [:td "p-value"]
-                                  [:td p-value]]]]]
-              :data-placement "left"
-              :data-trigger   "hover"}
-       description]]]))
+     {:on-click (fn []
+                  (dispatch [:results/add-to-history (assoc matches-query
+                                                       :title description)]))}
+     [popover [:span {:data-content   [popover-table matches p-value]
+                      :data-placement "left"
+                      :data-trigger   "hover"}
+               description]]]))
 
 (defn has-text?
   "Return true if a label contains a string"
@@ -122,10 +123,32 @@
            [text-filter]]
           [enrichment-results]])})))
 
+(defn adjust-str-to-length [length string]
+  (if (< length (count string)) (str (clojure.string/join (take (- length 3) string)) "...") string))
+
+(defn breadcrumb []
+  (let [history       (subscribe [:results/history])
+        history-index (subscribe [:results/history-index])]
+    (fn []
+      [:div
+       [:i.fa.fa-clock-o]
+       (into [:ul.breadcrumb.inline]
+             (map-indexed
+               (fn [idx {title :title}]
+                 (let [adjsuted-title (adjust-str-to-length 20 title)]
+                   [:li
+                    {:class (if (= @history-index idx) "active")}
+                    [tooltip
+                     [:a
+                      {:data-placement "bottom"
+                       :title title
+                       :on-click (fn [x] (dispatch [:results/load-from-history idx]))} adjsuted-title]]])) @history))])))
+
 (defn main []
   (let [query (subscribe [:results/query])]
     (fn []
       [:div.container
+       [breadcrumb]
        [:div.row
         [:div.col-md-9.col-sm-12
          [:div.panel.panel-default

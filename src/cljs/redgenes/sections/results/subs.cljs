@@ -4,7 +4,15 @@
 
 
 
+(reg-sub
+  :results/history
+  (fn [db]
+    (get-in db [:results :history])))
 
+(reg-sub
+  :results/history-index
+  (fn [db]
+    (get-in db [:results :history-index])))
 
 (reg-sub
   :results/query
