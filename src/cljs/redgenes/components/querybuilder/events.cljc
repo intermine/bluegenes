@@ -2,7 +2,7 @@
   #?(:cljs (:require-macros [cljs.core.async.macros :refer [go go-loop]]))
   (:require
     [redgenes.components.querybuilder.core :as c :refer
-      [used-codes build-query next-code to-list]]
+      [build-query next-code to-list]]
     #?(:cljs [re-frame.core :as re-frame :refer [dispatch subscribe]])
     #?(:cljs [cljs.spec :as spec] :clj [clojure.spec :as spec])
     #?(:cljs [cljs.core.async :refer [put! chan <! >! timeout close!]])
@@ -79,7 +79,8 @@
    :undoable?    true
    :undo-exp     :use-this-fn-due-to-static-metadata-in-cljs}
   ([_ db [_ index value]]
-   (str "change constraint value to " value))
+   {:explanation (str "change constraint value to " value)
+    :count (get-in db [:query-builder :count])})
   ([db [_ index value]]
    (-> db
      (assoc-in [:query-builder :query :q/where index :q/value] value))))
@@ -119,13 +120,27 @@
   [db [_ count]]
   (update-in db [:query-builder :autoupdate?] not))
 
+(defn update-io-query
+  "Returns the x for the given y"
+  {:reframe-kind :event, :reframe-key :query-builder/update-io-query}
+  [{{query :query} :query-builder :as db} _]
+  (println "ioq" query (spec/valid? :q/query query) (get-in db [:query-builder :io-query]))
+  (if (spec/valid? :q/query query)
+    (assoc-in
+      db
+      [:query-builder :io-query]
+      (build-query query))
+    db))
+
 (defn run-query-cofx
   "Returns a cofx for running the query"
   {:reframe-kind :cofx, :reframe-key :query-builder/run-query!}
   [{db :db}]
   (let [query-data (-> db :query-builder :query)]
-    {:db                       (assoc-in db [:query-builder :counting?] true),
-     :query-builder/run-query! (build-query query-data)}))
+    {:db (assoc-in db [:query-builder :counting?] true),
+     :query-builder/maybe-run-query!
+         {:query  (get-in db [:query-builder :query])
+          :query? (get-in db [:query-builder :autoupdate?])}}))
 
 (defn maybe-run-query-cofx
   "Returns a cofx for maybe running the query"
@@ -171,25 +186,27 @@
   {:reframe-kind :event,
    :reframe-key :query-builder/add-filter
    :undoable? true}
-  [db [_ path]]
-  (assoc-in db [:query-builder :constraint] path))
+  [db [_ path tipe]]
+  (assoc-in db [:query-builder :constraint] {:path path :tipe tipe}))
 
 (defn set-logic
   "Parse the given logic expression to a list"
   {:reframe-kind :event
    :reframe-key :query-builder/set-logic
-   :undoable? true}
-  [db [_ expression]]
-  (let [x (try
-            (c/simplify (c/to-prefix (c/group-ands (c/to-list (str "(" expression ")")))))
-            (catch #?(:clj Exception :cljs js/Error) e []))]
-    (-> db
-     (assoc-in [:query-builder :query :q/logic] x)
-     (assoc-in [:query-builder :query :logic-exp] (c/prefix-infix x))
-     (assoc-in [:query-builder :query :logic-str]
-       (string/upper-case expression)))))
+   :undoable? true
+   :undo-exp :qwe}
+  ([_ db [_ expression]]
+   {:count (get-in db [:query-builder :count]) :explanation "set the logic"})
+  ([db [_ expression]]
+   (let [x (try
+             (c/simplify (c/to-prefix (c/group-ands (c/to-list (str "(" expression ")")))))
+             (catch #?(:clj Exception :cljs js/Error) e []))]
+     (-> db
+       (assoc-in [:query-builder :query :q/logic] x)
+       (assoc-in [:query-builder :query :logic-exp] (c/prefix-infix x))
+       (assoc-in [:query-builder :query :logic-str]
+         (string/upper-case expression))))))
        ;(str (c/prefix-infix x))
-
 
 (defn set-query
   "Returns the x for the given y"
@@ -200,31 +217,21 @@
     [:query-builder :query]
     (to-list query-str)))
 
-(defn update-io-query
-  "Returns the x for the given y"
-  {:reframe-kind :event, :reframe-key :query-builder/update-io-query}
-  [{{query :query} :query-builder :as db} _]
-  (println "ioq" query (spec/valid? :q/query query) (get-in db [:query-builder :io-query]))
-  (if (spec/valid? :q/query query)
-    (assoc-in
-     db
-     [:query-builder :io-query]
-     (build-query query))
-    db))
-
 (defn set-logic-cofx
   "Returns the x for the given y"
   {:reframe-kind :cofx,
    :reframe-key  :query-builder/set-logic!
    :undoable?    true
-   :undo-exp     "set logic"}
-  [{db :db} event]
-  {:db       (let [db (set-logic db event)]
-               db
-               (if (get-in db [:query-builder :autoupdate?])
-                 (update-io-query db [nil (get-in db [:query-builder :query])])
-                 db))
-   :dispatch [:query-builder/maybe-run-query]})
+   :undo-exp     :see-also}
+  ([_ {db :db} event]
+    {:count (get-in db [:query-builder :count]) :explanation "set logic!"})
+  ([{db :db} event]
+   {:db       (let [db (set-logic db event)]
+                db
+                (if (get-in db [:query-builder :autoupdate?])
+                  (update-io-query db [nil (get-in db [:query-builder :query])])
+                  db))
+    :dispatch [:query-builder/maybe-run-query]}))
 
 (defn toggle-view
   "Returns the x for the given y"
@@ -272,8 +279,8 @@
    [{query :query query? :query?}]
         #?(:cljs
                 (cond
-                  (and query? (spec/valid? :q/query query))
-                  (run-query! query))
+                  (spec/valid? :q/query query)
+                  (run-query! (build-query query)))
            :clj (println "maybe run query")))
 
 (def my-events

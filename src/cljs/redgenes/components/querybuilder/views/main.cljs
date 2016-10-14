@@ -15,18 +15,18 @@
             [cljs.spec :as spec]))
 
 (defn attribute []
-  (let [qb-query (subscribe [:query-builder/query])]
+  (let [query (subscribe [:query-builder/query])]
     (fn [{naym :name tipe :type} & [path]]
       (let [path-vec (conj path naym)]
         [:div
          [:div.btn.btn-default.btn.btn-xxs
           {
            :title    (str
-                      (if ((:q/select @qb-query) path-vec) "Remove " "Add ")
+                      (if ((:q/select @query) path-vec) "Remove " "Add ")
                        naym
-                       (if ((:q/select @qb-query) path-vec) " from " " to ")
+                       (if ((:q/select @query) path-vec) " from " " to ")
                        "view")
-           :class    (if ((:q/select @qb-query) path-vec)
+           :class    (if ((:q/select @query) path-vec)
                        "btn-primary"
                        "btn-outline")
            :on-click (fn [] (dispatch [:query-builder/toggle-view! path-vec]))}
@@ -35,10 +35,10 @@
           {
            :title    (str "Add constraint for " naym)
            :class
-                     (if ((get-in @qb-query [:constraint-paths]) path-vec)
+                     (if ((get-in @query [:constraint-paths]) path-vec)
                        "btn-primary"
                        "btn-outline")
-           :on-click (fn [] (dispatch [:query-builder/add-filter path-vec]))}
+           :on-click (fn [] (dispatch [:query-builder/add-filter path-vec tipe]))}
           [:i.fa.fa-plus] [:i.fa.fa-filter]]
          [:span.pad-left-5 {:title tipe} naym]]))))
 
@@ -68,7 +68,7 @@
   (first (into [] (reduce (fn [total next] (assoc-in total next nil)) {} paths))))
 
 (defn tiny-constraint
-  [{:keys [:q/op :q/value :q/code] :as constraint} i]
+  [{:keys [:q/op :q/value :q/code tipe] :as constraint} i]
   [:li.qb-tiny-constraint
    [:div.input-group-btn.but-inline
     [:button.btn.btn-default.dropdown-toggle
@@ -88,7 +88,7 @@
             :on-click
             (fn [e] (dispatch [:query-builder/change-constraint-op i op]))
             } [:a op]])
-        c/ops))]
+        (or (constraints/ops-for-type tipe) c/ops)))]
    [:input.qb-constraint-value
     {:type :text :value value :default-value 0
      :size 9
@@ -130,6 +130,7 @@
   (let [
         used-codes      (subscribe [:query-builder/used-codes])
         query           (subscribe [:query-builder/query])
+        cl              (subscribe [:query-builder/constraintLogic])
         io-query        (subscribe [:query-builder/io-query])
         queried?        (subscribe [:query-builder/queried?])
         result-count    (subscribe [:query-builder/count])
@@ -173,7 +174,7 @@
                        (dispatch [:query-builder/update-io-query]))
               :on-change
                      (fn [e]
-                       (dispatch [:query-builder/set-logic! (.. e -target -value)]))
+                       (dispatch [:query-builder/set-logic (.. e -target -value)]))
               }]
               [:div {} @used-codes]
               [:textarea
@@ -203,11 +204,15 @@
                 [:span.btn
                   [:div.undos
                     (map
-                     (fn [explanation i]
-                       [:div.undo.buttony
-                        {:key i
-                          :on-click (fn [e] (dispatch [:undo i]))
-                         :title    explanation}])
+                     (fn [ex i]
+                       (let [
+                             {explanation :explanation c :count} (if (map? ex) ex {:explanation ex})
+                             cc (str "count-" c)]
+                         [:div.undo.buttony
+                          {:key      i
+                           :class cc
+                           :on-click (fn [e] (dispatch [:undo i]))
+                           :title    (str explanation " : " c)}]))
                      @undo-explanations (range (count @undo-explanations) 0 -1))
                      (map
                        (fn [explanation i]
@@ -220,7 +225,7 @@
              (if @counting?
                [:i.fa.fa-cog.fa-spin.fa-1x.fa-fw]
                (if @result-count
-                 [:h3 (str @result-count " rows")]))]]]
+                 [:h3 (str @result-count " rows " (:constraintLogic (build-query @query)))]))]]]
           [:div.panel.panel-default
            [:div.panel-heading
             [:h4 "Results"]]

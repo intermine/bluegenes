@@ -12,4 +12,5 @@
    [:used-codes]
    [:io-query]
    [:query]
+   [:constraintLogic]
    ])

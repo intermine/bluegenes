@@ -125,7 +125,8 @@
 ; {:path "Gene.length", :op "<", :value "32"}
 (s/def :q/clause
   (s/keys
-    :req [:q/path :q/op :q/value :q/code]))
+    :req [:q/path :q/op :q/value :q/code]
+    :opt-un [::type]))
 
 (s/def :q/view (s/coll-of string?))
 
@@ -141,15 +142,17 @@
     :opt [:q/logic]
     :opt-un [::constraint-paths]))
 
-(defn maybe-with-logic
-  [s logic-str]
-  (if (= "" logic-str)
-    s
-    (assoc s :constraintLogic logic-str)))
+(defn ors [where]
+  (let [codes (distinct (map :q/code where))]
+    (if (> (count codes) 1)
+      (apply str
+       (interpose " "
+         (interpose 'OR codes)))
+      "")))
 
 (defn build-query
   "Returns a query for the webservice"
-  ([{:keys [q/select q/where logic-str] :as query}]
+  ([{:keys [q/select q/where q/logic logic-str] :as query}]
    (-> {}
      (assoc :select
             (map (fn [view] (string/join "." view)) select))
@@ -159,4 +162,7 @@
                     :path  (string/join "." (:q/path constraint))
                     :op    (:q/op constraint)
                     :value (:q/value constraint)}) where))
-     (maybe-with-logic logic-str))))
+     (assoc :constraintLogic
+            (if logic
+              logic-str
+              (ors where))))))
