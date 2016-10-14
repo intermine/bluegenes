@@ -140,6 +140,7 @@ dfh.active {
   width: 1em;
   height: 1em;
   margin: 1px;
+  margin-top: 4px;
 }
 
 .redo
@@ -148,16 +149,7 @@ dfh.active {
   width: 1em;
   height: 1em;
   margin: 1px;
-}
-
-.undo:last-child
-{
-  background: black;
-}
-
-.redo:first-child
-{
-  background: black;
+  margin-top: 4px;
 }
 
 .selected-button
@@ -174,11 +166,12 @@ dfh.active {
 .buttony
 {
   cursor: pointer;
+  opacity: 0.5;
 }
 
 .buttony:hover
 {
-  opacity: 0.8;
+  opacity: 1;
 }
 
 .but-inline
@@ -193,15 +186,16 @@ dfh.active {
 
 .count-0
 {
-  background: red;
+  background: grey;
+  border-radius: 1em;
 }
 
 .count-down
 {
-  background: blue;
+  border-bottom: 2px solid black;
 }
 
 .count-up
 {
-  background: green;
+  border-top: 2px solid black;
 }
