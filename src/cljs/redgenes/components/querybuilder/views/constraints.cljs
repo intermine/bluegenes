@@ -12,6 +12,17 @@
    "java.lang.String" #{"=" "LIKE" "NOT LIKE" "CONTAINS" "ONE OF" "NONE OF"}
    })
 
+(def type-for-type
+  {
+   "java.lang.Integer" :number
+   "java.lang.String" :text
+   })
+
+(def pattern-for-type
+  {
+   "java.lang.Integer" "[0-9]+"
+   "java.lang.String" "[a-zA-Z0-9]*"
+   })
 
 (defn list-dropdown []
   (let [lists (subscribe [:lists])]
@@ -39,7 +50,7 @@
                  (fn [op] [:li {:on-click (fn [] (swap! state assoc :q/op op))} [:a op]]))
            (or (ops-for-type typ) ops))]
         [:input.form-control
-         {:type      "text"
+         {:type      (type-for-type typ)
           :value     (:q/value @state)
           :on-change (fn [e] (swap! state assoc :q/value (.. e -target -value)))}]
         [:div.input-group-btn [list-dropdown]]]

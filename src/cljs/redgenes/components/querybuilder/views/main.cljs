@@ -29,7 +29,10 @@
            :class    (if ((:q/select @query) path-vec)
                        "btn-primary"
                        "btn-outline")
-           :on-click (fn [] (dispatch [:query-builder/toggle-view! path-vec]))}
+           :on-click
+                     (fn []
+                       (dispatch [:query-builder/toggle-view! path-vec])
+                       (dispatch [:query-builder/update-io-query]))}
           [:i.fa.fa-eye]]
          [:div.btn.btn-default.btn-outline.btn-xxs
           {
@@ -90,7 +93,10 @@
             } [:a op]])
         (or (constraints/ops-for-type typ) c/ops)))]
    [:input.qb-constraint-value
-    {:type :text :value value :default-value 0
+    {
+     :type (constraints/type-for-type typ)
+     :value value
+     :default-value 0
      :size 9
      :on-change
            (fn [e] (dispatch [:query-builder/change-constraint-value i (.. e -target -value)]))
@@ -141,9 +147,6 @@
                  (str c (if (== 1 c) " result" " results") ": " explanation)
                  explanation)}]))
 
-; update results on adding select
-; label logic thing
-; numberic field numbers
 ; legend
 
 (defn ^:export main []
@@ -177,6 +180,7 @@
            [:div.panel-heading [:h4 "Query Overview"]]
            [:div.panel-body
             [tree-view @query]
+            [:h5 "Constraint Logic"]
             [:textarea
              {
               :cols  128
@@ -185,7 +189,7 @@
                       :border :none
                       :margin "1em"
                       :background
-                        (if (spec/valid? :q/logic (:q/logic @query)) "rgb(240,240,240)" :pink)}
+                        (if (spec/valid? :q/logic (:q/logic @query)) "rgb(240,240,240)" "rgb(255,240,240)")}
               :value (:logic-str @query)
               :on-blur
                      (fn [e]
@@ -200,15 +204,15 @@
                {
                 :cols  128
                 :rows  8
-                :style {:width      "calc(100% - 1em)" :height "8em"
+                :style {:width  "calc(100% - 1em)" :height "8em"
                         :border :none
                         :margin "1em"
                         :background
-                          (if (spec/valid? :q/query @query) "rgb(240,240,240)" :pink)}
+                                (if (spec/valid? :q/query @query) "rgb(240,240,240)" "rgb(255,240,240)")}
                 :value (str @query)
                 :on-change
-                (fn [e]
-                  (dispatch [:query-builder/set-query (.. e -target -value)]))}]
+                       (fn [e]
+                         (dispatch [:query-builder/set-query (.. e -target -value)]))}]
                 [:button.btn.btn-primary {:on-click #(dispatch [:query-builder/reset-query])} "Reset"]
             (if (spec/valid? :q/query @query)
               [:button.btn.btn-primary
