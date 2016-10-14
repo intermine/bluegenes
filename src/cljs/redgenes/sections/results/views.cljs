@@ -44,13 +44,13 @@
         result (first (:results @values))
         column-headers (:columnHeaders @values)]
     (fn [matches p-value]
-     [:div
+     [:div.sidebar-popover
        [:table
-        (into [:div]
+        (into [:tbody]
               (map-indexed (fn [idx header]
-                             [:div.popover-contents
-                              [:div.title (last (clojure.string/split header " > "))]
-                              [:div.value (get result idx)]]) column-headers))]])))
+                             [:tr.popover-contents.sidebar-popover
+                              [:td.title (last (clojure.string/split header " > "))]
+                              [:td.value (get result idx)]]) column-headers))]])))
 
 
 
