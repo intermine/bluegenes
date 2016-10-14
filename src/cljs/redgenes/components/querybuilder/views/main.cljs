@@ -134,10 +134,17 @@
    [:div.buttony
     {:key      i
      :class    (str (name typ) " " cc)
-     :on-click (fn [e] (dispatch [typ i]))
+     :on-click (fn [e]
+                 (dispatch [typ i])
+                 (dispatch [:query-builder/run-query!]))
      :title    (if c
                  (str c (if (== 1 c) " result" " results") ": " explanation)
                  explanation)}]))
+
+; update results on adding select
+; label logic thing
+; numberic field numbers
+; legend
 
 (defn ^:export main []
   (let [
