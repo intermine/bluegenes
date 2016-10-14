@@ -40,21 +40,28 @@
 (def sidebar-hover (reagent/atom false))
 
 (defn popover-table []
-  (fn [matches p-value]
-    [:div [:table [:tbody
-                   [:tr
-                    [:td "Matches"]
-                    [:td matches]]
-                   [:tr
-                    [:td "p-value"]
-                    [:td p-value]]]]]))
+  (let [values (subscribe [:results/summary-values])
+        result (first (:results @values))
+        column-headers (:columnHeaders @values)]
+    (fn [matches p-value]
+     [:div
+       [:table
+        (into [:div]
+              (map-indexed (fn [idx header]
+                             [:div.popover-contents
+                              [:div.title (last (clojure.string/split header " > "))]
+                              [:div.value (get result idx)]]) column-headers))]])))
+
+
 
 (defn enrichment-result-row []
-  (fn [{:keys [description matches p-value matches-query] :as row} details]
+  (fn [{:keys [description matches identifier p-value matches-query] :as row}
+       {:keys [pathConstraint] :as details}]
     [:li.enrichment-item
-     {:on-click (fn []
+     {:on-mouse-enter (fn [] (dispatch [:results/get-item-details identifier pathConstraint]))
+      :on-click       (fn []
 
-                  (dispatch [:results/add-to-history row details]))}
+                        (dispatch [:results/add-to-history row details]))}
      [popover [:span {:data-content   [popover-table matches p-value]
                       :data-placement "left"
                       :data-trigger   "hover"}
@@ -152,6 +159,7 @@
                       {:data-placement "bottom"
                        :title          title
                        :on-click       (fn [x] (dispatch [:results/load-from-history idx]))} adjsuted-title]]])) @history))])))
+
 
 
 

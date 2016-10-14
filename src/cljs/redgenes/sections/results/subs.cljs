@@ -33,3 +33,8 @@
   :results/text-filter
   (fn [db]
     (get-in db [:results :text-filter])))
+
+(reg-sub
+  :results/summary-values
+  (fn [db]
+    (get-in db [:results :summary-values])))
