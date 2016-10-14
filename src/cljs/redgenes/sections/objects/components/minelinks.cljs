@@ -34,7 +34,7 @@
   (into [:ul.homologues] (map (fn [homie]
     [:li
      [:a {
-        :href (str url "/report.do?id=" (first homie))
+        :href (str "http://" url "/report.do?id=" (first homie))
         :target "_blank"}
       [:svg.icon.icon-external [:use {:xlinkHref "#icon-external"}]]
       (get-identifier homie)
@@ -93,7 +93,7 @@
              [:div.onemine
                [:h6 (:name (:mine this-mine))]
                [:div.subtitle (:abbrev this-mine)]
-               [:div (list-homologues homies (:url this-mine))]])
+               [:div (list-homologues homies (:url (:mine this-mine)))]])
       ))))
      ])
 
