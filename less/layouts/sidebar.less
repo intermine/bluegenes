@@ -6,12 +6,12 @@ div.indent {
 
 
 
-.bringout {
-    color: #009688;
-}
-
 
 .sidebar {
+  .bringout {
+    color: #009688;
+  }
+
 
     padding: 10px;
     background-color: #DDD;
@@ -24,35 +24,45 @@ div.indent {
             font-style: italic;
         }
     }
-}
-
-div.sidebar {
     i {
-        padding: 0 10px 0 10px;
+      padding: 0 10px 0 10px;
+    }
+    ul.enrichment-list {
+      padding-left: 10px;
+      font-size: 0.9em;
+      li {
+        transition: all 0.25s ease;
+        list-style-type: none;
+        padding: 2px;
+        &:not(:last-child) {
+          border-bottom: 1px dotted #c1c1c1;
+        }
+
+        &:hover {
+          background-color: white;
+          color: black;
+        }
+      }
+    }
+
+    div.popover-contents {
+      padding: 5px 0 5px 0;
+      div.title {
+        font-size: 1.2em;
+        padding-bottom: 4px;
+      }
+
+      div.value {
+
+      }
     }
 }
+
 
 .has-left-sidebar {
     margin-left: @sidebar-width;
 }
 
-ul.enrichment-list {
-    padding-left: 10px;
-    font-size: 0.9em;
-    li {
-        transition: all 0.25s ease;
-        list-style-type: none;
-        padding: 2px;
-        &:not(:last-child) {
-            border-bottom: 1px dotted #c1c1c1;
-        }
-
-        &:hover {
-            background-color: white;
-            color: black;
-        }
-    }
-}
 
 .inline {
     display: inline;
@@ -80,18 +90,5 @@ ul.enrichment-list {
     padding: 10px;
 }
 
-
-div.popover-contents {
-    padding: 5px 0 5px 0;
-    div.title {
-        font-size: 1.2em;
-        padding-bottom: 4px;
-    }
-
-    div.value {
-
-    }
-}
-
-
-
+//this can't be namespaced nicely because twitter bootstrap is evil and creates a new element that won't inherit all of the nicely namespaced classes. Sigh. 
+.sidebar-popover.popover-contents {color:#fff;}
