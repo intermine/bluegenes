@@ -111,9 +111,12 @@
     :complex :q/logic))
 
 (s/def :q/logic
-  (s/cat
-    :op :q/logicop
-    :args (s/+ :q/listy)))
+  (s/or
+    :exp
+      (s/cat
+       :op :q/logicop
+       :args (s/+ :q/listy))
+    :nil nil?))
 
 (s/def :q/path (s/coll-of string?))
 
@@ -127,7 +130,7 @@
 (s/def :q/view (s/coll-of string?))
 
 (s/def :q/select
-  (s/coll-of :q/view))
+  (s/+ :q/view))
 
 (s/def :q/where
   (s/coll-of :q/clause))
@@ -137,6 +140,12 @@
     :req [:q/select :q/where]
     :opt [:q/logic]
     :opt-un [::constraint-paths]))
+
+(defn maybe-with-logic
+  [s logic-str]
+  (if (= "" logic-str)
+    s
+    (assoc s :constraintLogic logic-str)))
 
 (defn build-query
   "Returns a query for the webservice"
@@ -150,4 +159,4 @@
                     :path  (string/join "." (:q/path constraint))
                     :op    (:q/op constraint)
                     :value (:q/value constraint)}) where))
-     (assoc :constraintLogic logic-str))))
+     (maybe-with-logic logic-str))))
