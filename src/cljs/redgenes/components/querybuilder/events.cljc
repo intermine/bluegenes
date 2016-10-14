@@ -105,7 +105,8 @@ the state of the db via the query builder
    :undo-exp     :use-this-fn-due-to-static-metadata-in-cljs}
   ([_ db [_ index value]]
    {:explanation (str "change constraint value to " value)
-    :count (get-in db [:query-builder :count])})
+    :count (get-in db [:query-builder :count])
+    :dcount (get-in db [:query-builder :dcount])})
   ([db [_ index value]]
    (-> db
      (assoc-in [:query-builder :query :q/where index :q/value] value))))
@@ -137,13 +138,8 @@ the state of the db via the query builder
   [db [_ count]]
   (-> db
     (assoc-in [:query-builder :count] count)
+    (assoc-in [:query-builder :dcount] (- count (get-in db [:query-builder :count])))
     (assoc-in [:query-builder :counting?] false)))
-
-(defn toggle-autoupdate
-  "Toggle autoupdate"
-  {:reframe-kind :event, :reframe-key :query-builder/toggle-autoupdate}
-  [db [_ count]]
-  (update-in db [:query-builder :autoupdate?] not))
 
 (defn run-query-cofx
   "Returns a cofx for running the query"
@@ -209,7 +205,10 @@ the state of the db via the query builder
    :undoable? true
    :undo-exp :qwe}
   ([_ db [_ expression]]
-   {:count (get-in db [:query-builder :count]) :explanation "set the logic"})
+   {
+    :dcount (get-in db [:query-builder :dcount])
+    :count (get-in db [:query-builder :count])
+    :explanation "set the logic"})
   ([db [_ expression]]
    (let [x (try
              (c/simplify (c/to-prefix (c/group-ands (c/to-list (str "(" expression ")")))))
@@ -311,7 +310,6 @@ the state of the db via the query builder
    #'redgenes.components.querybuilder.events/set-logic
    #'redgenes.components.querybuilder.events/set-logic-cofx
    #'redgenes.components.querybuilder.events/set-query
-   #'redgenes.components.querybuilder.events/toggle-autoupdate
    #'redgenes.components.querybuilder.events/update-io-query
    #'redgenes.components.querybuilder.events/toggle-view-cofx
    #'redgenes.components.querybuilder.events/maybe-run-query-cofx

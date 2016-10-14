@@ -129,8 +129,8 @@
 (defn undo-redo-button
   [typ ex i]
   (let [
-       {explanation :explanation c :count} (if (map? ex) ex {:explanation ex})
-       cc (str "count-" (if (zero? c) c 1))]
+       {explanation :explanation c :count dc :dcount} (if (map? ex) ex {:explanation ex})
+       cc (str "count-" (if (zero? c) 0 (if (neg? dc) "down" (if (zero? dc) "same" "up"))))]
    [:div.buttony
     {:key      i
      :class    (str (name typ) " " cc)
@@ -146,7 +146,6 @@
         queried?        (subscribe [:query-builder/queried?])
         result-count    (subscribe [:query-builder/count])
         counting?       (subscribe [:query-builder/counting?])
-        autoupdate?     (subscribe [:query-builder/autoupdate?])
         edit-constraint (subscribe [:query-builder/current-constraint])
         undos?          (subscribe [:undos?])
         redos?          (subscribe [:redos?])
@@ -201,10 +200,6 @@
                 :on-change
                 (fn [e]
                   (dispatch [:query-builder/set-query (.. e -target -value)]))}]
-            [:div.buttony.autoupdate-button
-             {
-              :class (if @autoupdate? "selected-button" "")
-              :on-click #(dispatch [:query-builder/toggle-autoupdate])} ""]
                 [:button.btn.btn-primary {:on-click #(dispatch [:query-builder/reset-query])} "Reset"]
             (if (spec/valid? :q/query @query)
               [:button.btn.btn-primary

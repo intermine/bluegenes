@@ -4,7 +4,6 @@
 
 (reg-all-subs!
   [
-   [:autoupdate?]
    [:constraint :query-builder/current-constraint]
    [:counting?]
    [:count]
