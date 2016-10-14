@@ -1,8 +1,15 @@
 @import "../../variables";
 
 .report {
-  h1, h2, h3, h4, h5, h6 { border-bottom:solid 1px @highlight-color;
-}
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        border-bottom: solid 1px @highlight-color;
+    }
+
     .breadcrumb {
         padding-left: 2px;
     }
@@ -33,7 +40,10 @@
             .field {
                 flex-grow: 1;
                 min-width: 400px;
-                h4 {border:0;}
+
+                h4 {
+                    border: 0;
+                }
             }
         }
     }
@@ -52,15 +62,45 @@
     }
 }
 
-.no-homies {display:inline-block;margin:0px 4px }
+.no-homies {
+    display: inline-block;
+    margin: 0 4px;
+}
+
 .homologuelinks {
     display: flex;
-    flex-wrap:wrap;
+    flex-wrap: wrap;
+
     .onemine {
+        background:rgba(0,0,0,0.025);
+        padding:2px;
+        .homologues {
+            min-width: 120px;
+        }
+
+        .icon {
+            fill: lighten(@body-foreground-color,40%);
+            margin-right:0.3em;
+        }
         flex-grow: 1;
-        margin:2px;
-        &:first-child {margin-left:0px;}
-        &:last-child {margin-right:0px;}
+        margin: 2px;
+
+        a {
+            color: @body-foreground-color;
+
+            &.show-more {
+                font-weight: normal;
+                color: lighten(@body-foreground-color,20%);
+            }
+        }
+
+        &:first-child {
+            margin-left: 0;
+        }
+
+        &:last-child {
+            margin-right: 0;
+        }
     }
 
     li,

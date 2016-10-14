@@ -110,10 +110,6 @@
                :op    "IN"
                :value (:name value)}]}))
 
-(reg-fx
-  :navigate
-  (fn [url]
-    (navigate! (str "#/" url))))
 
 (reg-event-fx
   :saved-data/view-query
@@ -180,13 +176,6 @@
       (and (and (:self keep-1) (:self keep-2)) (and (not (:intersection keep-1)) (not (:intersection keep-2))))
       :subtract
       :else :notfound)))
-
-
-(reg-event-db
-  :saved-data/save-operation-results
-  (fn [db [_ results]]
-    (assoc-in db [:saved-data :editor :results] results)))
-
 
 (reg-fx
   :perform-op

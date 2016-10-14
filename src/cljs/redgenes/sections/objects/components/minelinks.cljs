@@ -29,8 +29,7 @@
     pi)
 ))
 
-(defn list-homologues [homologues url]
-  "Visual component. Given a list of homologues as an IMJS result, output all in a list format"
+(defn homie-list [homologues url]
   (into [:ul.homologues] (map (fn [homie]
     [:li
      [:a {
@@ -39,6 +38,18 @@
       [:svg.icon.icon-external [:use {:xlinkHref "#icon-external"}]]
       (get-identifier homie)
       ]]) homologues)))
+
+(defn list-homologues [homologues url]
+  "Visual component. Given a list of homologues as an IMJS result, output all in a list format"
+  (let [showing-all? (reagent/atom false)
+        number-to-show 5
+        num-homies (count homologues)]  (fn []
+    (if @showing-all?
+      (homie-list homologues url)
+      (conj (homie-list (take number-to-show homologues) url)
+        ;;only add a show more link if there are more than 5.
+        (cond (> num-homies number-to-show) [:li {:on-click (fn [] (reset! showing-all? true))} [:a.show-more "Show " (- (count homologues) number-to-show) " more"]])))
+)))
 
 (defn status-no-known-homologues [empty-mines]
   "outputs visual list of mines for which we have 0 homologue results"
@@ -93,7 +104,7 @@
              [:div.onemine
                [:h6 (:name (:mine this-mine))]
                [:div.subtitle (:abbrev this-mine)]
-               [:div (list-homologues homies (:url (:mine this-mine)))]])
+               [:div [list-homologues homies (:url (:mine this-mine))]]])
       ))))
      ])
 
