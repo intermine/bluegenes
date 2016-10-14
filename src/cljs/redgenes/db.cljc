@@ -12,6 +12,8 @@
    :results                    {:history []}
    :query-builder
    {
+    :count 0
+    :dcount 0
     :query
     {
      :q/select #{}

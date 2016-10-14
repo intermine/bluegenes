@@ -33,6 +33,10 @@ the state of the db via the query builder
 
 (defn nth-child [z idx] (nth (iterate zip/right z) idx))
 
+(defn parse-long [s]
+  #?(:cljs (.parseFloat js/Number s)
+     :clj  (Long/parseLong s)))
+
 (defn reset-query
   "Returns the x for the given y"
   {:reframe-kind :event
@@ -119,7 +123,9 @@ the state of the db via the query builder
    :undoable?    true
    :undo-exp     :use-this-fn-due-to-static-metadata-in-cljs}
   ([_ db [_ index op]]
-   (str "change constraint operation to " op))
+   {:explanation (str "change constraint op to " op)
+    :count (get-in db [:query-builder :count])
+    :dcount (get-in db [:query-builder :dcount])})
   ([db [_ index op]]
    (-> db
      (assoc-in [:query-builder :query :q/where index :q/op] op))))
@@ -136,10 +142,15 @@ the state of the db via the query builder
   "Adds the count"
   {:reframe-kind :event, :reframe-key :query-builder/handle-count}
   [db [_ count]]
-  (-> db
-    (assoc-in [:query-builder :count] count)
-    (assoc-in [:query-builder :dcount] (- count (get-in db [:query-builder :count])))
-    (assoc-in [:query-builder :counting?] false)))
+  (let [
+          count (try (parse-long count) (catch #?(:cljs js/Error :clj Exception) e e))
+          pcount (get-in db [:query-builder :count])
+          dc (if (and (number? count) (number? pcount)) (- count pcount) 0)
+        ]
+    (-> db
+     (assoc-in [:query-builder :count] count)
+     (assoc-in [:query-builder :dcount] dc)
+     (assoc-in [:query-builder :counting?] false))))
 
 (defn run-query-cofx
   "Returns a cofx for running the query"

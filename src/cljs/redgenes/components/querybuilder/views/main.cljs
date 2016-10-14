@@ -135,7 +135,9 @@
     {:key      i
      :class    (str (name typ) " " cc)
      :on-click (fn [e] (dispatch [typ i]))
-     :title    (str explanation ", " c (if (== 1 c) " result" " results"))}]))
+     :title    (if c
+                 (str c (if (== 1 c) " result" " results") ": " explanation)
+                 explanation)}]))
 
 (defn ^:export main []
   (let [
@@ -207,12 +209,12 @@
               [:button.btn.btn-primary.not-working {} "Update"])
                 [:button.btn.btn-primary {:on-click #(dispatch [:undo])} "Undo"]
                 [:button.btn.btn-primary {:on-click #(dispatch [:redo])} "Redo"]
-                [:span.btn
-                  [:div.undos
-                    (map (partial undo-redo-button :undo)
-                      @undo-explanations (range (count @undo-explanations) 0 -1))
-                    (map (partial undo-redo-button :redo)
-                      @redo-explanations (range (count @redo-explanations) 0 -1))]]
+
+            [:div.undos
+             (map (partial undo-redo-button :undo)
+               @undo-explanations (range (count @undo-explanations) 0 -1))
+             (map (partial undo-redo-button :redo)
+               @redo-explanations (range (count @redo-explanations) 0 -1))]
             [:div
              (if @counting?
                [:i.fa.fa-cog.fa-spin.fa-1x.fa-fw]
