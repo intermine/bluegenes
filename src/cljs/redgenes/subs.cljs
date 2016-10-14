@@ -10,6 +10,12 @@
   (fn [db]
     (:name db)))
 
+(reg-sub
+  :short-name
+  (fn [db]
+    (:short-name db)))
+
+
 (defn merge-mines [db]
   (merge mines/mines (:temporary-mine db)))
 

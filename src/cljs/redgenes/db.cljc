@@ -2,6 +2,7 @@
 
 (def default-db
   {:name                       "Intermine"
+   :short-name                  "IM"
    :mine-name                  :fly
    :saved-data                 {:items {}}
    :quicksearch-selected-index -1 ;;this defaults to select all in the quicksearch

@@ -61,6 +61,7 @@
 (defn main []
   (let [active-panel (subscribe [:active-panel])
         app-name     (subscribe [:name])
+        short-name     (subscribe [:short-name])
         saved-data   (subscribe [:saved-data])
         ttip         (subscribe [:tooltip])
         panel-is     (fn [panel-key] (= @active-panel panel-key))]
@@ -69,7 +70,7 @@
        [:div.container-fluid
         [:ul.nav.navbar-nav.navbar-collapse.navigation
         [:li [:div.navbar-header
-        [:span.navbar-brand {:on-click #(navigate! "#/")} [active-mine-logo] @app-name]]]
+        [:span.navbar-brand {:on-click #(navigate! "#/")} [active-mine-logo] [:span.long-name @app-name] [:span.short-name @short-name]]]]
          [:li.homelink {:class (if (panel-is :home-panel) "active")} [:a {:on-click #(navigate! "#/")} "Home"]]
          [:li {:class (if (panel-is :upload-panel) "active")} [:a {:on-click #(navigate! "#/upload")} "Upload"]]
          [:li {:class (if (panel-is :templates-panel) "active")} [:a {:on-click #(navigate! "#/templates")} "Templates"]]

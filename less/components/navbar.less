@@ -4,6 +4,8 @@
     transition: all 0.6s;
 }
 
+.navbar {  .short-name {display:none;}}
+
 .navbar.navbar-default .navbar-brand {
     .transition;
     @bg: #00544c;
@@ -28,12 +30,13 @@
 }
 
 @media (max-width:800px) {
-
     .navbar-header {
         align-self: flex-start;
     }
 
     .navbar {
+      .long-name {display:none;}
+      .short-name {display:inline;}
         .navbar-nav {
             margin-top: 0;
         }
@@ -76,11 +79,10 @@
                 @cp: inset(4px 0px round 3px);
                 clip-path: @cp;
                 -webkit-clip-path: @cp;
-                width: 1.3em;
+                min-width: 1.3em;
                 text-overflow: clip;
                 font-family: mono;
                 overflow: hidden;
-                letter-spacing: 3em;
                 padding-left: 0.4em;
                 padding-right: 0.4em;
             }
