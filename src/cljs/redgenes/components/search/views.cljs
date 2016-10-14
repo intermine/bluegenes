@@ -111,11 +111,9 @@
              [search-form global-search-term api]
              )
            :component-will-mount (fn [this]
-             (let [api (:api (reagent/props this))]
-               (cond (some? global-search-term)
-                   (search))
-               ))
+               (cond (some? @global-search-term)
+                   (search)))
            :component-will-update (fn [this]
-             (let [api (:api (reagent/props this))]
-               (search)))
+             (cond (some? @global-search-term)
+                 (search)))
      })))

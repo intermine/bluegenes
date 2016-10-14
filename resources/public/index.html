@@ -2,6 +2,10 @@
 <html lang="en">
   <head>
     <title>InterMine 2.0 Bluegenes</title>
+    <style>
+#wrappy{display:flex;justify-content:center;align-items:center;height:90vh;width:100%;flex-direction:column;font-family:sans-serif;font-size:2em;color:#999}#loader{flex-grow:1;display:flex;align-items:center;justify-content:center}.loader-organism{width:40px;height:0;display:block;border:12px solid #eee;border-radius:20px;opacity:.75;margin-right:-24px;animation-timing-function:ease-in;position:relative;animation-duration:2.8s;animation-name:pulse;animation-iteration-count:infinite}.worm{animation-delay:.2s}.zebra{animation-delay:.4s}.human{animation-delay:.6s}.yeast{animation-delay:.8s}.rat{animation-delay:1s}.mouse{animation-delay:1.2s}.fly{animation-delay:1.4s}@keyframes pulse{0%,100%{border-color:#3f51b5}15%{border-color:#9c27b0}30%{border-color:#e91e63}45%{border-color:#ff5722}60%{border-color:#ffc107}75%{border-color:#8bc34a}90%{border-color:#00bcd4}}
+    </style>
+
     <link href="http://cdn.intermine.org/js/intermine/im-tables/2.0.0/main.sandboxed.css" rel="stylesheet" type="text/css">
     <link href="css/site.css" rel="stylesheet" type="text/css">
     <!--<link href="vendor/bootswatch-dist/css/bootstrap.css" rel="stylesheet" type="text/css">-->
@@ -9,7 +13,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <script src="http://cdn.intermine.org/js/intermine/im-tables/2.0.0/imtables.min.js"></script>
     <script src="http://cdn.intermine.org/js/intermine/imjs/3.15.0/im.min.js"></script>
-    <script   src="https://code.jquery.com/jquery-3.1.0.min.js"   integrity="sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s="   crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.1.0.min.js"   integrity="sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s="   crossorigin="anonymous"></script>
     <script src="vendor/bootstrap-material-design/scripts/material.js"></script>
     <script src="vendor/bootstrap-material-design/scripts/ripples.js"></script>
     <script src="vendor/bootstrap/js/tooltip.js"></script>
@@ -17,6 +21,19 @@
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/gridlex/2.2.0/gridlex.min.css">
   </head>
   <body>
+    <div id="wrappy">
+      <div>LOADING ORGANISMS</div>
+      <div id="loader">
+        <div class="worm loader-organism"></div>
+        <div class="zebra loader-organism"></div>
+        <div class="human loader-organism"></div>
+        <div class="yeast loader-organism"></div>
+        <div class="rat loader-organism"></div>
+        <div class="mouse loader-organism"></div>
+        <div class="fly loader-organism"></div>
+      </div>
+    </div>
+
     <div id="app"></div>
     <script src="js/compiled/app.js"></script>
     <script>redgenes.core.init();</script>

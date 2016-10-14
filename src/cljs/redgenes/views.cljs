@@ -65,8 +65,11 @@
   [panels panel-name])
 
 (defn main-panel []
-  (let [active-panel (re-frame/subscribe [:active-panel])]
+  (let [active-panel (re-frame/subscribe [:active-panel])
+        ;;note: I think we can do better than this loader - perhaps a static html first page
+        first-blush-loader (.getElementById js/document "wrappy")]
     (fn []
+      (cond first-blush-loader (.remove first-blush-loader))
       [:div.approot
        [icons/icons]
        [nav/main]
