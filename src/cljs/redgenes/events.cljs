@@ -2,14 +2,18 @@
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [re-frame.core :as re-frame :refer [reg-event-db reg-event-fx reg-fx dispatch subscribe]]
             [redgenes.db :as db]
+            [redgenes.sections.objects.handlers]
+            [redgenes.components.search.events]
+            [redgenes.components.databrowser.events]
+            [redgenes.components.search.events :as search-full]
+            [redgenes.sections.objects.handlers]
+            [imcljs.search :as search]
+            [imcljs.assets :as assets]
             [day8.re-frame.http-fx]
             [day8.re-frame.forward-events-fx]
             [ajax.core :as ajax]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
-            [imcljs.search :as search]
-            [redgenes.components.search.events :as search-full]
-            [imcljs.assets :as assets]
-            [redgenes.sections.objects.handlers]
+            [cljs-time.core :as t]
             [cljs-uuid-utils.core :as uuid]))
 
 (reg-event-db
@@ -26,6 +30,18 @@
                     (dissoc db :queued))}
            (if (:and-then (:queued db))
              {:dispatch (:and-then (:queued db))}))))
+
+
+; Usage:
+;{:db        db
+; :do-imcljs {:on-success [:store-value]
+;             :on-failure [:notify-failure]
+;             :function   [imcljs/query {:root "www.flymine.org/query"}]}}
+;(reg-fx
+;  :do-imcljs
+;  (fn [{:keys [on-success on-failure function params]}]
+;    (go (let [results (<! (apply function params))]
+;          (println "finished")))))
 
 (reg-event-fx
   :set-active-panel
@@ -48,10 +64,35 @@
   (fn [db [_ result]]
     (assoc db :who-am-i (:user result))))
 
-(reg-event-db
-  :update-mine-url
-  (fn [db [_ value]]
-    (assoc db :mine-url value)))
+(reg-event-fx
+  :set-active-mine
+  (fn [{:keys [db]} [_ value]]
+    {:db (assoc db :mine-name value)
+     :dispatch [:fetch-all-assets]}))
+
+(reg-event-fx
+  :new-temporary-mine
+  (fn [{:keys [db]} [_ new-url]]
+    (let [url
+      (if (clojure.string/starts-with? new-url "http://")
+        (subs new-url 7)
+        new-url)]
+        (.log js/console "%curl" "color:hotpink;font-weight:bold;" (clj->js url))
+      {:db
+        (assoc db :temporary-mine {:temporary-mine {
+          ;;we can make this more dynamic when we're grown up
+         :id     :temporary-mine
+         :common "New Organism"
+         :status {:status :na}
+         :output? true
+         :abbrev "New Organism"
+         :mine
+          {:name "New Organism"
+           :url url
+           :service {:root url}}}}
+               :mine-name :temporary-mine)
+       :dispatch [:fetch-all-assets]})))
+
 
 (reg-event-fx
   :log-in
@@ -98,10 +139,11 @@
                     (assoc :search-term term))
        :suggest {:c suggest-chan :search-term term}})))
 
-(reg-event-db
+(reg-event-fx
   :finished-loading-assets
-  (fn [db]
-    (assoc db :fetching-assets? false)))
+  (fn [{db :db}]
+    {:db (assoc db :fetching-assets? false)
+     :dispatch [:saved-data/load-lists]}))
 
 (reg-fx
   :fetch-assets
@@ -135,4 +177,3 @@
   :test-progress-bar
   (fn [db [_ percent]]
     (assoc db :progress-bar-percent percent)))
-

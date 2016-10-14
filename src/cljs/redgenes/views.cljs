@@ -1,6 +1,7 @@
 (ns redgenes.views
-  (:require [re-frame.core :as re-frame :refer [dispatch]]
+  (:require [re-frame.core :as re-frame :refer [subscribe dispatch]]
             [json-html.core :as json-html]
+            [redgenes.developer :as dev]
             [redgenes.components.nav :as nav]
             [redgenes.components.icons :as icons]
             [redgenes.sections.home.views :as home]
@@ -16,32 +17,6 @@
             [redgenes.sections.saveddata.views :as saved-data]
             [redgenes.sections.help.views :as help]
             [accountant.core :refer [navigate!]]))
-
-(defn debug-panel []
-  (let [mine-url (re-frame/subscribe [:mine-url])]
-    (fn []
-      [:div
-       [:div.panel.container
-        [:input.form-control.input-lg
-         {:type      "Text"
-          :value     @mine-url
-          :on-change (fn [e] (dispatch [:update-mine-url (.. e -target -value)]))}]
-        [:button.btn.btn-primary.btn-raised
-         {:on-click (fn [] (re-frame/dispatch [:fetch-all-assets]))}
-         "Update Assets"]
-        #_[:div.title "Routes"]
-        #_[:div.btn-toolbar
-           [:button.btn {:on-click #(navigate! "#/assets/lists/123")} "Asset: List: (123)"]
-           [:button.btn {:on-click #(navigate! "#/objects/type/12345")} "Object (12345)"]
-           [:button.btn {:on-click #(navigate! "#/listanalysis/list/PL FlyAtlas_midgut_top")} "List (PL FlyAtlas_midgut_top)"]]]
-       #_[:div.panel.container
-          [:div.title "Global Progress Bar"]
-          [:button.btn
-           {:on-click #(dispatch [:test-progress-bar (rand-int 101)])} "Random"]
-          [:button.btn
-           {:on-click #(dispatch [:test-progress-bar 0])} "Hide"]]
-       #_(json-html/edn->hiccup (dissoc @app-db :assets))])))
-
 
 ;; about
 
@@ -71,7 +46,7 @@
 (defmulti panels identity)
 (defmethod panels :home-panel [] [home/main])
 (defmethod panels :about-panel [] [about-panel])
-(defmethod panels :debug-panel [] [debug-panel])
+(defmethod panels :debug-panel [] [dev/debug-panel])
 (defmethod panels :list-panel [] [assets/main])
 (defmethod panels :templates-panel [] [templates/main])
 (defmethod panels :object-panel [] [objects/main])
@@ -82,7 +57,6 @@
 (defmethod panels :list-analysis-panel [] [analyse/main])
 (defmethod panels :saved-data-panel [] [saved-data/main])
 (defmethod panels :help-panel [] [help/main])
-
 (defmethod panels :querybuilder-panel [] [:div.container [querybuilder/main]])
 (defmethod panels :default [] [:div])
 

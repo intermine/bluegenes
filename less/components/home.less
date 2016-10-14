@@ -37,6 +37,7 @@
         display: flex;
         text-align: center;
         width: 60%;
+        flex-wrap:wrap;
         justify-content: stretch;
         align-items: stretch;
         .feature {
@@ -289,6 +290,7 @@
     }
 }
 @media (max-width:800px) {
+  .approot {margin:0;}
     .home.circles,
     .home.texty {
         justify-content: flex-start;
@@ -299,7 +301,8 @@
         }
         .features,
         .search {
-            width: 90%;
+            width: 100%;
+            margin:0;
             .feature,
             .feature:first-child,
             .feature:last-child {

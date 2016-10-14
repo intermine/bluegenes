@@ -6,7 +6,9 @@
   (fn [k v]
     [:div.field
      [:div.field-label [:h4 (last (clojure.string/split k " > "))]]
-     [:div.field-value (if (nil? v) "N/A" (str v))]]))
+     [:div.field-value
+      (cond (nil? v) "N/A"
+        :else (str v))]]))
 
 (defn main []
   (fn [field-map]

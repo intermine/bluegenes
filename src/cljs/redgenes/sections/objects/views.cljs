@@ -3,7 +3,8 @@
             [redgenes.sections.objects.components.summary :as summary]
             [redgenes.components.table :as table]
             [redgenes.components.collection :as collection]
-            [redgenes.components.lighttable :as lighttable]))
+            [redgenes.components.lighttable :as lighttable]
+            [redgenes.sections.objects.components.minelinks :as minelinks]))
 
 (defn main []
   (let [params           (subscribe [:panel-params])
@@ -22,5 +23,8 @@
            [:li [:a "Search Results"]]
            [:li.active [:a "Report"]]]
           [summary/main (:summary @report)]
-          (into [:div.collections] (map (fn [query] [lighttable/main query]) @collections))
-          (into [:div.templates] (map (fn [[id details]] [table/main details]) @templates))])])))
+          (cond (= "Gene" (:type @params))
+          [minelinks/main (:id @params)])
+          (into [:div.collections] (map (fn [query] [lighttable/main query {:title true}]) @collections))
+          (into [:div.templates] (map (fn [[id details]] [table/main details]) @templates))
+          ])])))

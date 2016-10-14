@@ -1,0 +1,72 @@
+.x-body {
+  position: absolute;
+  top: 50px;
+  right: 0;
+  bottom: 50px;
+  left: 0;
+  display: flex;
+  overflow: hidden;
+}
+
+.x-section {
+  flex: 1 0;
+  padding: 20px;
+}
+
+.x-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.x-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+
+}
+
+.x-scrollable-content {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  min-height: 0px;
+}
+
+.x-box {
+  min-height: -webkit-min-content;
+  display: flex;
+}
+
+.x-column {
+  padding: 20px;
+  border-right: 1px solid #999;
+}
+
+.x-column > div {
+  height: 2000px;
+  background: red;
+}
+
+.x-column:nth-child(2) > div {
+   height: auto;
+}
+
+
+.pane {
+  box-shadow: 0 1px 6px 0 rgba(0, 0, 0, 0.12), 0 1px 6px 0 rgba(0, 0, 0, 0.12);
+    background-color: white;
+    .pane-heading {
+        background-color: #eeeeee;
+        padding: 10px;
+        font-size: 1.2em;
+    }
+    .pane-body {
+      padding: 10px;
+    }
+}
+
+.soft {
+  background-color: #e6eaea;
+  color: black;
+}

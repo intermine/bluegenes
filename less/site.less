@@ -14,13 +14,15 @@
 @import "components/home";
 @import "components/tooltip";
 @import "components/databrowser";
+@import "datatype-colors";
 @import "components/search";
+@import "components/templates";
 @import "saved-data";
-@import "../resources/public/vendor/bootstrap-material-design/less/bootstrap-material-design";
-
-// @import url(https://fonts.googleapis.com/css?family=Open+Sans:400,700,300);
+@import "developer";
+@import "../resources/public/vendor/bootstrap-material-design/less/bootstrap-material-design"; // @import url(https://fonts.googleapis.com/css?family=Open+Sans:400,700,300);
+@import "layouts/sidebar";
+@import "transitions";
 @import url(https://fonts.googleapis.com/css?family=Roboto:400,700,300);
-
 
 body {
     background: @body-background-color;
@@ -29,57 +31,81 @@ body {
     font-family: 'Roboto', sans-serif;
 }
 
+#app,
 body,
-html,
- #app {
+html {
     height: 100%;
 }
 
 .approot {
-    // height: 94%;
-    height: 100%;
+    min-height: 100%;
     box-sizing: border-box;
-    display:flex;
-    flex-direction:column;
-    margin: 0em 1em;
+    display: flex;
+    flex-direction: column;
+    margin: 0 1em;
+    flex-grow: 1;
+}
+@annoyingscrollbars: 5em;
+
+html {
+    margin-top: -@annoyingscrollbars;
+}
+//this margin directly offsets the annoying scrollbars
+
+main {
+    display: flex;
+    flex-grow: 1;
+    justify-content: center;
+    margin-top: @annoyingscrollbars; //this margin directly offsets the annoying scrollbars that we were getting with a 100% page height and sticky header
 }
 
-@annoyingscrollbars: 5em;
-html {margin-top:-@annoyingscrollbars;} //this margin directly offsets the annoying scrollbars
-main {
-  flex-grow:1;
-  margin-top:@annoyingscrollbars; //this margin directly offsets the annoying scrollbars that we were getting with a 100% page height and sticky header
+//smaller screens:
+@media (max-width:539px) {
+  @as: 8em;
+
+  main {
+      margin-top: @as;
+  }
+  .approot { margin: 0 0;}
 }
+
 
 a.callout {
     color: @link-color;
     border-bottom: 1px solid #c4c4c4;
     padding: 2px;
     text-decoration: none;
+
     &:hover {
         border-bottom: 1px solid @highlight-color;
     }
 }
+
 .down-shadow {
     -webkit-box-shadow: 0 2px 5px -1px rgba(0,0,0,0.33);
     -moz-box-shadow: 0 2px 5px -1px rgba(0,0,0,0.33);
     box-shadow: 0 2px 5px -1px rgba(0,0,0,0.33);
 }
 
-a:hover {cursor:pointer }
+a:hover {
+    cursor: pointer;
+}
 
 .up-shadow {
-    box-shadow: 0px -2px 5px -1px rgba(0,0,0,0.33);
+    box-shadow: 0 -2px 5px -1px rgba(0,0,0,0.33);
 }
+
 .panel {
     // padding: 15px;
     // .down-shadow;
 }
+
 div.logged-in {
     background: @highlight-color;
     color: white;
     padding: 3px;
 }
+
 div.welcome {
     background: #3e3e3e;
     margin-top: -20px;
@@ -89,6 +115,7 @@ div.welcome {
     color: black;
     text-align: center;
 }
+
 div.header {
     background: #3e3e3e;
     color: white;
@@ -96,6 +123,7 @@ div.header {
     color: black;
     text-align: center;
 }
+
 .full-width {
     width: 100%;
 }
@@ -120,29 +148,37 @@ div.header {
     height: 1em;
     fill: @link-color;
 }
+
 footer {
     display: flex;
-    border-top:solid 1px #ccc;
-    margin-bottom:0;
-    box-shadow:-1px -1px 1px 1px rgba(0,0,0,0.1);
+    border-top: solid 1px #ccc;
+    margin-bottom: 0;
+    box-shadow: -1px -1px 1px 1px rgba(0,0,0,0.1);
+
     div {
         display: flex;
         justify-content: center;
         flex-grow: 1;
-        > * {margin:1em;}
+
+        > * {
+            margin: 1em;
+        }
     }
-    a {text-decoration:underline;}
+
+    a {
+        text-decoration: underline;
+    }
 }
 @media (max-width:800px) {
-  footer {
-    flex-wrap:wrap;
-  }
+    footer {
+        flex-wrap: wrap;
+    }
 }
 
 .highlight {
     color: white;
     background: @highlight-color;
-    padding: 0px;
+    padding: 0;
 }
 
 .fix-height-400 {
@@ -159,19 +195,19 @@ footer {
 }
 
 .dimmed {
-  position: relative;
+    position: relative;
 }
 
 .dimmed:after {
-  content: " ";
-  z-index: 10;
-  display: block;
-  position: absolute;
-  height: 100%;
-  top: 0;
-  left: 0;
-  right: 0;
-  background: rgba(0, 0, 0, 0.1);
+    content: " ";
+    z-index: 10;
+    display: block;
+    position: absolute;
+    height: 100%;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0, 0, 0, 0.1);
 }
 
 .search {
@@ -179,14 +215,13 @@ footer {
 }
 
 .small {
-
     font-size: 0.7em;
     background: white;
 }
 
 td.skipped {
-        width: 20px;
-        background: #d0efff;
+    width: 20px;
+    background: #d0efff;
 }
 
 .pad-right-5 {
@@ -198,25 +233,29 @@ td.skipped {
 }
 
 .btn-xxs {
-    padding: 2px 2px;
+    padding: 2px;
     font-size: 10px;
     line-height: normal;
     -webkit-border-radius: 2px;
-       -moz-border-radius: 2px;
-            border-radius: 2px;
-    }
+    -moz-border-radius: 2px;
+    border-radius: 2px;
+}
 
 .stressed {
     color: @highlight-color;
 }
-
 //this is the best class name in the world.
+
 .LORD_FADER {
     /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#000000+0,000000+100&0+0,0.65+100 */
-    background: -moz-linear-gradient(top,  rgba(0,0,0,0) 0%, rgba(0,0,0,0.33) 100%); /* FF3.6-15 */
-    background: -webkit-linear-gradient(top,  rgba(0,0,0,0) 0%,rgba(0,0,0,0.33) 100%); /* Chrome10-25,Safari5.1-6 */
-    background: linear-gradient(to bottom,  rgba(0,0,0,0) 0%,rgba(0,0,0,0.33) 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
-    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#00000000', endColorstr='#a6000000',GradientType=0 ); /* IE6-9 */
+    background: -moz-linear-gradient(top, rgba(0,0,0,0) 0%, rgba(0,0,0,0.33) 100%);
+    /* FF3.6-15 */
+    background: -webkit-linear-gradient(top, rgba(0,0,0,0) 0%,rgba(0,0,0,0.33) 100%);
+    /* Chrome10-25,Safari5.1-6 */
+    background: linear-gradient(to bottom, rgba(0,0,0,0) 0%,rgba(0,0,0,0.33) 100%);
+    /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr=  '#00000000', endColorstr='#a6000000',GradientType=0 );
+    /* IE6-9 */
     position: fixed;
     width: inherit;
     bottom: 0;
@@ -225,12 +264,32 @@ td.skipped {
     opacity: 1;
     text-align: center;
     color: black;
-    pointer-events:none;
+    pointer-events: none;
 }
 
-
 input.form-control {
-  &:focus {
-    .form-group.is-focused .form-control;
-  }
+    &:focus {
+        .form-group.is-focused .form-control;
+    }
+}
+
+.mine-choice {
+    display: flex;
+    justify-content: space-between;
+
+    label {
+        padding: 2px 4px 0 2px;
+        color: @body-foreground-color;
+
+        input {
+            margin-right: 2px;
+        }
+
+        &.checked {
+            border-bottom: solid 3px @highlight-color;
+            border-radius: 2px;
+            background: rgba(0,0,0,0.07);
+            color: @body-foreground-color;
+        }
+    }
 }

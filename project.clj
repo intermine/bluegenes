@@ -1,33 +1,39 @@
 (defproject redgenes "0.1.0-SNAPSHOT"
   :dependencies [[org.clojure/clojure "1.9.0-alpha12"]
+                 [figwheel-sidecar "0.5.4-7"]
+                 [clj-http "2.3.0"]
                  [org.clojure/clojurescript "1.9.229"]
                  [reagent "0.6.0"]
                  [binaryage/devtools "0.8.2"]
+                 [reagent "0.6.0" :exclusions [cljsjs/react]]
+                 [cljsjs/react-with-addons "15.3.1-0"]
+                 [binaryage/devtools "0.8.1"]
                  [re-frame "0.8.0"]
                  [secretary "1.2.3"]
                  [lein-cljsbuild "1.1.4"]
                  [compojure "1.5.1"]
                  [yogthos/config "0.8"]
+                 [ring/ring-defaults "0.2.1"]
+                 [ring/ring-json "0.4.0"]
                  [ring "1.5.0"]
                  [json-html "0.4.0"]
-                 [cljs-ajax "0.5.8"]
                  [prismatic/dommy "1.1.0"]
+                 [cljs-ajax "0.5.8"]
+                 [day8.re-frame/http-fx "0.0.4"]
                  [org.clojure/core.async "0.2.391"]
                  [cljs-http "0.1.42"]
                  [venantius/accountant "0.1.7"]
-                 [day8.re-frame/http-fx "0.0.4"]
                  [day8.re-frame/async-flow-fx "0.0.6"]
                  [day8.re-frame/forward-events-fx "0.0.5"]
-                 [day8.re-frame/undo "0.3.2"]
                  [com.rpl/specter "0.13.0"]
-                 [com.cognitect/transit-cljs "0.8.239"]
-                 [servant "0.1.5"]
                  [com.lucasbradstreet/cljs-uuid-utils "1.0.2"]
                  [com.andrewmcveigh/cljs-time "0.4.0"]
+                 [com.taoensso/carmine "2.14.0"]
+                 [inflections "0.12.2"]
                  [fipp "0.6.6"]
-                 [inflections "0.12.2"]]
+                 [http-kit "2.1.18"]]
 
-  :plugins [[lein-cljsbuild "1.1.3"]
+  :plugins [[lein-cljsbuild "1.1.4"]
             [lein-less "1.7.5"]
             [lein-shell "0.5.0"]
             [lein-cljfmt "0.5.5"]]
@@ -36,15 +42,17 @@
                        ["shell" "curl" "-o" "resources/public/vendor/imtables.js" "http://cdn.intermine.org/js/intermine/im-tables/2.0.0/imtables.min.js"]
                        ["shell" "curl" "-o" "resources/public/vendor/im.min.js" "http://cdn.intermine.org/js/intermine/imjs/3.15.0/im.min.js"]]}
 
+
   :min-lein-version "2.5.3"
 
-  :source-paths ["src/clj" "src/cljs"]
+  :source-paths ["src/clj" "src/cljs" "src/cljc"]
 
   :clean-targets ^{:protect false} ["resources/public/js/compiled" "target"
                                     "test/js"]
 
   :figwheel {:css-dirs     ["resources/public/css"]
-             :ring-handler redgenes.handler/dev-handler}
+             :ring-handler redgenes.handler/dev-handler
+             :reload-clj-files {:cljc true}}
 
   :less {:source-paths ["less"]
          :target-path  "resources/public/css"}

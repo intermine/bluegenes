@@ -1,17 +1,40 @@
 (ns redgenes.subs
   (:require-macros [reagent.ratom :refer [reaction]])
   (:require [re-frame.core :refer [reg-sub]]
-            [redgenes.components.search.subs :as search]))
+    [redgenes.components.databrowser.subs]
+    [redgenes.mines :as mines]
+    [redgenes.components.search.subs]))
 
 (reg-sub
   :name
   (fn [db]
     (:name db)))
 
+(defn merge-mines [db]
+  (merge mines/mines (:temporary-mine db)))
+
 (reg-sub
   :mine-url
   (fn [db]
-    (:mine-url db)))
+    (let [mine-name (:mine-name db)
+          url (:url (:mine (mine-name (merge-mines db))))]
+      (str "http://" url)
+)))
+
+(reg-sub :mine-default-organism
+  (fn [db]
+    (let [mine-name (:mine-name db)
+          organism (:abbrev (mine-name (merge-mines db)))]
+organism)))
+
+(reg-sub :mines
+  (fn [db]
+    (merge-mines db)))
+
+(reg-sub
+  :mine-name
+  (fn [db]
+(:mine-name db)))
 
 (reg-sub
   :active-panel
