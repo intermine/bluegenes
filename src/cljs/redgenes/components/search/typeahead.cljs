@@ -24,17 +24,14 @@
     (fn [item is-active?]
       (let [info   (clojure.string/join " " (interpose ", " (vals (:fields item))))
             parsed (clojure.string/split info (re-pattern (str "(?i)" @search-term)))]
-        [:div.list-group-item
+        [:div.list-group-item.quicksearch-result
          {:on-mouse-down
           (fn [e]
             (let [clicked-button (.-button e)]
               (cond (= clicked-button 0) ;;left click only pls.
                   (navigate-to-report item))))
-          :class (cond is-active? "active")}
-      ;   [:div.row-action-primary
-          ;[:i.fa.fa-cog.fa-spin.fa-3x.fa-fw]
-      ;    ]
-         [:div.row-content
+          :class  (cond is-active? "active ") }
+         [:div.row-content {:class (str "type type-" (:type item))}
           [:h4.list-group-item-heading (:type item)]
           (into
             [:div.list-group-item-text]
@@ -83,8 +80,7 @@
             (navigate-to-full-results))))
 }
     [:div.list-group-item {:class (cond is-active? "active")}
-      [:h4 "Show all results"]]
-     [:div.list-group-separator]]
+      [:h4 "Show all results"]]]
   ))
 
 (defn main []
@@ -110,11 +106,11 @@
                                  ; Why is this separate from on-key-press, you ask? arrow keys don't trigger keypress events apparent. what meanies.
                                  :on-key-up (fn [e] (monitor-arrow-keys e) )}]
                               (if (> (count @results) 0)
-                                [:div.dropdown-menu
+                                [:div.dropdown-menu.quicksearch
                                   [show-all-results]
                                   (into [:div.list-group]
-                                    (interpose [:div.list-group-separator]
+
                                       (map-indexed  (fn [index result] (let [active-selection (subscribe [:quicksearch-selected-index])
                                                                     is-active? (= index @active-selection)]
-                                                                [suggestion result is-active?])) @results)))
+                                                                [suggestion result is-active?])) @results))
                                   ])])})))
