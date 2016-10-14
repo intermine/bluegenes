@@ -16,7 +16,7 @@
 
 (defn attribute []
   (let [query (subscribe [:query-builder/query])]
-    (fn [{naym :name tipe :type} & [path]]
+    (fn [{naym :name typ :type} & [path]]
       (let [path-vec (conj path naym)]
         [:div
          [:div.btn.btn-default.btn.btn-xxs
@@ -38,9 +38,9 @@
                      (if ((get-in @query [:constraint-paths]) path-vec)
                        "btn-primary"
                        "btn-outline")
-           :on-click (fn [] (dispatch [:query-builder/add-filter path-vec tipe]))}
+           :on-click (fn [] (dispatch [:query-builder/add-filter path-vec typ]))}
           [:i.fa.fa-plus] [:i.fa.fa-filter]]
-         [:span.pad-left-5 {:title tipe} naym]]))))
+         [:span.pad-left-5 {:title typ} naym]]))))
 
 (defn tree [class & [path open?]]
   (let [model (subscribe [:model])
@@ -68,7 +68,7 @@
   (first (into [] (reduce (fn [total next] (assoc-in total next nil)) {} paths))))
 
 (defn tiny-constraint
-  [{:keys [:q/op :q/value :q/code tipe] :as constraint} i]
+  [{:keys [:q/op :q/value :q/code typ] :as constraint} i]
   [:li.qb-tiny-constraint
    [:div.input-group-btn.but-inline
     [:button.btn.btn-default.dropdown-toggle
@@ -88,7 +88,7 @@
             :on-click
             (fn [e] (dispatch [:query-builder/change-constraint-op i op]))
             } [:a op]])
-        (or (constraints/ops-for-type tipe) c/ops)))]
+        (or (constraints/ops-for-type typ) c/ops)))]
    [:input.qb-constraint-value
     {:type :text :value value :default-value 0
      :size 9
@@ -125,6 +125,17 @@
           (fn [c i]
             (with-meta [tiny-constraint c i] {:key i}))
           v (range))])])))
+
+(defn undo-redo-button
+  [typ ex i]
+  (let [
+       {explanation :explanation c :count} (if (map? ex) ex {:explanation ex})
+       cc (str "count-" c)]
+   [:div.buttony
+    {:key      i
+     :class    (str (name typ) " " cc)
+     :on-click (fn [e] (dispatch [typ i]))
+     :title    (str explanation " : " c)}]))
 
 (defn ^:export main []
   (let [
@@ -203,24 +214,10 @@
                 [:button.btn.btn-primary {:on-click #(dispatch [:redo])} "Redo"]
                 [:span.btn
                   [:div.undos
-                    (map
-                     (fn [ex i]
-                       (let [
-                             {explanation :explanation c :count} (if (map? ex) ex {:explanation ex})
-                             cc (str "count-" c)]
-                         [:div.undo.buttony
-                          {:key      i
-                           :class cc
-                           :on-click (fn [e] (dispatch [:undo i]))
-                           :title    (str explanation " : " c)}]))
-                     @undo-explanations (range (count @undo-explanations) 0 -1))
-                     (map
-                       (fn [explanation i]
-                         [:div.redo.buttony
-                          {:key i
-                            :on-click (fn [e] (dispatch [:redo i]))
-                           :title    explanation}])
-                     @redo-explanations (range (count @redo-explanations) 0 -1))]]
+                    (map (partial undo-redo-button :undo)
+                      @undo-explanations (range (count @undo-explanations) 0 -1))
+                    (map (partial undo-redo-button :redo)
+                      @redo-explanations (range (count @redo-explanations) 0 -1))]]
             [:div
              (if @counting?
                [:i.fa.fa-cog.fa-spin.fa-1x.fa-fw]

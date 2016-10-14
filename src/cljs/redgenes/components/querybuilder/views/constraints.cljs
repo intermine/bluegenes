@@ -24,7 +24,7 @@
 
 (defn op []
   (let [state (reagent/atom {:q/op "="})]
-    (fn [path tipe]
+    (fn [path typ]
       [:div
        [:span (clojure.string/join " > " path)]
        [:div.input-group
@@ -37,7 +37,7 @@
          (into [:ul.dropdown-menu]
                (map
                  (fn [op] [:li {:on-click (fn [] (swap! state assoc :q/op op))} [:a op]]))
-           (or (ops-for-type tipe) ops))]
+           (or (ops-for-type typ) ops))]
         [:input.form-control
          {:type      "text"
           :value     (:q/value @state)
@@ -47,11 +47,11 @@
         {:on-click
          (fn []
            (dispatch
-             [:query-builder/add-constraint
-              (merge @state {:q/path path :tipe tipe})]))} "Add"]])))
+             [:query-builder/add-constraint!
+              (merge @state {:q/path path :typ typ})]))} "Add"]])))
 
 (defn constraint []
-  (fn [{:keys [path tipe]}]
+  (fn [{:keys [path typ]}]
     [:div
      [:h3 "Constraint"]
-     [op path tipe]]))
+     [op path typ]]))

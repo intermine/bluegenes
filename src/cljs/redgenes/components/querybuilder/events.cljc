@@ -45,29 +45,50 @@
     (assoc-in [:query-builder :used-codes] nil)
     (assoc-in [:query-builder :where-tree] nil)))
 
-(defn add-constraint-cofx
+(defn update-io-query
+  "Returns the x for the given y"
+  {:reframe-kind :event, :reframe-key :query-builder/update-io-query}
+  [{{query :query} :query-builder :as db} _]
+  (println "ioq" query (spec/valid? :q/query query) (get-in db [:query-builder :io-query]))
+  (if (spec/valid? :q/query query)
+    (assoc-in
+      db
+      [:query-builder :io-query]
+      (build-query query))
+    db))
+
+(defn add-constraint
   "Returns the x for the given y"
   {:reframe-kind :cofx,
    :reframe-key   :query-builder/add-constraint
    :undoable?     true
    :undo-exp      "add constraint"}
-  [{db :db} [_ constraint]]
-  {:db       (let [used-codes
-                   (last (sort (map :q/code
-                                 (get-in
-                                   db
-                                   [:query-builder :query :q/where]))))
-                   next-code (if (nil? used-codes)
-                               "A"
-                               (next-code used-codes))]
-               (-> db
-                 (update-in [:query-builder :query :constraint-paths]
-                   (fn [cs] (conj (or cs #{}) (:q/path constraint))))
-                 (update-in
-                   [:query-builder :query :q/where]
-                   (fn [where]
-                     (conj (or where []) (merge constraint {:q/code next-code}))))
-                 (assoc-in [:query-builder :constraint] nil))),
+  ([db [_ constraint]]
+    (let [used-codes
+         (last (sort (map :q/code
+                       (get-in
+                         db
+                         [:query-builder :query :q/where]))))
+         next-code (if (nil? used-codes)
+                     "A"
+                     (next-code used-codes))]
+     (-> db
+       (update-in [:query-builder :query :constraint-paths]
+         (fn [cs] (conj (or cs #{}) (:q/path constraint))))
+       (update-in
+         [:query-builder :query :q/where]
+         (fn [where]
+           (conj (or where []) (merge constraint {:q/code next-code}))))
+       (assoc-in [:query-builder :constraint] nil)))))
+
+(defn add-constraint-cofx
+  "Returns the x for the given   y"
+  {:reframe-kind :cofx,
+   :reframe-key   :query-builder/add-constraint!
+   :undoable?     true
+   :undo-exp      "add constraint"}
+  [{db :db} event]
+  {:db       (update-io-query (add-constraint db event) event)
    :dispatch [:query-builder/run-query!]})
 
 
@@ -120,18 +141,6 @@
   [db [_ count]]
   (update-in db [:query-builder :autoupdate?] not))
 
-(defn update-io-query
-  "Returns the x for the given y"
-  {:reframe-kind :event, :reframe-key :query-builder/update-io-query}
-  [{{query :query} :query-builder :as db} _]
-  (println "ioq" query (spec/valid? :q/query query) (get-in db [:query-builder :io-query]))
-  (if (spec/valid? :q/query query)
-    (assoc-in
-      db
-      [:query-builder :io-query]
-      (build-query query))
-    db))
-
 (defn run-query-cofx
   "Returns a cofx for running the query"
   {:reframe-kind :cofx, :reframe-key :query-builder/run-query!}
@@ -146,10 +155,10 @@
   "Returns a cofx for maybe running the query"
   {:reframe-kind :cofx, :reframe-key :query-builder/maybe-run-query}
   [{db :db}]
-  {:db                       db
+  {:db (update-io-query db 7)
    :query-builder/maybe-run-query!
-     {:query  (build-query (get-in db [:query-builder :query]))
-      :query? (get-in db [:query-builder :autoupdate?])}})
+       {:query  (build-query (get-in db [:query-builder :query]))
+        :query? (get-in db [:query-builder :autoupdate?])}})
 
 (defn make-tree
   "Returns the x for the given y"
@@ -186,8 +195,8 @@
   {:reframe-kind :event,
    :reframe-key :query-builder/add-filter
    :undoable? true}
-  [db [_ path tipe]]
-  (assoc-in db [:query-builder :constraint] {:path path :tipe tipe}))
+  [db [_ path typ]]
+  (assoc-in db [:query-builder :constraint] {:path path :typ typ}))
 
 (defn set-logic
   "Parse the given logic expression to a list"
