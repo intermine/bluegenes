@@ -130,12 +130,12 @@
   [typ ex i]
   (let [
        {explanation :explanation c :count} (if (map? ex) ex {:explanation ex})
-       cc (str "count-" c)]
+       cc (str "count-" (if (zero? c) c 1))]
    [:div.buttony
     {:key      i
      :class    (str (name typ) " " cc)
      :on-click (fn [e] (dispatch [typ i]))
-     :title    (str explanation " : " c)}]))
+     :title    (str explanation ", " c (if (== 1 c) " result" " results"))}]))
 
 (defn ^:export main []
   (let [
@@ -154,12 +154,12 @@
         redo-explanations       (subscribe [:redo-explanations])
         ]
     (fn []
-      [:div.querybuilder.row
+      [:div.row.querybuilder
        [:div.col-sm-6
         [:div.panel.panel-default
          [:div.panel-heading [:h4 "Data Model"]]
          [:div.panel-body [:ol.tree [tree :Gene ["Gene"] true]]]]]
-         [:div.col-sm-6
+       [:div.col-sm-6
          [:div
           (if @edit-constraint
             [:div.panel.panel-default
@@ -222,15 +222,16 @@
              (if @counting?
                [:i.fa.fa-cog.fa-spin.fa-1x.fa-fw]
                (if @result-count
-                 [:h3 (str @result-count " rows " (:constraintLogic (build-query @query)))]))]]]
-          [:div.panel.panel-default
-           [:div.panel-heading
-            [:h4 "Results"]]
-           ;[:span (json/edn->hiccup @query)]
-           ;[:button.btn.btn-primary {:on-click #(dispatch [:qb-run-query])} "Run Count"]
-           [:div.panel-body
-            (cond (not (spec/valid? :q/query @query))
-              [:div {} (str (spec/explain-str :q/query @query))])]
-           (cond @io-query
-            [:div.panel-body
-             [table/main @io-query true]])]]]])))
+                 [:h3 (str @result-count " rows " (:constraintLogic (build-query @query)))]))]]]]]
+       [:div.col-sm-6
+        [:div.panel.panel-default
+         [:div.panel-heading
+          [:h4 "Results"]]
+         ;[:span (json/edn->hiccup @query)]
+         ;[:button.btn.btn-primary {:on-click #(dispatch [:qb-run-query])} "Run Count"]
+         [:div.panel-body
+          (cond (not (spec/valid? :q/query @query))
+                [:div {} (str (spec/explain-str :q/query @query))])]
+         (cond @io-query
+               [:div.panel-body
+                [table/main @io-query true]])]]])))

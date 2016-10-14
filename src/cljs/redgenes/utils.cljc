@@ -1,5 +1,6 @@
 (ns redgenes.utils
-  ""
+  "dont' like utils namespaces
+  but anyway here's one"
   (:require
     #?(:cljs [re-frame.core :as re-frame :refer [reg-event-db reg-event-fx reg-fx reg-sub]])
     #?(:cljs [day8.re-frame.undo :as undo :refer [undoable]])

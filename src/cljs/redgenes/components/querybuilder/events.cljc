@@ -1,4 +1,8 @@
 (ns redgenes.components.querybuilder.events
+"
+All the things that can change
+the state of the db via the query builder
+"
   #?(:cljs (:require-macros [cljs.core.async.macros :refer [go go-loop]]))
   (:require
     [redgenes.components.querybuilder.core :as c :refer
@@ -49,7 +53,7 @@
   "Returns the x for the given y"
   {:reframe-kind :event, :reframe-key :query-builder/update-io-query}
   [{{query :query} :query-builder :as db} _]
-  (println "ioq" query (spec/valid? :q/query query) (get-in db [:query-builder :io-query]))
+  ;(println "ioq" query (spec/valid? :q/query query) (get-in db [:query-builder :io-query]))
   (if (spec/valid? :q/query query)
     (assoc-in
       db
