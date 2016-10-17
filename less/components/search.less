@@ -264,7 +264,17 @@
         margin: 0.2em;
     }
 }
+
+
+.search .dropdown-menu {
+    min-width: 40vw;
+    transition:all 1s;
+}
+
 @media (max-width: @tiny-screen) {
+  .search .dropdown-menu {
+      min-width: 90vw;
+  }
     .search {
         button {
             clear: both;
@@ -331,9 +341,6 @@
     }
 }
 
-.search .dropdown-menu {
-    min-width: 40vw;
-}
 
 .quicksearch {
     margin: 0;
