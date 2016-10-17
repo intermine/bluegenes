@@ -67,7 +67,8 @@
 (reg-event-fx
   :set-active-mine
   (fn [{:keys [db]} [_ value]]
-    {:db (assoc db :mine-name value)
+    {:db (-> (assoc db :mine-name value)
+             (assoc :saved-data {:items {}}))
      :dispatch [:fetch-all-assets]}))
 
 (reg-event-fx
