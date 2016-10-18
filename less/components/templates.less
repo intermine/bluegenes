@@ -8,6 +8,7 @@
     left: 0;
     display: flex;
     overflow: hidden;
+    transition: all 0.6s;
 
     .x-section {
         flex: 1 0;
@@ -28,6 +29,7 @@
         display: flex;
         flex-direction: column;
         height: 100%;
+        transition: all 0.6s;
         width: 100%;
     }
 
@@ -108,10 +110,53 @@
 
     .results {
         margin-top: 1em;
-        .icon {margin-right:2px;}
-        .pane-body {overflow:auto;}
+        transition: all 0.6s;
+
+        .icon {
+            margin-right: 2px;
+        }
+
+        .pane-body {
+            overflow: auto;
+        }
+
         h2 {
             margin-top: 0;
+        }
+    }
+}
+@media (max-width: @tiny-screen) {
+    .templates-section {
+        .x-section {
+            padding: 4px;
+            transition: all 0.6s;
+        }
+
+        .select-a-template {
+            order: 2;
+            transition: all 0.6s;
+        }
+
+        .see-template-details {
+            order: 1;
+            transition: all 0.6s;
+        }
+        // this needs to be on the top for mobiles
+        flex-direction: column;
+        transition: all 0.6s;
+        position: static;
+        overflow: auto;
+        bottom: auto;
+        right: auto;
+        top: auto;
+
+        table.small {
+            margin-bottom: 0;
+        }
+
+        table > tbody > tr > td {
+            padding: 4px;
+            transition: all 0.6s;
         }
     }
 }

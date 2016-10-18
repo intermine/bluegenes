@@ -197,7 +197,7 @@
         selected-constraints (subscribe [:template-chooser/selected-template-constraints])]
     (fn []
       [:div.x-body.templates-section
-       [:div.x-section
+       [:div.x-section.select-a-template
         [:div.x-container
          [:div.pane.x-container
           [:div.pane-heading "Popular Queries"]
@@ -210,7 +210,7 @@
             [template-filter filter-state]]
            [:div.x-scrollable-content
             [templates @im-templates]]]]]]
-       [:div.x-section
+       [:div.x-section.see-template-details
         [:div.pane
          [:div.pane-heading "Constraints"]
          [:div.pane-body
