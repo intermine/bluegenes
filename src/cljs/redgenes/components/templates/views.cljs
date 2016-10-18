@@ -210,6 +210,7 @@
             [template-filter filter-state]]
            [:div.x-scrollable-content
             [templates @im-templates]]]]]]
+       (cond (seq @selected-constraints) ;;show it if/when there's something to see
        [:div.x-section.see-template-details
         [:div.pane
          [:div.pane-heading "Constraints"]
@@ -217,4 +218,6 @@
           ^{:key (:name @selected-template)} [form @selected-constraints]
           #_(json-html/edn->hiccup @selected-template)]]
           [results counting? result-count selected-template]
-        ]])))
+        ])
+
+       ])))
