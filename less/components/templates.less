@@ -1,72 +1,117 @@
-.x-body {
-  position: absolute;
-  top: 50px;
-  right: 0;
-  bottom: 50px;
-  left: 0;
-  display: flex;
-  overflow: hidden;
-}
+@import "../variables";
 
-.x-section {
-  flex: 1 0;
-  padding: 20px;
-}
+.templates-section {
+    position: absolute;
+    top: 50px;
+    right: 0;
+    bottom: 50px;
+    left: 0;
+    display: flex;
+    overflow: hidden;
 
-.x-main {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
+    .x-section {
+        flex: 1 0;
+        padding: 20px 20px 1px; // the 1px bottom just helps us feel like it's not vanishing under the footer with hidden content
 
-.x-container {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  width: 100%;
-
-}
-
-.x-scrollable-content {
-  flex: 1 1 auto;
-  overflow-y: auto;
-  min-height: 0px;
-}
-
-.x-box {
-  min-height: -webkit-min-content;
-  display: flex;
-}
-
-.x-column {
-  padding: 20px;
-  border-right: 1px solid #999;
-}
-
-.x-column > div {
-  height: 2000px;
-  background: red;
-}
-
-.x-column:nth-child(2) > div {
-   height: auto;
-}
-
-
-.pane {
-  box-shadow: 0 1px 6px 0 rgba(0, 0, 0, 0.12), 0 1px 6px 0 rgba(0, 0, 0, 0.12);
-    background-color: white;
-    .pane-heading {
-        background-color: #eeeeee;
-        padding: 10px;
-        font-size: 1.2em;
+        &:first-child {
+            padding-right: 0;
+        }
     }
-    .pane-body {
-      padding: 10px;
-    }
-}
 
-.soft {
-  background-color: #e6eaea;
-  color: black;
+    .x-main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .x-container {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        width: 100%;
+    }
+
+    .x-scrollable-content {
+        flex: 1 1 auto;
+        overflow-y: auto;
+        min-height: 0;
+    }
+
+    .x-box {
+        min-height: -webkit-min-content;
+        display: flex;
+    }
+
+    .x-column {
+        padding: 20px;
+        border-right: 1px solid #999;
+    }
+
+    .x-column > div {
+        height: 2000px;
+    }
+
+    .x-column:nth-child(2) > div {
+        height: auto;
+    }
+
+    .pane {
+        box-shadow: 0 1px 6px 0 rgba(0, 0, 0, 0.12), 0 1px 6px 0 rgba(0, 0, 0, 0.12);
+        background-color: white;
+
+        .pane-heading {
+            background-color: #eeeeee;
+            padding: 10px;
+            font-size: 1.2em;
+        }
+
+        .pane-body {
+            padding: 10px;
+        }
+    }
+
+    .soft {
+        background-color: #e6eaea;
+        color: black;
+    }
+
+    .template-filter {
+        margin-top: 0;
+
+        .control-label {
+            margin-top: 1px;
+        }
+    }
+
+    .template-result {
+        &:after {
+            content: " ";
+            display: block;
+            clear: both;
+        }
+
+        .view-results {
+            display: inline-block;
+            float: right;
+            text-decoration: underline;
+            color: lighten(@body-foreground-color,10%);
+        }
+
+        &.active .view-results {
+            color: #fff;
+        }
+    }
+
+    .nav-pills > li > a {
+        padding: 0.3em 0.8em;
+    }
+
+    .results {
+        margin-top: 1em;
+        .icon {margin-right:2px;}
+        .pane-body {overflow:auto;}
+        h2 {
+            margin-top: 0;
+        }
+    }
 }
