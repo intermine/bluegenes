@@ -51,9 +51,9 @@
 (defn where-tree
   ([{:keys [:q/where]}]
    (reduce
-     (fn [r {:keys [:q/path] :as c}]
-       (update-in r path (fn [z] (conj (or z []) c))))
-     {} where)))
+     (fn [r [{:keys [:q/path] :as c} i]]
+       (update-in r path (fn [z] (conj (or z []) (assoc c :index i)))))
+     {} (map vector where (range)))))
 
 (defn to-list [s]
   (edn/read-string
@@ -79,7 +79,9 @@
        [] (partition-by #{'OR} l)))))
 
 (defn nested-infix [[f o & r]]
-  (if r (list f o (nested-infix r)) f))
+  (if r
+    (list f o (nested-infix r))
+    (if o (list f o) f)))
 
 (defn infix-prefix [x]
   (if (symbol? x)

@@ -128,9 +128,10 @@
        [tree-view query path v]
        [:ul.query-constraint
         (map
-          (fn [c i]
+          (fn [{i :index :as c}]
+            (println ">>>>" i c)
             (with-meta [tiny-constraint c i] {:key i}))
-          v (range))])])))
+          v)])])))
 
 (defn undo-redo-button
   [typ ex i]
@@ -155,7 +156,6 @@
         query           (subscribe [:query-builder/query])
         cl              (subscribe [:query-builder/constraintLogic])
         io-query        (subscribe [:query-builder/io-query])
-        queried?        (subscribe [:query-builder/queried?])
         result-count    (subscribe [:query-builder/count])
         counting?       (subscribe [:query-builder/counting?])
         edit-constraint (subscribe [:query-builder/current-constraint])
@@ -214,24 +214,25 @@
                :on-change
                       (fn [e]
                         (dispatch [:query-builder/set-query (.. e -target -value)]))}])
-                [:button.btn.btn-primary {:on-click #(dispatch [:query-builder/reset-query])} "Reset"]
-            (if (spec/valid? :q/query @query)
-              [:button.btn.btn-primary
+            [:div.qb-buttons
+             [:button.btn.btn-primary {:on-click #(dispatch [:query-builder/reset-query])} "Reset"]
+             (if (spec/valid? :q/query @query)
+               [:button.btn.btn-primary
                 {:on-click #(dispatch [:query-builder/update-io-query])} "Update"]
-              [:button.btn.btn-primary.not-working {} "Update"])
-                [:button.btn.btn-primary {:on-click #(dispatch [:undo])} "Undo"]
-                [:button.btn.btn-primary {:on-click #(dispatch [:redo])} "Redo"]
-
-            [:div.undos
-             (map (partial undo-redo-button :undo)
-               @undo-explanations (range (count @undo-explanations) 0 -1))
-             (map (partial undo-redo-button :redo)
-               @redo-explanations (range (count @redo-explanations) 0 -1))]
+               [:button.btn.btn-primary.not-working {} "Update"])
+             [:button.btn.btn-primary {:on-click #(dispatch [:undo])} "Undo"]
+             [:button.btn.btn-primary {:on-click #(dispatch [:redo])} "Redo"]
+             [:div.undos
+              (map (partial undo-redo-button :undo)
+                @undo-explanations (range (count @undo-explanations) 0 -1))
+              (map (partial undo-redo-button :redo)
+                @redo-explanations (range (count @redo-explanations) 0 -1))]
+             ]
             [:div
              (if @counting?
                [:i.fa.fa-cog.fa-spin.fa-1x.fa-fw]
                (if @result-count
-                 [:h3 (str @result-count " rows " (:constraintLogic (build-query @query)))]))]]]]]
+                 [:h3 [:span (str @result-count " rows")] [:span.qb-logic (:constraintLogic (build-query @query))]]))]]]]]
        [:div.col-sm-6
         [:div.panel.panel-default
          [:div.panel-heading
