@@ -132,7 +132,7 @@
   :fetch-ids-from-query
   (fn [query]
     (go (let [{results :results} (<! (search/raw-query-rows
-                                       {:root "http://beta.flymine.org/query"}
+                                       {:root @(subscribe [:mine-url])}
                                        query))]
           (dispatch [:success-fetch-ids (flatten results)])))))
 
@@ -190,10 +190,7 @@
 (reg-event-fx
   :results/run
   (fn [{db :db} [_ params]]
-    (let [enrichment-chan
-          (search/enrichment
-            {:root @(subscribe [:mine-url])}
-            params)]
+    (let [enrichment-chan (search/enrichment {:root @(subscribe [:mine-url])} params)]
       {:db                     db
        :results/get-enrichment [(:widget params) enrichment-chan]})))
 
