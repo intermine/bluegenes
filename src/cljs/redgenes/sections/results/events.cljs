@@ -7,6 +7,7 @@
             [clojure.spec :as s]
             [day8.re-frame.http-fx]
             [ajax.core :as ajax]
+            [redgenes.interceptors :refer [clear-tooltips]]
             [dommy.core :refer-macros [sel sel1]]
             [redgenes.sections.saveddata.events]))
 
@@ -76,6 +77,7 @@
 
 (reg-event-fx
   :results/add-to-history
+  [(clear-tooltips)]
   (fn [{db :db} [_ {identifier :identifier} details]]
     (let [model    (get-in db [:assets :model])
           previous (get-in db [:results :query])

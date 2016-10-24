@@ -60,7 +60,6 @@
     [:li.enrichment-item
      {:on-mouse-enter (fn [] (dispatch [:results/get-item-details identifier pathConstraint]))
       :on-click       (fn []
-
                         (dispatch [:results/add-to-history row details]))}
      [popover [:span {:data-content   [popover-table matches p-value]
                       :data-placement "left"
