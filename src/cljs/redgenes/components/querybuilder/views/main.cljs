@@ -107,7 +107,7 @@
      }]
    [:span.badge code]
    [:i.fa.fa-times.pad-left-5.buttony
-    {:on-click (fn [] (dispatch [:query-builder/remove-constraint constraint i]))}]])
+    {:on-click (fn [] (dispatch [:query-builder/remove-constraint (dissoc constraint :index) i]))}]])
 
 (defn tree-view
   ([query]
@@ -129,7 +129,6 @@
        [:ul.query-constraint
         (map
           (fn [{i :index :as c}]
-            (println ">>>>" i c)
             (with-meta [tiny-constraint c i] {:key i}))
           v)])])))
 

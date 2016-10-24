@@ -193,12 +193,12 @@ the state of the db via the query builder
    :reframe-key  :query-builder/remove-constraint
    :undoable?    true
    :undo-exp     "remove constraint"}
-  [{db :db} [_ path i]]
+  [{db :db} [_ c i]]
   {:db
-     (update-in
-       db
-       [:query-builder :query :q/where]
-       (fn [wheres] (vec (remove #(= % path) wheres))))
+             (update-in
+               db
+               [:query-builder :query :q/where]
+               (fn [wheres] (vec (remove #(= % c) wheres))))
    :dispatch [:query-builder/maybe-run-query]})
 
 (defn add-filter
