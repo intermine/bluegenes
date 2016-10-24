@@ -1,4 +1,4 @@
-(ns redgenes.sections.saveddata.views.saved-data-item
+(ns redgenes.sections.saveddata.views.saveddataitem
   (:require [re-frame.core :refer [subscribe dispatch]]
             [redgenes.sections.saveddata.events]
             [reagent.core :as reagent]

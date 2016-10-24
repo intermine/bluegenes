@@ -34,6 +34,7 @@
                  [com.taoensso/carmine "2.14.0"]
                  [inflections "0.12.2"]
                  [fipp "0.6.6"]
+                 [binaryage/oops "0.5.2"]
                  [inflections "0.12.2"]]
 
   :plugins [[lein-cljsbuild "1.1.4"]
