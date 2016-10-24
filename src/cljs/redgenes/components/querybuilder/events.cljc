@@ -222,7 +222,7 @@ the state of the db via the query builder
     :explanation "set the logic"})
   ([db [_ expression]]
    (let [x (try
-             (c/simplify (c/to-prefix (c/group-ands (c/to-list (str "(" expression ")")))))
+             (c/simplify (c/infix-prefix (c/group-ands (c/to-list (str "(" expression ")")))))
              (catch #?(:clj Exception :cljs js/Error) e []))]
      (-> db
        (assoc-in [:query-builder :query :q/logic] x)

@@ -1,13 +1,13 @@
 (defproject redgenes "0.1.0-SNAPSHOT"
   :dependencies [[org.clojure/clojure "1.9.0-alpha12"]
-                 [figwheel-sidecar "0.5.4-7"]
-                 [clj-http "2.3.0"]
-                 [org.clojure/clojurescript "1.9.229"]
+                 [figwheel-sidecar "0.5.8"]
+                 [clj-http "3.3.0"]
+                 [org.clojure/clojurescript "1.9.293"]
                  [reagent "0.6.0"]
                  [binaryage/devtools "0.8.2"]
                  [reagent "0.6.0" :exclusions [cljsjs/react]]
                  [cljsjs/react-with-addons "15.3.1-0"]
-                 [binaryage/devtools "0.8.1"]
+                 [binaryage/devtools "0.8.2"]
                  [re-frame "0.8.0"]
                  [secretary "1.2.3"]
                  [lein-cljsbuild "1.1.4"]
@@ -19,8 +19,8 @@
                  [json-html "0.4.0"]
                  [prismatic/dommy "1.1.0"]
                  [cljs-ajax "0.5.8"]
-                 [day8.re-frame/http-fx "0.0.4"]
-                 [org.clojure/core.async "0.2.391"]
+                 [day8.re-frame/http-fx "0.1.2"]
+                 [org.clojure/core.async "0.2.395"]
                  [cljs-http "0.1.42"]
                  [venantius/accountant "0.1.7"]
                  [day8.re-frame/async-flow-fx "0.0.6"]
@@ -31,7 +31,7 @@
                  [servant "0.1.5"]
                  [com.lucasbradstreet/cljs-uuid-utils "1.0.2"]
                  [com.andrewmcveigh/cljs-time "0.4.0"]
-                 [com.taoensso/carmine "2.14.0"]
+                 [com.taoensso/carmine "2.15.0"]
                  [inflections "0.12.2"]
                  [fipp "0.6.6"]
                  [inflections "0.12.2"]]
@@ -64,7 +64,7 @@
   {:dev
    {:dependencies []
 
-    :plugins      [[lein-figwheel "0.5.4-7"]
+    :plugins      [[lein-figwheel "0.5.8"]
                    [lein-doo "0.1.6"]]
     }}
 

@@ -64,7 +64,10 @@
     (first x)
     x))
 
-(defn group-ands [l]
+(defn group-ands
+  "This is the existing
+  way the old QB does things"
+  [l]
   (maybe-unwrap
     (if (symbol? l)
      l
@@ -75,11 +78,14 @@
            (into r (map group-ands l))))
        [] (partition-by #{'OR} l)))))
 
-(defn to-prefix [x]
+(defn nested-infix [[f o & r]]
+  (if r (list f o (nested-infix r)) f))
+
+(defn infix-prefix [x]
   (if (symbol? x)
     x
     (cons (second x)
-      (map to-prefix (take-nth 2 x)))))
+      (map infix-prefix (take-nth 2 x)))))
 
 (defn simplify
   ([x]
@@ -116,6 +122,20 @@
       (s/cat
        :op :q/logicop
        :args (s/+ :q/listy))
+    :nil nil?))
+
+(s/def :q/infix-list
+  (s/or
+    :simple alphabet-symbol?
+    :complex :q/infix-exp))
+
+(s/def :q/infix-exp
+  (s/or
+    :exp
+      (s/cat
+        :a-list :q/infix-list
+        :op :q/logicop
+        :b-list :q/infix-list)
     :nil nil?))
 
 (s/def :q/path (s/coll-of string?))
