@@ -69,7 +69,7 @@
   (fn [{:keys [db]} [_ value]]
     {:db (-> (assoc db :mine-name value)
              (assoc :saved-data {:items {}}))
-     :dispatch [:fetch-all-assets]}))
+     :dispatch-n (list [:fetch-all-assets] [:set-active-panel :home-panel])}))
 
 (reg-event-fx
   :new-temporary-mine
