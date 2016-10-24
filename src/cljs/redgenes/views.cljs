@@ -59,7 +59,7 @@
 (defmethod panels :saved-data-panel [] [saved-data/main])
 (defmethod panels :help-panel [] [help/main])
 (defmethod panels :querybuilder-panel [] [:div.container [querybuilder/main]])
-(defmethod panels :default [] [:div])
+(defmethod panels :default [] [home/main])
 
 (defn show-panel
   [panel-name]
