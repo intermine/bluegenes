@@ -6,6 +6,7 @@
             [imcljs.search :as search]
             [clojure.spec :as s]
             [day8.re-frame.http-fx]
+            [redgenes.events]
             [ajax.core :as ajax]))
 
 
@@ -21,16 +22,6 @@
 (reg-event-db
   :regions/save-results
   (fn [db [_ result-response]]
-    ;(doall
-    ;  (->>
-    ;   ; Group our results by chromosome location (2L, 3R, etc.)
-    ;   (group-by (comp :primaryIdentifier :locatedOn :chromosomeLocation) (:results result-response))
-    ;   ; Then group those results by location bands
-    ;   (map (fn [[chromosome results]]
-    ;          ))))
-
-    ;[{{:keys [primaryIdentifier start end]} :chromosomeLocation}]
-
     (let [searched-for   (get-in db [:regions :regions-searched])
           mapped-results (map (fn [region]
                                 (assoc region :results (filter (fn [{{:keys [start end locatedOn] :as t} :chromosomeLocation}]
@@ -43,10 +34,12 @@
                                 ) searched-for)]
       (assoc-in db [:regions :results] mapped-results))))
 
-(reg-fx
-  :im-operation
-  (fn [{:keys [on-success on-failure response-format op params]}]
-    (go (dispatch (conj on-success (<! (op)))))))
+
+(reg-event-db
+  :regions/set-selected-organism
+  (fn [db [_ organism]]
+    (assoc-in db [:regions :settings :organism] organism)))
+
 
 (reg-event-db
   :regions/toggle-feature-type

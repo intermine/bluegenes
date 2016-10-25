@@ -4,6 +4,7 @@
             [redgenes.components.table :as table]
             [redgenes.sections.regions.events]
             [redgenes.sections.regions.subs]
+            [redgenes.components.imcontrols.views :as im-controls]
             [redgenes.components.bootstrap :refer [popover tooltip]]
             [clojure.string :refer [split]]
             [oops.core :refer [oget]]))
@@ -72,7 +73,8 @@
                            (:end chromosomeLocation))]]) results)]])))
 
 (defn main []
-  (let [results (subscribe [:regions/results])]
+  (let [results (subscribe [:regions/results])
+        settings (subscribe [:regions/settings])]
     (fn []
       [:div.container
        [:div.row
@@ -101,7 +103,12 @@
                "Select All"]
               [:button.btn.btn-primary
                {:on-click (fn [] (dispatch [:regions/deselect-all-feature-types]))}
-               "Deselect All"]]]]]]]]
+               "Deselect All"]
+              [im-controls/organism-dropdown
+               {:label     (if-let [sn (get-in @settings [:organism :shortName])] sn
+                             "All Organisms")
+                :on-change (fn [organism]
+                             (dispatch [:regions/set-selected-organism organism]))}]]]]]]]]
        [:div.row
         [:div.col-xs-12
          [:div.panel.panel-default
