@@ -16,3 +16,8 @@
   :suggestion-results
   (fn [db _]
     (:suggestion-results db)))
+
+(reg-sub
+  :search/full-results
+  (fn [db]
+    (:search-results db)))
