@@ -107,7 +107,7 @@
      }]
    [:span.badge code]
    [:i.fa.fa-times.pad-left-5.buttony
-    {:on-click (fn [] (dispatch [:query-builder/remove-constraint constraint i]))}]])
+    {:on-click (fn [] (dispatch [:query-builder/remove-constraint (dissoc constraint :index) i]))}]])
 
 (defn tree-view
   ([query]
@@ -128,9 +128,9 @@
        [tree-view query path v]
        [:ul.query-constraint
         (map
-          (fn [c i]
+          (fn [{i :index :as c}]
             (with-meta [tiny-constraint c i] {:key i}))
-          v (range))])])))
+          v)])])))
 
 (defn undo-redo-button
   [typ ex i]
@@ -155,7 +155,6 @@
         query           (subscribe [:query-builder/query])
         cl              (subscribe [:query-builder/constraintLogic])
         io-query        (subscribe [:query-builder/io-query])
-        queried?        (subscribe [:query-builder/queried?])
         result-count    (subscribe [:query-builder/count])
         counting?       (subscribe [:query-builder/counting?])
         edit-constraint (subscribe [:query-builder/current-constraint])
@@ -200,37 +199,38 @@
                        (dispatch [:query-builder/set-logic (.. e -target -value)]))
               }]
               [:div {} @used-codes]
-              [:textarea
-               {
-                :cols  128
-                :rows  8
-                :style {:width  "calc(100% - 1em)" :height "8em"
-                        :border :none
-                        :margin "1em"
-                        :background
-                                (if (spec/valid? :q/query @query) "rgb(240,240,240)" "rgb(255,240,240)")}
-                :value (str @query)
-                :on-change
-                       (fn [e]
-                         (dispatch [:query-builder/set-query (.. e -target -value)]))}]
-                [:button.btn.btn-primary {:on-click #(dispatch [:query-builder/reset-query])} "Reset"]
-            (if (spec/valid? :q/query @query)
-              [:button.btn.btn-primary
+            [:textarea
+             {
+              :cols  128
+              :rows  8
+              :style {:width  "calc(100% - 1em)" :height "8em"
+                      :border :none
+                      :margin "1em"
+                      :background
+                              (if (spec/valid? :q/query @query) "rgb(240,240,240)" "rgb(255,240,240)")}
+              :value (str @query)
+              :on-change
+                     (fn [e]
+                       (dispatch [:query-builder/set-query (.. e -target -value)]))}]
+            [:div.qb-buttons
+             [:button.btn.btn-primary {:on-click #(dispatch [:query-builder/reset-query])} "Reset"]
+             (if (spec/valid? :q/query @query)
+               [:button.btn.btn-primary
                 {:on-click #(dispatch [:query-builder/update-io-query])} "Update"]
-              [:button.btn.btn-primary.not-working {} "Update"])
-                [:button.btn.btn-primary {:on-click #(dispatch [:undo])} "Undo"]
-                [:button.btn.btn-primary {:on-click #(dispatch [:redo])} "Redo"]
-
-            [:div.undos
-             (map (partial undo-redo-button :undo)
-               @undo-explanations (range (count @undo-explanations) 0 -1))
-             (map (partial undo-redo-button :redo)
-               @redo-explanations (range (count @redo-explanations) 0 -1))]
+               [:button.btn.btn-primary.not-working {} "Update"])
+             [:button.btn.btn-primary {:on-click #(dispatch [:undo])} "Undo"]
+             [:button.btn.btn-primary {:on-click #(dispatch [:redo])} "Redo"]
+             [:div.undos
+              (map (partial undo-redo-button :undo)
+                @undo-explanations (range (count @undo-explanations) 0 -1))
+              (map (partial undo-redo-button :redo)
+                @redo-explanations (range (count @redo-explanations) 0 -1))]
+             ]
             [:div
              (if @counting?
                [:i.fa.fa-cog.fa-spin.fa-1x.fa-fw]
                (if @result-count
-                 [:h3 (str @result-count " rows " (:constraintLogic (build-query @query)))]))]]]]]
+                 [:h3 [:span (str @result-count " rows")] [:span.qb-logic (:constraintLogic (build-query @query))]]))]]]]]
        [:div.col-sm-6
         [:div.panel.panel-default
          [:div.panel-heading
