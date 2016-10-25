@@ -150,7 +150,7 @@
 
   :main redgenes.server
 
-  :aot [redgenes.server]
+  ;:aot [redgenes.server]
 
   ;:prep-tasks [["cljsbuild" "once" "min"] "compile"]
   )
