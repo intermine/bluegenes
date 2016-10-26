@@ -56,4 +56,6 @@
   (.execOnLoad (module-manager/getInstance) id f))
 
 (defn set-loaded! [naym]
-  (.setLoaded (module-manager/getInstance) naym))
+  (try
+    (.setLoaded (module-manager/getInstance) naym)
+    (catch js/Error e (println "problem setting module" naym e))))
