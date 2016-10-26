@@ -39,16 +39,19 @@
             :on-click (fn [e]
                         (.stopPropagation e)
                         (dispatch [:regions/toggle-feature-type n]))}
+       (if (class-kw (:feature-types @settings))
+         [:i.fa.fa-check-square-o]
+         [:i.fa.fa-square-o])
        displayName
        (if-not (empty? descendants)
-         (into [:ul.features-tree] (map (fn [d] [feature-branch d])) descendants))])))
+         (into [:ul.features-tree] (map (fn [d] [feature-branch d])) (sort-by (comp :displayName second) descendants)))])))
 
 (defn feature-types-tree []
   (let [known-feature-types (subscribe [:regions/sequence-feature-types])
         settings            (subscribe [:regions/settings])]
     (fn []
       (into [:ul.features-tree]
-            (map (fn [f] [feature-branch f]) @known-feature-types)))))
+            (map (fn [f] [feature-branch f]) (sort-by (comp :displayName second) @known-feature-types))))))
 
 (def example-regions (clojure.string/join "\n" ["2L:14615455..14619002"
                                                 "2R:5866646..5868384"
@@ -59,7 +62,8 @@
     (fn []
       [:div
        [:textarea.form-control
-        {:rows      4
+        {:rows      8
+         :placeholder (str "example:\n" example-regions)
          :value     @to-search
          :on-change (fn [e]
                       (dispatch [:regions/set-to-search (oget e "target" "value")]))}]])))
@@ -91,17 +95,19 @@
 
 (defn main []
   (let [results  (subscribe [:regions/results])
-        settings (subscribe [:regions/settings])]
+        settings (subscribe [:regions/settings])
+        to-search (subscribe [:regions/to-search])]
     (fn []
       [:div.container
        [:div.row
         [:div.col-xs-12
-         [:div.panel1.panel-default1
-          [:div.panel-heading1 "Regions"]
-          [:div.panel-body1
+         [:div.panel.panel-default
+          [:div.panel-heading "Regions"]
+          [:div.panel-body
            [:div.container-fluid
             [:div.row
-             [:div.col-xs-8
+
+             [:div.col-xs-4
               [:div.form-group
                [:label "Organism"]
                [im-controls/organism-dropdown
@@ -111,31 +117,42 @@
                  :on-change (fn [organism]
                               (dispatch [:regions/set-selected-organism organism]))}]]
               [:div.form-group
-               [:label "Include Features"]
-               [:div.feature-tree-container
-                [feature-types-tree]]]]
-             [:div.col-xs-4
-              [:div.form-group
-               [:label "Regions"]
+               [:label "Regions "
+                [popover [:i.fa.fa-question-circle
+                          {:data-content   [:span "Genome regions in the following formats are accepted:"
+                                            [:ul
+                                             [:li [:span "chromosome:start..end, e.g. 2L:11334..12296"]]
+                                             [:li [:span "chromosome:start-end, e.g. 2R:5866746-5868284 or chrII:14646344-14667746"]]
+                                             [:li [:span "tab delimited"]]]]
+                           :data-trigger   "hover"
+                           :data-placement "bottom"}]]]
                [region-input-box]
                [:div.btn-toolbar
                 [:button.btn.btn-primary
                  {:on-click (fn [] (dispatch [:regions/set-to-search example-regions]))}
-                 "Example"]]]]]
+                 "Example"]]]]
+             [:div.col-xs-8
+
+              [:div.form-group
+               [:label "Include Features"]
+               [:div.feature-tree-container
+                [feature-types-tree]]]]]
             [:div.row
+             [:div.col-xs-4
+              [:div.btn-toolbar]]
              [:div.col-xs-8
               [:div.btn-toolbar
-               [:button.btn.btn-primary
-                {:on-click (fn [] (dispatch [:regions/select-all-feature-types]))}
-                "Select All"]
-               [:button.btn.btn-primary
-                {:on-click (fn [] (dispatch [:regions/deselect-all-feature-types]))}
-                "Deselect All"]]]
-             [:div.col-xs-4
-              [:div.btn-toolbar
-               [:button.btn.btn-primary
-                {:on-click (fn [] (dispatch [:regions/run-query]))}
-                "Search"]]]]]]]]]
+               [:div.btn-toolbar
+                [:button.btn.btn-primary
+                 {:on-click (fn [] (dispatch [:regions/select-all-feature-types]))}
+                 [:span [:i.fa.fa-check-square-o] " Select All"]]
+                [:button.btn.btn-primary
+                 {:on-click (fn [] (dispatch [:regions/deselect-all-feature-types]))}
+                 [:span [:i.fa.fa-square-o] " Deselect All"]]
+                [:button.btn.btn-primary.btn-raised.pull-right
+                 {:class    (if (or (= "" @to-search) (= nil @to-search) ) "disabled")
+                  :on-click (fn [] (dispatch [:regions/run-query]))}
+                 [:span "Search"]]]]]]]]]]]
        [:div.row
         [:div.col-xs-12
          [:div.panel.panel-default

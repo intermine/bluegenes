@@ -81,14 +81,25 @@
                                :values types})
     query))
 
+(defn add-organism-constraint [query short-name]
+  (if short-name
+    (update query :where conj {:path   "SequenceFeature.organism.shortName"
+                               :op     "="
+                               :value short-name})
+    query))
+
 (reg-event-fx
   :regions/run-query
   (fn [{db :db} [_]]
     (let [to-search     (clojure.string/split-lines (get-in db [:regions :to-search]))
           feature-types (get-in db [:regions :settings :feature-types])
-          query         (add-type-constraints
-                          (search/build-feature-query to-search)
-                          (map name (keys (filter (fn [[name enabled?]] enabled?) feature-types))))]
+          selected-organism (get-in db [:regions :settings :organism :shortName])
+          query (->
+                  (add-type-constraints
+                   (search/build-feature-query to-search)
+                   (map name (keys (filter (fn [[name enabled?]] enabled?) feature-types))))
+                  (add-organism-constraint selected-organism))]
+      (println "ORGANISM" selected-organism)
       {:db           (assoc-in db [:regions :regions-searched] (map parse-region to-search))
        :im-operation {:op         (partial search/raw-query-rows
                                            {:root @(subscribe [:mine-url])}
