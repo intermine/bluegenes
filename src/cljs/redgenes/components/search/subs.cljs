@@ -21,3 +21,8 @@
   :search/full-results
   (fn [db]
     (:search-results db)))
+
+(reg-sub
+  :search/active-filter
+  (fn [db _]
+    (:active-filter (:search-results db))))

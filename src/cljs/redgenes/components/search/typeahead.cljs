@@ -14,7 +14,7 @@
 (defn navigate-to-full-results
   "Navigate to the full results page. duh." []
     (navigate! "#/search")
-    (views/search))
+    (dispatch [:search/full-search]))
 
 
 
