@@ -8,7 +8,7 @@
             [redgenes.components.imcontrols.views :as im-controls]
             [redgenes.components.bootstrap :refer [popover tooltip]]
             [clojure.string :refer [split]]
-            [oops.core :refer [oget]]))
+            [oops.core :refer [oget ocall]]))
 
 ; An individual feature that can be toggled on or off
 (defn feature-type []
@@ -29,6 +29,26 @@
                    (let [active? (get-in @settings [:feature-types (first t)])]
                      [feature-type t active?]))
                  (sort-by (comp :displayName second) @known-feature-types))))))
+
+
+
+(defn feature-branch []
+  (let [settings (subscribe [:regions/settings])]
+    (fn [[class-kw {:keys [displayName descendants] :as n}]]
+      [:li {:class    (if (class-kw (:feature-types @settings)) "selected")
+            :on-click (fn [e]
+                        (.stopPropagation e)
+                        (dispatch [:regions/toggle-feature-type n]))}
+       displayName
+       (if-not (empty? descendants)
+         (into [:ul.features-tree] (map (fn [d] [feature-branch d])) descendants))])))
+
+(defn feature-types-tree []
+  (let [known-feature-types (subscribe [:regions/sequence-feature-types])
+        settings            (subscribe [:regions/settings])]
+    (fn []
+      (into [:ul.features-tree]
+            (map (fn [f] [feature-branch f]) @known-feature-types)))))
 
 (def example-regions (clojure.string/join "\n" ["2L:14615455..14619002"
                                                 "2R:5866646..5868384"
@@ -92,7 +112,8 @@
                               (dispatch [:regions/set-selected-organism organism]))}]]
               [:div.form-group
                [:label "Include Features"]
-               [feature-types]]]
+               [:div.feature-tree-container
+                [feature-types-tree]]]]
              [:div.col-xs-4
               [:div.form-group
                [:label "Regions"]
@@ -122,7 +143,7 @@
           [:div.panel-body
            ; TODO: split this into a view per chromosome, otherwise it doesn't make sense on a linear plane
            #_[:div
-            [graphs/main {:results (mapcat :results @results)} ]]
+              [graphs/main {:results (mapcat :results @results)}]]
            (into [:div]
                  (map (fn [result]
                         [result-table result]) @results))]]]]])))

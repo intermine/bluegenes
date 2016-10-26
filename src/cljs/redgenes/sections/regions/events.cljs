@@ -7,6 +7,7 @@
             [clojure.spec :as s]
             [day8.re-frame.http-fx]
             [redgenes.events]
+            [com.rpl.specter :as specter]
             [ajax.core :as ajax]))
 
 
@@ -43,14 +44,22 @@
 
 (reg-event-db
   :regions/toggle-feature-type
-  (fn [db [_ class-name]]
-    (update-in db [:regions :settings :feature-types class-name] not)))
+  (fn [db [_ class]]
+    (let [class-kw    (keyword (:name class))
+          m           (get-in db [:assets :model])
+          descendants (keys (m/descendant-classes m class-kw))
+          status      (get-in db [:regions :settings :feature-types class-kw])]
+      (update-in db [:regions :settings :feature-types]
+                 merge
+                 (reduce (fn [total next]
+                           (assoc total next (not status)))
+                         {class-kw (not status)} descendants)))))
 
 (reg-event-db
   :regions/select-all-feature-types
   (fn [db]
     (let [model         (get-in db [:assets :model])
-          feature-types (m/descendants-of model :SequenceFeature)]
+          feature-types (m/descendant-classes model :SequenceFeature)]
       (assoc-in db [:regions :settings :feature-types]
                 (reduce (fn [total [name]]
                           (assoc total (keyword name) true)) {} feature-types)))))

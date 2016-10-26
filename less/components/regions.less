@@ -38,3 +38,31 @@ svg.region {
     }
 
 }
+
+.feature-tree-container {
+    font-size: 0.9em;
+    max-height: 500px;
+    overflow-y: scroll;
+}
+
+ul.features-tree {
+
+    padding: 5px;
+
+    list-style-type: none;
+
+    li {
+        padding: 2px 0px 2px 5px;
+        border: 1px solid transparent;
+        border-radius: 10px;
+        margin: 1px;
+    }
+
+    & li.selected {
+        background-color: #19a094;
+        color: white;
+        border: 1px solid #19a094;
+        border-radius: 10px;
+        font-weight: bold;
+    }
+}

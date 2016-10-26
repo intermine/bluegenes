@@ -8,7 +8,7 @@
   :regions/sequence-feature-types
   (fn [db]
     (let [model (get-in db [:assets :model])]
-      (m/descendants-of model :SequenceFeature))))
+      (m/descendant-classes-as-tree model :SequenceFeature))))
 
 (reg-sub
   :regions/settings
