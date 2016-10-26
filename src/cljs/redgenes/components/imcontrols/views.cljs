@@ -3,6 +3,8 @@
             [reagent.core :as reagent]
             [oops.core :refer [oget]]))
 
+
+
 "Creates a dropdown of known organisms. The supplied :on-change function will
 receive all attributes of the organism selected.
 Options {}:
@@ -21,7 +23,7 @@ Example usage:
       [:div.btn-group
        [:button.btn.btn-primary.dropdown-toggle
         {:data-toggle "dropdown"}
-        [:span (if label label "Organism ") [:span.caret]]]
+        [:span (if label (str label " ") "All Organism ") [:span.caret]]]
        (-> [:ul.dropdown-menu]
            (into [[:li [:a {:on-click (partial on-change nil)}
                         [:span [:i.fa.fa-times] " Clear"]]]
