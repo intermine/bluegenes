@@ -49,7 +49,7 @@
 
   :min-lein-version "2.5.3"
 
-  :source-paths ["src/clj" "src/cljs" "src/cljc"]
+  :source-paths ["src/clj" "src/cljs" "src/cljc" "src/workers"]
 
   :clean-targets ^{:protect false} ["resources/public/js/compiled" "target"
                                     "test/js"]
@@ -90,6 +90,25 @@
                     ;                :provides ["intermine.imjs"]}
                     ;               {:file "resources/public/vendor/imtables.js"
                     ;                :provides ["intermine.imtables"]}]
+                    }}
+    :no-react
+    {
+     :source-paths ["src/workers"]
+     :compiler     {
+                    :optimizations        :simple
+                    :output-dir           "resources/public/js/no-react"
+                    :asset-path           "js/no-react"
+                    :source-map-timestamp true
+                    :pretty-print         true
+                    :parallel-build       true
+                    :modules
+                                          {
+                                           :main
+                                           {
+                                            :output-to  "resources/public/js/no-react/main.js"
+                                            :entries    #{"redgenes.mayn"}
+                                            }
+                                           }
                     }}
     :modules
     {

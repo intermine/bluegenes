@@ -30,17 +30,14 @@ catch(e){console.log(e);}
 function setcode(c)
 {
   self.codez[c.name] = c;
-  getcode("js/mod/redgenes/workers.js", "workers", withbase);
 }
 
-function withbase(c)
+function withbase(c, base)
 {
-  c.source = "self.importScripts('"+self.cljs.url+"');/n"+c.source;
-  c.code = new Blob([c.source], {type: 'text/javascript'});
-  c.url = URL.createObjectURL(c.code);
-  self.codez[c.name] = c;
+
 }
 
 getcode("js/mod/cljs_base.js", "cljs", setcode);
+getcode("js/mod/redgenes/workers.js", "workers", setcode);
 
 //# sourceMappingURL=main.js.map
