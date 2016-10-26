@@ -82,27 +82,25 @@
            [:div.container-fluid
             [:div.row
              [:div.col-xs-8
-              [:form
-               [:div.form-group
-                [:label "Organism"]
-                [im-controls/organism-dropdown
-                 {:label     (if-let [sn (get-in @settings [:organism :shortName])]
-                               sn
-                               "All Organisms")
-                  :on-change (fn [organism]
-                               (dispatch [:regions/set-selected-organism organism]))}]]]
+              [:div.form-group
+               [:label "Organism"]
+               [im-controls/organism-dropdown
+                {:label     (if-let [sn (get-in @settings [:organism :shortName])]
+                              sn
+                              "All Organisms")
+                 :on-change (fn [organism]
+                              (dispatch [:regions/set-selected-organism organism]))}]]
               [:div.form-group
                [:label "Include Features"]
                [feature-types]]]
              [:div.col-xs-4
-              [:form
-               [:div.form-group
-                [:label "Regions"]
-                [region-input-box]
-                [:div.btn-toolbar
-                 [:button.btn.btn-primary
-                  {:on-click (fn [] (dispatch [:regions/set-to-search example-regions]))}
-                  "Example"]]]]]]
+              [:div.form-group
+               [:label "Regions"]
+               [region-input-box]
+               [:div.btn-toolbar
+                [:button.btn.btn-primary
+                 {:on-click (fn [] (dispatch [:regions/set-to-search example-regions]))}
+                 "Example"]]]]]
             [:div.row
              [:div.col-xs-8
               [:div.btn-toolbar
