@@ -34,23 +34,16 @@
  "Visual component: outputs the number of results shown."
    [:small " Displaying " (count-current-results) " of " (count-total-results @(subscribe [:search/full-results])) " results"])
 
-(defn results-display [api search-term]
+(defn results-display [search-term]
  "Iterate through results and output one row per result using result-row to format. Filtered results aren't output. "
  (let [state (subscribe [:search/full-results])]
   [:div.results
-   [:h4 "Results for '" (:term @(subscribe [:search/full-results])) "'"  [results-count]]
+   [:h4 "Results for '" @(subscribe [:search-term]) "'"  [results-count]]
    [:form
-       (doall (let [active-results (filter (fn [result] (is-active-result? result)) (:results @state))
-       filtered-result-count (get (:category (:facets @state)) (:active-filter @state))]
-         ;;load more results if there are less than our preferred number, but more than
-         ;;the original search returned
-        ;  (cond (and  (< (count-current-results) filtered-result-count)
-        ;              (<= (count-current-results) max-results))
-        ;    (dispatch [:search/full-search]))
-         ;;output em!
+       (doall (let [active-results (filter (fn [result] (is-active-result? result)) (:results @state))]
          (for [result active-results]
            ^{:key (.-id result)}
-           [resulthandler/result-row {:result result :state state :api api :search-term @search-term}])))
+           [resulthandler/result-row {:result result :search-term @(subscribe [:search-term])}])))
     ]
   ]))
 

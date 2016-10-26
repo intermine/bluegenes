@@ -26,3 +26,8 @@
   :search/active-filter
   (fn [db _]
     (:active-filter (:search-results db))))
+
+(reg-sub
+  :search/highlight?
+  (fn [db _]
+    (:highlight-results (:search-results db))))

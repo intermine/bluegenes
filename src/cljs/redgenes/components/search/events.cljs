@@ -114,7 +114,7 @@
 
 (reg-fx
  :load-more-results-if-needed
- ;;outputs the results we have client side alredy (ie if a non-filtered search returns 100 results due to a limit, but indicates that there are 132 proteins in total, we'll show all the proteins we have when we filter down to just proteins, so the user might not even notice that we're fetching the rest in the background.)
+ ;;output the results we have client side alredy (ie if a non-filtered search returns 100 results due to a limit, but indicates that there are 132 proteins in total, we'll show all the proteins we have when we filter down to just proteins, so the user might not even notice that we're fetching the rest in the background.)
  ;;while the remote results are loading. Good for slow connections.
  (fn [search-results]
    (let [results (:results search-results)
@@ -140,4 +140,9 @@
     {:db (assoc db :search-results (dissoc (:search-results db) :active-filter))
      :dispatch [:search/full-search]
      }
+))
+
+(reg-event-db :search/highlight-results
+  (fn [db [_ highlight?]]
+    (assoc-in db [:search-results :highlight-results] highlight?)
 ))

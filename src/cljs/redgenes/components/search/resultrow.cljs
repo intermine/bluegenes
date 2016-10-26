@@ -7,26 +7,27 @@
   "returns true if 'result' is selected"
   (= selected-result result))
 
-(defn result-selection-control [result state]
+(defn result-selection-control [result]
   "UI control suggesting to the user that there is only one result selectable at any one time; there's no actual form functionality here."
   [ :input {
       :type "radio"
       :name "keyword-search" ;;todo, dynamic names. would we ever really have two keyword searches on one page though? That seems like madness!
-      :checked (is-selected? result (:selected-result @state))}])
+            }])
 
 (defn set-selected! [row-data elem]
   "sets the selected result in the local state atom and emits that we 'have' this item to next steps / the next tool"
-    (swap! (:state row-data) assoc :selected-result (:result row-data))
+;    (swap! (:state row-data) assoc :selected-result (:result row-data))
     (navigate! (str "#/objects/" (aget (:result row-data) "type") "/" (aget (:result row-data) "id")))
   )
 
 (defn row-structure [row-data contents]
   "This method abstracts away most of the common components for all the result-row baby methods."
-  (let [result (:result row-data) state (:state row-data)]
+  (let [result (:result row-data)]
   [:div.result {
     :on-click (fn [this] (set-selected! row-data (.-target this)))
-    :class (if (is-selected? result (:selected-result @state)) "selected")}
-    [result-selection-control result state]
+    ;:class (if (is-selected? result (:selected-result @state)) "selected")
+    }
+    [result-selection-control result]
     [:span.result-type {:class (str "type-" (.-type result))} (.-type result)]
     (contents)]
   ))
@@ -55,8 +56,9 @@
 (defn show [row-data selector]
   "Helper: fetch a result from the data model, adding a highlight if the setting is enabled."
   (let [string (aget (:result row-data) "fields" selector)
-        term (:search-term row-data)]
-    (if (and string (:highlight-results @(:state row-data)))
+        term (:search-term row-data)
+        highlight? (re-frame/subscribe [:search/highlight?])]
+    (if (and @highlight? string)
       (let [pattern (re-pattern (str "(?i)([\\S\\s]*)" term "([\\S\\s]*)"))
             broken-string (re-seq pattern string)]
         (if broken-string

@@ -26,14 +26,14 @@
       [:div.active-filter active-filter [remove-filter active-filter]]
       [:div "None"])])
 
-(defn controls [state]
+(defn controls []
   [:form.controls
    [:label
     [:input {:type "checkbox" :on-click
-             (fn [e]
-               ;;toggle highlight.
-               (swap! state assoc :highlight-results (.-checked (.-target e))))
-             }]
+     (fn [e]
+       ;;toggle highlight.
+       (re-frame/dispatch [:search/highlight-results (.-checked (.-target e))]))
+     }]
     [:span.checkbox-material [:span.check]]
     "Highlight search terms in results (experimental, may be sluggish)"]
    ])
@@ -67,6 +67,5 @@
          [:td name (if (is-active name active)
            [remove-filter name])]])]
        ]]
-       [controls state]
-       ;(json-html/edn->hiccup @(re-frame/subscribe [:search/full-results]))
+       [controls]
    ])))
