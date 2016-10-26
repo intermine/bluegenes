@@ -34,6 +34,7 @@
                  [com.taoensso/carmine "2.15.0"]
                  [inflections "0.12.2"]
                  [fipp "0.6.6"]
+                 [binaryage/oops "0.5.2"]
                  [inflections "0.12.2"]]
 
   :plugins [[lein-cljsbuild "1.1.4"]
@@ -64,7 +65,7 @@
   {:dev
    {:dependencies []
 
-    :plugins      [[lein-figwheel "0.5.4-7"]
+    :plugins      [[lein-figwheel "0.5.8"]
                    [lein-doo "0.1.6"]]
     }}
 
@@ -78,7 +79,7 @@
      :figwheel     {:on-jsload "redgenes.core/mount-root"}
      :compiler     {
                     :main                 redgenes.core
-                    :optimizations        :none
+                    :optimizations        :whitespace
                     :output-to            "resources/public/js/compiled/app.js"
                     :output-dir           "resources/public/js/compiled"
                     :asset-path           "js/compiled"
@@ -93,7 +94,7 @@
     :modules
     {
      :source-paths ["src/cljs"]
-     :figwheel     {:on-jsload "redgenes.core/mount-root"}
+     ;:figwheel     {:on-jsload "redgenes.core/mount-root"}
      :compiler     {
                     :optimizations        :simple
                     :output-dir           "resources/public/js"
@@ -119,11 +120,35 @@
                                              :main
                                              {
                                               :output-to  "resources/public/js/main.js"
-                                              :entries    #{"redgenes.main" "redgenes.modules"}
+                                              :entries    #{"redgenes.main"}
                                               }
                                            }
                     }}
-
+    :modules1
+    {
+     :source-paths ["src/cljs"]
+     ;:figwheel     {:on-jsload "redgenes.core/mount-root"}
+     :compiler     {
+                    :optimizations        :simple
+                    :output-dir           "resources/public/js/mod"
+                    :source-map           true
+                    :source-map-timestamp true
+                    :pretty-print         true
+                    :parallel-build       true
+                    :modules
+                    {
+                       :main
+                       {
+                        :output-to  "resources/public/js/mod/main.js"
+                        :entries    #{"redgenes.main"}
+                        }
+                       :workers
+                       {
+                        :output-to  "resources/public/js/mod/workers.js"
+                        :entries    #{"redgenes.workers"}
+                        }
+                     }
+                    }}
     :min
     {
      :source-paths ["src/cljs"]
@@ -143,14 +168,15 @@
     :test
     {
      :source-paths ["src/cljs" "test/cljs"]
-     :compiler     {:output-to     "resources/public/js/compiled/test.js"
+     :compiler     {:output-to     "resources/public/js/test/test.js"
+                    :output-dir     "resources/public/js/test"
                     :main          redgenes.runner
                     :optimizations :none}}
     }}
 
   :main redgenes.server
 
-  :aot [redgenes.server]
+  ;:aot [redgenes.server]
 
   ;:prep-tasks [["cljsbuild" "once" "min"] "compile"]
   )
