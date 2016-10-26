@@ -150,7 +150,8 @@
   (fn [{db :db}]
     {:db         (assoc db :fetching-assets? false)
      :dispatch-n [[:cache/fetch-organisms]
-                  [:saved-data/load-lists]]}))
+                  [:saved-data/load-lists]
+                  [:regions/select-all-feature-types]]}))
 
 (reg-fx
   :fetch-assets
