@@ -1,6 +1,7 @@
 (ns redgenes.interceptors
   (:require [re-frame.core :as re-frame]
-            [clojure.spec :as s]))
+            [clojure.spec :as s]
+            [oops.core :refer [ocall oget]]))
 
 ; (defmacro qwe [f v] `(fn [~v] (~f v)))
 
@@ -16,4 +17,9 @@
                         (dissoc :queue)
                         (re-frame.core/enqueue [])))
                   context)))))
+
+(defn clear-tooltips []
+  (re-frame.core/->interceptor
+    :id :clear-tooltips
+    :after (fn [context] (ocall (js/$ ".popover") "remove") context)))
 

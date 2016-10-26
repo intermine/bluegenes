@@ -9,9 +9,12 @@
             [redgenes.routes :as routes]
             [redgenes.views :as views]
             [redgenes.config :as config]
+            [redgenes.workers :as workers]
             [redgenes.components.listanalysis.core]
             [redgenes.components.querybuilder.subs]
-            [redgenes.components.templates.core]))
+            [redgenes.components.templates.core]
+            [oops.core :refer [oget oset! ocall oapply ocall! oapply!
+                               oget+ oset!+ ocall+ oapply+ ocall!+ oapply!+]]))
 
 (defn dev-setup []
   (when config/debug?
@@ -20,10 +23,9 @@
 
 (defn mount-root []
   (reagent/render [views/main-panel]
-                  (.getElementById js/document "app")))
+                  (ocall js/document "getElementById" "app")))
 
 (defn ^:export init []
-  (println "starting app")
   (routes/app-routes)
   (re-frame/dispatch-sync [:initialize-db])
   (re-frame/dispatch [:fetch-all-assets])

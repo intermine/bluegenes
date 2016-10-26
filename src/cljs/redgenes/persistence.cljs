@@ -36,7 +36,7 @@
       except-paths)))
 
 (defn to-transit [state]
-  (t/write (t/writer :json-verbose) (filter-state state)))
+  (t/write (t/writer :json-verbose) state))
 
 (defn persist! [state]
   (println "persist state")

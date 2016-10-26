@@ -5,7 +5,8 @@
             [redgenes.sections.results.events]
             [redgenes.sections.results.subs]
             [redgenes.components.bootstrap :refer [popover tooltip]]
-            [clojure.string :refer [split]]))
+            [clojure.string :refer [split]]
+            [oops.core :refer [oget]]))
 
 
 (def css-transition-group
@@ -40,11 +41,11 @@
 (def sidebar-hover (reagent/atom false))
 
 (defn popover-table []
-  (let [values (subscribe [:results/summary-values])
-        result (first (:results @values))
+  (let [values         (subscribe [:results/summary-values])
+        result         (first (:results @values))
         column-headers (:columnHeaders @values)]
     (fn [matches p-value]
-     [:div.sidebar-popover
+      [:div.sidebar-popover
        [:table
         (into [:tbody]
               (map-indexed (fn [idx header]
@@ -60,7 +61,6 @@
     [:li.enrichment-item
      {:on-mouse-enter (fn [] (dispatch [:results/get-item-details identifier pathConstraint]))
       :on-click       (fn []
-
                         (dispatch [:results/add-to-history row details]))}
      [popover [:span {:data-content   [popover-table matches p-value]
                       :data-placement "left"
@@ -134,9 +134,32 @@
                   {:title          "The p-value is the probability that result occurs by chance, thus a lower p-value indicates greater enrichment."
                    :data-trigger   "hover"
                    :data-placement "bottom"}]]]
-       [:div.expandable
+       [:div.expandable.present
+        ; disable hover effects for now
         {:class (if (or @sidebar-hover @value) "present" "gone")}
-        [text-filter]]
+
+
+        [:div.container-fluid
+         {:width "100%"}
+         [:div.row
+          [:div.col-xs-4
+           [:label "Max p-value"]
+           [:select.form-control
+            {:on-change #(dispatch [:results/update-enrichment-setting :maxp (oget % "target" "value")])}
+            [:option "0.05"]
+            [:option "0.10"]
+            [:option "1.00"]]]
+          [:div.col-xs-8
+           [:label "Test Correction"]
+           [:select.form-control
+            {:on-change #(dispatch [:results/update-enrichment-setting :correction (oget % "target" "value")])}
+            [:option "Holm-Bonferroni"]
+            [:option "Benjamini Hochber"]
+            [:option "Bonferroni"]
+            [:option "None"]]]]
+         [:div.row
+          [:div.col-xs-12
+           [text-filter]]]]]
        [enrichment-results]])))
 
 (defn adjust-str-to-length [length string]

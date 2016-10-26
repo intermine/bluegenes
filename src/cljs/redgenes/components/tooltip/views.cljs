@@ -1,15 +1,16 @@
 (ns redgenes.components.tooltip.views
   (:require [reagent.core :as reagent]
             [re-frame.core :refer [subscribe dispatch]]
-            [dommy.core :refer-macros [sel sel1]]))
+            [dommy.core :refer-macros [sel sel1]]
+            [oops.core :refer [ocall oapply oget oset!]]))
 
 (defn closeme
   "pass the element that resolves to .tooltip-bg, and we'll nuke the node for you"
   [tooltip]
-  (let [tooltip-parent (.-parentNode tooltip)]
+  (let [tooltip-parent (oget tooltip "parentNode")]
     ;(.log js/console "%ctooltip" "color:hotpink;font-weight:bold;" (clj->js tooltip))
     ;(.log js/console "%ctooltip-parent" "color:hotpink;font-weight:bold;" (clj->js tooltip-parent))
-    (.removeChild tooltip-parent tooltip)
+    (ocall tooltip-parent "removeChild" tooltip)
     ))
 
 (defn main
@@ -18,7 +19,7 @@
   (reagent/create-class
     {:component-did-mount
      (fn [e]
-       (.focus (sel1 (reagent/dom-node e) "input")))
+       (ocall (sel1 (reagent/dom-node e) "input") "focus"))
      :reagent-render
      (fn [{:keys [content on-blur] :as data}]
        [:div.tooltip-bg.open
@@ -31,5 +32,6 @@
          [:div.close
           {:aria-label "Close"
            :on-click   (fn [e]
-                         (closeme (.-parentNode (.-parentNode (.-target e))))
+                         (closeme (-> e (oget "target") (oget "parentNode") (oget "parentNode")))
+                         ;(closeme (.-parentNode (.-parentNode (.-target e))))
                          )} "x"]]])}))

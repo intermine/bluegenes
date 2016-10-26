@@ -9,7 +9,7 @@
             [accountant.core :refer [navigate!]]
             [inflections.core :refer [plural]]
             [clojure.string :refer [join]]
-            [redgenes.sections.saveddata.views.saved-data-item :as saved-data-item]
+            [redgenes.sections.saveddata.views.saveddataitem :as saved-data-item]
             [redgenes.sections.saveddata.views.venn :as venn]))
 
 

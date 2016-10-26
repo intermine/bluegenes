@@ -1,17 +1,21 @@
 (ns redgenes.routes
   (:require [compojure.core :refer [GET POST defroutes context ANY]]
             [compojure.route :refer [resources]]
-
             [redgenes.api.modelcount :refer [modelcount modelcount-children cache cacheall]]
             [ring.util.response :refer [response resource-response]]))
-
-
 
 (defroutes routes
   (GET "/" []
        (println "Slime and snails")
        (resource-response "index.html" {:root "public"}))
   (resources "/")
+
+  (GET "/worker" [worker]
+  (assoc
+      (response
+       (slurp "./resources/public/js/compiled/worker.js"))
+       :status 200
+       :headers {"content-type" "text/javascript"}))
 
   (GET "/version" [] (response {:version "0.1.0"}))
 

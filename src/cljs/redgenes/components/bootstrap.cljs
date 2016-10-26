@@ -1,5 +1,6 @@
 (ns redgenes.components.bootstrap
-  (:require [reagent.core :as reagent]))
+  (:require [reagent.core :as reagent]
+            [oops.core :refer [ocall oapply oget oset!]]))
 
 
 (defn popover
@@ -13,10 +14,10 @@
   (reagent/create-class
     {:component-did-mount
      (fn [this]
-       (let [node (reagent/dom-node this)] (.popover (-> node js/$))))
+       (let [node (reagent/dom-node this)] (ocall (-> node js/$) "popover")))
      :component-will-unmount
      (fn [this]
-       (let [node (reagent/dom-node this)] (.remove (-> ".popover" js/$))))
+       (let [node (reagent/dom-node this)] (ocall (-> "popover" js/$) "remove")))
      :reagent-render
      (fn [[element attributes & rest]]
        [element (-> attributes
@@ -34,7 +35,7 @@
   (reagent/create-class
     {:component-did-mount
      (fn [this]
-       (let [node (reagent/dom-node this)] (.tooltip (-> node js/$))))
+       (let [node (reagent/dom-node this)] (ocall (-> node js/$) "tooltip")))
      :reagent-render
      (fn [[element attributes & rest]] [element attributes rest])}))
 
