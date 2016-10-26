@@ -99,7 +99,6 @@
                    (search/build-feature-query to-search)
                    (map name (keys (filter (fn [[name enabled?]] enabled?) feature-types))))
                   (add-organism-constraint selected-organism))]
-      (println "ORGANISM" selected-organism)
       {:db           (assoc-in db [:regions :regions-searched] (map parse-region to-search))
        :im-operation {:op         (partial search/raw-query-rows
                                            {:root @(subscribe [:mine-url])}

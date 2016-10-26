@@ -62,15 +62,17 @@
     (fn []
       [:div
        [:textarea.form-control
-        {:rows      8
+        {:rows        8
          :placeholder (str "example:\n" example-regions)
-         :value     @to-search
-         :on-change (fn [e]
-                      (dispatch [:regions/set-to-search (oget e "target" "value")]))}]])))
+         :value       @to-search
+         :on-change   (fn [e]
+                        (dispatch [:regions/set-to-search (oget e "target" "value")]))}]])))
 
 ; Results table
 (defn result-table []
-  (let [model (subscribe [:model])]
+  (let [pager (reagent/atom {:show 20
+                             :page 0})
+        model (subscribe [:model])]
     (fn [{:keys [chromosome from to results] :as feature}]
       [:div.grid-2_xs-1
        {:style {:font-size "0.8em"}}
@@ -78,6 +80,15 @@
         [:h4 (str chromosome " " from ".." to)]
         [graphs/main feature]]
        [:div.col-9
+        [:div.row
+         [:div.btn-toolbar.pull-right
+          [:button.btn.btn-primary
+           {:disabled (< (:page @pager) 1)
+            :on-click (fn [] (swap! pager update :page dec))}
+           "Previous"]
+          [:button.btn.btn-primary
+           {:disabled (< (count results) (* (:show @pager) (inc (:page @pager))))
+            :on-click (fn [] (swap! pager update :page inc))} "Next"]]]
         [:div.grid-3_xs-3
          [:div.col [:h4 "Feature"]]
          [:div.col [:h4 "Feature Type"]]
@@ -91,11 +102,12 @@
                             ":"
                             (:start chromosomeLocation)
                             ".."
-                            (:end chromosomeLocation))]]) results)]])))
+                            (:end chromosomeLocation))]])
+             (take (:show @pager) (drop (* (:show @pager) (:page @pager)) results)))]])))
 
 (defn main []
-  (let [results  (subscribe [:regions/results])
-        settings (subscribe [:regions/settings])
+  (let [results   (subscribe [:regions/results])
+        settings  (subscribe [:regions/settings])
         to-search (subscribe [:regions/to-search])]
     (fn []
       [:div.container
@@ -150,7 +162,10 @@
                  {:on-click (fn [] (dispatch [:regions/deselect-all-feature-types]))}
                  [:span [:i.fa.fa-square-o] " Deselect All"]]
                 [:button.btn.btn-primary.btn-raised.pull-right
-                 {:class    (if (or (= "" @to-search) (= nil @to-search) ) "disabled")
+                 {:disabled (or
+                              (= "" @to-search)
+                              (= nil @to-search)
+                              (empty? (filter (fn [[name enabled?]] enabled?) (:feature-types @settings))))
                   :on-click (fn [] (dispatch [:regions/run-query]))}
                  [:span "Search"]]]]]]]]]]]
        [:div.row
