@@ -1,0 +1,70 @@
+div.region-results {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid green;
+
+    div.region-row {
+        display: flex;
+        flex-direction: row;
+        flex: 1 0;
+        border: 1px solid black;
+
+        div.summary-column {
+            flex: 1 0;
+            border: 1px solid red;
+        }
+
+        div.regular-column {
+            flex: 1 1;
+            border: 1px solid yellow;
+        }
+     }
+}
+
+
+svg.region {
+    background-color: white;
+    // border: 1px solid #eaeaea;
+
+    rect.datum {
+        opacity: 0.2;
+        fill: #009688;
+    }
+
+    path.guide {
+        stroke: black;
+        fill: none;
+
+    }
+
+}
+
+.feature-tree-container {
+    font-size: 0.9em;
+    max-height: 500px;
+    overflow-y: scroll;
+}
+
+ul.features-tree {
+
+    padding: 5px;
+    list-style-type: none;
+
+    li {
+        padding: 2px 0px 2px 5px;
+        border: 1px solid transparent;
+        border-radius: 10px;
+        margin: 1px;
+        background: white;
+    }
+
+    & i {
+        padding-right: 3px;
+    }
+
+    & li.selected {
+        background-color: #daf2f0;
+        border: 1px solid #daf2f0;
+        border-radius: 10px;
+    }
+}

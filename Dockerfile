@@ -63,5 +63,5 @@ RUN echo '@import "../../bootstrap/less/variables.less";'> '/usr/src/app/resourc
 
 RUN lein clean
 RUN lein less once
-RUN lein cljsbuild once min
+RUN lein cljsbuild once dev
 CMD lein run

@@ -55,13 +55,13 @@
 
 (defn active-mine-logo []
   [:span.logo {:class @(subscribe [:mine-name])}
-  ]
+   ]
   )
 
 (defn main []
   (let [active-panel (subscribe [:active-panel])
         app-name     (subscribe [:name])
-        short-name     (subscribe [:short-name])
+        short-name   (subscribe [:short-name])
         saved-data   (subscribe [:saved-data])
         ttip         (subscribe [:tooltip])
         panel-is     (fn [panel-key] (= @active-panel panel-key))]
@@ -69,11 +69,12 @@
       [:nav.navbar.navbar-default.navbar-fixed-top.down-shadow
        [:div.container-fluid
         [:ul.nav.navbar-nav.navbar-collapse.navigation
-        [:li [:div.navbar-header
-        [:span.navbar-brand {:on-click #(navigate! "#/")} [active-mine-logo] [:span.long-name @app-name] [:span.short-name @short-name]]]]
+         [:li [:div.navbar-header
+               [:span.navbar-brand {:on-click #(navigate! "#/")} [active-mine-logo] [:span.long-name @app-name] [:span.short-name @short-name]]]]
          [:li.homelink {:class (if (panel-is :home-panel) "active")} [:a {:on-click #(navigate! "#/")} "Home"]]
          [:li {:class (if (panel-is :upload-panel) "active")} [:a {:on-click #(navigate! "#/upload")} "Upload"]]
          [:li {:class (if (panel-is :templates-panel) "active")} [:a {:on-click #(navigate! "#/templates")} "Templates"]]
+         [:li {:class (if (panel-is :regions-panel) "active")} [:a {:on-click #(navigate! "#/regions")} "Regions"]]
          [:li {:class (if (panel-is :querybuilder-panel) "active")} [:a {:on-click #(navigate! "#/querybuilder")} "Query\u00A0Builder"]]
          [:li {:class (if (panel-is :saved-data-panel) "active")} [:a {:on-click #(navigate! "#/saved-data")} (str "Saved\u00A0Data\u00A0(" (count (keys @saved-data)) ")")]
           ;;example tooltip. Include as last child, probably with some conditional to display and an event handler for saving the name
