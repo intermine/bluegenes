@@ -3,12 +3,10 @@
 
 (enable-console-print!)
 
-(println (+ 1 2 5 7 3))
-
 (defn get! [f url]
  (let [r (js/XMLHttpRequest.)]
-   (.addEventListener r "load" f)
-   (.open r "GET" url)
+   (.addEventListener r :load f)
+   (.open r :GET url)
    (.send r)))
 
 (defn as-blob [code]
@@ -32,13 +30,18 @@
      source)))
 
 (defn get-code
- ([]
-    (println "getting code...")
-   (get!
+ ([codez [{:keys [naym url]} & r]]
+  (if url
+    (get!
      (fn [e]
        (this-as thys
-         (get-code (as-blob (.-responseText thys)))))
-     "js/no-react/cljs_base.js"))
+         (if r
+          (recur
+            (assoc codez naym (as-blob (.-responseText thys)))
+            r)
+            codez)))
+     "js/no-react/cljs_base.js")
+     codez))
  ([base]
    (get!
      (fn [e]
@@ -52,8 +55,7 @@
                    "workers" code
                    }]
            (set! (.-codez js/self) (clj->js codez))
-           (println "got all that")
-           )))
+           (println "got all that"))))
      "js/no-react/redgenes/workers.js")))
 
 (get-code)
