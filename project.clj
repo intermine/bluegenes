@@ -54,8 +54,8 @@
   :clean-targets ^{:protect false} ["resources/public/js/compiled" "target"
                                     "test/js"]
 
-  :figwheel {:css-dirs     ["resources/public/css"]
-             :ring-handler redgenes.handler/dev-handler
+  :figwheel {:css-dirs         ["resources/public/css"]
+             :ring-handler     redgenes.handler/dev-handler
              :reload-clj-files {:cljc true}}
 
   :less {:source-paths ["less"]
@@ -96,7 +96,7 @@
      :source-paths ["src/cljs"]
      :figwheel     {:on-jsload "redgenes.core/mount-root"}
      :compiler     {
-                    :optimizations        :simple
+                    :optimizations        :none
                     :output-dir           "resources/public/js"
                     :source-map           true
                     :source-map-timestamp true
@@ -104,24 +104,24 @@
                     :parallel-build       true
                     :modules
                                           {
-                                             :app
-                                             {
-                                              :output-to  "resources/public/js/app.js"
-                                              :entries    #{"redgenes.core"}
-                                              }
-                                             :query-builder
-                                             {
-                                              :output-to  "resources/public/js/qb.js"
-                                              :entries
-                                                          #{
-                                                            "redgenes.components.querybuilder.views.main"
-                                                            }
-                                              }
-                                             :main
-                                             {
-                                              :output-to  "resources/public/js/main.js"
-                                              :entries    #{"redgenes.main" "redgenes.modules"}
-                                              }
+                                           :app
+                                           {
+                                            :output-to "resources/public/js/app.js"
+                                            :entries   #{"redgenes.core"}
+                                            }
+                                           :query-builder
+                                           {
+                                            :output-to "resources/public/js/qb.js"
+                                            :entries
+                                                       #{
+                                                         "redgenes.components.querybuilder.views.main"
+                                                         }
+                                            }
+                                           :main
+                                           {
+                                            :output-to "resources/public/js/main.js"
+                                            :entries   #{"redgenes.main" "redgenes.modules"}
+                                            }
                                            }
                     }}
 
@@ -131,6 +131,7 @@
      :jar          true
      :compiler     {:main            redgenes.core
                     :output-to       "resources/public/js/compiled/app.js"
+                    :output-dir      "resources/public/js/compiled/test"
                     :externs         ["externs/imjs.js"
                                       "externs/imtables.js"]
                     :optimizations   :advanced
