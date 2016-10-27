@@ -10,27 +10,20 @@
             [clojure.string :refer [split]]
             [oops.core :refer [oget ocall]]))
 
-; An individual feature that can be toggled on or off
-(defn feature-type []
-  (fn [[class-name class-properties] active?]
-    [:li
-     {:class    (if active? "active")
-      :on-click (fn [] (dispatch [:regions/toggle-feature-type class-name]))}
-     [:a (:displayName class-properties)]]))
 
-; A collection of all classes that extend SequenceFeature
-(defn feature-types []
-  (let [known-feature-types (subscribe [:regions/sequence-feature-types])
-        settings            (subscribe [:regions/settings])]
-    (fn []
-      (into [:ul.nav.nav-pills
-             {:style {:font-size "0.8em"}}]
-            (map (fn [t]
-                   (let [active? (get-in @settings [:feature-types (first t)])]
-                     [feature-type t active?]))
-                 (sort-by (comp :displayName second) @known-feature-types))))))
+(def css-transition-group
+  (reagent/adapt-react-class js/React.addons.CSSTransitionGroup))
 
+(def example-regions (clojure.string/join "\n" ["2L:14615455..14619002"
+                                                "2R:5866646..5868384"
+                                                "3R:2578486..2580016"]))
 
+(def region-help-content-popover
+  [:span "Genome regions in the following formats are accepted:"
+   [:ul
+    [:li [:span "chromosome:start..end, e.g. 2L:11334..12296"]]
+    [:li [:span "chromosome:start-end, e.g. 2R:5866746-5868284 or chrII:14646344-14667746"]]
+    [:li [:span "tab delimited"]]]])
 
 (defn feature-branch []
   (let [settings (subscribe [:regions/settings])]
@@ -53,9 +46,7 @@
       (into [:ul.features-tree]
             (map (fn [f] [feature-branch f]) (sort-by (comp :displayName second) @known-feature-types))))))
 
-(def example-regions (clojure.string/join "\n" ["2L:14615455..14619002"
-                                                "2R:5866646..5868384"
-                                                "3R:2578486..2580016"]))
+
 ; Input box for regions
 (defn region-input-box []
   (let [to-search (subscribe [:regions/to-search])]
@@ -112,65 +103,57 @@
     (fn []
       [:div.container
        [:div.row
-        [:div.col-xs-12
-         [:div.panel.panel-default
-          [:div.panel-heading "Regions"]
-          [:div.panel-body
-           [:div.container-fluid
-            [:div.row
 
-             [:div.col-xs-4
-              [:div.form-group
-               [:label "Organism"]
-               [im-controls/organism-dropdown
-                {:label     (if-let [sn (get-in @settings [:organism :shortName])]
-                              sn
-                              "All Organisms")
-                 :on-change (fn [organism]
-                              (dispatch [:regions/set-selected-organism organism]))}]]
-              [:div.form-group
-               [:label "Regions "
-                [popover [:i.fa.fa-question-circle
-                          {:data-content   [:span "Genome regions in the following formats are accepted:"
-                                            [:ul
-                                             [:li [:span "chromosome:start..end, e.g. 2L:11334..12296"]]
-                                             [:li [:span "chromosome:start-end, e.g. 2R:5866746-5868284 or chrII:14646344-14667746"]]
-                                             [:li [:span "tab delimited"]]]]
-                           :data-trigger   "hover"
-                           :data-placement "bottom"}]]]
-               [region-input-box]
-               [:div.btn-toolbar
-                [:button.btn.btn-warning
-                 {:on-click (fn [] (dispatch [:regions/set-to-search nil]))}
-                 "Clear"]
-                [:button.btn.btn-primary
-                 {:on-click (fn [] (dispatch [:regions/set-to-search example-regions]))}
-                 "Example"]]]]
-             [:div.col-xs-8
+        ; Parameters section
+        [:div.col-xs-4
+         [:div.form-group
+          [:label "Organism"]
+          [im-controls/organism-dropdown
+           {:label     (if-let [sn (get-in @settings [:organism :shortName])]
+                         sn
+                         "All Organisms")
+            :on-change (fn [organism]
+                         (dispatch [:regions/set-selected-organism organism]))}]]
+         [:div.form-group
+          [:label "Regions "
+           [popover [:i.fa.fa-question-circle
+                     {:data-content   region-help-content-popover
+                      :data-trigger   "hover"
+                      :data-placement "bottom"}]]]
+          [region-input-box]
 
-              [:div.form-group
-               [:label "Include Features"]
-               [:div.feature-tree-container
-                [feature-types-tree]]]]]
-            [:div.row
-             [:div.col-xs-4
-              [:div.btn-toolbar]]
-             [:div.col-xs-8
-              [:div.btn-toolbar
-               [:div.btn-toolbar
-                [:button.btn.btn-primary
-                 {:on-click (fn [] (dispatch [:regions/select-all-feature-types]))}
-                 [:span [:i.fa.fa-check-square-o] " Select All"]]
-                [:button.btn.btn-primary
-                 {:on-click (fn [] (dispatch [:regions/deselect-all-feature-types]))}
-                 [:span [:i.fa.fa-square-o] " Deselect All"]]
-                [:button.btn.btn-primary.btn-raised.pull-right
-                 {:disabled (or
-                              (= "" @to-search)
-                              (= nil @to-search)
-                              (empty? (filter (fn [[name enabled?]] enabled?) (:feature-types @settings))))
-                  :on-click (fn [] (dispatch [:regions/run-query]))}
-                 [:span "Search"]]]]]]]]]]]
+          [css-transition-group
+           {:transition-name          "fade"
+            :transition-enter-timeout 2000
+            :transition-leave-timeout 2000}
+           [:div.btn-toolbar
+            [:button.btn.btn-primary
+             {:on-click (fn [] (dispatch [:regions/set-to-search example-regions]))} "Example"]
+            (if @to-search
+              [:button.btn.btn-warning
+               {:on-click (fn [] (dispatch [:regions/set-to-search nil]))} "Clear"])]]]]
+
+        ; Results section
+        [:div.col-xs-8
+         [:div.form-group
+          [:label "Include Features"]
+          [:div.feature-tree-container
+           [feature-types-tree]]
+          [:div.btn-toolbar
+           [:div.btn-toolbar
+            [:button.btn.btn-primary
+             {:on-click (fn [] (dispatch [:regions/select-all-feature-types]))}
+             [:span [:i.fa.fa-check-square-o] " Select All"]]
+            [:button.btn.btn-primary
+             {:on-click (fn [] (dispatch [:regions/deselect-all-feature-types]))}
+             [:span [:i.fa.fa-square-o] " Deselect All"]]
+            [:button.btn.btn-primary.btn-raised.pull-right
+             {:disabled (or
+                          (= "" @to-search)
+                          (= nil @to-search)
+                          (empty? (filter (fn [[name enabled?]] enabled?) (:feature-types @settings))))
+              :on-click (fn [] (dispatch [:regions/run-query]))}
+             [:span "Search"]]]]]]]
        [:div.row
         [:div.col-xs-12
          [:div.panel.panel-default
