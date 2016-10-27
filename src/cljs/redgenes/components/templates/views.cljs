@@ -123,12 +123,12 @@
 (defn template []
   (let [selected-template (subscribe [:selected-template])]
     (fn [[id query]]
-      [:a.list-group-item
+      [:a.list-group-item.template-result
        {:class    (if (= (name id) (:name @selected-template)) "active")
         :on-click (fn [] (dispatch [:template-chooser/choose-template id]))}
        [:h4.list-group-item-heading
         (last (clojure.string/split (:title query) "-->"))]
-       [:p.list-group-item-text (:description query)]])))
+       [:div.list-group-item-text (:description query) [:span.view-results "Preview >"]]])))
 
 (defn templates []
   (fn [templates]
@@ -150,7 +150,42 @@
     (re-pattern "(\\d)(?=(\\d{3})+$)") "$1,"))
 
 
-(def func (fn [& args] (fn [args])))
+(defn no-results-yet []
+  [:div.panel-body
+   [:svg.icon.icon-info [:use {:xlinkHref "#icon-info"}]]
+   "Try clicking on a template name in the other pane to preview its results"]
+  )
+
+
+
+(defn results [counting? result-count selected-template]
+  [:div.pane.pane-default.results
+  [:div.pane-heading "Results preview " (cond @result-count (str "("  @result-count " rows)"))]
+    (if (and (nil? @result-count) (not @counting?))
+      [no-results-yet]
+      [:div.pane-body
+        (if @counting?
+          [:i.fa.fa-cog.fa-spin.fa-1x.fa-fw]
+          [:div
+          [:button.btn.btn-primary.btn-raised
+           {:on-click
+            (fn []
+              (dispatch
+                [:save-data {:sd/type    :query
+                             :sd/service :flymine
+                             :sd/label   (last (split (:title @selected-template) "-->"))
+                             :sd/value   (assoc @selected-template :title (last (split (:title @selected-template) "-->")))}]))} "Save"]
+
+          [:button.btn.btn-primary.btn-raised
+           {:on-click (fn []
+                        (dispatch ^:flush-dom [:results/set-query @selected-template])
+                        (navigate! "#/results"))}
+           "View All Results"]
+           [lighttable/main {:query      @selected-template
+                             :no-repeats true}]
+          ])])]
+    )
+
 
 
 (defn main []
@@ -161,101 +196,28 @@
         counting?            (subscribe [:template-chooser/counting?])
         selected-constraints (subscribe [:template-chooser/selected-template-constraints])]
     (fn []
-      [:div.x-body
-       [:div.x-section
+      [:div.x-body.templates-section
+       [:div.x-section.select-a-template
         [:div.x-container
          [:div.pane.x-container
           [:div.pane-heading "Popular Queries"]
           [:div.pane-body.x-container
-           [:div.form-group
+           [:div.form-group.template-filter
             [:label.control-label "Filter by category"]
             [categories]]
-           [:div.form-group
-            [:label.control-label "Filter description"]
+           [:div.form-group.template-filter
+            [:label.control-label "Filter by description"]
             [template-filter filter-state]]
            [:div.x-scrollable-content
             [templates @im-templates]]]]]]
-       [:div.x-section
+       (cond (seq @selected-constraints) ;;show it if/when there's something to see
+       [:div.x-section.see-template-details
         [:div.pane
          [:div.pane-heading "Constraints"]
          [:div.pane-body
           ^{:key (:name @selected-template)} [form @selected-constraints]
           #_(json-html/edn->hiccup @selected-template)]]
-        [:div.panel.panel-default
-         [:div.panel-heading "Results"]
-         [:div.panel-body
-          (if @counting?
-            [:i.fa.fa-cog.fa-spin.fa-1x.fa-fw]
-            [:div
-             [:h2 (str @result-count " Rows")]
-             [lighttable/main {:query      @selected-template
-                               :no-repeats true}]
-             [:button.btn.btn-primary.btn-raised
-              {:on-click
-               (fn []
-                 (dispatch
-                   [:save-data {:sd/type    :query
-                                :sd/service :flymine
-                                :sd/label   (last (split (:title @selected-template) "-->"))
-                                :sd/value   (assoc @selected-template :title (last (split (:title @selected-template) "-->")))}]))} "Save"]
+          [results counting? result-count selected-template]
+        ])
 
-             [:button.btn.btn-primary.btn-raised
-              {:on-click (fn []
-                           (dispatch ^:flush-dom [:results/set-query @selected-template])
-                           (navigate! "#/results"))}
-              "View Results"]])]]]])))
-
-
-(defn main-old []
-  (let [im-templates         (subscribe [:templates-by-category])
-        selected-template    (subscribe [:selected-template])
-        filter-state         (reagent/atom nil)
-        result-count         (subscribe [:template-chooser/count])
-        counting?            (subscribe [:template-chooser/counting?])
-        selected-constraints (subscribe [:template-chooser/selected-template-constraints])]
-    (fn []
-      [:div.container-fluid
-       [:h2 "Popular Queries"]
-       [:div.row
-        [:div.col-md-6
-         [:div.panel.panel-default
-          [:div.panel-heading "Templates"]
-          [:div.panel-body
-           [:form.form
-            [:div.form-group
-             [:label.control-label "Filter description"]
-             [template-filter filter-state]]
-            [:div.form-group
-             [:label.control-label "Filter by category"]
-             [categories]]]
-           [:div.overflow-y
-            [templates @im-templates]]]]]
-        [:div.col-md-6
-         [:div.panel.panel-default
-          [:div.panel-heading "Constraints"]
-          [:div.panel-body
-           ^{:key (:name @selected-template)} [form @selected-constraints]
-           #_(json-html/edn->hiccup @selected-template)]]
-         [:div.panel.panel-default
-          [:div.panel-heading "Results"]
-          [:div.panel-body
-           (if @counting?
-             [:i.fa.fa-cog.fa-spin.fa-1x.fa-fw]
-             [:div
-              [:h2 (str @result-count " Rows")]
-              [lighttable/main {:query      @selected-template
-                                :no-repeats true}]
-
-              [:button.btn.btn-primary.btn-raised
-               {:on-click
-                (fn []
-                  (dispatch
-                    [:save-data {:type  :query
-                                 :label (last (split (:title @selected-template) "-->"))
-                                 :value (assoc @selected-template :title (last (split (:title @selected-template) "-->")))}]))} "Save"]
-
-              [:button.btn.btn-primary.btn-raised
-               {:on-click (fn []
-                            (dispatch ^:flush-dom [:results/set-query @selected-template])
-                            (navigate! "#/results"))}
-               "View Results"]])]]]]])))
+       ])))

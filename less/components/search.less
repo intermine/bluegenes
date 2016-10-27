@@ -78,7 +78,7 @@
 
             .result-type {
                 line-height: 1.5em;
-                background-color: #ccc;
+                //background-color: #ccc;
                 color: @body-foreground-color;
                 margin: 0;
                 min-width: 4em;
@@ -86,6 +86,7 @@
                 min-height: @spacer;
                 vertical-align: middle;
                 border: 0;
+                text-align: center;
 
                 &.type-Gene {
                     background: @color-Gene;
@@ -105,6 +106,7 @@
                     background: @color-GO;
                     color: #fff;
                 }
+                .colortypes;
             }
 
             .active-filter {
@@ -119,10 +121,6 @@
                     display: block;
                     font-weight: 300;
                 }
-            }
-
-            .result-type {
-                text-align: center;
             }
 
             table {
@@ -160,6 +158,10 @@
         .results {
             order: 2;
             margin: @spacer/2 @spacer/2 @spacer/2 @spacer;
+
+            .result-type {
+                background: rgba(235,235,235,0.87);
+            }
 
             .result {
                 border-bottom: solid 1px #e4e4e4;
@@ -308,27 +310,14 @@
 
 .result-type {
     display: inline-block;
-    background: rgba(235,235,235,0.87);
     color: @body-foreground-color;
     min-width: 7em;
     border-radius: @border-radius;
     text-align: right;
-    margin: 0.15em;
     padding: 0 0.2em;
-    border-width: 0;
-    border-left: solid 3px #999;
-
-    &.type-Gene {
-        border-left: solid 3px @color-Gene;
-    }
-
-    &.type-Publication {
-        border-left: solid 3px @color-Publication;
-    }
-
-    &.type-Protein {
-        border-left: solid 3px @color-Protein;
-    }
+    border-width: 0 0 0 3px;
+    margin: 0.2em;
+    .colortypes;
 }
 
 .search .dropdown-menu {
@@ -339,16 +328,20 @@
     margin: 0;
     padding: 0;
 
-    .quicksearch-result, .show-all{
-      &:hover {background:rgba(0,0,0,0.1);}
+    .quicksearch-result,
+    .show-all {
+        &:hover {
+            background: rgba(0,0,0,0.1);
+        }
 
-      .row-content {
-        width:40vw;
-        background: transparent;
-        border-width: 0 0 0 3px;
-        color: #333;
-        padding: 0.5em 0 0.5em 1em;
-  }  }
+        .row-content {
+            width: 40vw;
+            background: transparent;
+            border-width: 0 0 0 3px;
+            color: #333;
+            padding: 0.5em 0 0.5em 1em;
+        }
+    }
 
     .list-group {
         margin: 0;

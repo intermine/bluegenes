@@ -14,9 +14,11 @@
             [redgenes.sections.explore.views :as explore]
             [redgenes.sections.analyse.views :as analyse]
             [redgenes.sections.results.views :as results]
+            [redgenes.sections.regions.views :as regions]
             [redgenes.sections.saveddata.views :as saved-data]
             [redgenes.sections.help.views :as help]
-            [accountant.core :refer [navigate!]]))
+            [accountant.core :refer [navigate!]]
+            [oops.core :refer [ocall oapply oget oset!]]))
 
 ;; about
 
@@ -53,12 +55,13 @@
 (defmethod panels :upload-panel [] [upload/main])
 (defmethod panels :search-panel [] [search/main])
 (defmethod panels :results-panel [] [results/main])
+(defmethod panels :regions-panel [] [regions/main])
 (defmethod panels :explore-panel [] [explore/main])
 (defmethod panels :list-analysis-panel [] [analyse/main])
 (defmethod panels :saved-data-panel [] [saved-data/main])
 (defmethod panels :help-panel [] [help/main])
 (defmethod panels :querybuilder-panel [] [:div.container [querybuilder/main]])
-(defmethod panels :default [] [:div])
+(defmethod panels :default [] [home/main])
 
 (defn show-panel
   [panel-name]
@@ -67,9 +70,9 @@
 (defn main-panel []
   (let [active-panel (re-frame/subscribe [:active-panel])
         ;;note: I think we can do better than this loader - perhaps a static html first page
-        first-blush-loader (.getElementById js/document "wrappy")]
+        first-blush-loader (ocall js/document "getElementById"  "wrappy")]
     (fn []
-      (cond first-blush-loader (.remove first-blush-loader))
+      (cond first-blush-loader (ocall first-blush-loader "remove" ))
       [:div.approot
        [icons/icons]
        [nav/main]

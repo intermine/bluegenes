@@ -10,7 +10,7 @@
 
 @color-Nuffink: #ccc; // for things that aren't exciting enough to get their own colour
 
-.type-DataSet {
+.type-DataSet, .type-UniProtFeature, .type-MeshTerm,  .type-AnatomyTerm, .type-RNAiResult, .type-Chromosome, .type-CVTerm, .type-OntologyTerm {
   background: @color-Nuffink;
   fill: @color-Nuffink;
   border: solid 3px @color-Nuffink;
@@ -29,7 +29,7 @@
   border: solid 3px @color-Publication;
 
 }
-.type-Protein, .type-proteins {
+.type-Protein, .type-proteins, .type-ProteinDomain {
   background: @color-Protein;
   fill: @color-Protein;
   border: solid 3px @color-Protein;
@@ -49,8 +49,57 @@
   border:solid 3px @color-Organism;
 }
 
-.type-interactions, .type-Interaction {
+.type-interactions, .type-Interaction, .type-InteractionTerm, .type-InteractionExperiment {
   background:@color-Interaction;
   fill:@color-Interaction;
   border:solid 3px @color-Interaction;
+}
+
+.colortypes {
+  //this is a mixin that's copy pasted from above.
+  .type-DataSet, .type-UniProtFeature, .type-MeshTerm, .type-AnatomyTerm, .type-RNAiResult, .type-Chromosome, .type-CVTerm, .type-OntologyTerm {
+    background: @color-Nuffink;
+    fill: @color-Nuffink;
+    border: solid 3px @color-Nuffink;
+  }
+
+  .type-Gene, .type-genes,  .type-gene, .type-homologues, .type-Homologue {
+    background: @color-Gene;
+    fill: @color-Gene;
+    color: #fff;
+    border: solid 3px @color-Gene;
+
+  }
+  .type-Publication, .type-publications, .type-Author {
+    background: @color-Publication;
+    fill: @color-Publication;
+    border: solid 3px @color-Publication;
+
+  }
+  .type-Protein, .type-proteins, .type-ProteinDomain {
+    background: @color-Protein;
+    fill: @color-Protein;
+    border: solid 3px @color-Protein;
+  }
+
+  .type-GOAnnotation, .type-GOTerm, .type-goAnnotation {
+    background:@color-GO;
+    fill: @color-GO;
+    border: solid 3px @color-GO;
+    color:#fff;
+    text {fill:#fff;}
+  }
+
+  .type-Organism {
+    background:@color-Organism;
+    fill:@color-Organism;
+    border:solid 3px @color-Organism;
+  }
+
+  .type-interactions, .type-Interaction, .type-InteractionTerm, .type-InteractionExperiment {
+    background:@color-Interaction;
+    fill:@color-Interaction;
+    border:solid 3px @color-Interaction;
+  }
+
 }

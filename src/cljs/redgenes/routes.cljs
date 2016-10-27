@@ -66,6 +66,9 @@
   (defroute "/results" []
             (re-frame/dispatch [:set-active-panel :results-panel]))
 
+  (defroute "/regions" []
+            (re-frame/dispatch [:set-active-panel :regions-panel]))
+
   (defroute "/saved-data" []
             (re-frame/dispatch [:set-active-panel :saved-data-panel]))
 
