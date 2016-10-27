@@ -140,6 +140,9 @@
                            :data-placement "bottom"}]]]
                [region-input-box]
                [:div.btn-toolbar
+                [:button.btn.btn-warning
+                 {:on-click (fn [] (dispatch [:regions/set-to-search nil]))}
+                 "Clear"]
                 [:button.btn.btn-primary
                  {:on-click (fn [] (dispatch [:regions/set-to-search example-regions]))}
                  "Example"]]]]
