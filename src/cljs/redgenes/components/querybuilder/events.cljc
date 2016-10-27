@@ -1,8 +1,15 @@
 (ns redgenes.components.querybuilder.events
-"
-All the things that can change
-the state of the db via the query builder
-"
+  "
+  All the things that can change
+  the state of the db via the query builder
+
+  Functions here should be testable in the repl
+  cross-platform.
+  They have metadata for reframe registration
+  and sometimes an extra 3 arg implementation
+  which returns an undo explanation (not sure i like that, in fact i dont)
+
+  "
   #?(:cljs (:require-macros [cljs.core.async.macros :refer [go go-loop]]))
   (:require
     [redgenes.components.querybuilder.core :as c :refer

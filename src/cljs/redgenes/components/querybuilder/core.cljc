@@ -65,8 +65,14 @@
     x))
 
 (defn group-ands
-  "This is the existing
-  way the old QB does things"
+  "
+  This is the existing
+  way the old QB does things:
+  e.g.
+
+  A or B and C or D becomes
+  A or (B and C) or D
+  "
   [l]
   (maybe-unwrap
     (if (symbol? l)
@@ -83,13 +89,16 @@
     (list f o (nested-infix r))
     (if o (list f o) f)))
 
-(defn infix-prefix [x]
+(defn infix-prefix
+  "Returns the prefix for the given infix"
+  [x]
   (if (symbol? x)
     x
     (cons (second x)
       (map infix-prefix (take-nth 2 x)))))
 
 (defn simplify
+  "Returns "
   ([x]
    (cond
      (symbol? x) x
@@ -108,8 +117,7 @@
     x
     (interpose (first x) (map prefix-infix (rest x)))))
 
-; "constraintLogic": "A or B",
-; (A OR B) AND (C OR D)
+; ------------ spec -----------------
 
 (s/def :q/logicop logicops)
 
