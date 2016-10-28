@@ -58,7 +58,7 @@
  (fn [db [_ results]]
    (if (some? (:active-filter (:search-results db)))
      ;;if we're returning a filter result, leave the old facets intact.
-     (assoc-in db [:search-results results] (.-results results))
+     (assoc-in db [:search-results :results] (.-results results))
      ;;if we're returning a non-filtered result, add new facets to the atom
      (assoc db :search-results
        {
@@ -78,7 +78,6 @@
          id-promise (-> mine (.search (clj->js search)))]
      (-> id-promise (.then
          (fn [results]
-           (.log js/console "%cresults" "color:hotpink;font-weight:bold;" (clj->js results))
            (dispatch [:search/save-results results]))))))
 
 (reg-event-fx
@@ -119,9 +118,10 @@
  (fn [search-results]
    (let [results (:results search-results)
          filter (:active-filter search-results)
-         filtered-result-count (get (:category (:facets search-results)) filter)]
-     (cond (and  (< (count-current-results results filter) filtered-result-count)
-                 (<= (count-current-results results filter) max-results))
+         filtered-result-count (get (:category (:facets search-results)) filter)
+         more-filtered-results-to-show? (< (count-current-results results filter) filtered-result-count)
+         more-results-than-max? (<= (count-current-results results filter) max-results)]
+     (cond (and  more-filtered-results-to-show? more-results-than-max?)
        (dispatch [:search/full-search]))
 )))
 
