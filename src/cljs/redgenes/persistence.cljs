@@ -20,14 +20,7 @@
     [dommy.core :as dommy :refer-macros [sel sel1]]
     [cognitect.transit :as t]))
 
-; (:total-re-mix :re-ratio :nnn-score-maps :active-mixture :mixtributions :max-H :total-score-ratio :re-p :maxHmix :total-re-nnn :max-re :id :total-score-nnn :score-maps :distributions :total-score-mix :maxh :NNN)
-(defn filter-state [state]
-  ;(println "filter state")
-  (select-keys state
-    [:msas :trees :selected-sequences :selected-columns :selected-msa :diversities :mixversities :ui]))
-
 (defn merge-state [state other-state except-paths]
-  (println "Merge loaded state " (count (:history other-state)))
   (merge state
     (reduce
       (fn [r p]
@@ -36,7 +29,7 @@
       except-paths)))
 
 (defn to-transit [state]
-  (t/write (t/writer :json-verbose) (filter-state state)))
+  (t/write (t/writer :json-verbose) state))
 
 (defn persist! [state]
   (println "persist state")
@@ -44,6 +37,8 @@
   state)
 
 (defn get-state!
+  "Returns the merging of the given state
+  with the one in localstorage, except the given paths"
   ([state]
     (get-state! state []))
   ([state paths]
@@ -58,6 +53,9 @@
   (merge state (t/read (t/reader :json) file)))
 
 (defn download!
+  "Contrive to 'download' the given contents
+  as a file locally to be saved on the user's
+  magnetic disk-drive storage medium"
   ([tipe naym contents]
     (let [
           a (.createElement js/document "a")

@@ -8,9 +8,7 @@
     [clojure.tools.reader.edn :as edn]))
 
 ; TODO:
-; tooltips for what icons/buttons mean before clicking
 ; can we get ranges for attributes ? e.g. intron->score - what are its min, average & max ? (could be pre-computed & sent with model)
-; add delete button to eye things
 
 
 ; 11 most popular query constraints revealed!
@@ -20,10 +18,6 @@
 (s/def :q/op #{"=" "!=" "CONTAINS" "<" "<=" ">" ">=" "LIKE" "NOT LIKE" "ONE OF" "NONE OF"})
 
 (def logicops #{'AND 'OR})
-
-(s/def :q/openparen #{"("})
-
-(s/def :q/closeparen #{")"})
 
 (def alphabet
   (map (comp str char)
@@ -65,8 +59,14 @@
     x))
 
 (defn group-ands
-  "This is the existing
-  way the old QB does things"
+  "
+  This is the existing
+  way the old QB does things
+  e.g.
+
+  A or B and C or D becomes
+  A or (B and C) or D
+  "
   [l]
   (maybe-unwrap
     (if (symbol? l)
@@ -83,13 +83,16 @@
     (list f o (nested-infix r))
     (if o (list f o) f)))
 
-(defn infix-prefix [x]
+(defn infix-prefix
+  "Returns the prefix representation of the given infix expression"
+  [x]
   (if (symbol? x)
     x
     (cons (second x)
       (map infix-prefix (take-nth 2 x)))))
 
 (defn simplify
+  "Returns "
   ([x]
    (cond
      (symbol? x) x
@@ -103,13 +106,13 @@
      (simplify y))))
 
 (defn prefix-infix
+  "Returns the infix representation of the given prefix expression"
   [x]
   (if (symbol? x)
     x
     (interpose (first x) (map prefix-infix (rest x)))))
 
-; "constraintLogic": "A or B",
-; (A OR B) AND (C OR D)
+; ------------ spec ---------------
 
 (s/def :q/logicop logicops)
 
@@ -173,7 +176,8 @@
       "")))
 
 (defn build-query
-  "Returns a query for the webservice"
+  "Returns a query for the webservice
+  from the given Spec validatable query map"
   ([{:keys [q/select q/where q/logic logic-str] :as query}]
    (-> {}
      (assoc :select

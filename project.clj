@@ -49,7 +49,7 @@
 
   :min-lein-version "2.5.3"
 
-  :source-paths ["src/clj" "src/cljs" "src/cljc"]
+  :source-paths ["src/clj" "src/cljs" "src/cljc" "src/workers"]
 
   :clean-targets ^{:protect false} ["resources/public/js/compiled" "target"
                                     "test/js"]
@@ -94,24 +94,27 @@
     :modules
     {
      :source-paths ["src/cljs"]
-     :figwheel     {:on-jsload "redgenes.core/mount-root"}
+     ;:figwheel     {:on-jsload "redgenes.core/mount-root"}
      :compiler     {
-                    :optimizations        :none
-                    :output-dir           "resources/public/js"
-                    :source-map           true
+                    :optimizations        :simple
+                    :output-dir           "resources/public/js/modules"
+                    :source-map           "resources/public/js/modules"
                     :source-map-timestamp true
                     :pretty-print         true
                     :parallel-build       true
+                    :preamble             ["preamble.js"]
                     :modules
                                           {
                                            :app
                                            {
-                                            :output-to "resources/public/js/app.js"
+                                            :output-to "resources/public/js/modules/app.js"
                                             :entries   #{"redgenes.core"}
+                                            :preamble             ["preamble.js"]
                                             }
                                            :query-builder
                                            {
-                                            :output-to "resources/public/js/qb.js"
+                                            :output-to "resources/public/js/modules/qb.js"
+                                            :preamble             ["preamble.js"]
                                             :entries
                                                        #{
                                                          "redgenes.components.querybuilder.views.main"
@@ -119,19 +122,17 @@
                                             }
                                            :main
                                            {
-                                            :output-to "resources/public/js/main.js"
+                                            :output-to "resources/public/js/modules/main.js"
+                                            :preamble             ["preamble.js"]
                                             :entries   #{"redgenes.main" "redgenes.modules"}
-                                            }
-                                           }
-                    }}
-
+                                            }}}}
     :min
     {
      :source-paths ["src/cljs"]
      :jar          true
      :compiler     {:main            redgenes.core
-                    :output-to       "resources/public/js/compiled/app.js"
-                    :output-dir      "resources/public/js/compiled/test"
+                    :output-to       "resources/public/js/min/app.js"
+                    :output-dir      "resources/public/js/min/test"
                     :externs         ["externs/imjs.js"
                                       "externs/imtables.js"]
                     :optimizations   :advanced
@@ -145,14 +146,15 @@
     :test
     {
      :source-paths ["src/cljs" "test/cljs"]
-     :compiler     {:output-to     "resources/public/js/compiled/test.js"
+     :compiler     {:output-to     "resources/public/js/test/test.js"
+                    :output-dir    "resources/public/js/test"
                     :main          redgenes.runner
                     :optimizations :none}}
     }}
 
   :main redgenes.server
 
-  :aot [redgenes.server]
+  ;:aot [redgenes.server]
 
   ;:prep-tasks [["cljsbuild" "once" "min"] "compile"]
   )

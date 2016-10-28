@@ -2,13 +2,14 @@
   (:require [reagent.core :as reagent]
             [re-frame.core :as re-frame]
             [devtools.core :as devtools]
-            [redgenes.modules :as modules]
+    ;[redgenes.modules :as modules]
             [redgenes.utils]
             [redgenes.events]
             [redgenes.subs]
             [redgenes.routes :as routes]
             [redgenes.views :as views]
             [redgenes.config :as config]
+    ;[redgenes.workers :as workers]
             [redgenes.components.listanalysis.core]
             [redgenes.components.querybuilder.subs]
             [redgenes.components.templates.core]
@@ -31,4 +32,4 @@
   (dev-setup)
   (mount-root))
 
-(modules/set-loaded! "app")
+;(modules/set-loaded! "app")

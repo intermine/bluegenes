@@ -1,8 +1,40 @@
 (ns redgenes.components.querybuilder.events
-"
-All the things that can change
-the state of the db via the query builder
-"
+  "
+  All the things that can change
+  the state of the db via the query builder
+
+  Functions here should be testable in the repl
+  cross-platform, and Specable at some point.
+
+  They have metadata for reframe registration
+  and sometimes an extra 3 arg implementation
+  which returns an undo explanation map/string
+  (not ideal, but i wanted a way to see a fn
+  and its undo-string fn together and since metadata
+  is static in cljs this was a quick way to have that)
+  (if the reframe undo/redo explanation needs to be
+  dynamic, then the :undo-exp key is a keyword, indicating
+  that the 3-arg form of the fn is to be used for an undo
+  explanation, otherwise it's a string explanation of the undo)
+
+
+
+  There's two representation of the query:
+
+  the query structure being validated & modified by the user
+  is one thing, a convenient structure for changing & checking
+  with Spec. The one being sent to the server is built
+  whenever we want to do IO & use the webservice
+
+
+  todo:
+
+  * when a constraint is removed from where, sometimes if the associated
+    attribute is still in the select, it affects the results & can return
+    zero results -- maybe automatically remove from select if no where
+    clauses using it ?
+
+  "
   #?(:cljs (:require-macros [cljs.core.async.macros :refer [go go-loop]]))
   (:require
     [redgenes.components.querybuilder.core :as c :refer
@@ -38,7 +70,7 @@ the state of the db via the query builder
      :clj  (Long/parseLong s)))
 
 (defn reset-query
-  "Returns the x for the given y"
+  "Reset the query to empty"
   {:reframe-kind :event
    :reframe-key :query-builder/reset-query
    :undoable? true}
@@ -54,7 +86,8 @@ the state of the db via the query builder
     (assoc-in [:query-builder :where-tree] nil)))
 
 (defn update-io-query
-  "Returns the x for the given y"
+  "Updates the Webservice query
+  from the given Spec query"
   {:reframe-kind :event, :reframe-key :query-builder/update-io-query}
   [{{query :query} :query-builder :as db} _]
   ;(println "ioq" query (spec/valid? :q/query query) (get-in db [:query-builder :io-query]))
@@ -66,7 +99,7 @@ the state of the db via the query builder
     db))
 
 (defn add-constraint
-  "Returns the x for the given y"
+  "Add a where clause"
   {:reframe-kind :cofx,
    :reframe-key   :query-builder/add-constraint
    :undoable?     true
@@ -90,7 +123,7 @@ the state of the db via the query builder
        (assoc-in [:query-builder :constraint] nil)))))
 
 (defn add-constraint-cofx
-  "Returns the x for the given   y"
+  "Adds a where clause, runs the query"
   {:reframe-kind :cofx,
    :reframe-key   :query-builder/add-constraint!
    :undoable?     true
@@ -139,7 +172,7 @@ the state of the db via the query builder
       [:query-builder :query :path] path)))
 
 (defn handle-count
-  "Adds the count"
+  "Adds the count & difference in count (dcount)"
   {:reframe-kind :event, :reframe-key :query-builder/handle-count}
   [db [_ count]]
   (let [
@@ -178,7 +211,7 @@ the state of the db via the query builder
   (let [model (-> db :assets :model)] db))
 
 (defn remove-select-cofx
-  "Returns the x for the given y"
+  "Removes the given path from the select clause"
   {:reframe-kind :cofx, :reframe-key :query-builder/remove-select}
   [{db :db} [_ path]]
   {:db       (update-in
@@ -193,7 +226,7 @@ the state of the db via the query builder
       (apply hash-set (map :q/path (get-in db [:query-builder :query :q/where]))))))
 
 (defn remove-constraint-cofx
-  "Returns "
+  "Removes the given path from select, runs the query"
   {:reframe-kind :cofx,
    :reframe-key  :query-builder/remove-constraint
    :undoable?    true
@@ -246,7 +279,7 @@ the state of the db via the query builder
     (to-list query-str)))
 
 (defn set-logic-cofx
-  "Returns the x for the given y"
+  "Sets the query constraint logic"
   {:reframe-kind :cofx,
    :reframe-key  :query-builder/set-logic!
    :undoable?    true
@@ -262,7 +295,7 @@ the state of the db via the query builder
     :dispatch [:query-builder/maybe-run-query]}))
 
 (defn toggle-view
-  "Returns the x for the given y"
+  "Toggles the given path in the querie's select"
   {:reframe-kind :event
    :reframe-key :query-builder/toggle-view
    :undoable? true}
@@ -277,7 +310,7 @@ the state of the db via the query builder
           (conj views path-vec))))))
 
 (defn toggle-view-cofx
-  "Returns the x for the given y"
+  "Toggles a select clause, runs the query"
   {:reframe-kind :cofx
    :reframe-key :query-builder/toggle-view!
    :undoable? true}
@@ -302,8 +335,9 @@ the state of the db via the query builder
            :clj (println "run query")))
 
 (defn maybe-run-query!
-   "Maybe runs the given query"
-        {:reframe-kind :fx, :reframe-key :query-builder/maybe-run-query!}
+   "Maybe runs the given query, if it
+   conforms to the exacting requirements of spec"
+   {:reframe-kind :fx, :reframe-key :query-builder/maybe-run-query!}
    [{query :query query? :query?}]
         #?(:cljs
                 (cond

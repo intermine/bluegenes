@@ -1,4 +1,5 @@
 (ns redgenes.components.querybuilder.subs
+  "All the subscriptions for the query builder"
   (:require
     [redgenes.utils :refer [reg-all-subs!]]))
 
