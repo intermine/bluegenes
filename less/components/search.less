@@ -5,7 +5,7 @@
 
 .search-fullscreen {
     font-size: 1.05em;
-    width:100%;
+    width: 100%;
 
     button,
     input[type=text] {
@@ -65,18 +65,25 @@
     .searchform {
         display: flex;
         flex-wrap: wrap;
+
+        input {
+            min-width: 40vw;
+            margin-right: 1em;
+        }
         justify-content: center;
     }
 
     .response {
         clear: both;
         display: flex;
-        align-items:flex-start;
+        align-items: flex-start;
+
         .facets {
             order: 1;
             @highlight: #ddd;
             margin: 1em;
-            max-width:30%;
+            max-width: 30%;
+
             .result-type {
                 line-height: 1.5em;
                 //background-color: #ccc;
@@ -131,7 +138,9 @@
             }
 
             tr {
-              &:hover {cursor:pointer;}
+                &:hover {
+                    cursor: pointer;
+                }
 
                 td:last-child {
                     padding-left: @spacer/4;
@@ -168,7 +177,11 @@
 
             .result {
                 border-bottom: solid 1px #e4e4e4;
-                &:hover {cursor:pointer}
+
+                &:hover {
+                    cursor: pointer;
+                }
+
                 .searchterm {
                     input[type=radio] {
                         margin: 0 @spacer/2;

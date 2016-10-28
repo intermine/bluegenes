@@ -7,10 +7,8 @@
             [oops.core :refer [ocall oget]]
 ))
 
-;;;;TODO: Cleanse the API/state arguments being passed around from the functions here. This is legacy of an older bluegenes history and module based structure.
-;;;;TODO ALSO: abstract away from IMJS.
-;;;;TODO: probably abstract events to the events... :D this file is a mixture of views and handlers, but really we just want views in the view file.
-
+;;;;TODO: abstract away from IMJS.
+;;;;NOTES: This was refactored from bluegenes but might contain some legacy weird. If so I apologise. 
 
 (defn is-active-result? [result]
  "returns true is the result should be considered 'active' - e.g. if there is no filter at all, or if the result matches the active filter type."
@@ -51,28 +49,27 @@
   [:div
    (let [new-term (reagent/atom nil)]
     [:form.searchform {:on-submit
-        (fn [e]
-          (.preventDefault js/e) ;;don't submit the form, that just makes a redirect
-;          (.log js/console "%c@new-term" "color:hotpink;font-weight:bold;" (clj->js @new-term) )
-          (cond (some? @new-term)
-            (do
-;              (.log js/console "%cLet's go" "color:green;font-weight:bold;")
-              (re-frame/dispatch [:search/set-search-term @new-term])
-              (dispatch [:search/full-search])
-              )))}
-      [:input {:placeholder "Type a new search term here"
-               :on-change
-                (fn [e]
-                  (let [input-val (oget e "target" "value")]
-;                    (.log js/console "%cinput-val" "color:blue;font-weight:bold;" (clj->js input-val))
-                    (cond (not (clojure.string/blank? input-val))
-                      (reset! new-term input-val))))}]
+      (fn [e]
+        (.preventDefault js/e) ;;don't submit the form, that just makes a redirect
+        (cond (some? @new-term)
+          (do
+            (re-frame/dispatch [:search/set-search-term @new-term])
+            (dispatch [:search/full-search])
+            )))}
+    [:input {:placeholder "Type a new search term here"
+             :on-change
+      (fn [e]
+        (let [input-val (oget e "target" "value")]
+
+          (cond (not (clojure.string/blank? input-val))
+            (reset! new-term input-val))))}]
       [:button "Search"]])])
 
 
  (defn search-form [search-term]
    "Visual form component which handles submit and change"
    [:div.search-fullscreen
+    [input-new-term]
     [:div.response
        [filters/facet-display (subscribe [:search/full-results]) nil @search-term]
        [results-display nil search-term]]])
