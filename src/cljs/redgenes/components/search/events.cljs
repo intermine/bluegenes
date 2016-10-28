@@ -58,11 +58,13 @@
  (fn [db [_ results]]
    (if (some? (:active-filter (:search-results db)))
      ;;if we're returning a filter result, leave the old facets intact.
-     (assoc-in db [:search-results :results] (.-results results))
+     (-> (assoc-in db [:search-results :results] (.-results results))
+         (assoc-in [:search-results :loading?] false))
      ;;if we're returning a non-filtered result, add new facets to the atom
      (assoc db :search-results
        {
        :results  (.-results results)
+       :loading? false
        :highlight-results (:highlight-results (:search-results db))
        :facets {
          :organisms (sort-by-value (js->clj (aget results "facets" "organism.shortName")))
@@ -83,9 +85,15 @@
 (reg-event-fx
   :search/full-search
   (fn [{db :db}]
-    (let [filter (:active-filter (:search-results db))]
-    (search filter))
-{:db db}))
+    (let [active-filter (:active-filter (:search-results db))]
+      (search active-filter)
+    (if (some? active-filter)
+      ;;just turn on the loader
+      {:db (assoc-in db [:search-results :loading?] true)}
+      ;;hide the old results and turn on the loader
+      (let [resultless-db (assoc db :search-results (dissoc (:search-results db) :results))]
+      {:db (assoc-in resultless-db [:search-results :loading?] true)})
+))))
 
 (reg-event-db :search/reset-quicksearch
   (fn [db]

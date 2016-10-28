@@ -31,3 +31,9 @@
   :search/highlight?
   (fn [db _]
     (:highlight-results (:search-results db))))
+
+
+(reg-sub
+  :search/loading?
+  (fn [db _]
+    (:loading? (:search-results db))))

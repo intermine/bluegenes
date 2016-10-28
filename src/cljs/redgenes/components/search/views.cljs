@@ -3,6 +3,7 @@
             [clojure.string :as str]
             [redgenes.components.search.resultrow :as resulthandler]
             [redgenes.components.search.filters :as filters]
+            [redgenes.components.spinner :as spinner]
             [re-frame.core :as re-frame :refer [subscribe dispatch]]
             [oops.core :refer [ocall oget]]
 ))
@@ -66,24 +67,28 @@
       [:button "Search"]])])
 
 
- (defn search-form [search-term]
-   "Visual form component which handles submit and change"
-   [:div.search-fullscreen
-    [input-new-term]
-    (let [results (subscribe [:search/full-results])]
-    (if (some? @results)
+(defn search-form [search-term]
+  "Visual form component which handles submit and change"
+  (let [results (subscribe [:search/full-results])
+         loading? (subscribe [:search/loading?])]
+    [:div.search-fullscreen
+      [input-new-term]
+    (if (some? (:results @results))
       [:div.response
         [filters/facet-display results @search-term]
         [results-display search-term]]
       [:div.noresponse
        [:svg.icon.icon-info [:use {:xlinkHref "#icon-info"}]] "Try searching for something in the search box above - perhaps a gene, a protein, or a GO Term."]
-      ))])
+      )
+      (cond @loading? [:div.noresponse "Loading results" [spinner/main]])
+    ]))
 
  (defn main []
    (let [global-search-term (re-frame/subscribe [:search-term])]
    (reagent/create-class
      {:reagent-render
-       (fn render [] [search-form global-search-term]
+       (fn render []
+         [search-form global-search-term]
          )
        :component-will-mount (fn [this]
            (cond (some? @global-search-term)
