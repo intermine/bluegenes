@@ -199,19 +199,20 @@
                        (dispatch [:query-builder/set-logic (.. e -target -value)]))
               }]
               [:div {} @used-codes]
-            [:textarea
-             {
-              :cols  128
-              :rows  8
-              :style {:width  "calc(100% - 1em)" :height "8em"
-                      :border :none
-                      :margin "1em"
-                      :background
-                              (if (spec/valid? :q/query @query) "rgb(240,240,240)" "rgb(255,240,240)")}
-              :value (str @query)
-              :on-change
-                     (fn [e]
-                       (dispatch [:query-builder/set-query (.. e -target -value)]))}]
+            (comment
+              [:textarea
+              {
+               :cols  128
+               :rows  8
+               :style {:width  "calc(100% - 1em)" :height "8em"
+                       :border :none
+                       :margin "1em"
+                       :background
+                               (if (spec/valid? :q/query @query) "rgb(240,240,240)" "rgb(255,240,240)")}
+               :value (str @query)
+               :on-change
+                      (fn [e]
+                        (dispatch [:query-builder/set-query (.. e -target -value)]))}])
             [:div.qb-buttons
              [:button.btn.btn-primary {:on-click #(dispatch [:query-builder/reset-query])} "Reset"]
              (if (spec/valid? :q/query @query)

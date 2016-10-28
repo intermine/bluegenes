@@ -8,9 +8,7 @@
     [clojure.tools.reader.edn :as edn]))
 
 ; TODO:
-; tooltips for what icons/buttons mean before clicking
 ; can we get ranges for attributes ? e.g. intron->score - what are its min, average & max ? (could be pre-computed & sent with model)
-; add delete button to eye things
 
 
 ; 11 most popular query constraints revealed!
@@ -20,10 +18,6 @@
 (s/def :q/op #{"=" "!=" "CONTAINS" "<" "<=" ">" ">=" "LIKE" "NOT LIKE" "ONE OF" "NONE OF"})
 
 (def logicops #{'AND 'OR})
-
-(s/def :q/openparen #{"("})
-
-(s/def :q/closeparen #{")"})
 
 (def alphabet
   (map (comp str char)
@@ -67,7 +61,7 @@
 (defn group-ands
   "
   This is the existing
-  way the old QB does things:
+  way the old QB does things
   e.g.
 
   A or B and C or D becomes
@@ -90,7 +84,7 @@
     (if o (list f o) f)))
 
 (defn infix-prefix
-  "Returns the prefix for the given infix"
+  "Returns the prefix representation of the given infix expression"
   [x]
   (if (symbol? x)
     x
@@ -112,12 +106,13 @@
      (simplify y))))
 
 (defn prefix-infix
+  "Returns the infix representation of the given prefix expression"
   [x]
   (if (symbol? x)
     x
     (interpose (first x) (map prefix-infix (rest x)))))
 
-; ------------ spec -----------------
+; ------------ spec ---------------
 
 (s/def :q/logicop logicops)
 
@@ -181,7 +176,8 @@
       "")))
 
 (defn build-query
-  "Returns a query for the webservice"
+  "Returns a query for the webservice
+  from the given Spec validatable query map"
   ([{:keys [q/select q/where q/logic logic-str] :as query}]
    (-> {}
      (assoc :select

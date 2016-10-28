@@ -79,9 +79,9 @@
      :figwheel     {:on-jsload "redgenes.core/mount-root"}
      :compiler     {
                     :main                 redgenes.core
-                    :optimizations        :whitespace
-                    :output-to            "resources/public/js/dev/app.js"
-                    :output-dir           "resources/public/js/dev"
+                    :optimizations        :none
+                    :output-to            "resources/public/js/compiled/app.js"
+                    :output-dir           "resources/public/js/compiled"
                     :asset-path           "js/compiled"
                     :source-map-timestamp true
                     :pretty-print         true
@@ -97,8 +97,8 @@
      ;:figwheel     {:on-jsload "redgenes.core/mount-root"}
      :compiler     {
                     :optimizations        :simple
-                    :output-dir           "resources/public/modules/js"
-                    :source-map           true
+                    :output-dir           "resources/public/js/modules"
+                    :source-map           "resources/public/js/modules"
                     :source-map-timestamp true
                     :pretty-print         true
                     :parallel-build       true

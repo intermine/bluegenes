@@ -14,11 +14,9 @@
   Note: because CLJS only allows statically compiled metadata
   for vars, we can't pass-in fns in metadata maps for those
   vars because they're not evaluated and just end-up as lists.
-  That's why the special keyword :this is provided, which
+  That's why if the :undo-exp is a keyword, it
   signals that the event fn includes a 3-arity implementation
-  for returning a re-frame string explanation
-
-  It's a horrible hack, but it turned out less bad than I thought.
+  for returning a re-frame string explanation dynamically
   "
   ([v]
    (register! @v (meta v)))
@@ -50,12 +48,15 @@
 
 
 (defn ^:export register-all!
+  "Registers all the given vars"
   ([vars]
     (doseq
      [v vars]
      (register! v))))
 
 (defn ^:export reg-all-subs!
+  "Registers all the given subscriptions
+  e.g. [[:constraint :query-builder/current-constraint]]"
   ([queries]
    #?(:cljs
     (doseq
@@ -74,12 +75,3 @@
 
 
 ;(register! #'reset-query)
-
-
-; A and B or B
-; (A and B) or B
-
-; A and B or B or A and A or B
-; (A and B) or B or (A and A) or B
-
-; (A and (B or A or (A and B))) or B or (A and A) or B
