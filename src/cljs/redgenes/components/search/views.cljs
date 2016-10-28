@@ -8,7 +8,7 @@
 ))
 
 ;;;;TODO: abstract away from IMJS.
-;;;;NOTES: This was refactored from bluegenes but might contain some legacy weird. If so I apologise. 
+;;;;NOTES: This was refactored from bluegenes but might contain some legacy weird. If so I apologise.
 
 (defn is-active-result? [result]
  "returns true is the result should be considered 'active' - e.g. if there is no filter at all, or if the result matches the active filter type."
@@ -70,9 +70,14 @@
    "Visual form component which handles submit and change"
    [:div.search-fullscreen
     [input-new-term]
-    [:div.response
-       [filters/facet-display (subscribe [:search/full-results]) nil @search-term]
-       [results-display nil search-term]]])
+    (let [results (subscribe [:search/full-results])]
+    (if (some? @results)
+      [:div.response
+        [filters/facet-display results @search-term]
+        [results-display search-term]]
+      [:div.noresponse
+       [:svg.icon.icon-info [:use {:xlinkHref "#icon-info"}]] "Try searching for something in the search box above - perhaps a gene, a protein, or a GO Term."]
+      ))])
 
  (defn main []
    (let [global-search-term (re-frame/subscribe [:search-term])]
