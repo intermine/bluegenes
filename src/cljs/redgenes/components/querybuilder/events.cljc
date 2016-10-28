@@ -187,18 +187,23 @@ the state of the db via the query builder
                (fn [views] (dissoc views path)))
    :dispatch :query-builder/maybe-run-query})
 
+(defn update-paths
+  ([db]
+    (assoc-in db [:query-builder :query :constraint-paths]
+      (apply hash-set (map :q/path (get-in db [:query-builder :query :q/where]))))))
+
 (defn remove-constraint-cofx
   "Returns "
   {:reframe-kind :cofx,
    :reframe-key  :query-builder/remove-constraint
    :undoable?    true
    :undo-exp     "remove constraint"}
-  [{db :db} [_ path i]]
+  [{db :db} [_ c i]]
   {:db
-     (update-in
-       db
-       [:query-builder :query :q/where]
-       (fn [wheres] (vec (remove #(= % path) wheres))))
+             (update-paths
+               (update-in db
+                [:query-builder :query :q/where]
+                (fn [wheres] (vec (remove #(= % c) wheres)))))
    :dispatch [:query-builder/maybe-run-query]})
 
 (defn add-filter
@@ -222,7 +227,7 @@ the state of the db via the query builder
     :explanation "set the logic"})
   ([db [_ expression]]
    (let [x (try
-             (c/simplify (c/to-prefix (c/group-ands (c/to-list (str "(" expression ")")))))
+             (c/simplify (c/infix-prefix (c/group-ands (c/to-list (str "(" expression ")")))))
              (catch #?(:clj Exception :cljs js/Error) e []))]
      (-> db
        (assoc-in [:query-builder :query :q/logic] x)

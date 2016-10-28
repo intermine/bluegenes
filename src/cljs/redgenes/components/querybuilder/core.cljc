@@ -51,9 +51,9 @@
 (defn where-tree
   ([{:keys [:q/where]}]
    (reduce
-     (fn [r {:keys [:q/path] :as c}]
-       (update-in r path (fn [z] (conj (or z []) c))))
-     {} where)))
+     (fn [r [{:keys [:q/path] :as c} i]]
+       (update-in r path (fn [z] (conj (or z []) (assoc c :index i)))))
+     {} (map vector where (range)))))
 
 (defn to-list [s]
   (edn/read-string
@@ -64,7 +64,10 @@
     (first x)
     x))
 
-(defn group-ands [l]
+(defn group-ands
+  "This is the existing
+  way the old QB does things"
+  [l]
   (maybe-unwrap
     (if (symbol? l)
      l
@@ -75,11 +78,16 @@
            (into r (map group-ands l))))
        [] (partition-by #{'OR} l)))))
 
-(defn to-prefix [x]
+(defn nested-infix [[f o & r]]
+  (if r
+    (list f o (nested-infix r))
+    (if o (list f o) f)))
+
+(defn infix-prefix [x]
   (if (symbol? x)
     x
     (cons (second x)
-      (map to-prefix (take-nth 2 x)))))
+      (map infix-prefix (take-nth 2 x)))))
 
 (defn simplify
   ([x]
@@ -116,6 +124,20 @@
       (s/cat
        :op :q/logicop
        :args (s/+ :q/listy))
+    :nil nil?))
+
+(s/def :q/infix-list
+  (s/or
+    :simple alphabet-symbol?
+    :complex :q/infix-exp))
+
+(s/def :q/infix-exp
+  (s/or
+    :exp
+      (s/cat
+        :a-list :q/infix-list
+        :op :q/logicop
+        :b-list :q/infix-list)
     :nil nil?))
 
 (s/def :q/path (s/coll-of string?))

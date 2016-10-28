@@ -14,6 +14,7 @@
             [redgenes.sections.explore.views :as explore]
             [redgenes.sections.analyse.views :as analyse]
             [redgenes.sections.results.views :as results]
+            [redgenes.sections.regions.views :as regions]
             [redgenes.sections.saveddata.views :as saved-data]
             [redgenes.sections.help.views :as help]
             [accountant.core :refer [navigate!]]
@@ -54,6 +55,7 @@
 (defmethod panels :upload-panel [] [upload/main])
 (defmethod panels :search-panel [] [search/main])
 (defmethod panels :results-panel [] [results/main])
+(defmethod panels :regions-panel [] [regions/main])
 (defmethod panels :explore-panel [] [explore/main])
 (defmethod panels :list-analysis-panel [] [analyse/main])
 (defmethod panels :saved-data-panel [] [saved-data/main])

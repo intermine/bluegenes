@@ -21,6 +21,11 @@
   (fn [_ _]
     db/default-db))
 
+(reg-fx
+  :im-operation
+  (fn [{:keys [on-success on-failure response-format op params]}]
+    (go (dispatch (conj on-success (<! (op)))))))
+
 (reg-event-fx
   :unqueue
   (fn [{db :db}]
@@ -67,31 +72,31 @@
 (reg-event-fx
   :set-active-mine
   (fn [{:keys [db]} [_ value]]
-    {:db (-> (assoc db :mine-name value)
-             (assoc :saved-data {:items {}}))
+    {:db         (-> (assoc db :mine-name value)
+                     (assoc :saved-data {:items {}}))
      :dispatch-n (list [:fetch-all-assets] [:set-active-panel :home-panel])}))
 
 (reg-event-fx
   :new-temporary-mine
   (fn [{:keys [db]} [_ new-url]]
     (let [url
-      (if (clojure.string/starts-with? new-url "http://")
-        (subs new-url 7)
-        new-url)]
-        (.log js/console "%curl" "color:hotpink;font-weight:bold;" (clj->js url))
+          (if (clojure.string/starts-with? new-url "http://")
+            (subs new-url 7)
+            new-url)]
+      (.log js/console "%curl" "color:hotpink;font-weight:bold;" (clj->js url))
       {:db
-        (assoc db :temporary-mine {:temporary-mine {
-          ;;we can make this more dynamic when we're grown up
-         :id     :temporary-mine
-         :common "New Organism"
-         :status {:status :na}
-         :output? true
-         :abbrev "New Organism"
-         :mine
-          {:name "New Organism"
-           :url url
-           :service {:root url}}}}
-               :mine-name :temporary-mine)
+                 (assoc db :temporary-mine {:temporary-mine {
+                                                             ;;we can make this more dynamic when we're grown up
+                                                             :id      :temporary-mine
+                                                             :common  "New Organism"
+                                                             :status  {:status :na}
+                                                             :output? true
+                                                             :abbrev  "New Organism"
+                                                             :mine
+                                                                      {:name    "New Organism"
+                                                                       :url     url
+                                                                       :service {:root url}}}}
+                           :mine-name :temporary-mine)
        :dispatch [:fetch-all-assets]})))
 
 
@@ -143,8 +148,10 @@
 (reg-event-fx
   :finished-loading-assets
   (fn [{db :db}]
-    {:db (assoc db :fetching-assets? false)
-     :dispatch [:saved-data/load-lists]}))
+    {:db         (assoc db :fetching-assets? false)
+     :dispatch-n [[:cache/fetch-organisms]
+                  [:saved-data/load-lists]
+                  [:regions/select-all-feature-types]]}))
 
 (reg-fx
   :fetch-assets
@@ -178,3 +185,26 @@
   :test-progress-bar
   (fn [db [_ percent]]
     (assoc db :progress-bar-percent percent)))
+
+(reg-event-db
+  :cache/store-organisms
+  (fn [db [_ res]]
+    (assoc-in db [:cache :organisms] (:results res))))
+
+(reg-event-fx
+  :cache/fetch-organisms
+  (fn [{db :db}]
+    (let [model          (get-in db [:assets :model])
+          organism-query {:from   "Organism"
+                          :select ["name"
+                                   "taxonId"
+                                   "species"
+                                   "shortName"
+                                   "genus"
+                                   "commonName"]}]
+      {:db           db
+       :im-operation {:op (partial search/raw-query-rows
+                                    {:root @(subscribe [:mine-url])}
+                                    organism-query
+                                   {:format "jsonobjects"})
+                       :on-success [:cache/store-organisms]}})))
