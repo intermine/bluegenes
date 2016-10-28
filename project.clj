@@ -80,8 +80,8 @@
      :compiler     {
                     :main                 redgenes.core
                     :optimizations        :whitespace
-                    :output-to            "resources/public/js/compiled/app.js"
-                    :output-dir           "resources/public/js/compiled"
+                    :output-to            "resources/public/js/dev/app.js"
+                    :output-dir           "resources/public/js/dev"
                     :asset-path           "js/compiled"
                     :source-map-timestamp true
                     :pretty-print         true
@@ -91,29 +91,30 @@
                     ;               {:file "resources/public/vendor/imtables.js"
                     ;                :provides ["intermine.imtables"]}]
                     }}
-<<<<<<< HEAD
-=======
     :modules
     {
      :source-paths ["src/cljs"]
-     :figwheel     {:on-jsload "redgenes.core/mount-root"}
+     ;:figwheel     {:on-jsload "redgenes.core/mount-root"}
      :compiler     {
-                    :optimizations        :none
-                    :output-dir           "resources/public/js"
+                    :optimizations        :simple
+                    :output-dir           "resources/public/modules/js"
                     :source-map           true
                     :source-map-timestamp true
                     :pretty-print         true
                     :parallel-build       true
+                    :preamble             ["preamble.js"]
                     :modules
                                           {
                                            :app
                                            {
-                                            :output-to "resources/public/js/app.js"
+                                            :output-to "resources/public/js/modules/app.js"
                                             :entries   #{"redgenes.core"}
+                                            :preamble             ["preamble.js"]
                                             }
                                            :query-builder
                                            {
-                                            :output-to "resources/public/js/qb.js"
+                                            :output-to "resources/public/js/modules/qb.js"
+                                            :preamble             ["preamble.js"]
                                             :entries
                                                        #{
                                                          "redgenes.components.querybuilder.views.main"
@@ -121,20 +122,17 @@
                                             }
                                            :main
                                            {
-                                            :output-to "resources/public/js/main.js"
+                                            :output-to "resources/public/js/modules/main.js"
+                                            :preamble             ["preamble.js"]
                                             :entries   #{"redgenes.main" "redgenes.modules"}
-                                            }
-                                           }
-                    }}
-
->>>>>>> 0e3d905a8fa1fba99ee2a52d90f8b2fe2d35827a
+                                            }}}}
     :min
     {
      :source-paths ["src/cljs"]
      :jar          true
      :compiler     {:main            redgenes.core
-                    :output-to       "resources/public/js/compiled/app.js"
-                    :output-dir      "resources/public/js/compiled/test"
+                    :output-to       "resources/public/js/min/app.js"
+                    :output-dir      "resources/public/js/min/test"
                     :externs         ["externs/imjs.js"
                                       "externs/imtables.js"]
                     :optimizations   :advanced
@@ -149,7 +147,7 @@
     {
      :source-paths ["src/cljs" "test/cljs"]
      :compiler     {:output-to     "resources/public/js/test/test.js"
-                    :output-dir     "resources/public/js/test"
+                    :output-dir    "resources/public/js/test"
                     :main          redgenes.runner
                     :optimizations :none}}
     }}

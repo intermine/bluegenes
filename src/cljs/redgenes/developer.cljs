@@ -30,7 +30,7 @@
             ;      :defaultValue     "http://"
             ;      :on-change (fn [e] (dispatch [:new-temporary-mine (.. e -target -value) (keyword "Other")]))}]]]
     [:button.btn.btn-primary.btn-raised
-     {:on-click (fn [e] (.preventDefault js/e))} "Save"]]
+     {:on-click (fn [e] (.preventDefault e))} "Save"]]
 ])
 
 (defn old-stuff []

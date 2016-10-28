@@ -32,4 +32,4 @@
   (dev-setup)
   (mount-root))
 
-(modules/set-loaded! "app")
+;(modules/set-loaded! "app")
