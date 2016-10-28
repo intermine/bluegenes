@@ -83,8 +83,7 @@
    (let [global-search-term (re-frame/subscribe [:search-term])]
    (reagent/create-class
      {:reagent-render
-       (fn render []
-         [search-form global-search-term]
+       (fn render [] [search-form global-search-term]
          )
        :component-will-mount (fn [this]
            (cond (some? @global-search-term)
