@@ -77,7 +77,6 @@
             @highlight: #ddd;
             margin: 1em;
             max-width:30%;
-
             .result-type {
                 line-height: 1.5em;
                 //background-color: #ccc;
@@ -132,6 +131,8 @@
             }
 
             tr {
+              &:hover {cursor:pointer;}
+
                 td:last-child {
                     padding-left: @spacer/4;
                 }
@@ -167,7 +168,7 @@
 
             .result {
                 border-bottom: solid 1px #e4e4e4;
-
+                &:hover {cursor:pointer}
                 .searchterm {
                     input[type=radio] {
                         margin: 0 @spacer/2;
