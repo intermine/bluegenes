@@ -5,6 +5,7 @@
 
 .search-fullscreen {
     font-size: 1.05em;
+    width:100%;
 
     button,
     input[type=text] {
@@ -70,11 +71,12 @@
     .response {
         clear: both;
         display: flex;
-
+        align-items:flex-start;
         .facets {
             order: 1;
             @highlight: #ddd;
             margin: 1em;
+            max-width:30%;
 
             .result-type {
                 line-height: 1.5em;
