@@ -8,7 +8,9 @@
             [day8.re-frame.http-fx]
             [accountant.core :refer [navigate!]]
             [ajax.core :as ajax]
+            [secretary.core :as sec]
             [redgenes.interceptors :refer [clear-tooltips]]
+            [redgenes.effects]
             [dommy.core :refer-macros [sel sel1]]
             [redgenes.sections.saveddata.events]))
 
@@ -35,11 +37,6 @@
    :where  [{:path  type
              :op    "IN"
              :value name}]})
-
-(reg-fx
-  :navigate
-  (fn [url]
-    (navigate! (str "#/" url))))
 
 (reg-event-fx
   :lists/view-results

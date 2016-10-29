@@ -72,7 +72,7 @@
                             :history-index 0
                             :query-parts (filters/get-parts model query)
                             :enrichment-results nil)
-       :dispatch [:results/enrich]})))
+       :dispatch ^:flush-dom [:results/enrich]})))
 
 
 (reg-event-fx
