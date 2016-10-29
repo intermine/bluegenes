@@ -29,22 +29,38 @@
        [:span.flags
         {:style {:font-size "1.5em"}}
         ; Public / Private
-        [:i.fa
-         {:class    (case (get @flag-filters :authorized)
-                      true "fa-user" false "fa-globe" nil "fa-user disabled")
-          :on-click (fn [] (dispatch [:lists/toggle-flag-filter :authorized]))}]
+        [popover
+         [:i.fa
+          {:data-content [:span "Show only your lists."]
+           :data-placement "bottom"
+           :data-trigger "hover"
+           :class    (case (get @flag-filters :authorized)
+                       true "fa-user" false "fa-globe" nil "fa-user disabled")
+           :on-click (fn [] (dispatch [:lists/toggle-flag-filter :authorized]))}]]
         ; Favourites
-        [:i.fa
-         {:class    (case (get @flag-filters :favourite)
-                      true "fa-star" false "fa-star-o" nil "fa-star disabled")
-          :on-click (fn [] (dispatch [:lists/toggle-flag-filter :favourite]))}]]
-       [:span [:input.form-control.input-lg.square
-               {:type        "text"
-                :value       @text-filter
-                :style       {:display "inline"
-                              :width   "200px"}
-                :placeholder "Filter with text..."
-                :on-change   set-text-filter}]]])))
+        [popover
+         [:i.fa
+          {:data-content [:span "Show only your favourite lists."]
+           :data-placement "bottom"
+           :data-trigger "hover"
+           :class    (case (get @flag-filters :favourite)
+                       true "fa-star" false "fa-star-o" nil "fa-star disabled")
+           :on-click (fn [] (dispatch [:lists/toggle-flag-filter :favourite]))}]]
+        [:input.form-control.input-lg.square
+         {:type           "text"
+          :value          @text-filter
+          :style          {:display       "inline"
+                           :width         "300px"
+                           :padding       "5px"
+                           :margin        0
+                           :background    "white"
+                           :border-radius "5px"
+                           :border "1px solid #d6d6d6"}
+          :placeholder    "Name or description contains..."
+          :data-content   [:span "Fil"]
+          :data-placement "bottom"
+          :data-trigger   "hover"
+          :on-change      set-text-filter}]]])))
 
 (defn list-row []
   (fn [{:keys [description tags authorized name type size title timestamp dateCreated] :as l}]
@@ -55,19 +71,17 @@
                      [:span.flags
                       (if authorized [:i.fa.fa-user] [:i.fa.fa-globe])
                       (if (one-of? tags "im:favourite") [:i.fa.fa-star] [:i.fa.fa-star-o])]
-                     [:span.stress
-                      {:on-click (fn [] (dispatch [:lists/view-results l]))}
-                      title]]
+                     [:span.stress {:on-click (fn [] (dispatch [:lists/view-results l]))} title]
+                     [:span {:style {:font-size "0.8em"}} (str " (" size " rows)")]]
                     [:span description]]]
        [:div.col [:h4 type]]
-       [:div.col [:h4 size]]
+       ;[:div.col [:h4 size]]
        [:div.col [:span (if dateCreated (if (t/after? date-created (t/today-at-midnight))
                                           "Today"
                                           [:div
                                            [:div (tf/unparse (tf/formatter "MMM, dd") date-created)]
                                            [:span (tf/unparse (tf/formatter "YYYY") date-created)]]))]]])))
 
-; TODO Make workey
 (defn sort-icon []
   (fn [kw class-chunk value]
     [:i.fa
@@ -105,7 +119,7 @@
           [sort-icon :title "fa-sort-alpha" (:title @sort-order)]
           [controls]]]
         [:div.col [:h4 "Type "]]
-        [:div.col [:h4 "Count"]]
+        ;[:div.col [:h4 "Count"]]
         [:div.col [:h4 "Created"]]]
        [css-transition-group
         {:transition-name          "fade"
