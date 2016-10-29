@@ -55,7 +55,9 @@
                      [:span.flags
                       (if authorized [:i.fa.fa-user] [:i.fa.fa-globe])
                       (if (one-of? tags "im:favourite") [:i.fa.fa-star] [:i.fa.fa-star-o])]
-                     [:span.stress title]]
+                     [:span.stress
+                      {:on-click (fn [] (dispatch [:lists/view-results l]))}
+                      title]]
                     [:span description]]]
        [:div.col [:h4 type]]
        [:div.col [:h4 size]]

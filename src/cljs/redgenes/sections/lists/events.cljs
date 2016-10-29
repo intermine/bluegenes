@@ -6,6 +6,7 @@
             [imcljs.search :as search]
             [clojure.spec :as s]
             [day8.re-frame.http-fx]
+            [accountant.core :refer [navigate!]]
             [ajax.core :as ajax]
             [redgenes.interceptors :refer [clear-tooltips]]
             [dommy.core :refer-macros [sel sel1]]
@@ -27,8 +28,27 @@
                    :desc nil
                    nil :asc)))))
 
-(defn disable [k v]
-  (println "k v" k v))
+(defn build-list-query [type summary-fields name title]
+  {:title title
+   :from   type
+   :select summary-fields
+   :where  [{:path  type
+             :op    "IN"
+             :value name}]})
+
+(reg-fx
+  :navigate
+  (fn [url]
+    (navigate! (str "#/" url))))
+
+(reg-event-fx
+  :lists/view-results
+  (fn [{db :db} [_ {:keys [type name title]}]]
+    (let [summary-fields (get-in db [:assets :summary-fields (keyword type)])]
+      {:db       db
+       :dispatch [:results/set-query (build-list-query type summary-fields name title)]
+       :navigate (str "results")})))
+
 
 (reg-event-db
   :lists/clear-filters
