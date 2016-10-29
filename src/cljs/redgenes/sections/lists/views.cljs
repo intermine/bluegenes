@@ -31,12 +31,12 @@
         ; Public / Private
         [:i.fa
          {:class    (case (get @flag-filters :authorized)
-                      true "fa-user" false "fa-globe" nil "fa-globe disabled")
+                      true "fa-user" false "fa-globe" nil "fa-user disabled")
           :on-click (fn [] (dispatch [:lists/toggle-flag-filter :authorized]))}]
         ; Favourites
         [:i.fa
          {:class    (case (get @flag-filters :favourite)
-                      true "fa-star" false "fa-star-o" nil "fa-star-o disabled")
+                      true "fa-star" false "fa-star-o" nil "fa-star disabled")
           :on-click (fn [] (dispatch [:lists/toggle-flag-filter :favourite]))}]]
        [:span [:input.form-control.input-lg.square
                {:type        "text"
@@ -69,7 +69,9 @@
 (defn sort-icon []
   (fn [kw class-chunk value]
     [:i.fa
-     {:class    (str class-chunk "-" (name (if value value "asc")) " " (if value "stress"))
+     {:class    (if value
+                  (str class-chunk "-" (name value) " stress ")
+                  (str "fa-sort disabled"))
       :on-click (fn [] (dispatch [:lists/toggle-sort kw]))}]))
 
 (defn no-results []
@@ -88,7 +90,7 @@
                                                {:style {:font-style "italic"}} @text-filter]])]
           )]
        [:a
-        {:on-click (fn [] (dispatch [:lists/set-text-filter nil]))}
+        {:on-click (fn [] (dispatch [:lists/clear-filters nil]))}
         "Click here to clear your search"]])))
 
 (defn list-table []
@@ -105,8 +107,8 @@
         [:div.col [:h4 "Created"]]]
        [css-transition-group
         {:transition-name          "fade"
-         :transition-enter-timeout 200
-         :transition-leave-timeout 200}
+         :transition-enter-timeout 100
+         :transition-leave-timeout 100}
         (if (empty? lists)
           [no-results]
           (map (fn [l]
@@ -117,5 +119,4 @@
     (fn []
       [:div.list-section
        {:style {:width "100%"}}
-       [:h1 "Lists"]
        [list-table @filtered-lists]])))

@@ -27,12 +27,27 @@
                    :desc nil
                    nil :asc)))))
 
+(defn disable [k v]
+  (println "k v" k v))
+
+(reg-event-db
+  :lists/clear-filters
+  (fn [db]
+    (-> db
+        (assoc-in [:lists :controls :filters :flags] {})
+        (assoc-in [:lists :controls :filters :text-filter] nil))))
+
 (reg-event-db
   :lists/toggle-flag-filter
   (fn [db [_ column-kw]]
     (update-in db [:lists :controls :filters :flags column-kw]
                (fn [v]
+                 ; Tri-state toggle
+                 ;(case v
+                 ;  nil true
+                 ;  true false
+                 ;  false nil)
+                 ; Bi-state toggle
                  (case v
                    nil true
-                   true false
-                   false nil)))))
+                   true nil)))))
