@@ -14,7 +14,8 @@
 (reg-event-db
   :lists/set-text-filter
   (fn [db [_ value]]
-    (assoc-in db [:lists :controls :filters :text-filter] value)))
+    (let [adjusted-value (if (= value "") nil value)]
+      (assoc-in db [:lists :controls :filters :text-filter] adjusted-value))))
 
 (reg-event-db
   :lists/toggle-sort
@@ -25,3 +26,13 @@
                    :asc :desc
                    :desc nil
                    nil :asc)))))
+
+(reg-event-db
+  :lists/toggle-flag-filter
+  (fn [db [_ column-kw]]
+    (update-in db [:lists :controls :filters :flags column-kw]
+               (fn [v]
+                 (case v
+                   nil true
+                   true false
+                   false nil)))))

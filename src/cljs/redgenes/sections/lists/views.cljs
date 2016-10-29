@@ -22,23 +22,40 @@
 
 
 (defn controls []
-  (fn []
-    [:div
-     [:input.form-control.input-lg.square
-      {:type        "text"
-       :placeholder "Filter with text..."
-       :on-change   set-text-filter}]]))
+  (let [flag-filters (subscribe [:lists/flag-filters])
+        text-filter  (subscribe [:lists/text-filter])]
+    (fn []
+      [:div
+       [:span.flags
+        {:style {:font-size "1.5em"}}
+        ; Public / Private
+        [:i.fa
+         {:class    (case (get @flag-filters :authorized)
+                      true "fa-user" false "fa-globe" nil "fa-globe disabled")
+          :on-click (fn [] (dispatch [:lists/toggle-flag-filter :authorized]))}]
+        ; Favourites
+        [:i.fa
+         {:class    (case (get @flag-filters :favourite)
+                      true "fa-star" false "fa-star-o" nil "fa-star-o disabled")
+          :on-click (fn [] (dispatch [:lists/toggle-flag-filter :favourite]))}]]
+       [:span [:input.form-control.input-lg.square
+               {:type        "text"
+                :value       @text-filter
+                :style       {:display "inline"
+                              :width   "200px"}
+                :placeholder "Filter with text..."
+                :on-change   set-text-filter}]]])))
 
 (defn list-row []
   (fn [{:keys [description tags authorized name type size title timestamp dateCreated] :as l}]
     (let [date-created (tf/parse dateCreated)]
       [:div.grid-middle.list-row
        [:div.col-8 [:div
-                    [:h4.stress
+                    [:h4
                      [:span.flags
                       (if authorized [:i.fa.fa-user] [:i.fa.fa-globe])
                       (if (one-of? tags "im:favourite") [:i.fa.fa-star] [:i.fa.fa-star-o])]
-                     (str " " title)]
+                     [:span.stress title]]
                     [:span description]]]
        [:div.col [:h4 type]]
        [:div.col [:h4 size]]
@@ -54,6 +71,25 @@
     [:i.fa
      {:class    (str class-chunk "-" (name (if value value "asc")) " " (if value "stress"))
       :on-click (fn [] (dispatch [:lists/toggle-sort kw]))}]))
+
+(defn no-results []
+  (let [text-filter  (subscribe [:lists/text-filter])
+        flag-filters (subscribe [:lists/flag-filters])]
+    (fn []
+      [:div
+       [:h1
+        (let [message (cond-> []
+                              (some? (:authorized @flag-filters)) (conj (if (:authorized @flag-filters) "private" "public"))
+                              (some? (:favourite @flag-filters)) (conj (if (:favourite @flag-filters) "favourite" "non-favourite")))]
+          [:span
+           [:span (str "You have no " (clojure.string/join ", " message) " lists")]
+           (if @text-filter
+             [:span " containing the phrase " [:span.stress
+                                               {:style {:font-style "italic"}} @text-filter]])]
+          )]
+       [:a
+        {:on-click (fn [] (dispatch [:lists/set-text-filter nil]))}
+        "Click here to clear your search"]])))
 
 (defn list-table []
   (let [sort-order (subscribe [:lists/sort-order])]
@@ -71,12 +107,13 @@
         {:transition-name          "fade"
          :transition-enter-timeout 200
          :transition-leave-timeout 200}
-        (map (fn [l]
-               ^{:key (:name l)} [list-row l]) lists)]])))
+        (if (empty? lists)
+          [no-results]
+          (map (fn [l]
+                 ^{:key (:name l)} [list-row l]) lists))]])))
 
 (defn main []
-  (let [text-filter    (subscribe [:lists/text-filter])
-        filtered-lists (subscribe [:lists/filtered-lists])]
+  (let [filtered-lists (subscribe [:lists/filtered-lists])]
     (fn []
       [:div.list-section
        {:style {:width "100%"}}
