@@ -9,7 +9,7 @@
   [string details]
   (if string
     (if-let [description (:title details)]
-      (re-find (re-pattern (str "(?i)" string)) description)
+      (re-find (re-pattern (str "(?i)" string)) (clojure.string/join " " (map details [:title :description])))
       false)
     true))
 

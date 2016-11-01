@@ -26,6 +26,21 @@
         text-filter  (subscribe [:lists/text-filter])]
     (fn []
       [:div
+       [:input.form-control.input-lg.square
+        {:type           "text"
+         :value          @text-filter
+         :style          {:display       "inline"
+                          :width         "300px"
+                          :padding       "5px"
+                          :margin        0
+                          :background    "white"
+                          :border-radius "5px"
+                          :border "1px solid #d6d6d6"}
+         :placeholder    "Name or description contains..."
+         :data-content   [:span "Fil"]
+         :data-placement "bottom"
+         :data-trigger   "hover"
+         :on-change      set-text-filter}]
        [:span.flags
         {:style {:font-size "1.5em"}}
         ; Public / Private
@@ -46,21 +61,7 @@
            :class    (case (get @flag-filters :favourite)
                        true "fa-star" false "fa-star-o" nil "fa-star disabled")
            :on-click (fn [] (dispatch [:lists/toggle-flag-filter :favourite]))}]]
-        [:input.form-control.input-lg.square
-         {:type           "text"
-          :value          @text-filter
-          :style          {:display       "inline"
-                           :width         "300px"
-                           :padding       "5px"
-                           :margin        0
-                           :background    "white"
-                           :border-radius "5px"
-                           :border "1px solid #d6d6d6"}
-          :placeholder    "Name or description contains..."
-          :data-content   [:span "Fil"]
-          :data-placement "bottom"
-          :data-trigger   "hover"
-          :on-change      set-text-filter}]]])))
+        ]])))
 
 (defn list-row []
   (fn [{:keys [description tags authorized name type size title timestamp dateCreated] :as l}]
@@ -71,9 +72,9 @@
                      [:span.flags
                       (if authorized [:i.fa.fa-user] [:i.fa.fa-globe])
                       (if (one-of? tags "im:favourite") [:i.fa.fa-star] [:i.fa.fa-star-o])]
-                     [:span.stress {:on-click (fn [] (dispatch [:lists/view-results l]))} title]
+                     [:a.stress {:on-click (fn [] (dispatch [:lists/view-results l]))} title]
                      [:span {:style {:font-size "0.8em"}} (str " (" size " rows)")]]
-                    [:span description]]]
+                    [:div {:style {:padding-left "40px"}} description]]]
        [:div.col [:h4 type]]
        ;[:div.col [:h4 size]]
        [:div.col [:span (if dateCreated (if (t/after? date-created (t/today-at-midnight))
@@ -113,11 +114,12 @@
   (let [sort-order (subscribe [:lists/sort-order])]
     (fn [lists]
       [:div.list-container
+       [controls]
        [:div.grid
         [:div.col-8
          [:h4 "Title "
           [sort-icon :title "fa-sort-alpha" (:title @sort-order)]
-          [controls]]]
+          ]]
         [:div.col [:h4 "Type "]]
         ;[:div.col [:h4 "Count"]]
         [:div.col [:h4 "Created"]]]
