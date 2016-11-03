@@ -174,7 +174,7 @@
        (into [:ul.breadcrumb.inline]
              (map-indexed
                (fn [idx {title :title}]
-                 (let [adjsuted-title (adjust-str-to-length 20 title)]
+                 (let [adjsuted-title (if (not= idx @history-index) (adjust-str-to-length 20 title) title)]
                    [:li
                     {:class (if (= @history-index idx) "active")}
                     [tooltip

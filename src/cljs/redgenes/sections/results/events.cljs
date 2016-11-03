@@ -65,6 +65,7 @@
 (reg-event-fx
   :results/set-query
   (fn [{db :db} [_ query]]
+    (.log js/console "query set to" query)
     (let [model (get-in db [:assets :model])]
       {:db       (update-in db [:results] assoc
                             :query query
@@ -72,7 +73,7 @@
                             :history-index 0
                             :query-parts (filters/get-parts model query)
                             :enrichment-results nil)
-       :dispatch [:results/enrich]})))
+       :dispatch ^:flush-dom [:results/enrich]})))
 
 
 (reg-event-fx
@@ -86,9 +87,7 @@
                             (:pathConstraint details)
                             identifier)
                           {:title (str
-                                    (:title details)
-                                    " - "
-                                    (:description details))})]
+                                    (:title details))})]
       {:db       (-> db
                      (update-in [:results :history] conj query)
                      (update-in [:results] assoc

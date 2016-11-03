@@ -22,8 +22,9 @@
    :idresolver-example "CG9151, FBgn0000099, CG3629, TfIIB, Mad, CG1775, CG2262, TWIST_DROME, tinman, runt, E2f, CG8817, FBgn0010433, CG9786, CG1034, ftz, FBgn0024250, FBgn0001251, tll, CG1374, CG33473, ato, so, CG16738, tramtrack,  CG2328, gt"
    :mine
     {:name "FlyMine"
-     :url "beta.flymine.org/beta"
-     :service {:root "beta.flymine.org/beta"}}}
+     ;:url "beta.flymine.org/beta"
+     :url "www.flymine.org/query"
+     :service {:root "www.flymine.org/query"}}}
   ;  :url "www.flymine.org/flymine"
   ;  :service {:root "www.flymine.org/flymine"}}}
  :mouse
