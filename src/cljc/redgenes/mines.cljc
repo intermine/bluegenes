@@ -87,17 +87,16 @@
     {:name "YeastMine"
     :url "yeastmine.yeastgenome.org/yeastmine"
     :service {:root "yeastmine.yeastgenome.org/yeastmine"}}}
-;       :url "yeastmine-test.yeastgenome.org/yeastmine-dev"
-;       :service {:root "yeastmine-test.yeastgenome.org/yeastmine-dev"}}}
-:yeast
- {:id     :yeast
-  :output? true
-  :common "MitoMiner"
-  :abbrev "H. sapiens" ;;HAVING A DEFAULT ORGANISM MAY BE A BAD IDEA!!
-  :status {:status :na}
-  :idresolver-example "Atp5a1, Atp5b, Atp5d, Atp5c1"
-  :mine
-   {:name "MitoMiner"
-   :url "mitominer.mrc-mbu.cam.ac.uk/release-4.0"
-   :service {:root "mitominer.mrc-mbu.cam.ac.uk/release-4.0"}}}
+
+    :mitominer
+    {:id     :mitominer
+     :output? true
+     :common "MitoMiner"
+     :abbrev "H. sapiens" ;;HAVING A DEFAULT ORGANISM MAY BE A BAD IDEA!!
+     :status {:status :na}
+     :idresolver-example "Atp5a1, Atp5b, Atp5d, Atp5c1"
+     :mine
+      {:name "MitoMiner"
+      :url "mitominer.mrc-mbu.cam.ac.uk/release-4.0"
+      :service {:root "mitominer.mrc-mbu.cam.ac.uk/release-4.0"}}}
  })
