@@ -24,8 +24,9 @@
 (defn controls []
   (let [flag-filters (subscribe [:lists/flag-filters])
         text-filter  (subscribe [:lists/text-filter])]
-    (fn []
+    (fn [sort-icon]
       [:div
+       {:style {:display "inline-block"}}
        [:input.form-control.input-lg.square
         {:type           "text"
          :value          @text-filter
@@ -35,7 +36,7 @@
                           :margin        0
                           :background    "white"
                           :border-radius "5px"
-                          :border "1px solid #d6d6d6"}
+                          :border        "1px solid #d6d6d6"}
          :placeholder    "Name or description contains..."
          :data-content   [:span "Fil"]
          :data-placement "bottom"
@@ -44,24 +45,26 @@
        [:span.flags
         {:style {:font-size "1.5em"}}
         ; Public / Private
+        sort-icon
         [popover
          [:i.fa
-          {:data-content [:span "Show only your lists."]
+          {:data-content   [:span "Show only your lists."]
            :data-placement "bottom"
-           :data-trigger "hover"
-           :class    (case (get @flag-filters :authorized)
-                       true "fa-user" false "fa-globe" nil "fa-user disabled")
-           :on-click (fn [] (dispatch [:lists/toggle-flag-filter :authorized]))}]]
+           :data-trigger   "hover"
+           :class          (case (get @flag-filters :authorized)
+                             true "fa-user" false "fa-globe" nil "fa-user disabled")
+           :on-click       (fn [] (dispatch [:lists/toggle-flag-filter :authorized]))}]]
         ; Favourites
         [popover
          [:i.fa
-          {:data-content [:span "Show only your favourite lists."]
+          {:data-content   [:span "Show only your favourite lists."]
            :data-placement "bottom"
-           :data-trigger "hover"
-           :class    (case (get @flag-filters :favourite)
-                       true "fa-star" false "fa-star-o" nil "fa-star disabled")
-           :on-click (fn [] (dispatch [:lists/toggle-flag-filter :favourite]))}]]
-        ]])))
+           :data-trigger   "hover"
+           :class          (case (get @flag-filters :favourite)
+                             true "fa-star" false "fa-star-o" nil "fa-star disabled")
+           :on-click       (fn [] (dispatch [:lists/toggle-flag-filter :favourite]))}]]
+        ]
+       ])))
 
 (defn list-row []
   (fn [{:keys [description tags authorized name type size title timestamp dateCreated] :as l}]
@@ -114,15 +117,16 @@
   (let [sort-order (subscribe [:lists/sort-order])]
     (fn [lists]
       [:div.list-container
-       [controls]
+
        [:div.grid
         [:div.col-8
-         [:h4 "Title "
-          [sort-icon :title "fa-sort-alpha" (:title @sort-order)]
-          ]]
-        [:div.col [:h4 "Type "]]
+         [:span
+          [:h3 {:style {:padding-right "5px"
+                        :display "inline-block"}} "Title"]
+          [controls [sort-icon :title "fa-sort-alpha" (:title @sort-order)]]]]
+        [:div.col [:h3 "Type "]]
         ;[:div.col [:h4 "Count"]]
-        [:div.col [:h4 "Created"]]]
+        [:div.col [:h3 "Created"]]]
        [css-transition-group
         {:transition-name          "fade"
          :transition-enter-timeout 100
