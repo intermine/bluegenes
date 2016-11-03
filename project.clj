@@ -102,19 +102,19 @@
                     :source-map-timestamp true
                     :pretty-print         true
                     :parallel-build       true
-                    :preamble             ["preamble.js"]
+                    ;;:preamble             ["preamble.js"]
                     :modules
                                           {
                                            :app
                                            {
                                             :output-to "resources/public/js/modules/app.js"
                                             :entries   #{"redgenes.core"}
-                                            :preamble             ["preamble.js"]
+                                            ;;:preamble             ["preamble.js"]
                                             }
                                            :query-builder
                                            {
                                             :output-to "resources/public/js/modules/qb.js"
-                                            :preamble             ["preamble.js"]
+                                            ;;:preamble             ["preamble.js"]
                                             :entries
                                                        #{
                                                          "redgenes.components.querybuilder.views.main"
@@ -123,7 +123,7 @@
                                            :main
                                            {
                                             :output-to "resources/public/js/modules/main.js"
-                                            :preamble             ["preamble.js"]
+                                            ;;:preamble             ["preamble.js"]
                                             :entries   #{"redgenes.main" "redgenes.modules"}
                                             }}}}
     :min

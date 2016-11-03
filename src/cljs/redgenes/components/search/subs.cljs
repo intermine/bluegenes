@@ -16,3 +16,18 @@
   :suggestion-results
   (fn [db _]
     (:suggestion-results db)))
+
+(reg-sub
+  :search/full-results
+  (fn [db]
+    (:search-results db)))
+
+(reg-sub
+  :search/active-filter
+  (fn [db _]
+    (:active-filter (:search-results db))))
+
+(reg-sub
+  :search/highlight?
+  (fn [db _]
+    (:highlight-results (:search-results db))))

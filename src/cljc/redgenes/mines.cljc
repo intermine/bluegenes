@@ -22,8 +22,9 @@
    :idresolver-example "CG9151, FBgn0000099, CG3629, TfIIB, Mad, CG1775, CG2262, TWIST_DROME, tinman, runt, E2f, CG8817, FBgn0010433, CG9786, CG1034, ftz, FBgn0024250, FBgn0001251, tll, CG1374, CG33473, ato, so, CG16738, tramtrack,  CG2328, gt"
    :mine
     {:name "FlyMine"
-     :url "beta.flymine.org/beta"
-     :service {:root "beta.flymine.org/beta"}}}
+     ;:url "beta.flymine.org/beta"
+     :url "www.flymine.org/query"
+     :service {:root "www.flymine.org/query"}}}
   ;  :url "www.flymine.org/flymine"
   ;  :service {:root "www.flymine.org/flymine"}}}
  :mouse
@@ -87,6 +88,16 @@
     {:name "YeastMine"
     :url "yeastmine.yeastgenome.org/yeastmine"
     :service {:root "yeastmine.yeastgenome.org/yeastmine"}}}
-;       :url "yeastmine-test.yeastgenome.org/yeastmine-dev"
-;       :service {:root "yeastmine-test.yeastgenome.org/yeastmine-dev"}}}
+
+    :mitominer
+    {:id     :mitominer
+     :output? true
+     :common "MitoMiner"
+     :abbrev "H. sapiens" ;;HAVING A DEFAULT ORGANISM MAY BE A BAD IDEA!!
+     :status {:status :na}
+     :idresolver-example "Atp5a1, Atp5b, Atp5d, Atp5c1"
+     :mine
+      {:name "MitoMiner"
+      :url "mitominer.mrc-mbu.cam.ac.uk/release-4.0"
+      :service {:root "mitominer.mrc-mbu.cam.ac.uk/release-4.0"}}}
  })
