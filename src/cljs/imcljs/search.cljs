@@ -33,10 +33,10 @@
     (-> (js/imjs.Service. (clj->js service))
         (.query (clj->js query))
         (.then (fn [q]
-                 (go (let [root (utils/cleanse-url (:root service))
-                           response (<! (http/post (str root "/query/results")
+                 (go (let [url      (utils/cleanse-url (:root service))
+                           response (<! (http/post (str url "/query/results")
                                                    {:with-credentials? false
-                                                    :form-params       (merge {:format "json"} options {:query (.toXML q)})}))]
+                                                    :form-params      (merge {:format "json"} options {:query (.toXML q)})}))]
                        (>! c (-> response :body))
                        (close! c))))
                (fn [error]

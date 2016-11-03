@@ -20,6 +20,11 @@
     (get-in db [:results :query])))
 
 (reg-sub
+  :results/service
+  (fn [db]
+    (get-in db [:results :service])))
+
+(reg-sub
   :results/query-parts
   (fn [db]
     (get-in db [:results :query-parts])))

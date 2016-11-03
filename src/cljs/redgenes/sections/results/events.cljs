@@ -48,7 +48,7 @@
           class          (keyword (filters/end-class model path-constraint))
           summary-fields (get-in db [:assets :summary-fields class])
           summary-chan   (search/raw-query-rows
-                           {:root @(subscribe [:mine-url])}
+                           (get-in db [:results :service])
                            {:from   class
                             :select summary-fields
                             :where  [{:path  (last (clojure.string/split path-constraint "."))
@@ -64,16 +64,19 @@
 
 (reg-event-fx
   :results/set-query
-  (fn [{db :db} [_ query]]
-    (.log js/console "query set to" query)
+  (fn [{db :db} [_ im-package]]
     (let [model (get-in db [:assets :model])]
-      {:db       (update-in db [:results] assoc
-                            :query query
-                            :history [query]
-                            :history-index 0
-                            :query-parts (filters/get-parts model query)
-                            :enrichment-results nil)
-       :dispatch ^:flush-dom [:results/enrich]})))
+      (let [query  (get-in im-package [:contents :value])
+            source (get im-package :source)]
+        (.log js/console "query source" query source)
+        {:db       (update-in db [:results] assoc
+                              :query query
+                              :service (get-in db [:mines source :service])
+                              :history [query]
+                              :history-index 0
+                              :query-parts (filters/get-parts model query)
+                              :enrichment-results nil)
+         :dispatch ^:flush-dom [:results/enrich source]}))))
 
 
 (reg-event-fx
@@ -112,13 +115,13 @@
 
 (reg-event-fx
   :results/enrich
-  (fn [{db :db}]
+  (fn [{db :db} [_ mine-kw]]
     (let [query-parts (get-in db [:results :query-parts])
           can-enrich? (contains? query-parts :Gene)]
       (if can-enrich?
         (let [enrich-query (-> query-parts :Gene first :query)]
           {:db                   db
-           :fetch-ids-from-query enrich-query})
+           :fetch-ids-from-query [(get-in db [:mines mine-kw :service]) enrich-query]})
         {:db db}))))
 
 (reg-event-fx
@@ -129,9 +132,9 @@
 
 (reg-fx
   :fetch-ids-from-query
-  (fn [query]
+  (fn [[service query]]
     (go (let [{results :results} (<! (search/raw-query-rows
-                                       {:root @(subscribe [:mine-url])}
+                                       service
                                        query))]
           (dispatch [:success-fetch-ids (flatten results)])))))
 
@@ -189,7 +192,7 @@
 (reg-event-fx
   :results/run
   (fn [{db :db} [_ params]]
-    (let [enrichment-chan (search/enrichment {:root @(subscribe [:mine-url])} params)]
+    (let [enrichment-chan (search/enrichment (get-in db [:results :service]) params)]
       {:db                     db
        :results/get-enrichment [(:widget params) enrichment-chan]})))
 

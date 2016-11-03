@@ -12,12 +12,17 @@
             [redgenes.interceptors :refer [clear-tooltips]]
             [redgenes.effects]
             [dommy.core :refer-macros [sel sel1]]
-            [redgenes.sections.saveddata.events]))
+            [redgenes.sections.saveddata.events]
+            [redgenes.specs :as specs]))
 
 (reg-event-db
   :lists/set-text-filter
   (fn [db [_ value]]
     (let [adjusted-value (if (= value "") nil value)]
+      (.log js/console "VALID?"
+            (s/explain specs/im-package {:source   :flymine
+                                         :contents {:type  :query
+                                                    :value 2}}))
       (assoc-in db [:lists :controls :filters :text-filter] adjusted-value))))
 
 (reg-event-db
@@ -31,7 +36,7 @@
                    nil :asc)))))
 
 (defn build-list-query [type summary-fields name title]
-  {:title title
+  {:title  title
    :from   type
    :select summary-fields
    :where  [{:path  type
@@ -40,10 +45,12 @@
 
 (reg-event-fx
   :lists/view-results
-  (fn [{db :db} [_ {:keys [type name title]}]]
+  (fn [{db :db} [_ {:keys [type name title source]}]]
     (let [summary-fields (get-in db [:assets :summary-fields (keyword type)])]
       {:db       db
-       :dispatch [:results/set-query (build-list-query type summary-fields name title)]
+       :dispatch [:results/set-query {:source   source
+                                      :contents {:type  :query
+                                                 :value (build-list-query type summary-fields name title)}}]
        :navigate (str "results")})))
 
 

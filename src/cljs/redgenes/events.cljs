@@ -9,17 +9,43 @@
             [redgenes.sections.objects.handlers]
             [imcljs.search :as search]
             [imcljs.assets :as assets]
+            [imcljs.user :as user]
             [day8.re-frame.http-fx]
             [day8.re-frame.forward-events-fx]
+            [day8.re-frame.async-flow-fx]
             [ajax.core :as ajax]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
             [cljs-time.core :as t]
             [cljs-uuid-utils.core :as uuid]))
 
+
+; Boot the application.
+; 1 Fetch an anonymous token for the current mine
+; 2 Fetch all assets for the current mine
+(reg-event-fx
+  :boot
+  (fn []
+    (let [db (assoc db/default-db :mines redgenes.mines/mines)]
+      {:db         (assoc db/default-db :mines redgenes.mines/mines)
+       :async-flow {:first-dispatch [:authentication/fetch-anonymous-token (get db :current-mine)]
+                    :rules          [{:when     :seen?
+                                      :events   :authentication/store-token
+                                      :dispatch [:fetch-all-assets]
+                                      :halt?    true}]}})))
+
+; Store an authentication token for a given mine
 (reg-event-db
-  :initialize-db
-  (fn [_ _]
-    db/default-db))
+  :authentication/store-token
+  (fn [db [_ mine-kw token]]
+    (assoc-in db [:mines mine-kw :service :token] token)))
+
+; Fetch an anonymous token for a give
+(reg-event-fx
+  :authentication/fetch-anonymous-token
+  (fn [{db :db} [_ mine-kw]]
+    {:db           db
+     :im-operation {:on-success [:authentication/store-token mine-kw]
+                    :op         (partial user/session (get-in db [:mines mine-kw :service]))}}))
 
 (reg-fx
   :im-operation
@@ -37,16 +63,7 @@
              {:dispatch (:and-then (:queued db))}))))
 
 
-; Usage:
-;{:db        db
-; :do-imcljs {:on-success [:store-value]
-;             :on-failure [:notify-failure]
-;             :function   [imcljs/query {:root "www.flymine.org/query"}]}}
-;(reg-fx
-;  :do-imcljs
-;  (fn [{:keys [on-success on-failure function params]}]
-;    (go (let [results (<! (apply function params))]
-;          (println "finished")))))
+
 
 (reg-event-fx
   :set-active-panel
@@ -155,13 +172,13 @@
 
 (reg-fx
   :fetch-assets
-  (fn [connection]
-    (let [c1        (assets/templates connection)
-          c2        (assets/lists connection)
-          c3        (assets/model connection)
-          c4        (assets/summary-fields connection)
+  (fn [[mine-kw service]]
+    (let [c1        (assets/templates service)
+          c2        (assets/lists service)
+          c3        (assets/model service)
+          c4        (assets/summary-fields service)
           locations {c1 [:assets :templates]
-                     c2 [:assets :lists]
+                     c2 [:assets :lists mine-kw]
                      c3 [:assets :model]
                      c4 [:assets :summary-fields]}]
       (go-loop [channels [c1 c2 c3 c4]]
@@ -177,9 +194,10 @@
 (reg-event-fx
   :fetch-all-assets
   (fn [{db :db}]
-    {:db           (assoc db :fetching-assets? true
-                             :progress-bar-percent 0)
-     :fetch-assets {:root @(subscribe [:mine-url])}}))
+    (let [current-mine (get db :current-mine)]
+      {:db           (assoc db :fetching-assets? true
+                              :progress-bar-percent 0)
+      :fetch-assets [current-mine (get-in db [:mines current-mine :service])]})))
 
 (reg-event-db
   :test-progress-bar
@@ -203,8 +221,8 @@
                                    "genus"
                                    "commonName"]}]
       {:db           db
-       :im-operation {:op (partial search/raw-query-rows
-                                    {:root @(subscribe [:mine-url])}
-                                    organism-query
-                                   {:format "jsonobjects"})
-                       :on-success [:cache/store-organisms]}})))
+       :im-operation {:op         (partial search/raw-query-rows
+                                           {:root @(subscribe [:mine-url])}
+                                           organism-query
+                                           {:format "jsonobjects"})
+                      :on-success [:cache/store-organisms]}})))

@@ -187,7 +187,8 @@
 
 
 (defn main []
-  (let [query (subscribe [:results/query])]
+  (let [query (subscribe [:results/query])
+        service (subscribe [:results/service])]
     (fn []
       [:div.container
        [breadcrumb]
@@ -195,10 +196,10 @@
         [:div.col-md-9.col-sm-12
          [:div.panel.panel-default
           [:div.panel-body.autoscroll
-           (if @query [table/main @query true])]]]
+           (if @query [table/main {:service @service
+                                   :query   @query} true])]]]
         [:div.col-md-3.col-sm-12
-         [side-bar]
-         ]]])))
+         [side-bar]]]])))
 
 
 
