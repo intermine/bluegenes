@@ -67,29 +67,25 @@
         ]])))
 
 (defn list-row []
-  (let [mine-icons (subscribe [:mine-icons])]
-    (fn [{:keys [source description tags authorized name type size title timestamp dateCreated] :as l}]
-      (let [date-created (tf/parse dateCreated)]
-        [:div.grid-middle.list-row
-         [:div.col-8 [:div
-                      [:h4
-                       [:span.flags
-                        (if authorized [:i.fa.fa-user] [:i.fa.fa-globe])
-                        (if (one-of? tags "im:favourite") [:i.fa.fa-star] [:i.fa.fa-star-o])]
-                       [:a.stress {:on-click (fn [] (dispatch [:lists/view-results l]))} title]
-                       [:span {:style {:font-size "0.8em"}} (str " (" size " rows)")]]
-                      [:div {:style {:padding-left "40px"}} description]]]
-         [:div.col [:span
-                    [:h4 type
-                     [:span
-                      {:style {:font-size "2em"}}
-                      (get @mine-icons :humanmine)]]]]
-         ;[:div.col [:h4 size]]
-         [:div.col [:span (if dateCreated (if (t/after? date-created (t/today-at-midnight))
-                                            "Today"
-                                            [:div
-                                             [:div (tf/unparse (tf/formatter "MMM, dd") date-created)]
-                                             [:span (tf/unparse (tf/formatter "YYYY") date-created)]]))]]]))))
+  (fn [{:keys [source description tags authorized name type size title timestamp dateCreated] :as l}]
+    (let [date-created (tf/parse dateCreated)]
+      [:div.grid-middle.list-row
+       [:div.col-8 [:div
+                    [:h4
+                     [:span.flags
+                      (if authorized [:i.fa.fa-user] [:i.fa.fa-globe])
+                      (if (one-of? tags "im:favourite") [:i.fa.fa-star] [:i.fa.fa-star-o])]
+                     [:a.stress {:on-click (fn [] (dispatch [:lists/view-results l]))} title]
+                     [:span {:style {:font-size "0.8em"}} (str " (" size " rows)")]]
+                    [:div {:style {:padding-left "40px"}} description]]]
+       [:div.col [:span
+                  [:h4 type]]]
+       ;[:div.col [:h4 size]]
+       [:div.col [:span (if dateCreated (if (t/after? date-created (t/today-at-midnight))
+                                          "Today"
+                                          [:div
+                                           [:div (tf/unparse (tf/formatter "MMM, dd") date-created)]
+                                           [:span (tf/unparse (tf/formatter "YYYY") date-created)]]))]]])))
 
 (defn sort-icon []
   (fn [kw class-chunk value]

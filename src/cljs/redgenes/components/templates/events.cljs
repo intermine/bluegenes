@@ -5,15 +5,22 @@
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
             [imcljs.search :as search]))
 
+
+(def ns->kw (comp keyword namespace))
+(def name->kw (comp keyword name))
+(def ns->vec (juxt ns->kw name->kw))
+
 (reg-event-fx
   :template-chooser/choose-template
   (fn [{db :db} [_ id]]
-    (let [template (get-in db [:assets :templates id])]
-      {:db (update-in db [:components :template-chooser]
-                  assoc
-                  :selected-template template
-                  :count nil)
-       :dispatch [:template-chooser/run-count]})))
+    (let [query (get-in db [:assets :templates (ns->kw id) (name->kw id)])]
+      {:db       (update-in db [:components :template-chooser]
+                            assoc
+                            :selected-template query
+                            :selected-template-name id
+                            :count nil)
+       :dispatch [:template-chooser/run-count]
+       })))
 
 (reg-event-db
   :template-chooser/set-category-filter
@@ -24,6 +31,18 @@
   :template-chooser/set-text-filter
   (fn [db [_ id]]
     (assoc-in db [:components :template-chooser :text-filter] id)))
+
+
+(reg-event-fx
+  :templates/send-off-query
+  (fn [{db :db} [_]]
+    (let [summary-fields (get-in db [:assets :summary-fields (keyword type)])]
+      {:db       db
+       :dispatch [:results/set-query
+                  {:source (ns->kw (get-in db [:components :template-chooser :selected-template-name] ))
+                   :type   :query
+                   :value  (get-in db [:components :template-chooser :selected-template])}]
+       :navigate (str "results")})))
 
 (reg-event-fx
   :template-chooser/replace-constraint
@@ -47,8 +66,10 @@
   :template-chooser/run-count
   (fn [{db :db}]
     (let [query      (get-in db [:components :template-chooser :selected-template])
+          template-name (get-in db [:components :template-chooser :selected-template-name])
+          service (get-in db [:mines (ns->kw template-name) :service])
           count-chan (search/raw-query-rows
-                       {:root @(subscribe [:mine-url])}
+                       service
                        query
                        {:format "count"})
           new-db     (update-in db [:components :template-chooser] assoc

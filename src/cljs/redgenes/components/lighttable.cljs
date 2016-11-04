@@ -22,49 +22,51 @@
   []
   (fn
     ([results]
-    (let [skip-columns nil #_(homogeneous-columns (:results results))]
-      [:table.table.small
-       [:thead
-        (into [:tr]
-              (map (fn [header]
-                     [:th (last (clojure.string/split header " > "))]) (:columnHeaders results)))]
-       (into [:tbody]
-             (map (fn [row]
-                    (into [:tr]
-                          (map-indexed (fn [idx value]
-                                         (if (nth skip-columns idx)
-                                           [:td.skipped "..."]
-                                           [:td (if (< 50 (count (str value)))
-                                                  (str (apply str (take 50 (str value))) "...")
-                                                  (str value))])) row))) (:results results)))]))
+     (let [skip-columns nil #_(homogeneous-columns (:results results))]
+       [:table.table.small
+        [:thead
+         (into [:tr]
+               (map (fn [header]
+                      [:th (last (clojure.string/split header " > "))]) (:columnHeaders results)))]
+        (into [:tbody]
+              (map (fn [row]
+                     (into [:tr]
+                           (map-indexed (fn [idx value]
+                                          (if (nth skip-columns idx)
+                                            [:td.skipped "..."]
+                                            [:td (if (< 50 (count (str value)))
+                                                   (str (apply str (take 50 (str value))) "...")
+                                                   (str value))])) row))) (:results results)))]))
 
-  ([results options]
-   (if (:title options) ;; we could tweak this further to make a nice passed-in title, too
-    [:div
-      [:h4 (find-name (:class results))]
-      [table results]]
-   [table results])
-  )))
+    ([results options]
+     (if (:title options) ;; we could tweak this further to make a nice passed-in title, too
+       [:div
+        [:h4 (find-name (:class results))]
+        [table results]]
+       [table results])
+      )))
 
 ;;;;;
 ;(find-name (:class query))
 ;;;
 
 (defn shell []
-  (fn [state q options]
+  (fn [state package options]
     (if (empty? (:results @state))
-      [:div.small.no-results (str (:class @state) " - No Results") ]
+      [:div.small.no-results (str (:class @state) " - No Results")]
       [:div.lt [table @state options]])))
 
 (defn handler [state e]
   (let [props (reagent/props e)
         node  (sel1 (reagent/dom-node e) :.im-target)]
-    (go (let [new-results (<! (search/raw-query-rows {:root @(subscribe [:mine-url])} (:query props)
-                  {:size   5
-                   :format "json"}))]
-      ;; assoc the original class so we can say what has no results
-      (reset! state (assoc new-results :class (:class props)))
-      ))
+    (go (let [new-results (<! (search/raw-query-rows
+                                (:service props)
+                                (:query props)
+                                {:size   5
+                                 :format "json"}))]
+          ;; assoc the original class so we can say what has no results
+          (reset! state (assoc new-results :class (:class props)))
+          ))
     ))
 
 (defn main []
@@ -72,4 +74,5 @@
     (reagent/create-class
       {:component-did-mount  (partial handler state)
        :component-did-update (partial handler state)
-       :reagent-render       (fn [q options] [shell state q options])})))
+       :reagent-render       (fn [package options]
+                               [shell state package options])})))

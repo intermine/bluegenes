@@ -26,7 +26,9 @@
   :boot
   (fn []
     (let [db (assoc db/default-db :mines redgenes.mines/mines)]
-      {:db         (assoc db/default-db :mines redgenes.mines/mines)
+      {:db         (assoc db/default-db
+                     :mines redgenes.mines/mines
+                     :fetching-assets? true)
        :async-flow {:first-dispatch [:authentication/fetch-anonymous-token (get db :current-mine)]
                     :rules          [{:when     :seen?
                                       :events   :authentication/store-token
@@ -47,39 +49,36 @@
      :im-operation {:on-success [:authentication/store-token mine-kw]
                     :op         (partial user/session (get-in db [:mines mine-kw :service]))}}))
 
+; Change the main panel to a new view
+(reg-event-fx
+  :do-active-panel
+  (fn [{db :db} [_ active-panel panel-params evt]]
+    (cond-> {:db (assoc db
+                   :active-panel active-panel
+                   :panel-params panel-params)}
+            evt (assoc :dispatch evt))))
+
+; A buffer between booting and changing the view. We only change the view
+; when the assets have been loaded
+(reg-event-fx
+  :set-active-panel
+  (fn [{db :db} [_ active-panel panel-params evt]]
+    (cond-> {:db db}
+            (:fetching-assets? db) ; If we're fetching assets then save the panel change for later
+            (assoc :forward-events {:register    :coordinator1
+                                    :events      #{:finished-loading-assets}
+                                    :dispatch-to [:do-active-panel active-panel panel-params evt]})
+            (not (:fetching-assets? db)) ; Otherwise dispatch it now (and the optional attached event)
+            (assoc :dispatch-n
+                   (cond-> [[:do-active-panel active-panel panel-params evt]]
+                           evt (conj evt))))))
+
+
 (reg-fx
   :im-operation
   (fn [{:keys [on-success on-failure response-format op params]}]
     (go (dispatch (conj on-success (<! (op)))))))
 
-(reg-event-fx
-  :unqueue
-  (fn [{db :db}]
-    (merge {:db (-> db
-                    (assoc :active-panel (:active-panel (:queued db)))
-                    (assoc :panel-params (:panel-params (:queued db)))
-                    (dissoc db :queued))}
-           (if (:and-then (:queued db))
-             {:dispatch (:and-then (:queued db))}))))
-
-
-
-
-(reg-event-fx
-  :set-active-panel
-  (fn [{db :db} [_ active-panel panel-params evt]]
-    (if (:fetching-assets? db)
-      ; Queue our route until the assets have been fetched
-      {:db             (assoc db :queued {:active-panel active-panel
-                                          :panel-params panel-params
-                                          :and-then     evt})
-       :forward-events {:register    :route-forwarder
-                        :events      #{:finished-loading-assets}
-                        :dispatch-to [:unqueue]}}
-      ; Otherwise route immediately, and fire an optional post-route event
-      (merge {:db (assoc db :active-panel active-panel
-                            :panel-params panel-params)}
-             (if evt {:dispatch evt})))))
 
 (reg-event-db
   :good-who-am-i
@@ -88,9 +87,9 @@
 
 (reg-event-fx
   :set-active-mine
-  (fn [{:keys [db]} [_ value]]
-    {:db         (-> (assoc db :mine-name value)
-                     (assoc :saved-data {:items {}}))
+  (fn [{:keys [db]} [_ value keep-existing?]]
+    {:db         (cond-> (assoc db :current-mine value)
+                         (not keep-existing?) (assoc-in [:assets] {}))
      :dispatch-n (list [:fetch-all-assets] [:set-active-panel :home-panel])}))
 
 (reg-event-fx
@@ -146,7 +145,7 @@
 
 (reg-fx
   :suggest
-  (fn [{:keys [c search-term]}]
+  (fn [{:keys [c search-term source]}]
     (if (= "" search-term)
       (dispatch [:handle-suggestions nil])
       (go (dispatch [:handle-suggestions (<! c)])))))
@@ -154,13 +153,13 @@
 (reg-event-fx
   :bounce-search
   (fn [{db :db} [_ term]]
-    (let [connection   {:root @(subscribe [:mine-url])}
+    (let [connection   (get-in db [:mines (get db :current-mine) :service])
           suggest-chan (search/quicksearch connection term)]
       (if-let [c (:search-term-channel db)] (close! c))
       {:db      (-> db
                     (assoc :search-term-channel suggest-chan)
                     (assoc :search-term term))
-       :suggest {:c suggest-chan :search-term term}})))
+       :suggest {:c suggest-chan :search-term term :source (get db :current-mine)}})))
 
 (reg-event-fx
   :finished-loading-assets
@@ -170,6 +169,13 @@
                   [:saved-data/load-lists]
                   [:regions/select-all-feature-types]]}))
 
+
+(reg-event-fx
+  :add-toast
+  (fn [db [_ message]]
+    (update-in db [:toasts] conj message)))
+
+
 (reg-fx
   :fetch-assets
   (fn [[mine-kw service]]
@@ -177,9 +183,9 @@
           c2        (assets/lists service)
           c3        (assets/model service)
           c4        (assets/summary-fields service)
-          locations {c1 [:assets :templates]
+          locations {c1 [:assets :templates mine-kw]
                      c2 [:assets :lists mine-kw]
-                     c3 [:assets :model]
+                     c3 [:assets :model mine-kw]
                      c4 [:assets :summary-fields]}]
       (go-loop [channels [c1 c2 c3 c4]]
                (let [[v p] (alts! channels)]
@@ -196,8 +202,8 @@
   (fn [{db :db}]
     (let [current-mine (get db :current-mine)]
       {:db           (assoc db :fetching-assets? true
-                              :progress-bar-percent 0)
-      :fetch-assets [current-mine (get-in db [:mines current-mine :service])]})))
+                               :progress-bar-percent 0)
+       :fetch-assets [current-mine (get-in db [:mines current-mine :service])]})))
 
 (reg-event-db
   :test-progress-bar

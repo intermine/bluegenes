@@ -77,10 +77,10 @@
   (defroute "/assets/:type/:id" [type id]
             (re-frame/dispatch [:set-active-panel :list-panel {:type type :id id}]))
 
-  (defroute "/objects/:type/:id" [type id]
+  (defroute "/objects/:mine/:type/:id" [mine type id]
             (re-frame/dispatch [:set-active-panel :object-panel
-                                {:type type :id id}
-                                [:load-report type id]]))
+                                {:type type :id id :mine mine}
+                                [:load-report mine type id]]))
 
   ;; --------------------
 

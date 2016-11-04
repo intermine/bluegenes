@@ -46,7 +46,7 @@
 
 (defn enrichment
   "Get the results of using a list enrichment widget to calculate statistics for a set of objects."
-  [{root :root token :token} {:keys [ids list widget maxp correction population]}]
+  [{root :root token :token} {:keys [ids list widget maxp correction population] :as e}]
   (go (:body (<! (http/post
                    (str (cleanse-url root) "/list/enrichment")
                    {:with-credentials? false

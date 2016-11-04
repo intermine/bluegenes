@@ -178,10 +178,9 @@
 
           [:button.btn.btn-primary.btn-raised
            {:on-click (fn []
-                        (dispatch ^:flush-dom [:results/set-query @selected-template])
-                        (navigate! "#/results"))}
+                        (dispatch [:templates/send-off-query]))}
            "View All Results"]
-           [lighttable/main {:query      @selected-template
+           #_[lighttable/main {:query      @selected-template
                              :no-repeats true}]
           ])])]
     )

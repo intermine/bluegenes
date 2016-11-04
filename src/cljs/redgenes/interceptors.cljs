@@ -1,5 +1,5 @@
 (ns redgenes.interceptors
-  (:require [re-frame.core :as re-frame]
+  (:require [re-frame.core :as re-frame :refer [dispatch]]
             [clojure.spec :as s]
             [oops.core :refer [ocall oget]]))
 
@@ -13,6 +13,7 @@
                 (if-not (s/valid? spec data)
                   (do
                     (throw (s/explain-str spec data))
+                    ;(dispatch [:add-toast "I AM TEST"])
                     (-> context
                         (dissoc :queue)
                         (re-frame.core/enqueue [])))

@@ -17,29 +17,34 @@
 
 (reg-fx
   :fetch-report
-  (fn [[db type id]]
+  (fn [[db mine type id]]
     (let [type-kw (keyword type)
           q       {:from   type
                    :select (-> db :assets :summary-fields type-kw)
                    :where  {:id id}}]
       (go (dispatch [:handle-report-summary (<! (search/raw-query-rows
-                                                  {:root @(subscribe [:mine-url])}
+                                                  (get-in db [:mines mine :service])
                                                   q
                                                   {:format "json"}))])))))
 
 
 (reg-event-db
   :filter-report-collections
-  (fn [db [_ type oid]]
-    (let [model          (-> db :assets :model)
-          templates      (-> db :assets :templates)
+  (fn [db [_ mine type oid]]
+    (let [model          (-> db :assets :model mine)
+          templates      (-> db :assets :templates mine)
           summary-fields (-> db :assets :summary-fields)
           type-key       (keyword type)
-          collections    (-> db :assets :model type-key :collections)]
+          collections    (-> db :assets :model mine type-key :collections)]
       (assoc-in db [:report :collections] (map (fn [[_ {:keys [name referencedType]}]]
                                                  (let [summary-paths (-> referencedType keyword summary-fields)]
                                                    ; Create a query for each collection
+
+
+
+
                                                    {:class referencedType
+                                                    :service (get-in db [:mines mine :service])
                                                     :query {:from   type
                                                             :select (map (fn [path]
                                                                            (str name "."
@@ -51,7 +56,7 @@
 
 (reg-event-fx
   :filter-report-templates
-  (fn [{db :db} [_ type id]]
+  (fn [{db :db} [_ mine type id]]
     (let [model     (-> db :assets :model)
           templates (-> db :assets :templates)]
       {:db       (assoc-in db [:report :templates]
@@ -62,13 +67,13 @@
                                          :where #(= 1 (count (filter (fn [c] (:editable c)) %)))
                                          s/ALL
                                          :path #(= type (filters/end-class model %)))] templates)))
-       :dispatch [:filter-report-collections type id]})))
+       :dispatch [:filter-report-collections mine type id]})))
 
 (reg-event-fx
   :load-report
-  (fn [{db :db} [_ type id]]
+  (fn [{db :db} [_ mine type id]]
     {:db           (-> db
                        (assoc :fetching-report? true)
                        (dissoc :report))
-     :fetch-report [db type id]
-     :dispatch     [:filter-report-templates type id]}))
+     :fetch-report [db (keyword mine) type id]
+     :dispatch     [:filter-report-templates (keyword mine) type id]}))

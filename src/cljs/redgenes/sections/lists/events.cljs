@@ -19,10 +19,6 @@
   :lists/set-text-filter
   (fn [db [_ value]]
     (let [adjusted-value (if (= value "") nil value)]
-      (.log js/console "VALID?"
-            (s/explain specs/im-package {:source   :flymine
-                                         :contents {:type  :query
-                                                    :value 2}}))
       (assoc-in db [:lists :controls :filters :text-filter] adjusted-value))))
 
 (reg-event-db
@@ -48,9 +44,10 @@
   (fn [{db :db} [_ {:keys [type name title source]}]]
     (let [summary-fields (get-in db [:assets :summary-fields (keyword type)])]
       {:db       db
-       :dispatch [:results/set-query {:source   source
-                                      :contents {:type  :query
-                                                 :value (build-list-query type summary-fields name title)}}]
+       :dispatch [:results/set-query
+                  {:source source
+                   :type   :query
+                   :value  (build-list-query type summary-fields name title)}]
        :navigate (str "results")})))
 
 

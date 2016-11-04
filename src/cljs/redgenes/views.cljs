@@ -10,6 +10,7 @@
             [redgenes.sections.objects.views :as objects]
             [redgenes.sections.templates.views :as templates]
             [redgenes.components.querybuilder.views.main :as querybuilder]
+            [redgenes.components.toast :as toast]
             [redgenes.sections.upload.views :as upload]
             [redgenes.sections.explore.views :as explore]
             [redgenes.sections.analyse.views :as analyse]
@@ -80,4 +81,6 @@
        [nav/main]
        [:main [show-panel @active-panel]]
        [footer]
+       [toast/main]
+
        ])))

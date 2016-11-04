@@ -81,11 +81,6 @@
     (:model (:assets db))))
 
 (reg-sub
-  :mine-icons
-  (fn [db [_]]
-    (reduce (fn [total [mine-kw {icon :icon}]]
-              (assoc total mine-kw icon)) {} (get-in db [:mines]))))
-(reg-sub
   :lists
   (fn [db [_]]
     (get-in db [:assets :lists])))
@@ -119,3 +114,13 @@
   :cache/organisms
   (fn [db]
     (get-in db [:cache :organisms])))
+
+(reg-sub
+  :toasts
+  (fn [db]
+    (get-in db [:toasts])))
+
+(reg-sub
+  :current-mine
+  (fn [db]
+    (get-in db [:mines (get db :current-mine)])))
