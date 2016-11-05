@@ -60,7 +60,7 @@
   (let [active-panel (subscribe [:active-panel])
         app-name     (subscribe [:name])
         short-name   (subscribe [:short-name])
-        saved-data   (subscribe [:saved-data])
+        lists        (subscribe [:lists])
         ttip         (subscribe [:tooltip])
         current-mine (subscribe [:current-mine])
         panel-is     (fn [panel-key] (= @active-panel panel-key))]
@@ -84,7 +84,7 @@
          [:li {:class (if (panel-is :templates-panel) "active")} [:a {:on-click #(navigate! "#/templates")} "Templates"]]
          [:li {:class (if (panel-is :regions-panel) "active")} [:a {:on-click #(navigate! "#/regions")} "Regions"]]
          [:li {:class (if (panel-is :querybuilder-panel) "active")} [:a {:on-click #(navigate! "#/querybuilder")} "Query\u00A0Builder"]]
-         [:li {:class (if (panel-is :saved-data-panel) "active")} [:a {:on-click #(navigate! "#/saved-data")} (str "Lists\u00A0(" (count (vals @saved-data)) ")")]
+         [:li {:class (if (panel-is :saved-data-panel) "active")} [:a {:on-click #(navigate! "#/saved-data")} (str "Lists\u00A0(" (apply + (map count (vals @lists))) ")")]
           ;;example tooltip. Include as last child, probably with some conditional to display and an event handler for saving the name
           (if @ttip [save-data-tooltip @ttip])]]
         [:ul.nav.navbar-nav.navbar-right.buttons
