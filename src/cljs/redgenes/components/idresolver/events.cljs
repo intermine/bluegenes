@@ -4,8 +4,8 @@
   (:require [re-frame.core :as re-frame :refer [reg-event-db reg-event-fx reg-fx dispatch subscribe]]
             [redgenes.db :as db]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
-            [imcljs.idresolver :as idresolver]
-            [imcljs.filters :as filters]
+            [imcljsold.idresolver :as idresolver]
+            [imcljsold.filters :as filters]
             [com.rpl.specter :as s]
             [accountant.core :refer [navigate!]]
             [clojure.zip :as zip]))

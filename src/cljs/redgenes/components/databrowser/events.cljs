@@ -5,7 +5,7 @@
 ;            [clojure.math.combinatorics :refer combinations]
             [redgenes.db :as db]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
-            [imcljs.counts :as counts]
+            [imcljsold.counts :as counts]
             [accountant.core :refer [navigate!]]))
 
 (def pi (.-PI js/Math))

@@ -1,11 +1,11 @@
 (ns redgenes.components.lighttable
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [reagent.core :as reagent]
-            [imcljs.names :refer [find-name]]
+            [imcljsold.names :refer [find-name]]
             [re-frame.core :as re-frame :refer [subscribe dispatch]]
             [dommy.core :as dommy :refer-macros [sel sel1]]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
-            [imcljs.search :as search]))
+            [imcljsold.search :as search]))
 
 
 (defn homogeneous-columns

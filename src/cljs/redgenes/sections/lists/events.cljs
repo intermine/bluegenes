@@ -2,8 +2,8 @@
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [re-frame.core :refer [reg-event-db reg-event-fx reg-fx dispatch subscribe]]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
-            [imcljs.filters :as filters]
-            [imcljs.search :as search]
+            [imcljsold.filters :as filters]
+            [imcljsold.search :as search]
             [clojure.spec :as s]
             [day8.re-frame.http-fx]
             [accountant.core :refer [navigate!]]

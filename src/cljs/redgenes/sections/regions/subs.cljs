@@ -1,7 +1,7 @@
 (ns redgenes.sections.regions.subs
   (:require-macros [reagent.ratom :refer [reaction]])
   (:require [re-frame.core :refer [reg-sub]]
-            [imcljs.model :as m]))
+            [imcljsold.model :as m]))
 
 
 (reg-sub

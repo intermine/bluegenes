@@ -1,8 +1,8 @@
-(ns imcljs.user
+(ns imcljsold.user
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [cljs-http.client :as http]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
-            [imcljs.utils :refer [cleanse-url]]))
+            [imcljsold.utils :refer [cleanse-url]]))
 
 
 (defn session

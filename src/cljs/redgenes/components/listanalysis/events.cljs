@@ -3,7 +3,7 @@
                    [com.rpl.specter :refer [traverse]])
   (:require [re-frame.core :as re-frame :refer [reg-event-db reg-event-fx reg-fx dispatch subscribe]]
             [redgenes.db :as db]
-            [imcljs.search :as search]
+            [imcljsold.search :as search]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]))
 
 (defn build-matches-query [query path-constraint identifier]

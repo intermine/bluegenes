@@ -1,8 +1,8 @@
-(ns imcljs.filters
+(ns imcljsold.filters
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [ajax.core :refer [GET POST]]
             [cljs-http.client :as http]
-            [imcljs.utils :as utils :refer [cleanse-url]]
+            [imcljsold.utils :as utils :refer [cleanse-url]]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]))
 
 (defn end-class

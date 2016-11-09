@@ -2,7 +2,7 @@
   (:require-macros [reagent.ratom :refer [reaction]])
   (:require [re-frame.core :as re-frame :refer [reg-sub]]
             [redgenes.components.templates.helpers :as template-helpers]
-            [imcljs.filters :as filters]))
+            [imcljsold.filters :as filters]))
 
 (defn template-contains-string?
   "Return true if a template's description contains a string"

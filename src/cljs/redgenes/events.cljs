@@ -7,47 +7,21 @@
             [redgenes.components.databrowser.events]
             [redgenes.components.search.events :as search-full]
             [redgenes.sections.objects.handlers]
-            [imcljs.search :as search]
-            [imcljs.assets :as assets]
-            [imcljs.user :as user]
+            [imcljsold.search :as search]
+            [imcljsold.assets :as assets]
+            [imcljsold.user :as user]
             [day8.re-frame.http-fx]
             [day8.re-frame.forward-events-fx]
             [day8.re-frame.async-flow-fx]
             [ajax.core :as ajax]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
             [cljs-time.core :as t]
-            [cljs-uuid-utils.core :as uuid]))
+            [imcljs.fetch :as fetch]
+            [cljs-uuid-utils.core :as uuid]
+            [redgenes.events.boot]))
 
 
-; Boot the application.
-; 1 Fetch an anonymous token for the current mine
-; 2 Fetch all assets for the current mine
-(reg-event-fx
-  :boot
-  (fn []
-    (let [db (assoc db/default-db :mines redgenes.mines/mines)]
-      {:db         (assoc db/default-db
-                     :mines redgenes.mines/mines
-                     :fetching-assets? true)
-       :async-flow {:first-dispatch [:authentication/fetch-anonymous-token (get db :current-mine)]
-                    :rules          [{:when     :seen?
-                                      :events   :authentication/store-token
-                                      :dispatch [:fetch-all-assets]
-                                      :halt?    true}]}})))
 
-; Store an authentication token for a given mine
-(reg-event-db
-  :authentication/store-token
-  (fn [db [_ mine-kw token]]
-    (assoc-in db [:mines mine-kw :service :token] token)))
-
-; Fetch an anonymous token for a give
-(reg-event-fx
-  :authentication/fetch-anonymous-token
-  (fn [{db :db} [_ mine-kw]]
-    {:db           db
-     :im-operation {:on-success [:authentication/store-token mine-kw]
-                    :op         (partial user/session (get-in db [:mines mine-kw :service]))}}))
 
 ; Change the main panel to a new view
 (reg-event-fx
@@ -161,14 +135,6 @@
                     (assoc :search-term term))
        :suggest {:c suggest-chan :search-term term :source (get db :current-mine)}})))
 
-(reg-event-fx
-  :finished-loading-assets
-  (fn [{db :db}]
-    {:db         (assoc db :fetching-assets? false)
-     :dispatch-n [[:cache/fetch-organisms]
-                  [:saved-data/load-lists]
-                  [:regions/select-all-feature-types]]}))
-
 
 (reg-event-fx
   :add-toast
@@ -176,34 +142,34 @@
     (update-in db [:toasts] conj message)))
 
 
-(reg-fx
-  :fetch-assets
-  (fn [[mine-kw service]]
-    (let [c1        (assets/templates service)
-          c2        (assets/lists service)
-          c3        (assets/model service)
-          c4        (assets/summary-fields service)
-          locations {c1 [:assets :templates mine-kw]
-                     c2 [:assets :lists mine-kw]
-                     c3 [:assets :model mine-kw]
-                     c4 [:assets :summary-fields]}]
-      (go-loop [channels [c1 c2 c3 c4]]
-               (let [[v p] (alts! channels)]
-                 (if-not (and (nil? v) (empty? channels))
-                   (let [remaining (remove #(= % p) channels)]
-                     (dispatch [:test-progress-bar (* 100 (/ (- 4 (count remaining)) 4))])
-                     (dispatch [:async-assoc (get locations p) v])
-                     (if-not (empty? remaining)
-                       (recur remaining)
-                       (dispatch [:finished-loading-assets])))))))))
+;(reg-fx
+;  :fetch-assets
+;  (fn [[mine-kw service]]
+;    (let [c1        (assets/templates service)
+;          c2        (assets/lists service)
+;          c3        (assets/model service)
+;          c4        (assets/summary-fields service)
+;          locations {c1 [:assets :templates mine-kw]
+;                     c2 [:assets :lists mine-kw]
+;                     c3 [:assets :model mine-kw]
+;                     c4 [:assets :summary-fields]}]
+;      (go-loop [channels [c1 c2 c3 c4]]
+;               (let [[v p] (alts! channels)]
+;                 (if-not (and (nil? v) (empty? channels))
+;                   (let [remaining (remove #(= % p) channels)]
+;                     (dispatch [:test-progress-bar (* 100 (/ (- 4 (count remaining)) 4))])
+;                     (dispatch [:async-assoc (get locations p) v])
+;                     (if-not (empty? remaining)
+;                       (recur remaining)
+;                       (dispatch [:finished-loading-assets])))))))))
 
-(reg-event-fx
-  :fetch-all-assets
-  (fn [{db :db}]
-    (let [current-mine (get db :current-mine)]
-      {:db           (assoc db :fetching-assets? true
-                               :progress-bar-percent 0)
-       :fetch-assets [current-mine (get-in db [:mines current-mine :service])]})))
+;(reg-event-fx
+;  :fetch-all-assets
+;  (fn [{db :db}]
+;    (let [current-mine (get db :current-mine)]
+;      {:db           (assoc db :fetching-assets? true
+;                               :progress-bar-percent 0)
+;       :fetch-assets [current-mine (get-in db [:mines current-mine :service])]})))
 
 (reg-event-db
   :test-progress-bar

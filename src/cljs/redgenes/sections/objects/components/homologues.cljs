@@ -1,6 +1,6 @@
 (ns redgenes.sections.objects.components.homologues
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
-  (:require      [imcljs.search :refer [raw-query-rows]]
+  (:require      [imcljsold.search :refer [raw-query-rows]]
                  [re-frame.core :refer [subscribe]]
                  [cljs.core.async :as a :refer [put! chan <! >! timeout close!]]))
 

@@ -3,7 +3,7 @@
   (:require [re-frame.core :refer [reg-event-db reg-event-fx reg-fx dispatch subscribe]]
             [re-frame.events]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
-            [imcljs.search :as search]))
+            [imcljsold.search :as search]))
 
 
 (def ns->kw (comp keyword namespace))

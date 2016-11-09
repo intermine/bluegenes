@@ -4,8 +4,8 @@
   (:require [re-frame.core :as re-frame :refer [reg-event-db reg-event-fx reg-fx dispatch subscribe]]
             [redgenes.db :as db]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
-            [imcljs.search :as search]
-            [imcljs.filters :as filters]
+            [imcljsold.search :as search]
+            [imcljsold.filters :as filters]
             [com.rpl.specter :as s]))
 
 (reg-event-db
