@@ -20,7 +20,7 @@
   (fn [[db mine type id]]
     (let [type-kw (keyword type)
           q       {:from   type
-                   :select (-> db :assets :summary-fields type-kw)
+                   :select (-> db :assets :summary-fields mine type-kw)
                    :where  {:id id}}]
       (go (dispatch [:handle-report-summary (<! (search/raw-query-rows
                                                   (get-in db [:mines mine :service])
@@ -43,15 +43,15 @@
 
 
 
-                                                   {:class referencedType
+                                                   {:class   referencedType
                                                     :service (get-in db [:mines mine :service])
-                                                    :query {:from   type
-                                                            :select (map (fn [path]
-                                                                           (str name "."
-                                                                                (clojure.string/join "."
-                                                                                                     (drop 1 (clojure.string/split path ".")))))
-                                                                         summary-paths)
-                                                            :where  {:id oid}}})) collections)))))
+                                                    :query   {:from   type
+                                                              :select (map (fn [path]
+                                                                             (str name "."
+                                                                                  (clojure.string/join "."
+                                                                                                       (drop 1 (clojure.string/split path ".")))))
+                                                                           summary-paths)
+                                                              :where  {:id oid}}})) collections)))))
 
 
 (reg-event-fx

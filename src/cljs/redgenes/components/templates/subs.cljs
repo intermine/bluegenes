@@ -79,13 +79,13 @@
   :template-chooser/selected-template-constraints
   (fn [db]
     (let [source      (ns->kw (get-in db [:components :template-chooser :selected-template-name]))
-          model       (get-in db [:assets :model source])
+          classes       (get-in db [:mines source :service :model :classes])
           constraints (get-in db [:components :template-chooser :selected-template :where])]
-      (if (and source model constraints)
+      (if (and source classes constraints)
         (map (fn [constraint]
-              (assoc constraint
-                :field-type (filters/path-type model (:path constraint)
-                                               (first (filter (fn [x] (contains? x :type)) constraints))))) constraints)
+               (assoc constraint
+                 :field-type (filters/path-type classes (:path constraint)
+                                                (first (filter (fn [x] (contains? x :type)) constraints))))) constraints)
         nil))))
 
 (reg-sub

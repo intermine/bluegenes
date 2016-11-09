@@ -5,6 +5,13 @@
             [cljs.core.async :refer [<!]]))
 
 (reg-fx
+  :suggest
+  (fn [{:keys [c search-term source]}]
+    (if (= "" search-term)
+      (dispatch [:handle-suggestions nil])
+      (go (dispatch [:handle-suggestions (<! c)])))))
+
+(reg-fx
   :navigate
   (fn [url]
     (accountant/navigate! (str "#/" url))))
