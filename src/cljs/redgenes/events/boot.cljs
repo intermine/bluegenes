@@ -1,6 +1,7 @@
 (ns redgenes.events.boot
   (:require [re-frame.core :refer [reg-event-db reg-event-fx]]
             [redgenes.db :as db]
+            [redgenes.mines :as default-mines]
             [imcljs.fetch :as fetch]))
 
 
@@ -10,9 +11,9 @@
 (reg-event-fx
   :boot
   (fn []
-    (let [db (assoc db/default-db :mines redgenes.mines/mines)]
+    (let [db (assoc db/default-db :mines default-mines/mines)]
       {:db         (assoc db/default-db
-                     :mines redgenes.mines/mines
+                     :mines default-mines/mines
                      :fetching-assets? true)
        :async-flow {:first-dispatch [:authentication/fetch-anonymous-token (get db :current-mine)]
                     :rules          [

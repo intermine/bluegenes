@@ -21,17 +21,6 @@
                    :op     "ONE OF"
                    :values [identifier]}))
 
-; Could be useful later?
-(reg-event-db
-  :worker
-  (fn [db]
-    (let [worker (-> (js/Worker. "/workers/filtertext.js")
-                     (aset "onmessage" (fn [r] (println "result" (.. r -data)))))]
-      (.postMessage worker (clj->js ["e" "title" [{:title "the little book of calm"}
-                                                  {:title "the cat in the hat"}
-                                                  {:title "sailing for dummies"}]])))
-    db))
-
 (reg-event-db
   :save-summary-fields
   (fn [db [_ response]]

@@ -7,7 +7,7 @@
 (reg-sub
   :regions/sequence-feature-types
   (fn [db]
-    (let [model (get-in db [:assets :model])]
+    (let [model (get-in db [:mines (get db :current-mine) :service :model :classes])]
       (m/descendant-classes-as-tree model :SequenceFeature))))
 
 (reg-sub

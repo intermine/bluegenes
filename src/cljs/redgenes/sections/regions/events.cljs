@@ -46,7 +46,7 @@
   :regions/toggle-feature-type
   (fn [db [_ class]]
     (let [class-kw    (keyword (:name class))
-          m           (get-in db [:assets :model])
+          m           (get-in db [:mines (get db :current-mine) :service :model :classes])
           descendants (keys (m/descendant-classes m class-kw))
           status      (get-in db [:regions :settings :feature-types class-kw])]
       (update-in db [:regions :settings :feature-types]
@@ -58,7 +58,7 @@
 (reg-event-db
   :regions/select-all-feature-types
   (fn [db]
-    (let [model         (get-in db [:assets :model])
+    (let [model         (get-in db [:mines (get db :current-mine) :service :model :classes])
           feature-types (m/descendant-classes model :SequenceFeature)]
       (assoc-in db [:regions :settings :feature-types]
                 (reduce (fn [total [name]]
