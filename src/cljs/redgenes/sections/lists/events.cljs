@@ -42,7 +42,7 @@
 (reg-event-fx
   :lists/view-results
   (fn [{db :db} [_ {:keys [type name title source]}]]
-    (let [summary-fields (get-in db [:assets :summary-fields (keyword type)])]
+    (let [summary-fields (get-in db [:assets :summary-fields source (keyword type)])]
       {:db       db
        :dispatch [:results/set-query
                   {:source source

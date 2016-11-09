@@ -67,7 +67,7 @@
   :results/set-query
   (abort-spec redgenes.specs/im-package)
   (fn [{db :db} [_ {:keys [source value type] :as package}]]
-    (let [model (get-in db [:assets :model source])]
+    (let [model (get-in db [:mines source :service :model :classes])]
       {:db       (update-in db [:results] assoc
                             :query value
                             :package package
@@ -84,7 +84,7 @@
   [(clear-tooltips)]
   (fn [{db :db} [_ {identifier :identifier} details]]
     (let [last-source      (:source (last (get-in db [:results :history])))
-          model       (get-in db [:assets :model last-source])
+          model       (get-in db [:mines last-source :service :model :classes])
           previous    (get-in db [:results :query])
           query       (merge (build-matches-query
                                (:pathQuery details)
@@ -109,7 +109,7 @@
   :results/load-from-history
   (fn [{db :db} [_ index]]
     (let [package (get-in db [:results :history index])
-          model   (get-in db [:assets :model (:source package)])]
+          model   (get-in db [:mines (:source package) :service :model :classes])]
       {:db       (-> db
                      (update-in [:results] assoc
                                 :query (get package :value)
