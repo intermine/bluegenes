@@ -4,8 +4,24 @@
             [redgenes.mines :as default-mines]
             [imcljs.fetch :as fetch]))
 
-
-
+(defn boot-flow [db]
+  {:first-dispatch [:authentication/fetch-anonymous-token (get db :current-mine)]
+   :rules          [
+                    ; Fetch a token before anything else then load assets
+                    {:when       :seen?
+                     :events     :authentication/store-token
+                     :dispatch-n [[:assets/fetch-model]
+                                  [:assets/fetch-lists]
+                                  [:assets/fetch-templates]
+                                  [:assets/fetch-summary-fields]]}
+                    ; When all assets are loaded let bluegenes know
+                    {:when     :seen-all-of?
+                     :events   [:assets/success-fetch-model
+                                :assets/success-fetch-lists
+                                :assets/success-fetch-templates
+                                :assets/success-fetch-summary-fields]
+                     :dispatch [:finished-loading-assets]
+                     :halt?    true}]})
 
 ; Boot the application.
 (reg-event-fx
@@ -15,23 +31,13 @@
       {:db         (assoc db/default-db
                      :mines default-mines/mines
                      :fetching-assets? true)
-       :async-flow {:first-dispatch [:authentication/fetch-anonymous-token (get db :current-mine)]
-                    :rules          [
-                                     ; Fetch a token before anything else then load assets
-                                     {:when       :seen?
-                                      :events     :authentication/store-token
-                                      :dispatch-n [[:assets/fetch-model]
-                                                   [:assets/fetch-lists]
-                                                   [:assets/fetch-templates]
-                                                   [:assets/fetch-summary-fields]]}
-                                     ; When all assets are loaded let bluegenes know
-                                     {:when     :seen-all-of?
-                                      :events   [:assets/success-fetch-model
-                                                 :assets/success-fetch-lists
-                                                 :assets/success-fetch-templates
-                                                 :assets/success-fetch-summary-fields]
-                                      :dispatch [:finished-loading-assets]
-                                      :halt?    true}]}})))
+       :async-flow (boot-flow db)})))
+
+(reg-event-fx
+  :reboot
+  (fn [{db :db}]
+    {:db         db
+     :async-flow (boot-flow db)}))
 
 (reg-event-fx
   :finished-loading-assets

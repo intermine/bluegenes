@@ -44,7 +44,7 @@
   (fn [{:keys [db]} [_ value keep-existing?]]
     {:db         (cond-> (assoc db :current-mine value)
                          (not keep-existing?) (assoc-in [:assets] {}))
-     :dispatch-n (list [:fetch-all-assets] [:set-active-panel :home-panel])}))
+     :dispatch-n (list [:reboot] [:set-active-panel :home-panel])}))
 
 (reg-event-fx
   :new-temporary-mine

@@ -160,34 +160,64 @@
 
 (defn results [counting? result-count selected-template]
   [:div.pane.pane-default.results
-  [:div.pane-heading "Results preview " (cond @result-count (str "("  @result-count " rows)"))]
-    (if (and (nil? @result-count) (not @counting?))
-      [no-results-yet]
-      [:div.pane-body
-        (if @counting?
-          [:i.fa.fa-cog.fa-spin.fa-1x.fa-fw]
-          [:div
-          [:button.btn.btn-primary.btn-raised
-           {:on-click
-            (fn []
-              (dispatch
-                [:save-data {:sd/type    :query
-                             :sd/service :flymine
-                             :sd/label   (last (split (:title @selected-template) "-->"))
-                             :sd/value   (assoc @selected-template :title (last (split (:title @selected-template) "-->")))}]))} "Save"]
+   [:div.pane-heading "Results preview " (cond @result-count (str "(" @result-count " rows)"))]
+   (if (and (nil? @result-count) (not @counting?))
+     [no-results-yet]
+     [:div.pane-body
+      (if @counting?
+        [:i.fa.fa-cog.fa-spin.fa-1x.fa-fw]
+        [:div
+         [:button.btn.btn-primary.btn-raised
+          {:on-click
+           (fn []
+             (dispatch
+               [:save-data {:sd/type    :query
+                            :sd/service :flymine
+                            :sd/label   (last (split (:title @selected-template) "-->"))
+                            :sd/value   (assoc @selected-template :title (last (split (:title @selected-template) "-->")))}]))} "Save"]
 
-          [:button.btn.btn-primary.btn-raised
-           {:on-click (fn []
-                        (dispatch [:templates/send-off-query]))}
-           "View All Results"]
-           #_[lighttable/main {:query      @selected-template
+         [:button.btn.btn-primary.btn-raised
+          {:on-click (fn []
+                       (dispatch [:templates/send-off-query]))}
+          "View All Results"]
+         #_[lighttable/main {:query      @selected-template
                              :no-repeats true}]
-          ])])]
-    )
-
+         ])])]
+  )
 
 
 (defn main []
+  (let [im-templates         (subscribe [:templates-by-category])
+        selected-template    (subscribe [:selected-template])
+        filter-state         (reagent/atom nil)
+        result-count         (subscribe [:template-chooser/count])
+        counting?            (subscribe [:template-chooser/counting?])
+        selected-constraints (subscribe [:template-chooser/selected-template-constraints])]
+    (fn []
+      [:div.row
+       [:div.col-md-6
+        [:div.form-group.template-filter
+         [:label.control-label "Filter by category"]
+         [categories]]
+        [:div.form-group.template-filter
+         [:label.control-label "Filter by description"]
+         [template-filter filter-state]]
+        [:div
+         [templates @im-templates]]]
+       [:div.col-md-6
+        (cond (seq @selected-constraints) ;;show it if/when there's something to see
+              [:div.x-section.see-template-details
+               [:div.pane
+                [:div.pane-heading "Constraints"]
+                [:div.pane-body
+                 ^{:key (:name @selected-template)} [form @selected-constraints]
+                 #_(json-html/edn->hiccup @selected-template)]]
+               [results counting? result-count selected-template]
+               ])]])))
+
+
+
+(defn main-old []
   (let [im-templates         (subscribe [:templates-by-category])
         selected-template    (subscribe [:selected-template])
         filter-state         (reagent/atom nil)
@@ -210,13 +240,13 @@
            [:div.x-scrollable-content
             [templates @im-templates]]]]]]
        (cond (seq @selected-constraints) ;;show it if/when there's something to see
-       [:div.x-section.see-template-details
-        [:div.pane
-         [:div.pane-heading "Constraints"]
-         [:div.pane-body
-          ^{:key (:name @selected-template)} [form @selected-constraints]
-          #_(json-html/edn->hiccup @selected-template)]]
-          [results counting? result-count selected-template]
-        ])
+             [:div.x-section.see-template-details
+              [:div.pane
+               [:div.pane-heading "Constraints"]
+               [:div.pane-body
+                ^{:key (:name @selected-template)} [form @selected-constraints]
+                #_(json-html/edn->hiccup @selected-template)]]
+              [results counting? result-count selected-template]
+              ])
 
        ])))
