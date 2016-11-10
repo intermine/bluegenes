@@ -2,13 +2,8 @@
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [re-frame.core :refer [reg-event-db reg-event-fx reg-fx dispatch subscribe]]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
-            [imcljsold.filters :as filters]
-            [imcljsold.search :as search]
-            [clojure.spec :as s]
             [day8.re-frame.http-fx]
             [accountant.core :refer [navigate!]]
-            [ajax.core :as ajax]
-            [secretary.core :as sec]
             [redgenes.interceptors :refer [clear-tooltips]]
             [redgenes.effects]
             [dommy.core :refer-macros [sel sel1]]

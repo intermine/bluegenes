@@ -20,7 +20,8 @@
             [redgenes.sections.saveddata.views :as saved-data]
             [redgenes.sections.help.views :as help]
             [accountant.core :refer [navigate!]]
-            [oops.core :refer [ocall oapply oget oset!]]))
+            [oops.core :refer [ocall oapply oget oset!]]
+            ))
 
 ;; about
 

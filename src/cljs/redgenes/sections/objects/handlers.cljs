@@ -5,6 +5,7 @@
             [redgenes.db :as db]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
             [imcljsold.search :as search]
+            [imcljs.fetch :as fetch]
             [imcljsold.filters :as filters]
             [com.rpl.specter :as s]))
 
@@ -18,14 +19,17 @@
 (reg-fx
   :fetch-report
   (fn [[db mine type id]]
+    (println "fetching mine" mine)
     (let [type-kw (keyword type)
           q       {:from   type
                    :select (-> db :assets :summary-fields mine type-kw)
-                   :where  {:id id}}]
-      (go (dispatch [:handle-report-summary (<! (search/raw-query-rows
-                                                  (get-in db [:mines mine :service])
-                                                  q
-                                                  {:format "json"}))])))))
+                   :where  [{:path  (str type ".id")
+                             :op    "="
+                             :value id}]}]
+      ;(.log js/console "fetching report" q)
+      (go (dispatch [:handle-report-summary (<! (fetch/rows (get-in db [:mines mine :service])
+                                                            q
+                                                            {:format "json"}))])))))
 
 
 (reg-event-db
@@ -72,6 +76,7 @@
 (reg-event-fx
   :load-report
   (fn [{db :db} [_ mine type id]]
+    (println "load-report mine" mine)
     {:db           (-> db
                        (assoc :fetching-report? true)
                        (dissoc :report))
