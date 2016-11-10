@@ -8,7 +8,8 @@
             [day8.re-frame.http-fx]
             [redgenes.events]
             [com.rpl.specter :as specter]
-            [ajax.core :as ajax]))
+            [ajax.core :as ajax]
+            [imcljs.fetch :as fetch]))
 
 
 (defn parse-region [region-string]
@@ -100,8 +101,7 @@
                    (map name (keys (filter (fn [[name enabled?]] enabled?) feature-types))))
                   (add-organism-constraint selected-organism))]
       {:db           (assoc-in db [:regions :regions-searched] (map parse-region to-search))
-       :im-operation {:op         (partial search/raw-query-rows
-                                           {:root @(subscribe [:mine-url])}
-                                           query
-                                           {:format "jsonobjects"})
+       :im-operation {:op         (partial fetch/records
+                                           (get-in db [:mines (get db :current-mine) :service])
+                                           query)
                       :on-success [:regions/save-results]}})))
