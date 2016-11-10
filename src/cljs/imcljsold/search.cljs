@@ -6,16 +6,7 @@
             [cljs.core.async :refer [put! chan <! >! timeout close!]]))
 
 
-(defn build-feature-query [regions]
-  {:from   "SequenceFeature"
-   :select ["SequenceFeature.id"
-            "SequenceFeature.name"
-            "SequenceFeature.primaryIdentifier"
-            "SequenceFeature.symbol"
-            "SequenceFeature.chromosomeLocation.*"]
-   :where  [{:path   "SequenceFeature.chromosomeLocation"
-             :op     "OVERLAPS"
-             :values (if (string? regions) [regions] (into [] regions))}]})
+
 
 (defn quicksearch
   "Returns the results of a quicksearch"

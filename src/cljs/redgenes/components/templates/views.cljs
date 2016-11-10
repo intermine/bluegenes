@@ -76,38 +76,57 @@
                  @categories)))))
 
 
-(defn applies-to? [type op]
-  (some? (some #{type} (:applies-to op))))
+(defn applies-to? [type op] (some? (some #{type} (:applies-to op))))
 
 (defn constraint [idx state]
   (let [state (reagent/atom state)]
     (fn [idx constraint]
-      [:div
-       [:span (join " > " (take-last 2 (split (:path constraint) ".")))]
-       [:div.input-group
-        [:div.input-group-btn
-         [:button.btn.btn-default.dropdown-toggle
-          {:type        "button"
-           :data-toggle "dropdown"}
-          (:op @state)
-          [:i.fa.fa-caret-down.pad-left-5]]
-         (into [:ul.dropdown-menu]
-               (map (fn [op]
-                      [:li
-                       {:on-click (fn []
-                                    (swap! state assoc :op op)
-                                    (dispatch [:template-chooser/replace-constraint idx @state]))}
-                       [:a op]])) (map :op (filter (partial applies-to? (:field-type constraint)) ops)))]
-        [:input.form-control
-         {:type      "text"
-          :value     (:value @state)
-          :on-change (fn [e] (swap! state assoc :value (.. e -target -value)))
-          :on-blur   (fn [] (dispatch [:template-chooser/replace-constraint idx @state]))}]
-        (if (= :class (:field-type constraint)) [:div.input-group-btn
-                                                 (let [select-function (fn [name]
-                                                                         (swap! state assoc :value name :op "IN")
-                                                                         (dispatch [:template-chooser/replace-constraint idx @state]))]
-                                                   [list-saveddata select-function])])]])))
+      [:div.form-group.row
+       [:div.col-xs-3
+        [:h4
+         {:style {:text-align "right"}}
+         [:span (join " > " (take-last 2 (split (:path constraint) ".")))]]]
+       [:div.col-xs-3
+        {:style {:text-align "right"}}
+        [:button.btn.btn-default.btn-raised
+         {:type "button"}
+         (:op @state)]]
+       [:div.col-xs-6
+        [:input.form-control {:type  "text"
+                              :value (:value @state)}]]]
+
+      #_[:div.container
+         [:div.row
+          [:div.col-xs-6.form-group
+           [:label [:span (join " > " (take-last 2 (split (:path constraint) ".")))]]]
+
+
+
+          [:span (join " > " (take-last 2 (split (:path constraint) ".")))]
+          [:div.input-group
+           [:div.input-group-btn
+            [:button.btn.btn-default.dropdown-toggle
+             {:type        "button"
+              :data-toggle "dropdown"}
+             (:op @state)
+             [:i.fa.fa-caret-down.pad-left-5]]
+            (into [:ul.dropdown-menu]
+                  (map (fn [op]
+                         [:li
+                          {:on-click (fn []
+                                       (swap! state assoc :op op)
+                                       (dispatch [:template-chooser/replace-constraint idx @state]))}
+                          [:a op]])) (map :op (filter (partial applies-to? (:field-type constraint)) ops)))]
+           [:input.form-control
+            {:type      "text"
+             :value     (:value @state)
+             :on-change (fn [e] (swap! state assoc :value (.. e -target -value)))
+             :on-blur   (fn [] (dispatch [:template-chooser/replace-constraint idx @state]))}]
+           (if (= :class (:field-type constraint)) [:div.input-group-btn
+                                                    (let [select-function (fn [name]
+                                                                            (swap! state assoc :value name :op "IN")
+                                                                            (dispatch [:template-chooser/replace-constraint idx @state]))]
+                                                      [list-saveddata select-function])])]]])))
 
 (defn form []
   (fn [constraints]
@@ -123,12 +142,48 @@
 (defn template []
   (let [selected-template (subscribe [:selected-template])]
     (fn [[id query]]
-      [:a.list-group-item.template-result
-       {:class    (if (= (name id) (:name @selected-template)) "active")
-        :on-click (fn [] (dispatch [:template-chooser/choose-template id]))}
-       [:h4.list-group-item-heading
-        (last (clojure.string/split (:title query) "-->"))]
-       [:div.list-group-item-text (:description query) [:span.view-results "Preview >"]]])))
+      [:div.grid-1
+       [:div.col.ani.template
+        {:on-click (fn [] (dispatch [:template-chooser/choose-template id]))
+         :class    (if (= (name id) (:name @selected-template)) "selected")}
+        [:div.title [:h4 (:title query)]]
+        [:div.description (:description query)]
+        (if (= (name id) (:name @selected-template))
+          [:div.body
+           [:div.container
+            [:div.row
+             [:div.col-xs-6
+              (into [:form.form]
+                    (concat
+                      (map (fn [[idx con]]
+                            [constraint idx con])
+                          (keep-indexed (fn [idx con]
+                                          (if (:editable con)
+                                            [idx con])) (:where query)))
+                      [[:div.form-group.row
+                        [:div.col-xs-3]
+                        [:div.col-xs-3]
+                        [:div.col-xs-6
+                         {:style {:text-align "right"}}
+                         [:button.btn.btn-primary.btn-raised
+                          {:type "button"}
+                          "Run"]]]]))]
+             [:div.col-xs-6
+              ;[:div "results table"]
+              ]]]])
+
+
+
+
+        #_[:a.list-group-item.template-result
+           {:class    (if (= (name id) (:name @selected-template)) "active")
+            :on-click (fn [] (dispatch [:template-chooser/choose-template id]))}
+           [:h4.list-group-item-heading (:title query)]
+           [:div.list-group-item-text
+            [:span (:description query)]
+            [form (:where query)]]]
+
+        ]])))
 
 (defn templates []
   (fn [templates]
@@ -194,26 +249,27 @@
         counting?            (subscribe [:template-chooser/counting?])
         selected-constraints (subscribe [:template-chooser/selected-template-constraints])]
     (fn []
-      [:div.row
-       [:div.col-md-6
-        [:div.form-group.template-filter
-         [:label.control-label "Filter by category"]
-         [categories]]
-        [:div.form-group.template-filter
-         [:label.control-label "Filter by description"]
-         [template-filter filter-state]]
-        [:div
-         [templates @im-templates]]]
-       [:div.col-md-6
-        (cond (seq @selected-constraints) ;;show it if/when there's something to see
-              [:div.x-section.see-template-details
-               [:div.pane
-                [:div.pane-heading "Constraints"]
-                [:div.pane-body
-                 ^{:key (:name @selected-template)} [form @selected-constraints]
-                 #_(json-html/edn->hiccup @selected-template)]]
-               [results counting? result-count selected-template]
-               ])]])))
+      [:div.container
+       [:div.row
+        [:div.col-xs-12
+         [:div.form-group.template-filter
+          [:label.control-label "Filter by category"]
+          [categories]]
+         [:div.form-group.template-filter
+          [:label.control-label "Filter by description"]
+          [template-filter filter-state]]
+         [:div.list-container
+          [templates @im-templates]]]
+        #_[:div.col-xs-6
+           (cond (seq @selected-constraints) ;;show it if/when there's something to see
+                 [:div.x-section.see-template-details
+                  [:div.pane
+                   [:div.pane-heading "Constraints"]
+                   [:div.pane-body
+                    ^{:key (:name @selected-template)} [form @selected-constraints]
+                    #_(json-html/edn->hiccup @selected-template)]]
+                  [results counting? result-count selected-template]
+                  ])]]])))
 
 
 

@@ -1,14 +1,7 @@
 (ns redgenes.sections.regions.events
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [re-frame.core :refer [reg-event-db reg-event-fx reg-fx dispatch subscribe]]
-            [cljs.core.async :refer [put! chan <! >! timeout close!]]
             [imcljsold.model :as m]
-            [imcljsold.search :as search]
-            [clojure.spec :as s]
-            [day8.re-frame.http-fx]
-            [redgenes.events]
-            [com.rpl.specter :as specter]
-            [ajax.core :as ajax]
             [imcljs.fetch :as fetch]))
 
 
@@ -89,6 +82,21 @@
                                :value short-name})
     query))
 
+
+(defn build-feature-query [regions]
+  {:from   "SequenceFeature"
+   :select ["SequenceFeature.id"
+            "SequenceFeature.name"
+            "SequenceFeature.primaryIdentifier"
+            "SequenceFeature.symbol"
+            "SequenceFeature.chromosomeLocation.start"
+            "SequenceFeature.chromosomeLocation.end"
+            "SequenceFeature.chromosomeLocation.locatedOn.primaryIdentifier"]
+   :where  [{:path   "SequenceFeature.chromosomeLocation"
+             :op     "OVERLAPS"
+             :values (if (string? regions) [regions] (into [] regions))}]})
+
+
 (reg-event-fx
   :regions/run-query
   (fn [{db :db} [_]]
@@ -97,7 +105,7 @@
           selected-organism (get-in db [:regions :settings :organism :shortName])
           query (->
                   (add-type-constraints
-                   (search/build-feature-query to-search)
+                   (build-feature-query to-search)
                    (map name (keys (filter (fn [[name enabled?]] enabled?) feature-types))))
                   (add-organism-constraint selected-organism))]
       {:db           (assoc-in db [:regions :regions-searched] (map parse-region to-search))

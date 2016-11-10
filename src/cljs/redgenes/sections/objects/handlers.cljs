@@ -35,18 +35,11 @@
 (reg-event-db
   :filter-report-collections
   (fn [db [_ mine type oid]]
-    (let [model          (-> db :assets :model mine)
-          templates      (-> db :assets :templates mine)
-          summary-fields (-> db :assets :summary-fields)
+    (let [summary-fields (-> db :assets :summary-fields mine)
           type-key       (keyword type)
-          collections    (-> db :assets :model mine type-key :collections)]
+          collections    (-> db :mines mine :service :model :classes type-key :collections)]
       (assoc-in db [:report :collections] (map (fn [[_ {:keys [name referencedType]}]]
                                                  (let [summary-paths (-> referencedType keyword summary-fields)]
-                                                   ; Create a query for each collection
-
-
-
-
                                                    {:class   referencedType
                                                     :service (get-in db [:mines mine :service])
                                                     :query   {:from   type
@@ -61,8 +54,8 @@
 (reg-event-fx
   :filter-report-templates
   (fn [{db :db} [_ mine type id]]
-    (let [model     (-> db :assets :model)
-          templates (-> db :assets :templates)]
+    (let [model     (-> db :mines mine :service :model :classes)
+          templates (-> db :assets :templates mine)]
       {:db       (assoc-in db [:report :templates]
                            (into {} (traverse
                                       [s/ALL

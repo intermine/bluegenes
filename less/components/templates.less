@@ -164,3 +164,42 @@
         }
     }
 }
+
+
+
+
+.template {
+    background-color: white;
+    background-color: #eaeaea;
+    margin: 5px 20px 5px 20px;
+    padding: 20px;
+    border: 1px solid #ecebeb;
+
+    .title {
+        font-size: 1.4em;
+    }
+
+    .body {
+        .form-group {
+            margin: 0;
+        }
+        .btn, .input-group-btn .btn {
+            margin: 0;
+            padding-top: 8px;
+        }
+        .form-group .checkbox label, .form-group .radio label, .form-group label {
+            color: black;
+            font-size: 1.2em;
+        }
+    }
+
+    &.selected {
+        // background-color: white;
+        margin: 5px 0px 5px 0px;
+        color: black;
+            -webkit-box-shadow: 0 2px 5px -1px rgba(0,0,0,0.33);
+            -moz-box-shadow: 0 2px 5px -1px rgba(0,0,0,0.33);
+            box-shadow: 0 2px 5px -1px rgba(0,0,0,0.33);
+    }
+}
+
