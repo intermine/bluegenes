@@ -123,7 +123,7 @@
                                    "commonName"]}]
       {:db           db
        :im-operation {:op         (partial search/raw-query-rows
-                                           {:root @(subscribe [:mine-url])}
+                                           (get-in db [:mines (:current-mine db) :service])
                                            organism-query
                                            {:format "jsonobjects"})
                       :on-success [:cache/store-organisms]}})))
