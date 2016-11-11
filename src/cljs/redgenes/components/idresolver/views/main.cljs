@@ -7,6 +7,12 @@
             [redgenes.components.icons :as icons]
             [redgenes.components.idresolver.subs]))
 
+;;; TODOS:
+
+;We need to add "other" handling. It can be synonyms, but there may be (are?) other things an "other" result could mean.
+;We need to add descriptions of what the states mean
+;We need to handler more than X results :D right now 1000 results would ALL show on screen. Eep.
+
 (defn ex []
   (let [active-mine (subscribe [:mine-name])
         mines (subscribe [:mines])
@@ -32,15 +38,15 @@ example-text))
         matches  (subscribe [:idresolver/results-matches])
         selected (subscribe [:idresolver/selected])]
     (fn []
-      [:div.btn-toolbar
-       [:button.btn.btn-warning.btn-raised
+      [:div.btn-toolbar.controls
+       [:button.btn.btn-warning
         {:class    (if (nil? @results) "disabled")
          :on-click (fn [] (dispatch [:idresolver/clear]))}
-        "Clear"]
-       [:button.btn.btn-warning.btn-raised
+        "Clear all"]
+       [:button.btn.btn-warning
         {:class    (if (empty? @selected) "disabled")
          :on-click (fn [] (dispatch [:idresolver/delete-selected]))}
-        (str "Remove (" (count @selected) ")")]
+        (str "Remove selected (" (count @selected) ")")]
        [:button.btn.btn-primary.btn-raised
         {:class    (if (nil? @results) "disabled")
          :on-click (fn [] (if (some? @results) (dispatch [:idresolver/analyse])))}
@@ -53,11 +59,12 @@ example-text))
 
 (defn input-box []
   (reagent/create-class
-  (let [val (reagent/atom nil)]
+  (let [val (reagent/atom nil)
+        timer (reagent/atom nil)]
     {:reagent-render (fn []
       [:input#identifierinput.freeform
        {:type         "text"
-        :placeholder  "Type identifiers here..."
+        :placeholder  "Type or paste identifiers here..."
         :value        @val
         :on-key-press (fn [e]
                         (let [keycode (.-charCode e)
@@ -71,11 +78,13 @@ example-text))
                           (if (has-separator? input)
                             (do
                               (reset! val "")
-                              (submit-input input)) (reset! val input))))}])
+                              (submit-input input))
+                            (do (reset! val input)))))}])
      :component-did-mount (fn [this] (.focus (reagent/dom-node this)))})))
 
 
 (defn input-item-duplicate []
+  "Input control. allows user to resolve when an ID has matched more than one object."
   (fn [[oid data]]
     [:span.dropdown
      [:span.dropdown-toggle
@@ -94,6 +103,7 @@ example-text))
                    [:a (-> result :summary :symbol)]]) (:matches data)))]))
 
 (defn input-item [{:keys [input] :as i}]
+  "visually displays items that have been input and have been resolved as known or unknown IDs (or currently are resolving)"
   (let [result   (subscribe [:idresolver/results-item input])
         selected (subscribe [:idresolver/selected])]
     (reagent/create-class
@@ -114,7 +124,7 @@ example-text))
                           (.stopPropagation e)
                           (dispatch [:idresolver/toggle-selected input]))}
              (case (:status (second (first @result)))
-               :MATCH [:i.fa.fa-check.fa-1x.fa-fw]
+               :MATCH [:i.fa.fa-check]
                :UNRESOLVED [:i.fa.fa-times]
                :DUPLICATE [:i.fa.fa-clone]
                :TYPE_CONVERTED [:i.fa.fa-random]
@@ -130,8 +140,8 @@ example-text))
   (let [bank (subscribe [:idresolver/bank])]
     (fn []
       (into [:div.input-items]
-            (map (fn [i]
-                   ^{:key (:input i)} [input-item i]) (reverse @bank))))))
+        (map (fn [i]
+           ^{:key (:input i)} [input-item i]) (reverse @bank))))))
 
 (defn parse-files [files]
   (dotimes [i (.-length files)]
@@ -163,7 +173,7 @@ example-text))
 (defn drag-and-drop-prompt []
   [:div.upload-file
    [:svg.icon.icon-file [:use {:xlinkHref "#icon-file"}]]
-    [:p "All your identifiers in a text file? Try dragging and dropping it here, or browse"
+    [:p "All your identifiers in a text file? Try dragging and dropping it here, or "
       [:label.browseforfile {:on-click (fn [e] (.stopPropagation e))};;otherwise it focuses on the typeable input
        [:input
         {:type "file"
@@ -177,7 +187,8 @@ example-text))
 (defn input-div []
   (let [drag-state (reagent/atom false)]
     (fn []
-      [:div#dropzone1.panel.panel-default
+      [:div.resolvey
+       [:div#dropzone1
        {
         :on-drop       (partial handle-drop-over drag-state)
         :on-click      (fn [evt]
@@ -189,40 +200,50 @@ example-text))
         :on-drag-leave (fn [] (reset! drag-state false))
         :on-drag-end   (fn [] (reset! drag-state false))
         :on-drag-exit  (fn [] (reset! drag-state false))}
-       [:div.panel-body.transitions.eenput
+       [:div.eenput
         {:class (if @drag-state "dragging")}
         [:div.idresolver
           [input-items]
           [input-box]
-         ]
+         [controls]]
         [drag-and-drop-prompt]
-        ]])))
+        ]]
+       ])))
 
 (defn stats []
   (let [bank       (subscribe [:idresolver/bank])
         no-matches (subscribe [:idresolver/results-no-matches])
         matches    (subscribe [:idresolver/results-matches])
+        type-converted (subscribe [:idresolver/results-type-converted])
         duplicates (subscribe [:idresolver/results-duplicates])
         other      (subscribe [:idresolver/results-other])]
     (fn []
-      [:div.panel.panel-default
-       [:div.panel-body
-        [:div [controls]]
-        [:div.row.legend
-         [:div.col-md-4 [:h4.title
-                         (str "Total Identifiers: " (count @bank))]]
-         [:div.col-md-2 [:h4.MATCH
-                         [:i.fa.fa-check.fa-1x.fa-fw.MATCH]
-                         (str "Matches: " (count @matches))]]
-         [:div.col-md-2 [:h4.DUPLICATE
-                         [:i.fa.fa-clone.DUPLICATE]
-                         (str "Duplicates: " (count @duplicates))]]
-         [:div.col-md-2 [:h4.UNRESOLVED
-                         [:i.fa.fa-times.UNRESOLVED]
-                         (str "Not Found: " (count @no-matches))]]
-         [:div.col-md-2 [:h4.OTHER
-                         [:i.fa.fa-exclamation.OTHER]
-                         (str "Other: " (count @other))]]]
+        [:div.legend
+         [:h3 "Legend & Stats:"]
+
+         [:div [:h4.title
+                        "Total Identifiers: " [:span.count (count @bank)]]]
+         [:div.results
+            [:div.MATCH
+              [:i.fa.fa-check.MATCH]
+              [:span.title "Matches"]
+              [:span.count (count @matches)]]
+            [:div.TYPE_CONVERTED
+              [:i.fa.fa-random.TYPE_CONVERTED]
+              [:span.title "Converted"]
+              [:span.count (count @type-converted)]]
+            [:div.DUPLICATE
+              [:i.fa.fa-clone.DUPLICATE]
+              [:span.title "Duplicates"]
+              [:span.count (count @duplicates)]]
+            [:div.OTHER
+              [:i.fa.fa-exclamation.OTHER]
+              [:span.title "Other"]
+              [:span.count (count @other)]]
+            [:div.UNRESOLVED
+              [:i.fa.fa-times.UNRESOLVED]
+              [:span.title "Not Found"]
+              [:span.count (count @no-matches)]]
         ]]
 
       #_[:div
@@ -280,10 +301,6 @@ example-text))
   (dommy/unlisten! (sel1 :body) :keyup key-up-handler)
   (dommy/listen! (sel1 :body) :keyup key-up-handler))
 
-(defn dropzone []
-  (fn []
-    [:div#dropzone1.dropzone [:h1 "Drop Here"]]))
-
 (defn help-panel []
   [:div.panel.panel-default
    [:div.panel-body [:h4 [:svg.icon.icon-info [:use {:xlinkHref "#icon-info"}]] " Tips:"]
@@ -304,8 +321,9 @@ example-text))
          [:h1 "List Upload"]
          [:a.guidance {:on-click (fn [] (dispatch [:idresolver/resolve (splitter (ex))]))} "[Show me an example]"]
          [:div.tip]]
-        ;[dropzone]
-        [input-div]
+        [:div
+         [input-div]
+        ]
         [stats]
         [help-panel]
         ;[selected]

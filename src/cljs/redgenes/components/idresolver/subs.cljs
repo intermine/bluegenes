@@ -61,6 +61,14 @@
               (= :DUPLICATE (:status result))) results)))
 
 (reg-sub
+  :idresolver/results-type-converted
+  :< [:idresolver/results]
+  (fn [results]
+    (filter (fn [[oid result]]
+              (= :TYPE_CONVERTED (:status result))) results)))
+
+
+(reg-sub
   :idresolver/results-other
   :< [:idresolver/results]
   (fn [results]

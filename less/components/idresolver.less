@@ -22,20 +22,21 @@
 
     .matchcolors {
         text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.3);
+        .transitions;
 
         &.inactive {
             color: white;
             background: grey;
         }
 
-        &.MATCH {
+        &.TYPE_CONVERTED, &.MATCH {
             color: white;
             background: green;
         }
 
-        &.DUPLICATE {
+        &.OTHER , &.DUPLICATE {
             text-shadow: 1px 1px 1px rgba(255, 255, 255, 0.2);
-            color: black;
+            color: rgba(0,0,0,0.87);
             background: #dede00;
         }
 
@@ -44,79 +45,75 @@
             background: red;
             background: repeating-linear-gradient( 45deg, #9F0000, #9F0000 10px, #BD0000 10px, #BD0000 20px);
         }
-
-        &.TYPE_CONVERTED {
-            color: white;
-            background: green;
-        }
-
-        &.OTHER {
-            color: white;
-            background: green;
-        }
     }
 
-    .panel-body.eenput {
+    .dashed {
+        border: dashed 1px #ccc;
+    }
+
+    .eenput {
+        .transitions;
         display: flex;
         flex-direction: row;
-        flex-wrap: wrap;
         align-items: stretch;
+        .matchcolors;
 
         .idresolver,
         .upload-file {
-            margin: 0.5em;
+            .dashed;
+            margin: 0.5em 0;
             box-sizing: border-box;
             padding: 1em;
             min-height: 3em;
             vertical-align: middle;
-            border: dashed 1px #ccc;
             background: rgba(0,0,0,0.04);
             flex-grow: 1;
             min-width: 30%;
         }
 
+        .idresolver button {
+            display: block;
+        }
+
         .upload-file {
             display: flex;
+            flex-wrap: wrap;
             align-items: center;
+            justify-content: center;
+            max-width: 30%;
+            margin-left: 0.4em;
 
             .icon {
-                margin-right: 1em;
-                fill: rgba(0,0,0,0.4);
-                font-size: 1.5em;
+                margin: 0.5em;
+                fill: rgba(0,0,0,0.3);
+                font-size: 2em;
+                min-width: 2em;
             }
 
             p {
-                max-width: 20em;
                 margin: 0;
+                text-align: center;
+                font-size: 1em;
             }
 
             .browseforfile {
-                .btn-primary;
-                .btn;
-                .btn-raised;
-            }
-
-            label.browseforfile,
-            label.browseforfile:not(.btn-raised) {
-                //this overly specific selector is a dirty trick to override
-                //crappy bootstrap styling and I'm ashamed of myself.
-                box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 1px 5px 0 rgba(0, 0, 0, 0.12);
-                background-color: @highlight-color;
-
-                &:not(.btn-link):hover {
-                    background-color: lighten(@highlight-color, 5%);
-                }
-                color: @cta-color-text;
-                cursor: pointer;
-
                 input {
                     display: none;
                 }
+                text-decoration: underline;
+                font-size: 1em;
+                color: @highlight-color;
             }
         }
 
         .idresolver {
             min-width: 50%;
+            display: flex;
+            flex-direction: column;
+
+            .controls {
+                align-self: flex-end;
+            }
 
             .placeholder {
                 color: @body-foreground-color;
@@ -182,27 +179,61 @@
         border: none;
         margin: 2px;
         font-size: 1em;
-        background: transparent;
+        background: rgba(255,255,255,0.2);
         color: #2d2d2d;
         flex: 1 0;
         outline: none;
+        width: 100%;
+        .transitions;
+        border-bottom: solid 1px transparent;
 
         &:focus {
-            border-bottom: 1px solid black;
+            .transitions;
+            border-bottom: solid 1px #2d2d2d;
+            background: rgba(255,255,255,0.4);
+            padding-left: 0.2em;
         }
     }
 
-    .legend h4 {
-        &.title {
-            margin-left: 0.5em;
+    .legend {
+      @syze : 2em;
+      margin-bottom:@syze;
+        .results {
+            display: flex;
+            > div {
+              margin:0em 0.5em;
+              &:first-child {margin-left:0;}
+              &:last-child {margin-right:0;}
+              display: block;
+              background: rgba(0,0,0,0.075);
+              border-radius:2px;
+            }
+            .count {
+              display: block;
+              font-size:2em;
+              text-align:center;
+            }
+            .title {
+              min-width:80px;
+              background: rgba(0,0,0,0.025);
+              border-top-right-radius: 2px;
+              display:inline-block;
+              height: @syze;
+              line-height:@syze;
+              padding: 0em 0.5em;
+            }
         }
+
 
         i {
             .matchcolors;
-            padding: 4px;
-            border-radius: 2px;
-            margin-right: 3px;
+            border-top-left-radius: 2px;
+            text-align: center;
+            width: @syze;
+            height: @syze;
+            line-height:@syze;
         }
+
     }
 
     .headerwithguidance {
@@ -229,7 +260,6 @@
     }
 
     .dropzone {
-        border: 5px dotted lightgrey;
         width: 300px;
         height: 200px;
         margin: 20px;
@@ -243,6 +273,6 @@
     }
 
     .transitions {
-        transition: all 0.2s ease;
+        transition: all 0.3s ease;
     }
 }
