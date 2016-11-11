@@ -41,10 +41,6 @@ example-text))
         {:class    (if (empty? @selected) "disabled")
          :on-click (fn [] (dispatch [:idresolver/delete-selected]))}
         (str "Remove (" (count @selected) ")")]
-       [:button.btn.btn-success.btn-raised
-        {:class    (if (empty? @matches) "disabled")
-         :on-click (fn [] (dispatch [:idresolver/save-results]))}
-        "Quick Save"]
        [:button.btn.btn-primary.btn-raised
         {:class    (if (nil? @results) "disabled")
          :on-click (fn [] (if (some? @results) (dispatch [:idresolver/analyse])))}
@@ -137,6 +133,20 @@ example-text))
             (map (fn [i]
                    ^{:key (:input i)} [input-item i]) (reverse @bank))))))
 
+(defn parse-files [files]
+  (dotimes [i (.-length files)]
+    (let [rdr      (js/FileReader.)
+          the-file (aget files i)]
+      (set! (.-onload rdr)
+            (fn [e]
+              (let [file-content (.-result (.-target e))
+                    file-name    (if (= ";;; " (.substr file-content 0 4))
+                                   (let [idx (.indexOf file-content "\n\n")]
+                                     (.slice file-content 4 idx))
+                                   (.-name the-file))]
+                (submit-input file-content))))
+      (.readAsText rdr the-file))))
+
 (defn handle-drag-over [state-atom evt]
   (reset! state-atom true)
   (.stopPropagation evt)
@@ -148,23 +158,21 @@ example-text))
   (.stopPropagation evt)
   (.preventDefault evt)
   (let [files (.-files (.-dataTransfer evt))]
-    (dotimes [i (.-length files)]
-      (let [rdr      (js/FileReader.)
-            the-file (aget files i)]
-        (set! (.-onload rdr)
-              (fn [e]
-                (let [file-content (.-result (.-target e))
-                      file-name    (if (= ";;; " (.substr file-content 0 4))
-                                     (let [idx (.indexOf file-content "\n\n")]
-                                       (.slice file-content 4 idx))
-                                     (.-name the-file))]
-                  (submit-input file-content))))
-        (.readAsText rdr the-file)))))
+    (parse-files files)))
 
 (defn drag-and-drop-prompt []
   [:div.upload-file
    [:svg.icon.icon-file [:use {:xlinkHref "#icon-file"}]]
-    [:p "All your identifiers in a text file? Try dragging and dropping it here."]])
+    [:p "All your identifiers in a text file? Try dragging and dropping it here, or browse"
+      [:label.browseforfile {:on-click (fn [e] (.stopPropagation e))};;otherwise it focuses on the typeable input
+       [:input
+        {:type "file"
+         :multiple true
+         :on-click (fn [e] (.stopPropagation e)) ;;otherwise we just end up focusing on the input on the left/top.
+         :on-change (fn [e] (parse-files (.-files (.-target e)))
+                      )}]
+       ;;this input isn't visible, but don't worry, clicking on the label is still accessible. Even the MDN says it's ok. True story.
+       "browse for a file"]]])
 
 (defn input-div []
   (let [drag-state (reagent/atom false)]
