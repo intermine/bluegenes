@@ -92,3 +92,9 @@
   :selected-template-category
   (fn [db _]
     (get-in db [:components :template-chooser :selected-template-category])))
+
+
+(reg-sub
+  :selected-template-service
+  (fn [db _]
+    (get-in db [:components :template-chooser :selected-template-service])))

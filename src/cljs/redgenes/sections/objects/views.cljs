@@ -26,5 +26,4 @@
           (cond (= "Gene" (:type @params))
           [minelinks/main (:id @params)])
           (into [:div.collections] (map (fn [query] [lighttable/main query {:title true}]) @collections))
-          (into [:div.templates] (map (fn [[id details]] [table/main details]) @templates))
-          ])])))
+          (into [:div.templates] (map (fn [[id details]] [table/main details]) @templates))])])))

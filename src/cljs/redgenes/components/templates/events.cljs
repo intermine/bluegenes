@@ -18,6 +18,7 @@
                             assoc
                             :selected-template query
                             :selected-template-name id
+                            :selected-template-service (get-in db [:mines (ns->kw id) :service])
                             :count nil)
        :dispatch [:template-chooser/run-count]
        })))

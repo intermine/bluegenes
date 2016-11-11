@@ -36,7 +36,7 @@
                  [fipp "0.6.6"]
                  [binaryage/oops "0.5.2"]
                  [inflections "0.12.2"]
-                 [intermine/imcljs "0.1.3-SNAPSHOT"]]
+                 [intermine/imcljs "0.1.4-SNAPSHOT"]]
 
   :plugins [[lein-cljsbuild "1.1.4"]
             [lein-less "1.7.5"]

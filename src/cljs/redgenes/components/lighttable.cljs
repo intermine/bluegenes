@@ -5,7 +5,8 @@
             [re-frame.core :as re-frame :refer [subscribe dispatch]]
             [dommy.core :as dommy :refer-macros [sel sel1]]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
-            [imcljsold.search :as search]))
+            [imcljsold.search :as search]
+            [imcljs.fetch :as fetch]))
 
 
 (defn homogeneous-columns
@@ -59,7 +60,7 @@
 (defn handler [state e]
   (let [props (reagent/props e)
         node  (sel1 (reagent/dom-node e) :.im-target)]
-    (go (let [new-results (<! (search/raw-query-rows
+    (go (let [new-results (<! (fetch/rows
                                 (:service props)
                                 (:query props)
                                 {:size   5
