@@ -2,23 +2,22 @@
   (:require [reagent.core :as reagent]
             [re-frame.core :as re-frame :refer [subscribe dispatch]]
             [accountant.core :refer [navigate!]]
-            [redgenes.components.search.views :as views]
             [dommy.core :as dommy :refer-macros [sel sel1]]))
 
 (defn navigate-to-report
   "Navigate to the report page for the given item and reset the UI"
   [item]
   (let [current-mine (subscribe [:current-mine])]
-    (.log js/console "CM" @current-mine)
     (dispatch [:search/reset-selection])
     (navigate! (str "#/objects/" (name (:id @current-mine)) "/" (:type item) "/" (:id item)))))
 
 (defn navigate-to-full-results
   "Navigate to the full results page. duh." []
-  (navigate! "#/search")
-  (dispatch [:search/full-search]))
-
-
+    (navigate! "#/search")
+    (cond
+      (some? @(subscribe [:search-term]))
+        (dispatch [:search/full-search])
+))
 
 (defn suggestion
   "The UI element and behaviour for a single suggestion in the dropdown" []

@@ -88,7 +88,7 @@
   :bounce-search
   (fn [{db :db} [_ term]]
     (let [connection   (get-in db [:mines (get db :current-mine) :service])
-          suggest-chan (search/quicksearch connection term)]
+          suggest-chan (search/quicksearch connection term 5)]
       (if-let [c (:search-term-channel db)] (close! c))
       {:db      (-> db
                     (assoc :search-term-channel suggest-chan)

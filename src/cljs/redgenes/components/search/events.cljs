@@ -3,6 +3,7 @@
                    [com.rpl.specter :refer [traverse]])
   (:require [re-frame.core :as re-frame :refer [reg-event-db reg-event-fx reg-fx dispatch subscribe]]
             [redgenes.db :as db]
+            [imcljsold.search :as search]
             ))
 
 
@@ -58,45 +59,39 @@
  (fn [db [_ results]]
    (if (some? (:active-filter (:search-results db)))
      ;;if we're returning a filter result, leave the old facets intact.
-     (assoc-in db [:search-results :results] (.-results results))
+     (-> (assoc-in db [:search-results :results] (.-results results))
+         (assoc-in [:search-results :loading?] false))
      ;;if we're returning a non-filtered result, add new facets to the atom
      (assoc db :search-results
        {
        :results  (.-results results)
+       :loading? false
        :highlight-results (:highlight-results (:search-results db))
        :facets {
          :organisms (sort-by-value (js->clj (aget results "facets" "organism.shortName")))
          :category (sort-by-value (js->clj (aget results "facets" "Category")))}}))
 ))
 
-(defn search
- "search for the given term via IMJS promise. Filter is optional"
- [& filter]
-   (let [searchterm @(re-frame/subscribe [:search-term])
-         mine (js/imjs.Service. (clj->js {:root @(subscribe [:mine-url])}))
-         search {:q searchterm :Category filter}
-         id-promise (-> mine (.search (clj->js search)))]
-     (-> id-promise (.then
-         (fn [results]
-           (dispatch [:search/save-results results]))))))
+
 
 (reg-event-fx
   :search/full-search
   (fn [{db :db}]
-    (let [filter (:active-filter (:search-results db))]
-    (search filter))
-{:db db}))
+    (let [active-filter (:active-filter (:search-results db))
+          connection (get-in db [:mines (get db :current-mine) :service])]
+      (search/full-search connection (:search-term db) active-filter)
+    (if (some? active-filter)
+      ;;just turn on the loader
+      {:db (assoc-in db [:search-results :loading?] true)}
+      ;;hide the old results and turn on the loader
+      (let [resultless-db (assoc db :search-results (dissoc (:search-results db) :results))]
+      {:db (assoc-in resultless-db [:search-results :loading?] true)})
+))))
 
 (reg-event-db :search/reset-quicksearch
   (fn [db]
     (assoc db :suggestion-results nil)
 ))
-
-; (reg-event-db
-;   :search/set-active-filter
-;   (fn [db [_ filter]]
-;     (assoc-in db [:search-results :active-filter] filter)
-; ))
 
 (defn is-active-result? [result active-filter]
  "returns true is the result should be considered 'active' - e.g. if there is no filter at all, or if the result matches the active filter type."
