@@ -1,8 +1,8 @@
-(ns imcljs.counts
+(ns imcljsold.counts
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [cljs.core.async :refer [put! chan <! >! timeout close!]]
             [cljs-http.client :as http]
-            [imcljs.utils :refer [cleanse-url]])
+            [imcljsold.utils :refer [cleanse-url]])
 )
 
 (def databrowser-root "api/model/count")

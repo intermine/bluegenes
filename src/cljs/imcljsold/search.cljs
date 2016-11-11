@@ -1,21 +1,12 @@
-(ns imcljs.search
+(ns imcljsold.search
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [ajax.core :refer [GET POST]]
             [cljs-http.client :as http]
-            [imcljs.utils :as utils :refer [cleanse-url]]
+            [imcljsold.utils :as utils :refer [cleanse-url]]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]))
 
 
-(defn build-feature-query [regions]
-  {:from   "SequenceFeature"
-   :select ["SequenceFeature.id"
-            "SequenceFeature.name"
-            "SequenceFeature.primaryIdentifier"
-            "SequenceFeature.symbol"
-            "SequenceFeature.chromosomeLocation.*"]
-   :where  [{:path   "SequenceFeature.chromosomeLocation"
-             :op     "OVERLAPS"
-             :values (if (string? regions) [regions] (into [] regions))}]})
+
 
 (defn quicksearch
   "Returns the results of a quicksearch"
@@ -33,10 +24,10 @@
     (-> (js/imjs.Service. (clj->js service))
         (.query (clj->js query))
         (.then (fn [q]
-                 (go (let [root (utils/cleanse-url (:root service))
-                           response (<! (http/post (str root "/query/results")
+                 (go (let [url      (utils/cleanse-url (:root service))
+                           response (<! (http/post (str url "/query/results")
                                                    {:with-credentials? false
-                                                    :form-params       (merge {:format "json"} options {:query (.toXML q)})}))]
+                                                    :form-params      (merge {:format "json"} options {:query (.toXML q)})}))]
                        (>! c (-> response :body))
                        (close! c))))
                (fn [error]
@@ -46,7 +37,7 @@
 
 (defn enrichment
   "Get the results of using a list enrichment widget to calculate statistics for a set of objects."
-  [{root :root token :token} {:keys [ids list widget maxp correction population]}]
+  [{root :root token :token} {:keys [ids list widget maxp correction population] :as e}]
   (go (:body (<! (http/post
                    (str (cleanse-url root) "/list/enrichment")
                    {:with-credentials? false

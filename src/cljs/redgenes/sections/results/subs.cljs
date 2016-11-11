@@ -20,6 +20,11 @@
     (get-in db [:results :query])))
 
 (reg-sub
+  :results/service
+  (fn [db]
+    (get-in db [:results :service])))
+
+(reg-sub
   :results/query-parts
   (fn [db]
     (get-in db [:results :query-parts])))
@@ -38,3 +43,10 @@
   :results/summary-values
   (fn [db]
     (get-in db [:results :summary-values])))
+
+(reg-sub
+  :results/package-for-table
+  (fn [db]
+    (let [{:keys [source value]} (get-in db [:results :package])]
+      {:service (get-in db [:mines source :service])
+       :query value})))

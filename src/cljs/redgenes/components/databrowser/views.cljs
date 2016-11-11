@@ -2,9 +2,9 @@
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [cljs.core.async :refer [put! chan <! >! timeout close!]]
             [reagent.core :as reagent]
-            [imcljs.counts :as counts]
+            [imcljsold.counts :as counts]
             [re-frame.core :as re-frame :refer [subscribe dispatch]]
-            [imcljs.names :as names :refer [find-name find-type]]
+            [imcljsold.names :as names :refer [find-name find-type]]
 
 ))
 

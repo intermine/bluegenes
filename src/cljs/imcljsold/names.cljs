@@ -1,4 +1,4 @@
-(ns imcljs.names
+(ns imcljsold.names
   (:require [re-frame.core :as re-frame :refer [subscribe]]))
 
 (defn find-name

@@ -2,17 +2,13 @@
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [re-frame.core :refer [reg-event-db reg-event-fx reg-fx dispatch subscribe]]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
-            [imcljs.filters :as filters]
-            [imcljs.search :as search]
-            [clojure.spec :as s]
             [day8.re-frame.http-fx]
             [accountant.core :refer [navigate!]]
-            [ajax.core :as ajax]
-            [secretary.core :as sec]
             [redgenes.interceptors :refer [clear-tooltips]]
             [redgenes.effects]
             [dommy.core :refer-macros [sel sel1]]
-            [redgenes.sections.saveddata.events]))
+            [redgenes.sections.saveddata.events]
+            [redgenes.specs :as specs]))
 
 (reg-event-db
   :lists/set-text-filter
@@ -31,7 +27,7 @@
                    nil :asc)))))
 
 (defn build-list-query [type summary-fields name title]
-  {:title title
+  {:title  title
    :from   type
    :select summary-fields
    :where  [{:path  type
@@ -40,10 +36,13 @@
 
 (reg-event-fx
   :lists/view-results
-  (fn [{db :db} [_ {:keys [type name title]}]]
-    (let [summary-fields (get-in db [:assets :summary-fields (keyword type)])]
+  (fn [{db :db} [_ {:keys [type name title source]}]]
+    (let [summary-fields (get-in db [:assets :summary-fields source (keyword type)])]
       {:db       db
-       :dispatch [:results/set-query (build-list-query type summary-fields name title)]
+       :dispatch [:results/set-query
+                  {:source source
+                   :type   :query
+                   :value  (build-list-query type summary-fields name title)}]
        :navigate (str "results")})))
 
 

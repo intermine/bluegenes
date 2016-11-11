@@ -24,6 +24,8 @@
 @import "transitions";
 @import "components/regions";
 @import "components/lists";
+@import "newnav";
+@import "components/toast";
 @import url(https://fonts.googleapis.com/css?family=Roboto:400,700,300);
 
 body {
@@ -31,6 +33,10 @@ body {
     color: @body-foreground-color;
     margin-top: 50px;
     font-family: 'Roboto', sans-serif;
+}
+
+.ani {
+    transition: all 100ms ease;
 }
 
 #app,
@@ -297,3 +303,23 @@ input.form-control {
 }
 
 .popover {color:@body-foreground-color}
+
+
+.form-control, .form-group .form-control {
+
+                          padding:       5px;
+                          margin:        0;
+                          background:    white;
+                          border-radius:  5px;
+                          border:        1px solid #d6d6d6;
+
+
+
+
+}
+
+
+input.form-control:focus {
+    background-image: none;
+    background-color: white;
+}

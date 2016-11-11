@@ -2,6 +2,10 @@
 @import "../resources/public/vendor/bootstrap/less/variables";
 
 
+.panel {
+    box-shadow: none;
+}
+
 .popover.fade.bottom.in {
     background-color: #009688;
     color: white;
@@ -9,8 +13,44 @@
 }
 
 .navbar-default .navbar-brand:hover {
-    background: #57c7ff;
+    background-color: #505050;
     color: white;
+}
+
+.navbar, .navbar.navbar-default {
+    background-color: #505050;
+}
+
+
+
+.navbar .navbar-nav > .active > a, .navbar .navbar-nav > .navbar .navbar-nav > .active > a:focus {
+    background-color: #f7f7f7;
+    color: black;
+}
+
+.navbar-default .navbar-nav > li > a:hover {
+    background-color: #6d6d6d;
+}
+.navbar-default .navbar-nav > li > a:focus {
+    background-color: white;
+}
+
+.navbar.navbar-default .navbar-brand {
+    clip-path: none;
+    -webkit-clip-path: none;
+}
+
+.navbar.navbar-default .navbar-brand {
+    background: #1a1a1a;
+}
+
+.navbar .navbar-nav > .active > a,
+.navbar .navbar-nav > .active > a:hover,
+.navbar .navbar-nav > .active > a:focus {
+
+    background-color: #f7f7f7;
+    color: black;
+
 }
 
 .input-lg {}
@@ -27,6 +67,8 @@
 .nav-pills > li.active > a:focus,
 .nav-pills > li.active > a:hover {
     background-color: @highlight-color;
+    background-color: white;
+    background: green;
 }
 
 .search .list-group {
@@ -136,9 +178,3 @@
 .dropdown-menu {
     color: black;
 }
-
-input.form-control:focus {
-    background-image: none;
-}
-
-

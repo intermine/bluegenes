@@ -2,14 +2,15 @@
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [re-frame.core :refer [reg-event-db reg-event-fx reg-fx dispatch subscribe]]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
-            [imcljs.filters :as filters]
-            [imcljs.search :as search]
+            [imcljsold.filters :as filters]
+            [imcljsold.search :as search]
             [clojure.spec :as s]
             [day8.re-frame.http-fx]
             [ajax.core :as ajax]
             [redgenes.interceptors :refer [clear-tooltips]]
             [dommy.core :refer-macros [sel sel1]]
-            [redgenes.sections.saveddata.events]))
+            [redgenes.sections.saveddata.events]
+            [redgenes.interceptors :refer [abort-spec]]))
 
 
 
@@ -19,17 +20,6 @@
              conj {:path   path-constraint
                    :op     "ONE OF"
                    :values [identifier]}))
-
-; Could be useful later?
-(reg-event-db
-  :worker
-  (fn [db]
-    (let [worker (-> (js/Worker. "/workers/filtertext.js")
-                     (aset "onmessage" (fn [r] (println "result" (.. r -data)))))]
-      (.postMessage worker (clj->js ["e" "title" [{:title "the little book of calm"}
-                                                  {:title "the cat in the hat"}
-                                                  {:title "sailing for dummies"}]])))
-    db))
 
 (reg-event-db
   :save-summary-fields
@@ -48,7 +38,7 @@
           class          (keyword (filters/end-class model path-constraint))
           summary-fields (get-in db [:assets :summary-fields class])
           summary-chan   (search/raw-query-rows
-                           {:root @(subscribe [:mine-url])}
+                           (get-in db [:results :service])
                            {:from   class
                             :select summary-fields
                             :where  [{:path  (last (clojure.string/split path-constraint "."))
@@ -64,14 +54,16 @@
 
 (reg-event-fx
   :results/set-query
-  (fn [{db :db} [_ query]]
-    (.log js/console "query set to" query)
-    (let [model (get-in db [:assets :model])]
+  (abort-spec redgenes.specs/im-package)
+  (fn [{db :db} [_ {:keys [source value type] :as package}]]
+    (let [model (get-in db [:mines source :service :model :classes])]
       {:db       (update-in db [:results] assoc
-                            :query query
-                            :history [query]
+                            :query value
+                            :package package
+                            ;:service (get-in db [:mines source :service])
+                            :history [package]
                             :history-index 0
-                            :query-parts (filters/get-parts model query)
+                            :query-parts (filters/get-parts model value)
                             :enrichment-results nil)
        :dispatch ^:flush-dom [:results/enrich]})))
 
@@ -80,18 +72,23 @@
   :results/add-to-history
   [(clear-tooltips)]
   (fn [{db :db} [_ {identifier :identifier} details]]
-    (let [model    (get-in db [:assets :model])
-          previous (get-in db [:results :query])
-          query    (merge (build-matches-query
-                            (:pathQuery details)
-                            (:pathConstraint details)
-                            identifier)
-                          {:title (str
-                                    (:title details))})]
+    (let [last-source      (:source (last (get-in db [:results :history])))
+          model       (get-in db [:mines last-source :service :model :classes])
+          previous    (get-in db [:results :query])
+          query       (merge (build-matches-query
+                               (:pathQuery details)
+                               (:pathConstraint details)
+                               identifier)
+                             {:title (str
+                                       (:title details))})
+          new-package {:source last-source
+                       :type   :query
+                       :value  query}]
       {:db       (-> db
-                     (update-in [:results :history] conj query)
+                     (update-in [:results :history] conj new-package)
                      (update-in [:results] assoc
                                 :query query
+                                :package new-package
                                 :history-index (inc (get-in db [:results :history-index]))
                                 :query-parts (filters/get-parts model query)
                                 :enrichment-results nil))
@@ -100,25 +97,27 @@
 (reg-event-fx
   :results/load-from-history
   (fn [{db :db} [_ index]]
-    (let [model (get-in db [:assets :model])
-          query (get-in db [:results :history index])]
+    (let [package (get-in db [:results :history index])
+          model   (get-in db [:mines (:source package) :service :model :classes])]
       {:db       (-> db
                      (update-in [:results] assoc
-                                :query query
+                                :query (get package :value)
+                                :package package
                                 :history-index index
-                                :query-parts (filters/get-parts model query)
+                                :query-parts (filters/get-parts model (get package :value))
                                 :enrichment-results nil))
        :dispatch [:results/enrich]})))
 
 (reg-event-fx
   :results/enrich
-  (fn [{db :db}]
+  (fn [{db :db} [_]]
     (let [query-parts (get-in db [:results :query-parts])
-          can-enrich? (contains? query-parts :Gene)]
+          can-enrich? (contains? query-parts :Gene)
+          source-kw   (get-in db [:results :package :source])]
       (if can-enrich?
         (let [enrich-query (-> query-parts :Gene first :query)]
           {:db                   db
-           :fetch-ids-from-query enrich-query})
+           :fetch-ids-from-query [(get-in db [:mines source-kw :service]) enrich-query]})
         {:db db}))))
 
 (reg-event-fx
@@ -129,9 +128,9 @@
 
 (reg-fx
   :fetch-ids-from-query
-  (fn [query]
+  (fn [[service query]]
     (go (let [{results :results} (<! (search/raw-query-rows
-                                       {:root @(subscribe [:mine-url])}
+                                       service
                                        query))]
           (dispatch [:success-fetch-ids (flatten results)])))))
 
@@ -185,12 +184,16 @@
                                     settings)]]})))
 
 
+(defn service [db mine-kw]
+  (get-in db [:mines mine-kw :service]))
 
 (reg-event-fx
   :results/run
   (fn [{db :db} [_ params]]
-    (let [enrichment-chan (search/enrichment {:root @(subscribe [:mine-url])} params)]
-      {:db                     db
+    (let [enrichment-chan (search/enrichment (service db (get-in db [:results :package :source])) params)]
+      {:db                     (assoc-in db [:results
+                                             :enrichment-results
+                                             (keyword (:widget params))] nil)
        :results/get-enrichment [(:widget params) enrichment-chan]})))
 
 (reg-fx

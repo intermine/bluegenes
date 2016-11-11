@@ -4,8 +4,9 @@
   (:require [re-frame.core :as re-frame :refer [reg-event-db reg-event-fx reg-fx dispatch subscribe]]
             [redgenes.db :as db]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
-            [imcljs.search :as search]
-            [imcljs.filters :as filters]
+            [imcljsold.search :as search]
+            [imcljs.fetch :as fetch]
+            [imcljsold.filters :as filters]
             [com.rpl.specter :as s]))
 
 (reg-event-db
@@ -17,43 +18,44 @@
 
 (reg-fx
   :fetch-report
-  (fn [[db type id]]
+  (fn [[db mine type id]]
+    (println "fetching mine" mine)
     (let [type-kw (keyword type)
           q       {:from   type
-                   :select (-> db :assets :summary-fields type-kw)
-                   :where  {:id id}}]
-      (go (dispatch [:handle-report-summary (<! (search/raw-query-rows
-                                                  {:root @(subscribe [:mine-url])}
-                                                  q
-                                                  {:format "json"}))])))))
+                   :select (-> db :assets :summary-fields mine type-kw)
+                   :where  [{:path  (str type ".id")
+                             :op    "="
+                             :value id}]}]
+      ;(.log js/console "fetching report" q)
+      (go (dispatch [:handle-report-summary (<! (fetch/rows (get-in db [:mines mine :service])
+                                                            q
+                                                            {:format "json"}))])))))
 
 
 (reg-event-db
   :filter-report-collections
-  (fn [db [_ type oid]]
-    (let [model          (-> db :assets :model)
-          templates      (-> db :assets :templates)
-          summary-fields (-> db :assets :summary-fields)
+  (fn [db [_ mine type oid]]
+    (let [summary-fields (-> db :assets :summary-fields mine)
           type-key       (keyword type)
-          collections    (-> db :assets :model type-key :collections)]
+          collections    (-> db :mines mine :service :model :classes type-key :collections)]
       (assoc-in db [:report :collections] (map (fn [[_ {:keys [name referencedType]}]]
                                                  (let [summary-paths (-> referencedType keyword summary-fields)]
-                                                   ; Create a query for each collection
-                                                   {:class referencedType
-                                                    :query {:from   type
-                                                            :select (map (fn [path]
-                                                                           (str name "."
-                                                                                (clojure.string/join "."
-                                                                                                     (drop 1 (clojure.string/split path ".")))))
-                                                                         summary-paths)
-                                                            :where  {:id oid}}})) collections)))))
+                                                   {:class   referencedType
+                                                    :service (get-in db [:mines mine :service])
+                                                    :query   {:from   type
+                                                              :select (map (fn [path]
+                                                                             (str name "."
+                                                                                  (clojure.string/join "."
+                                                                                                       (drop 1 (clojure.string/split path ".")))))
+                                                                           summary-paths)
+                                                              :where  {:id oid}}})) collections)))))
 
 
 (reg-event-fx
   :filter-report-templates
-  (fn [{db :db} [_ type id]]
-    (let [model     (-> db :assets :model)
-          templates (-> db :assets :templates)]
+  (fn [{db :db} [_ mine type id]]
+    (let [model     (-> db :mines mine :service :model :classes)
+          templates (-> db :assets :templates mine)]
       {:db       (assoc-in db [:report :templates]
                            (into {} (traverse
                                       [s/ALL
@@ -62,13 +64,14 @@
                                          :where #(= 1 (count (filter (fn [c] (:editable c)) %)))
                                          s/ALL
                                          :path #(= type (filters/end-class model %)))] templates)))
-       :dispatch [:filter-report-collections type id]})))
+       :dispatch [:filter-report-collections mine type id]})))
 
 (reg-event-fx
   :load-report
-  (fn [{db :db} [_ type id]]
+  (fn [{db :db} [_ mine type id]]
+    (println "load-report mine" mine)
     {:db           (-> db
                        (assoc :fetching-report? true)
                        (dissoc :report))
-     :fetch-report [db type id]
-     :dispatch     [:filter-report-templates type id]}))
+     :fetch-report [db (keyword mine) type id]
+     :dispatch     [:filter-report-templates (keyword mine) type id]}))

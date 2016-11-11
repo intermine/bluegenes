@@ -4,8 +4,8 @@
   (:require [re-frame.core :as re-frame :refer [reg-event-db reg-event-fx reg-fx dispatch subscribe]]
             [redgenes.db :as db]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
-            [imcljs.idresolver :as idresolver]
-            [imcljs.filters :as filters]
+            [imcljsold.idresolver :as idresolver]
+            [imcljsold.filters :as filters]
             [com.rpl.specter :as s]
             [accountant.core :refer [navigate!]]
             [clojure.zip :as zip]))
@@ -48,27 +48,29 @@
 
 (reg-fx
   :idresolver/resolve-id
-  (fn [id]
+  (fn [[id service extra]]
     (let [job (idresolver/resolve
-                {:root @(subscribe [:mine-url])}
+                service
                 {:identifiers (if (seq? id) id [id])
                  :type        "Gene"
-                 :extra       @(subscribe [:mine-default-organism])})]
+                 :extra       extra})]
       (go (dispatch [:handle-id (<! job)])))))
 
 (reg-event-fx
   :idresolver/resolve
   (fn [{db :db} [_ id]]
-    {:db
-     (-> db
-         (assoc-in [:idresolver :resolving?] true)
-         (update-in [:idresolver :bank]
-                    (fn [bank]
-                      (distinct (reduce (fn [total next]
-                                 (conj total {:input  next
-                                              :status :inactive})) bank id)))))
-     :idresolver/resolve-id
-     id}))
+    (let [service  (get-in db [:mines (get db :current-mine) :service])
+          organism (get-in db [:mines (get db :current-mine) :abbrev])]
+      {:db
+       (-> db
+           (assoc-in [:idresolver :resolving?] true)
+           (update-in [:idresolver :bank]
+                      (fn [bank]
+                        (distinct (reduce (fn [total next]
+                                            (conj total {:input  next
+                                                         :status :inactive})) bank id)))))
+       :idresolver/resolve-id
+       [id service organism]})))
 
 (defn toggle-into-collection [coll val]
   (if-let [found (some #{val} coll)]
@@ -157,18 +159,20 @@
 (reg-event-fx
   :idresolver/analyse
   (fn [{db :db}]
-    (let [uid     (str (gensym))
-          ids     (remove nil? (map (fn [[_ {id :id}]] id) (-> db :idresolver :results)))
+    (let [uid            (str (gensym))
+          ids            (remove nil? (map (fn [[_ {id :id}]] id) (-> db :idresolver :results)))
           summary-fields (get-in db [:assets :summary-fields :Gene])
-          results {:type  :query
-                   :label (str "Uploaded " (count ids) " Genes")
-                   :value {:title (str "Uploaded " (count ids) " Genes")
-                           :from   "Gene"
-                           :select summary-fields
-                           :where  [{:path   "Gene.id"
-                                     :op     "ONE OF"
-                                     :values ids}]}}]
-      {:dispatch [:results/set-query (:value results)]
+          results        {:type  :query
+                          :label (str "Uploaded " (count ids) " Genes")
+                          :value {:title  (str "Uploaded " (count ids) " Genes")
+                                  :from   "Gene"
+                                  :select summary-fields
+                                  :where  [{:path   "Gene.id"
+                                            :op     "ONE OF"
+                                            :values ids}]}}]
+      {:dispatch [:results/set-query {:source (get db :current-mine)
+                                      :type   :query
+                                      :value  (:value results)}]
        :navigate (str "results")})))
 
 

@@ -10,6 +10,7 @@
             [redgenes.sections.objects.views :as objects]
             [redgenes.sections.templates.views :as templates]
             [redgenes.components.querybuilder.views.main :as querybuilder]
+            [redgenes.components.toast :as toast]
             [redgenes.sections.upload.views :as upload]
             [redgenes.sections.explore.views :as explore]
             [redgenes.sections.analyse.views :as analyse]
@@ -19,7 +20,8 @@
             [redgenes.sections.saveddata.views :as saved-data]
             [redgenes.sections.help.views :as help]
             [accountant.core :refer [navigate!]]
-            [oops.core :refer [ocall oapply oget oset!]]))
+            [oops.core :refer [ocall oapply oget oset!]]
+            ))
 
 ;; about
 
@@ -80,4 +82,6 @@
        [nav/main]
        [:main [show-panel @active-panel]]
        [footer]
+       [toast/main]
+
        ])))

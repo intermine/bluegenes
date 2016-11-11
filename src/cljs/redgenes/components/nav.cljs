@@ -54,29 +54,37 @@
                       (dispatch [:save-saved-data-tooltip (:id tooltip-data) @label]))}])})))
 
 (defn active-mine-logo []
-  [:span.logo {:class @(subscribe [:mine-name])}
-   ]
-  )
+  [:span.logo {:class @(subscribe [:mine-name])}])
 
 (defn main []
   (let [active-panel (subscribe [:active-panel])
         app-name     (subscribe [:name])
         short-name   (subscribe [:short-name])
-        saved-data   (subscribe [:saved-data])
+        lists        (subscribe [:lists])
         ttip         (subscribe [:tooltip])
+        current-mine (subscribe [:current-mine])
         panel-is     (fn [panel-key] (= @active-panel panel-key))]
     (fn []
-      [:nav.navbar.navbar-default.navbar-fixed-top.down-shadow
+      [:nav.navbar.navbar-default.navbar-fixed-top
+       ; removed .down-shadow
        [:div.container-fluid
         [:ul.nav.navbar-nav.navbar-collapse.navigation
          [:li [:div.navbar-header
-               [:span.navbar-brand {:on-click #(navigate! "#/")} [active-mine-logo] [:span.long-name @app-name] [:span.short-name @short-name]]]]
+               [:span.navbar-brand {:on-click #(navigate! "#/")}
+                [active-mine-logo]
+                ;[:span.long-name @app-name]
+                ;[:span.short-name @short-name]
+                [:span.long-name (:name @current-mine)]
+                [:span.short-name "IM"]
+
+                ]]]
+
          [:li.homelink {:class (if (panel-is :home-panel) "active")} [:a {:on-click #(navigate! "#/")} "Home"]]
          [:li {:class (if (panel-is :upload-panel) "active")} [:a {:on-click #(navigate! "#/upload")} "Upload"]]
          [:li {:class (if (panel-is :templates-panel) "active")} [:a {:on-click #(navigate! "#/templates")} "Templates"]]
          [:li {:class (if (panel-is :regions-panel) "active")} [:a {:on-click #(navigate! "#/regions")} "Regions"]]
          [:li {:class (if (panel-is :querybuilder-panel) "active")} [:a {:on-click #(navigate! "#/querybuilder")} "Query\u00A0Builder"]]
-         [:li {:class (if (panel-is :saved-data-panel) "active")} [:a {:on-click #(navigate! "#/saved-data")} (str "Lists\u00A0(" (count (keys @saved-data)) ")")]
+         [:li {:class (if (panel-is :saved-data-panel) "active")} [:a {:on-click #(navigate! "#/saved-data")} (str "Lists\u00A0(" (apply + (map count (vals @lists))) ")")]
           ;;example tooltip. Include as last child, probably with some conditional to display and an event handler for saving the name
           (if @ttip [save-data-tooltip @ttip])]]
         [:ul.nav.navbar-nav.navbar-right.buttons

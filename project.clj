@@ -1,4 +1,4 @@
-(defproject redgenes "0.1.0-SNAPSHOT"
+(defproject redgenes "0.1.1-SNAPSHOT"
   :dependencies [[org.clojure/clojure "1.9.0-alpha12"]
                  [figwheel-sidecar "0.5.8"]
                  [clj-http "3.3.0"]
@@ -35,7 +35,8 @@
                  [inflections "0.12.2"]
                  [fipp "0.6.6"]
                  [binaryage/oops "0.5.2"]
-                 [inflections "0.12.2"]]
+                 [inflections "0.12.2"]
+                 [intermine/imcljs "0.1.4-SNAPSHOT"]]
 
   :plugins [[lein-cljsbuild "1.1.4"]
             [lein-less "1.7.5"]

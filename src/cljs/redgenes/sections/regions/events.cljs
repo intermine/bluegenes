@@ -1,14 +1,8 @@
 (ns redgenes.sections.regions.events
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [re-frame.core :refer [reg-event-db reg-event-fx reg-fx dispatch subscribe]]
-            [cljs.core.async :refer [put! chan <! >! timeout close!]]
-            [imcljs.model :as m]
-            [imcljs.search :as search]
-            [clojure.spec :as s]
-            [day8.re-frame.http-fx]
-            [redgenes.events]
-            [com.rpl.specter :as specter]
-            [ajax.core :as ajax]))
+            [imcljsold.model :as m]
+            [imcljs.fetch :as fetch]))
 
 
 (defn parse-region [region-string]
@@ -46,7 +40,7 @@
   :regions/toggle-feature-type
   (fn [db [_ class]]
     (let [class-kw    (keyword (:name class))
-          m           (get-in db [:assets :model])
+          m           (get-in db [:mines (get db :current-mine) :service :model :classes])
           descendants (keys (m/descendant-classes m class-kw))
           status      (get-in db [:regions :settings :feature-types class-kw])]
       (update-in db [:regions :settings :feature-types]
@@ -58,7 +52,7 @@
 (reg-event-db
   :regions/select-all-feature-types
   (fn [db]
-    (let [model         (get-in db [:assets :model])
+    (let [model         (get-in db [:mines (get db :current-mine) :service :model :classes])
           feature-types (m/descendant-classes model :SequenceFeature)]
       (assoc-in db [:regions :settings :feature-types]
                 (reduce (fn [total [name]]
@@ -88,6 +82,21 @@
                                :value short-name})
     query))
 
+
+(defn build-feature-query [regions]
+  {:from   "SequenceFeature"
+   :select ["SequenceFeature.id"
+            "SequenceFeature.name"
+            "SequenceFeature.primaryIdentifier"
+            "SequenceFeature.symbol"
+            "SequenceFeature.chromosomeLocation.start"
+            "SequenceFeature.chromosomeLocation.end"
+            "SequenceFeature.chromosomeLocation.locatedOn.primaryIdentifier"]
+   :where  [{:path   "SequenceFeature.chromosomeLocation"
+             :op     "OVERLAPS"
+             :values (if (string? regions) [regions] (into [] regions))}]})
+
+
 (reg-event-fx
   :regions/run-query
   (fn [{db :db} [_]]
@@ -96,12 +105,11 @@
           selected-organism (get-in db [:regions :settings :organism :shortName])
           query (->
                   (add-type-constraints
-                   (search/build-feature-query to-search)
+                   (build-feature-query to-search)
                    (map name (keys (filter (fn [[name enabled?]] enabled?) feature-types))))
                   (add-organism-constraint selected-organism))]
       {:db           (assoc-in db [:regions :regions-searched] (map parse-region to-search))
-       :im-operation {:op         (partial search/raw-query-rows
-                                           {:root @(subscribe [:mine-url])}
-                                           query
-                                           {:format "jsonobjects"})
+       :im-operation {:op         (partial fetch/records
+                                           (get-in db [:mines (get db :current-mine) :service])
+                                           query)
                       :on-success [:regions/save-results]}})))

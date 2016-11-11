@@ -1,8 +1,9 @@
 (ns redgenes.sections.objects.components.homologues
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
-  (:require      [imcljs.search :refer [raw-query-rows]]
+  (:require      [imcljsold.search :refer [raw-query-rows]]
                  [re-frame.core :refer [subscribe]]
-                 [cljs.core.async :as a :refer [put! chan <! >! timeout close!]]))
+                 [cljs.core.async :as a :refer [put! chan <! >! timeout close!]]
+                 [imcljs.fetch :as fetch]))
 
 (defn homologue-query [id organism]
   {
@@ -59,7 +60,8 @@
   "If the remote mine says it has no homologues for a given identifier, query the local mine instead. It may be that there *are* homologues, but the remote mine doesn't know about them. If the local mine returns identifiers, verify them on the remote server and return them to the user."
   (let [c (chan)]
   ;  (.log js/console "%c getting local homologues for" "border-bottom:wheat solid 3px" (clj->js remote-service))
-    (go (let [
+  (println "getting local homologues")
+  (go (let [
               ;;get the list of homologues from the local mine
               local-homologue-results (<! (raw-query-rows {:root @(subscribe [:mine-url])}
               q

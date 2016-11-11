@@ -62,10 +62,20 @@
      {:on-mouse-enter (fn [] (dispatch [:results/get-item-details identifier pathConstraint]))
       :on-click       (fn []
                         (dispatch [:results/add-to-history row details]))}
-     [popover [:span {:data-content   [popover-table matches p-value]
-                      :data-placement "left"
-                      :data-trigger   "hover"}
-               description]]]))
+     [:div.container-fluid
+      [:div.row
+       [:div.col-xs-8
+        ; TODO popovers are causing reagent key ID errors
+        #_[popover [:span {:data-content   [popover-table matches p-value]
+                         :data-placement "left"
+                         :data-trigger   "hover"}
+                  [:span description]]]
+        [:span {:data-content   [popover-table matches p-value]
+                :data-placement "left"
+                :data-trigger   "hover"}
+         [:span description]]]
+       [:div.col-xs-4 [:span {:style {:font-size "0.8em"}} (.toExponential p-value 6)]]]]
+     ]))
 
 (defn has-text?
   "Return true if a label contains a string"
@@ -77,22 +87,30 @@
     true))
 
 (defn enrichment-results-preview []
-  (let [text-filter (subscribe [:results/text-filter])]
+  (let [page-state  (reagent/atom {:page 0 :show 5})
+        text-filter (subscribe [:results/text-filter])]
     (fn [[widget-name {:keys [results] :as details}]]
-      ;(.log js/console "RESULTS" results)
       [:div
-       [:h4
-        {:class (if (empty? results) "greyout")}
-        (str (get-in enrichment-config [widget-name :title])
-             " (" (count results) ")")]
+       [:h4 {:class (if (empty? results) "greyout")}
+        (str (get-in enrichment-config [widget-name :title]))
+        (if results
+          [:span
+           [:span (if results (str " (" (count results) ")"))]
+           (if (< 0 (count results))
+             [:span
+              [:i.fa.fa-caret-left
+               {:on-click (fn [] (swap! page-state update :page dec))}]
+              [:i.fa.fa-caret-right
+               {:on-click (fn [] (swap! page-state update :page inc))}]])]
+          [:span [:i.fa.fa-cog.fa-spin]])]
+
+
        (into [:ul.enrichment-list]
              (map (fn [row] [enrichment-result-row row details])
-                  (take 5 (filter
-                            (fn [{:keys [description]}]
-                              (has-text? @text-filter description))
-                            results))))])))
-
-
+                  (take (:show @page-state) (filter
+                                              (fn [{:keys [description]}]
+                                                (has-text? @text-filter description))
+                                              (drop (* (:page @page-state) (:show @page-state)) results)))))])))
 
 
 (defn enrichment-results []
@@ -105,6 +123,10 @@
           {:transition-name          "fade"
            :transition-enter-timeout 500
            :transition-leave-timeout 500}
+          [:div.container-fluid
+           [:div.row
+            [:div.col-xs-8 "Item"]
+            [:div.col-xs-4 "p-value"]]]
           (map (fn [enrichment-response]
                  ^{:key (first enrichment-response)} [enrichment-results-preview enrichment-response])
                @all-enrichment-results)]]))))
@@ -173,10 +195,9 @@
        [:i.fa.fa-clock-o]
        (into [:ul.breadcrumb.inline]
              (map-indexed
-               (fn [idx {title :title}]
+               (fn [idx {{title :title} :value}]
                  (let [adjsuted-title (if (not= idx @history-index) (adjust-str-to-length 20 title) title)]
-                   [:li
-                    {:class (if (= @history-index idx) "active")}
+                   [:li {:class (if (= @history-index idx) "active")}
                     [tooltip
                      [:a
                       {:data-placement "bottom"
@@ -187,7 +208,9 @@
 
 
 (defn main []
-  (let [query (subscribe [:results/query])]
+  (let [query             (subscribe [:results/query])
+        service           (subscribe [:results/service])
+        package-for-table (subscribe [:results/package-for-table])]
     (fn []
       [:div.container
        [breadcrumb]
@@ -195,10 +218,9 @@
         [:div.col-md-9.col-sm-12
          [:div.panel.panel-default
           [:div.panel-body.autoscroll
-           (if @query [table/main @query true])]]]
+           (if @query [table/main @package-for-table true])]]]
         [:div.col-md-3.col-sm-12
-         [side-bar]
-         ]]])))
+         [side-bar]]]])))
 
 
 

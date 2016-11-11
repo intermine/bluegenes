@@ -1,8 +1,8 @@
-(ns imcljs.idresolver
+(ns imcljsold.idresolver
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [ajax.core :refer [GET POST]]
             [cljs-http.client :as http]
-            [imcljs.utils :refer [cleanse-url]]
+            [imcljsold.utils :refer [cleanse-url]]
             [cljs.core.async :refer [chan <! >! timeout close!]]))
 
 (defn check-job

@@ -1,4 +1,4 @@
-(ns imcljs.model)
+(ns imcljsold.model)
 
 (defn one-of? [haystack needle] (some? (some #{needle} haystack)))
 

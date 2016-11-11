@@ -2,7 +2,7 @@
   (:require-macros [reagent.ratom :refer [reaction]])
   (:require [re-frame.core :as re-frame :refer [reg-sub]]
             [redgenes.components.templates.helpers :as template-helpers]
-            [imcljs.filters :as filters]))
+            [imcljsold.filters :as filters]))
 
 (defn template-contains-string?
   "Return true if a template's description contains a string"
@@ -16,7 +16,11 @@
 (reg-sub
   :templates
   (fn [db _]
-    (:templates (:assets db))))
+    (let [template-packages (reduce (fn [total [mine-kw templates]]
+                                      (doall (reduce (fn [t [name query]]
+                                                       (assoc t (keyword mine-kw name) query)) total templates)))
+                                    {} (seq (get-in db [:assets :templates])))]
+      template-packages)))
 
 (reg-sub
   :template-chooser/count
@@ -67,17 +71,30 @@
   (fn [db _]
     (get-in db [:components :template-chooser :selected-template])))
 
+(def ns->kw (comp keyword (fnil namespace :nil)))
+(def name->kw (comp keyword name))
+(def ns->vec (juxt ns->kw name->kw))
+
 (reg-sub
   :template-chooser/selected-template-constraints
   (fn [db]
-    (let [model       (get-in db [:assets :model])
+    (let [source      (ns->kw (get-in db [:components :template-chooser :selected-template-name]))
+          classes       (get-in db [:mines source :service :model :classes])
           constraints (get-in db [:components :template-chooser :selected-template :where])]
-      (map (fn [constraint]
-             (assoc constraint
-               :field-type (filters/path-type model (:path constraint)
-                                        (first (filter (fn [x] (contains? x :type )) constraints))))) constraints))))
+      (if (and source classes constraints)
+        (map (fn [constraint]
+               (assoc constraint
+                 :field-type (filters/path-type classes (:path constraint)
+                                                (first (filter (fn [x] (contains? x :type)) constraints))))) constraints)
+        nil))))
 
 (reg-sub
   :selected-template-category
   (fn [db _]
     (get-in db [:components :template-chooser :selected-template-category])))
+
+
+(reg-sub
+  :selected-template-service
+  (fn [db _]
+    (get-in db [:components :template-chooser :selected-template-service])))

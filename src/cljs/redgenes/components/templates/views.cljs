@@ -3,6 +3,7 @@
             [re-frame.core :refer [subscribe dispatch]]
             [accountant.core :refer [navigate!]]
             [clojure.string :refer [split join]]
+            [json-html.core :as json-html]
             [redgenes.components.lighttable :as lighttable]))
 
 
@@ -76,17 +77,21 @@
                  @categories)))))
 
 
-(defn applies-to? [type op]
-  (some? (some #{type} (:applies-to op))))
+(defn applies-to? [type op] (some? (some #{type} (:applies-to op))))
 
 (defn constraint [idx state]
   (let [state (reagent/atom state)]
     (fn [idx constraint]
-      [:div
-       [:span (join " > " (take-last 2 (split (:path constraint) ".")))]
-       [:div.input-group
-        [:div.input-group-btn
-         [:button.btn.btn-default.dropdown-toggle
+      [:div.form-group.row
+       [:div.col-xs-3
+        [:h4
+         {:style {:text-align "right"}}
+         [:span (join " > " (take-last 2 (split (:path constraint) ".")))]]]
+       [:div.col-xs-3.stretch-buttons
+        {:style {:text-align "right"}}
+
+        [:div.dropdown
+         [:button.btn.btn-default.btn-raised.dropdown-toggle
           {:type        "button"
            :data-toggle "dropdown"}
           (:op @state)
@@ -97,17 +102,72 @@
                        {:on-click (fn []
                                     (swap! state assoc :op op)
                                     (dispatch [:template-chooser/replace-constraint idx @state]))}
-                       [:a op]])) (map :op (filter (partial applies-to? (:field-type constraint)) ops)))]
+                       [:a op]]))
+               (map :op ops)
+               ;(map :op (filter (partial applies-to? (:field-type constraint)) ops))
+               )]]
+       [:div.col-xs-6
         [:input.form-control
          {:type      "text"
           :value     (:value @state)
           :on-change (fn [e] (swap! state assoc :value (.. e -target -value)))
-          :on-blur   (fn [] (dispatch [:template-chooser/replace-constraint idx @state]))}]
-        (if (= :class (:field-type constraint)) [:div.input-group-btn
-                                                 (let [select-function (fn [name]
-                                                                         (swap! state assoc :value name :op "IN")
-                                                                         (dispatch [:template-chooser/replace-constraint idx @state]))]
-                                                   [list-saveddata select-function])])]])))
+          :on-blur   (fn [] (dispatch [:template-chooser/replace-constraint idx @state]))}]]])))
+
+
+(defn constraint-vertical [idx state]
+  (let [state (reagent/atom state)]
+    (fn [idx constraint]
+      [:div
+
+       [:div.form-group.row
+        [:div.col-xs-offset-3
+         {:style {:padding 0
+                  :padding-left "20px"}
+          }
+         [:span (join " > " (take-last 2 (split (:path constraint) ".")))]]]
+
+
+       [:div.form-group.row
+
+        [:div.col-xs-3.stretch-buttons
+         {:style {:text-align "right"}}
+
+         [:div.dropdown
+          [:button.btn.btn-default.btn-raised.dropdown-toggle
+           {:type        "button"
+            :data-toggle "dropdown"}
+           (:op @state)
+           [:i.fa.fa-caret-down.pad-left-5]]
+          (into [:ul.dropdown-menu]
+                (map (fn [op]
+                       [:li
+                        {:on-click (fn []
+                                     (swap! state assoc :op op)
+                                     (dispatch [:template-chooser/replace-constraint idx @state]))}
+                        [:a op]]))
+                (map :op ops)
+                ;(map :op (filter (partial applies-to? (:field-type constraint)) ops))
+                )]]
+
+
+        [:div.col-xs-9
+         [:input.form-control
+          {:type      "text"
+           :value     (:value @state)
+           :on-change (fn [e] (swap! state assoc :value (.. e -target -value)))
+           :on-blur   (fn [] (dispatch [:template-chooser/replace-constraint idx @state]))}]]
+
+
+
+
+
+
+        #_[:div.col-xs-3
+           [:h4
+            {:style {:text-align "right"}}
+            [:span (join " > " (take-last 2 (split (:path constraint) ".")))]]]
+
+        ]])))
 
 (defn form []
   (fn [constraints]
@@ -121,14 +181,41 @@
                                     [idx con])) constraints))))]))
 
 (defn template []
-  (let [selected-template (subscribe [:selected-template])]
+  (let [selected-template (subscribe [:selected-template])
+        service           (subscribe [:selected-template-service])]
     (fn [[id query]]
-      [:a.list-group-item.template-result
-       {:class    (if (= (name id) (:name @selected-template)) "active")
-        :on-click (fn [] (dispatch [:template-chooser/choose-template id]))}
-       [:h4.list-group-item-heading
-        (last (clojure.string/split (:title query) "-->"))]
-       [:div.list-group-item-text (:description query) [:span.view-results "Preview >"]]])))
+      [:div.grid-1
+       [:div.col.ani.template
+        {:on-click (fn []
+                     (if (not= (name id) (:name @selected-template))
+                       (dispatch [:template-chooser/choose-template id])))
+         :class    (if (= (name id) (:name @selected-template)) "selected")}
+        [:div.title [:h4 (:title query)]]
+        [:div.description (:description query)]
+        (if (= (name id) (:name @selected-template))
+          [:div.body
+           [:div.col-xs-6.border-right
+            (into [:form.form]
+                  (concat
+                    (map (fn [[idx con]]
+                           [constraint-vertical idx con])
+                         (keep-indexed (fn [idx con]
+                                         (if (:editable con)
+                                           [idx con])) (:where query)))
+                    [[:div.form-group.row
+                      [:div.col-xs-offset-6
+                       {:style {:text-align "right"}}
+                       [:button.btn.btn-primary.btn-raised
+                        {:type "button"
+                         :on-click (fn [] (dispatch [:templates/send-off-query]))}
+                        "View All Results"]]]]))]
+
+           [:div.col-xs-6
+            {:style {:overflow-x "hidden"}}
+            [:span "Results Preview"]
+            [lighttable/main {:query      @selected-template
+                              :service    @service
+                              :no-repeats true}]]])]])))
 
 (defn templates []
   (fn [templates]
@@ -160,35 +247,66 @@
 
 (defn results [counting? result-count selected-template]
   [:div.pane.pane-default.results
-  [:div.pane-heading "Results preview " (cond @result-count (str "("  @result-count " rows)"))]
-    (if (and (nil? @result-count) (not @counting?))
-      [no-results-yet]
-      [:div.pane-body
-        (if @counting?
-          [:i.fa.fa-cog.fa-spin.fa-1x.fa-fw]
-          [:div
-          [:button.btn.btn-primary.btn-raised
-           {:on-click
-            (fn []
-              (dispatch
-                [:save-data {:sd/type    :query
-                             :sd/service :flymine
-                             :sd/label   (last (split (:title @selected-template) "-->"))
-                             :sd/value   (assoc @selected-template :title (last (split (:title @selected-template) "-->")))}]))} "Save"]
+   [:div.pane-heading "Results preview " (cond @result-count (str "(" @result-count " rows)"))]
+   (if (and (nil? @result-count) (not @counting?))
+     [no-results-yet]
+     [:div.pane-body
+      (if @counting?
+        [:i.fa.fa-cog.fa-spin.fa-1x.fa-fw]
+        [:div
+         [:button.btn.btn-primary.btn-raised
+          {:on-click
+           (fn []
+             (dispatch
+               [:save-data {:sd/type    :query
+                            :sd/service :flymine
+                            :sd/label   (last (split (:title @selected-template) "-->"))
+                            :sd/value   (assoc @selected-template :title (last (split (:title @selected-template) "-->")))}]))} "Save"]
 
-          [:button.btn.btn-primary.btn-raised
-           {:on-click (fn []
-                        (dispatch ^:flush-dom [:results/set-query @selected-template])
-                        (navigate! "#/results"))}
-           "View All Results"]
-           [lighttable/main {:query      @selected-template
+         [:button.btn.btn-primary.btn-raised
+          {:on-click (fn []
+                       (dispatch [:templates/send-off-query]))}
+          "View All Results"]
+         #_[lighttable/main {:query      @selected-template
                              :no-repeats true}]
-          ])])]
-    )
-
+         ])])]
+  )
 
 
 (defn main []
+  (let [im-templates         (subscribe [:templates-by-category])
+        selected-template    (subscribe [:selected-template])
+        filter-state         (reagent/atom nil)
+        result-count         (subscribe [:template-chooser/count])
+        counting?            (subscribe [:template-chooser/counting?])
+        selected-constraints (subscribe [:template-chooser/selected-template-constraints])]
+    (fn []
+      [:div.container
+       ;(json-html/edn->hiccup @selected-template)
+       [:div.row
+        [:div.col-xs-12
+         [:div.form-group.template-filter
+          [:label.control-label "Filter by category"]
+          [categories]]
+         [:div.form-group.template-filter
+          [:label.control-label "Filter by description"]
+          [template-filter filter-state]]
+         [:div
+          [templates @im-templates]]]
+        #_[:div.col-xs-6
+           (cond (seq @selected-constraints) ;;show it if/when there's something to see
+                 [:div.x-section.see-template-details
+                  [:div.pane
+                   [:div.pane-heading "Constraints"]
+                   [:div.pane-body
+                    ^{:key (:name @selected-template)} [form @selected-constraints]
+                    #_(json-html/edn->hiccup @selected-template)]]
+                  [results counting? result-count selected-template]
+                  ])]]])))
+
+
+
+(defn main-old []
   (let [im-templates         (subscribe [:templates-by-category])
         selected-template    (subscribe [:selected-template])
         filter-state         (reagent/atom nil)
@@ -211,13 +329,13 @@
            [:div.x-scrollable-content
             [templates @im-templates]]]]]]
        (cond (seq @selected-constraints) ;;show it if/when there's something to see
-       [:div.x-section.see-template-details
-        [:div.pane
-         [:div.pane-heading "Constraints"]
-         [:div.pane-body
-          ^{:key (:name @selected-template)} [form @selected-constraints]
-          #_(json-html/edn->hiccup @selected-template)]]
-          [results counting? result-count selected-template]
-        ])
+             [:div.x-section.see-template-details
+              [:div.pane
+               [:div.pane-heading "Constraints"]
+               [:div.pane-body
+                ^{:key (:name @selected-template)} [form @selected-constraints]
+                #_(json-html/edn->hiccup @selected-template)]]
+              ;[results counting? result-count selected-template]
+              ])
 
        ])))

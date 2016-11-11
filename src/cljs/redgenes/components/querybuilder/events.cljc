@@ -42,8 +42,8 @@
     #?(:cljs [re-frame.core :as re-frame :refer [dispatch subscribe]])
     #?(:cljs [cljs.spec :as spec] :clj [clojure.spec :as spec])
     #?(:cljs [cljs.core.async :refer [put! chan <! >! timeout close!]])
-    #?(:cljs [imcljs.search :as search])
-    #?(:cljs [imcljs.filters :as filters])
+    #?(:cljs [imcljsold.search :as search])
+    #?(:cljs [imcljsold.filters :as filters])
     [redgenes.utils :refer [register-all!]]
     [com.rpl.specter :as s]
     [clojure.string :as string]

@@ -4,7 +4,7 @@
             [re-frame.core :as re-frame :refer [subscribe dispatch]]
             [dommy.core :as dommy :refer-macros [sel sel1]]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
-            [imcljs.search :as search]))
+            [imcljsold.search :as search]))
 
 (defn handle [e]
   (let [props (reagent/props e)
