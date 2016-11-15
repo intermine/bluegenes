@@ -116,5 +116,3 @@
     {:db           db
      :im-operation {:op         (partial fetch/summary-fields (get-in db [:mines (:current-mine db) :service]))
                     :on-success [:assets/success-fetch-summary-fields (:current-mine db)]}}))
-
-

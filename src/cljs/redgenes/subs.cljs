@@ -15,26 +15,22 @@
   (fn [db]
     (:short-name db)))
 
-
-(defn merge-mines [db]
-  (merge mines/mines (:temporary-mine db)))
-
 (reg-sub
   :mine-url
   (fn [db]
     (let [mine-name (:mine-name db)
-          url       (:url (:mine (mine-name (merge-mines db))))]
+          url       (:url (:mine (mine-name (:mines db))))]
       (str "http://" url))))
 
 (reg-sub :mine-default-organism
          (fn [db]
            (let [mine-name (:mine-name db)
-                 organism  (:abbrev (mine-name (merge-mines db)))]
+                 organism  (:abbrev (mine-name (:mines db)))]
              organism)))
 
 (reg-sub :mines
-         (fn [db]
-           (merge-mines db)))
+  (fn [db]
+   (:mines db)))
 
 (reg-sub
   :mine-name
@@ -78,7 +74,9 @@
 (reg-sub
   :model
   (fn [db _]
-    (:model (:assets db))))
+    (let [current-mine (get-in db [:mines (get db :current-mine)])
+          current-model (get-in current-mine [:service :model :classes])]
+    current-model)))
 
 (reg-sub
   :lists
