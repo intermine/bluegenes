@@ -151,10 +151,6 @@
        ;:navigate "saved-data"
        })))
 
-(reg-fx
-  :navigate
-  (fn [url]
-    (navigate! (str "#/" url))))
 
 (reg-event-fx
   :idresolver/analyse
