@@ -11,14 +11,14 @@
 
 (defn load-data [id]
   "Loads homologues from each mine."
+  (let [current-mine (subscribe [:current-mine])
+        svc          (:service @current-mine)]
     (doall (for [[minename details] @(subscribe [:mines])]
-
       (go (let [
-        svc    {:root @(re-frame/subscribe [:mine-url])}
         homologues (<! (homologues svc (:service (:mine details)) "Gene" id (get-in details [:abbrev])))]
           ;  (.log js/console "Homologues for" (clj->js minename) (clj->js homologues) @search-results)
           (swap! search-results assoc minename homologues)
-      )))))
+      ))))))
 
 (defn get-identifier [homologue]
   "returns an identifier. looks for the symbol first, if there is one, or otherwise uses the primary identifier."

@@ -5,6 +5,8 @@
                  [cljs.core.async :as a :refer [put! chan <! >! timeout close!]]
                  [imcljs.fetch :as fetch]))
 
+;;;;;;TODO NOTES: This file was written for bluegenes and doesn't follow the standard reframe event/sub model. When you're feeling grownup, refactor it.
+
 (defn homologue-query [id organism]
   {
    :constraintLogic "A and B"
@@ -62,11 +64,12 @@
   ;  (.log js/console "%c getting local homologues for" "border-bottom:wheat solid 3px" (clj->js remote-service))
   (println "getting local homologues")
   (go (let [
+            current-mine (subscribe [:current-mine])
               ;;get the list of homologues from the local mine
-              local-homologue-results (<! (raw-query-rows {:root @(subscribe [:mine-url])}
+              local-homologue-results (<! (raw-query-rows {:root @(subscribe [:current-mine])}
               q
               {:format "json"}))]
-
+(.log js/console "%ccurrent-mine" "color:hotpink;font-weight:bold;" (clj->js @current-mine))
           (if (some? local-homologue-results)
             (do (let
                 ;;convert the results to just the list of homologues
@@ -106,6 +109,8 @@
               ;build the query
               q          (homologue-query primary-id organism)
               ;;query the remote mine for homologues
+                          current-mine (subscribe [:current-mine])
+              x (.log js/console "%ccurrent-mine" "color:hotpink;font-weight:bold;" (clj->js @current-mine))
               response   (<! (raw-query-rows remote-service q {:format "json"}))]
           ;(.log js/console "%c getting homologues for %s" "border-bottom:mediumorchid dotted 3px" (clj->js remote-service) (clj->js response))
           (if (> (count (:results response)) 0)
