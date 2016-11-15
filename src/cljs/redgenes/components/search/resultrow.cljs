@@ -15,10 +15,12 @@
             }])
 
 (defn set-selected! [row-data elem]
-  "sets the selected result in the local state atom and emits that we 'have' this item to next steps / the next tool"
-;    (swap! (:state row-data) assoc :selected-result (:result row-data))
-    (navigate! (str "#/objects/" (aget (:result row-data) "type") "/" (aget (:result row-data) "id")))
-  )
+  "selects an item and navigates there. "
+  (let [current-mine (subscribe [:current-mine])]
+
+    (navigate! (str "#/objects/" (name (:id @current-mine)) "/" (aget (:result row-data) "type") "/" (aget (:result row-data) "id")))
+  ))
+
 
 (defn row-structure [row-data contents]
   "This method abstracts away most of the common components for all the result-row baby methods."
