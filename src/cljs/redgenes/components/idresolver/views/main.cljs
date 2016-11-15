@@ -225,24 +225,24 @@ example-text))
                         "Total Identifiers: " [:span.count (count @bank)]]]
          [:div.results
             [:div.MATCH
-              [:i.fa.fa-check.MATCH]
-              [:span.title "Matches"]
+              [:span.type-head [:i.fa.fa-check.MATCH]
+              [:span.title "Matches"]]
               [:span.count (count @matches)]]
             [:div.TYPE_CONVERTED
-              [:i.fa.fa-random.TYPE_CONVERTED]
-              [:span.title "Converted"]
+              [:span.type-head [:i.fa.fa-random.TYPE_CONVERTED]
+              [:span.title "Converted"]]
               [:span.count (count @type-converted)]]
             [:div.DUPLICATE
-              [:i.fa.fa-clone.DUPLICATE]
-              [:span.title "Duplicates"]
+              [:span.type-head  [:i.fa.fa-clone.DUPLICATE]
+              [:span.title "Duplicates"]]
               [:span.count (count @duplicates)]]
             [:div.OTHER
-              [:i.fa.fa-exclamation.OTHER]
-              [:span.title "Other"]
+              [:span.type-head [:i.fa.fa-exclamation.OTHER]
+              [:span.title "Other"]]
               [:span.count (count @other)]]
             [:div.UNRESOLVED
-              [:i.fa.fa-times.UNRESOLVED]
-              [:span.title "Not Found"]
+              [:span.type-head [:i.fa.fa-times.UNRESOLVED]
+              [:span.title "Not Found"]]
               [:span.count (count @no-matches)]]
         ]]
 

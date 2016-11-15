@@ -82,6 +82,8 @@
             justify-content: center;
             max-width: 30%;
             margin-left: 0.4em;
+            text-shadow:none;
+
 
             .icon {
                 margin: 0.5em;
@@ -175,23 +177,23 @@
     }
 
     .freeform {
-        padding: 9px 0;
-        border: none;
+        padding: 0.5em;
+        border:solid 1px rgba(0,0,0,0.2);
+        border-radius:2px;
         margin: 2px;
         font-size: 1em;
-        background: rgba(255,255,255,0.2);
+        background: rgba(255,255,255,0.6);
         color: #2d2d2d;
         flex: 1 0;
         outline: none;
         width: 100%;
         .transitions;
-        border-bottom: solid 1px transparent;
 
         &:focus {
             .transitions;
             border-bottom: solid 1px #2d2d2d;
-            background: rgba(255,255,255,0.4);
-            padding-left: 0.2em;
+            background: rgba(255,255,255,0.8);
+            box-shadow: 1px 1px 1px rgba(0,0,0,0.1);
         }
     }
 
@@ -208,18 +210,20 @@
               background: rgba(0,0,0,0.075);
               border-radius:2px;
             }
+            .type-head{
+              display:block;
+              height: @syze;
+              line-height:@syze;
+              background: rgba(0,0,0,0.025);
+              min-width:100px;
+            }
             .count {
               display: block;
               font-size:2em;
               text-align:center;
             }
             .title {
-              min-width:80px;
-              background: rgba(0,0,0,0.025);
               border-top-right-radius: 2px;
-              display:inline-block;
-              height: @syze;
-              line-height:@syze;
               padding: 0em 0.5em;
             }
         }
