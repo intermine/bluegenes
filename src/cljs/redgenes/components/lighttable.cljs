@@ -60,6 +60,7 @@
 (defn handler [state e]
   (let [props (reagent/props e)
         node  (sel1 (reagent/dom-node e) :.im-target)]
+    (prn (:query props))
     (go (let [new-results (<! (fetch/rows
                                 (:service props)
                                 (:query props)

@@ -38,18 +38,20 @@
     (let [summary-fields (-> db :assets :summary-fields mine)
           type-key       (keyword type)
           collections    (-> db :mines mine :service :model :classes type-key :collections)]
-      (assoc-in db [:report :collections] (map (fn [[_ {:keys [name referencedType]}]]
-                                                 (let [summary-paths (-> referencedType keyword summary-fields)]
-                                                   {:class   referencedType
-                                                    :service (get-in db [:mines mine :service])
-                                                    :query   {:from   type
-                                                              :select (map (fn [path]
-                                                                             (str name "."
-                                                                                  (clojure.string/join "."
-                                                                                                       (drop 1 (clojure.string/split path ".")))))
-                                                                           summary-paths)
-                                                              :where  {:id oid}}})) collections)))))
-
+      (assoc-in db [:report :collections]
+        (map (fn [[_ {:keys [name referencedType]}]]
+           (let [summary-paths (-> referencedType keyword summary-fields)]
+             {:class   referencedType
+              :service (get-in db [:mines mine :service])
+              :query   {:from   type
+                        :select (map (fn [path]
+                         (str name "."
+                          (clojure.string/join "."
+                             (drop 1 (clojure.string/split path ".")))))
+                                     summary-paths)
+                        :where  [{:op "="
+                                 :path (str type ".id")
+                                 :value oid}]}})) collections)))))
 
 (reg-event-fx
   :filter-report-templates
