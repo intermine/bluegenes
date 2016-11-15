@@ -18,8 +18,8 @@
   (let [query (subscribe [:query-builder/query])]
     (fn [{naym :name typ :type} & [path]]
       (let [path-vec (conj path naym)]
-        [:div
-         [:div.btn.btn-default.btn.btn-xxs
+        [:div.open-qb-prop
+         [:div.view-prop
           {
            :title    (str
                       (if ((:q/select @query) path-vec) "Remove " "Add ")
@@ -27,23 +27,23 @@
                        (if ((:q/select @query) path-vec) " from " " to ")
                        "view")
            :class    (if ((:q/select @query) path-vec)
-                       "btn-primary"
-                       "btn-outline")
+                       "selected"
+                       "not-selected")
            :on-click
                      (fn []
                        (dispatch [:query-builder/toggle-view! path-vec])
                        (dispatch [:query-builder/update-io-query]))}
           [:i.fa.fa-eye]]
-         [:div.btn.btn-default.btn-outline.btn-xxs
+         [:div.constraint
           {
            :title    (str "Add constraint for " naym)
            :class
                      (if ((get-in @query [:constraint-paths]) path-vec)
-                       "btn-primary"
-                       "btn-outline")
+                     "selected"
+                     "not-selected")
            :on-click (fn [] (dispatch [:query-builder/add-filter path-vec typ]))}
           [:i.fa.fa-plus] [:i.fa.fa-filter]]
-         [:span.pad-left-5 {:title typ} naym]]))))
+         [:span.pad-left-5 {:title typ}]naym]))))
 
 (defn tree [class & [path open?]]
   (let [model (subscribe [:model])
@@ -167,16 +167,17 @@
       [:div.row.querybuilder
        [:div.col-sm-6
         [:div.panel.panel-default
-         [:div.panel-heading [:h4 "Data Model"]]
+         [:div.panel-heading "Data Model"]
          [:div.panel-body [:ol.tree [tree :Gene ["Gene"] true]]]]]
        [:div.col-sm-6
          [:div
           (if @edit-constraint
             [:div.panel.panel-default
+             [:div.panel-heading "Constraint"]
              [:div.panel-body
               [constraints/constraint @edit-constraint]]])
           [:div.panel.panel-default.full-height
-           [:div.panel-heading [:h4 "Query Overview"]]
+           [:div.panel-heading "Query Overview"]
            [:div.panel-body
             [tree-view @query]
             [:h5 "Constraint Logic"]
@@ -234,8 +235,7 @@
                  [:h3 [:span (str @result-count " rows")] [:span.qb-logic (:constraintLogic (build-query @query))]]))]]]]]
        [:div.col-sm-6
         [:div.panel.panel-default
-         [:div.panel-heading
-          [:h4 "Results"]]
+         [:div.panel-heading "Results"]
          ;[:span (json/edn->hiccup @query)]
          ;[:button.btn.btn-primary {:on-click #(dispatch [:qb-run-query])} "Run Count"]
          [:div.panel-body

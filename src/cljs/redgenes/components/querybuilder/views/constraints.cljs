@@ -63,5 +63,4 @@
 (defn constraint []
   (fn [{:keys [path typ]}]
     [:div
-     [:h3 "Constraint"]
      [op path typ]]))

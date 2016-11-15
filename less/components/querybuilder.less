@@ -1,3 +1,5 @@
+@import "../variables";
+@import "../datatype-colors";
 
 /**
  * Framework starts from here ...
@@ -26,6 +28,12 @@
   border-left:1px solid;
 }
 
+.open-qb-prop {
+  .view-prop, .constraint { display:inline}
+  .constraint {margin-left:0.2em}
+  .selected {color:@highlight-color;}
+}
+
 .tree li {
   margin:0;
   padding:0 1.5em; /* indentation + .5em */
@@ -33,8 +41,8 @@
 
   position:relative;
 
-  .leaf {
-    // font-style: italic;
+  &.leaf {
+      line-height:1.8em
   }
 }
 
