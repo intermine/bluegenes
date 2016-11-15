@@ -323,13 +323,14 @@
    "Runs the given query, returns a channel"
   {:reframe-kind :fx, :reframe-key :query-builder/run-query!}
    [query]
+
         #?(:cljs
                 (go
                   (dispatch
                     [:query-builder/handle-count
                      (<!
                        (search/raw-query-rows
-                         {:root @(subscribe [:mine-url])}
+                         (select-keys (:service @(subscribe [:current-mine])) [:root ])
                          query
                          {:format "count"}))]))
            :clj (println "run query")))
