@@ -12,11 +12,10 @@
 (defn load-data [id]
   "Loads homologues from each mine."
   (let [current-mine (subscribe [:current-mine])
-        svc          (:service @current-mine)]
+        svc          (select-keys (:service @current-mine) [:root])]
     (doall (for [[minename details] @(subscribe [:mines])]
       (go (let [
         homologues (<! (homologues svc (:service (:mine details)) "Gene" id (get-in details [:abbrev])))]
-          ;  (.log js/console "Homologues for" (clj->js minename) (clj->js homologues) @search-results)
           (swap! search-results assoc minename homologues)
       ))))))
 
