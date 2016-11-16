@@ -14,9 +14,9 @@
 ;We need to handler more than X results :D right now 1000 results would ALL show on screen. Eep.
 
 (defn ex []
-  (let [active-mine (subscribe [:mine-name])
+  (let [active-mine (subscribe [:current-mine])
         mines (subscribe [:mines])
-        example-text (:idresolver-example (@active-mine @mines))]
+        example-text (:idresolver-example ((:id @active-mine) @mines))]
 example-text))
 
 (def separators (set ".,; "))

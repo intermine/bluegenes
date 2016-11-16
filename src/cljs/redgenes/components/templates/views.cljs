@@ -272,6 +272,16 @@
          ])])]
   )
 
+(defn filters [categories template-filter filter-state]
+  [:div.template-filters.container-fluid
+    [:div.template-filter
+      [:label.control-label "Filter by category"]
+      [categories]]
+    [:div.template-filter
+      [:label.control-label "Filter by description"]
+      [template-filter filter-state]]
+ ])
+
 
 (defn main []
   (let [im-templates         (subscribe [:templates-by-category])
@@ -281,61 +291,13 @@
         counting?            (subscribe [:template-chooser/counting?])
         selected-constraints (subscribe [:template-chooser/selected-template-constraints])]
     (fn []
-      [:div.container
+      [:div.container-fluid
        ;(json-html/edn->hiccup @selected-template)
        [:div.row
-        [:div.col-xs-12
-         [:div.form-group.template-filter
-          [:label.control-label "Filter by category"]
-          [categories]]
-         [:div.form-group.template-filter
-          [:label.control-label "Filter by description"]
-          [template-filter filter-state]]
-         [:div
+        [:div.col-xs-12.templates
+          [filters categories template-filter filter-state]
+         [:div.template-list
+          ;;the bad placeholder exists to displace content, but is invisible. It's a duplicate of the filters header
+          [:div.bad-placeholder [filters categories template-filter filter-state]]
           [templates @im-templates]]]
-        #_[:div.col-xs-6
-           (cond (seq @selected-constraints) ;;show it if/when there's something to see
-                 [:div.x-section.see-template-details
-                  [:div.pane
-                   [:div.pane-heading "Constraints"]
-                   [:div.pane-body
-                    ^{:key (:name @selected-template)} [form @selected-constraints]
-                    #_(json-html/edn->hiccup @selected-template)]]
-                  [results counting? result-count selected-template]
-                  ])]]])))
-
-
-
-(defn main-old []
-  (let [im-templates         (subscribe [:templates-by-category])
-        selected-template    (subscribe [:selected-template])
-        filter-state         (reagent/atom nil)
-        result-count         (subscribe [:template-chooser/count])
-        counting?            (subscribe [:template-chooser/counting?])
-        selected-constraints (subscribe [:template-chooser/selected-template-constraints])]
-    (fn []
-      [:div.x-body.templates-section
-       [:div.x-section.select-a-template
-        [:div.x-container
-         [:div.pane.x-container
-          [:div.pane-heading "Popular Queries"]
-          [:div.pane-body.x-container
-           [:div.form-group.template-filter
-            [:label.control-label "Filter by category"]
-            [categories]]
-           [:div.form-group.template-filter
-            [:label.control-label "Filter by description"]
-            [template-filter filter-state]]
-           [:div.x-scrollable-content
-            [templates @im-templates]]]]]]
-       (cond (seq @selected-constraints) ;;show it if/when there's something to see
-             [:div.x-section.see-template-details
-              [:div.pane
-               [:div.pane-heading "Constraints"]
-               [:div.pane-body
-                ^{:key (:name @selected-template)} [form @selected-constraints]
-                #_(json-html/edn->hiccup @selected-template)]]
-              ;[results counting? result-count selected-template]
-              ])
-
-       ])))
+        ]])))
