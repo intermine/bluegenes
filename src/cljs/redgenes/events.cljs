@@ -104,21 +104,3 @@
                                            organism-query
                                            {:format "jsonobjects"})
                       :on-success [:cache/store-organisms]}})))
-
-;(reg-event-fx
-;  :log-in
-;  (fn [{:keys [db]} _]
-;    {:db         (assoc db :show-twirly true)
-;     :http-xhrio {:method          :get
-;                  :uri             (str @(subscribe [:mine-url]) "/service/user/whoami")
-;                  :params          {:token ""}
-;                  :timeout         8000
-;                  :response-format (ajax/json-response-format {:keywords? true})
-;                  :on-success      [:good-who-am-i]
-;                  :on-failure      [:bad-http-result]}}))
-
-
-;(reg-event-db
-;  :good-who-am-i
-;  (fn [db [_ result]]
-;    (assoc db :who-am-i (:user result))))
