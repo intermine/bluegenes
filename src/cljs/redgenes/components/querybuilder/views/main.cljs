@@ -243,5 +243,4 @@
                 [:div {} (str (spec/explain-str :q/query @query))])]
          (cond @io-query
                [:div.panel-body
-                (.log js/console "%c@io-query" "color:hotpink;font-weight:bold;" (clj->js @io-query))
                 [table/main {:query @io-query :service (:service @(subscribe [:current-mine]))} true]])]]])))
