@@ -1,24 +1,33 @@
-
-
 @body-background-color: #f7f7f7;
 @body-foreground-color: #444444;
-
 @link-color: #000;
-
 @highlight-color: #009688;
 @cta-color: @highlight-color;
 @cta-color-text: @body-background-color;
 @selectedColor: #3F51B5;
 @selectedColorText: @body-background-color;
 @stripe-color: #f6f6f6;
-
-
-@fa-font-path:        "/vendor/font-awesome/fonts";
-
-
+@fa-font-path: "/vendor/font-awesome/fonts";
 @notice-me: #F57F17;
 @border-radius: 2px;
-
-
-//useful breakpoint:
+@spacer: 1em; //useful breakpoint:
 @tiny-screen: 767px;
+
+.dark-text {
+    color: rgba(0,0,0,0.87);
+    text-shadow: 1px 1px 1px rgba(255, 255, 255, 0.4);
+}
+
+.border-radius {
+    border-radius: @border-radius;
+}
+
+.button-color {
+    background: @highlight-color;
+    color: @cta-color-text;
+    text-shadow: 1px 1px 1px rgba(0,0,0, 0.4);
+}
+
+.transitions {
+    transition: all 0.3s ease;
+}
