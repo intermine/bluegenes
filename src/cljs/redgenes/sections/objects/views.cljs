@@ -4,7 +4,9 @@
             [redgenes.components.table :as table]
             [redgenes.components.collection :as collection]
             [redgenes.components.lighttable :as lighttable]
-            [redgenes.sections.objects.components.minelinks :as minelinks]))
+            [redgenes.sections.objects.components.minelinks :as minelinks]
+            [accountant.core :refer [navigate!]]
+))
 
 (defn main []
   (let [params           (subscribe [:panel-params])
@@ -20,7 +22,7 @@
          [:div
           [:ol.breadcrumb
            [:li [:a "Home"]]
-           [:li [:a "Search Results"]]
+           [:li [:a {:href "#/search" :on-click #(navigate! "#/search")} "Search Results"]]
            [:li.active [:a "Report"]]]
           [summary/main (:summary @report)]
            (cond (= "Gene" (:type @params))
