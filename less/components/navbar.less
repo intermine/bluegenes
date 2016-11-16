@@ -1,49 +1,78 @@
 @import "../variables";
 
-.transition {
-    transition: all 0.6s;
-}
+.navbar,
+.navbar.navbar-default {
+    background-color: @navbar-color;
+    margin-bottom: 0;
+    border-width: 0;
+    border-radius: 0;
 
-.navbar {  .short-name {display:none;}}
+    .navbar-brand {
+        color: #fff;
+        font-style: bold;
+        -webkit-clip-path: polygon(0 0, 100% 0, 93% 100%, 0 100%);
+        clip-path: polygon(0 0, 100% 0, 93% 100%, 0 100%);
+        .transitions;
 
-.navbar.navbar-default .navbar-brand {
-    .transition;
-    @bg: #00544c;
-    background: @bg;
-
-    &:hover {
-        background: lighten(@bg,15%);
-        text-shadow: 1px 1px 1px rgba(0,0,0,0.17);
+        &:hover {
+            .transitions;
+            text-shadow: 1px 1px 1px rgba(0,0,0,0.17);
+            background: lighten(@navbar-color,15%);
+            color: white;
+        }
     }
-    color: white;
-    font-style: bold;
-    -webkit-clip-path: polygon(0 0, 100% 0, 93% 100%, 0 100%);
-    clip-path: polygon(0 0, 100% 0, 93% 100%, 0 100%);
-}
 
-.navbar-default {
+    li {
+        .transitions;
+
+        &:hover {
+            .transitions;
+            background: lighten(@navbar-color,10%);
+            color: #fff;
+        }
+    }
+
+    .navbar-nav > li > a:focus {
+        background-color: white;
+    }
+
+    .short-name {
+        display: none;
+    }
+
     svg {
         fill: rgba(255,255,255,0.84);
     }
-    border-width: 0;
-    border-radius: 0;
-}
 
+    .search, .search:hover {
+        background: @navbar-color;
+
+        input {
+            margin-top: 8px;
+        }
+    }
+}
 @media (max-width:800px) {
     .navbar-header {
         align-self: flex-start;
     }
 
     .navbar {
-      .long-name {display:none;}
-      .short-name {display:inline;}
+        .long-name {
+            display: none;
+        }
+
+        .short-name {
+            display: inline;
+        }
+
         .navbar-nav {
             margin-top: 0;
         }
 
         .container-fluid {
-            margin-left:0;
-            padding-left:2px;
+            margin-left: 0;
+            padding-left: 2px;
             display: flex;
             flex-wrap: wrap;
             justify-content: stretch;
@@ -64,18 +93,21 @@
 
     .navbar.navbar-default {
         li {
-            .transition;
+            .transitions;
             padding: 0;
-            &.homelink {display:none;}
+
+            &.homelink {
+                display: none;
+            }
 
             a {
-                .transition;
+                .transitions;
                 padding-left: 7px;
                 padding-right: 7px;
             }
 
             .navbar-brand {
-                .transition;
+                .transitions;
                 @cp: inset(4px 0px round 3px);
                 clip-path: @cp;
                 -webkit-clip-path: @cp;
@@ -91,7 +123,7 @@
 }
 @media (max-width:970px) {
     .navbar-nav.buttons {
-        .transition;
+        .transitions;
         margin-top: 0;
         display: flex;
         flex-grow: 1;
