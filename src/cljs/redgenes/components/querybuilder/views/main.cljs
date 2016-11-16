@@ -115,7 +115,7 @@
   ([query path things]
    (into [:ul.query-tree]
      (map (partial tree-view query things path) things)))
-  ([{:keys [:q/select] :as query} things path [k v]]
+  ([{:keys [:q/select] :as query} th:tokenings path [k v]]
    (let [path (conj path k)]
     [:li.query-item
      {
@@ -243,4 +243,5 @@
                 [:div {} (str (spec/explain-str :q/query @query))])]
          (cond @io-query
                [:div.panel-body
-                [table/main @io-query true]])]]])))
+                (.log js/console "%c@io-query" "color:hotpink;font-weight:bold;" (clj->js @io-query))
+                [table/main {:query @io-query :service (:service @(subscribe [:current-mine]))} true]])]]])))
