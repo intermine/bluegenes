@@ -1,217 +1,255 @@
 @import "../variables";
+@crazy-padding: 40px;
 
-.templates-section {
-    position: absolute;
-    top: 50px;
-    right: 0;
-    bottom: 50px;
-    left: 0;
-    display: flex;
-    overflow: hidden;
-    transition: all 0.6s;
+.templates {
 
-    .x-section {
-        flex: 1 0;
-        padding: 20px 20px 1px; // the 1px bottom just helps us feel like it's not vanishing under the footer with hidden content
 
-        &:first-child {
-            padding-right: 0;
-        }
-    }
+          .template-filters {
+              background: darken(@body-background-color,5%);
+              //this padding stops content shwoing through at weird breakpoints;
+              padding-top:@crazy-padding;
+              position: fixed;
+              margin-top: -20px - (@crazy-padding);
+              padding-bottom:2px;
+              box-shadow:1px 1px 1px rgba(0,0,0,0.2);
+              right: 0;
+              left: 0;
 
-    .x-main {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-    }
+              .template-filter {
+                  .control-label {
+                      margin-top: 1px;
+                  }
+              }
+          }
 
-    .x-container {
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-        transition: all 0.6s;
-        width: 100%;
-    }
+          .bad-placeholder .template-filters {
+            //this is some wicked, evil styling which keeps a placeholder for the
+            //position:fixed filters, and pushes the content after it down so it's not
+            //overlapped. one day in the future we'll be able to use position:sticky
+              position: static;
+              visibility:hidden;
+          }
 
-    .x-scrollable-content {
-        flex: 1 1 auto;
-        overflow-y: auto;
-        min-height: 0;
-    }
 
-    .x-box {
-        min-height: -webkit-min-content;
-        display: flex;
-    }
-
-    .x-column {
-        padding: 20px;
-        border-right: 1px solid #999;
-    }
-
-    .x-column > div {
-        height: 2000px;
-    }
-
-    .x-column:nth-child(2) > div {
-        height: auto;
-    }
-
-    .pane {
-        box-shadow: 0 1px 6px 0 rgba(0, 0, 0, 0.12), 0 1px 6px 0 rgba(0, 0, 0, 0.12);
-        background-color: white;
-
-        .pane-heading {
-            background-color: #eeeeee;
-            padding: 10px;
-            font-size: 1.2em;
-        }
-
-        .pane-body {
-            padding: 10px;
-        }
-    }
-
-    .soft {
-        background-color: #e6eaea;
-        color: black;
-    }
-
-    .template-filter {
-        margin-top: 0;
-
-        .control-label {
-            margin-top: 1px;
-        }
-    }
-
-    .template-result {
-        &:after {
-            content: " ";
-            display: block;
-            clear: both;
-        }
-
-        .view-results {
-            display: inline-block;
-            float: right;
-            text-decoration: underline;
-            color: lighten(@body-foreground-color,10%);
-        }
-
-        &.active .view-results {
-            color: #fff;
-        }
-    }
-
-    .nav-pills > li > a {
-        padding: 0.3em 0.8em;
-    }
-
-    .results {
-        margin-top: 1em;
-        transition: all 0.6s;
-
-        .icon {
-            margin-right: 2px;
-        }
-
-        .pane-body {
-            overflow: auto;
-        }
-
-        h2 {
-            margin-top: 0;
-        }
-    }
-}
-@media (max-width: @tiny-screen) {
     .templates-section {
+        position: absolute;
+        top: 50px;
+        right: 0;
+        bottom: 50px;
+        left: 0;
+        display: flex;
+        overflow: hidden;
+        transition: all 0.6s;
+
         .x-section {
-            padding: 4px;
-            transition: all 0.6s;
+            flex: 1 0;
+            padding: 20px 20px 1px; // the 1px bottom just helps us feel like it's not vanishing under the footer with hidden content
+
             &:first-child {
-                padding-right: 4px;
+                padding-right: 0;
+            }
+        }
+
+        .x-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .x-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            transition: all 0.6s;
+            width: 100%;
+        }
+
+        .x-scrollable-content {
+            flex: 1 1 auto;
+            overflow-y: auto;
+            min-height: 0;
+        }
+
+        .x-box {
+            min-height: -webkit-min-content;
+            display: flex;
+        }
+
+        .x-column {
+            padding: 20px;
+            border-right: 1px solid #999;
+        }
+
+        .x-column > div {
+            height: 2000px;
+        }
+
+        .x-column:nth-child(2) > div {
+            height: auto;
+        }
+
+        .pane {
+            box-shadow: 0 1px 6px 0 rgba(0, 0, 0, 0.12), 0 1px 6px 0 rgba(0, 0, 0, 0.12);
+            background-color: white;
+
+            .pane-heading {
+                background-color: #eeeeee;
+                padding: 10px;
+                font-size: 1.2em;
             }
 
+            .pane-body {
+                padding: 10px;
+            }
         }
 
-        .select-a-template {
-            order: 2;
-            transition: all 0.6s;
-        }
-
-        .see-template-details {
-            order: 1;
-            transition: all 0.6s;
-        }
-        // this needs to be on the top for mobiles
-        flex-direction: column;
-        transition: all 0.6s;
-        position: static;
-        overflow: auto;
-        bottom: auto;
-        right: auto;
-        top: auto;
-
-        table.small {
-            margin-bottom: 0;
-        }
-
-        table > tbody > tr > td {
-            padding: 4px;
-            transition: all 0.6s;
-        }
-    }
-}
-
-
-
-
-.template {
-    background-color: white;
-    // background-color: #eaeaea;
-    margin: 5px 20px 5px 20px;
-    padding: 20px;
-    border: 1px solid #ecebeb;
-
-    .title {
-        font-size: 1.4em;
-    }
-
-    .description {
-        margin: 20px 20px 20px 20px;
-    }
-
-    .border-right {
-        border-right: 1px solid #d8d8d8;
-    }
-
-    .stretch-buttons .btn {
-        width: 100%;
-    }
-
-    .body {
-        .form-group {
-            margin: 0;
-        }
-        .btn, .input-group-btn .btn {
-            margin: 0;
-            padding-top: 8px;
-        }
-        .form-group .checkbox label, .form-group .radio label, .form-group label {
+        .soft {
+            background-color: #e6eaea;
             color: black;
-            font-size: 1.2em;
+        }
+
+        .template-result {
+            &:after {
+                content: " ";
+                display: block;
+                clear: both;
+            }
+
+            .view-results {
+                display: inline-block;
+                float: right;
+                text-decoration: underline;
+                color: lighten(@body-foreground-color,10%);
+            }
+
+            &.active .view-results {
+                color: #fff;
+            }
+        }
+
+        .nav-pills > li > a {
+            padding: 0.3em 0.8em;
+        }
+
+        .results {
+            margin-top: 1em;
+            transition: all 0.6s;
+
+            .icon {
+                margin-right: 2px;
+            }
+
+            .pane-body {
+                overflow: auto;
+            }
+
+            h2 {
+                margin-top: 0;
+            }
+        }
+    }
+    @media (max-width: @tiny-screen) {
+        .templates-section {
+            .x-section {
+                padding: 4px;
+                transition: all 0.6s;
+
+                &:first-child {
+                    padding-right: 4px;
+                }
+            }
+
+            .select-a-template {
+                order: 2;
+                transition: all 0.6s;
+            }
+
+            .see-template-details {
+                order: 1;
+                transition: all 0.6s;
+            }
+            // this needs to be on the top for mobiles
+            flex-direction: column;
+            transition: all 0.6s;
+            position: static;
+            overflow: auto;
+            bottom: auto;
+            right: auto;
+            top: auto;
+
+            table.small {
+                margin-bottom: 0;
+            }
+
+            table > tbody > tr > td {
+                padding: 4px;
+                transition: all 0.6s;
+            }
         }
     }
 
-    &.selected {
-        // background-color: white;
-        margin: 5px 0px 5px 0px;
-        color: black;
+    .template {
+        background-color: white;
+        // background-color: #eaeaea;
+        margin: 5px 20px;
+        padding: 20px;
+        border: 1px solid #ecebeb;
+
+        .title {
+            font-size: 1.4em;
+        }
+
+        .description {
+            margin: 20px;
+        }
+
+        .border-right {
+            border-right: 1px solid #d8d8d8;
+        }
+
+        .stretch-buttons .btn {
+            width: 100%;
+        }
+
+        .body {
+            .form-group {
+                margin: 0;
+            }
+
+            .btn,
+            .input-group-btn .btn {
+                margin: 0;
+                padding-top: 8px;
+            }
+
+            .form-group .checkbox label,
+            .form-group .radio label,
+            .form-group label {
+                color: black;
+                font-size: 1.2em;
+            }
+        }
+
+        &.selected {
+            // background-color: white;
+            margin: 5px 0;
+            color: black;
             -webkit-box-shadow: 0 2px 5px -1px rgba(0,0,0,0.33);
             -moz-box-shadow: 0 2px 5px -1px rgba(0,0,0,0.33);
             box-shadow: 0 2px 5px -1px rgba(0,0,0,0.33);
+        }
     }
 }
 
+
+@media (min-width:1200px) {
+  .templates .template-filters {
+    margin-top: -10px - @crazy-padding;
+  }
+}
+
+@media (max-width:600px) {
+  .templates .template-filters .template-filter .control-label {
+    margin-top:1  4px;
+  }
+}
