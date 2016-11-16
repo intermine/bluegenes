@@ -67,9 +67,9 @@
        [:div.col-xs-8
         ; TODO popovers are causing reagent key ID errors
         #_[popover [:span {:data-content   [popover-table matches p-value]
-                         :data-placement "left"
-                         :data-trigger   "hover"}
-                  [:span description]]]
+                           :data-placement "left"
+                           :data-trigger   "hover"}
+                    [:span description]]]
         [:span {:data-content   [popover-table matches p-value]
                 :data-placement "left"
                 :data-trigger   "hover"}

@@ -9,7 +9,8 @@
             [cljs-time.format :as tf]
             [cljs-time.core :as t]
             [redgenes.components.icons :as icons]
-            [oops.core :refer [oget]]))
+            [oops.core :refer [oget]]
+            [im-tables.views.core :as tables]))
 
 
 (def time-formatter (tf/formatter "HH:mm"))
@@ -140,4 +141,5 @@
     (fn []
       [:div.list-section
        {:style {:width "100%"}}
+       [tables/main {:path [:my :tables]}]
        [list-table @filtered-lists]])))
