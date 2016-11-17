@@ -6,12 +6,12 @@
             [redgenes.components.icons :as icons]
             [redgenes.sections.home.views :as home]
             [redgenes.sections.assets.views :as assets]
-            [redgenes.sections.search.views :as search]
+            [redgenes.components.search.views :as search]
             [redgenes.sections.objects.views :as objects]
-            [redgenes.sections.templates.views :as templates]
+            [redgenes.components.templates.views :as templates]
             [redgenes.components.querybuilder.views.main :as querybuilder]
             [redgenes.components.toast :as toast]
-            [redgenes.sections.upload.views :as upload]
+            [redgenes.components.idresolver.views.main :as idresolver]
             [redgenes.sections.explore.views :as explore]
             [redgenes.sections.analyse.views :as analyse]
             [redgenes.sections.results.views :as results]
@@ -55,7 +55,7 @@
 (defmethod panels :list-panel [] [assets/main])
 (defmethod panels :templates-panel [] [templates/main])
 (defmethod panels :object-panel [] [objects/main])
-(defmethod panels :upload-panel [] [upload/main])
+(defmethod panels :upload-panel [] [idresolver/main])
 (defmethod panels :search-panel [] [search/main])
 (defmethod panels :results-panel [] [results/main])
 (defmethod panels :regions-panel [] [regions/main])
