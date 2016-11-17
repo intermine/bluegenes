@@ -8,11 +8,11 @@
             [redgenes.sections.objects.handlers]
             [redgenes.components.search.events]
             [redgenes.components.databrowser.events]
+            [redgenes.components.navbar.events]
             [redgenes.components.search.events :as search-full]
             [redgenes.sections.objects.handlers]
             [redgenes.persistence :as persistence]
             [imcljsold.search :as search]
-            [oops.core :refer [ocall oapply oget oset!]]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
             [imcljs.fetch :as fetch]))
 
@@ -57,7 +57,7 @@
     {:db         (cond-> (assoc db :current-mine value)
                          (not keep-existing?) (assoc-in [:assets] {}))
      :dispatch-n (list [:reboot] [:set-active-panel :home-panel] )
-     :change-mine-visually ["Hi"]}))
+     :visual-navbar-minechange []}))
 
 (reg-event-db
   :async-assoc
@@ -75,15 +75,6 @@
     (assoc db :suggestion-results results)))
 
 
-(reg-fx
-  :change-mine-visually
-  (fn []
-    ;;makes sure that the user notices the mine has changed.
-    (let [navbar (.querySelector js/document ".navbar-brand")
-          navbar-class (.-className navbar)]
-      (oset! navbar ["className"] (str navbar-class " recently-changed"))
-      (.setTimeout js/window #(oset! navbar ["className"] navbar-class) 3000)
-  )))
 
 (reg-event-fx
   :bounce-search
