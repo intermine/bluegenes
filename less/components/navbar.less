@@ -30,6 +30,23 @@
             background: lighten(@navbar-color,10%);
             color: #fff;
         }
+        //this is the mine chooser dropdown
+        &.mine-settings {
+          .dropdown-menu {padding:0;}
+          li, li a {
+            .transitions;
+            background: @body-background-color;
+            &:hover {
+                background: darken(@body-background-color, 3%);
+                .transitions;
+                &.active {background:red;}
+            }
+            &.active:hover, &.active > a:hover {
+              background: darken(@highlight-color, 3%);
+              .transitions;
+            }
+            &.special {border-top:solid 1px @highlight-color;}
+        }}
     }
 
     .navbar-nav > li > a:focus {
@@ -44,7 +61,8 @@
         fill: rgba(255,255,255,0.84);
     }
 
-    .search, .search:hover {
+    .search,
+    .search:hover {
         background: @navbar-color;
 
         input {
@@ -138,10 +156,10 @@
         }
     }
 }
-
 @media (max-width:1200px) {
-  .navbar.navbar-default .search input, .navbar.navbar-default .search input:hover {
-    margin-top: 4px;
-    .transitions;
-  }
+    .navbar.navbar-default .search input,
+    .navbar.navbar-default .search input:hover {
+        margin-top: 4px;
+        .transitions;
+    }
 }

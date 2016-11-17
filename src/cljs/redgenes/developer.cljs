@@ -6,12 +6,14 @@
             [redgenes.persistence :as persistence]
             [accountant.core :refer [navigate!]]))
 
-(defn mine-config [mine-url mine-name]
-  (let [current-mine (subscribe [:current-mine])]
+(defn mine-config []
+  (let [current-mine (subscribe [:current-mine])
+        mines (subscribe [:mines])
+        url (str "http://" (:root (:service @current-mine)))]
     (fn []
       [:div.panel.container [:h3 "Current mine: "]
-       [:p (:name (:mine (@mine-name @(subscribe [:mines])))) " at "
-        [:a {:href @mine-url} @mine-url]]
+       [:p (:name @current-mine) " at "
+        [:a {:href url} url]]
        [:form
         [:legend "Select a new mine to draw data from:"]
         (into [:div.form-group.mine-choice
@@ -75,11 +77,9 @@
                         ]])])
 
 (defn debug-panel []
-  (let [mine-url  (re-frame/subscribe [:mine-url])
-        mine-name (re-frame/subscribe [:mine-name])]
     (fn []
       [:div.developer
-       [mine-config mine-url mine-name]
+       [mine-config]
        [localstorage-destroyer]
        [iconview]
-       ])))
+       ]))
