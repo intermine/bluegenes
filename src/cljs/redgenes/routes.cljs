@@ -28,9 +28,6 @@
   (defroute "/debug" []
             (re-frame/dispatch [:set-active-panel :debug-panel]))
 
-  (defroute "/list" []
-            (re-frame/dispatch [:set-active-panel :list-panel]))
-
   (defroute "/help" []
             (re-frame/dispatch [:set-active-panel :help-panel]))
 
@@ -48,10 +45,6 @@
 
   (defroute "/listanalysis" []
             (re-frame/dispatch [:set-active-panel :list-analysis-panel]))
-  ;(defroute "/listanalysis/list/:name" [name]
-  ;          (re-frame/dispatch [:set-active-panel :list-analysis-panel
-  ;                              {:name name}
-  ;                              [:listanalysis/run-all {:list name}]]))
 
   (defroute "/listanalysis/temp/:name" [name]
             (re-frame/dispatch [:set-active-panel :list-analysis-panel
@@ -73,9 +66,6 @@
   ;          (re-frame/dispatch [:set-active-panel :saved-data-panel]))
   (defroute "/saved-data" []
             (re-frame/dispatch [:set-active-panel :saved-data-panel]))
-
-  (defroute "/assets/:type/:id" [type id]
-            (re-frame/dispatch [:set-active-panel :list-panel {:type type :id id}]))
 
   (defroute "/objects/:mine/:type/:id" [mine type id]
             (re-frame/dispatch [:set-active-panel :object-panel

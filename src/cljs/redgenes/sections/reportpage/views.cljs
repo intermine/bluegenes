@@ -1,10 +1,10 @@
-(ns redgenes.sections.objects.views
+(ns redgenes.sections.reportpage.views
   (:require [re-frame.core :as re-frame :refer [subscribe dispatch]]
-            [redgenes.sections.objects.components.summary :as summary]
+            [redgenes.sections.reportpage.components.summary :as summary]
             [redgenes.components.table :as table]
             [redgenes.components.collection :as collection]
             [redgenes.components.lighttable :as lighttable]
-            [redgenes.sections.objects.components.minelinks :as minelinks]
+            [redgenes.sections.reportpage.components.minelinks :as minelinks]
             [accountant.core :refer [navigate!]]
 ))
 

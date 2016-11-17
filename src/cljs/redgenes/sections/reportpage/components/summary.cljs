@@ -1,4 +1,4 @@
-(ns redgenes.sections.objects.components.summary
+(ns redgenes.sections.reportpage.components.summary
   (:require [re-frame.core :refer [subscribe dispatch]]
             [accountant.core :refer [navigate!]]))
 

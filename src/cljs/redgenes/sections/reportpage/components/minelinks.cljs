@@ -1,8 +1,8 @@
-(ns redgenes.sections.objects.components.minelinks
+(ns redgenes.sections.reportpage.components.minelinks
   (:require-macros [cljs.core.async.macros :refer [go]])
    (:require [re-frame.core :as re-frame :refer [subscribe]]
      [cljs.core.async :refer [put! chan <! >! timeout close!]]
-     [redgenes.sections.objects.components.homologues :refer [homologues]]
+     [redgenes.sections.reportpage.components.homologues :refer [homologues]]
      [reagent.core :as reagent]
     )
   )

@@ -1,4 +1,4 @@
-(ns redgenes.sections.objects.components.homologues
+(ns redgenes.sections.reportpage.components.homologues
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require      [imcljsold.search :refer [raw-query-rows]]
                  [re-frame.core :refer [subscribe]]

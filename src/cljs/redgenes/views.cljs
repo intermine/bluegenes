@@ -7,12 +7,12 @@
             [redgenes.sections.home.views :as home]
             [redgenes.sections.assets.views :as assets]
             [redgenes.components.search.views :as search]
-            [redgenes.sections.objects.views :as objects]
+            [redgenes.sections.reportpage.views :as objects]
             [redgenes.components.templates.views :as templates]
             [redgenes.components.querybuilder.views.main :as querybuilder]
             [redgenes.components.toast :as toast]
             [redgenes.components.idresolver.views.main :as idresolver]
-            [redgenes.sections.explore.views :as explore]
+            [redgenes.components.databrowser.views :as explore]
             [redgenes.sections.analyse.views :as analyse]
             [redgenes.sections.results.views :as results]
             [redgenes.sections.regions.views :as regions]
@@ -52,7 +52,6 @@
 (defmethod panels :home-panel [] [home/main])
 (defmethod panels :about-panel [] [about-panel])
 (defmethod panels :debug-panel [] [dev/debug-panel])
-(defmethod panels :list-panel [] [assets/main])
 (defmethod panels :templates-panel [] [templates/main])
 (defmethod panels :object-panel [] [objects/main])
 (defmethod panels :upload-panel [] [idresolver/main])
@@ -61,7 +60,6 @@
 (defmethod panels :regions-panel [] [regions/main])
 (defmethod panels :explore-panel [] [explore/main])
 (defmethod panels :list-analysis-panel [] [analyse/main])
-;(defmethod panels :saved-data-panel [] [saved-data/main])
 (defmethod panels :saved-data-panel [] [lists/main])
 (defmethod panels :help-panel [] [help/main])
 (defmethod panels :querybuilder-panel [] [:div.container [querybuilder/main]])
