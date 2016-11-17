@@ -5,9 +5,8 @@
             [redgenes.components.navbar.nav :as nav]
             [redgenes.components.icons :as icons]
             [redgenes.sections.home.views :as home]
-            [redgenes.sections.assets.views :as assets]
             [redgenes.components.search.views :as search]
-            [redgenes.sections.reportpage.views :as objects]
+            [redgenes.sections.reportpage.views :as reportpage]
             [redgenes.components.templates.views :as templates]
             [redgenes.components.querybuilder.views.main :as querybuilder]
             [redgenes.components.toast :as toast]
@@ -53,7 +52,7 @@
 (defmethod panels :about-panel [] [about-panel])
 (defmethod panels :debug-panel [] [dev/debug-panel])
 (defmethod panels :templates-panel [] [templates/main])
-(defmethod panels :object-panel [] [objects/main])
+(defmethod panels :reportpage-panel [] [reportpage/main])
 (defmethod panels :upload-panel [] [idresolver/main])
 (defmethod panels :search-panel [] [search/main])
 (defmethod panels :results-panel [] [results/main])

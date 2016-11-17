@@ -2,7 +2,6 @@
   (:require [re-frame.core :as re-frame :refer [subscribe dispatch]]
             [json-html.core :as json-html]
             [redgenes.components.icons :as icons]
-            [redgenes.sections.assets.views :as assets]
             [redgenes.persistence :as persistence]
             [accountant.core :refer [navigate!]]))
 
@@ -53,7 +52,7 @@
    #_[:div.title "Routes"]
    #_[:div.btn-toolbar
       [:button.btn {:on-click #(navigate! "#/assets/lists/123")} "Asset: List: (123)"]
-      [:button.btn {:on-click #(navigate! "#/objects/type/12345")} "Object (12345)"]
+      [:button.btn {:on-click #(navigate! "#/reportpage/type/12345")} "Object (12345)"]
       [:button.btn {:on-click #(navigate! "#/listanalysis/list/PL FlyAtlas_midgut_top")} "List (PL FlyAtlas_midgut_top)"]]
    #_[:div.panel.container
       [:div.title "Global Progress Bar"]

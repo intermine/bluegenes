@@ -67,8 +67,8 @@
   (defroute "/saved-data" []
             (re-frame/dispatch [:set-active-panel :saved-data-panel]))
 
-  (defroute "/objects/:mine/:type/:id" [mine type id]
-            (re-frame/dispatch [:set-active-panel :object-panel
+  (defroute "/reportpage/:mine/:type/:id" [mine type id]
+            (re-frame/dispatch [:set-active-panel :reportpage-panel
                                 {:type type :id id :mine mine}
                                 [:load-report mine type id]]))
 
