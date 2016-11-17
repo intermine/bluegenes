@@ -4,7 +4,7 @@
                             :service            {:root "www.humanmine.org/humanmine" :token nil}
                             :name               "HumanMine"
                             :common             "Human"
-                            :icon               [:svg.icon.icon-human [:use {:xlinkHref "#icon-human"}]]
+                            :icon               "icon-human"
                             :output?            true
                             :abbrev             "H. sapiens"
                             :status             {:status :na}
@@ -19,6 +19,7 @@
                             :service            {:root "www.flymine.org/query" :token nil}
                             :name               "FlyMine"
                             :common             "Fly"
+                            :icon               "icon-fly"
                             :status             {:status :na}
                             :output?            true
                             :abbrev             "D. melanogaster"
@@ -33,6 +34,7 @@
                             :service            {:root "beta.flymine.org/beta" :token nil}
                             :name               "Flymine Beta"
                             :common             "Fly"
+                            :icon               "icon-rat"
                             :status             {:status :na}
                             :output?            true
                             :abbrev             "D. melanogaster"
@@ -50,6 +52,7 @@
                             :name               "MouseMine"
                             :common             "Mouse"
                             :output?            true
+                            :icon               "icon-mouse"
                             :abbrev             "M. musculus"
                             :status             {:status :na}
                             :idresolver-example "MGI:88388 MGI:96677 Fgf2 Bmp4"
@@ -64,6 +67,7 @@
                             :name               "RatMine"
                             :common             "Rat"
                             :output?            true
+                            :icon               "icon-rat"
                             :abbrev             "R. norvegicus"
                             :status             {:status :na}
                             :idresolver-example "Exo1, LEPR, PW:0000564, 2004, RGD:3001, Hypertension"
@@ -75,9 +79,9 @@
                                                  :service {:root "stearman.hmgc.mcw.edu/ratmine"}}}
             :zebrafishmine {:id                 :zebrafishmine
                             :service            {:root "www.zebrafishmine.org"}
-                            :name               "ZFINMine"
+                            :name               "ZebrafishMine"
                             :common             "Zebrafish"
-
+                            :icon               "icon-zebrafish"
                             :output?            true
                             :status             {:status :na}
                             :abbrev             "D. rerio"
@@ -91,6 +95,7 @@
                             :name               "WormMine"
                             :common             "Worm"
                             :output?            true
+                            :icon               "icon-worm"
                             :abbrev             "C. elegans"
                             :status             {:status :na}
                             :idresolver-example "acr-10, unc-26, hlh-2, WBGene00002299, WBGene00004323, WBGene00002992"
@@ -105,6 +110,7 @@
                             :name               "YeastMine"
                             :output?            true
                             :common             "Yeast"
+                            :icon               "icon-yeast"
                             :abbrev             "S. cerevisiae"
                             :status             {:status :na}
                             :idresolver-example "rad51; rad52; rad53; ddc1; rad55; rad57; spo11; dmc1; rad17; rad9; rad24; msh1; msh5; mre11; xrs2; ndt80; tid1; ssb1; pre3; acr1; doa3; rad54; ssf1"
@@ -118,6 +124,7 @@
                             :name               "MitoMiner"
                             :output?            true
                             :common             "MitoMiner"
+                            :icon               "icon-human"
                             :abbrev             "H. sapiens" ;;HAVING A DEFAULT ORGANISM MAY BE A BAD IDEA!!
                             :status             {:status :na}
                             :idresolver-example "Atp5a1, Atp5b, Atp5d, Atp5c1"

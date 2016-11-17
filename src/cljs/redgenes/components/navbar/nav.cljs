@@ -65,7 +65,10 @@
                       (dispatch [:save-saved-data-tooltip (:id tooltip-data) @label]))}])})))
 
 (defn active-mine-logo []
-  [:span.logo {:class @(subscribe [:mine-name])}])
+  (let [icon (:icon @(subscribe [:current-mine]))]
+  [:svg.icon.logo {:class icon}
+    [:use {:xlinkHref (str "#" icon) }]
+   ]))
 
 (defn main []
   (let [active-panel (subscribe [:active-panel])
@@ -77,17 +80,12 @@
         panel-is     (fn [panel-key] (= @active-panel panel-key))]
     (fn []
       [:nav.navbar.navbar-default.navbar-fixed-top
-       ; removed .down-shadow
        [:div.container-fluid
         [:ul.nav.navbar-nav.navbar-collapse.navigation
          [:li [:div.navbar-header
                [:span.navbar-brand {:on-click #(navigate! "#/")}
                 [active-mine-logo]
-                ;[:span.long-name @app-name]
-                ;[:span.short-name @short-name]
                 [:span.long-name (:name @current-mine)]
-                [:span.short-name "IM"]
-
                 ]]]
 
          [:li.homelink {:class (if (panel-is :home-panel) "active")} [:a {:on-click #(navigate! "#/")} "Home"]]

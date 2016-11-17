@@ -7,6 +7,16 @@
     border-width: 0;
     border-radius: 0;
 
+    .logo.icon {
+        vertical-align: middle;
+        width: 1.5em;
+        height: 1.5em;
+        margin-top: -4px;
+        margin-right: 2px;
+        margin-left: 0;
+    }
+
+
     .navbar-brand {
         color: #fff;
         font-style: bold;
@@ -20,10 +30,8 @@
             background: lighten(@navbar-color,15%);
             color: white;
         }
-
         //this and the keyframes are for changing mines.
         &.recently-changed {
-
             animation-duration: 3s;
             animation-name: slidein;
             transition-timing-function: ease;
@@ -38,7 +46,7 @@
                 background: @highlight-color;
                 margin-left: -15px;
                 width: calc(100% + 15px);
-                height:100%;
+                height: 100%;
             }
         }
     }
@@ -55,6 +63,15 @@
         &.mine-settings {
             .dropdown-menu {
                 padding: 0;
+            }
+
+            li a {
+                //before we added this they were huge and ran off the bottom of small screens
+                height: 2.2em;
+                line-height: 1.2em;
+                font-size: 1em;
+                padding: 0.6em 1em;
+                box-sizing: border-box;
             }
 
             li,
@@ -188,9 +205,11 @@
     }
 }
 @media (max-width:1200px) {
-    .navbar.navbar-default .search input,
-    .navbar.navbar-default .search input:hover {
-        margin-top: 4px;
-        .transitions;
+    .navbar.navbar-default {
+        .search input,
+        .search input:hover {
+            margin-top: 4px;
+            .transitions;
+        }
     }
 }
