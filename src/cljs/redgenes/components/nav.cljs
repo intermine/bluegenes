@@ -6,12 +6,23 @@
             [accountant.core :refer [navigate!]]
             [redgenes.components.progress_bar :as progress-bar]))
 
+            [:div.form-group.mine-choice
+                   {:on-change (fn [e]
+                                 (dispatch [:set-active-mine (keyword (aget e "target" "value"))]))
+                    :value     "select-one"}]
+
 (defn settings []
+  (let [current-mine (subscribe [:current-mine])]
   (fn []
-    [:li.dropdown
+    [:li.dropdown.mine-settings
      [:a.dropdown-toggle {:data-toggle "dropdown" :role "button"} [:i.fa.fa-cog]]
-     [:ul.dropdown-menu
-      [:li [:a {:on-click #(navigate! "#/debug")} [:i.fa.fa-terminal] " Developer"]]]]))
+      (conj (into [:ul.dropdown-menu]
+        (map (fn [[id details]]
+          [:li {:on-click (fn [e] (dispatch [:set-active-mine (keyword id)]))
+           :class (cond (= id (:id @current-mine)) "active")}
+                [:a (:name details)]]) @(subscribe [:mines])))
+        [:li.special [:a {:on-click #(navigate! "#/debug")} [:i.fa.fa-terminal] " Developer"]])
+])))
 
 (defn logged-in [user]
   [:li.dropdown.active
