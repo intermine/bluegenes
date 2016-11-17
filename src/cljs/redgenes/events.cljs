@@ -10,6 +10,7 @@
             [redgenes.components.databrowser.events]
             [redgenes.components.search.events :as search-full]
             [redgenes.sections.objects.handlers]
+            [redgenes.persistence :as persistence]
             [imcljsold.search :as search]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
             [imcljs.fetch :as fetch]))
@@ -38,13 +39,24 @@
                    (cond-> [[:do-active-panel active-panel panel-params evt]]
                            evt (conj evt))))))
 
+(reg-event-fx
+ :save-state
+ (fn [{:keys [db]}]
+   ;;So this saves assets and current mine to the db. We don't do any complex caching right now - every boot or mine change, these will be loaded afresh and applied on top. It *does* mean that the assets can be used before they are loaded.
+   ;;why isn't there caching? because I forgot about the /version/release endpoint.
+   ;;hold on, I'll commit and then implement it.
+   (let [saved-keys (select-keys db [:current-mine :mines :assets])]
+    (.log js/console "%cSaving state: " "background-color:darkseagreen;font-weight:bold;border-radius:2px" (clj->js saved-keys))
+    (persistence/persist! saved-keys)
+   {:db db}
+   )))
 
 (reg-event-fx
   :set-active-mine
   (fn [{:keys [db]} [_ value keep-existing?]]
     {:db         (cond-> (assoc db :current-mine value)
                          (not keep-existing?) (assoc-in [:assets] {}))
-     :dispatch-n (list [:reboot] [:set-active-panel :home-panel])}))
+     :dispatch-n (list [:reboot] [:set-active-panel :home-panel] )}))
 
 (reg-event-db
   :async-assoc

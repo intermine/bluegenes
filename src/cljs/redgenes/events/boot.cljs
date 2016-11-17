@@ -2,7 +2,8 @@
   (:require [re-frame.core :refer [reg-event-db reg-event-fx]]
             [redgenes.db :as db]
             [redgenes.mines :as default-mines]
-            [imcljs.fetch :as fetch]))
+            [imcljs.fetch :as fetch]
+            [redgenes.persistence :as persistence]))
 
 (defn boot-flow [db]
   {:first-dispatch [:authentication/fetch-anonymous-token (get db :current-mine)]
@@ -20,18 +21,29 @@
                                 :assets/success-fetch-lists
                                 :assets/success-fetch-templates
                                 :assets/success-fetch-summary-fields]
-                     :dispatch [:finished-loading-assets]
+                     :dispatch-n (list [:finished-loading-assets] [:save-state])
                      :halt?    true}]})
 
 ; Boot the application.
 (reg-event-fx
   :boot
   (fn []
-    (let [db (assoc db/default-db :mines default-mines/mines)]
-      {:db         (assoc db/default-db
-                     :mines default-mines/mines
-                     :fetching-assets? true)
-       :async-flow (boot-flow db)})))
+    (let [db (assoc db/default-db :mines default-mines/mines)
+          state (persistence/get-state!)
+          has-state? (seq state)]
+      (if has-state?
+        {:db         (assoc db/default-db
+                       :current-mine (:current-mine state)
+                       :mines (:mines state)
+                       :assets (:assets state)
+                        ;;we had assets in localstorage. We'll still load the fresh ones in the background in case they changed, but we can make do with these for now.
+                       :fetching-assets? false)
+         :async-flow (boot-flow db)}
+         {:db         (assoc db/default-db
+                        :mines default-mines/mines
+                        :fetching-assets? true)
+          :async-flow (boot-flow db)})
+      )))
 
 (reg-event-fx
   :reboot

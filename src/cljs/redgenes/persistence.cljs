@@ -39,6 +39,8 @@
 (defn get-state!
   "Returns the merging of the given state
   with the one in localstorage, except the given paths"
+  ([]
+   (get-state! {} []))
   ([state]
     (get-state! state []))
   ([state paths]
