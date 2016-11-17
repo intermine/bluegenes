@@ -16,7 +16,6 @@
         margin-left: 0;
     }
 
-
     .navbar-brand {
         color: #fff;
         font-style: bold;
@@ -67,10 +66,10 @@
 
             li a {
                 //before we added this they were huge and ran off the bottom of small screens
-                height: 2.2em;
-                line-height: 1.2em;
-                font-size: 1em;
-                padding: 0.6em 1em;
+                height: 2.2* @spacer;
+                line-height: 1.2 * @spacer;
+                font-size: @spacer;
+                padding: 0.6 * @spacer @spacer;
                 box-sizing: border-box;
             }
 
@@ -79,15 +78,26 @@
                 .transitions;
                 background: @body-background-color;
 
+                .icon {
+                    fill: rgba(0,0,0,0.2);
+                    margin-right: @spacer;
+                }
+
                 &:hover {
                     background: darken(@body-background-color, 3%);
                     .transitions;
                 }
 
-                &.active > a:hover,
-                &.active:hover {
-                    background: darken(@highlight-color, 3%);
-                    .transitions;
+                &.active {
+                    .icon {
+                        fill: @body-background-color;
+                    }
+
+                    & > a:hover,
+                    &:hover {
+                        background: darken(@highlight-color, 3%);
+                        .transitions;
+                    }
                 }
 
                 &.special {

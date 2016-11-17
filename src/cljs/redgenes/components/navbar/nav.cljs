@@ -6,10 +6,12 @@
             [accountant.core :refer [navigate!]]
             [redgenes.components.progress_bar :as progress-bar]))
 
-            [:div.form-group.mine-choice
-                   {:on-change (fn [e]
-                                 (dispatch [:set-active-mine (keyword (aget e "target" "value"))]))
-                    :value     "select-one"}]
+            (defn mine-icon [mine]
+              (let [icon (:icon mine)]
+              [:svg.icon.logo {:class icon}
+                [:use {:xlinkHref (str "#" icon) }]
+               ]))
+
 
 (defn settings []
   (let [current-mine (subscribe [:current-mine])]
@@ -20,7 +22,8 @@
         (map (fn [[id details]]
           [:li {:on-click (fn [e] (dispatch [:set-active-mine (keyword id)]))
            :class (cond (= id (:id @current-mine)) "active")}
-                [:a (:name details)]]) @(subscribe [:mines])))
+            [:a [mine-icon details]
+                 (:name details)]]) @(subscribe [:mines])))
         [:li.special [:a {:on-click #(navigate! "#/debug")} [:i.fa.fa-terminal] " Developer"]])
 ])))
 
@@ -65,10 +68,7 @@
                       (dispatch [:save-saved-data-tooltip (:id tooltip-data) @label]))}])})))
 
 (defn active-mine-logo []
-  (let [icon (:icon @(subscribe [:current-mine]))]
-  [:svg.icon.logo {:class icon}
-    [:use {:xlinkHref (str "#" icon) }]
-   ]))
+  [mine-icon @(subscribe [:current-mine])])
 
 (defn main []
   (let [active-panel (subscribe [:active-panel])

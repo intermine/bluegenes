@@ -34,7 +34,7 @@
                             :service            {:root "beta.flymine.org/beta" :token nil}
                             :name               "Flymine Beta"
                             :common             "Fly"
-                            :icon               "icon-rat"
+                            :icon               "icon-fly"
                             :status             {:status :na}
                             :output?            true
                             :abbrev             "D. melanogaster"
