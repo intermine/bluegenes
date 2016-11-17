@@ -1,6 +1,6 @@
 (ns redgenes.events
   (:require-macros [cljs.core.async.macros :refer [go]])
-  (:require [re-frame.core :as re-frame :refer [reg-event-db reg-event-fx dispatch subscribe]]
+  (:require [re-frame.core :as re-frame :refer [reg-event-db reg-fx reg-event-fx dispatch subscribe]]
             [redgenes.events.boot]
             [day8.re-frame.http-fx]
             [day8.re-frame.forward-events-fx]
@@ -12,6 +12,7 @@
             [redgenes.sections.objects.handlers]
             [redgenes.persistence :as persistence]
             [imcljsold.search :as search]
+            [oops.core :refer [ocall oapply oget oset!]]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
             [imcljs.fetch :as fetch]))
 
@@ -43,8 +44,7 @@
  :save-state
  (fn [{:keys [db]}]
    ;;So this saves assets and current mine to the db. We don't do any complex caching right now - every boot or mine change, these will be loaded afresh and applied on top. It *does* mean that the assets can be used before they are loaded.
-   ;;why isn't there caching? because I forgot about the /version/release endpoint.
-   ;;hold on, I'll commit and then implement it.
+   ;;why isn't there caching? because it gets very complex deciding what and when to expire, so it's not really a minimum use case feature.
    (let [saved-keys (select-keys db [:current-mine :mines :assets])]
     (.log js/console "%cSaving state: " "background-color:darkseagreen;font-weight:bold;border-radius:2px" (clj->js saved-keys))
     (persistence/persist! saved-keys)
@@ -56,7 +56,8 @@
   (fn [{:keys [db]} [_ value keep-existing?]]
     {:db         (cond-> (assoc db :current-mine value)
                          (not keep-existing?) (assoc-in [:assets] {}))
-     :dispatch-n (list [:reboot] [:set-active-panel :home-panel] )}))
+     :dispatch-n (list [:reboot] [:set-active-panel :home-panel] )
+     :change-mine-visually ["Hi"]}))
 
 (reg-event-db
   :async-assoc
@@ -72,6 +73,17 @@
   :handle-suggestions
   (fn [db [_ results]]
     (assoc db :suggestion-results results)))
+
+
+(reg-fx
+  :change-mine-visually
+  (fn []
+    ;;makes sure that the user notices the mine has changed.
+    (let [navbar (.querySelector js/document ".navbar-brand")
+          navbar-class (.-className navbar)]
+      (oset! navbar ["className"] (str navbar-class " recently-changed"))
+      (.setTimeout js/window #(oset! navbar ["className"] navbar-class) 3000)
+  )))
 
 (reg-event-fx
   :bounce-search

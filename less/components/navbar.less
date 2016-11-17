@@ -20,6 +20,27 @@
             background: lighten(@navbar-color,15%);
             color: white;
         }
+
+        //this and the keyframes are for changing mines.
+        &.recently-changed {
+
+            animation-duration: 3s;
+            animation-name: slidein;
+            transition-timing-function: ease;
+        }
+        @keyframes slidein {
+            from {
+                margin-right: 100%;
+                width: 500%;
+            }
+
+            to {
+                background: @highlight-color;
+                margin-left: -15px;
+                width: calc(100% + 15px);
+                height:100%;
+            }
+        }
     }
 
     li {
@@ -32,21 +53,31 @@
         }
         //this is the mine chooser dropdown
         &.mine-settings {
-          .dropdown-menu {padding:0;}
-          li, li a {
-            .transitions;
-            background: @body-background-color;
-            &:hover {
-                background: darken(@body-background-color, 3%);
+            .dropdown-menu {
+                padding: 0;
+            }
+
+            li,
+            li a {
                 .transitions;
-                &.active {background:red;}
+                background: @body-background-color;
+
+                &:hover {
+                    background: darken(@body-background-color, 3%);
+                    .transitions;
+                }
+
+                &.active > a:hover,
+                &.active:hover {
+                    background: darken(@highlight-color, 3%);
+                    .transitions;
+                }
+
+                &.special {
+                    border-top: solid 1px @highlight-color;
+                }
             }
-            &.active:hover, &.active > a:hover {
-              background: darken(@highlight-color, 3%);
-              .transitions;
-            }
-            &.special {border-top:solid 1px @highlight-color;}
-        }}
+        }
     }
 
     .navbar-nav > li > a:focus {
