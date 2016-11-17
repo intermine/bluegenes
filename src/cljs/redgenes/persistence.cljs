@@ -36,6 +36,11 @@
   (js/localStorage.setItem "redgenes/state" (to-transit state))
   state)
 
+(defn destroy! []
+  (println "destroy state")
+  (js/localStorage.removeItem "redgenes/state")
+  true)
+
 (defn get-state!
   "Returns the merging of the given state
   with the one in localstorage, except the given paths"

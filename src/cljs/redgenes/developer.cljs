@@ -3,6 +3,7 @@
             [json-html.core :as json-html]
             [redgenes.components.icons :as icons]
             [redgenes.sections.assets.views :as assets]
+            [redgenes.persistence :as persistence]
             [accountant.core :refer [navigate!]]))
 
 (defn mine-config [mine-url mine-name]
@@ -26,16 +27,23 @@
                         :id             id
                         :defaultChecked (= id (:id @current-mine))
                         :value          id}] (:common details)]) @(subscribe [:mines])))
-        ;;this needs more work in the form of a default organism for queries like homologues and ID resolution. If you really need to add other organisms just go to the mines.cljc file and add it there thankyou please.
-        ; [:div.form-group
-        ;  [:label "Paste a new mine URL here if it's not in the list above: "
-        ;    [:input.form-control
-        ;      {:type      "Text"
-        ;      :defaultValue     "http://"
-        ;      :on-change (fn [e] (dispatch [:new-temporary-mine (.. e -target -value) (keyword "Other")]))}]]]
         [:button.btn.btn-primary.btn-raised
          {:on-click (fn [e] (.preventDefault e))} "Save"]]
        ])))
+
+ (defn localstorage-destroyer []
+     (fn []
+       [:div.panel.container [:h3 "Delete local storage: "]
+        [:form
+         [:p "This will delete the local storage settings included preferred intermine instance, model, lists, and summaryfields. Model, lists, summaryfields should be loaded afresh every time anyway, but here's the easy pressable button to be REALLY SURE: "]
+         [:button.btn.btn-primary.btn-raised
+          {:on-click
+           (fn [e]
+             (.preventDefault e)
+             (persistence/destroy!)
+             (.reload js/document.location true)
+             )} "Delete RedGenes localstorage... for now."]]
+        ]))
 
 (defn old-stuff []
   [:div
@@ -72,5 +80,6 @@
     (fn []
       [:div.developer
        [mine-config mine-url mine-name]
+       [localstorage-destroyer]
        [iconview]
        ])))
