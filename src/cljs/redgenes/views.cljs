@@ -2,7 +2,7 @@
   (:require [re-frame.core :as re-frame :refer [subscribe dispatch]]
             [json-html.core :as json-html]
             [redgenes.developer :as dev]
-            [redgenes.components.nav :as nav]
+            [redgenes.components.navbar.nav :as nav]
             [redgenes.components.icons :as icons]
             [redgenes.sections.home.views :as home]
             [redgenes.sections.assets.views :as assets]
