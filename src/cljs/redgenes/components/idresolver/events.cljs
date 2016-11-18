@@ -157,7 +157,8 @@
   (fn [{db :db}]
     (let [uid            (str (gensym))
           ids            (remove nil? (map (fn [[_ {id :id}]] id) (-> db :idresolver :results)))
-          summary-fields (get-in db [:assets :summary-fields :Gene])
+          current-mine (:current-mine db)
+          summary-fields (get-in db [:assets :summary-fields current-mine :Gene])
           results        {:type  :query
                           :label (str "Uploaded " (count ids) " Genes")
                           :value {:title  (str "Uploaded " (count ids) " Genes")

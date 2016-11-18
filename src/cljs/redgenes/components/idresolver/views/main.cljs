@@ -276,13 +276,6 @@ example-text))
               [:p "The ID you input isn't one that's known for your chosen organism."]]]
         ]]
 
-      #_[:div
-         [:ul
-          [:li (str "entered" (count @bank))]
-          [:li (str "matches" (count @matches))]
-          [:li (str "no matches" (count @no-matches))]
-          [:li (str "duplicates" (count @duplicates))]]]
-
       )))
 
 (defn debugger []
