@@ -86,7 +86,7 @@ example-text))
 (defn input-item-duplicate []
   "Input control. allows user to resolve when an ID has matched more than one object."
   (fn [[oid data]]
-    [:span.dropdown
+    [:span [:span.dropdown
      [:span.dropdown-toggle
       {:type        "button"
        :data-toggle "dropdown"}
@@ -100,7 +100,27 @@ example-text))
                                 (dispatch [:idresolver/resolve-duplicate
                                            (:input data)
                                            result]))}
-                   [:a (-> result :summary :symbol)]]) (:matches data)))]))
+                   [:a (-> result :summary :symbol)]]) (:matches data)))]]))
+
+(defn get-icon [icon-type]
+  (case icon-type
+    :MATCH [:i.fa.fa-check.MATCH]
+    :UNRESOLVED [:svg.icon.icon-sad.UNRESOLVED [:use {:xlinkHref "#icon-sad"}]]
+    :DUPLICATE [:i.fa.fa-clone.DUPLICATE]
+    :TYPE_CONVERTED [:i.fa.fa-random.TYPE_CONVERTED]
+    :OTHER [:svg.icon.icon-arrow-right.OTHER [:use {:xlinkHref "#icon-arrow-right"}]]
+    [:i.fa.fa-cog.fa-spin.fa-1x.fa-fw]))
+
+(def reasons
+  {:TYPE_CONVERTED "we're searching for genes and you input a protein (or vice versa)."
+   :OTHER " the synonym you input is out of date."})
+
+(defn input-item-converted [original results]
+  (let [new-primary-id (get-in results [:matches 0 :summary :primaryIdentifier])
+        conversion-reason ((:status results) reasons)]
+    [:span {:title (str "You input '" original "', but we converted it to '" new-primary-id "', because " conversion-reason)}
+     original " -> " new-primary-id]
+))
 
 (defn input-item [{:keys [input] :as i}]
   "visually displays items that have been input and have been resolved as known or unknown IDs (or currently are resolving)"
@@ -111,9 +131,10 @@ example-text))
        (fn [])
        :reagent-render
        (fn [i]
-         (let [class (if (empty? @result)
+         (let [result-vals (second (first @result))
+               class (if (empty? @result)
                        "inactive"
-                       (name (:status (second (first @result)))))
+                       (name (:status result-vals)))
                class (if (some #{input} @selected) (str class " selected") class)]
            [:div.id-resolver-item-container
             {:class (if (some #{input} @selected) "selected")}
@@ -123,18 +144,14 @@ example-text))
                           (.preventDefault e)
                           (.stopPropagation e)
                           (dispatch [:idresolver/toggle-selected input]))}
-             (case (:status (second (first @result)))
-               :MATCH [:i.fa.fa-check]
-               :UNRESOLVED [:svg.icon.icon-sad [:use {:xlinkHref "#icon-sad"}]]
-               :DUPLICATE [:i.fa.fa-clone]
-               :TYPE_CONVERTED [:i.fa.fa-random]
-               :OTHER [:i.fa.fa-exclamation]
-               [:i.fa.fa-cog.fa-spin.fa-1x.fa-fw])
-             [:span
-
-              (if (= :DUPLICATE (:status (second (first @result))))
-                [input-item-duplicate (first @result)]
-                (:input i))]]]))})))
+             [get-icon (:status result-vals)]
+             (case (:status result-vals)
+               :DUPLICATE [input-item-duplicate (first @result)]
+               :TYPE_CONVERTED [input-item-converted (:input i) result-vals]
+               :OTHER [input-item-converted (:input i) result-vals]
+               :MATCH [:span (:input i)]
+               [:span (:input i)])
+              ]]))})))
 
 (defn input-items []
   (let [bank (subscribe [:idresolver/bank])]
@@ -218,14 +235,14 @@ example-text))
         duplicates (subscribe [:idresolver/results-duplicates])
         other      (subscribe [:idresolver/results-other])]
     (fn []
+        ;;goodness gracious this could use a refactor
         [:div.legend
          [:h3 "Legend & Stats:"]
-
          [:div [:h4.title
                         "Total Identifiers: " [:span.count (count @bank)]]]
          [:div.results
             [:div.MATCH {:tab-index -5}
-              [:div.type-head [:i.fa.fa-check.MATCH]
+              [:div.type-head [get-icon :MATCH]
                 [:span.title "Matches"]
                 [:svg.icon.icon-question [:use {:xlinkHref "#icon-question"}]]]
               [:div.details [:span.count (count @matches)]
@@ -233,26 +250,26 @@ example-text))
                ]
              ]
             [:div.TYPE_CONVERTED {:tab-index -4}
-              [:div.type-head [:i.fa.fa-random.TYPE_CONVERTED]
+              [:div.type-head [get-icon :TYPE_CONVERTED]
                 [:span.title "Converted"]
                 [:svg.icon.icon-question [:use {:xlinkHref "#icon-question"}]]]
               [:div.details [:span.count (count @type-converted)]
                  [:p "Input protein IDs resolved to gene (or vice versa)"]]
              ]
+           [:div.OTHER {:tab-index -2}
+             [:div.type-head [get-icon :OTHER]
+             [:span.title "Synonyms"]
+             [:svg.icon.icon-question [:use {:xlinkHref "#icon-question"}]]]
+             [:div.details [:span.count (count @other)]
+             [:p "The ID you input matches an old synonym of an ID. We've used the most up-to-date one instead."]]]
           [:div.DUPLICATE {:tab-index -3}
-              [:div.type-head  [:i.fa.fa-clone.DUPLICATE]
+              [:div.type-head  [get-icon :DUPLICATE]
                 [:span.title "Partial\u00A0Match"]
                 [:svg.icon.icon-question [:use {:xlinkHref "#icon-question"}]]]
               [:div.details [:span.count (count @duplicates)]
                 [:p "The ID you input matched more than one item. Click on the down arrow beside IDs with this icon to fix this."]]]
-            [:div.OTHER {:tab-index -2}
-              [:div.type-head [:i.fa.fa-exclamation.OTHER]
-                [:span.title "Synonyms"]
-                [:svg.icon.icon-question [:use {:xlinkHref "#icon-question"}]]]
-             [:div.details [:span.count (count @other)]
-              [:p "The ID you input matches an old synonym of an ID. We've used the most up-to-date one instead."]]]
             [:div.UNRESOLVED {:tab-index -1}
-              [:div.type-head [:svg.icon.icon-sad.UNRESOLVED [:use {:xlinkHref "#icon-sad"}]]
+              [:div.type-head [get-icon :UNRESOLVED]
                 [:span.title "Not\u00A0Found"]
                 [:svg.icon.icon-question [:use {:xlinkHref "#icon-question"}]]]
               [:div.details [:span.count (count @no-matches)]
@@ -314,14 +331,6 @@ example-text))
   (dommy/unlisten! (sel1 :body) :keyup key-up-handler)
   (dommy/listen! (sel1 :body) :keyup key-up-handler))
 
-(defn help-panel []
-  [:div.panel.panel-default
-   [:div.panel-body [:h4 [:svg.icon.icon-info [:use {:xlinkHref "#icon-info"}]] " Tips:"]
-   [:ul
-    [:li "Want to remove more than one item at a time? Try pressing"
-   [:strong " Shift "] " or " [:strong "Ctrl"] " to select multiple identifiers at once."]
-    [:li "When you're typing in identifiers, press "
-     [:strong "space"] " or " [:strong "enter"] " to submit the form."]]]])
 
 (defn main []
   (reagent/create-class
@@ -334,11 +343,8 @@ example-text))
          [:h1 "List Upload"]
          [:a.guidance {:on-click (fn [] (dispatch [:idresolver/resolve (splitter (ex))]))} "[Show me an example]"]
          [:div.tip]]
-        [:div
          [input-div]
-        ]
         [stats]
-        [help-panel]
         ;[selected]
         ;[debugger]
         ])}))

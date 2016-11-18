@@ -33,13 +33,14 @@
         }
 
         &.MATCH,
-        &.TYPE_CONVERTED {
+        &.TYPE_CONVERTED,
+        &.OTHER {
             .dark-text;
             background: @goodcolor;
         }
 
         &.DUPLICATE,
-        &.OTHER {
+         {
             text-shadow: 1px 1px 1px rgba(255, 255, 255, 0.2);
             .dark-text;
             background: @needsinputcolor;
@@ -247,7 +248,10 @@
                     }
                 }
 
-                &:focus .details p {
+                &:focus {
+                  flex-grow:2;
+                  .transitions;
+                  .details p {
                     flex-grow: 1;
                     margin:0;
                     display: block;
@@ -255,7 +259,7 @@
                     max-width:25vw;
                     animation-name: slide-guidance;
                     transition-timing-function: ease;
-                }
+                }}
             }
 
             .type-head {
