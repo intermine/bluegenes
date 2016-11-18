@@ -6,7 +6,8 @@
             [redgenes.sections.results.subs]
             [redgenes.components.bootstrap :refer [popover tooltip]]
             [clojure.string :refer [split]]
-            [oops.core :refer [oget]]))
+            [oops.core :refer [oget]]
+            [im-tables.views.core :as tables]))
 
 
 (def css-transition-group
@@ -59,9 +60,11 @@
   (fn [{:keys [description matches identifier p-value matches-query] :as row}
        {:keys [pathConstraint] :as details}]
     [:li.enrichment-item
-     {:on-mouse-enter (fn [] (dispatch [:results/get-item-details identifier pathConstraint]))
-      :on-click       (fn []
-                        (dispatch [:results/add-to-history row details]))}
+     {:on-mouse-enter
+      (fn [] (dispatch [:results/get-item-details identifier pathConstraint]))
+      :on-click
+      (fn []
+        (dispatch [:results/add-to-history row details]))}
      [:div.container-fluid
       [:div.row
        [:div.col-xs-8
@@ -208,17 +211,17 @@
 
 
 (defn main []
-  (let [query             (subscribe [:results/query])
-        service           (subscribe [:results/service])
-        package-for-table (subscribe [:results/package-for-table])]
+  (let [package-for-table (subscribe [:results/package-for-table])]
     (fn []
       [:div.container
        [breadcrumb]
        [:div.row
         [:div.col-md-9.col-sm-12
          [:div.panel.panel-default
-          [:div.panel-body.autoscroll
-           (if @query [table/main @package-for-table true])]]]
+          [:div.panel-body
+           [tables/main [:results :fortable]]
+           ;(if @query [table/main @package-for-table true])
+           ]]]
         [:div.col-md-3.col-sm-12
          [side-bar]]]])))
 
