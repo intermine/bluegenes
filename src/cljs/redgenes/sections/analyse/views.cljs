@@ -1,6 +1,5 @@
 (ns redgenes.sections.analyse.views
   (:require [re-frame.core :as re-frame :refer [subscribe dispatch]]
-            [redgenes.components.idresolver.views.main :as idresolver]
             [redgenes.components.table :as table]
             [redgenes.components.listanalysis.views.main :as listanalysis]))
 

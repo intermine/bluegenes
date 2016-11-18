@@ -1,17 +1,19 @@
-(ns redgenes.components.idresolver.views.main
+(ns redgenes.components.idresolver.views
   (:require [reagent.core :as reagent]
             [re-frame.core :as re-frame :refer [subscribe dispatch]]
             [json-html.core :as json-html]
             [dommy.core :as dommy :refer-macros [sel sel1]]
             [redgenes.components.idresolver.events]
             [redgenes.components.icons :as icons]
-            [redgenes.components.idresolver.subs]))
+            [redgenes.components.idresolver.subs]
+            [redgenes.components.lighttable :as lighttable]))
 
 ;;; TODOS:
 
-;We need to add "other" handling. It can be synonyms, but there may be (are?) other things an "other" result could mean.
-;We need to add descriptions of what the states mean
 ;We need to handler more than X results :D right now 1000 results would ALL show on screen. Eep.
+;;submit button needed
+;;results preview needed
+
 
 (defn ex []
   (let [active-mine (subscribe [:current-mine])
@@ -49,7 +51,7 @@ example-text))
         (str "Remove selected (" (count @selected) ")")]
        [:button.btn.btn-primary.btn-raised
         {:class    (if (nil? @results) "disabled")
-         :on-click (fn [] (if (some? @results) (dispatch [:idresolver/analyse])))}
+         :on-click (fn [] (if (some? @results) (dispatch [:idresolver/analyse "bob"])))}
         "View Results"]])))
 
 
@@ -334,10 +336,12 @@ example-text))
        [:div.container.idresolverupload
         [:div.headerwithguidance
          [:h1 "List Upload"]
-         [:a.guidance {:on-click (fn [] (dispatch [:idresolver/resolve (splitter (ex))]))} "[Show me an example]"]
-         [:div.tip]]
+         [:a.guidance {:on-click (fn [] (dispatch [:idresolver/resolve (splitter (ex))]))} "[Show me an example]"]]
          [input-div]
-        [stats]
+         [stats]
+          ; [lighttable/main {:query      @selected-template
+          ;                   :service    @service
+          ;                   :no-repeats true}]
         ;[selected]
-        [debugger]
+        ;[debugger]
         ])}))

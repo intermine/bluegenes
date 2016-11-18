@@ -10,7 +10,7 @@
             [redgenes.components.templates.views :as templates]
             [redgenes.components.querybuilder.views.main :as querybuilder]
             [redgenes.components.toast :as toast]
-            [redgenes.components.idresolver.views.main :as idresolver]
+            [redgenes.components.idresolver.views :as idresolver]
             [redgenes.components.databrowser.views :as explore]
             [redgenes.sections.analyse.views :as analyse]
             [redgenes.sections.results.views :as results]

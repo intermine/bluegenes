@@ -165,7 +165,7 @@
 
 (reg-event-fx
   :idresolver/analyse
-  (fn [{db :db}]
+  (fn [{db :db} [_ param]]
     (let [uid            (str (gensym))
           ids            (pull-ids-from-idresolver (-> db :idresolver :results))
           current-mine (:current-mine db)
@@ -178,6 +178,7 @@
                                   :where  [{:path   "Gene.id"
                                             :op     "ONE OF"
                                             :values ids}]}}]
+      (.log js/console "%cparam" "color:hotpink;font-weight:bold;" (clj->js param))
       {:dispatch [:results/set-query {:source (get db :current-mine)
                                       :type   :query
                                       :value  (:value results)}]
