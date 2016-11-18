@@ -6,11 +6,11 @@
             [accountant.core :refer [navigate!]]
             [redgenes.components.progress_bar :as progress-bar]))
 
-            (defn mine-icon [mine]
-              (let [icon (:icon mine)]
-              [:svg.icon.logo {:class icon}
-                [:use {:xlinkHref (str "#" icon) }]
-               ]))
+(defn mine-icon [mine]
+  (let [icon (:icon mine)]
+  [:svg.icon.logo {:class icon}
+    [:use {:xlinkHref (str "#" icon) }]
+   ]))
 
 
 (defn settings []

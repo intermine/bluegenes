@@ -224,26 +224,39 @@ example-text))
          [:div [:h4.title
                         "Total Identifiers: " [:span.count (count @bank)]]]
          [:div.results
-            [:div.MATCH
-              [:span.type-head [:i.fa.fa-check.MATCH]
-              [:span.title "Matches"]]
-              [:span.count (count @matches)]]
-            [:div.TYPE_CONVERTED
-              [:span.type-head [:i.fa.fa-random.TYPE_CONVERTED]
-              [:span.title "Converted"]]
-              [:span.count (count @type-converted)]]
-            [:div.DUPLICATE
-              [:span.type-head  [:i.fa.fa-clone.DUPLICATE]
-              [:span.title "Duplicates"]]
-              [:span.count (count @duplicates)]]
-            [:div.OTHER
-              [:span.type-head [:i.fa.fa-exclamation.OTHER]
-              [:span.title "Other"]]
-              [:span.count (count @other)]]
-            [:div.UNRESOLVED
-              [:span.type-head [:svg.icon.icon-sad.UNRESOLVED [:use {:xlinkHref "#icon-sad"}]]
-              [:span.title "Not Found"]]
-              [:span.count (count @no-matches)]]
+            [:div.MATCH {:tab-index -5}
+              [:div.type-head [:i.fa.fa-check.MATCH]
+                [:span.title "Matches"]
+                [:svg.icon.icon-question [:use {:xlinkHref "#icon-question"}]]]
+              [:div.details [:span.count (count @matches)]
+                [:p "The input you entered was successfully matched to a known ID"]
+               ]
+             ]
+            [:div.TYPE_CONVERTED {:tab-index -4}
+              [:div.type-head [:i.fa.fa-random.TYPE_CONVERTED]
+                [:span.title "Converted"]
+                [:svg.icon.icon-question [:use {:xlinkHref "#icon-question"}]]]
+              [:div.details [:span.count (count @type-converted)]
+                 [:p "Input protein IDs resolved to gene (or vice versa)"]]
+             ]
+          [:div.DUPLICATE {:tab-index -3}
+              [:div.type-head  [:i.fa.fa-clone.DUPLICATE]
+                [:span.title "Partial\u00A0Match"]
+                [:svg.icon.icon-question [:use {:xlinkHref "#icon-question"}]]]
+              [:div.details [:span.count (count @duplicates)]
+                [:p "The ID you input matched more than one item. Click on the down arrow beside IDs with this icon to fix this."]]]
+            [:div.OTHER {:tab-index -2}
+              [:div.type-head [:i.fa.fa-exclamation.OTHER]
+                [:span.title "Synonyms"]
+                [:svg.icon.icon-question [:use {:xlinkHref "#icon-question"}]]]
+             [:div.details [:span.count (count @other)]
+              [:p "The ID you input matches an old synonym of an ID. We've used the most up-to-date one instead."]]]
+            [:div.UNRESOLVED {:tab-index -1}
+              [:div.type-head [:svg.icon.icon-sad.UNRESOLVED [:use {:xlinkHref "#icon-sad"}]]
+                [:span.title "Not\u00A0Found"]
+                [:svg.icon.icon-question [:use {:xlinkHref "#icon-question"}]]]
+              [:div.details [:span.count (count @no-matches)]
+              [:p "The ID you input isn't one that's known for your chosen organism."]]]
         ]]
 
       #_[:div
