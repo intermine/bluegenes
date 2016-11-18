@@ -125,12 +125,12 @@ example-text))
                           (dispatch [:idresolver/toggle-selected input]))}
              (case (:status (second (first @result)))
                :MATCH [:i.fa.fa-check]
-               :UNRESOLVED [:i.fa.fa-times]
+               :UNRESOLVED [:svg.icon.icon-sad [:use {:xlinkHref "#icon-sad"}]]
                :DUPLICATE [:i.fa.fa-clone]
                :TYPE_CONVERTED [:i.fa.fa-random]
                :OTHER [:i.fa.fa-exclamation]
                [:i.fa.fa-cog.fa-spin.fa-1x.fa-fw])
-             [:span.pad-left-5
+             [:span
 
               (if (= :DUPLICATE (:status (second (first @result))))
                 [input-item-duplicate (first @result)]
@@ -241,7 +241,7 @@ example-text))
               [:span.title "Other"]]
               [:span.count (count @other)]]
             [:div.UNRESOLVED
-              [:span.type-head [:i.fa.fa-times.UNRESOLVED]
+              [:span.type-head [:svg.icon.icon-sad.UNRESOLVED [:use {:xlinkHref "#icon-sad"}]]
               [:span.title "Not Found"]]
               [:span.count (count @no-matches)]]
         ]]

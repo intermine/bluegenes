@@ -165,6 +165,7 @@
             margin: 1px 3px;
             display: inline-block;
             transition: background 1s;
+            .icon {margin-top:3px;}
 
             &:first-child {
                 margin-left: 0;
@@ -178,6 +179,7 @@
                 transition: background 0.2s;
                 .button-color;
             }
+            span {padding-left:5px;}
         }
     }
 
@@ -234,6 +236,9 @@
                 line-height: @syze;
                 background: rgba(0,0,0,0.025);
                 min-width: 100px;
+                height: @syze;
+                line-height: @syze;
+
             }
 
             .count {
@@ -248,14 +253,17 @@
             }
         }
 
-        i {
+        i,.icon {
             .matchcolors;
             border-top-left-radius: @border-radius;
             text-align: center;
             width: @syze;
             height: @syze;
             line-height: @syze;
+            color:rgba(0,0,0,0.87);
+            fill:rgba(0,0,0,0.87);
         }
+        .icon {width:2em; height:2em; padding:0.5em;box-sizing:border-box;}
     }
 
     .headerwithguidance {
