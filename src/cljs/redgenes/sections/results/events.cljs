@@ -103,7 +103,8 @@
        :dispatch-n [[:results/enrich]
                     [:im-tables.main/replace-all-state
                      [:results :fortable]
-                     {:settings {:links {:vocab {:mine "google"}}}
+                     {:settings {:links {:vocab {:mine "flymine"}
+                                         :on-click (fn [val] (accountant/navigate! val))}}
                       :query   query
                       :service (get-in db [:mines last-source :service])}]]})))
 
@@ -122,7 +123,9 @@
        :dispatch-n [[:results/enrich]
                     [:im-tables.main/replace-all-state
                      [:results :fortable]
-                     {:query   (get package :value)
+                     {:settings {:links {:vocab {:mine "flymine"}
+                                         :on-click (fn [val] (accountant/navigate! val))}}
+                      :query   (get package :value)
                       :service (get-in db [:mines (:source package) :service])}]]})))
 
 (reg-event-fx
