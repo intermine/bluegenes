@@ -10,6 +10,7 @@
             [redgenes.interceptors :refer [clear-tooltips]]
             [dommy.core :refer-macros [sel sel1]]
             [redgenes.sections.saveddata.events]
+            [accountant.core :as accountant]
             [redgenes.interceptors :refer [abort-spec]]))
 
 
@@ -69,7 +70,9 @@
        :dispatch-n [[:results/enrich]
                     [:im-tables.main/replace-all-state
                      [:results :fortable]
-                     {:query   value
+                     {:settings {:links {:vocab {:mine "flymine"}
+                                         :on-click (fn [val] (accountant/navigate! val))}}
+                      :query   value
                       :service (get-in db [:mines source :service])}]]})))
 
 
@@ -100,7 +103,8 @@
        :dispatch-n [[:results/enrich]
                     [:im-tables.main/replace-all-state
                      [:results :fortable]
-                     {:query   query
+                     {:settings {:links {:vocab {:mine "google"}}}
+                      :query   query
                       :service (get-in db [:mines last-source :service])}]]})))
 
 (reg-event-fx

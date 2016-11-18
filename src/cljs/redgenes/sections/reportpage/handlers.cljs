@@ -7,6 +7,7 @@
             [imcljsold.search :as search]
             [imcljs.fetch :as fetch]
             [imcljsold.filters :as filters]
+            [redgenes.effects]
             [com.rpl.specter :as s]))
 
 (reg-event-db
