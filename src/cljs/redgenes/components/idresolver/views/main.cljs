@@ -339,5 +339,5 @@ example-text))
          [input-div]
         [stats]
         ;[selected]
-        ;[debugger]
+        [debugger]
         ])}))

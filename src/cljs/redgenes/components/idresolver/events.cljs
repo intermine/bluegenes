@@ -152,11 +152,22 @@
        })))
 
 
+(defn pull-ids-from-idresolver
+  "Returns IDs from the idresolver data set. straight matches have an id at a lower level than the converted and duplicate types so we need to do some deep digging. Right now if the user doesn't choose an option for the duplicate, we automatically serve up the first one in all future lists."
+  [results]
+ (remove nil? (map
+  (fn [[_ {id :id matches :matches}]]
+    (if (some? id)
+      id
+      (:id (first matches))))
+  results))
+)
+
 (reg-event-fx
   :idresolver/analyse
   (fn [{db :db}]
     (let [uid            (str (gensym))
-          ids            (remove nil? (map (fn [[_ {id :id}]] id) (-> db :idresolver :results)))
+          ids            (pull-ids-from-idresolver (-> db :idresolver :results))
           current-mine (:current-mine db)
           summary-fields (get-in db [:assets :summary-fields current-mine :Gene])
           results        {:type  :query
