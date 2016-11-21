@@ -52,7 +52,7 @@ example-text))
        [:button.btn.btn-primary.btn-raised
         {:class    (if (nil? @results) "disabled")
          :on-click (fn [] (if (some? @results) (dispatch [:idresolver/analyse])))}
-        "View Results"]])))
+        "View Results" true]])))
 
 
 ;
@@ -324,36 +324,38 @@ example-text))
   (dommy/unlisten! (sel1 :body) :keyup key-up-handler)
   (dommy/listen! (sel1 :body) :keyup key-up-handler))
 
-(defn preview []
+(defn preview [result-count]
   ""
   (let [query             (subscribe [:results/query])
-        service           (:service @(subscribe [:current-mine]))
-        package-for-table (subscribe [:results/package-for-table])
-        bank       (subscribe [:idresolver/bank])
-        no-matches (subscribe [:idresolver/results-no-matches])]
-        [:div
-         [:h4.title "Results preview:"
-          [:small.pull-right "Total Good Identifiers: "
-           [:span.count (- (count @bank) (count @no-matches))]
-           [:a "View all"]]]
-         [lighttable/main {:query      @query
-                          :service    service
-                          :no-repeats true}]]
+        service           (:service @(subscribe [:current-mine]))]
+    [:div
+     [:h4.title "Results preview:"
+      [:small.pull-right "Showing " [:span.count (min 5 result-count)] " of " [:span.count result-count] " Total Good Identifiers. "
+        (cond (> result-count 0)
+          [:a {:on-click
+            (fn [] (dispatch [:idresolver/analyse true]))}
+            "View all >>"])
+       ]]
+     [lighttable/main {:query      @query
+                      :service    service
+                      :no-repeats true}]]
 ))
 
 (defn main []
   (reagent/create-class
-    {:component-did-mount
-     attach-body-events
+    {:component-did-mount attach-body-events
      :reagent-render
        (fn []
+         (let [bank       (subscribe [:idresolver/bank])
+               no-matches (subscribe [:idresolver/results-no-matches])
+               result-count (- (count @bank) (count @no-matches))]
          [:div.container.idresolverupload
           [:div.headerwithguidance
            [:h1 "List Upload"]
            [:a.guidance {:on-click (fn [] (dispatch [:idresolver/resolve (splitter (ex))]))} "[Show me an example]"]]
            [input-div]
            [stats]
-           [preview]
+           (cond (> result-count 0) [preview result-count])
         ;[selected]
         ;[debugger]
-        ])}))
+        ]))}))
