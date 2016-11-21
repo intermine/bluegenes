@@ -51,7 +51,7 @@ example-text))
         (str "Remove selected (" (count @selected) ")")]
        [:button.btn.btn-primary.btn-raised
         {:class    (if (nil? @results) "disabled")
-         :on-click (fn [] (if (some? @results) (dispatch [:idresolver/analyse "bob"])))}
+         :on-click (fn [] (if (some? @results) (dispatch [:idresolver/analyse])))}
         "View Results"]])))
 
 
@@ -240,8 +240,6 @@ example-text))
         ;;goodness gracious this could use a refactor
         [:div.legend
          [:h3 "Legend & Stats:"]
-         [:div [:h4.title
-                        "Total Identifiers: " [:span.count (count @bank)]]]
          [:div.results
             [:div.MATCH {:tab-index -5}
               [:div.type-head [get-icon :MATCH]
@@ -326,22 +324,36 @@ example-text))
   (dommy/unlisten! (sel1 :body) :keyup key-up-handler)
   (dommy/listen! (sel1 :body) :keyup key-up-handler))
 
+(defn preview []
+  ""
+  (let [query             (subscribe [:results/query])
+        service           (:service @(subscribe [:current-mine]))
+        package-for-table (subscribe [:results/package-for-table])
+        bank       (subscribe [:idresolver/bank])
+        no-matches (subscribe [:idresolver/results-no-matches])]
+        [:div
+         [:h4.title "Results preview:"
+          [:small.pull-right "Total Good Identifiers: "
+           [:span.count (- (count @bank) (count @no-matches))]
+           [:a "View all"]]]
+         [lighttable/main {:query      @query
+                          :service    service
+                          :no-repeats true}]]
+))
 
 (defn main []
   (reagent/create-class
     {:component-did-mount
      attach-body-events
      :reagent-render
-     (fn []
-       [:div.container.idresolverupload
-        [:div.headerwithguidance
-         [:h1 "List Upload"]
-         [:a.guidance {:on-click (fn [] (dispatch [:idresolver/resolve (splitter (ex))]))} "[Show me an example]"]]
-         [input-div]
-         [stats]
-          ; [lighttable/main {:query      @selected-template
-          ;                   :service    @service
-          ;                   :no-repeats true}]
+       (fn []
+         [:div.container.idresolverupload
+          [:div.headerwithguidance
+           [:h1 "List Upload"]
+           [:a.guidance {:on-click (fn [] (dispatch [:idresolver/resolve (splitter (ex))]))} "[Show me an example]"]]
+           [input-div]
+           [stats]
+           [preview]
         ;[selected]
         ;[debugger]
         ])}))
