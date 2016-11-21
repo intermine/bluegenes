@@ -10,7 +10,6 @@
             [redgenes.interceptors :refer [clear-tooltips]]
             [dommy.core :refer-macros [sel sel1]]
             [redgenes.sections.saveddata.events]
-            [accountant.core :as accountant]
             [redgenes.interceptors :refer [abort-spec]]))
 
 
@@ -58,29 +57,22 @@
   (abort-spec redgenes.specs/im-package)
   (fn [{db :db} [_ {:keys [source value type] :as package}]]
     (let [model (get-in db [:mines source :service :model :classes])]
-      {:db         (update-in db [:results] assoc
-                              :query value
-                              :package package
-                              ;:service (get-in db [:mines source :service])
-                              :history [package]
-                              :history-index 0
-                              :query-parts (filters/get-parts model value)
-                              :enrichment-results nil)
-       ; TOOD ^:flush-dom
-       :dispatch-n [[:results/enrich]
-                    [:im-tables.main/replace-all-state
-                     [:results :fortable]
-                     {:settings {:links {:vocab {:mine "flymine"}
-                                         :on-click (fn [val] (accountant/navigate! val))}}
-                      :query   value
-                      :service (get-in db [:mines source :service])}]]})))
+      {:db       (update-in db [:results] assoc
+                            :query value
+                            :package package
+                            ;:service (get-in db [:mines source :service])
+                            :history [package]
+                            :history-index 0
+                            :query-parts (filters/get-parts model value)
+                            :enrichment-results nil)
+       :dispatch ^:flush-dom [:results/enrich]})))
 
 
 (reg-event-fx
   :results/add-to-history
   [(clear-tooltips)]
   (fn [{db :db} [_ {identifier :identifier} details]]
-    (let [last-source (:source (last (get-in db [:results :history])))
+    (let [last-source      (:source (last (get-in db [:results :history])))
           model       (get-in db [:mines last-source :service :model :classes])
           previous    (get-in db [:results :query])
           query       (merge (build-matches-query
@@ -92,41 +84,29 @@
           new-package {:source last-source
                        :type   :query
                        :value  query}]
-      {:db         (-> db
-                       (update-in [:results :history] conj new-package)
-                       (update-in [:results] assoc
-                                  :query query
-                                  :package new-package
-                                  :history-index (inc (get-in db [:results :history-index]))
-                                  :query-parts (filters/get-parts model query)
-                                  :enrichment-results nil))
-       :dispatch-n [[:results/enrich]
-                    [:im-tables.main/replace-all-state
-                     [:results :fortable]
-                     {:settings {:links {:vocab {:mine "flymine"}
-                                         :on-click (fn [val] (accountant/navigate! val))}}
-                      :query   query
-                      :service (get-in db [:mines last-source :service])}]]})))
+      {:db       (-> db
+                     (update-in [:results :history] conj new-package)
+                     (update-in [:results] assoc
+                                :query query
+                                :package new-package
+                                :history-index (inc (get-in db [:results :history-index]))
+                                :query-parts (filters/get-parts model query)
+                                :enrichment-results nil))
+       :dispatch [:results/enrich]})))
 
 (reg-event-fx
   :results/load-from-history
   (fn [{db :db} [_ index]]
     (let [package (get-in db [:results :history index])
           model   (get-in db [:mines (:source package) :service :model :classes])]
-      {:db         (-> db
-                       (update-in [:results] assoc
-                                  :query (get package :value)
-                                  :package package
-                                  :history-index index
-                                  :query-parts (filters/get-parts model (get package :value))
-                                  :enrichment-results nil))
-       :dispatch-n [[:results/enrich]
-                    [:im-tables.main/replace-all-state
-                     [:results :fortable]
-                     {:settings {:links {:vocab {:mine "flymine"}
-                                         :on-click (fn [val] (accountant/navigate! val))}}
-                      :query   (get package :value)
-                      :service (get-in db [:mines (:source package) :service])}]]})))
+      {:db       (-> db
+                     (update-in [:results] assoc
+                                :query (get package :value)
+                                :package package
+                                :history-index index
+                                :query-parts (filters/get-parts model (get package :value))
+                                :enrichment-results nil))
+       :dispatch [:results/enrich]})))
 
 (reg-event-fx
   :results/enrich

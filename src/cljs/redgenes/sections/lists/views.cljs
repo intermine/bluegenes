@@ -9,8 +9,7 @@
             [cljs-time.format :as tf]
             [cljs-time.core :as t]
             [redgenes.components.icons :as icons]
-            [oops.core :refer [oget]]
-            [im-tables.views.core :as tables]))
+            [oops.core :refer [oget]]))
 
 
 (def time-formatter (tf/formatter "HH:mm"))
@@ -136,24 +135,8 @@
           [no-results]
           (map (fn [l] ^{:key (:name l)} [list-row l]) lists))]])))
 
-(def some-query {:from   "Gene"
-                 :size   10
-                 :select ["secondaryIdentifier"
-                          "symbol"
-                          "primaryIdentifier"
-                          "organism.name"]
-                 :where  [{:path  "Gene"
-                           :op    "IN"
-                           :value "PL FlyTF_trusted_TFs"
-                           :code  "A"}
-                          {:path  "Gene.symbol"
-                           :op    "="
-                           :value "*a*"
-                           :code  "B"}]})
-
 (defn main []
-  (let [filtered-lists (subscribe [:lists/filtered-lists])
-        cm             (subscribe [:current-mine])]
+  (let [filtered-lists (subscribe [:lists/filtered-lists])]
     (fn []
       [:div.list-section
        {:style {:width "100%"}}

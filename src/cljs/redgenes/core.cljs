@@ -14,8 +14,7 @@
             [redgenes.components.querybuilder.subs]
             [redgenes.components.templates.core]
             [oops.core :refer [oget oset! ocall oapply ocall! oapply!
-                               oget+ oset!+ ocall+ oapply+ ocall!+ oapply!+]]
-            [im-tables.core]))
+                               oget+ oset!+ ocall+ oapply+ ocall!+ oapply!+]]))
 
 (defn dev-setup []
   (when config/debug?
