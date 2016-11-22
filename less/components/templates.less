@@ -9,6 +9,7 @@
               //this padding stops content shwoing through at weird breakpoints;
               padding-top:@crazy-padding;
               position: fixed;
+              z-index:42; //a higher z-index than light tables is the answer. And 42 is always the answer.
               margin-top: -20px - (@crazy-padding);
               padding-bottom:2px;
               box-shadow:1px 1px 1px rgba(0,0,0,0.2);
@@ -190,11 +191,10 @@
 
     .template {
         background-color: white;
-        // background-color: #eaeaea;
         margin: 5px 20px;
         padding: 20px;
         border: 1px solid #ecebeb;
-
+        .transitions;
         .title {
             font-size: 1.4em;
         }
@@ -233,6 +233,7 @@
         &.selected {
             // background-color: white;
             margin: 5px 0;
+            .transitions;
             color: black;
             -webkit-box-shadow: 0 2px 5px -1px rgba(0,0,0,0.33);
             -moz-box-shadow: 0 2px 5px -1px rgba(0,0,0,0.33);
