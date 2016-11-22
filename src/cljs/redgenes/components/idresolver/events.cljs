@@ -25,10 +25,10 @@
       m)
     (dissoc m k)))
 
-(reg-event-db
+(reg-event-fx
   :handle-id
-  (fn [db [_ id]]
-    (let [{{:keys [MATCH TYPE_CONVERTED OTHER WILDCARD DUPLICATE] :as resolved} :matches
+  (fn [{db :db} [_ id]]
+    {:db (let [{{:keys [MATCH TYPE_CONVERTED OTHER WILDCARD DUPLICATE] :as resolved} :matches
            unresolved                                                           :unresolved} id
           tagged    (remove empty? (mapcat (fn [[k v]] (map (fn [r] (assoc r :status k)) v)) resolved))
           tagged-un (reduce (fn [total next] (assoc total next {:input [next] :status :UNRESOLVED})) {} unresolved)]
@@ -44,7 +44,8 @@
                                                        (if (vector? (:input next-id))
                                                          (:input next-id)
                                                          [(:input next-id)]))))
-                                      results tagged))))))))
+                                      results tagged))))))
+     :dispatch [:idresolver/analyse false]}))
 
 (reg-fx
   :idresolver/resolve-id
@@ -165,7 +166,7 @@
 
 (reg-event-fx
   :idresolver/analyse
-  (fn [{db :db}]
+  (fn [{db :db} [_ navigate?]]
     (let [uid            (str (gensym))
           ids            (pull-ids-from-idresolver (-> db :idresolver :results))
           current-mine (:current-mine db)
@@ -178,10 +179,12 @@
                                   :where  [{:path   "Gene.id"
                                             :op     "ONE OF"
                                             :values ids}]}}]
-      {:dispatch [:results/set-query {:source (get db :current-mine)
+      (cond-> {}
+              true (assoc :dispatch [:results/set-query {:source (get db :current-mine)
                                       :type   :query
-                                      :value  (:value results)}]
-       :navigate (str "results")})))
+                                      :value  (:value results)}])
+              navigate?  (assoc :navigate (str "results"))
+      ))))
 
 
 

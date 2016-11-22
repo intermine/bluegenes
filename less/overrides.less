@@ -1,24 +1,24 @@
 @import "variables";
 @import "../resources/public/vendor/bootstrap/less/variables";
 
-
 .panel {
     box-shadow: none;
 }
 
 .popover.fade.bottom.in {
-    background-color: #009688;
+    background-color: @highlight-color;
     color: white;
     opacity: 0.9;
 }
-
-
 
 .padme {
     padding: 20px 0;
 }
 
-.nav-pills > li {.transitions;}
+.nav-pills > li {
+    .transitions;
+}
+
 .nav-pills > li.active > a,
 .nav-pills > li.active > a:focus,
 .nav-pills > li.active > a:hover {
@@ -27,19 +27,24 @@
 }
 
 .search .list-group {
-  .list-group-item {color:@body-foreground-color;}
+    .list-group-item {
+        color: @body-foreground-color;
+    }
+
     .list-group-item.active,
     .list-group-item.active:focus,
     .list-group-item.active:hover {
-      border-left: solid 3px @highlight-color;
-      background: #eaeaea;
-      h4 {color:#000}
-    }
+        border-left: solid 3px @highlight-color;
+        background: #eaeaea;
 
+        h4 {
+            color: #000;
+        }
+    }
 }
 
 .breadcrumb > .active > a {
-    color: #009688;
+    color: @highlight-color;
 }
 
 .btn-outline {
@@ -136,4 +141,40 @@
 
 input.form-control:focus {
     background-image: none;
+}
+//coloured bg, light text
+.btn-group.open > .dropdown-toggle.btn.btn-primary,
+.btn.btn-primary.btn-raised,
+.btn.btn-primary.btn-raised:not(.btn-link) {
+    background: @highlight-color;
+    color: @cta-color-text;
+
+    &:focus,
+    &:hover {
+        background: lighten(@highlight-color,10%);
+        color: @cta-color-text;
+    }
+}
+
+.dropdown-menu li a {
+    &:hover {
+        color: @highlight-color;
+    }
+
+    &.active {
+        background: @highlight-color;
+        color: @cta-color-text;
+    }
+}
+//pale bg, coloured text
+.btn.btn-primary,
+.btn.btn-primary:not(.btn-link) {
+    color: @highlight-color;
+
+    &:active,
+    &:focus,
+    &:hover {
+        background: darken(@body-background-color,3%);
+        color: darken(@highlight-color,10%);
+    }
 }

@@ -2,13 +2,9 @@
   (:require [reagent.core :as reagent]
             [re-frame.core :refer [subscribe dispatch]]
             [accountant.core :refer [navigate!]]
-            [clojure.string :refer [split join]]
+            [clojure.string :refer [split join blank?]]
             [json-html.core :as json-html]
             [redgenes.components.lighttable :as lighttable]))
-
-
-
-
 
 (def ops [{:op         "="
            :applies-to [:string :boolean :integer :double :float]}
@@ -47,21 +43,6 @@
                      {:on-click (fn [] (update-fn (:name l)))}
                      [:a (str (:name l))]]) @lists))])))
 
-(defn list-saveddata []
-  (let [lists (subscribe [:saved-data/filtered-items])]
-    (fn [update-fn]
-      [:div.dropdown
-       [:button.btn.btn-primary.dropdown-toggle {:type "button" :data-toggle "dropdown"}
-        [:i.fa.fa-list.pad-right-5] "SD"]
-       (into [:ul.dropdown-menu.dropdown-menu-right]
-             (map (fn [l]
-                    ;(.log js/console l)
-                    [:li
-                     {:on-click (fn [] (update-fn (:name l)))}
-                     [:a (str (:sd/label l))]]) @lists))])))
-
-
-
 (defn categories []
   (let [categories        (subscribe [:template-chooser-categories])
         selected-category (subscribe [:selected-template-category])]
@@ -78,41 +59,6 @@
 
 
 (defn applies-to? [type op] (some? (some #{type} (:applies-to op))))
-
-(defn constraint [idx state]
-  (let [state (reagent/atom state)]
-    (fn [idx constraint]
-      [:div.form-group.row
-       [:div.col-xs-3
-        [:h4
-         {:style {:text-align "right"}}
-         [:span (join " > " (take-last 2 (split (:path constraint) ".")))]]]
-       [:div.col-xs-3.stretch-buttons
-        {:style {:text-align "right"}}
-
-        [:div.dropdown
-         [:button.btn.btn-default.btn-raised.dropdown-toggle
-          {:type        "button"
-           :data-toggle "dropdown"}
-          (:op @state)
-          [:i.fa.fa-caret-down.pad-left-5]]
-         (into [:ul.dropdown-menu]
-               (map (fn [op]
-                      [:li
-                       {:on-click (fn []
-                                    (swap! state assoc :op op)
-                                    (dispatch [:template-chooser/replace-constraint idx @state]))}
-                       [:a op]]))
-               (map :op ops)
-               ;(map :op (filter (partial applies-to? (:field-type constraint)) ops))
-               )]]
-       [:div.col-xs-6
-        [:input.form-control
-         {:type      "text"
-          :value     (:value @state)
-          :on-change (fn [e] (swap! state assoc :value (.. e -target -value)))
-          :on-blur   (fn [] (dispatch [:template-chooser/replace-constraint idx @state]))}]]])))
-
 
 (defn constraint-vertical [idx state]
   (let [state (reagent/atom state)]
@@ -156,29 +102,7 @@
            :value     (:value @state)
            :on-change (fn [e] (swap! state assoc :value (.. e -target -value)))
            :on-blur   (fn [] (dispatch [:template-chooser/replace-constraint idx @state]))}]]
-
-
-
-
-
-
-        #_[:div.col-xs-3
-           [:h4
-            {:style {:text-align "right"}}
-            [:span (join " > " (take-last 2 (split (:path constraint) ".")))]]]
-
         ]])))
-
-(defn form []
-  (fn [constraints]
-    [:div
-     (if constraints
-       (into [:form.form]
-             (map (fn [[idx con]]
-                    [constraint idx con])
-                  (keep-indexed (fn [idx con]
-                                  (if (:editable con)
-                                    [idx con])) constraints))))]))
 
 (defn template []
   (let [selected-template (subscribe [:selected-template])
@@ -219,14 +143,34 @@
 
 (defn templates []
   (fn [templates]
-    (into [:div] (map (fn [t] [template t]) templates))))
+    (if (seq templates)
+      ;;return the list of templates if there are some
+      (into [:div] (map (fn [t] [template t]) templates))
+      ;;if there are no templates, perhaps because of filters or perhaps not...
+      [:div.no-results
+       [:svg.icon.icon-sad [:use {:xlinkHref "#icon-sad"}]]
+       " No templates available. "
+       (let [category-filter (subscribe [:selected-template-category])
+             text-filter (subscribe [:template-chooser/text-filter])
+             filters-active? (or (some? @category-filter) (not (blank? @text-filter)))]
+         (cond filters-active?
+           [:span "Try "
+            [:a {:on-click
+                 (fn []
+                   (dispatch [:template-chooser/set-text-filter ""])
+                   (dispatch [:template-chooser/set-category-filter nil])
+                   )
+                 }"removing the filters"]
+            " to view more results. "])
+         )
+       ])))
 
 (defn template-filter []
-  (let [text-filer (subscribe [:template-chooser/text-filter])]
+  (let [text-filter (subscribe [:template-chooser/text-filter])]
     (fn []
       [:input.form-control.input-lg
        {:type        "text"
-        :value       @text-filer
+        :value       @text-filter
         :placeholder "Filter text..."
         :on-change   (fn [e]
                        (dispatch [:template-chooser/set-text-filter (.. e -target -value)]))}])))
@@ -237,40 +181,7 @@
     (re-pattern "(\\d)(?=(\\d{3})+$)") "$1,"))
 
 
-(defn no-results-yet []
-  [:div.panel-body
-   [:svg.icon.icon-info [:use {:xlinkHref "#icon-info"}]]
-   "Try clicking on a template name in the other pane to preview its results"]
-  )
 
-
-
-(defn results [counting? result-count selected-template]
-  [:div.pane.pane-default.results
-   [:div.pane-heading "Results preview " (cond @result-count (str "(" @result-count " rows)"))]
-   (if (and (nil? @result-count) (not @counting?))
-     [no-results-yet]
-     [:div.pane-body
-      (if @counting?
-        [:i.fa.fa-cog.fa-spin.fa-1x.fa-fw]
-        [:div
-         [:button.btn.btn-primary.btn-raised
-          {:on-click
-           (fn []
-             (dispatch
-               [:save-data {:sd/type    :query
-                            :sd/service :flymine
-                            :sd/label   (last (split (:title @selected-template) "-->"))
-                            :sd/value   (assoc @selected-template :title (last (split (:title @selected-template) "-->")))}]))} "Save"]
-
-         [:button.btn.btn-primary.btn-raised
-          {:on-click (fn []
-                       (dispatch [:templates/send-off-query]))}
-          "View All Results"]
-         #_[lighttable/main {:query      @selected-template
-                             :no-repeats true}]
-         ])])]
-  )
 
 (defn filters [categories template-filter filter-state]
   [:div.template-filters.container-fluid

@@ -4,7 +4,6 @@
 /resources/public/js/compiled
 /resources/public/vendor
 /resources/public/css
-/resources/public/js/min
 out
 .idea
 *.iml
