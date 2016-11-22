@@ -222,11 +222,11 @@
     (into [:div] (map (fn [t] [template t]) templates))))
 
 (defn template-filter []
-  (let [text-filer (subscribe [:template-chooser/text-filter])]
+  (let [text-filter (subscribe [:template-chooser/text-filter])]
     (fn []
       [:input.form-control.input-lg
        {:type        "text"
-        :value       @text-filer
+        :value       @text-filter
         :placeholder "Filter text..."
         :on-change   (fn [e]
                        (dispatch [:template-chooser/set-text-filter (.. e -target -value)]))}])))
@@ -237,40 +237,7 @@
     (re-pattern "(\\d)(?=(\\d{3})+$)") "$1,"))
 
 
-(defn no-results-yet []
-  [:div.panel-body
-   [:svg.icon.icon-info [:use {:xlinkHref "#icon-info"}]]
-   "Try clicking on a template name in the other pane to preview its results"]
-  )
 
-
-
-(defn results [counting? result-count selected-template]
-  [:div.pane.pane-default.results
-   [:div.pane-heading "Results preview " (cond @result-count (str "(" @result-count " rows)"))]
-   (if (and (nil? @result-count) (not @counting?))
-     [no-results-yet]
-     [:div.pane-body
-      (if @counting?
-        [:i.fa.fa-cog.fa-spin.fa-1x.fa-fw]
-        [:div
-         [:button.btn.btn-primary.btn-raised
-          {:on-click
-           (fn []
-             (dispatch
-               [:save-data {:sd/type    :query
-                            :sd/service :flymine
-                            :sd/label   (last (split (:title @selected-template) "-->"))
-                            :sd/value   (assoc @selected-template :title (last (split (:title @selected-template) "-->")))}]))} "Save"]
-
-         [:button.btn.btn-primary.btn-raised
-          {:on-click (fn []
-                       (dispatch [:templates/send-off-query]))}
-          "View All Results"]
-         #_[lighttable/main {:query      @selected-template
-                             :no-repeats true}]
-         ])])]
-  )
 
 (defn filters [categories template-filter filter-state]
   [:div.template-filters.container-fluid
