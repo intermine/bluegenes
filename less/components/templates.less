@@ -2,35 +2,40 @@
 @crazy-padding: 40px;
 
 .templates {
+    .template-filters {
+        background: darken(@body-background-color,3%);
+        //this padding stops content shwoing through at weird breakpoints;
+        padding-top: @crazy-padding;
+        position: fixed;
+        z-index: 42; //a higher z-index than light tables is the answer. And 42 is always the answer.
+        margin-top: -20px - (@crazy-padding);
+        padding-bottom: 2px;
+        box-shadow: 1px 1px 1px rgba(0,0,0,0.2);
+        right: 0;
+        left: 0;
 
+        .template-filter {
+            .control-label {
+                margin-top: 1px;
+            }
+        }
+    }
 
-          .template-filters {
-              background: darken(@body-background-color,3%);
-              //this padding stops content shwoing through at weird breakpoints;
-              padding-top:@crazy-padding;
-              position: fixed;
-              z-index:42; //a higher z-index than light tables is the answer. And 42 is always the answer.
-              margin-top: -20px - (@crazy-padding);
-              padding-bottom:2px;
-              box-shadow:1px 1px 1px rgba(0,0,0,0.2);
-              right: 0;
-              left: 0;
+    .bad-placeholder .template-filters {
+        //this is some wicked, evil styling which keeps a placeholder for the
+        //position:fixed filters, and pushes the content after it down so it's not
+        //overlapped. one day in the future we'll be able to use position:sticky
+        position: static;
+        visibility: hidden;
+    }
 
-              .template-filter {
-                  .control-label {
-                      margin-top: 1px;
-                  }
-              }
-          }
-
-          .bad-placeholder .template-filters {
-            //this is some wicked, evil styling which keeps a placeholder for the
-            //position:fixed filters, and pushes the content after it down so it's not
-            //overlapped. one day in the future we'll be able to use position:sticky
-              position: static;
-              visibility:hidden;
-          }
-
+    .no-results {
+        font-size: 1.2em;
+        text-align:center;
+        a {
+            color: @highlight-color;
+        }
+    }
 
     .templates-section {
         position: absolute;
@@ -195,6 +200,7 @@
         padding: 20px;
         border: 1px solid #ecebeb;
         .transitions;
+
         .title {
             font-size: 1.4em;
         }
@@ -241,16 +247,13 @@
         }
     }
 }
-
-
 @media (min-width:1200px) {
-  .templates .template-filters {
-    margin-top: -10px - @crazy-padding;
-  }
+    .templates .template-filters {
+        margin-top: -10px - @crazy-padding;
+    }
 }
-
 @media (max-width:600px) {
-  .templates .template-filters .template-filter .control-label {
-    margin-top:1  4px;
-  }
+    .templates .template-filters .template-filter .control-label {
+        margin-top: 1 4px;
+    }
 }
