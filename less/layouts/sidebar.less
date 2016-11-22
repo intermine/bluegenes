@@ -1,3 +1,7 @@
+@import "../variables";
+@import "../datatype-colors";
+
+
 @sidebar-width: 300px;
 
 div.indent {
@@ -14,7 +18,7 @@ div.indent {
 
 .sidebar {
   .bringout {
-    color: #009688;
+    color: @highlight-color;
   }
 
 
@@ -96,5 +100,5 @@ div.indent {
 }
 
 //this can't be namespaced nicely because twitter bootstrap is evil and
-//creates a new element that won't inherit all of the nicely namespaced classes. Sigh. 
+//creates a new element that won't inherit all of the nicely namespaced classes. Sigh.
 .sidebar-popover.popover-contents {color:#fff;}

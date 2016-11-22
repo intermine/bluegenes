@@ -85,10 +85,13 @@
 
                 &:hover {
                     background: darken(@body-background-color, 3%);
+                    color:@highlight-color;
                     .transitions;
                 }
 
-                &.active {
+                &.active, &.active > a {
+                  background-color:@highlight-color;
+
                     .icon {
                         fill: @body-background-color;
                     }

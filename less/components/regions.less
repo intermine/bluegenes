@@ -1,3 +1,7 @@
+@import "../variables";
+@import "../datatype-colors";
+
+
 div.region-results {
     display: flex;
     flex-direction: column;
@@ -28,7 +32,7 @@ svg.region {
 
     rect.datum {
         opacity: 0.2;
-        fill: #009688;
+        fill: @highlight-color;
     }
 
     path.guide {
