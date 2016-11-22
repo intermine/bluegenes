@@ -70,22 +70,21 @@
   (fn [{:keys [source description tags authorized name type size title timestamp dateCreated] :as l}]
     (let [date-created (tf/parse dateCreated)]
       [:div.grid-middle.list-row
-       [:div.col-8 [:div
-                    [:h4
-                     [:span.flags
-                      (if authorized [:i.fa.fa-user] [:i.fa.fa-globe])
-                      (if (one-of? tags "im:favourite") [:i.fa.fa-star] [:i.fa.fa-star-o])]
-                     [:a.stress {:on-click (fn [] (dispatch [:lists/view-results l]))} title]
-                     [:span {:style {:font-size "0.8em"}} (str " (" size " rows)")]]
-                    [:div {:style {:padding-left "40px"}} description]]]
-       [:div.col [:span
-                  [:h4 type]]]
-       ;[:div.col [:h4 size]]
-       [:div.col [:span (if dateCreated (if (t/after? date-created (t/today-at-midnight))
-                                          "Today"
-                                          [:div
-                                           [:div (tf/unparse (tf/formatter "MMM, dd") date-created)]
-                                           [:span (tf/unparse (tf/formatter "YYYY") date-created)]]))]]])))
+       [:div.col-8
+        [:h4
+         [:span.flags
+          (if authorized [:i.fa.fa-user] [:i.fa.fa-globe])
+          (if (one-of? tags "im:favourite") [:i.fa.fa-star] [:i.fa.fa-star-o])]
+         [:a.stress {:on-click (fn [] (dispatch [:lists/view-results l]))} title]
+         [:span.row-count (str " (" size " rows)")]]
+        [:div.description description]]
+       [:div.col.type-style {:class (str "type-" type)} [:span type]]
+       [:div.col.date-created [:span (if dateCreated (if (t/after? date-created (t/today-at-midnight))
+          "Today"
+          [:div
+           (tf/unparse (tf/formatter "MMM, dd") date-created) " "
+           (tf/unparse (tf/formatter "YYYY") date-created)]
+                                                       ))]]])))
 
 (defn sort-icon []
   (fn [kw class-chunk value]
@@ -100,15 +99,15 @@
         flag-filters (subscribe [:lists/flag-filters])]
     (fn []
       [:div
-       [:h1
+       [:h3
         (let [message (cond-> []
                               (some? (:authorized @flag-filters)) (conj (if (:authorized @flag-filters) "private" "public"))
                               (some? (:favourite @flag-filters)) (conj (if (:favourite @flag-filters) "favourite" "non-favourite")))]
           [:span
            [:span (str "You have no " (clojure.string/join ", " message) " lists")]
            (if @text-filter
-             [:span " containing the phrase " [:span.stress
-                                               {:style {:font-style "italic"}} @text-filter]])]
+             [:span " containing the phrase "
+              [:span.no-results @text-filter]])]
           )]
        [:a
         {:on-click (fn [] (dispatch [:lists/clear-filters nil]))}
@@ -121,8 +120,7 @@
        [:div.grid
         [:div.col-8
          [:span
-          [:h3 {:style {:padding-right "5px"
-                        :display       "inline-block"}} "Title"]
+          [:h3.list-title "Title"]
           [controls [sort-icon :title "fa-sort-alpha" (:title @sort-order)]]]]
         [:div.col [:h3 "Type "]]
         ;[:div.col [:h4 "Count"]]
