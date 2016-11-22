@@ -12,9 +12,13 @@
             [redgenes.components.search.events :as search-full]
             [redgenes.sections.reportpage.handlers]
             [redgenes.persistence :as persistence]
+            [im-tables.events]
             [imcljsold.search :as search]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
             [imcljs.fetch :as fetch]))
+
+
+
 
 ; Change the main panel to a new view
 (reg-event-fx
