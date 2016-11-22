@@ -7,30 +7,31 @@
             [dommy.core :as dommy :refer-macros [sel sel1]]
             [accountant.core :refer [navigate!]]))
 
-(def enrichment-config {:pathway_enrichment           {:title   "Pathway Enrichment"
-                                                       :returns [{:header "Pathway" :field :description}
-                                                                 {:header "Matches" :field :matches}
-                                                                 {:header "p-value" :field :p-value}]}
-                        :go_enrichment_for_gene       {:title   "Gene Ontology Enrichment"
-                                                       :returns [{:header "GO Term" :field :description}
-                                                                 {:header "Matches" :field :matches}
-                                                                 {:header "p-value" :field :p-value}]}
-                        :prot_dom_enrichment_for_gene {:title   "Protein Domain Enrichment"
-                                                       :returns [{:header "Protein Domain" :field :description}
-                                                                 {:header "Matches" :field :matches}
-                                                                 {:header "p-value" :field :p-value}]}
-                        :publication_enrichment       {:title   "Publication Enrichment"
-                                                       :returns [{:header "Protein Domain" :field :description}
-                                                                 {:header "Matches" :field :matches}
-                                                                 {:header "p-value" :field :p-value}]}
-                        :bdgp_enrichment              {:title   "BDGP Enrichment"
-                                                       :returns [{:header "Terms" :field :description}
-                                                                 {:header "Matches" :field :matches}
-                                                                 {:header "p-value" :field :p-value}]}
-                        :miranda_enrichment           {:title   "MiRNA Enrichment"
-                                                       :returns [{:header "X" :field :description}
-                                                                 {:header "Matches" :field :matches}
-                                                                 {:header "p-value" :field :p-value}]}})
+(def enrichment-config
+  {:pathway_enrichment           {:title   "Pathway Enrichment"
+                                 :returns [{:header "Pathway" :field :description}
+                                           {:header "Matches" :field :matches}
+                                           {:header "p-value" :field :p-value}]}
+  :go_enrichment_for_gene       {:title   "Gene Ontology Enrichment"
+                                 :returns [{:header "GO Term" :field :description}
+                                           {:header "Matches" :field :matches}
+                                           {:header "p-value" :field :p-value}]}
+  :prot_dom_enrichment_for_gene {:title   "Protein Domain Enrichment"
+                                 :returns [{:header "Protein Domain" :field :description}
+                                           {:header "Matches" :field :matches}
+                                           {:header "p-value" :field :p-value}]}
+  :publication_enrichment       {:title   "Publication Enrichment"
+                                 :returns [{:header "Protein Domain" :field :description}
+                                           {:header "Matches" :field :matches}
+                                           {:header "p-value" :field :p-value}]}
+  :bdgp_enrichment              {:title   "BDGP Enrichment"
+                                 :returns [{:header "Terms" :field :description}
+                                           {:header "Matches" :field :matches}
+                                           {:header "p-value" :field :p-value}]}
+  :miranda_enrichment           {:title   "MiRNA Enrichment"
+                                 :returns [{:header "X" :field :description}
+                                           {:header "Matches" :field :matches}
+                                           {:header "p-value" :field :p-value}]}})
 
 
 (defn results []
