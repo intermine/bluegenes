@@ -13,6 +13,7 @@
             [redgenes.components.idresolver.views :as idresolver]
             [redgenes.components.databrowser.views :as explore]
             [redgenes.sections.results.views :as results]
+            [redgenes.sections.lists.views :as lists]
             [redgenes.sections.regions.views :as regions]
             [redgenes.sections.saveddata.views :as saved-data]
             [redgenes.sections.help.views :as help]
