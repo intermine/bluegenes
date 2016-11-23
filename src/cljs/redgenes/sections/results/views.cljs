@@ -6,7 +6,8 @@
             [redgenes.sections.results.subs]
             [redgenes.components.bootstrap :refer [popover tooltip]]
             [clojure.string :refer [split]]
-            [oops.core :refer [oget]]))
+            [oops.core :refer [oget]]
+            [im-tables.views.core :as tables]))
 
 
 (def css-transition-group
@@ -218,6 +219,8 @@
         [:div.col-md-9.col-sm-12
          [:div.panel.panel-default
           [:div.panel-body.autoscroll
-           (if @query [table/main @package-for-table true])]]]
+           [tables/main [:results :fortable]]
+           ;(if @query [table/main @package-for-table true])
+           ]]]
         [:div.col-md-3.col-sm-12
          [side-bar]]]])))

@@ -4,7 +4,8 @@
             [redgenes.mines :as default-mines]
             [imcljs.fetch :as fetch]
             [day8.re-frame.async-flow-fx]
-            [redgenes.persistence :as persistence]))
+            [redgenes.persistence :as persistence]
+            [im-tables.events]))
 
 (defn boot-flow [db]
   {:first-dispatch [:authentication/fetch-anonymous-token (get db :current-mine)]

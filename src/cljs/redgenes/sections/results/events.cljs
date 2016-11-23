@@ -58,16 +58,22 @@
   (abort-spec im-package)
   (fn [{db :db} [_ {:keys [source value type] :as package}]]
     (let [model (get-in db [:mines source :service :model :classes])]
-      {:db       (update-in db [:results] assoc
-                            :query value
-                            :package package
-                            ;:service (get-in db [:mines source :service])
-                            :history [package]
-                            :history-index 0
-                            :query-parts (filters/get-parts model value)
-                            :enrichment-results nil)
-       :dispatch ^:flush-dom [:results/enrich]})))
-
+      {:db         (update-in db [:results] assoc
+                              :query value
+                              :package package
+                              ;:service (get-in db [:mines source :service])
+                              :history [package]
+                              :history-index 0
+                              :query-parts (filters/get-parts model value)
+                              :enrichment-results nil)
+       ; TOOD ^:flush-dom
+       :dispatch-n [[:results/enrich]
+                    [:im-tables.main/replace-all-state
+                     [:results :fortable]
+                     {:settings {:links {:vocab    {:mine (name source)}
+                                         :on-click (fn [val] (accountant/navigate! val))}}
+                      :query    value
+                      :service  (get-in db [:mines source :service])}]]})))
 
 (reg-event-fx
   :results/add-to-history
