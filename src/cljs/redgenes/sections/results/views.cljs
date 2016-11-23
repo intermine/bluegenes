@@ -196,13 +196,13 @@
        (into [:ul.breadcrumb.inline]
              (map-indexed
                (fn [idx {{title :title} :value}]
-                 (let [adjsuted-title (if (not= idx @history-index) (adjust-str-to-length 20 title) title)]
+                 (let [adjusted-title (if (not= idx @history-index) (adjust-str-to-length 20 title) title)]
                    [:li {:class (if (= @history-index idx) "active")}
                     [tooltip
                      [:a
                       {:data-placement "bottom"
                        :title          title
-                       :on-click       (fn [x] (dispatch [:results/load-from-history idx]))} adjsuted-title]]])) @history))])))
+                       :on-click       (fn [x] (dispatch [:results/load-from-history idx]))} adjusted-title]]])) @history))])))
 
 
 
@@ -221,16 +221,3 @@
            (if @query [table/main @package-for-table true])]]]
         [:div.col-md-3.col-sm-12
          [side-bar]]]])))
-
-
-
-
-
-
-;[:button.btn.btn-primary.btn-raised
-; {:on-click (fn []
-;              (dispatch
-;                [:save-data {:sd/type    :query
-;                             :sd/service :flymine
-;                             :sd/label   (last (split (:title @query) "-->"))
-;                             :sd/value   (assoc @query :title (last (split (:title @query) "-->")))}]))} "Save"]
