@@ -16,33 +16,41 @@
                                   [:assets/fetch-templates]
                                   [:assets/fetch-summary-fields]]}
                     ; When all assets are loaded let bluegenes know
-                    {:when     :seen-all-of?
-                     :events   [:assets/success-fetch-model
-                                :assets/success-fetch-lists
-                                :assets/success-fetch-templates
-                                :assets/success-fetch-summary-fields]
+                    {:when       :seen-all-of?
+                     :events     [:assets/success-fetch-model
+                                  :assets/success-fetch-lists
+                                  :assets/success-fetch-templates
+                                  :assets/success-fetch-summary-fields]
                      :dispatch-n (list [:finished-loading-assets] [:save-state])
-                     :halt?    true}]})
+                     :halt?      true}]})
+
+(defn im-tables-events-forwarder []
+  {:register    :im-tables-events ;;  <-- used
+   :events      #{:imt.io/save-list-success}
+   :dispatch-to [:assets/fetch-lists]})
 
 ; Boot the application.
 (reg-event-fx
   :boot
   (fn []
-    (let [db (assoc db/default-db :mines default-mines/mines)
-          state (persistence/get-state!)
+    (let [db         (assoc db/default-db :mines default-mines/mines)
+          state      (persistence/get-state!)
           has-state? (seq state)]
       (if has-state?
-        {:db         (assoc db/default-db
-                       :current-mine (:current-mine state)
-                       :mines (:mines state)
-                       :assets (:assets state)
-                        ;;we had assets in localstorage. We'll still load the fresh ones in the background in case they changed, but we can make do with these for now.
-                       :fetching-assets? false)
-         :async-flow (boot-flow db)}
-         {:db         (assoc db/default-db
-                        :mines default-mines/mines
-                        :fetching-assets? true)
-          :async-flow (boot-flow db)})
+        {:db             (assoc db/default-db
+                           :current-mine (:current-mine state)
+                           :mines (:mines state)
+                           :assets (:assets state)
+                           ;;we had assets in localstorage. We'll still load the fresh ones in the background in case they changed, but we can make do with these for now.
+                           :fetching-assets? false)
+         :async-flow     (boot-flow db)
+         :forward-events (im-tables-events-forwarder)}
+
+        {:db             (assoc db/default-db
+                           :mines default-mines/mines
+                           :fetching-assets? true)
+         :async-flow     (boot-flow db)
+         :forward-events (im-tables-events-forwarder)})
       )))
 
 (reg-event-fx
