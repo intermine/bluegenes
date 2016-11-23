@@ -51,8 +51,8 @@ example-text))
         (str "Remove selected (" (count @selected) ")")]
        [:button.btn.btn-primary.btn-raised
         {:class    (if (nil? @results) "disabled")
-         :on-click (fn [] (if (some? @results) (dispatch [:idresolver/analyse])))}
-        "View Results" true]])))
+         :on-click (fn [] (if (some? @results) (dispatch [:idresolver/analyse true])))}
+        "View Results"]])))
 
 
 ;
