@@ -16,6 +16,9 @@
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
             [imcljs.fetch :as fetch]))
 
+
+
+
 ; Change the main panel to a new view
 (reg-event-fx
   :do-active-panel
