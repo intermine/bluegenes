@@ -218,7 +218,7 @@
        [:div.row
         [:div.col-md-9.col-sm-12
          [:div.panel.panel-default
-          [:div.panel-body.autoscroll
+          [:div.panel-body
            [tables/main [:results :fortable]]
            ;(if @query [table/main @package-for-table true])
            ]]]

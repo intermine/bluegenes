@@ -1,6 +1,7 @@
 (ns redgenes.events
   (:require-macros [cljs.core.async.macros :refer [go]])
   (:require [re-frame.core :as re-frame :refer [reg-event-db reg-fx reg-event-fx dispatch subscribe]]
+            [im-tables.events]
             [redgenes.events.boot]
             [day8.re-frame.http-fx]
             [day8.re-frame.forward-events-fx]

@@ -4,6 +4,7 @@
             [devtools.core :as devtools]
     ;[redgenes.modules :as modules]
             [redgenes.utils]
+            [im-tables.core]
             [redgenes.events]
             [redgenes.subs]
             [redgenes.routes :as routes]

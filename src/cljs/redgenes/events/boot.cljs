@@ -3,9 +3,7 @@
             [redgenes.db :as db]
             [redgenes.mines :as default-mines]
             [imcljs.fetch :as fetch]
-            [day8.re-frame.async-flow-fx]
-            [redgenes.persistence :as persistence]
-            [im-tables.events]))
+            [redgenes.persistence :as persistence]))
 
 (defn boot-flow [db]
   {:first-dispatch [:authentication/fetch-anonymous-token (get db :current-mine)]
@@ -47,6 +45,7 @@
                            :fetching-assets? false)
          :async-flow     (boot-flow db)
          :forward-events (im-tables-events-forwarder)}
+
         {:db             (assoc db/default-db
                            :mines default-mines/mines
                            :fetching-assets? true)
