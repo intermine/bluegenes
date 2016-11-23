@@ -55,6 +55,7 @@
 (defmethod panels :search-panel [] [search/main])
 (defmethod panels :results-panel [] [results/main])
 (defmethod panels :regions-panel [] [regions/main])
+(defmethod panels :saved-data-panel [] [lists/main])
 (defmethod panels :explore-panel [] [explore/main])
 (defmethod panels :help-panel [] [help/main])
 (defmethod panels :querybuilder-panel [] [:div.container [querybuilder/main]])
