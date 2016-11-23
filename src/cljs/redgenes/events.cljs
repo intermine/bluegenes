@@ -11,6 +11,7 @@
             [redgenes.components.navbar.events]
             [redgenes.components.search.events :as search-full]
             [redgenes.sections.reportpage.handlers]
+            [redgenes.effects]
             [redgenes.persistence :as persistence]
             [imcljsold.search :as search]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]

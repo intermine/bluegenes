@@ -2,7 +2,6 @@
   (:require [reagent.core :as reagent]
             [re-frame.core :as re-frame :refer [subscribe dispatch]]
             [redgenes.components.querybuilder.core :refer [ops]]
-            [redgenes.components.lists.views :as list-views]
             [json-html.core :as json]))
 
 (def ops-for-type

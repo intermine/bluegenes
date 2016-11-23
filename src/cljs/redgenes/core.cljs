@@ -10,7 +10,6 @@
             [redgenes.views :as views]
             [redgenes.config :as config]
     ;[redgenes.workers :as workers]
-            [redgenes.components.listanalysis.core]
             [redgenes.components.querybuilder.subs]
             [redgenes.components.templates.core]
             [oops.core :refer [oget oset! ocall oapply ocall! oapply!

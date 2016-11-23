@@ -8,6 +8,7 @@
             [day8.re-frame.http-fx]
             [ajax.core :as ajax]
             [redgenes.interceptors :refer [clear-tooltips]]
+            [redgenes.specs :refer [im-package]]
             [dommy.core :refer-macros [sel sel1]]
             [redgenes.sections.saveddata.events]
             [redgenes.interceptors :refer [abort-spec]]))
@@ -54,7 +55,7 @@
 
 (reg-event-fx
   :results/set-query
-  (abort-spec redgenes.specs/im-package)
+  (abort-spec im-package)
   (fn [{db :db} [_ {:keys [source value type] :as package}]]
     (let [model (get-in db [:mines source :service :model :classes])]
       {:db       (update-in db [:results] assoc

@@ -43,14 +43,6 @@
   (defroute "/search" []
             (re-frame/dispatch [:set-active-panel :search-panel]))
 
-  (defroute "/listanalysis" []
-            (re-frame/dispatch [:set-active-panel :list-analysis-panel]))
-
-  (defroute "/listanalysis/temp/:name" [name]
-            (re-frame/dispatch [:set-active-panel :list-analysis-panel
-                                {:temp name}
-                                [:listanalysis/run-all {:temp name}]]))
-
   (defroute "/querybuilder" []
             (re-frame/dispatch [:set-active-panel :querybuilder-panel
                                 nil
