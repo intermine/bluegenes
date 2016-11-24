@@ -61,7 +61,7 @@
 (defmethod panels :explore-panel [] [explore/main])
 (defmethod panels :help-panel [] [help/main])
 (defmethod panels :querybuilder-panel [] [:div.container [querybuilder/main]])
-(defmethod panels :default [] [help/main])
+(defmethod panels :default [] [home/main])
 
 (defn show-panel
   [panel-name]
