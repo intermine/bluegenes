@@ -13,9 +13,9 @@
 (defn lists []
   [:div.feature.lists
    [:h3 "Lists"]
-   [:div.piccie [:a {:on-click #(navigate! "#/upload")} [:svg.icon.icon-summary [:use {:xlinkHref "#icon-summary"}]]]]
-   [:div [:a {:on-click #(navigate! "#/saved-data")} "View"]
-    [:a {:on-click #(navigate! "#/upload")} "Upload"]]
+   [:div.piccie [:a {:on-click #(navigate! "/upload")} [:svg.icon.icon-summary [:use {:xlinkHref "#icon-summary"}]]]]
+   [:div [:a {:on-click #(navigate! "/saved-data")} "View"]
+    [:a {:on-click #(navigate! "/upload")} "Upload"]]
    ])
 
 
@@ -23,17 +23,17 @@
   [:div.feature.templates
    [:h3 "Templates"]
    [:div.piccie
-    [:a {:on-click #(navigate! "#/templates")} [:svg.icon.icon-search [:use {:xlinkHref "#icon-search"}]]]]
-   [:div [:a {:on-click #(navigate! "#/templates")} "Browse"]]
+    [:a {:on-click #(navigate! "/templates")} [:svg.icon.icon-search [:use {:xlinkHref "#icon-search"}]]]]
+   [:div [:a {:on-click #(navigate! "/templates")} "Browse"]]
    ])
 
 (defn help []
   [:div.feature.help
    [:h3 "Help"]
-   [:div.piccie [:a {:on-click #(navigate! "#/help")}
+   [:div.piccie [:a {:on-click #(navigate! "/help")}
     [:svg.icon.icon-summary [:use {:xlinkHref "#icon-eh"}]]]]
-   [:div [:a {:on-click #(navigate! "#/help")} "Tour"]
-    [:a {:on-click #(navigate! "#/help")} "Docs/Help"]]
+   [:div [:a {:on-click #(navigate! "/help")} "Tour"]
+    [:a {:on-click #(navigate! "/help")} "Docs/Help"]]
    ])
 
 

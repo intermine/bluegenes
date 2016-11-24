@@ -46,22 +46,6 @@
              )} "Delete RedGenes localstorage... for now."]]
         ]))
 
-(defn old-stuff []
-  [:div
-   (json-html/edn->hiccup @(subscribe [:mines]))
-   #_[:div.title "Routes"]
-   #_[:div.btn-toolbar
-      [:button.btn {:on-click #(navigate! "#/assets/lists/123")} "Asset: List: (123)"]
-      [:button.btn {:on-click #(navigate! "#/reportpage/type/12345")} "Object (12345)"]
-      [:button.btn {:on-click #(navigate! "#/listanalysis/list/PL FlyAtlas_midgut_top")} "List (PL FlyAtlas_midgut_top)"]]
-   #_[:div.panel.container
-      [:div.title "Global Progress Bar"]
-      [:button.btn
-       {:on-click #(dispatch [:test-progress-bar (rand-int 101)])} "Random"]
-      [:button.btn
-       {:on-click #(dispatch [:test-progress-bar 0])} "Hide"]]
-   ])
-
 (defn iconview []
   [:div.panel.container [:h3 "All icons defs in the icons file (components/icons.cljs.)"]
    (let [icon-names (rest (last (icons/icons)))]

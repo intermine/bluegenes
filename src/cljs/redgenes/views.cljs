@@ -6,6 +6,7 @@
             [redgenes.components.icons :as icons]
             [redgenes.sections.home.views :as home]
             [redgenes.components.search.views :as search]
+            [redgenes.effects]
             [redgenes.sections.reportpage.views :as reportpage]
             [redgenes.components.templates.views :as templates]
             [redgenes.components.querybuilder.views.main :as querybuilder]
@@ -26,7 +27,7 @@
 (defn about-panel []
   (fn []
     [:div "This is the About Page."
-     [:div [:a.callout {:on-click #(navigate! "#/")} "go to Home Page"]]]))
+     [:div [:a.callout {:on-click #(navigate! "/")} "go to Home Page"]]]))
 
 
 (defn footer []
@@ -60,7 +61,7 @@
 (defmethod panels :explore-panel [] [explore/main])
 (defmethod panels :help-panel [] [help/main])
 (defmethod panels :querybuilder-panel [] [:div.container [querybuilder/main]])
-(defmethod panels :default [] [home/main])
+(defmethod panels :default [] [help/main])
 
 (defn show-panel
   [panel-name]

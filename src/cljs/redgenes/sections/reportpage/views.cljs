@@ -22,7 +22,7 @@
          [:div
           [:ol.breadcrumb
            [:li [:a "Home"]]
-           [:li [:a {:href "#/search" :on-click #(navigate! "#/search")} "Search Results"]]
+           [:li [:a {:href "#/search" :on-click #(navigate! "/search")} "Search Results"]]
            [:li.active [:a "Report"]]]
           [summary/main (:summary @report)]
            (cond (= "Gene" (:type @params))

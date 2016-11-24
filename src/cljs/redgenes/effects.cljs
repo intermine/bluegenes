@@ -14,7 +14,7 @@
 (reg-fx
   :navigate
   (fn [url]
-    (accountant/navigate! (str "#/" url))))
+    (accountant/navigate! url)))
 
 (reg-fx
   :im-operation

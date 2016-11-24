@@ -13,7 +13,7 @@
 
 (defn navigate-to-full-results
   "Navigate to the full results page. duh." []
-    (navigate! "#/search")
+    (navigate! "/search")
     (cond
       (some? @(subscribe [:search-term]))
         (dispatch [:search/full-search])

@@ -24,7 +24,7 @@
            :class (cond (= id (:id @current-mine)) "active")}
             [:a [mine-icon details]
                  (:name details)]]) @(subscribe [:mines])))
-        [:li.special [:a {:on-click #(navigate! "#/debug")} [:i.fa.fa-terminal] " Developer"]])
+        [:li.special [:a {:on-click #(navigate! "/debug")} [:i.fa.fa-terminal] " Developer"]])
 ])))
 
 (defn logged-in [user]
@@ -83,7 +83,7 @@
        [:div.container-fluid
         [:ul.nav.navbar-nav.navbar-collapse.navigation
          [:li [:div.navbar-header
-               [:span.navbar-brand {:on-click #(navigate! "#/")}
+               [:span.navbar-brand {:on-click #(navigate! "/")}
                 [active-mine-logo]
                 [:span.long-name (:name @current-mine)]
                 ]]]
@@ -93,7 +93,7 @@
          [:li {:class (if (panel-is :templates-panel) "active")} [:a {:on-click #(navigate! "/templates")} "Templates"]]
          [:li {:class (if (panel-is :regions-panel) "active")} [:a {:on-click #(navigate! "/regions")} "Regions"]]
          ;;never fear, the QB will be BACK
-         ;[:li {:class (if (panel-is :querybuilder-panel) "active")} [:a {:on-click #(navigate! "#/querybuilder")} "Query\u00A0Builder"]]
+         ;[:li {:class (if (panel-is :querybuilder-panel) "active")} [:a {:on-click #(navigate! "/querybuilder")} "Query\u00A0Builder"]]
          [:li {:class (if (panel-is :saved-data-panel) "active")} [:a {:on-click #(navigate! "/saved-data")} (str "Lists\u00A0(" (apply + (map count (vals @lists))) ")")]
           ;;example tooltip. Include as last child, probably with some conditional to display and an event handler for saving the name
           (if @ttip [save-data-tooltip @ttip])]]
