@@ -3,17 +3,8 @@
   (:import goog.History)
   (:require [secretary.core :as secretary]
             [accountant.core :as accountant]
-            [goog.events :as events]
-            [goog.history.EventType :as EventType]
             [re-frame.core :as re-frame]))
 
-(defn hook-browser-navigation! []
-  (doto (History.)
-    (events/listen
-      EventType/NAVIGATE
-      (fn [event]
-        (accountant/navigate! (str "#" (.-token event)))))
-    (.setEnabled true)))
 
 (defn app-routes []
   (secretary/set-config! :prefix "#")
@@ -67,7 +58,8 @@
   ;; --------------------
 
   (accountant/configure-navigation!
+   ;;We use a custom brew accountant version which navigates based on fragments. this prevents the annoying double back button problem where the homepage kept on popping up in the history when we pressed the back button even though we hadn't been to the homepage at that point in the navigation flow.  
     {:nav-handler  (fn [path] (secretary/dispatch! path))
      :path-exists? (fn [path] (secretary/locate-route path))})
 
-  (hook-browser-navigation!))
+)
