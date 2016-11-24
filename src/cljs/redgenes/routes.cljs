@@ -3,17 +3,8 @@
   (:import goog.History)
   (:require [secretary.core :as secretary]
             [accountant.core :as accountant]
-            [goog.events :as events]
-            [goog.history.EventType :as EventType]
             [re-frame.core :as re-frame]))
 
-(defn hook-browser-navigation! []
-  (doto (History.)
-    (events/listen
-      EventType/NAVIGATE
-      (fn [event]
-        (accountant/navigate! (str "#" (.-token event)))))
-    (.setEnabled true)))
 
 (defn app-routes []
   (secretary/set-config! :prefix "#")
@@ -70,4 +61,4 @@
     {:nav-handler  (fn [path] (secretary/dispatch! path))
      :path-exists? (fn [path] (secretary/locate-route path))})
 
-  (hook-browser-navigation!))
+)
