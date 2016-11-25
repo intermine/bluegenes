@@ -9,7 +9,8 @@
             [cljs-time.format :as tf]
             [cljs-time.core :as t]
             [redgenes.components.icons :as icons]
-            [oops.core :refer [oget]]))
+            [oops.core :refer [oget ocall]]
+            [redgenes.sections.lists.views.operations :as operations]))
 
 
 (def time-formatter (tf/formatter "HH:mm"))
@@ -66,25 +67,35 @@
            :on-click       (fn [] (dispatch [:lists/toggle-flag-filter :favourite]))}]]
         ]])))
 
+(defn in [needle haystack] (some? (some #{needle} haystack)))
+
 (defn list-row []
-  (fn [{:keys [source description tags authorized name type size title timestamp dateCreated] :as l}]
-    (let [date-created (tf/parse dateCreated)]
-      [:div.grid-middle.list-row
-       [:div.col-8
-        [:h4
-         [:span.flags
-          (if authorized [:i.fa.fa-user] [:i.fa.fa-globe])
-          (if (one-of? tags "im:favourite") [:i.fa.fa-star] [:i.fa.fa-star-o])]
-         [:a.stress {:on-click (fn [] (dispatch [:lists/view-results l]))} title]
-         [:span.row-count (str " (" size " rows)")]]
-        [:div.description description]]
-       [:div.col.type-style {:class (str "type-" type)} [:span type]]
-       [:div.col.date-created [:span (if dateCreated (if (t/after? date-created (t/today-at-midnight))
-          "Today"
-          [:div
-           (tf/unparse (tf/formatter "MMM, dd") date-created) " "
-           (tf/unparse (tf/formatter "YYYY") date-created)]
-                                                       ))]]])))
+  (let [selected (subscribe [:lists/selected])]
+    (fn [{:keys [source description tags authorized name type size title timestamp dateCreated] :as l}]
+      (let [date-created (tf/parse dateCreated)]
+        [:div.grid-middle.list-row
+
+         [:div.col
+          [:input {:type      "checkbox"
+                   :checked   (if (in name @selected) true)
+                   :on-change (fn [e] (dispatch ^:flush-dom [:lists/select name (oget e :target :checked)]))}]]
+         [:div.col-8
+          [:h4
+           [:span.flags
+            (if authorized [:i.fa.fa-user] [:i.fa.fa-globe])
+            (if (one-of? tags "im:favourite") [:i.fa.fa-star] [:i.fa.fa-star-o])]
+           [:a.stress {:on-click (fn [] (dispatch [:lists/view-results l]))} title]
+           [:span.row-count (str " (" size " rows)")]]
+          [:div.description description]]
+         [:div.col.type-style {:class (str "type-" type)} [:span type]]
+         [:div.col.date-created [:span (if dateCreated (if (t/after? date-created (t/today-at-midnight))
+                                                         "Today"
+                                                         [:div
+                                                          (tf/unparse (tf/formatter "MMM, dd") date-created) " "
+                                                          (tf/unparse (tf/formatter "YYYY") date-created)]
+                                                         ))]]]))))
+
+
 
 (defn sort-icon []
   (fn [kw class-chunk value]
@@ -118,6 +129,7 @@
     (fn [lists]
       [:div.list-container
        [:div.grid
+        [:div.col]
         [:div.col-8
          [:span
           [:h3.list-title "Title"]
@@ -138,4 +150,5 @@
     (fn []
       [:div.list-section
        {:style {:width "100%"}}
+       [operations/operations-bar]
        [list-table @filtered-lists]])))
