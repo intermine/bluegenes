@@ -14,13 +14,15 @@
                      :dispatch-n [[:assets/fetch-model]
                                   [:assets/fetch-lists]
                                   [:assets/fetch-templates]
+                                  [:assets/fetch-widgets]
                                   [:assets/fetch-summary-fields]]}
                     ; When all assets are loaded let bluegenes know
                     {:when       :seen-all-of?
                      :events     [:assets/success-fetch-model
                                   :assets/success-fetch-lists
                                   :assets/success-fetch-templates
-                                  :assets/success-fetch-summary-fields]
+                                  :assets/success-fetch-summary-fields
+                                  :assets/success-fetch-widgets]
                      :dispatch-n (list [:finished-loading-assets] [:save-state])
                      :halt?      true}]})
 
@@ -136,3 +138,21 @@
     {:db           db
      :im-operation {:op         (partial fetch/summary-fields (get-in db [:mines (:current-mine db) :service]))
                     :on-success [:assets/success-fetch-summary-fields (:current-mine db)]}}))
+
+(reg-event-fx
+  :assets/fetch-widgets
+  ;;fetches all enrichment widgets. afaik the non-enrichment widgets are InterMine 1.x UI specific so are filtered out upon success
+  (fn [{db :db}]
+    {:im-operation
+     {:op (partial fetch/widgets (get-in db [:mines (:current-mine db) :service]))
+      :on-success [:assets/success-fetch-widgets (:current-mine db)]}}
+    ))
+
+(reg-event-db
+  :assets/success-fetch-widgets
+  (fn [db [_ mine-kw widgets]]
+    (let [widget-type "enrichment"
+          filtered-widgets (doall (filter (fn [widget]
+      (= widget-type (:widgetType widget))
+      ) (:widgets widgets)))]
+    (assoc-in db [:assets :widgets mine-kw] filtered-widgets))))
