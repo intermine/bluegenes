@@ -11,9 +11,9 @@
             [im-tables.views.core :as tables]))
 
 ;;==============================TODO============================
-;; some enrichment widgets have filters! Add support for this as I think they return 0 if you don't add a filter.
+;; 1. some enrichment widgets have filters! Add support for this as I think they return 0 if you don't add a filter.
 ;;---
-;; add dropdown or something for when you can enrich against more than one query part.
+;; 2. add a dropdown or something for when you can enrich against more than one query part.
 ;; right now it uses the first and I've yet to find a scenario where this is
 ;; more than one available. It'll log to the console if there ever is one.
 ;;==============================================================

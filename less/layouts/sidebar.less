@@ -1,31 +1,24 @@
 @import "../variables";
 @import "../datatype-colors";
-
-
 @sidebar-width: 300px;
 
 div.indent {
     padding-left: 10px;
 }
 
-.sidebar .form-control, label {
+.sidebar .form-control,
+label {
     font-size: 0.8em;
     color: #525252;
 }
 
-
-
-
 .sidebar {
-  .bringout {
-    color: @highlight-color;
-  }
-
-
+    .bringout {
+        color: @highlight-color;
+    }
     padding: 10px;
     background-color: #DDD;
     // width: @sidebar-width;
-
     h4 {
         .bringout;
 
@@ -33,45 +26,54 @@ div.indent {
             font-style: italic;
         }
     }
+
     i {
-      padding: 0 10px 0 10px;
+        padding: 0 10px;
     }
-    ul.enrichment-list {
-      padding-left: 10px;
-      font-size: 0.9em;
-      li {
-        transition: all 0.25s ease;
-        list-style-type: none;
-        padding: 2px;
-        &:not(:last-child) {
-          border-bottom: 1px dotted #c1c1c1;
+
+    .enrichment-list {
+        padding-left: 0;
+        font-size: 0.9em;
+
+        li {
+            transition: all 0.25s ease;
+            list-style-type: none;
+
+            &:not(:last-child) {
+                border-bottom: 1px dotted #c1c1c1;
+            }
+
+            &:hover {
+                background-color: white;
+                color: black;
+            }
         }
 
-        &:hover {
-          background-color: white;
-          color: black;
+        .col-xs-8:first-child {
+            padding-left: 0;
         }
-      }
+
+        .col-xs-4:last-child {
+            padding-right: 0;
+            padding-left: 0;
+        }
     }
 
     div.popover-contents {
-      padding: 5px 0 5px 0;
-      div.title {
-        font-size: 1.2em;
-        padding-bottom: 4px;
-      }
+        padding: 5px 0;
 
-      div.value {
+        div.title {
+            font-size: 1.2em;
+            padding-bottom: 4px;
+        }
 
-      }
+        div.value {}
     }
 }
-
 
 .has-left-sidebar {
     margin-left: @sidebar-width;
 }
-
 
 .inline {
     display: inline;
@@ -98,7 +100,9 @@ div.indent {
 .breadcrumb-container {
     padding: 10px;
 }
-
 //this can't be namespaced nicely because twitter bootstrap is evil and
 //creates a new element that won't inherit all of the nicely namespaced classes. Sigh.
-.sidebar-popover.popover-contents {color:#fff;}
+
+.sidebar-popover.popover-contents {
+    color: #fff;
+}

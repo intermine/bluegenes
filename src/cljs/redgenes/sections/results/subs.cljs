@@ -39,7 +39,6 @@
   (fn [db]
     (get-in db [:results :active-widgets])))
 
-
 (reg-sub
   :results/text-filter
   (fn [db]
