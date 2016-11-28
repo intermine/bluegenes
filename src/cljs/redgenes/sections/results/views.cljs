@@ -69,11 +69,16 @@
       false)
     true))
 
+(def enrichment-results-header
+  [:div.enrichment-header
+   [:div.container-fluid
+   [:div.row
+    [:div.col-xs-8 "Item"]
+    [:div.col-xs-4.p-val "p-value"]]]])
 
 (defn enrichment-results-preview []
   (let [page-state  (reagent/atom {:page 0 :show 5})
         text-filter (subscribe [:results/text-filter])
-        ;;TODO need to dehardcode this
         config (subscribe [:results/enrichment-config])]
     (fn [[widget-name {:keys [results] :as details}]]
       [:div
@@ -85,18 +90,20 @@
            (if (< 0 (count results))
              [:span
               [:i.fa.fa-caret-left
-               {:on-click (fn [] (swap! page-state update :page dec))}]
+               {:on-click (fn [] (swap! page-state update :page dec))
+                :title "View previous 5 enrichment results"}]
               [:i.fa.fa-caret-right
-               {:on-click (fn [] (swap! page-state update :page inc))}]])]
+               {:on-click (fn [] (swap! page-state update :page inc))
+                :title "View next 5 enrichment results"}]])]
           [:span [:i.fa.fa-cog.fa-spin]])]
-
-
+          (cond (seq (:results details)) enrichment-results-header)
        (into [:ul.enrichment-list]
-             (map (fn [row] [enrichment-result-row row details])
-                  (take (:show @page-state) (filter
-                                              (fn [{:keys [description]}]
-                                                (has-text? @text-filter description))
-                                              (drop (* (:page @page-state) (:show @page-state)) results)))))])))
+         (map (fn [row] [enrichment-result-row row details])
+          (take (:show @page-state)
+            (filter
+              (fn [{:keys [description]}]
+                (has-text? @text-filter description))
+              (drop (* (:page @page-state) (:show @page-state)) results)))))])))
 
 
 (defn enrichment-results []
@@ -110,10 +117,6 @@
           {:transition-name          "fade"
            :transition-enter-timeout 500
            :transition-leave-timeout 500}
-          [:div.container-fluid
-           [:div.row
-            [:div.col-xs-8 "Item"]
-            [:div.col-xs-4 "p-value"]]]
           (map (fn [enrichment-response]
                  ^{:key (first enrichment-response)} [enrichment-results-preview enrichment-response])
                @all-enrichment-results)]]))))
