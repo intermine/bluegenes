@@ -74,7 +74,7 @@
     (fn [{:keys [source description tags authorized name type size title timestamp dateCreated] :as l}]
       (let [date-created (tf/parse dateCreated)]
         [:div.grid-middle.list-row
-
+         {:class (if (in name @selected) "selected")}
          [:div.col
           [:input {:type      "checkbox"
                    :checked   (if (in name @selected) true)
@@ -125,11 +125,17 @@
         "Click here to clear your search"]])))
 
 (defn list-table []
-  (let [sort-order (subscribe [:lists/sort-order])]
+  (let [sort-order (subscribe [:lists/sort-order])
+        selected   (subscribe [:lists/selected])]
     (fn [lists]
       [:div.list-container
        [:div.grid
-        [:div.col]
+        [:div.col
+         [:button.btn
+          {:on-click (fn [] (dispatch [:lists/toggle-select-all (map :name lists)]))}
+          (if (empty? @selected)
+            "Select All"
+            "Deselect All")]]
         [:div.col-8
          [:span
           [:h3.list-title "Title"]
@@ -137,6 +143,7 @@
         [:div.col [:h3 "Type "]]
         ;[:div.col [:h4 "Count"]]
         [:div.col [:h3 "Created"]]]
+
        [css-transition-group
         {:transition-name          "fade"
          :transition-enter-timeout 100
@@ -150,5 +157,5 @@
     (fn []
       [:div.list-section
        {:style {:width "100%"}}
-       [operations/operations-bar]
+       ; TODO Wait for /lists web service bug fixes [operations/operations-bar]
        [list-table @filtered-lists]])))
