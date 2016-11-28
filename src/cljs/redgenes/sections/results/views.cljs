@@ -7,37 +7,21 @@
             [redgenes.components.bootstrap :refer [popover tooltip]]
             [clojure.string :refer [split]]
             [oops.core :refer [oget]]
+            [json-html.core :as json-html]
             [im-tables.views.core :as tables]))
+
+;;==============================TODO============================
+;; some enrichment widgets have filters! Add support for this as I think they return 0 if you don't add a filter.
+;;---
+;; add dropdown or something for when you can enrich against more than one query part.
+;; right now it uses the first and I've yet to find a scenario where this is
+;; more than one available. It'll log to the console if there ever is one.
+;;==============================================================
+
 
 
 (def css-transition-group
   (reagent/adapt-react-class js/React.addons.CSSTransitionGroup))
-
-
-(def enrichment-config {:pathway_enrichment           {:title   "Pathways"
-                                                       :returns [{:header "Pathway" :field :description}
-                                                                 {:header "Matches" :field :matches}
-                                                                 {:header "p-value" :field :p-value}]}
-                        :go_enrichment_for_gene       {:title   "Gene Ontology"
-                                                       :returns [{:header "GO Term" :field :description}
-                                                                 {:header "Matches" :field :matches}
-                                                                 {:header "p-value" :field :p-value}]}
-                        :prot_dom_enrichment_for_gene {:title   "Protein Domains"
-                                                       :returns [{:header "Protein Domain" :field :description}
-                                                                 {:header "Matches" :field :matches}
-                                                                 {:header "p-value" :field :p-value}]}
-                        :publication_enrichment       {:title   "Publications"
-                                                       :returns [{:header "Protein Domain" :field :description}
-                                                                 {:header "Matches" :field :matches}
-                                                                 {:header "p-value" :field :p-value}]}
-                        :bdgp_enrichment              {:title   "BDGPs"
-                                                       :returns [{:header "Terms" :field :description}
-                                                                 {:header "Matches" :field :matches}
-                                                                 {:header "p-value" :field :p-value}]}
-                        :miranda_enrichment           {:title   "MiRNA"
-                                                       :returns [{:header "X" :field :description}
-                                                                 {:header "Matches" :field :matches}
-                                                                 {:header "p-value" :field :p-value}]}})
 
 (def sidebar-hover (reagent/atom false))
 
@@ -53,8 +37,6 @@
                              [:tr.popover-contents.sidebar-popover
                               [:td.title (last (clojure.string/split header " > "))]
                               [:td.value (get result idx)]]) column-headers))]])))
-
-
 
 (defn enrichment-result-row []
   (fn [{:keys [description matches identifier p-value matches-query] :as row}
@@ -87,13 +69,16 @@
       false)
     true))
 
+
 (defn enrichment-results-preview []
   (let [page-state  (reagent/atom {:page 0 :show 5})
-        text-filter (subscribe [:results/text-filter])]
+        text-filter (subscribe [:results/text-filter])
+        ;;TODO need to dehardcode this
+        config (subscribe [:results/enrichment-config])]
     (fn [[widget-name {:keys [results] :as details}]]
       [:div
-       [:h4 {:class (if (empty? results) "greyout")}
-        (str (get-in enrichment-config [widget-name :title]))
+        [:h4 {:class (if (empty? results) "greyout")}
+        (get-in @config [widget-name :title])
         (if results
           [:span
            [:span (if results (str " (" (count results) ")"))]
@@ -118,7 +103,8 @@
   (let [all-enrichment-results (subscribe [:results/enrichment-results])]
     (fn []
       (if (nil? (vals @all-enrichment-results))
-        [:div [:h4 "No Results"]]
+        ;; No Enrichment widgets available - only if there are no widgets for any of the datatypes in the columns. If there are widgets but there are 0 results, the second option below (div.demo) fires.
+        [:div [:h4 "No Enrichment Widgets Available"]]
         [:div.demo
          [css-transition-group
           {:transition-name          "fade"
@@ -206,12 +192,7 @@
                        :on-click       (fn [x] (dispatch [:results/load-from-history idx]))} adjusted-title]]])) @history))])))
 
 
-
-
 (defn main []
-  (let [query             (subscribe [:results/query])
-        service           (subscribe [:results/service])
-        package-for-table (subscribe [:results/package-for-table])]
     (fn []
       [:div.container
        [breadcrumb]
@@ -220,7 +201,7 @@
          [:div.panel.panel-default
           [:div.panel-body
            [tables/main [:results :fortable]]
-           ;(if @query [table/main @package-for-table true])
            ]]]
         [:div.col-md-3.col-sm-12
-         [side-bar]]]])))
+         [side-bar]]]
+       ]))

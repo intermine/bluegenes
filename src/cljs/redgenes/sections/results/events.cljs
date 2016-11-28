@@ -4,7 +4,9 @@
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
             [imcljsold.filters :as filters]
             [imcljsold.search :as search]
+            [imcljs.fetch :as fetch]
             [clojure.spec :as s]
+            [clojure.set :refer [intersection]]
             [day8.re-frame.http-fx]
             [ajax.core :as ajax]
             [redgenes.interceptors :refer [clear-tooltips]]
@@ -12,9 +14,6 @@
             [redgenes.sections.saveddata.events]
             [accountant.core :as accountant]
             [redgenes.interceptors :refer [abort-spec]]))
-
-
-
 
 (defn build-matches-query [query path-constraint identifier]
   (update-in (js->clj (.parse js/JSON query) :keywordize-keys true) [:where]
@@ -128,17 +127,27 @@
                       :query    (get package :value)
                       :service  (get-in db [:mines (:source package) :service])}]]})))
 
-(reg-event-fx
-  :results/enrich
-  (fn [{db :db} [_]]
-    (let [query-parts (get-in db [:results :query-parts])
-          can-enrich? (contains? query-parts :Gene)
-          source-kw   (get-in db [:results :package :source])]
-      (if can-enrich?
-        (let [enrich-query (-> query-parts :Gene first :query)]
-          {:db                   db
-           :fetch-ids-from-query [(get-in db [:mines source-kw :service]) enrich-query]})
-        {:db db}))))
+(defn what-we-can-enrich [widgets query-parts]
+  (let [possible-roots (set (keys query-parts))
+        possible-enrichments (reduce (fn [x y] (conj x (keyword (first (:targets y))))) #{} widgets)]
+          (apply sorted-set (intersection possible-enrichments possible-roots))
+  ))
+
+  (reg-event-fx
+    :results/enrich
+    (fn [{db :db} [_ enrich-root]]
+      (let [query-parts (get-in db [:results :query-parts])
+            widgets (get-in db [:assets :widgets (:current-mine db)])
+            enrichable (what-we-can-enrich widgets query-parts)
+            enrichable-default (first enrichable)
+            can-enrich?  (pos? (count enrichable))
+            source-kw   (get-in db [:results :package :source])]
+        (if can-enrich?
+          (let [enrich-query (-> query-parts enrichable-default first :query)]
+            (cond (> (count enrichable) 1) (.log js/console "%cThere's another enrichment option:" "color:cornflowerblue;" (clj->js enrichable)))
+            {:db                   db
+             :fetch-ids-from-query [(get-in db [:mines source-kw :service]) enrich-query]})
+          {:db db}))))
 
 (reg-event-fx
   :results/update-enrichment-setting
@@ -149,59 +158,59 @@
 (reg-fx
   :fetch-ids-from-query
   (fn [[service query]]
-    (go (let [{results :results} (<! (search/raw-query-rows
+    (go (let [results  (<! (search/raw-query-rows
                                        service
                                        query))]
-          (dispatch [:success-fetch-ids (flatten results)])))))
+          (dispatch [:success-fetch-ids (flatten (:results results)) (:rootClass results )])))))
 
 (reg-event-fx
   :success-fetch-ids
-  (fn [{db :db} [_ results]]
+  (fn [{db :db} [_ results classname]]
     {:db       (assoc-in db [:results :ids-to-enrich] results)
-     :dispatch [:results/run-all-enrichment-queries]}))
+     :dispatch [:results/run-all-enrichment-queries classname]}))
+
+
+(defn widgets-to-map
+  "When the web service gives us a vector, we make it into a map for easy lookup"
+  [widgets]
+  (reduce (fn [new-map  vals]
+    (assoc new-map (keyword (:name vals)) vals)
+) {} widgets))
+
+(defn suitable-widgets
+  "We only want to load widgets that can be used on our datatypes"
+  [array-widgets classname]
+  (let [widgets (widgets-to-map array-widgets)]
+    (if classname
+      (into {} (filter
+        (fn [[_ widget]] (contains? (set (:targets widget)) classname)) widgets))
+      widgets)
+))
+
+(defn build-enrichment-query [selection widget-name settings]
+  "default enrichment query structure"
+  [:results/run
+  (merge
+    selection {:maxp 0.05
+      :widget widget-name
+      :correction "Holm-Bonferroni"}
+      settings)])
+
+(defn build-all-enrichment-queries [selection suitable-widgets settings]
+  "format all available widget types into queries"
+  (reduce (fn [new-vec [_ vals]]
+    (conj new-vec (build-enrichment-query selection (:name vals) settings))
+) [] suitable-widgets))
 
 (reg-event-fx
   :results/run-all-enrichment-queries
-  (fn [{db :db}]
+  (fn [{db :db} [_ classname]]
     (let [selection {:ids (get-in db [:results :ids-to-enrich])}
-          settings  (get-in db [:results :enrichment-settings])]
-      {:db         db
-       :dispatch-n [[:results/run (merge
-                                    selection
-                                    {:maxp       0.05
-                                     :widget     "pathway_enrichment"
-                                     :correction "Holm-Bonferroni"}
-                                    settings)]
-                    [:results/run (merge
-                                    selection
-                                    {:maxp       0.05
-                                     :widget     "go_enrichment_for_gene"
-                                     :correction "Holm-Bonferroni"}
-                                    settings)]
-                    [:results/run (merge
-                                    selection
-                                    {:maxp       0.05
-                                     :widget     "prot_dom_enrichment_for_gene"
-                                     :correction "Holm-Bonferroni"}
-                                    settings)]
-                    [:results/run (merge
-                                    selection
-                                    {:maxp       0.05
-                                     :widget     "publication_enrichment"
-                                     :correction "Holm-Bonferroni"}
-                                    settings)]
-                    [:results/run (merge
-                                    selection
-                                    {:maxp       0.05
-                                     :widget     "bdgp_enrichment"
-                                     :correction "Holm-Bonferroni"}
-                                    settings)]
-                    [:results/run (merge
-                                    selection
-                                    {:maxp       0.05
-                                     :widget     "miranda_enrichment"
-                                     :correction "Holm-Bonferroni"}
-                                    settings)]]})))
+          settings  (get-in db [:results :enrichment-settings])
+          widgets (get-in db [:assets :widgets (:current-mine db)])
+          suitable-widgets (suitable-widgets widgets classname)]
+      {:db         (assoc-in db [:results :active-widgets] suitable-widgets)
+       :dispatch-n (build-all-enrichment-queries selection suitable-widgets settings)})))
 
 
 (defn service [db mine-kw]

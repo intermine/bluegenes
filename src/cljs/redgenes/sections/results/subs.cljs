@@ -35,6 +35,12 @@
     (get-in db [:results :enrichment-results])))
 
 (reg-sub
+  :results/enrichment-config
+  (fn [db]
+    (get-in db [:results :active-widgets])))
+
+
+(reg-sub
   :results/text-filter
   (fn [db]
     (get-in db [:results :text-filter])))
