@@ -151,8 +151,7 @@
         {:class (if (or @sidebar-hover @value) "present" "gone")}
 
 
-        [:div.container-fluid
-         {:width "100%"}
+        [:div.container-fluid.bob
          [:div.row
           [:div.col-xs-4
            [:label "Max p-value"]
