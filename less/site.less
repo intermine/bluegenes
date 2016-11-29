@@ -319,3 +319,36 @@ input.form-control:focus {
     background-image: none;
     background-color: white;
 }
+
+label {
+    line-height: 1.2em;
+    margin-right:@spacer/2;
+    &:hover, &:hover input[type=checkbox], &:hover input[type=checkbox]:before {cursor:pointer;}
+
+    input[type=checkbox] {
+        @the-color: #999;
+        margin-right: 0.8em;
+
+        &:checked {
+            &:before {
+                content: '\2714';
+                color: darken(@the-color, 20%);
+            }
+        }
+
+        &:before {
+            .border-radius;
+            background: #fff;
+            border: solid 2px @the-color;
+            height: 1.2em;
+            width: 1.2em;
+            font-size: 1.4em;
+            content: "";
+            line-height: 1em;
+            margin-right: 1em;
+            vertical-align: middle;
+            text-align: center;
+            display: block;
+        }
+    }
+}
