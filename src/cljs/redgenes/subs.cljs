@@ -122,3 +122,8 @@
   :current-mine
   (fn [db]
     (get-in db [:mines (get db :current-mine)])))
+
+(reg-sub
+  :version
+  (fn [db [_ mine-keyword]]
+    (get-in db  [:assets :intermine-version mine-keyword])))
