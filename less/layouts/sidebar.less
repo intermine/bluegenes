@@ -31,7 +31,36 @@ label {
         padding: 0 10px;
     }
 
-    .enrichment-list, .enrichment-header {
+    .enrichment-settings {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: @spacer/3;
+        //for when it breakpoint wraps underneath the table: 
+        @media (max-width:990px) {
+            justify-content: flex-start;
+
+            .correction,
+            .pval {
+                margin: @spacer;
+
+                &:first-child {
+                    margin-left: 0;
+                }
+            }
+        }
+
+        select {
+            .border-radius;
+        }
+
+        .pval select {
+            max-width: 5em;
+        }
+    }
+    justify-content: space-between;
+
+    .enrichment-header,
+    .enrichment-list {
         padding-left: 0;
         font-size: 0.9em;
 
@@ -58,9 +87,12 @@ label {
             padding-left: 0;
         }
     }
-    .enrichment-header{
-      .p-val{text-align:right}
-      font-weight:bold;
+
+    .enrichment-header {
+        .p-val {
+            text-align: right;
+        }
+        font-weight: bold;
     }
 
     div.popover-contents {

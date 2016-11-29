@@ -151,16 +151,16 @@
         {:class (if (or @sidebar-hover @value) "present" "gone")}
 
 
-        [:div.container-fluid.bob
-         [:div.row
-          [:div.col-xs-4
+        [:div
+          [:div.enrichment-settings
+          [:div.pval
            [:label "Max p-value"]
            [:select.form-control
             {:on-change #(dispatch [:results/update-enrichment-setting :maxp (oget % "target" "value")])}
             [:option "0.05"]
             [:option "0.10"]
             [:option "1.00"]]]
-          [:div.col-xs-8
+          [:div.correction
            [:label "Test Correction"]
            [:select.form-control
             {:on-change #(dispatch [:results/update-enrichment-setting :correction (oget % "target" "value")])}
@@ -168,9 +168,9 @@
             [:option "Benjamini Hochber"]
             [:option "Bonferroni"]
             [:option "None"]]]]
-         [:div.row
-          [:div.col-xs-12
-           [text-filter]]]]]
+
+          [:div
+           [text-filter]]]]
        [enrichment-results]])))
 
 (defn adjust-str-to-length [length string]
