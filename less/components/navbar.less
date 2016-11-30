@@ -2,10 +2,16 @@
 
 .navbar,
 .navbar.navbar-default {
+  li{flex-grow:1;justify-content:center; text-align:center;}
     background-color: @navbar-color;
     margin-bottom: 0;
     border-width: 0;
     border-radius: 0;
+
+    .container-fluid, .navbar-header {
+        margin-left: 0;
+      }
+      .navbar-header {margin-right:0}
 
     .logo.icon {
         vertical-align: middle;
@@ -135,6 +141,7 @@
     .navbar-header {
         align-self: flex-start;
     }
+    .navbar-brand {margin-left:0}
 
     .navbar {
         .long-name {
@@ -206,7 +213,6 @@
         margin-top: 0;
         display: flex;
         flex-grow: 1;
-        border-top: solid 1px #ccc;
         justify-content: space-around;
         margin-bottom: 0;
 
