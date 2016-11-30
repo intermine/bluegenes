@@ -128,6 +128,7 @@
                       :service  (get-in db [:mines (:source package) :service])}]]})))
 
 (defn what-we-can-enrich [widgets query-parts]
+  (.log js/console "%cquery parts" "color:cornflowerblue;" (clj->js query-parts))
   (let [possible-roots (set (keys query-parts))
         possible-enrichments (reduce (fn [x y] (conj x (keyword (first (:targets y))))) #{} widgets)]
           (apply sorted-set (intersection possible-enrichments possible-roots))
@@ -142,11 +143,14 @@
             enrichable-default (first enrichable)
             can-enrich?  (pos? (count enrichable))
             source-kw   (get-in db [:results :package :source])]
+            (.log js/console "%cenrichable" "color:orange;" (clj->js enrichable))
+
         (if can-enrich?
-          (let [enrich-query (-> query-parts enrichable-default first :query)]
+          (let [enrich-query (-> query-parts enrichable-default last :query)]
+          (.log js/console "%cenrich-query" "color:mediumorchid;" (clj->js enrich-query) enrichable-default)
             (cond (> (count enrichable) 1) (.log js/console "%cThere's another enrichment option:" "color:cornflowerblue;" (clj->js enrichable)))
             {:db                   db
-             :fetch-ids-from-query [(get-in db [:mines source-kw :service]) enrich-query]})
+             :fetch-ids-from-query [(get-in db [:mines source-kw :service]) enrich-query enrichable-default]})
           {:db db}))))
 
 (reg-event-fx
@@ -157,11 +161,12 @@
 
 (reg-fx
   :fetch-ids-from-query
-  (fn [[service query]]
+  (fn [[service query classname]]
     (go (let [results  (<! (search/raw-query-rows
                                        service
                                        query))]
-          (dispatch [:success-fetch-ids (flatten (:results results)) (:rootClass results )])))))
+          (.log js/console "%cresults" "color:firebrick;" (clj->js results))
+          (dispatch [:success-fetch-ids (flatten (:results results)) classname])))))
 
 (reg-event-fx
   :success-fetch-ids
@@ -177,13 +182,14 @@
     (assoc new-map (keyword (:name vals)) vals)
 ) {} widgets))
 
-(defn suitable-widgets
+(defn get-suitable-widgets
   "We only want to load widgets that can be used on our datatypes"
   [array-widgets classname]
   (let [widgets (widgets-to-map array-widgets)]
+  (println classname (name classname))
     (if classname
       (into {} (filter
-        (fn [[_ widget]] (contains? (set (:targets widget)) classname)) widgets))
+        (fn [[_ widget]] (contains? (set (:targets widget)) (name classname))) widgets))
       widgets)
 ))
 
@@ -191,7 +197,8 @@
   "default enrichment query structure"
   [:results/run
   (merge
-    selection {:maxp 0.05
+    selection
+    {:maxp 0.05
       :widget widget-name
       :correction "Holm-Bonferroni"}
       settings)])
@@ -208,9 +215,12 @@
     (let [selection {:ids (get-in db [:results :ids-to-enrich])}
           settings  (get-in db [:results :enrichment-settings])
           widgets (get-in db [:assets :widgets (:current-mine db)])
-          suitable-widgets (suitable-widgets widgets classname)]
+          suitable-widgets (get-suitable-widgets widgets classname)
+          queries (build-all-enrichment-queries selection suitable-widgets settings)]
+          (.log js/console "%cenriching" "color:darkseagreen;" "selection" (clj->js selection) "widgets" widgets suitable-widgets "query" (clj->js queries))
+
       {:db         (assoc-in db [:results :active-widgets] suitable-widgets)
-       :dispatch-n (build-all-enrichment-queries selection suitable-widgets settings)})))
+       :dispatch-n queries})))
 
 
 (defn service [db mine-kw]
