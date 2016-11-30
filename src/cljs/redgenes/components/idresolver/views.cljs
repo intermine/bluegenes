@@ -15,6 +15,7 @@
 ;;results preview needed
 
 
+
 (defn ex []
   (let [active-mine (subscribe [:current-mine])
         mines (subscribe [:mines])
@@ -22,6 +23,8 @@
 example-text))
 
 (def separators (set ".,; "))
+
+(def timeout 1000)
 
 (defn splitter
   "Splits a string on any one of a set of strings."
@@ -54,10 +57,13 @@ example-text))
          :on-click (fn [] (if (some? @results) (dispatch [:idresolver/analyse true])))}
         "View Results"]])))
 
-
-;
-
-(defn submit-input [input] (dispatch [:idresolver/resolve (splitter input)]))
+(defn submit-input
+  ([input val]
+    (reset! val "")
+    (submit-input input))
+  ([input]
+    (dispatch [:idresolver/resolve (splitter input)]))
+)
 
 (defn input-box []
   (reagent/create-class
@@ -68,20 +74,28 @@ example-text))
        {:type         "text"
         :placeholder  "Type or paste identifiers here..."
         :value        @val
-        :on-key-press (fn [e]
-                        (let [keycode (.-charCode e)
-                              input   (.. e -target -value)]
-                          (cond (= keycode 13)
-                                (do
-                                  (reset! val "")
-                                  (submit-input input)))))
-        :on-change    (fn [e]
-                        (let [input (.. e -target -value)]
-                          (if (has-separator? input)
-                            (do
-                              (reset! val "")
-                              (submit-input input))
-                            (do (reset! val input)))))}])
+        :on-key-press
+          (fn [e]
+            (let [keycode (.-charCode e)
+                  input   (.. e -target -value)]
+              (cond (= keycode 13)
+                  (submit-input input val))))
+        ;;not all keys are picked up by on key press or on-change so we need to do both.
+        :on-change
+        (fn [e]
+          (let [input (.. e -target -value)]
+
+            ;stop old auto-submit counter
+            (js/clearInterval @timer)
+            ;start new timer again
+            (reset! timer (js/setTimeout #((submit-input input val)) timeout))
+            ;submit the stuff
+            (if (has-separator? input)
+              (do
+                (js/clearInterval @timer)
+                (submit-input input val))
+               (reset! val input))))}])
+     ;;autofocus on the entry field when the page loads
      :component-did-mount (fn [this] (.focus (reagent/dom-node this)))})))
 
 
