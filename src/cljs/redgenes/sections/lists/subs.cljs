@@ -2,6 +2,7 @@
   (:require-macros [reagent.ratom :refer [reaction]])
   (:require [re-frame.core :refer [reg-sub]]
             [clojure.string :refer [upper-case]]
+            [cljs-time.core :refer [before?]]
             [redgenes.subs]))
 
 (defn has-text?
@@ -12,6 +13,11 @@
       (re-find (re-pattern (str "(?i)" string)) (clojure.string/join " " (map details [:title :description])))
       false)
     true))
+
+(reg-sub
+  :lists/selected
+  (fn [db]
+    (get-in db [:lists :selected])))
 
 (reg-sub
   :lists/text-filter
@@ -62,4 +68,6 @@
                text-filter (filter (partial has-text? text-filter))
                (some? (:authorized flag-filters)) (filter #(= (:authorized %) (:authorized flag-filters)))
                (some? (:favourite flag-filters)) (filter (partial tag-check? (:favourite flag-filters) "im:favourite"))
-               true (sort (apply comp (map build-comparer sort-order)))))))
+               ;true (sort (apply comp (map build-comparer sort-order)))
+               true (sort-by :timestamp >)
+               ))))

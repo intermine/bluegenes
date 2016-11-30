@@ -4,7 +4,7 @@
   {:name                       "Intermine"
    :short-name                 "IM"
    :mine-name                  :fly
-   :current-mine               :flymine
+   :current-mine               :flymine-beta
    :saved-data                 {:items {}}
    :quicksearch-selected-index -1 ;;this defaults to select all in the quicksearch
    :databrowser/whitelist      #{:Gene :Author :Protein :Organism :Publication :GOAnnotation :GOTerm :Homologue :Interaction :DataSet :genes :authors :proteins :organisms :publications :goAnnotation :goTerms :homologues :dataSets :interactions}

@@ -18,7 +18,6 @@
                  [ring "1.5.0"]
                  [json-html "0.4.0"]
                  [prismatic/dommy "1.1.0"]
-                 [cljs-ajax "0.5.8"]
                  [day8.re-frame/http-fx "0.1.2"]
                  [org.clojure/core.async "0.2.395"]
                  [cljs-http "0.1.42"]
