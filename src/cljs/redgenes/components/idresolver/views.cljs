@@ -11,10 +11,6 @@
 ;;; TODOS:
 
 ;We need to handler more than X results :D right now 1000 results would ALL show on screen. Eep.
-;;submit button needed
-;;results preview needed
-
-
 
 (defn ex []
   (let [active-mine (subscribe [:current-mine])
@@ -24,7 +20,7 @@ example-text))
 
 (def separators (set ".,; "))
 
-(def timeout 1000)
+(def timeout 1500)
 
 (defn splitter
   "Splits a string on any one of a set of strings."
@@ -84,8 +80,8 @@ example-text))
         :on-change
         (fn [e]
           (let [input (.. e -target -value)]
-
-            ;stop old auto-submit counter
+            ;;we have a counter that automatically submits the typed entry if the user waits long enough (currently 1.5s).
+            ;stop old auto-submit counter.
             (js/clearInterval @timer)
             ;start new timer again
             (reset! timer (js/setTimeout #((submit-input input val)) timeout))
