@@ -157,5 +157,5 @@
     (fn []
       [:div.list-section
        {:style {:width "100%"}}
-       ; TODO Wait for /lists web service bug fixes [operations/operations-bar]
+       [operations/operations-bar]
        [list-table @filtered-lists]])))
