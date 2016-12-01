@@ -48,15 +48,12 @@
      [:div.container-fluid
       [:div.row
        [:div.col-xs-8
-        ; TODO popovers are causing reagent key ID errors
-        #_[popover [:span {:data-content   [popover-table matches p-value]
-                         :data-placement "left"
-                         :data-trigger   "hover"}
-                  [:span description]]]
-        [:span {:data-content   [popover-table matches p-value]
-                :data-placement "left"
-                :data-trigger   "hover"}
-         [:span description]]]
+        [popover
+         [:span {:data-content   [popover-table matches p-value]
+                 :data-placement "top"
+                 :data-trigger   "hover"}
+           ^{:key p-value}
+            [:span description]]]]
        [:div.col-xs-4 [:span {:style {:font-size "0.8em"}} (.toExponential p-value 6)]]]]
      ]))
 

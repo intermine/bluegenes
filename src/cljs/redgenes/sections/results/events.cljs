@@ -5,6 +5,7 @@
             [imcljsold.filters :as filters]
             [imcljsold.search :as search]
             [imcljs.fetch :as fetch]
+            [imcljs.path :as path]
             [clojure.spec :as s]
             [clojure.set :refer [intersection]]
             [day8.re-frame.http-fx]
@@ -34,12 +35,14 @@
 (reg-event-fx
   :results/get-item-details
   (fn [{db :db} [_ identifier path-constraint]]
-    (let [model          (get-in db [:assets :model])
-          class          (keyword (filters/end-class model path-constraint))
-          summary-fields (get-in db [:assets :summary-fields class])
+    (let [source (get-in db [:results :package :source])
+          model          (get-in db [:mines source :service :model])
+          classname          (keyword (path/class model path-constraint))
+          summary-fields (get-in db [:assets :summary-fields source classname])
+          service (get-in db [:mines source :service])
           summary-chan   (search/raw-query-rows
-                           (get-in db [:results :service])
-                           {:from   class
+                           service
+                           {:from   classname
                             :select summary-fields
                             :where  [{:path  (last (clojure.string/split path-constraint "."))
                                       :op    "="
