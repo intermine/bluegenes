@@ -38,6 +38,12 @@
                               [:td.title (last (clojure.string/split header " > "))]
                               [:td.value (get result idx)]]) column-headers))]])))
 
+(defn p-val-tooltip []
+  [tooltip [:i.fa.fa-question-circle
+            {:title          "The p-value is the probability that result occurs by chance, thus a lower p-value indicates greater enrichment."
+             :data-trigger   "hover"
+             :data-placement "bottom"}]])
+
 (defn enrichment-result-row []
   (fn [{:keys [description matches identifier p-value matches-query] :as row}
        {:keys [pathConstraint] :as details}]
@@ -71,7 +77,7 @@
    [:div.container-fluid
    [:div.row
     [:div.col-xs-8 "Item"]
-    [:div.col-xs-4.p-val "p-value"]]]])
+    [:div.col-xs-4.p-val "p-value" [p-val-tooltip]]]]])
 
 (defn enrichment-results-preview []
   (let [page-state  (reagent/atom {:page 0 :show 5})
@@ -102,7 +108,6 @@
                 (has-text? @text-filter description))
               (drop (* (:page @page-state) (:show @page-state)) results)))))])))
 
-
 (defn enrichment-results []
   (let [all-enrichment-results (subscribe [:results/enrichment-results])]
     (fn []
@@ -130,6 +135,37 @@
                          (dispatch [:results/set-text-filter value]))))
       :placeholder "Filter..."}]))
 
+(defn enrichment-settings []
+  [:div
+    [:div.enrichment-settings
+      [:div.pval
+        [:label "Max p-value" [p-val-tooltip]]
+        [:select.form-control
+          {:on-change #(dispatch [:results/update-enrichment-setting :maxp (oget % "target" "value")])}
+          [:option "0.05"]
+          [:option "0.10"]
+          [:option "1.00"]]]
+      [:div.correction
+        [:label "Test Correction"]
+        [:select.form-control
+          {:on-change #(dispatch [:results/update-enrichment-setting :correction (oget % "target" "value")])}
+          [:option "Holm-Bonferroni"]
+          [:option "Benjamini Hochber"]
+          [:option "Bonferroni"]
+          [:option "None"]]]]
+     [text-filter]
+])
+
+(defn enrichable-column-displayer []
+  (let [enrichable (subscribe [:results/enrichable-columns])
+        active-enrichment-column (subscribe [:results/active-enrichment-column])]
+    (.log js/console (clj->js @enrichable))
+    [:div.enrichment-column-settings
+      "Enrichment column: " [:span.the-column (first (:select (:query @active-enrichment-column)))]
+    ;  [:a "[Change]"]
+     ]
+    ))
+
 (defn side-bar []
   (let [query-parts (subscribe [:results/query-parts])
         value       (subscribe [:results/text-filter])]
@@ -139,35 +175,11 @@
         :on-mouse-leave (fn [] (reset! sidebar-hover false))}
        [:div
         [:h3.inline "Enrichment Statistics"]
-        [tooltip [:i.fa.fa-question-circle
-                  {:title          "The p-value is the probability that result occurs by chance, thus a lower p-value indicates greater enrichment."
-                   :data-trigger   "hover"
-                   :data-placement "bottom"}]]]
+        [enrichable-column-displayer]]
        [:div.expandable.present
         ; disable hover effects for now
         {:class (if (or @sidebar-hover @value) "present" "gone")}
-
-
-        [:div
-          [:div.enrichment-settings
-          [:div.pval
-           [:label "Max p-value"]
-           [:select.form-control
-            {:on-change #(dispatch [:results/update-enrichment-setting :maxp (oget % "target" "value")])}
-            [:option "0.05"]
-            [:option "0.10"]
-            [:option "1.00"]]]
-          [:div.correction
-           [:label "Test Correction"]
-           [:select.form-control
-            {:on-change #(dispatch [:results/update-enrichment-setting :correction (oget % "target" "value")])}
-            [:option "Holm-Bonferroni"]
-            [:option "Benjamini Hochber"]
-            [:option "Bonferroni"]
-            [:option "None"]]]]
-
-          [:div
-           [text-filter]]]]
+[enrichment-settings]]
        [enrichment-results]])))
 
 (defn adjust-str-to-length [length string]

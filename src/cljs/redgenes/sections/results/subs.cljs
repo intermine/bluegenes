@@ -40,6 +40,16 @@
     (get-in db [:results :active-widgets])))
 
 (reg-sub
+  :results/active-enrichment-column
+  (fn [db]
+    (get-in db [:results :active-enrichment-column])))
+
+(reg-sub
+  :results/enrichable-columns
+  (fn [db]
+    (get-in db [:results :enrichable-columns])))
+
+(reg-sub
   :results/text-filter
   (fn [db]
     (get-in db [:results :text-filter])))

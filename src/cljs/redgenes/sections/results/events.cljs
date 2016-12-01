@@ -152,16 +152,15 @@
             enrichable-default (last (last (vals enrichable)))
             can-enrich?  (pos? (count enrichable))
             source-kw   (get-in db [:results :package :source])]
-    ;        (.log js/console "%cenrichable" "color:orange;" (clj->js enrichable))
-    ;        (.log js/console "%cenrichable-default" "color:chartreuse;" (clj->js enrichable-default) (vals enrichable))
 
         (if can-enrich?
           (let [enrich-query (:query enrichable-default)]
-      ;    (.log js/console "%cenrich-query" "color:mediumorchid;" (clj->js enrich-query) enrichable-default)
-            (cond (> (count enrichable) 1) (.log js/console "%cThere's another enrichment option:" "color:cornflowerblue;" (clj->js enrichable)))
-            {:db                   db
+
+            {:db (-> db
+                    (assoc-in [:results :active-enrichment-column] enrichable-default)
+                    (assoc-in [:results :enrichable-columns] enrichable))
              :fetch-ids-from-query [(get-in db [:mines source-kw :service]) enrich-query enrichable-default]})
-          {:db db}))))
+          {:db (assoc-in db [:results :active-enrichment-column] enrichable-default)}))))
 
 (reg-event-fx
   :results/update-enrichment-setting
