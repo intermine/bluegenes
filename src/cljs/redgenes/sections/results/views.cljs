@@ -205,5 +205,6 @@
            [tables/main [:results :fortable]]
            ]]]
         [:div.col-md-3.col-sm-12
-         [side-bar]]]
+         [side-bar]
+         ]]
        ]))

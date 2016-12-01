@@ -128,10 +128,16 @@
                       :service  (get-in db [:mines (:source package) :service])}]]})))
 
 (defn what-we-can-enrich [widgets query-parts]
-  (.log js/console "%cquery parts" "color:cornflowerblue;" (clj->js query-parts))
+;  (.log js/console "%cquery parts" "color:cornflowerblue;" (clj->js query-parts))
   (let [possible-roots (set (keys query-parts))
-        possible-enrichments (reduce (fn [x y] (conj x (keyword (first (:targets y))))) #{} widgets)]
-          (apply sorted-set (intersection possible-enrichments possible-roots))
+        possible-enrichments (reduce (fn [x y] (conj x (keyword (first (:targets y))))) #{} widgets)
+        enrichable-roots  (intersection possible-enrichments possible-roots)
+        ]
+        ; (.log js/console "%cposssible roots" "background:navajowhite" possible-roots)
+        ; (.log js/console "%cenrichable roots" "background:lightseagreen" enrichable-roots)
+        ; (.log js/console "%cpossible enrichments" "background:firebrick" possible-enrichments)
+        ; (.log js/console "%cWIDGETS" "background:cornflowerblue" widgets)
+        (select-keys query-parts enrichable-roots)
   ))
 
   (reg-event-fx
@@ -140,14 +146,15 @@
       (let [query-parts (get-in db [:results :query-parts])
             widgets (get-in db [:assets :widgets (:current-mine db)])
             enrichable (what-we-can-enrich widgets query-parts)
-            enrichable-default (first enrichable)
+            enrichable-default (last (last (vals enrichable)))
             can-enrich?  (pos? (count enrichable))
             source-kw   (get-in db [:results :package :source])]
-            (.log js/console "%cenrichable" "color:orange;" (clj->js enrichable))
+    ;        (.log js/console "%cenrichable" "color:orange;" (clj->js enrichable))
+    ;        (.log js/console "%cenrichable-default" "color:chartreuse;" (clj->js enrichable-default) (vals enrichable))
 
         (if can-enrich?
-          (let [enrich-query (-> query-parts enrichable-default last :query)]
-          (.log js/console "%cenrich-query" "color:mediumorchid;" (clj->js enrich-query) enrichable-default)
+          (let [enrich-query (:query enrichable-default)]
+      ;    (.log js/console "%cenrich-query" "color:mediumorchid;" (clj->js enrich-query) enrichable-default)
             (cond (> (count enrichable) 1) (.log js/console "%cThere's another enrichment option:" "color:cornflowerblue;" (clj->js enrichable)))
             {:db                   db
              :fetch-ids-from-query [(get-in db [:mines source-kw :service]) enrich-query enrichable-default]})
@@ -165,7 +172,7 @@
     (go (let [results  (<! (search/raw-query-rows
                                        service
                                        query))]
-          (.log js/console "%cresults" "color:firebrick;" (clj->js results))
+    ;      (.log js/console "%cresults" "color:firebrick;" (clj->js results))
           (dispatch [:success-fetch-ids (flatten (:results results)) classname])))))
 
 (reg-event-fx
@@ -186,10 +193,9 @@
   "We only want to load widgets that can be used on our datatypes"
   [array-widgets classname]
   (let [widgets (widgets-to-map array-widgets)]
-  (println classname (name classname))
     (if classname
       (into {} (filter
-        (fn [[_ widget]] (contains? (set (:targets widget)) (name classname))) widgets))
+        (fn [[_ widget]] (contains? (set (:targets widget)) (name (:type classname)))) widgets))
       widgets)
 ))
 
@@ -217,7 +223,9 @@
           widgets (get-in db [:assets :widgets (:current-mine db)])
           suitable-widgets (get-suitable-widgets widgets classname)
           queries (build-all-enrichment-queries selection suitable-widgets settings)]
-          (.log js/console "%cenriching" "color:darkseagreen;" "selection" (clj->js selection) "widgets" widgets suitable-widgets "query" (clj->js queries))
+;          (.log js/console "%cclassname" "color:lightseagreen;" classname)
+
+;          (.log js/console "%cenriching" "color:darkseagreen;" "selection" (clj->js selection) "widgets" suitable-widgets "query" (clj->js queries))
 
       {:db         (assoc-in db [:results :active-widgets] suitable-widgets)
        :dispatch-n queries})))
