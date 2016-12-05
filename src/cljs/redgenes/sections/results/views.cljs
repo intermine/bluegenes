@@ -156,15 +156,34 @@
      [text-filter]
 ])
 
+(defn enrichable-column-chooser [options active]
+  (let [show-chooser? (reagent/atom false)]
+    (fn []
+      [:div.column-chooser [:a
+        {:on-click (fn []
+            (reset! show-chooser? (not @show-chooser?)))}
+       "Change column (" (- (count options) 1) ")"]
+       (cond @show-chooser?
+         (into [:ul] (map (fn [option]
+           [:li [:a {:key (:path option)
+                 :on-click (fn []
+                   (dispatch [:results/update-active-enrichment-column option])
+                   (reset! show-chooser? false))}
+            (:path option)
+            (cond (= (:path option) (:path active)) " (currently active)")]]
+          ) options)))
+   ])))
+
 (defn enrichable-column-displayer []
   (let [enrichable (subscribe [:results/enrichable-columns])
+        enrichable-options (flatten (vals @enrichable))
+        multiple-options? (> (count enrichable-options) 1)
         active-enrichment-column (subscribe [:results/active-enrichment-column])]
-    (.log js/console (clj->js @enrichable))
     [:div.enrichment-column-settings
-      "Enrichment column: " [:span.the-column (first (:select (:query @active-enrichment-column)))]
-    ;  [:a "[Change]"]
-     ]
-    ))
+      "Enrichment column: "
+     [:span.the-column (first (:select (:query @active-enrichment-column)))]
+     (cond multiple-options? [enrichable-column-chooser enrichable-options @active-enrichment-column])
+     ]))
 
 (defn side-bar []
   (let [query-parts (subscribe [:results/query-parts])

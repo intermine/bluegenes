@@ -143,24 +143,49 @@
         (select-keys query-parts enrichable-roots)
   ))
 
+(reg-event-fx
+ :results/update-active-enrichment-column
+  (fn [{db :db} [_ new-enrichment-column]]
+    {:db (assoc-in db [:results :active-enrichment-column] new-enrichment-column)}
+))
+
+(defn can-we-enrich-on-existing-preference? [enrichable existing-enrichable]
+  (let [paths (reduce (fn [new x] (conj new (:path x))) #{} (flatten (vals enrichable)))]
+    (.log js/console "contains?" (clj->js paths) (:path existing-enrichable) (contains? paths (:path existing-enrichable)))
+    (contains? paths (:path existing-enrichable))
+  ))
+
+(defn resolve-what-to-enrich [db]
+  (let [query-parts (get-in db [:results :query-parts])
+        widgets (get-in db [:assets :widgets (:current-mine db)])
+        existing-enrichable (get-in db [:results :active-enrichment-column])
+;        is-existing-enrichable-in-current-set?
+        enrichable (what-we-can-enrich widgets query-parts)
+        use-existing-enrichable? (can-we-enrich-on-existing-preference? enrichable existing-enrichable)
+        enrichable-default (last (last (vals enrichable)))]
+; 1 is there an existing? - if yes, is it in the current option set? -> use it
+; otherwise: default
+    (if use-existing-enrichable?
+              existing-enrichable
+              enrichable-default
+            )))
+
   (reg-event-fx
     :results/enrich
-    (fn [{db :db} [_ enrich-root]]
+    (fn [{db :db} [_ ]]
       (let [query-parts (get-in db [:results :query-parts])
             widgets (get-in db [:assets :widgets (:current-mine db)])
             enrichable (what-we-can-enrich widgets query-parts)
-            enrichable-default (last (last (vals enrichable)))
+            what-to-enrich (resolve-what-to-enrich db)
             can-enrich?  (pos? (count enrichable))
             source-kw   (get-in db [:results :package :source])]
-
         (if can-enrich?
-          (let [enrich-query (:query enrichable-default)]
-
+          (let [enrich-query (:query what-to-enrich)]
             {:db (-> db
-                    (assoc-in [:results :active-enrichment-column] enrichable-default)
+                    (assoc-in [:results :active-enrichment-column] what-to-enrich)
                     (assoc-in [:results :enrichable-columns] enrichable))
-             :fetch-ids-from-query [(get-in db [:mines source-kw :service]) enrich-query enrichable-default]})
-          {:db (assoc-in db [:results :active-enrichment-column] enrichable-default)}))))
+             :fetch-ids-from-query [(get-in db [:mines source-kw :service]) enrich-query what-to-enrich]})
+          {:db db}))))
 
 (reg-event-fx
   :results/update-enrichment-setting
