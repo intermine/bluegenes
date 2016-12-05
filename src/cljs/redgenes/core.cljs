@@ -2,6 +2,7 @@
   (:require [reagent.core :as reagent]
             [re-frame.core :as re-frame]
             [devtools.core :as devtools]
+            [re-frisk.core :refer [enable-re-frisk!]]
     ;[redgenes.modules :as modules]
             [redgenes.utils]
             [im-tables.core]
@@ -18,8 +19,9 @@
 
 (defn dev-setup []
   (when config/debug?
-    (println "dev mode")
-    (devtools/install!)))
+    (devtools/install!)
+    (enable-re-frisk!)
+    (println "dev mode")))
 
 (defn mount-root []
   (reagent/render [views/main-panel]
