@@ -152,6 +152,8 @@
           [no-results]
           (map (fn [l] ^{:key (:name l)} [list-row l]) lists))]])))
 
+
+
 (defn main []
   (let [filtered-lists (subscribe [:lists/filtered-lists])]
     (fn []
