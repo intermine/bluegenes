@@ -132,7 +132,6 @@
     (go (let [results  (<! (search/raw-query-rows
                                        service
                                        query))]
-    ;      (.log js/console "%cresults" "color:firebrick;" (clj->js results))
           (dispatch [:success-fetch-ids (flatten (:results results))])))))
 
 (reg-event-fx
