@@ -80,7 +80,7 @@
  :enrichment/update-active-enrichment-column
   (fn [{db :db} [_ new-enrichment-column]]
     {:db (assoc-in db [:results :active-enrichment-column] new-enrichment-column)
-     :dispatch [:enrichment/run-all-enrichment-queries]}
+     :dispatch [:enrichment/enrich]}
 ))
 
 (defn can-we-enrich-on-existing-preference? [enrichable existing-enrichable]

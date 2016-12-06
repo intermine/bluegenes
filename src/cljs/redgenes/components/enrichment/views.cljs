@@ -76,8 +76,8 @@
         text-filter (subscribe [:enrichment/text-filter])
         config (subscribe [:enrichment/enrichment-config])]
     (fn [[widget-name {:keys [results] :as details}]]
-      [:div
-        [:h4 {:class (if (empty? results) "greyout")}
+      [:div.sidebar-item
+        [:h4 {:class (if (empty? results) "inactive")}
         (get-in @config [widget-name :title])
         (if results
           [:span
@@ -128,7 +128,7 @@
       :placeholder "Filter..."}]))
 
 (defn enrichment-settings []
-  [:div
+  [:div.sidebar-item
     [:div.enrichment-settings
       [:div.pval
         [:label "Max p-value" [p-val-tooltip]]
@@ -148,16 +148,21 @@
      [text-filter]
 ])
 
-(defn enrichable-column-chooser [options active]
-  (let [show-chooser? (reagent/atom false)]
+(defn enrichable-column-chooser [options]
+  (let [show-chooser? (reagent/atom false)
+        active (subscribe [:enrichment/active-enrichment-column])]
     (fn []
       [:div.column-chooser [:a
         {:on-click (fn []
             (reset! show-chooser? (not @show-chooser?)))}
-       "Change column (" (- (count options) 1) ")"]
+        (if @show-chooser?
+          "Select a column to enrich:"
+          [:span "Change column (" (- (count options) 1) ")"]
+          )
+                            ]
        (cond @show-chooser?
          (into [:ul] (map (fn [option]
-           (let [active? (= (:path option) (:path active))]
+           (let [active? (= (:path option) (:path @active))]
            [:li [:a
                  {:class (cond active? "active")
                   :key (:path option)
@@ -174,9 +179,9 @@
         enrichable-options (flatten (vals @enrichable))
         multiple-options? (> (count enrichable-options) 1)
         active-enrichment-column (subscribe [:enrichment/active-enrichment-column])]
-    [:div.enrichment-column-settings
+    [:div.enrichment-column-settings.sidebar-item
       "Enrichment column: "
-     [:span.the-column (first (:select (:query @active-enrichment-column)))]
+     [:div.the-column (first (:select (:query @active-enrichment-column)))]
      (cond multiple-options? [enrichable-column-chooser enrichable-options @active-enrichment-column])
      ]))
 
@@ -185,13 +190,10 @@
         value       (subscribe [:enrichment/text-filter])]
     (fn []
       [:div.sidebar
-       {:on-mouse-enter (fn [] (reset! sidebar-hover true))
-        :on-mouse-leave (fn [] (reset! sidebar-hover false))}
-       [:div
-        [:h3.inline "Enrichment Statistics"]
-        [enrichable-column-displayer]]
-       [:div.expandable.present
-        ; disable hover effects for now
-        {:class (if (or @sidebar-hover @value) "present" "gone")}
-[enrichment-settings]]
-       [enrichment-results]])))
+        {:on-mouse-enter (fn [] (reset! sidebar-hover true))
+          :on-mouse-leave (fn [] (reset! sidebar-hover false))}
+        [:h3.inline "Enrichment: "]
+          [enrichable-column-displayer]
+
+          [enrichment-settings]
+      [enrichment-results]])))

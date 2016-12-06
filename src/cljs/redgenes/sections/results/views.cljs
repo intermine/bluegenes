@@ -37,12 +37,12 @@
       [:div.container
        [breadcrumb]
        [:div.row
-        [:div.col-md-9.col-sm-12
+        [:div.col-md-8.col-sm-12
          [:div.panel.panel-default
           [:div.panel-body
            [tables/main [:results :fortable]]
            ]]]
-        [:div.col-md-3.col-sm-12
+        [:div.col-md-4.col-sm-12
          [enrichment/enrich]
          ]]
        ]))
