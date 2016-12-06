@@ -165,13 +165,16 @@
        "Change column (" (- (count options) 1) ")"]
        (cond @show-chooser?
          (into [:ul] (map (fn [option]
-           [:li [:a {:key (:path option)
-                 :on-click (fn []
+           (let [active? (= (:path option) (:path active))]
+           [:li [:a
+                 {:class (cond active? "active")
+                  :key (:path option)
+                  :on-click (fn []
                    (dispatch [:results/update-active-enrichment-column option])
                    (reset! show-chooser? false))}
             (:path option)
-            (cond (= (:path option) (:path active)) " (currently active)")]]
-          ) options)))
+            (cond active? " (currently active)")]]
+          )) options)))
    ])))
 
 (defn enrichable-column-displayer []

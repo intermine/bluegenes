@@ -146,7 +146,8 @@
 (reg-event-fx
  :results/update-active-enrichment-column
   (fn [{db :db} [_ new-enrichment-column]]
-    {:db (assoc-in db [:results :active-enrichment-column] new-enrichment-column)}
+    {:db (assoc-in db [:results :active-enrichment-column] new-enrichment-column)
+     :dispatch [:results/run-all-enrichment-queries]}
 ))
 
 (defn can-we-enrich-on-existing-preference? [enrichable existing-enrichable]
@@ -206,7 +207,7 @@
   :success-fetch-ids
   (fn [{db :db} [_ results classname]]
     {:db       (assoc-in db [:results :ids-to-enrich] results)
-     :dispatch [:results/run-all-enrichment-queries classname]}))
+     :dispatch [:results/run-all-enrichment-queries]}))
 
 
 (defn widgets-to-map

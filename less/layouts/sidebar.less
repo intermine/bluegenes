@@ -110,15 +110,31 @@ label {
 .enrichment-column-settings {
     font-size: 0.9em;
     width: 100%;
-
+.transitions;
     .the-column {
         width: 100%;
         white-space: nowrap;
         overflow: hidden;
-        display:inline-block;
+        display: inline-block;
         text-overflow: ellipsis;
         font-family: courier, mono, monospace;
     }
+
+    .column-chooser {
+      .transitions;
+
+      ul {
+        padding-left: 1em;
+        word-wrap: break-word;
+        .active {
+            font-weight: bold;
+
+            &:hover {
+                text-decoration: none;
+                cursor: auto;
+            }
+        }
+    }}
 }
 
 .has-left-sidebar {
