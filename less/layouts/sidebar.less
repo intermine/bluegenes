@@ -13,17 +13,13 @@ label {
 }
 
 .sidebar {
-    .bringout {
-        color: @highlight-color;
-    }
-    padding: 10px;
-    background-color: #DDD;
-    // width: @sidebar-width;
     h4 {
-        .bringout;
-
-        &.greyout {
-            font-style: italic;
+        background: fadeout(@highlight-color, 80%);
+        padding: 0.5em 0.2em;
+        color: #333;
+        font-size: 1.2em;
+        &.inactive {
+          background:lightgrey;
         }
     }
 
@@ -32,6 +28,7 @@ label {
     }
 
     .enrichment-settings {
+      border-top:solid 1px #ddd;
         display: flex;
         justify-content: space-between;
         margin-bottom: @spacer/3;
@@ -49,8 +46,9 @@ label {
             }
         }
 
-        select {
+        input, select {
             .border-radius;
+            border:solid 1px #ddd;
         }
 
         .pval select {
@@ -110,31 +108,32 @@ label {
 .enrichment-column-settings {
     font-size: 0.9em;
     width: 100%;
-.transitions;
+    .transitions;
+
     .the-column {
-        width: 100%;
         white-space: nowrap;
-        overflow: hidden;
-        display: inline-block;
+        display: inline;
         text-overflow: ellipsis;
         font-family: courier, mono, monospace;
     }
 
     .column-chooser {
-      .transitions;
+        .transitions;
 
-      ul {
-        padding-left: 1em;
-        word-wrap: break-word;
-        .active {
-            font-weight: bold;
+        ul {
+            padding-left: 1em;
+            word-wrap: break-word;
 
-            &:hover {
-                text-decoration: none;
-                cursor: auto;
+            .active {
+                font-weight: bold;
+
+                &:hover {
+                    text-decoration: none;
+                    cursor: auto;
+                }
             }
         }
-    }}
+    }
 }
 
 .has-left-sidebar {
