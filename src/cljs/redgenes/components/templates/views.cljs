@@ -4,6 +4,8 @@
             [accountant.core :refer [navigate!]]
             [clojure.string :refer [split join blank?]]
             [json-html.core :as json-html]
+            [redgenes.components.imcontrols.views :refer [op-dropdown]]
+            [redgenes.components.inputgroup :as input]
             [redgenes.components.lighttable :as lighttable]))
 
 (def ops [{:op         "="
@@ -30,6 +32,7 @@
            :applies-to []}
           {:op         "LOOKUP"
            :applies-to [:class]}])
+
 
 (defn list-dropdown []
   (let [lists (subscribe [:lists])]
@@ -63,46 +66,21 @@
 (defn constraint-vertical [idx state]
   (let [state (reagent/atom state)]
     (fn [idx constraint]
+
+      (.log js/console "CONSTRAINT" constraint)
       [:div
-
-       [:div.form-group.row
-        [:div.col-xs-offset-3
-         {:style {:padding 0
-                  :padding-left "20px"}
-          }
-         [:span (join " > " (take-last 2 (split (:path constraint) ".")))]]]
-
-
-       [:div.form-group.row
-
-        [:div.col-xs-3.stretch-buttons
-         {:style {:text-align "right"}}
-
-         [:div.dropdown
-          [:button.btn.btn-default.btn-raised.dropdown-toggle
-           {:type        "button"
-            :data-toggle "dropdown"}
-           (:op @state)
-           [:i.fa.fa-caret-down.pad-left-5]]
-          (into [:ul.dropdown-menu]
-                (map (fn [op]
-                       [:li
-                        {:on-click (fn []
-                                     (swap! state assoc :op op)
-                                     (dispatch [:template-chooser/replace-constraint idx @state]))}
-                        [:a op]]))
-                (map :op ops)
-                ;(map :op (filter (partial applies-to? (:field-type constraint)) ops))
-                )]]
-
-
-        [:div.col-xs-9
-         [:input.form-control
-          {:type      "text"
-           :value     (:value @state)
-           :on-change (fn [e] (swap! state assoc :value (.. e -target -value)))
-           :on-blur   (fn [] (dispatch [:template-chooser/replace-constraint idx @state]))}]]
-        ]])))
+       [:label [:span (join " > " (take-last 2 (split (:path constraint) ".")))]]
+       [:div.input-group
+        [:span.input-group-btn
+         [op-dropdown constraint
+          {:type      :string
+           :on-change (fn [x]
+                        (dispatch [:template-chooser/replace-constraint idx (assoc constraint :op x)])
+                        )}]]
+        [:input.form-control
+         {:type        "text"
+          :placeholder "Search for..."
+          :value (:value constraint)}]]])))
 
 (defn template []
   (let [selected-template (subscribe [:selected-template])
@@ -130,7 +108,7 @@
                       [:div.col-xs-offset-6
                        {:style {:text-align "right"}}
                        [:button.btn.btn-primary.btn-raised
-                        {:type "button"
+                        {:type     "button"
                          :on-click (fn [] (dispatch [:templates/send-off-query]))}
                         "View All Results"]]]]))]
 
@@ -151,17 +129,17 @@
        [:svg.icon.icon-sad [:use {:xlinkHref "#icon-sad"}]]
        " No templates available. "
        (let [category-filter (subscribe [:selected-template-category])
-             text-filter (subscribe [:template-chooser/text-filter])
+             text-filter     (subscribe [:template-chooser/text-filter])
              filters-active? (or (some? @category-filter) (not (blank? @text-filter)))]
          (cond filters-active?
-           [:span "Try "
-            [:a {:on-click
-                 (fn []
-                   (dispatch [:template-chooser/set-text-filter ""])
-                   (dispatch [:template-chooser/set-category-filter nil])
-                   )
-                 }"removing the filters"]
-            " to view more results. "])
+               [:span "Try "
+                [:a {:on-click
+                     (fn []
+                       (dispatch [:template-chooser/set-text-filter ""])
+                       (dispatch [:template-chooser/set-category-filter nil])
+                       )
+                     } "removing the filters"]
+                " to view more results. "])
          )
        ])))
 
@@ -185,13 +163,13 @@
 
 (defn filters [categories template-filter filter-state]
   [:div.template-filters.container-fluid
-    [:div.template-filter
-      [:label.control-label "Filter by category"]
-      [categories]]
-    [:div.template-filter
-      [:label.control-label "Filter by description"]
-      [template-filter filter-state]]
- ])
+   [:div.template-filter
+    [:label.control-label "Filter by category"]
+    [categories]]
+   [:div.template-filter
+    [:label.control-label "Filter by description"]
+    [template-filter filter-state]]
+   ])
 
 
 (defn main []
@@ -203,11 +181,21 @@
         selected-constraints (subscribe [:template-chooser/selected-template-constraints])]
     (fn []
       [:div.container-fluid
+
+
        ;(json-html/edn->hiccup @selected-template)
        [:div.row
+
+
         [:div.col-xs-12.templates
-          [filters categories template-filter filter-state]
+
+
+
+         [filters categories template-filter filter-state]
          [:div.template-list
+
+
+
           ;;the bad placeholder exists to displace content, but is invisible. It's a duplicate of the filters header
           [:div.bad-placeholder [filters categories template-filter filter-state]]
           [templates @im-templates]]]

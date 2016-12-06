@@ -48,8 +48,10 @@
 (reg-event-fx
   :template-chooser/replace-constraint
   (fn [{db :db} [_ index value]]
+    (.log js/console "new value" value)
     {:db       (assoc-in db [:components :template-chooser :selected-template :where index] value)
-     :dispatch [:template-chooser/run-count]}))
+     ;:dispatch [:template-chooser/run-count]
+     }))
 
 (reg-event-db
   :template-chooser/update-count
