@@ -2,7 +2,6 @@
   (:require [re-frame.core :refer [subscribe dispatch]]
             [reagent.core :as reagent]
             [redgenes.components.table :as table]
-            [redgenes.sections.results.events]
             [redgenes.sections.results.subs]
             [redgenes.components.bootstrap :refer [popover tooltip]]
             [clojure.string :refer [split]]
@@ -19,7 +18,7 @@
 (def sidebar-hover (reagent/atom false))
 
 (defn popover-table []
-  (let [values         (subscribe [:results/summary-values])
+  (let [values         (subscribe [:enrichment/summary-values])
         result         (first (:results @values))
         column-headers (:columnHeaders @values)]
     (fn [matches p-value]
@@ -41,9 +40,9 @@
   (fn [{:keys [description matches identifier p-value matches-query] :as row}
        {:keys [pathConstraint] :as details}]
     [:li.enrichment-item
-     {:on-mouse-enter (fn [] (dispatch [:results/get-item-details identifier pathConstraint]))
+     {:on-mouse-enter (fn [] (dispatch [:enrichment/get-item-details identifier pathConstraint]))
       :on-click       (fn []
-                        (dispatch [:results/add-to-history row details]))}
+                        (dispatch [:enrichment/add-to-history row details]))}
      [:div.container-fluid
       [:div.row
        [:div.col-xs-8
@@ -74,8 +73,8 @@
 
 (defn enrichment-results-preview []
   (let [page-state  (reagent/atom {:page 0 :show 5})
-        text-filter (subscribe [:results/text-filter])
-        config (subscribe [:results/enrichment-config])]
+        text-filter (subscribe [:enrichment/text-filter])
+        config (subscribe [:enrichment/enrichment-config])]
     (fn [[widget-name {:keys [results] :as details}]]
       [:div
         [:h4 {:class (if (empty? results) "greyout")}
@@ -102,7 +101,7 @@
               (drop (* (:page @page-state) (:show @page-state)) results)))))])))
 
 (defn enrichment-results []
-  (let [all-enrichment-results (subscribe [:results/enrichment-results])]
+  (let [all-enrichment-results (subscribe [:enrichment/enrichment-results])]
     (fn []
       (if (nil? (vals @all-enrichment-results))
         ;; No Enrichment widgets available - only if there are no widgets for any of the datatypes in the columns. If there are widgets but there are 0 results, the second option below (div.demo) fires.
@@ -117,15 +116,15 @@
                @all-enrichment-results)]]))))
 
 (defn text-filter []
-  (let [value (subscribe [:results/text-filter])]
+  (let [value (subscribe [:enrichment/text-filter])]
     [:input.form-control.input-lg
      {:type        "text"
       :value       @value
       :on-change   (fn [e]
                      (let [value (.. e -target -value)]
                        (if (or (= value "") (= value nil))
-                         (dispatch [:results/set-text-filter nil])
-                         (dispatch [:results/set-text-filter value]))))
+                         (dispatch [:enrichment/set-text-filter nil])
+                         (dispatch [:enrichment/set-text-filter value]))))
       :placeholder "Filter..."}]))
 
 (defn enrichment-settings []
@@ -134,14 +133,14 @@
       [:div.pval
         [:label "Max p-value" [p-val-tooltip]]
         [:select.form-control
-          {:on-change #(dispatch [:results/update-enrichment-setting :maxp (oget % "target" "value")])}
+          {:on-change #(dispatch [:enrichment/update-enrichment-setting :maxp (oget % "target" "value")])}
           [:option "0.05"]
           [:option "0.10"]
           [:option "1.00"]]]
       [:div.correction
         [:label "Test Correction"]
         [:select.form-control
-          {:on-change #(dispatch [:results/update-enrichment-setting :correction (oget % "target" "value")])}
+          {:on-change #(dispatch [:enrichment/update-enrichment-setting :correction (oget % "target" "value")])}
           [:option "Holm-Bonferroni"]
           [:option "Benjamini Hochber"]
           [:option "Bonferroni"]
@@ -163,7 +162,7 @@
                  {:class (cond active? "active")
                   :key (:path option)
                   :on-click (fn []
-                   (dispatch [:results/update-active-enrichment-column option])
+                   (dispatch [:enrichment/update-active-enrichment-column option])
                    (reset! show-chooser? false))}
             (:path option)
             (cond active? " (currently active)")]]
@@ -171,10 +170,10 @@
    ])))
 
 (defn enrichable-column-displayer []
-  (let [enrichable (subscribe [:results/enrichable-columns])
+  (let [enrichable (subscribe [:enrichment/enrichable-columns])
         enrichable-options (flatten (vals @enrichable))
         multiple-options? (> (count enrichable-options) 1)
-        active-enrichment-column (subscribe [:results/active-enrichment-column])]
+        active-enrichment-column (subscribe [:enrichment/active-enrichment-column])]
     [:div.enrichment-column-settings
       "Enrichment column: "
      [:span.the-column (first (:select (:query @active-enrichment-column)))]
@@ -183,7 +182,7 @@
 
 (defn enrich []
   (let [query-parts (subscribe [:results/query-parts])
-        value       (subscribe [:results/text-filter])]
+        value       (subscribe [:enrichment/text-filter])]
     (fn []
       [:div.sidebar
        {:on-mouse-enter (fn [] (reset! sidebar-hover true))
