@@ -2,6 +2,7 @@
   (:require-macros [reagent.ratom :refer [reaction]])
   (:require [re-frame.core :refer [reg-sub]]
             [redgenes.components.databrowser.subs]
+            [redgenes.components.enrichment.subs]
             [redgenes.mines :as mines]
             [redgenes.components.search.subs]))
 

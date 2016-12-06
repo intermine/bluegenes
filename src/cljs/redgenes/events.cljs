@@ -10,6 +10,7 @@
             [redgenes.components.search.events]
             [redgenes.components.databrowser.events]
             [redgenes.components.navbar.events]
+            [redgenes.components.enrichment.events]
             [redgenes.components.search.events :as search-full]
             [redgenes.sections.reportpage.handlers]
             [redgenes.effects]
