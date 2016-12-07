@@ -85,7 +85,6 @@
 
 (defn can-we-enrich-on-existing-preference? [enrichable existing-enrichable]
   (let [paths (reduce (fn [new x] (conj new (:path x))) #{} (flatten (vals enrichable)))]
-    (.log js/console "contains?" (clj->js paths) (:path existing-enrichable) (contains? paths (:path existing-enrichable)))
     (contains? paths (:path existing-enrichable))
   ))
 

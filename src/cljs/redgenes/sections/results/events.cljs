@@ -129,7 +129,6 @@
 (reg-fx
   :fetch-ids-from-query
   (fn [[service query]]
-    (.log js/console "%cfetching" "color:hotpink;font-weight:bold;")
     (go (let [results  (<! (search/raw-query-rows
                                        service
                                        query))]

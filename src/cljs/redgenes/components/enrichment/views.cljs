@@ -3,6 +3,7 @@
             [reagent.core :as reagent]
             [redgenes.components.table :as table]
             [redgenes.sections.results.subs]
+            [imcljs.path :as path]
             [redgenes.components.bootstrap :refer [popover tooltip]]
             [clojure.string :refer [split]]
             [oops.core :refer [oget]]))
@@ -148,9 +149,22 @@
      [text-filter]
 ])
 
+(defn path-to-last-two-classes [model this-path]
+  (let [trimmed-path (path/trim-to-last-class model this-path)
+        walk (path/walk model trimmed-path)
+        n-to-take (- (count walk) 2)
+        n-to-really-take (if (neg? n-to-take) 0 n-to-take)
+        last-two-classes (subvec walk n-to-really-take)
+        human-path (reduce (fn [newthing x]
+           (conj newthing (:displayName x))) [] last-two-classes)]
+    (clojure.string/join " > " human-path)
+    ))
+
 (defn enrichable-column-chooser [options]
   (let [show-chooser? (reagent/atom false)
-        active (subscribe [:enrichment/active-enrichment-column])]
+        active (subscribe [:enrichment/active-enrichment-column])
+        current-mine (subscribe [:current-mine])
+        model (:model (:service @current-mine))]
     (fn []
       [:div.column-chooser [:a
         {:on-click (fn []
@@ -162,14 +176,16 @@
                             ]
        (cond @show-chooser?
          (into [:ul] (map (fn [option]
-           (let [active? (= (:path option) (:path @active))]
+           (let [this-path (:path option)
+                 active? (= this-path (:path @active))
+                 last-two (path-to-last-two-classes model this-path)]
            [:li [:a
                  {:class (cond active? "active")
-                  :key (:path option)
+                  :key this-path
                   :on-click (fn []
                    (dispatch [:enrichment/update-active-enrichment-column option])
                    (reset! show-chooser? false))}
-            (:path option)
+              last-two
             (cond active? " (currently active)")]]
           )) options)))
    ])))
@@ -178,10 +194,13 @@
   (let [enrichable (subscribe [:enrichment/enrichable-columns])
         enrichable-options (flatten (vals @enrichable))
         multiple-options? (> (count enrichable-options) 1)
-        active-enrichment-column (subscribe [:enrichment/active-enrichment-column])]
+        active-enrichment-column (subscribe [:enrichment/active-enrichment-column])
+        current-mine (subscribe [:current-mine])
+        model (:model (:service @current-mine))
+        the-path (first (:select (:query @active-enrichment-column)))]
     [:div.enrichment-column-settings.sidebar-item
       "Enrichment column: "
-     [:div.the-column (first (:select (:query @active-enrichment-column)))]
+     [:div.the-column (path-to-last-two-classes model the-path)]
      (cond multiple-options? [enrichable-column-chooser enrichable-options @active-enrichment-column])
      ]))
 
