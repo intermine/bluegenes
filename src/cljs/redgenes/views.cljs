@@ -23,7 +23,7 @@
             ))
 
 ;; about
-
+(enable-console-print!)
 (defn about-panel []
   (fn []
     [:div "This is the About Page."

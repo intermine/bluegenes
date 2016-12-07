@@ -133,7 +133,7 @@
      :source-paths ["src/cljs"]
      :jar          true
      :compiler     {:main            redgenes.core
-                    :output-to       "resources/public/js/min/app.js"
+                    :output-to       "resources/public/js/compiled/app.js"
                     :output-dir      "resources/public/js/min/test"
                     :externs         ["externs/imjs.js"
                                       "externs/imtables.js"]
