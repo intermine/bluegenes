@@ -6,21 +6,28 @@ div.indent {
     padding-left: 10px;
 }
 
-.sidebar .form-control,
+.enrichment .form-control,
 label {
     font-size: 0.8em;
     color: #525252;
 }
 
-.sidebar {
-  .fa:hover {cursor:pointer;}
+.enrichment {
+  .settings-bg {    background: rgba(0,0,0,0.04);}
+  .standard-enrichment-padding {padding: 0.5em 0.2em;}
+  justify-content: space-between;
+    .fa:hover {
+        cursor: pointer;
+    }
+
     h4 {
+      .standard-enrichment-padding;
         background: fadeout(@highlight-color, 80%);
-        padding: 0.5em 0.2em;
         color: #333;
         font-size: 1.2em;
+
         &.inactive {
-          background:lightgrey;
+            background: lightgrey;
         }
     }
 
@@ -29,34 +36,32 @@ label {
     }
 
     .enrichment-settings {
-      border-top:solid 1px #ddd;
+      .standard-enrichment-padding;
+      .settings-bg;
+
         display: flex;
+        flex-wrap:wrap;
         justify-content: space-between;
         margin-bottom: @spacer/3;
         //for when it breakpoint wraps underneath the table:
         @media (max-width:990px) {
             justify-content: flex-start;
 
-            .correction,
-            .pval {
-                margin: @spacer;
-
-                &:first-child {
-                    margin-left: 0;
-                }
-            }
         }
 
-        input, select {
+        input,
+        select, label select {
+          font-size:1em;
             .border-radius;
-            border:solid 1px #ddd;
+            border: solid 1px #ddd;
         }
 
         .pval select {
-            max-width: 5em;
+            max-width: 7em;
         }
+        .text-filter {flex-grow:1;}
+        label {font-size:1em; margin:@spacer/2}
     }
-    justify-content: space-between;
 
     .enrichment-header,
     .enrichment-list {
@@ -87,6 +92,49 @@ label {
         }
     }
 
+
+    .enrichment-column-settings {
+      width: 100%;
+      display:flex; flex-wrap:wrap;
+      .settings-bg;
+      .standard-enrichment-padding;
+      .transitions;
+      margin-bottom: @spacer;
+
+      .icon {
+        fill: #aaa;
+        margin: @spacer/8 @spacer/4 @spacer/4 @spacer/4;
+      }
+
+      .column-display {
+        flex-grow:1;
+      }
+
+      .the-column {
+        white-space: nowrap;
+        display: inline;
+        text-overflow: ellipsis;
+        font-family: courier, mono, monospace;
+      }
+
+      .column-chooser {
+        .transitions;
+        margin-left:@spacer;
+        ul {
+          padding-left: @spacer;
+          word-wrap: break-word;
+
+          .active {
+            font-weight: bold;
+
+            &:hover {
+              text-decoration: none;
+              cursor: auto;
+            }
+          }
+        }
+      }
+    }
     .enrichment-header {
         .p-val {
             text-align: right;
@@ -106,36 +154,6 @@ label {
     }
 }
 
-.enrichment-column-settings {
-    font-size: 0.9em;
-    width: 100%;
-    .transitions;
-
-    .the-column {
-        white-space: nowrap;
-        display: inline;
-        text-overflow: ellipsis;
-        font-family: courier, mono, monospace;
-    }
-
-    .column-chooser {
-        .transitions;
-        margin-bottom:@spacer;
-        ul {
-            padding-left: 1em;
-            word-wrap: break-word;
-
-            .active {
-                font-weight: bold;
-
-                &:hover {
-                    text-decoration: none;
-                    cursor: auto;
-                }
-            }
-        }
-    }
-}
 
 .has-left-sidebar {
     margin-left: @sidebar-width;
@@ -169,6 +187,6 @@ label {
 //this can't be namespaced nicely because twitter bootstrap is evil and
 //creates a new element that won't inherit all of the nicely namespaced classes. Sigh.
 
-.sidebar-popover.popover-contents {
+.enrichment-popover.popover-contents {
     color: #fff;
 }

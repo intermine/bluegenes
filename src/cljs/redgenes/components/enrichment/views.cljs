@@ -118,7 +118,8 @@
 
 (defn text-filter []
   (let [value (subscribe [:enrichment/text-filter])]
-    [:input.form-control.input-lg
+    [:label.text-filter "Filter enrichment results"
+    [:input.form-control
      {:type        "text"
       :value       @value
       :on-change   (fn [e]
@@ -126,26 +127,24 @@
                        (if (or (= value "") (= value nil))
                          (dispatch [:enrichment/set-text-filter nil])
                          (dispatch [:enrichment/set-text-filter value]))))
-      :placeholder "Filter..."}]))
+      :placeholder "Filter..."}]]))
 
 (defn enrichment-settings []
-  [:div.sidebar-item
-    [:div.enrichment-settings
-      [:div.pval
-        [:label "Max p-value" [p-val-tooltip]]
+  [:div.sidebar-item.enrichment-settings
+        [:label.pval "Max p-value" [p-val-tooltip]
         [:select.form-control
           {:on-change #(dispatch [:enrichment/update-enrichment-setting :maxp (oget % "target" "value")])}
           [:option "0.05"]
           [:option "0.10"]
           [:option "1.00"]]]
-      [:div.correction
-        [:label "Test Correction"]
+
+        [:label.correction "Test Correction"
         [:select.form-control
           {:on-change #(dispatch [:enrichment/update-enrichment-setting :correction (oget % "target" "value")])}
           [:option "Holm-Bonferroni"]
           [:option "Benjamini Hochber"]
           [:option "Bonferroni"]
-          [:option "None"]]]]
+          [:option "None"]]]
      [text-filter]
 ])
 
@@ -171,7 +170,7 @@
             (reset! show-chooser? (not @show-chooser?)))}
         (if @show-chooser?
           "Select a column to enrich:"
-          [:span "Change column (" (- (count options) 1) ")"]
+          [:span.change "Change column (" (- (count options) 1) ")"]
           )
                             ]
        (cond @show-chooser?
@@ -199,8 +198,9 @@
         model (:model (:service @current-mine))
         the-path (first (:select (:query @active-enrichment-column)))]
     [:div.enrichment-column-settings.sidebar-item
+      [:div.column-display [:svg.icon.icon-table [:use {:xlinkHref "#icon-table"}]]
       "Enrichment column: "
-     [:div.the-column (path-to-last-two-classes model the-path)]
+      [:div.the-column (path-to-last-two-classes model the-path)]]
      (cond multiple-options? [enrichable-column-chooser enrichable-options @active-enrichment-column])
      ]))
 
@@ -208,7 +208,7 @@
   (let [query-parts (subscribe [:results/query-parts])
         value       (subscribe [:enrichment/text-filter])]
     (fn []
-      [:div.sidebar
+      [:div.enrichment
         {:on-mouse-enter (fn [] (reset! sidebar-hover true))
           :on-mouse-leave (fn [] (reset! sidebar-hover false))}
         [:h3.inline "Enrichment: "]
