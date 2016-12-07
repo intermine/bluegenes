@@ -43,7 +43,7 @@
     [:li.enrichment-item
      {:on-mouse-enter (fn [] (dispatch [:enrichment/get-item-details identifier pathConstraint]))
       :on-click       (fn []
-                        (dispatch [:enrichment/add-to-history row details]))}
+                        (dispatch [:results/add-to-history row details]))}
      [:div.container-fluid
       [:div.row
        [:div.col-xs-8
