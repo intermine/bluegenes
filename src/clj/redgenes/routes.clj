@@ -1,13 +1,15 @@
 (ns redgenes.routes
   (:require [compojure.core :refer [GET POST defroutes context ANY]]
             [compojure.route :refer [resources]]
+             [hiccup.page :refer [include-js include-css html5]]
             [redgenes.api.modelcount :refer [modelcount modelcount-children cache cacheall]]
+            [redgenes.index :as index]
             [ring.util.response :refer [response resource-response]]))
 
 (defroutes routes
   (GET "/" []
-       (println "Slime and snails")
-       (resource-response "index.html" {:root "public"}))
+       (index/index))
+
   (resources "/")
 
   (GET "/worker" [worker]
