@@ -16,6 +16,7 @@
                  [ring/ring-defaults "0.2.1"]
                  [ring/ring-json "0.4.0"]
                  [ring "1.5.0"]
+                 [hiccup "1.0.5"]
                  [json-html "0.4.0"]
                  [prismatic/dommy "1.1.0"]
                  [day8.re-frame/http-fx "0.1.2"]
