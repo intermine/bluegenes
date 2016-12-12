@@ -1,27 +1,35 @@
 @import "../variables";
 @import "../datatype-colors";
 
+@border-color: #ecebeb;
 
 .venn {
     .selected {
-        fill: #039be5
+        fill: #039be5;
     }
 
     .unselected {
-            fill: #039be5;
-            opacity: 0.2;
-        }
+        fill: #039be5;
+        opacity: 0.2;
+    }
 }
 
-div.list-container {
-
+.list-container {
+  font-size: 0.9em;
+  padding: 15px;
+  border-spacing: 0 0.5em;
+  border-collapse: separate;
+    .list-description {
+        max-width: 60vw;
+    }
 
     .fa-star {
         color: gold;
     }
 
     .fa-globe,
-    .fa-user,a {
+    .fa-user,
+    a {
         color: @highlight-color;
     }
 
@@ -32,67 +40,70 @@ div.list-container {
             color: #a8a8a8;
         }
     }
-    font-size: 0.9em;
-    padding: 15px;
 
     .stress {
         color: @highlight-color;
     }
 
+
+
     h4 {
+        margin: 0;
         font-size: 1.2em;
     }
-    .list-title {padding-right :@spacer / 5;
-                 display:inline-block}
-    .list-row {
-        background: white;
+
+    .date-created {
+        width: 10vw;
+    }
+
+
+    tr {
         padding: @spacer/2;
-        display: flex;
-        align-items: stretch;
-        .row-count {font-size: 0.8em}
-        .description {padding-left: @spacer}
-        .date-created,
-        .type-style {
-            display: flex;
-            align-items: center;
+        background-color: white;
+
+
+        .row-count {
+            font-size: 0.8em;
+        }
+
+        .description {
+            padding-left: @spacer
         }
 
         &.selected {
-           background-color: #d8f2ff;
+            background-color:lighten(@highlight-color,50%)
         }
     }
-    .no-results {font-style:italic}
+    td {
+      padding: 1em;
+      border-right: 1px solid @border-color;
+      border-bottom:solid 1px @border-color;
 
-    .header {
-        background-color: @highlight-color;
-        color: white;
+      &:first-child {
+        border-right: none;
+      }
     }
 
-    .list-row:not(:last-child) {
-        border-bottom: 1px solid #ecebeb;
-        margin-bottom: 3px;
+    thead tr {background-color:transparent;}
+    th, th.type-style {padding:@spacer @spacer 0 @spacer;border:0;}
+    h3 {
+        font-size: 1.4em;
+        margin:0;
+        padding-right: @spacer / 5;
+        display: inline-block;
     }
 
-    .col {
-        padding: 0 @spacer/2;
+    .no-results {
+        font-style: italic;
+    }
+
+    tr:not(:last-child) {
+        border-bottom: 1px solid @border-color;
     }
 
     .type-style {
         color: @body-foreground-color;
         background-color: transparent;
-        border-width: 0 0 0 3px;
-    }
-
-    h4 {
-        margin: 0;
-    }
-
-    div[class^="col-"] {
-        padding: 5px;
-    }
-
-    div.col:not(:last-child),
-    div[class^="col-"]:not(:last-child) {
-        border-right: 1px solid #ecebeb;
+        border-width: 0 1px 1px 3px;
     }
 }
