@@ -1,10 +1,18 @@
+@import "../variables";
+
+@border-color: #ccc;
+@height:2em;
+
 .input-group {
     input {
-        border-top-left-radius: 2px;
-        border-bottom-left-radius: 2px;
-        border: solid 1px #ccc;
+        border-top-left-radius: @border-radius;
+        border-bottom-left-radius: @border-radius;
+        border: solid 1px @border-color;
         height: 2em;
         margin: 0;
+        &:focus {
+
+        }
     }
 
     .content {
@@ -12,15 +20,15 @@
         display: inline-block;
         margin: 0;
         position: relative;
-        border: solid 1px #ccc;
+        border: solid 1px @border-color;
         vertical-align: baseline;
         top: -1px;
         border-left: 0;
         padding: 0 0.5em;
         vertical-align: middle;
-        border-top-right-radius: 2px;
-        height: 2em;
-        line-height: 1.8em;
-        border-bottom-right-radius: 2px;
+        border-top-right-radius: @border-radius;
+        border-bottom-right-radius: @border-radius;
+        height: @height;
+        line-height: @height - 0.2em;
     }
 }

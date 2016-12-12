@@ -32,12 +32,12 @@
   (t/write (t/writer :json-verbose) state))
 
 (defn persist! [state]
-  (println "persist state")
+  (.log js/console "persist state")
   (js/localStorage.setItem "redgenes/state" (to-transit state))
   state)
 
 (defn destroy! []
-  (println "destroy state")
+  (.log js/console "destroy state")
   (js/localStorage.removeItem "redgenes/state")
   true)
 

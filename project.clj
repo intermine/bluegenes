@@ -16,6 +16,7 @@
                  [ring/ring-defaults "0.2.1"]
                  [ring/ring-json "0.4.0"]
                  [ring "1.5.0"]
+                 [hiccup "1.0.5"]
                  [json-html "0.4.0"]
                  [prismatic/dommy "1.1.0"]
                  [day8.re-frame/http-fx "0.1.2"]
@@ -133,7 +134,7 @@
      :source-paths ["src/cljs"]
      :jar          true
      :compiler     {:main            redgenes.core
-                    :output-to       "resources/public/js/min/app.js"
+                    :output-to       "resources/public/js/compiled/app.js"
                     :output-dir      "resources/public/js/min/test"
                     :externs         ["externs/imjs.js"
                                       "externs/imtables.js"]

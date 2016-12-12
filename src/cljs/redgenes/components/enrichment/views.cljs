@@ -3,6 +3,7 @@
             [reagent.core :as reagent]
             [redgenes.components.table :as table]
             [redgenes.sections.results.subs]
+            [imcljs.path :as path]
             [redgenes.components.bootstrap :refer [popover tooltip]]
             [clojure.string :refer [split]]
             [oops.core :refer [oget]]))
@@ -42,7 +43,7 @@
     [:li.enrichment-item
      {:on-mouse-enter (fn [] (dispatch [:enrichment/get-item-details identifier pathConstraint]))
       :on-click       (fn []
-                        (dispatch [:enrichment/add-to-history row details]))}
+                        (dispatch [:results/add-to-history row details]))}
      [:div.container-fluid
       [:div.row
        [:div.col-xs-8
@@ -117,7 +118,8 @@
 
 (defn text-filter []
   (let [value (subscribe [:enrichment/text-filter])]
-    [:input.form-control.input-lg
+    [:label.text-filter "Filter enrichment results"
+    [:input.form-control
      {:type        "text"
       :value       @value
       :on-change   (fn [e]
@@ -125,51 +127,64 @@
                        (if (or (= value "") (= value nil))
                          (dispatch [:enrichment/set-text-filter nil])
                          (dispatch [:enrichment/set-text-filter value]))))
-      :placeholder "Filter..."}]))
+      :placeholder "Filter..."}]]))
 
 (defn enrichment-settings []
-  [:div.sidebar-item
-    [:div.enrichment-settings
-      [:div.pval
-        [:label "Max p-value" [p-val-tooltip]]
+  [:div.sidebar-item.enrichment-settings
+        [:label.pval "Max p-value" [p-val-tooltip]
         [:select.form-control
           {:on-change #(dispatch [:enrichment/update-enrichment-setting :maxp (oget % "target" "value")])}
           [:option "0.05"]
           [:option "0.10"]
           [:option "1.00"]]]
-      [:div.correction
-        [:label "Test Correction"]
+
+        [:label.correction "Test Correction"
         [:select.form-control
           {:on-change #(dispatch [:enrichment/update-enrichment-setting :correction (oget % "target" "value")])}
           [:option "Holm-Bonferroni"]
           [:option "Benjamini Hochber"]
           [:option "Bonferroni"]
-          [:option "None"]]]]
+          [:option "None"]]]
      [text-filter]
 ])
 
+(defn path-to-last-two-classes [model this-path]
+  (let [trimmed-path (path/trim-to-last-class model this-path)
+        walk (path/walk model trimmed-path)
+        n-to-take (- (count walk) 2)
+        n-to-really-take (if (neg? n-to-take) 0 n-to-take)
+        last-two-classes (subvec walk n-to-really-take)
+        human-path (reduce (fn [newthing x]
+           (conj newthing (:displayName x))) [] last-two-classes)]
+    (clojure.string/join " > " human-path)
+    ))
+
 (defn enrichable-column-chooser [options]
   (let [show-chooser? (reagent/atom false)
-        active (subscribe [:enrichment/active-enrichment-column])]
+        active (subscribe [:enrichment/active-enrichment-column])
+        current-mine (subscribe [:current-mine])
+        model (:model (:service @current-mine))]
     (fn []
       [:div.column-chooser [:a
         {:on-click (fn []
             (reset! show-chooser? (not @show-chooser?)))}
         (if @show-chooser?
           "Select a column to enrich:"
-          [:span "Change column (" (- (count options) 1) ")"]
+          [:span.change "Change column (" (- (count options) 1) ")"]
           )
                             ]
        (cond @show-chooser?
          (into [:ul] (map (fn [option]
-           (let [active? (= (:path option) (:path @active))]
+           (let [this-path (:path option)
+                 active? (= this-path (:path @active))
+                 last-two (path-to-last-two-classes model this-path)]
            [:li [:a
                  {:class (cond active? "active")
-                  :key (:path option)
+                  :key this-path
                   :on-click (fn []
                    (dispatch [:enrichment/update-active-enrichment-column option])
                    (reset! show-chooser? false))}
-            (:path option)
+              last-two
             (cond active? " (currently active)")]]
           )) options)))
    ])))
@@ -178,10 +193,14 @@
   (let [enrichable (subscribe [:enrichment/enrichable-columns])
         enrichable-options (flatten (vals @enrichable))
         multiple-options? (> (count enrichable-options) 1)
-        active-enrichment-column (subscribe [:enrichment/active-enrichment-column])]
+        active-enrichment-column (subscribe [:enrichment/active-enrichment-column])
+        current-mine (subscribe [:current-mine])
+        model (:model (:service @current-mine))
+        the-path (first (:select (:query @active-enrichment-column)))]
     [:div.enrichment-column-settings.sidebar-item
+      [:div.column-display [:svg.icon.icon-table [:use {:xlinkHref "#icon-table"}]]
       "Enrichment column: "
-     [:div.the-column (first (:select (:query @active-enrichment-column)))]
+      [:div.the-column (path-to-last-two-classes model the-path)]]
      (cond multiple-options? [enrichable-column-chooser enrichable-options @active-enrichment-column])
      ]))
 
@@ -189,7 +208,7 @@
   (let [query-parts (subscribe [:results/query-parts])
         value       (subscribe [:enrichment/text-filter])]
     (fn []
-      [:div.sidebar
+      [:div.enrichment
         {:on-mouse-enter (fn [] (reset! sidebar-hover true))
           :on-mouse-leave (fn [] (reset! sidebar-hover false))}
         [:h3.inline "Enrichment: "]

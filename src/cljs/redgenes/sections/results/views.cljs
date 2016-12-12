@@ -34,7 +34,7 @@
 
 (defn main []
     (fn []
-      [:div.container
+      [:div.container.results
        [breadcrumb]
        [:div.row
         [:div.col-md-8.col-sm-12
