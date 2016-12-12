@@ -101,7 +101,7 @@
   (let [text-filter  (subscribe [:lists/text-filter])
         flag-filters (subscribe [:lists/flag-filters])]
     (fn []
-      [:div
+      [:tr [:td {:col-span 4}
        [:h3
         (let [message (cond-> []
                               (some? (:authorized @flag-filters)) (conj (if (:authorized @flag-filters) "private" "public"))
@@ -114,7 +114,7 @@
           )]
        [:a
         {:on-click (fn [] (dispatch [:lists/clear-filters nil]))}
-        "Click here to clear your search"]])))
+        "Click here to clear your search"]]])))
 
 (defn select-all-checkbox [filtered-lists]
   (let [lists (subscribe [:lists/filtered-lists])

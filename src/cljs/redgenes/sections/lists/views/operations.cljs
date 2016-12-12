@@ -6,7 +6,8 @@
 
 (defn operations-bar []
   (let [selected (subscribe [:lists/selected])]
-    [:div.btn-toolbar
+    [:div.btn-toolbar.list-operations
+     [:h5 "List tools: "]
      [:div.button-group
       [:button.btn.btn-default
        {:disabled (< (count @selected) 2)
@@ -20,7 +21,7 @@
        {:disabled (< (count @selected) 2)
         :on-click (fn [] (dispatch [:lists/difference]))}
        "Difference"]
-      [:button.btn.btn-warning
+      [:button.btn.delete.btn-default
        {:disabled (empty? @selected)
         :on-click (fn [] (dispatch [:lists/delete]))}
        [:i.fa.fa-trash] " Delete"]]
