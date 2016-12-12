@@ -27,27 +27,9 @@
   (let [flag-filters (subscribe [:lists/flag-filters])
         text-filter  (subscribe [:lists/text-filter])]
     (fn [sort-icon]
-      [:div
-       {:style {:display "inline-block"}}
-       [:input.form-control.input-lg.square
-        {:type           "text"
-         :value          @text-filter
-         :style          {:display       "inline"
-                          :width         "300px"
-                          :padding       "5px"
-                          :margin        0
-                          :background    "white"
-                          :border-radius "5px"
-                          :border        "1px solid #d6d6d6"}
-         :placeholder    "Name or description contains..."
-         :data-content   [:span "Fil"]
-         :data-placement "bottom"
-         :data-trigger   "hover"
-         :on-change      set-text-filter}]
-       [:span.flags
-        {:style {:font-size "1.5em"}}
+      [:div.list-filter-controls
+       [:div.flags
         ; Public / Private
-        sort-icon
         [popover
          [:i.fa
           {:data-content   [:span "Show only your lists."]
@@ -65,7 +47,18 @@
            :class          (case (get @flag-filters :favourite)
                              true "fa-star" false "fa-star-o" nil "fa-star disabled")
            :on-click       (fn [] (dispatch [:lists/toggle-flag-filter :favourite]))}]]
-        ]])))
+        ]
+        [:h3 "Title"]
+        [:input.form-control.input-lg.square.text-filter
+          {:type           "text"
+          :value          @text-filter
+          :placeholder    "Name or description contains..."
+          :data-content   [:span "Fil"]
+          :data-placement "bottom"
+          :data-trigger   "hover"
+          :on-change      set-text-filter}]
+          sort-icon
+       ])))
 
 (defn in [needle haystack] (some? (some #{needle} haystack)))
 
@@ -149,8 +142,8 @@
         [:tr
           [:th [select-all-checkbox lists]]
           [:th.list-description
-            [:h3.list-title "Title"]
-            [controls [sort-icon :title "fa-sort-alpha" (:title @sort-order)]]]
+            [controls [sort-icon :title "fa-sort-alpha" (:title @sort-order)]]
+           ]
           [:th.type-style [:h3 "Type "]]
           [:th.date-created [:h3 "Created"]]]]
 

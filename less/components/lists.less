@@ -1,6 +1,5 @@
 @import "../variables";
 @import "../datatype-colors";
-
 @border-color: #ecebeb;
 
 .venn {
@@ -14,11 +13,14 @@
     }
 }
 
+.list-section {width:100%;}
+
 .list-container {
-  font-size: 0.9em;
-  padding: 15px;
-  border-spacing: 0 0.5em;
-  border-collapse: separate;
+    font-size: 0.9em;
+    padding: 15px;
+    border-spacing: 0 0.5em;
+    border-collapse: separate;
+
     .list-description {
         max-width: 60vw;
     }
@@ -45,8 +47,6 @@
         color: @highlight-color;
     }
 
-
-
     h4 {
         margin: 0;
         font-size: 1.2em;
@@ -56,11 +56,28 @@
         width: 10vw;
     }
 
+    .list-filter-controls {
+        display: flex;
+        align-items: center;
+    }
 
+    th .flags {
+        display: flex;
+        font-size: 1.2em;
+    }
+
+    .text-filter {
+        flex-grow: 1;
+        display: inline;
+        min-width: 300px;
+        padding: 5px;
+        margin: 0 @spacer 0 0;
+        border: 1px solid @border-color;
+        .border-radius;
+    }
     tr {
         padding: @spacer/2;
         background-color: white;
-
 
         .row-count {
             font-size: 0.8em;
@@ -71,24 +88,33 @@
         }
 
         &.selected {
-            background-color:lighten(@highlight-color,50%)
+            background-color: lighten(@highlight-color,50%);
         }
     }
-    td {
-      padding: 1em;
-      border-right: 1px solid @border-color;
-      border-bottom:solid 1px @border-color;
 
-      &:first-child {
-        border-right: none;
-      }
+    td {
+        padding: 1em;
+        border-right: 1px solid @border-color;
+        border-bottom: solid 1px @border-color;
+
+        &:first-child {
+            border-right: none;
+        }
     }
 
-    thead tr {background-color:transparent;}
-    th, th.type-style {padding:@spacer @spacer 0 @spacer;border:0;}
+    thead tr {
+        background-color: transparent;
+    }
+
+    th,
+    th.type-style {
+        padding: @spacer @spacer 0;
+        border: 0;
+    }
+
     h3 {
         font-size: 1.4em;
-        margin:0;
+        margin: 0;
         padding-right: @spacer / 5;
         display: inline-block;
     }
