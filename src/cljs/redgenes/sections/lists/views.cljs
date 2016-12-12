@@ -65,11 +65,12 @@
 (defn list-row []
   (let [selected (subscribe [:lists/selected])]
     (fn [{:keys [source description tags authorized name type size title timestamp dateCreated] :as l}]
-      (let [date-created (tf/parse dateCreated)]
-        [:tr {:class (if (in name @selected) "selected")}
+      (let [date-created (tf/parse dateCreated)
+            selected? (in name @selected)]
+        [:tr {:class (cond selected? "selected")}
           [:td
             [:input {:type      "checkbox"
-                   :checked   (if (in name @selected) true)
+                   :checked   selected?
                    :on-change (fn [e] (dispatch ^:flush-dom [:lists/select name (oget e :target :checked)]))}]]
           [:td.list-description
             [:h4 [:span.flags
@@ -77,7 +78,7 @@
               (if (one-of? tags "im:favourite") [:i.fa.fa-star] [:i.fa.fa-star-o])]
               [:a.stress {:on-click (fn [] (dispatch [:lists/view-results l]))} title]
               [:span.row-count (str " (" size " rows)")]]
-          [:div.description description]]
+            [:div.description description]]
           [:td.type-style {:class (str "type-" type)} type]
           [:td.date-created
            (if dateCreated (if (t/after? date-created (t/today-at-midnight))
