@@ -18,6 +18,36 @@
     [:path.path1
      {:d
       "M10 14v8h-4v-8h4zM16 6v16h-4v-16h4zM32 24v2h-32v-24h2v22h30zM22 10v12h-4v-12h4zM28 4v18h-4v-18h4z"}]]
+    [:symbol#icon-venn-combine
+     {:viewBox "-5 0 160 100"}
+     [:title "Combine these lists"]
+
+     [:circle.venn-full
+      {:r 50 :cx 50 :cy 50 :stroke-width 5 :fill "rgb(170,170,170)" :stroke "black"}]
+      [:circle.venn-full
+       {:r 50 :cx 100 :cy 50 :stroke-width 5 :fill "rgb(170,170,170)" :stroke "black"}]
+     ]
+     [:symbol#icon-venn-difference
+      {:viewBox "-5 0 160 100"}
+      [:title "Subtract one list from another"]
+
+      [:circle.venn-full
+       {:r 50 :cx 50 :cy 50 :stroke-width 5 :fill "rgba(0,0,0,0.3)" :stroke "black"}]
+      [:circle.venn-hollow
+        {:r 50 :cx 100 :cy 50 :stroke-width 5 :fill "rgb(247,247,247)" :stroke "black"}]
+      ]
+
+  [:symbol#icon-venn-intersection
+   {:viewBox "-5 0 160 100"}
+   [:title "Intersect these lists"]
+
+   [:circle
+    {:r 50 :cx 50 :cy 50 :stroke-width 5 :fill "transparent" :stroke "black"}]
+    [:circle
+     {:r 50 :cx 100 :cy 50 :stroke-width 5 :fill "transparent"  :stroke "black"}]
+
+   [:path {:d "M 75.015625 6.7617188 A 50 50 0 0 0 50 50 A 50 50 0 0 0 74.984375 93.238281 A 50 50 0 0 0 100 50 A 50 50 0 0 0 75.015625 6.7617188 z " :fill "rgb(170,170,170)"  :stroke "black"}]]
+
    [:symbol#icon-floppy-disk
     {:viewBox "0 0 16 16"}
     [:title "floppy-disk"]
@@ -152,7 +182,7 @@
 
 [:symbol#icon-code
 {:viewBox "0 0 20 16"}
-[:titlbe "code"]
+[:title "code"]
 [:path.path1 {:d "M13 11.5l1.5 1.5 5-5-5-5-1.5 1.5 3.5 3.5z"}]
 [:path.path2 {:d "M7 4.5l-1.5-1.5-5 5 5 5 1.5-1.5-3.5-3.5z"}]
 [:path.path3

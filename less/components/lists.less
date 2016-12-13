@@ -22,7 +22,7 @@
     .list-container {
         width: 100%;
         font-size: 0.9em;
-        padding: 15px;
+        padding: 0px 15px 15px 15px;
         border-spacing: 0 0.5em;
         border-collapse: separate;
 
@@ -79,6 +79,7 @@
             margin: 0 @spacer 0 0;
             border: 1px solid @border-color;
             .border-radius;
+            @media (max-width:700px) {min-width:2em}
         }
 
         tr {
@@ -139,6 +140,22 @@
             border-width: 0 1px 1px 3px;
         }
     }
-    .list-operations {width:100%;display:flex;
-    align-items:center; justify-content:center;}
+
+    .list-operations {
+        width: 100%;
+        display: flex;
+        flex-wrap:wrap;
+        align-items: center;
+        justify-content: center;
+
+        .icon {
+            font-size: 1.2em;
+            margin-right: @spacer/3;
+        }
+        .btn {.transitions;}
+@media (max-width:830px) {
+  .btn {padding:@spacer/2;
+  .transitions;}
+}
+    }
 }
