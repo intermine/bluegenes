@@ -67,11 +67,12 @@
     (fn [{:keys [source description tags authorized name type size title timestamp dateCreated] :as l}]
       (let [date-created (tf/parse dateCreated)
             selected? (in name @selected)]
-        [:tr {:class (cond selected? "selected")}
+        [:tr {:class (cond selected? "selected")
+              :on-click (fn [e]
+                          (dispatch ^:flush-dom [:lists/select name (not selected?)]))}
           [:td
             [:input {:type      "checkbox"
-                   :checked   selected?
-                   :on-change (fn [e] (dispatch ^:flush-dom [:lists/select name (oget e :target :checked)]))}]]
+                     :checked   selected?  }]]
           [:td.list-description
             [:h4 [:span.flags
               (if authorized [:i.fa.fa-user] [:i.fa.fa-globe])

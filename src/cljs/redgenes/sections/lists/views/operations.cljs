@@ -23,12 +23,15 @@
        [:svg.icon.icon-venn-difference [:use {:xlinkHref "#icon-venn-difference"}]]
        "Difference"]
 
-       [:div [:button.btn.btn-default
-       {:disabled (empty? @selected)
-         :on-click (fn [] (dispatch [:lists/copy]))}
-         [:i.fa.fa-copy] " Copy"]
-      [:button.btn.delete.btn-default
-       {:disabled (empty? @selected)
-        :on-click (fn [] (dispatch [:lists/delete]))}
-       [:i.fa.fa-trash] " Delete"]]]
+       [:div ;; grouped together so that if they wrap around to the next row they wrap as a pair
+        [:button.btn.btn-default
+         {:disabled (empty? @selected)
+          :on-click (fn [] (dispatch [:lists/copy]))}
+          [:i.fa.fa-copy] " Copy"]
+        [:button.btn.delete.btn-default
+         {:disabled (empty? @selected)
+          :on-click (fn []
+
+                      (dispatch [:lists/delete]))}
+          [:i.fa.fa-trash] " Delete"]]]
      ))
