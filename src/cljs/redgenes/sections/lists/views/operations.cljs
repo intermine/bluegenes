@@ -31,7 +31,11 @@
         [:button.btn.delete.btn-default
          {:disabled (empty? @selected)
           :on-click (fn []
-
-                      (dispatch [:lists/delete]))}
+                      ;;todo: make this prettier than a nasty confirm(); dialogue
+                    (cond (.confirm js/window
+                                    (str "Are you sure you want to delete '"
+                                         (clojure.string/join ", " @selected)
+                                         "'? Once your list(s) are gone, they're gone forever."))
+                      (dispatch [:lists/delete])))}
           [:i.fa.fa-trash] " Delete"]]]
      ))
