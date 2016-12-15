@@ -27,27 +27,9 @@
   (let [flag-filters (subscribe [:lists/flag-filters])
         text-filter  (subscribe [:lists/text-filter])]
     (fn [sort-icon]
-      [:div
-       {:style {:display "inline-block"}}
-       [:input.form-control.input-lg.square
-        {:type           "text"
-         :value          @text-filter
-         :style          {:display       "inline"
-                          :width         "300px"
-                          :padding       "5px"
-                          :margin        0
-                          :background    "white"
-                          :border-radius "5px"
-                          :border        "1px solid #d6d6d6"}
-         :placeholder    "Name or description contains..."
-         :data-content   [:span "Fil"]
-         :data-placement "bottom"
-         :data-trigger   "hover"
-         :on-change      set-text-filter}]
-       [:span.flags
-        {:style {:font-size "1.5em"}}
+      [:div.list-filter-controls
+       [:div.flags
         ; Public / Private
-        sort-icon
         [popover
          [:i.fa
           {:data-content   [:span "Show only your lists."]
@@ -65,35 +47,47 @@
            :class          (case (get @flag-filters :favourite)
                              true "fa-star" false "fa-star-o" nil "fa-star disabled")
            :on-click       (fn [] (dispatch [:lists/toggle-flag-filter :favourite]))}]]
-        ]])))
+        ]
+        [:h3 "Title"]
+        [:input.form-control.input-lg.square.text-filter
+          {:type           "text"
+          :value          @text-filter
+          :placeholder    "Name or description contains..."
+          :data-content   [:span "Fil"]
+          :data-placement "bottom"
+          :data-trigger   "hover"
+          :on-change      set-text-filter}]
+          sort-icon
+       ])))
 
 (defn in [needle haystack] (some? (some #{needle} haystack)))
 
 (defn list-row []
   (let [selected (subscribe [:lists/selected])]
     (fn [{:keys [source description tags authorized name type size title timestamp dateCreated] :as l}]
-      (let [date-created (tf/parse dateCreated)]
-        [:div.grid-middle.list-row
-         {:class (if (in name @selected) "selected")}
-         [:div.col
-          [:input {:type      "checkbox"
-                   :checked   (if (in name @selected) true)
-                   :on-change (fn [e] (dispatch ^:flush-dom [:lists/select name (oget e :target :checked)]))}]]
-         [:div.col-8
-          [:h4
-           [:span.flags
-            (if authorized [:i.fa.fa-user] [:i.fa.fa-globe])
-            (if (one-of? tags "im:favourite") [:i.fa.fa-star] [:i.fa.fa-star-o])]
-           [:a.stress {:on-click (fn [] (dispatch [:lists/view-results l]))} title]
-           [:span.row-count (str " (" size " rows)")]]
-          [:div.description description]]
-         [:div.col.type-style {:class (str "type-" type)} [:span type]]
-         [:div.col.date-created [:span (if dateCreated (if (t/after? date-created (t/today-at-midnight))
-                                                         "Today"
-                                                         [:div
-                                                          (tf/unparse (tf/formatter "MMM, dd") date-created) " "
-                                                          (tf/unparse (tf/formatter "YYYY") date-created)]
-                                                         ))]]]))))
+      (let [date-created (tf/parse dateCreated)
+            selected? (in name @selected)]
+        [:tr {:class (cond selected? "selected")
+              :on-click (fn [e]
+                          (dispatch ^:flush-dom [:lists/select name (not selected?)]))}
+          [:td
+            [:input {:type      "checkbox"
+                     :checked   selected?  }]]
+          [:td.list-description
+            [:h4 [:span.flags
+              (if authorized [:i.fa.fa-user] [:i.fa.fa-globe])
+              (if (one-of? tags "im:favourite") [:i.fa.fa-star] [:i.fa.fa-star-o])]
+              [:a.stress {:on-click (fn [] (dispatch [:lists/view-results l]))} title]
+              [:span.row-count (str " (" size " rows)")]]
+            [:div.description description]]
+          [:td.type-style {:class (str "type-" type)} type]
+          [:td.date-created
+           (if dateCreated (if (t/after? date-created (t/today-at-midnight))
+             "Today"
+             [:span
+              (tf/unparse (tf/formatter "MMM, dd") date-created) " "
+              (tf/unparse (tf/formatter "YYYY") date-created)]
+             ))]]))))
 
 
 
@@ -109,7 +103,7 @@
   (let [text-filter  (subscribe [:lists/text-filter])
         flag-filters (subscribe [:lists/flag-filters])]
     (fn []
-      [:div
+      [:tr [:td {:col-span 4}
        [:h3
         (let [message (cond-> []
                               (some? (:authorized @flag-filters)) (conj (if (:authorized @flag-filters) "private" "public"))
@@ -122,30 +116,43 @@
           )]
        [:a
         {:on-click (fn [] (dispatch [:lists/clear-filters nil]))}
-        "Click here to clear your search"]])))
+        "Click here to clear your search"]]])))
+
+(defn select-all-checkbox [filtered-lists]
+  (let [lists (subscribe [:lists/filtered-lists])
+        ;selected (subscribe [:lists/selected])
+        ]
+;    (.log js/console "%c@lists" "color:hotpink;font-weight:bold;" (clj->js @lists))
+;    (.log js/console "%c@selected" "color:hotpink;font-weight:bold;" (clj->js @selected) (clj->js (some? @selected)))
+    [:input
+     {:type "checkbox"
+      :on-change (fn [e]
+        (dispatch [:lists/toggle-select-all (map :name filtered-lists)]))
+      ;  :checked (if (some? @selected)
+      ;             (= (count @lists) (count @selected))
+      ;             false)
+    }]
+))
+
 
 (defn list-table []
   (let [sort-order (subscribe [:lists/sort-order])
         selected   (subscribe [:lists/selected])]
     (fn [lists]
-      [:div.list-container
-       [:div.grid
-        [:div.col
-         [:button.btn
-          {:on-click (fn [] (dispatch [:lists/toggle-select-all (map :name lists)]))}
-          (if (empty? @selected)
-            "Select All"
-            "Deselect All")]]
-        [:div.col-8
-         [:span
-          [:h3.list-title "Title"]
-          [controls [sort-icon :title "fa-sort-alpha" (:title @sort-order)]]]]
-        [:div.col [:h3 "Type "]]
-        ;[:div.col [:h4 "Count"]]
-        [:div.col [:h3 "Created"]]]
+      [:table.list-container
+       [:thead
+        [:tr
+          [:th [select-all-checkbox lists]]
+          [:th.list-description
+            [controls [sort-icon :title "fa-sort-alpha" (:title @sort-order)]]
+           ]
+          [:th.type-style [:h3 "Type "]]
+          [:th.date-created [:h3 "Created"]]]]
 
        [css-transition-group
         {:transition-name          "fade"
+         :component "tbody"
+         :class "list-group-body"
          :transition-enter-timeout 100
          :transition-leave-timeout 100}
         (if (empty? lists)
@@ -158,6 +165,5 @@
   (let [filtered-lists (subscribe [:lists/filtered-lists])]
     (fn []
       [:div.list-section
-       {:style {:width "100%"}}
        [operations/operations-bar]
        [list-table @filtered-lists]])))
