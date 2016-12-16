@@ -96,72 +96,94 @@
                             (:end chromosomeLocation))]])
              (take (:show @pager) (drop (* (:show @pager) (:page @pager)) results)))]])))
 
+(defn organism-selection []
+  (let [settings  (subscribe [:regions/settings])]
+    [:div.form-group
+     [:label "Organism"]
+     [im-controls/organism-dropdown
+      {:label     (if-let [sn (get-in @settings [:organism :shortName])]
+                    sn
+                    "All Organisms")
+       :on-change (fn [organism]
+                    (dispatch [:regions/set-selected-organism organism]))}]])
+  )
+
+(defn region-input []
+  (let [to-search (subscribe [:regions/to-search])]
+    [:div.form-group
+      [:label "Regions "
+        [popover [:i.fa.fa-question-circle
+              {:data-content   region-help-content-popover
+               :data-trigger   "hover"
+               :data-placement "bottom"}]]]
+        [region-input-box]
+
+       [css-transition-group
+        {:transition-name          "fade"
+         :transition-enter-timeout 2000
+         :transition-leave-timeout 2000}
+        [:div.btn-toolbar
+         (if @to-search
+           [:button.btn.btn-warning
+            {:on-click (fn [] (dispatch [:regions/set-to-search nil]))} "Clear"])]]]))
+
+(defn select-all-controls [to-search settings]
+  [:div.form-group
+   [:label "Include Features"]
+   [:div.feature-tree-container
+    [feature-types-tree]]
+   [:div.btn-toolbar
+    [:div.btn-toolbar
+     [:button.btn.btn-primary
+      {:on-click (fn [] (dispatch [:regions/select-all-feature-types]))}
+      [:span [:i.fa.fa-check-square-o] " Select All"]]
+     [:button.btn.btn-primary
+      {:on-click (fn [] (dispatch [:regions/deselect-all-feature-types]))}
+      [:span [:i.fa.fa-square-o] " Deselect All"]]
+     [:button.btn.btn-primary.btn-raised.pull-right
+      {:disabled (or
+                   (= "" @to-search)
+                   (= nil @to-search)
+                   (empty? (filter (fn [[name enabled?]] enabled?) (:feature-types @settings))))
+       :on-click (fn [] (dispatch [:regions/run-query]))}
+      [:span "Search"]]]]])
+
+(defn input-section []
+  (let [settings  (subscribe [:regions/settings])
+  to-search (subscribe [:regions/to-search])]
+  [:div.row
+   ; Parameters section
+   [:div.col-xs-4
+    [region-input]
+    [organism-selection]]
+   ; Results section
+   [:div.col-xs-8
+    [select-all-controls to-search settings]
+    ]]))
+
+(defn results-section []
+  (let [results   (subscribe [:regions/results])]
+  [:div.row
+   [:div.col-xs-12
+    [:div.panel.panel-default
+     [:div.panel-heading (str "Results (" (apply + (map (comp count :results) @results)) ")")]
+     [:div.panel-body
+      ; TODO: split this into a view per chromosome, otherwise it doesn't make sense on a linear plane
+      #_[:div
+         [graphs/main {:results (mapcat :results @results)}]]
+      (into [:div]
+            (map (fn [result]
+                   [result-table result]) @results))]]]]))
+
 (defn main []
-  (let [results   (subscribe [:regions/results])
-        settings  (subscribe [:regions/settings])
-        to-search (subscribe [:regions/to-search])]
     (fn []
-      [:div.container
-       [:div.row
-
-        ; Parameters section
-        [:div.col-xs-4
-         [:div.form-group
-          [:label "Organism"]
-          [im-controls/organism-dropdown
-           {:label     (if-let [sn (get-in @settings [:organism :shortName])]
-                         sn
-                         "All Organisms")
-            :on-change (fn [organism]
-                         (dispatch [:regions/set-selected-organism organism]))}]]
-         [:div.form-group
-          [:label "Regions "
-           [popover [:i.fa.fa-question-circle
-                     {:data-content   region-help-content-popover
-                      :data-trigger   "hover"
-                      :data-placement "bottom"}]]]
-          [region-input-box]
-
-          [css-transition-group
-           {:transition-name          "fade"
-            :transition-enter-timeout 2000
-            :transition-leave-timeout 2000}
-           [:div.btn-toolbar
-            [:button.btn.btn-primary
-             {:on-click (fn [] (dispatch [:regions/set-to-search example-regions]))} "Example"]
-            (if @to-search
-              [:button.btn.btn-warning
-               {:on-click (fn [] (dispatch [:regions/set-to-search nil]))} "Clear"])]]]]
-
-        ; Results section
-        [:div.col-xs-8
-         [:div.form-group
-          [:label "Include Features"]
-          [:div.feature-tree-container
-           [feature-types-tree]]
-          [:div.btn-toolbar
-           [:div.btn-toolbar
-            [:button.btn.btn-primary
-             {:on-click (fn [] (dispatch [:regions/select-all-feature-types]))}
-             [:span [:i.fa.fa-check-square-o] " Select All"]]
-            [:button.btn.btn-primary
-             {:on-click (fn [] (dispatch [:regions/deselect-all-feature-types]))}
-             [:span [:i.fa.fa-square-o] " Deselect All"]]
-            [:button.btn.btn-primary.btn-raised.pull-right
-             {:disabled (or
-                          (= "" @to-search)
-                          (= nil @to-search)
-                          (empty? (filter (fn [[name enabled?]] enabled?) (:feature-types @settings))))
-              :on-click (fn [] (dispatch [:regions/run-query]))}
-             [:span "Search"]]]]]]]
-       [:div.row
-        [:div.col-xs-12
-         [:div.panel.panel-default
-          [:div.panel-heading (str "Results (" (apply + (map (comp count :results) @results)) ")")]
-          [:div.panel-body
-           ; TODO: split this into a view per chromosome, otherwise it doesn't make sense on a linear plane
-           #_[:div
-              [graphs/main {:results (mapcat :results @results)}]]
-           (into [:div]
-                 (map (fn [result]
-                        [result-table result]) @results))]]]]])))
+      [:div.container.regionsearch
+        [:div.headerwithguidance
+          [:h1 "Region Search"]
+          [:a.guidance
+           {:on-click #(dispatch [:regions/set-to-search example-regions])
+          }
+           "[Show me an example]"]]
+       [input-section]
+       [results-section]
+       ]))

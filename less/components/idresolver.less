@@ -1,6 +1,7 @@
 @import "../../resources/public/vendor/bootstrap/less/bootstrap";
 @import "../variables";
 @import "../datatype-colors";
+@import "../layouts/input-dashed-style";
 @import "../../resources/public/vendor/bootstrap-material-design/less/bootstrap-material-design";
 
 .idresolverupload {
@@ -55,10 +56,6 @@
         }
     }
 
-    .dashed {
-        border: dashed 1px #ccc;
-    }
-
     .eenput {
         .transitions;
         display: flex;
@@ -68,15 +65,7 @@
 
         .idresolver,
         .upload-file {
-            .dashed;
-            margin: 0.5em 0;
-            box-sizing: border-box;
-            padding: 1em;
-            min-height: 3em;
-            vertical-align: middle;
-            background: rgba(0,0,0,0.04);
-            flex-grow: 1;
-            min-width: 30%;
+          .input-dashed-style;
         }
 
         .idresolver button {
@@ -302,28 +291,6 @@
         }
     }
 
-    .headerwithguidance {
-        display: flex;
-        justify-content: flex-start;
-        align-items: baseline;
-
-        h1 {
-            margin-top: 0;
-        }
-
-        .guidance {
-            margin-left: @spacer;
-        }
-
-        .tip {
-            flex-grow: 1;
-            text-align: right;
-
-            svg {
-                margin-right: 4px;
-            }
-        }
-    }
 
     .dropzone {
         width: 300px;
