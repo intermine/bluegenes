@@ -77,8 +77,8 @@
          [:div.col [:h4 "Feature"]]
          [:div.col [:h4 "Feature Type"]]
          [:div.col [:h4 "Location"]]]
-        (map (fn [{:keys [primaryIdentifier class chromosomeLocation] :as result}]
-               [:div.grid-3_xs-3
+      (doall  (map (fn [{:keys [primaryIdentifier class chromosomeLocation] :as result}]
+               [:div.grid-3_xs-3 {:key (str chromosome primaryIdentifier (:start chromosomeLocation) (:end chromosomeLocation))}
                 [:div.col {:style {:word-wrap "break-word"}} primaryIdentifier]
                 [:div.col (str (get-in @model [(keyword class) :displayName]))]
                 [:div.col (str
@@ -87,7 +87,7 @@
                             (:start chromosomeLocation)
                             ".."
                             (:end chromosomeLocation))]])
-             (take (:show @pager) (drop (* (:show @pager) (:page @pager)) results)))]])))
+             (take (:show @pager) (drop (* (:show @pager) (:page @pager)) results))))]])))
 
 (defn organism-selection []
   (let [settings  (subscribe [:regions/settings])]
@@ -107,7 +107,7 @@
         {:reagent-render
           (fn []
             [:textarea.form-control
-              {:rows        8
+              {:rows        6
               :placeholder (str "Type chromosome coords here, or click [Show me an example] above.")
               :value       @to-search
               :on-change   (fn [e]
@@ -138,7 +138,8 @@
      ])
 
 (defn checkboxes [to-search settings]
-  (let [all-selected? (subscribe [:regions/sequence-feature-type-all-selected?])]
+  (let [all-selected? (subscribe [:regions/sequence-feature-type-all-selected?])
+        results (subscribe [:regions/results])]
   [:div.checkboxes
    [:label
     [:i.fa.fa-fw
@@ -150,7 +151,8 @@
         )}] "Features to include"]
    ;; having the container around the tree is important because the tree is recursive
    ;; and we know for sure that the container is the final parent! :)
-   [:div.feature-tree-container [feature-types-tree]]]))
+   [:div.feature-tree-container
+    {:class (if @results "shrinkified")} [feature-types-tree]]]))
 
 (defn input-section []
   (let [settings  (subscribe [:regions/settings])
@@ -165,7 +167,8 @@
                  (= "" @to-search)
                  (= nil @to-search)
                  (empty? (filter (fn [[name enabled?]] enabled?) (:feature-types @settings))))
-     :on-click (fn [] (dispatch [:regions/run-query]))
+     :on-click (fn [e] (dispatch [:regions/run-query])
+                 (ocall (oget e "target") "blur"))
      :title "Enter something into the 'Regions to search' box or click on [Show me an example], then click here! :)"}
     "Search"]
    ]

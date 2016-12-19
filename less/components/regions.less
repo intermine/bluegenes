@@ -43,6 +43,7 @@
         textarea {
             background: #fff;
             .box-shadow;
+            margin-top: 0;
         }
         @media(max-width:@tiny-screen) {
             flex-wrap: wrap;
@@ -73,6 +74,11 @@
         min-height: 20vh;
         overflow-y: scroll;
         background: rgba(255,255,255,0.3);
+        .transitions;
+        &.shrinkified {
+            max-height: 10em;
+            min-height: 5em;
+        }
     }
 
     ul.features-tree {
