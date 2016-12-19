@@ -33,31 +33,19 @@
                         (.stopPropagation e)
                         (dispatch [:regions/toggle-feature-type n]))}
        (if (class-kw (:feature-types @settings))
-         [:i.fa.fa-check-square-o]
-         [:i.fa.fa-square-o])
+         [:i.fa.fa-fw.fa-check-square-o]
+         [:i.fa.fa-fw.fa-square-o])
        displayName
        (if-not (empty? descendants)
          (into [:ul.features-tree] (map (fn [d] [feature-branch d])) (sort-by (comp :displayName second) descendants)))])))
 
 (defn feature-types-tree []
   (let [known-feature-types (subscribe [:regions/sequence-feature-types])
-        settings            (subscribe [:regions/settings])]
+        settings            (subscribe [:regions/settings])
+        ]
     (fn []
       (into [:ul.features-tree]
             (map (fn [f] [feature-branch f]) (sort-by (comp :displayName second) @known-feature-types))))))
-
-
-; Input box for regions
-(defn region-input-box []
-  (let [to-search (subscribe [:regions/to-search])]
-    (fn []
-      [:div
-       [:textarea.form-control
-        {:rows        8
-         :placeholder (str "example:\n" example-regions)
-         :value       @to-search
-         :on-change   (fn [e]
-                        (dispatch [:regions/set-to-search (oget e "target" "value")]))}]])))
 
 ; Results table
 (defn result-table []
@@ -108,58 +96,75 @@
                     (dispatch [:regions/set-selected-organism organism]))}]])
   )
 
-(defn region-input []
+  ; Input box for regions
+  (defn region-input-box []
+    (let [to-search (subscribe [:regions/to-search])]
+    (fn []
+      [:textarea.form-control
+        {:rows        8
+          :placeholder (str "example:\n" example-regions)
+          :value       @to-search
+          :on-change   (fn [e]
+            (dispatch [:regions/set-to-search (oget e "target" "value")]))}])))
+
+(defn clear-textbox []
   (let [to-search (subscribe [:regions/to-search])]
-    [:div.form-group
-      [:label "Regions "
+  [css-transition-group
+   {:transition-name          "fade"
+    :transition-enter-timeout 2000
+    :transition-leave-timeout 2000}
+    (if @to-search
+      [:div.clear-textbox
+       ;;this is a fancy x-like character, aka &#10006; - NOT just x
+       {:on-click #(dispatch [:regions/set-to-search nil])
+        :title "Clear this textbox"} "✖"])]))
+
+(defn region-input []
+    [:div.region-input
+      [:label "Regions to search "
         [popover [:i.fa.fa-question-circle
               {:data-content   region-help-content-popover
                :data-trigger   "hover"
                :data-placement "bottom"}]]]
         [region-input-box]
+        [clear-textbox]
+     ])
 
-       [css-transition-group
-        {:transition-name          "fade"
-         :transition-enter-timeout 2000
-         :transition-leave-timeout 2000}
-        [:div.btn-toolbar
-         (if @to-search
-           [:button.btn.btn-warning
-            {:on-click (fn [] (dispatch [:regions/set-to-search nil]))} "Clear"])]]]))
-
-(defn select-all-controls [to-search settings]
-  [:div.form-group
-   [:label "Include Features"]
-   [:div.feature-tree-container
-    [feature-types-tree]]
-   [:div.btn-toolbar
-    [:div.btn-toolbar
-     [:button.btn.btn-primary
-      {:on-click (fn [] (dispatch [:regions/select-all-feature-types]))}
-      [:span [:i.fa.fa-check-square-o] " Select All"]]
-     [:button.btn.btn-primary
-      {:on-click (fn [] (dispatch [:regions/deselect-all-feature-types]))}
-      [:span [:i.fa.fa-square-o] " Deselect All"]]
-     [:button.btn.btn-primary.btn-raised.pull-right
-      {:disabled (or
-                   (= "" @to-search)
-                   (= nil @to-search)
-                   (empty? (filter (fn [[name enabled?]] enabled?) (:feature-types @settings))))
-       :on-click (fn [] (dispatch [:regions/run-query]))}
-      [:span "Search"]]]]])
+(defn checkboxes [to-search settings]
+  (let [all-selected? (subscribe [:regions/sequence-feature-type-all-selected?])]
+  [:div
+   [:label
+    [:i.fa.fa-fw
+     {:class (if @all-selected? "fa-check-square-o" "fa-square-o")
+      :title (if @all-selected? "Deselect all" "Select all")
+      :on-click (if @all-selected?
+        #(dispatch [:regions/deselect-all-feature-types])
+        #(dispatch [:regions/select-all-feature-types])
+        )}] "Features to include"]
+   ;; having the container around the tree is important because the tree is recursive
+   ;; and we know for sure that the container is the final parent! :)
+   [:div.feature-tree-container [feature-types-tree]]]))
 
 (defn input-section []
   (let [settings  (subscribe [:regions/settings])
   to-search (subscribe [:regions/to-search])]
-  [:div.row
-   ; Parameters section
-   [:div.col-xs-4
-    [region-input]
-    [organism-selection]]
+  [:div.row.input-section
+  ; Parameters section
+  [:div.col-xs-4
+   [region-input]
+   [organism-selection]
+   [:button.btn.btn-primary.btn-raised.pull-right.fattysubmitbutton
+    {:disabled (or
+                 (= "" @to-search)
+                 (= nil @to-search)
+                 (empty? (filter (fn [[name enabled?]] enabled?) (:feature-types @settings))))
+     :on-click (fn [] (dispatch [:regions/run-query]))
+     :title "Enter something into the 'Regions to search' box or click on [Show me an example], then click here! :)"}
+    "Search"]
+   ]
    ; Results section
-   [:div.col-xs-8
-    [select-all-controls to-search settings]
-    ]]))
+   [:div.col-xs-8 [checkboxes to-search settings]]
+   ]))
 
 (defn results-section []
   (let [results   (subscribe [:regions/results])]
@@ -176,7 +181,10 @@
                    [result-table result]) @results))]]]]))
 
 (defn main []
-    (fn []
+  (reagent/create-class
+    {:component-did-mount #(dispatch [:regions/select-all-feature-types])
+     :reagent-render
+      (fn []
       [:div.container.regionsearch
         [:div.headerwithguidance
           [:h1 "Region Search"]
@@ -186,4 +194,4 @@
            "[Show me an example]"]]
        [input-section]
        [results-section]
-       ]))
+       ])}))

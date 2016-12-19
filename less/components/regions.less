@@ -1,7 +1,15 @@
 @import "../variables";
 @import "../datatype-colors";
+@import "../layouts/input-dashed-style";
 
 .regionsearch {
+    @selected-color: #fff;
+    @deselected-color: #eee;
+
+    label {
+        font-size: 1em;
+    }
+
     div.region-results {
         display: flex;
         flex-direction: column;
@@ -25,6 +33,10 @@
         }
     }
 
+    .input-section {
+        .input-dashed-style;
+    }
+
     svg.region {
         background-color: white;
         // border: 1px solid #eaeaea;
@@ -41,20 +53,22 @@
 
     .feature-tree-container {
         font-size: 0.9em;
-        max-height: 500px;
+        max-height: 40vh;
+        min-height: 20vh;
         overflow-y: scroll;
+        background:rgba(255,255,255,0.3);
     }
 
     ul.features-tree {
-        padding: 5px;
+        column-count: 2;
+        column-width: 200px;
+        column-rule: dotted 1px grey;
         list-style-type: none;
+        padding-left: 0;
 
         li {
-            padding: 2px 0 2px 5px;
+            padding: @spacer/4 0 @spacer/4 @spacer*1.5;
             border: 1px solid transparent;
-            border-radius: 10px;
-            margin: 1px;
-            background: white;
         }
 
         & i {
@@ -62,9 +76,9 @@
         }
 
         & li.selected {
-            background-color: #daf2f0;
-            border: 1px solid #daf2f0;
-            border-radius: 10px;
+            //            background-color: @selected-color;
+            //            border: 1px solid @selected-color;
         }
     }
+    .fattysubmitbutton {width:100%}
 }
