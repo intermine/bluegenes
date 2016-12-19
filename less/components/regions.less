@@ -75,6 +75,7 @@
         overflow-y: scroll;
         background: rgba(255,255,255,0.3);
         .transitions;
+
         &.shrinkified {
             max-height: 10em;
             min-height: 5em;
@@ -114,7 +115,8 @@
         align-items: center;
         position: relative;
         margin-top: -@spacer*1.5;
-        top: -11em; //this is a terrible magic number. need to check it works in many places
+        top: @spacer*1.5;
+        right: -1px;
         font-weight: bold;
         cursor: pointer;
         float: right;
@@ -130,5 +132,9 @@
         flex-grow: 1;
         justify-content: flex-start;
         min-width: 30vw;
+    }
+
+    .results {
+      .header-styles;
     }
 }

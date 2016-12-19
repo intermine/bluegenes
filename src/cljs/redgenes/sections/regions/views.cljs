@@ -3,6 +3,7 @@
             [reagent.core :as reagent]
             [redgenes.sections.regions.graphs :as graphs]
             [redgenes.components.table :as table]
+            [redgenes.components.loader :refer [loader]]
             [redgenes.sections.regions.events]
             [redgenes.sections.regions.subs]
             [redgenes.components.imcontrols.views :as im-controls]
@@ -58,10 +59,11 @@
                              :page 0})
         model (subscribe [:model])]
     (fn [{:keys [chromosome from to results] :as feature}]
-      [:div.grid-2_xs-1
+      [:div.results
+       [:h3 [:strong "Region: "] (str chromosome " " from ".." to)]
+       [:div.grid-2_xs-1
        {:style {:font-size "0.8em"}}
        [:div.col-3
-        [:h4 (str chromosome " " from ".." to)]
         [graphs/main feature]]
        [:div.col-9
         [:div.row
@@ -87,7 +89,7 @@
                             (:start chromosomeLocation)
                             ".."
                             (:end chromosomeLocation))]])
-             (take (:show @pager) (drop (* (:show @pager) (:page @pager)) results))))]])))
+             (take (:show @pager) (drop (* (:show @pager) (:page @pager)) results))))]]])))
 
 (defn organism-selection []
   (let [settings  (subscribe [:regions/settings])]
@@ -103,11 +105,12 @@
   ; Input box for regions
   (defn region-input-box []
     (reagent/create-class
-      (let [to-search (subscribe [:regions/to-search])]
+      (let [to-search (subscribe [:regions/to-search])
+            results (subscribe [:regions/results])]
         {:reagent-render
           (fn []
             [:textarea.form-control
-              {:rows        6
+              {:rows        (if @results 3 6)
               :placeholder (str "Type chromosome coords here, or click [Show me an example] above.")
               :value       @to-search
               :on-change   (fn [e]
@@ -119,7 +122,8 @@
   [css-transition-group
    {:transition-name          "fade"
     :transition-enter-timeout 2000
-    :transition-leave-timeout 2000}
+    :transition-leave-timeout 2000
+    :component "div"}
     (if @to-search
       [:div.clear-textbox
        ;;this is a fancy x-like character, aka &#10006; - NOT just x
@@ -133,8 +137,9 @@
               {:data-content   region-help-content-popover
                :data-trigger   "hover"
                :data-placement "bottom"}]]]
-        [:div.region-text [region-input-box]
-        [clear-textbox]]
+        [:div.region-text
+         [clear-textbox]
+         [region-input-box]]
      ])
 
 (defn checkboxes [to-search settings]
@@ -177,18 +182,19 @@
    ]))
 
 (defn results-section []
-  (let [results   (subscribe [:regions/results])]
-  [:div.row
-   [:div.col-xs-12
-    [:div.panel.panel-default
-     [:div.panel-heading (str "Results (" (apply + (map (comp count :results) @results)) ")")]
-     [:div.panel-body
+  (let [results   (subscribe [:regions/results])
+        loading? (subscribe [:regions/loading])]
+  (if @loading? [loader "Regions"]
+  [:div
+
+     [:h2 (str "Results (" (apply + (map (comp count :results) @results)) ")")]
+     [:div
       ; TODO: split this into a view per chromosome, otherwise it doesn't make sense on a linear plane
       #_[:div
          [graphs/main {:results (mapcat :results @results)}]]
       (into [:div]
             (map (fn [result]
-                   [result-table result]) @results))]]]]))
+                   [result-table result]) @results))]])))
 
 (defn main []
   (reagent/create-class

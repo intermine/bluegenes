@@ -34,6 +34,12 @@
     (get-in db [:regions :results])))
 
 (reg-sub
+  :regions/loading
+  (fn [db]
+    (get-in db [:regions :loading])))
+
+
+(reg-sub
   :regions/to-search
   (fn [db]
     (get-in db [:regions :to-search])))

@@ -27,7 +27,9 @@
                                                                      (< (:from region) (int end) (:to region)))))
                                                                (:results result-response)))
                                 ) searched-for)]
-      (assoc-in db [:regions :results] mapped-results))))
+      (->
+       (assoc-in db [:regions :results] mapped-results)
+       (assoc-in    [:regions :loading] false)))))
 
 
 (reg-event-db
@@ -111,7 +113,10 @@
                    (build-feature-query to-search)
                    (map name (keys (filter (fn [[name enabled?]] enabled?) feature-types))))
                   (add-organism-constraint selected-organism))]
-      {:db           (assoc-in db [:regions :regions-searched] (map parse-region to-search))
+      {:db           (->
+                      (assoc-in db [:regions :regions-searched] (map parse-region to-search))
+                      (assoc-in [:regions :results] {})
+                      (assoc-in [:regions :loading] true))
        :im-operation {:op         (partial fetch/records
                                            (get-in db [:mines (get db :current-mine) :service])
                                            query)
