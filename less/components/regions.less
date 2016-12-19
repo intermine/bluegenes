@@ -13,7 +13,6 @@
     div.region-results {
         display: flex;
         flex-direction: column;
-        border: 1px solid green;
 
         div.region-row {
             display: flex;
@@ -23,18 +22,30 @@
 
             div.summary-column {
                 flex: 1 0;
-                border: 1px solid red;
             }
 
             div.regular-column {
                 flex: 1 1;
-                border: 1px solid yellow;
             }
         }
     }
 
     .input-section {
         .input-dashed-style;
+        display: flex;
+        justify-content: flex-start;
+        align-items: stretch;
+
+        > div {
+            margin: 0 @spacer;
+        }
+        @media(max-width:@tiny-screen) {
+          flex-wrap:wrap;
+          > div {
+              margin: @spacer/2 0;
+          }
+
+        }
     }
 
     svg.region {
@@ -56,7 +67,7 @@
         max-height: 40vh;
         min-height: 20vh;
         overflow-y: scroll;
-        background:rgba(255,255,255,0.3);
+        background: rgba(255,255,255,0.3);
     }
 
     ul.features-tree {
@@ -74,11 +85,38 @@
         & i {
             padding-right: 3px;
         }
-
-        & li.selected {
-            //            background-color: @selected-color;
-            //            border: 1px solid @selected-color;
-        }
     }
-    .fattysubmitbutton {width:100%}
+
+    .fattysubmitbutton {
+        width: 100%;
+        margin-bottom: 0;
+        margin-top:auto;
+    }
+
+    .clear-textbox {
+        background: rgba(0,0,0,0.4);
+        color: #fff;
+        height: @spacer*1.5;
+        width: @spacer*1.5;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+        top: -12.5em; //this is a terrible magic number. need to check it works in many places
+        font-weight: bold;
+        cursor: pointer;
+        float: right;
+    }
+
+    .checkboxes {
+        flex-grow: 2;
+    }
+
+    .organism-and-regions {
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+        justify-content: flex-start;
+        min-width: 30vw;
+    }
 }

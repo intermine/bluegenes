@@ -86,9 +86,8 @@
 
 (defn organism-selection []
   (let [settings  (subscribe [:regions/settings])]
-    [:div.form-group
-     [:label "Organism"]
-     [im-controls/organism-dropdown
+    [:div [:label "Organism"]
+      [im-controls/organism-dropdown
       {:label     (if-let [sn (get-in @settings [:organism :shortName])]
                     sn
                     "All Organisms")
@@ -126,13 +125,13 @@
               {:data-content   region-help-content-popover
                :data-trigger   "hover"
                :data-placement "bottom"}]]]
-        [region-input-box]
-        [clear-textbox]
+        [:div.region-text [region-input-box]
+        [clear-textbox]]
      ])
 
 (defn checkboxes [to-search settings]
   (let [all-selected? (subscribe [:regions/sequence-feature-type-all-selected?])]
-  [:div
+  [:div.checkboxes
    [:label
     [:i.fa.fa-fw
      {:class (if @all-selected? "fa-check-square-o" "fa-square-o")
@@ -150,10 +149,10 @@
   to-search (subscribe [:regions/to-search])]
   [:div.row.input-section
   ; Parameters section
-  [:div.col-xs-4
+  [:div.organism-and-regions
    [region-input]
    [organism-selection]
-   [:button.btn.btn-primary.btn-raised.pull-right.fattysubmitbutton
+   [:button.btn.btn-primary.btn-raised.fattysubmitbutton
     {:disabled (or
                  (= "" @to-search)
                  (= nil @to-search)
@@ -163,7 +162,7 @@
     "Search"]
    ]
    ; Results section
-   [:div.col-xs-8 [checkboxes to-search settings]]
+   [checkboxes to-search settings]
    ]))
 
 (defn results-section []
