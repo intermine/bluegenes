@@ -39,12 +39,17 @@
         > div {
             margin: 0 @spacer;
         }
-        @media(max-width:@tiny-screen) {
-          flex-wrap:wrap;
-          > div {
-              margin: @spacer/2 0;
-          }
 
+        textarea {
+            background: #fff;
+            .box-shadow;
+        }
+        @media(max-width:@tiny-screen) {
+            flex-wrap: wrap;
+
+            > div {
+                margin: @spacer/2 0;
+            }
         }
     }
 
@@ -90,7 +95,7 @@
     .fattysubmitbutton {
         width: 100%;
         margin-bottom: 0;
-        margin-top:auto;
+        margin-top: auto;
     }
 
     .clear-textbox {
@@ -102,7 +107,7 @@
         justify-content: center;
         align-items: center;
         position: relative;
-        margin-top:-@spacer*1.5;
+        margin-top: -@spacer*1.5;
         top: -11em; //this is a terrible magic number. need to check it works in many places
         font-weight: bold;
         cursor: pointer;

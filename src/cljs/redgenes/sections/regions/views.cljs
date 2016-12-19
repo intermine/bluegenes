@@ -17,6 +17,11 @@
 (def example-regions (clojure.string/join "\n" ["2L:14615455..14619002"
                                                 "2R:5866646..5868384"
                                                 "3R:2578486..2580016"]))
+(defn ex []
+  (let [active-mine (subscribe [:current-mine])
+        mines (subscribe [:mines])
+        example-text (:regionsearch-example @active-mine)]
+(clojure.string/join "\n" example-text)))
 
 (def region-help-content-popover
   [:span "Genome regions in the following formats are accepted:"
@@ -97,14 +102,17 @@
 
   ; Input box for regions
   (defn region-input-box []
-    (let [to-search (subscribe [:regions/to-search])]
-    (fn []
-      [:textarea.form-control
-        {:rows        8
-          :placeholder (str "example:\n" example-regions)
-          :value       @to-search
-          :on-change   (fn [e]
-            (dispatch [:regions/set-to-search (oget e "target" "value")]))}])))
+    (reagent/create-class
+      (let [to-search (subscribe [:regions/to-search])]
+        {:reagent-render
+          (fn []
+            [:textarea.form-control
+              {:rows        8
+              :placeholder (str "Type chromosome coords here, or click [Show me an example] above.")
+              :value       @to-search
+              :on-change   (fn [e]
+                (dispatch [:regions/set-to-search (oget e "target" "value")]))}])
+         :component-did-mount (fn [this] (.focus (reagent/dom-node this)))})))
 
 (defn clear-textbox []
   (let [to-search (subscribe [:regions/to-search])]
@@ -188,7 +196,7 @@
         [:div.headerwithguidance
           [:h1 "Region Search"]
           [:a.guidance
-           {:on-click #(dispatch [:regions/set-to-search example-regions])
+           {:on-click #(dispatch [:regions/set-to-search (ex)])
           }
            "[Show me an example]"]]
        [input-section]
