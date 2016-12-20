@@ -15,9 +15,6 @@
 (def css-transition-group
   (reagent/adapt-react-class js/React.addons.CSSTransitionGroup))
 
-(def example-regions (clojure.string/join "\n" ["2L:14615455..14619002"
-                                                "2R:5866646..5868384"
-                                                "3R:2578486..2580016"]))
 (defn ex []
   (let [active-mine (subscribe [:current-mine])
         mines (subscribe [:mines])
@@ -56,28 +53,28 @@
 (defn region-header [chromosome from to]
   [:h3 [:strong "Region: "] (str chromosome " " from ".." to)])
 
+(defn table-paginator [pager results]
+  [:div.row [:div.btn-toolbar.pull-right
+    [:button.btn.btn-primary
+     {:disabled (< (:page @pager) 1)
+      :on-click (fn [] (swap! pager update :page dec))}
+     "Previous"]
+    [:button.btn.btn-primary
+     {:disabled (< (count results) (* (:show @pager) (inc (:page @pager))))
+      :on-click (fn [] (swap! pager update :page inc))} "Next"]]]
+  )
+
 ; Results table
 (defn result-table []
-  (let [pager (reagent/atom {:show 20
-                             :page 0})
-        model (subscribe [:model])]
+  (let [model (subscribe [:model])
+        pager (reagent/atom {:show 20
+                             :page 0})]
     (fn [{:keys [chromosome from to results] :as feature}]
       (if (pos? (count (:results feature)))
       [:div.results
-       [region-header chromosome from to]
-       [:div.grid-2_xs-1
-       {:style {:font-size "0.8em"}}
-       [:div.col-3 [graphs/main feature]]
-       [:div.col-9
-        [:div.row
-         [:div.btn-toolbar.pull-right
-          [:button.btn.btn-primary
-           {:disabled (< (:page @pager) 1)
-            :on-click (fn [] (swap! pager update :page dec))}
-           "Previous"]
-          [:button.btn.btn-primary
-           {:disabled (< (count results) (* (:show @pager) (inc (:page @pager))))
-            :on-click (fn [] (swap! pager update :page inc))} "Next"]]]
+        [region-header chromosome from to]
+        [graphs/main feature]
+        [table-paginator pager results]
         [:div.grid-3_xs-3
          [:div.col [:h4 "Feature"]]
          [:div.col [:h4 "Feature Type"]]
@@ -92,7 +89,7 @@
                             (:start chromosomeLocation)
                             ".."
                             (:end chromosomeLocation))]])
-             (take (:show @pager) (drop (* (:show @pager) (:page @pager)) results))))]]]
+             (take (:show @pager) (drop (* (:show @pager) (:page @pager)) results))))]
   [:div.results.noresults [region-header chromosome from to] "No features returned for this region"]
         ))))
 
