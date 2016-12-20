@@ -80,7 +80,7 @@
 
 (defn table-row [chromosome {:keys [primaryIdentifier class chromosomeLocation] :as result}]
   (let [model (subscribe [:model])]
-  [:div.grid-3_xs-3 {:key (str chromosome primaryIdentifier (:start chromosomeLocation) (:end chromosomeLocation))}
+  [:div.grid-3_xs-3
    [:div.col {:style {:word-wrap "break-word"}} primaryIdentifier]
    [:div.col (str (get-in @model [(keyword class) :displayName]))]
    [:div.col (str
@@ -94,14 +94,14 @@
                              :page 0})]
     (fn [{:keys [chromosome from to results] :as feature}]
       (if (pos? (count (:results feature)))
-      [:div.results
-        [region-header feature [table-paginator pager results]]
-        [graphs/main feature]
-        [:div.tabulated [table-header]
-          (into [:div.results-body]
-            (map (fn [result]  [table-row chromosome result])
-              (take (:show @pager) (drop (* (:show @pager) (:page @pager)) results))))]]
-  [:div.results.noresults [region-header chromosome from to] "No features returned for this region"]
+        [:div.results
+          [region-header feature [table-paginator pager results]]
+          [graphs/main feature]
+          [:div.tabulated [table-header]
+            (into [:div.results-body]
+              (map (fn [result]  [table-row chromosome result])
+                (take (:show @pager) (drop (* (:show @pager) (:page @pager)) results))))]]
+        [:div.results.noresults [region-header chromosome from to] "No features returned for this region"]
         ))))
 
 (defn organism-selection []
