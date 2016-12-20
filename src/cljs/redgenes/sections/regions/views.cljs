@@ -53,18 +53,21 @@
       (into [:ul.features-tree]
             (map (fn [f] [feature-branch f]) (sort-by (comp :displayName second) @known-feature-types))))))
 
+(defn region-header [chromosome from to]
+  [:h3 [:strong "Region: "] (str chromosome " " from ".." to)])
+
 ; Results table
 (defn result-table []
   (let [pager (reagent/atom {:show 20
                              :page 0})
         model (subscribe [:model])]
     (fn [{:keys [chromosome from to results] :as feature}]
+      (if (pos? (count (:results feature)))
       [:div.results
-       [:h3 [:strong "Region: "] (str chromosome " " from ".." to)]
+       [region-header chromosome from to]
        [:div.grid-2_xs-1
        {:style {:font-size "0.8em"}}
-       [:div.col-3
-        [graphs/main feature]]
+       [:div.col-3 [graphs/main feature]]
        [:div.col-9
         [:div.row
          [:div.btn-toolbar.pull-right
@@ -89,7 +92,9 @@
                             (:start chromosomeLocation)
                             ".."
                             (:end chromosomeLocation))]])
-             (take (:show @pager) (drop (* (:show @pager) (:page @pager)) results))))]]])))
+             (take (:show @pager) (drop (* (:show @pager) (:page @pager)) results))))]]]
+  [:div.results.noresults [region-header chromosome from to] "No features returned for this region"]
+        ))))
 
 (defn organism-selection []
   (let [settings  (subscribe [:regions/settings])]
@@ -192,9 +197,9 @@
       ; TODO: split this into a view per chromosome, otherwise it doesn't make sense on a linear plane
       #_[:div
          [graphs/main {:results (mapcat :results @results)}]]
-      (into [:div]
-            (map (fn [result]
-                   [result-table result]) @results))]])))
+      (into [:div.allresults]
+        (map (fn [result]
+          [result-table result]) @results))]])))
 
 (defn main []
   (reagent/create-class

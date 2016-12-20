@@ -10,25 +10,7 @@
         font-size: 1em;
     }
 
-    div.region-results {
-        display: flex;
-        flex-direction: column;
 
-        div.region-row {
-            display: flex;
-            flex-direction: row;
-            flex: 1 0;
-            border: 1px solid black;
-
-            div.summary-column {
-                flex: 1 0;
-            }
-
-            div.regular-column {
-                flex: 1 1;
-            }
-        }
-    }
 
     .input-section {
         .input-dashed-style;
@@ -133,8 +115,10 @@
         justify-content: flex-start;
         min-width: 30vw;
     }
-
+    .allresults {display:flex; flex-direction:column}
     .results {
       .header-styles;
+      order:1;
+      &.noresults {order:2}
     }
 }
