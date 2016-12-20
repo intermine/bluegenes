@@ -46,21 +46,29 @@ Example usage:
       false)
     true))
 
+(defn has-type?
+  "Return true if a label contains a string"
+  [type list]
+  (if type
+    (= type (keyword (:type list)))
+    true))
+
 (defn list-dropdown []
   (let [lists             (subscribe [:lists])
-        listskw           (subscribe [:listskw])
         filter-text       (reagent/atom nil)
         current-mine-name (subscribe [:current-mine-name])]
-    (fn []
-      (let [lists (filter (partial has-text? @filter-text) (@current-mine-name @lists))]
+    (fn [{:keys [on-change value restricted-type]}]
+      (let [text-filter (partial has-text? @filter-text)
+            type-filter (partial has-type? restricted-type)
+            lists (filter (apply every-pred [text-filter type-filter]) (@current-mine-name @lists))]
         [:div.dropdown
-         [:button.btn.btn-default.btn-raised.dropdown-toggle
-          {:data-toggle "dropdown"}
-          [:span "Lists " [:span.caret]]]
-
+         [:span.dropdown-toggle
+          {:style       {:color          "#039be5"
+                         :text-transform "none"}
+           :data-toggle "dropdown"}
+          [:span (if (and (not= value "") (not= value nil)) value "Choose List ") [:span.caret]]]
          [:div.dropdown-menu.dropdown-mixed-content
           [:div.container-fluid
-
            [:form.form
             [:input.form-control
              {:type        "text"
@@ -72,10 +80,12 @@ Example usage:
              [:div.row
               [:div.col-sm-6
                [:h4 [:i.fa.fa-clock-o] " Recently Created"]
-               (into [:ul] (map (fn [{:keys [name size]}] [:li
-                                                           [:a
-                                                            [:span name]
-                                                            [:span.size (str " (" size ")")]]])
+               (into [:ul] (map (fn [{:keys [name size]}]
+                                  [:li
+                                   {:on-click (partial on-change {:name name :source @current-mine-name})}
+                                   [:a
+                                    [:span name]
+                                    [:span.size (str " (" size ")")]]])
                                 (take 5 (sort-by :timestamp lists))))
 
                [:div.sep {:style {:border-bottom "1px solid #dedede"}}]
@@ -83,6 +93,7 @@ Example usage:
                [:h4 [:i.fa.fa-clock-o] " Recently Used"]
                (into [:ul] (map (fn [{:keys [name size]}]
                                   [:li
+                                   {:on-click (partial on-change {:name name :source @current-mine-name})}
                                    [:a [:span name]
                                     [:span.size (str " (" size ")")]]])
                                 (take 5 lists)))]
@@ -91,6 +102,7 @@ Example usage:
                [:h4 [:i.fa.fa-sort-alpha-asc] " All Lists"]
                (into [:ul.clip-400] (map (fn [{:keys [name size]}]
                                            [:li
+                                            {:on-click (partial on-change {:name name :source @current-mine-name})}
                                             [:a
                                              [:span name]
                                              [:span.size (str " (" size ")")]]])
@@ -99,48 +111,82 @@ Example usage:
               [:h4 "Filtered..."]
               (into [:ul] (map (fn [{:keys [name size]}]
                                  [:li
+                                  {:on-click (partial on-change {:name name :source @current-mine-name})}
                                   [:a
                                    [:span name]
                                    [:span.size (str " (" size ")")]]])
                                (sort-by :name lists)))])]]]))))
 
 
-(def ops [{:op         "="
-           :applies-to [:string :boolean :integer :double :float]}
+(def ops [{:op         "IN"
+           :label      "In some list"
+           :applies-to [:class]}
+          {:op         "NOT IN"
+           :label      "Not in some list"
+           :applies-to [:class]}
+          {:op         "="
+           :label      "="
+           :applies-to ["java.lang.String" "java.lang.Boolean" "java.lang.Integer" "java.lang.Double" "java.lang.Float"]}
           {:op         "!="
-           :applies-to [:string :boolean :integer :double :float]}
+           :label      "!="
+           :applies-to ["java.lang.String" "java.lang.Boolean" "java.lang.Integer" "java.lang.Double" "java.lang.Float"]}
           {:op         "CONTAINS"
-           :applies-to [:string]}
+           :label      "Contains"
+           :applies-to ["java.lang.String"]}
           {:op         "<"
-           :applies-to [:integer :double :float]}
+           :label      "<"
+           :applies-to ["java.lang.Integer" "java.lang.Double" "java.lang.Float"]}
           {:op         "<="
-           :applies-to [:integer :double :float]}
+           :label      "<="
+           :applies-to ["java.lang.Integer" "java.lang.Double" "java.lang.Float"]}
           {:op         ">"
-           :applies-to [:integer :double :float]}
+           :label      ">"
+           :applies-to ["java.lang.Integer" "java.lang.Double" "java.lang.Float"]}
           {:op         ">="
-           :applies-to [:integer :double :float]}
+           :label      ">="
+           :applies-to ["java.lang.Integer" "java.lang.Double" "java.lang.Float"]}
           {:op         "LIKE"
-           :applies-to [:string]}
+           :label      "Like"
+           :applies-to ["java.lang.String"]}
           {:op         "NOT LIKE"
-           :applies-to [:string]}
+           :label      "Not like"
+           :applies-to ["java.lang.String"]}
           {:op         "ONE OF"
+           :label      "One of"
            :applies-to []}
           {:op         "NONE OF"
+           :label      "None of"
            :applies-to []}
           {:op         "LOOKUP"
-           :applies-to [:class]}])
+           :label      "Lookup"
+           :applies-to ["java.lang.String" :class]}])
+
 
 (defn applies-to? [type op] (some? (some #{type} (:applies-to op))))
 
 (defn op-dropdown
   []
   (fn [constraint options]
-    (let [{:keys [type on-change]} options]
+    (let [{:keys [type on-change is-class? field-type]} options]
       [:div.dropdown
-      [:button.btn.btn-default.btn-raised.dropdown-toggle
-       {:data-toggle "dropdown"} (str (or (:op constraint) "Select") " ") [:span.caret]]
-      (into [:ul.dropdown-menu]
-            (map (fn [o] [:li {:on-click (partial on-change (:op o))} [:a (:op o)]])
-                 (filter (partial applies-to? type)
-                         ops)))])))
+       [:button.btn.btn-default.btn-raised.dropdown-toggle
+        {:style       {:text-transform "none"}
+         :data-toggle "dropdown"}
+        (str (or
+               (:label (first (filter #(= (:op constraint) (:op %)) ops)))
+               "Select")
+             " ") [:span.caret]]
+       (let [filtered-ops (filter (partial applies-to? type) ops)
+             list-ops     (if is-class? (filter (partial applies-to? :class) ops))]
+         (into [:ul.dropdown-menu]
+               (concat
+                 (if list-ops
+                   (->> list-ops
+                        (map (fn [o]
+                               [:li
+                                {:on-click (partial on-change (:op o))}
+                                [:a (or (:label o) (:op o))]]))))
+                 (if (and (not-empty filtered-ops) (not-empty list-ops)) [[:li.divider]])
+                 (map (fn [o] [:li {:on-click (partial on-change (:op o))} [:a (or (:label o) (:op o))]])
+                      filtered-ops))))])))
 

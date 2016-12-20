@@ -4,47 +4,12 @@
             [accountant.core :refer [navigate!]]
             [clojure.string :refer [split join blank?]]
             [json-html.core :as json-html]
-            [redgenes.components.imcontrols.views :refer [op-dropdown]]
+            [redgenes.components.imcontrols.views :refer [op-dropdown list-dropdown]]
             [redgenes.components.inputgroup :as input]
-            [redgenes.components.lighttable :as lighttable]))
+            [redgenes.components.lighttable :as lighttable]
+            [imcljs.path :as im-path]
+            [oops.core :refer [oget]]))
 
-(def ops [{:op         "="
-           :applies-to [:string :boolean :integer :double :float]}
-          {:op         "!="
-           :applies-to [:string :boolean :integer :double :float]}
-          {:op         "CONTAINS"
-           :applies-to [:string]}
-          {:op         "<"
-           :applies-to [:integer :double :float]}
-          {:op         "<="
-           :applies-to [:integer :double :float]}
-          {:op         ">"
-           :applies-to [:integer :double :float]}
-          {:op         ">="
-           :applies-to [:integer :double :float]}
-          {:op         "LIKE"
-           :applies-to [:string]}
-          {:op         "NOT LIKE"
-           :applies-to [:string]}
-          {:op         "ONE OF"
-           :applies-to []}
-          {:op         "NONE OF"
-           :applies-to []}
-          {:op         "LOOKUP"
-           :applies-to [:class]}])
-
-
-(defn list-dropdown []
-  (let [lists (subscribe [:lists])]
-    (fn [update-fn]
-      [:div.dropdown
-       [:button.btn.btn-primary.dropdown-toggle {:type "button" :data-toggle "dropdown"}
-        [:i.fa.fa-list.pad-right-5] "List"]
-       (into [:ul.dropdown-menu.dropdown-menu-right]
-             (map (fn [l]
-                    [:li
-                     {:on-click (fn [] (update-fn (:name l)))}
-                     [:a (str (:name l))]]) @lists))])))
 
 (defn categories []
   (let [categories        (subscribe [:template-chooser-categories])
@@ -63,28 +28,62 @@
 
 (defn applies-to? [type op] (some? (some #{type} (:applies-to op))))
 
-(defn constraint-vertical [idx state]
-  (let [state (reagent/atom state)]
-    (fn [idx constraint]
+(defn one-of? [col value] (some? (some #{value} col)))
 
-      (.log js/console "CONSTRAINT" constraint)
-      [:div
-       [:label [:span (join " > " (take-last 2 (split (:path constraint) ".")))]]
-       [:div.input-group
-        [:span.input-group-btn
-         [op-dropdown constraint
-          {:type      :string
-           :on-change (fn [x]
-                        (dispatch [:template-chooser/replace-constraint idx (assoc constraint :op x)])
-                        )}]]
-        [:input.form-control
-         {:type        "text"
-          :placeholder "Search for..."
-          :value (:value constraint)}]]])))
+(def not-one-of? (complement one-of?))
+
+(defn constraint-vertical []
+  (let [state (reagent/atom {})]
+    (reagent/create-class
+      {:component-did-mount   (fn [this]
+                                (let [[_ _ constraint] (reagent/argv this)]
+                                  ; Populate the internal state atom with the constraint values.
+                                  (reset! state constraint)))
+       :component-will-update (fn [this new-argv]
+                                ; Check the old value and the new value of the constraint.
+                                ; If we went from a list constraint to a non-list constraint (or vice versa)
+                                ; then reset the value of the constraint. Otherwise the name of the list
+                                ; will be used as the search value in the new constraint. No bueno.
+                                (let [[_ _ old-constraint] (reagent/argv this)
+                                      [_ _ new-constraint] new-argv]
+                                  (if (or
+                                        (and
+                                          (one-of? ["IN" "NOT IN"] (:op old-constraint))
+                                          (not-one-of? ["IN" "NOT IN"] (:op new-constraint)))
+                                        (and
+                                          (one-of? ["IN" "NOT IN"] (:op new-constraint))
+                                          (not-one-of? ["IN" "NOT IN"] (:op old-constraint))))
+                                    (reset! state (assoc new-constraint :value nil))
+                                    (reset! state new-constraint))))
+       :reagent-render        (fn [idx _ friendly-name class field-type]
+                                (let [change-op  (fn [e] (dispatch [:template-chooser/replace-constraint
+                                                                    idx (assoc @state :op e)]))
+                                      change-val (fn [e] (dispatch [:template-chooser/replace-constraint
+                                                                    idx (assoc @state :value e)]))]
+                                  [:div.container-fluid
+                                   [:h4 friendly-name]
+                                   [:div.row
+                                    [:div.col-sm-4
+                                     [op-dropdown @state
+                                      {:type      field-type
+                                       :is-class? class
+                                       :on-change change-op}]]
+                                    [:div.col-sm-8
+                                     (if (some (partial = (:op @state)) ["IN" "NOT IN"])
+                                       [list-dropdown {:value           (:value @state)
+                                                       :restricted-type :Gene
+                                                       :on-change       (fn [im-list] (change-val (:name im-list)))}]
+                                       [:input.form-control
+                                        {:type        "text"
+                                         :on-change   (fn [e] (change-val (oget e :target :value)))
+                                         :placeholder "Search for..."
+                                         :value       (:value @state)}])]]]))})))
+
 
 (defn template []
   (let [selected-template (subscribe [:selected-template])
-        service           (subscribe [:selected-template-service])]
+        service           (subscribe [:selected-template-service])
+        row-count (subscribe [:template-chooser/count])]
     (fn [[id query]]
       [:div.grid-1
        [:div.col.ani.template
@@ -98,26 +97,29 @@
           [:div.body
            [:div.col-xs-6.border-right
             (into [:form.form]
-                  (concat
-                    (map (fn [[idx con]]
-                           [constraint-vertical idx con])
-                         (keep-indexed (fn [idx con]
-                                         (if (:editable con)
-                                           [idx con])) (:where query)))
-                    [[:div.form-group.row
-                      [:div.col-xs-offset-6
-                       {:style {:text-align "right"}}
-                       [:button.btn.btn-primary.btn-raised
-                        {:type     "button"
-                         :on-click (fn [] (dispatch [:templates/send-off-query]))}
-                        "View All Results"]]]]))]
+                  (map (fn [[idx con]]
+                         (let [field-type (:type (last (im-path/walk (:model @service) (:path con))))
+                               class      (if (im-path/class? (:model @service) (:path con))
+                                            (im-path/class (:model @service) (:path con)))]
+                           [constraint-vertical
+                            idx con
+                            (im-path/friendly (:model @service) (:path con))
+                            class
+                            field-type]))
+                       (keep-indexed (fn [idx con]
+                                       (if (:editable con)
+                                         [idx con])) (:where @selected-template))))]
 
            [:div.col-xs-6
             {:style {:overflow-x "hidden"}}
             [:span "Results Preview"]
             [lighttable/main {:query      @selected-template
                               :service    @service
-                              :no-repeats true}]]])]])))
+                              :no-repeats true}]
+            [:button.btn.btn-primary.btn-raised
+             {:type     "button"
+              :on-click (fn [] (dispatch [:templates/send-off-query]))}
+             (str "View All Results " "(" (js/parseInt @row-count) ")")]]])]])))
 
 (defn templates []
   (fn [templates]
@@ -168,8 +170,7 @@
     [categories]]
    [:div.template-filter
     [:label.control-label "Filter by description"]
-    [template-filter filter-state]]
-   ])
+    [template-filter filter-state]]])
 
 
 (defn main []
@@ -181,21 +182,11 @@
         selected-constraints (subscribe [:template-chooser/selected-template-constraints])]
     (fn []
       [:div.container-fluid
-
-
        ;(json-html/edn->hiccup @selected-template)
        [:div.row
-
-
         [:div.col-xs-12.templates
-
-
-
          [filters categories template-filter filter-state]
          [:div.template-list
-
-
-
           ;;the bad placeholder exists to displace content, but is invisible. It's a duplicate of the filters header
           [:div.bad-placeholder [filters categories template-filter filter-state]]
           [templates @im-templates]]]

@@ -59,16 +59,19 @@
 
 (defn handler [state e]
   (let [props (reagent/props e)
-        node  (sel1 (reagent/dom-node e) :.im-target)]
-    (go (let [new-results (<! (fetch/rows
-                                (:service props)
-                                (:query props)
-                                {:size   5
-                                 :format "json"}))]
-          ;; assoc the original class so we can say what has no results
-          (reset! state (assoc new-results :class (:class props)))
-          ))
-    ))
+        node  (sel1 (reagent/dom-node e) :.im-target)
+        missing-values (filter #(and
+                                  (= nil (:value %))
+                                  (some? (:op %))) (:where (:query props)))]
+    (if (empty? missing-values)
+      (go (let [new-results (<! (fetch/rows
+                                 (:service props)
+                                 (:query props)
+                                 {:size   5
+                                  :format "json"}))]
+           ;; assoc the original class so we can say what has no results
+           (reset! state (assoc new-results :class (:class props)))
+           )))))
 
 (defn main []
   (let [state (reagent/atom nil)]
