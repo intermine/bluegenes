@@ -9,6 +9,7 @@
             [redgenes.components.imcontrols.views :as im-controls]
             [redgenes.components.bootstrap :refer [popover tooltip]]
             [clojure.string :refer [split]]
+            [accountant.core :refer [navigate!]]
             [oops.core :refer [oget ocall]]))
 
 
@@ -85,12 +86,16 @@
 
 (defn table-row
   "A single result row for a single region feature."
-  [chromosome {:keys [primaryIdentifier class chromosomeLocation] :as result}]
-  (let [model (subscribe [:model])]
-    (.log js/console "%cresult" "color:hotpink;font-weight:bold;" (clj->js result))
-  [:div.grid-3_xs-3
-   [:div.col {:style {:word-wrap "break-word"}} primaryIdentifier]
-   [:div.col (str (get-in @model [(keyword class) :displayName]))]
+  [chromosome {:keys [primaryIdentifier class chromosomeLocation objectId] :as result}]
+  (let [model (subscribe [:model])
+        current-mine (subscribe [:current-mine])
+        the-type (get-in @model [(keyword class) :displayName])
+        ]
+  [:div.grid-3_xs-3.single-feature {:on-click #(navigate! (str "/reportpage/" (name (:id @current-mine)) "/" the-type "/" objectId))
+       }
+   [:div.col {:style {:word-wrap "break-word"}}
+    primaryIdentifier]
+   [:div.col the-type]
    [:div.col (str
                (get-in chromosomeLocation [:locatedOn :primaryIdentifier])
                ":"  (:start chromosomeLocation)
