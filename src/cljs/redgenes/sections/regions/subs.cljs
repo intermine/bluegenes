@@ -11,6 +11,14 @@
       (m/descendant-classes-as-tree model :SequenceFeature))))
 
 (reg-sub
+  :regions/sequence-feature-type-all-selected?
+  (fn [db]
+    (let [features  (get-in db [:regions :settings :feature-types])
+          selected-features  (remove #(not (second %)) features)]
+      (= (count features) (count selected-features))
+      )))
+
+(reg-sub
   :regions/settings
   (fn [db]
     (get-in db [:regions :settings])))
@@ -24,6 +32,12 @@
   :regions/results
   (fn [db]
     (get-in db [:regions :results])))
+
+(reg-sub
+  :regions/loading
+  (fn [db]
+    (get-in db [:regions :loading])))
+
 
 (reg-sub
   :regions/to-search

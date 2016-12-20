@@ -7,9 +7,9 @@
 
 (defn parse-region [region-string]
   (let [parsed (into []
-                     (remove (fn [c]
-                               (some? (some #{c} #{":" ".."})))
-                             (clojure.string/split region-string (re-pattern "(:|\\..)"))))]
+    (remove
+      (fn [c] (some? (some #{c} #{":" ".." "-"})))
+      (clojure.string/split region-string (re-pattern "(:|\\..|-)"))))]
     {:chromosome (nth parsed 0)
      :from       (int (nth parsed 1))
      :to         (int (nth parsed 2))}))
@@ -27,7 +27,9 @@
                                                                      (< (:from region) (int end) (:to region)))))
                                                                (:results result-response)))
                                 ) searched-for)]
-      (assoc-in db [:regions :results] mapped-results))))
+      (->
+       (assoc-in db [:regions :results] mapped-results)
+       (assoc-in    [:regions :loading] false)))))
 
 
 (reg-event-db
@@ -61,7 +63,10 @@
 (reg-event-db
   :regions/deselect-all-feature-types
   (fn [db]
-    (assoc-in db [:regions :settings :feature-types] nil)))
+    (let [feature-types (get-in db [:regions :settings :feature-types])]
+    (assoc-in db [:regions :settings :feature-types]
+      (reduce (fn [new-map [k v]]
+                (assoc new-map k false)) {} feature-types)))))
 
 (reg-event-db
   :regions/set-to-search
@@ -108,7 +113,10 @@
                    (build-feature-query to-search)
                    (map name (keys (filter (fn [[name enabled?]] enabled?) feature-types))))
                   (add-organism-constraint selected-organism))]
-      {:db           (assoc-in db [:regions :regions-searched] (map parse-region to-search))
+      {:db           (->
+                      (assoc-in db [:regions :regions-searched] (map parse-region to-search))
+                      (assoc-in [:regions :results] {})
+                      (assoc-in [:regions :loading] true))
        :im-operation {:op         (partial fetch/records
                                            (get-in db [:mines (get db :current-mine) :service])
                                            query)

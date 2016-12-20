@@ -1,5 +1,8 @@
 (ns redgenes.mines)
 
+;;; NOTE FOR PEOPLE EDITING THIS FILE: If you don't give a mine a regionsearch-example,
+;;; We assume that there *is* no regionsearch in your mine, and there's no link it in the navbar.
+
 (def mines {:humanmine     {:id                 :humanmine
                             :service            {:root "www.humanmine.org/humanmine" :token nil}
                             :name               "HumanMine"
@@ -9,6 +12,9 @@
                             :abbrev             "H. sapiens"
                             :status             {:status :na}
                             :idresolver-example "PPARG, FTO, 3949, LEP, 946, MC3R, 9607, LPL, LDLR, P55916, 335, GLUT4, Notch1, SLC27A1"
+                            :regionsearch-example ["2:14615455..14619002"
+                                                   "4:5866646..5868384"
+                                                   "3:2578486..2580016"]
                             :mine
                                                 {:name    "HumanMine"
                                                  :url     "www.humanmine.org/humanmine"
@@ -24,9 +30,11 @@
                             :output?            true
                             :abbrev             "D. melanogaster"
                             :idresolver-example "CG9151, FBgn0000099, CG3629, TfIIB, Mad, CG1775, CG2262, TWIST_DROME, tinman, runt, E2f, CG8817, FBgn0010433, CG9786, CG1034, ftz, FBgn0024250, FBgn0001251, tll, CG1374, CG33473, ato, so, CG16738, tramtrack,  CG2328, gt"
+                            :regionsearch-example ["2L:14615455..14619002"
+                                                    "2R:5866646..5868384"
+                                                    "3R:2578486..2580016"]
                             :mine
                                                 {:name    "FlyMine"
-                                                 ;:url "beta.flymine.org/beta"
                                                  :url     "www.flymine.org/query"
                                                  :service {:root "www.flymine.org/query"}}}
 
@@ -38,6 +46,9 @@
                             :status             {:status :na}
                             :output?            true
                             :abbrev             "D. melanogaster"
+                            :regionsearch-example ["2L:14615455..14619002"
+                                                    "2R:5866646..5868384"
+                                                    "3R:2578486..2580016"]
                             :idresolver-example "CG9151, FBgn0000099, CG3629, TfIIB, Mad, CG1775, CG2262, TWIST_DROME, tinman, runt, E2f, CG8817, FBgn0010433, CG9786, CG1034, ftz, FBgn0024250, FBgn0001251, tll, CG1374, CG33473, ato, so, CG16738, tramtrack,  CG2328, gt"
                             :mine
                                                 {:name    "FlyMine"
@@ -55,6 +66,9 @@
                             :icon               "icon-mouse"
                             :abbrev             "M. musculus"
                             :status             {:status :na}
+                            :regionsearch-example ["2:10000000..15000000"
+                                                  "chr6:10000000..20000000"
+                                                  "X:53000000-54000000"]
                             :idresolver-example "MGI:88388 MGI:96677 Fgf2 Bmp4"
                             :mine
                                                 {:name    "MouseMine"
@@ -114,6 +128,9 @@
                             :abbrev             "S. cerevisiae"
                             :status             {:status :na}
                             :idresolver-example "rad51; rad52; rad53; ddc1; rad55; rad57; spo11; dmc1; rad17; rad9; rad24; msh1; msh5; mre11; xrs2; ndt80; tid1; ssb1; pre3; acr1; doa3; rad54; ssf1"
+                            :regionsearch-example ["chrIII:1356..20455"
+                                                  "chrIV:11331..18001"
+                                                  "chrVI:9856..100010"]
                             :mine
                                                 {:name    "YeastMine"
                                                  :url     "yeastmine.yeastgenome.org/yeastmine"

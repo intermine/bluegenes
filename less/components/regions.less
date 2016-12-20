@@ -1,74 +1,181 @@
 @import "../variables";
 @import "../datatype-colors";
+@import "../layouts/input-dashed-style";
 
+.regionsearch {
+    @selected-color: #fff;
+    @deselected-color: #eee;
 
-div.region-results {
-    display: flex;
-    flex-direction: column;
-    border: 1px solid green;
+    label {
+        font-size: 1em;
+    }
 
-    div.region-row {
+    .input-section {
+        .input-dashed-style;
         display: flex;
-        flex-direction: row;
-        flex: 1 0;
-        border: 1px solid black;
+        justify-content: flex-start;
+        align-items: stretch;
 
-        div.summary-column {
-            flex: 1 0;
-            border: 1px solid red;
+        > div {
+            margin: 0 @spacer;
         }
 
-        div.regular-column {
-            flex: 1 1;
-            border: 1px solid yellow;
+        textarea {
+            background-color: @selected-color;
+            .box-shadow;
+            margin-top: 0;
         }
-     }
-}
+        @media(max-width:@tiny-screen) {
+            flex-wrap: wrap;
 
-
-svg.region {
-    background-color: white;
-    // border: 1px solid #eaeaea;
-
-    rect.datum {
-        opacity: 0.2;
-        fill: @highlight-color;
+            > div {
+                margin: @spacer/2 0;
+            }
+        }
     }
 
-    path.guide {
-        stroke: black;
-        fill: none;
+    svg.region {
+        rect.datum {
+            opacity: 0.2;
+            fill: @highlight-color;
+        }
 
+        path.guide {
+            stroke: black;
+            fill: none;
+        }
     }
 
-}
+    .feature-tree-container {
+        font-size: 0.9em;
+        max-height: 40vh;
+        min-height: 20vh;
+        overflow-y: scroll;
+        background: rgba(255,255,255,0.3);
+        .transitions;
 
-.feature-tree-container {
-    font-size: 0.9em;
-    max-height: 500px;
-    overflow-y: scroll;
-}
-
-ul.features-tree {
-
-    padding: 5px;
-    list-style-type: none;
-
-    li {
-        padding: 2px 0px 2px 5px;
-        border: 1px solid transparent;
-        border-radius: 10px;
-        margin: 1px;
-        background: white;
+        &.shrinkified {
+            max-height: 10em;
+            min-height: 5em;
+        }
     }
 
-    & i {
-        padding-right: 3px;
+    ul.features-tree {
+        column-count: 2;
+        column-width: 200px;
+        column-rule: dotted 1px grey;
+        list-style-type: none;
+        padding-left: 0;
+
+        li {
+            padding: @spacer/4 0 @spacer/4 @spacer*1.5;
+            border: 1px solid transparent;
+        }
+
+        & i {
+            padding-right: 3px;
+        }
     }
 
-    & li.selected {
-        background-color: #daf2f0;
-        border: 1px solid #daf2f0;
-        border-radius: 10px;
+    .fattysubmitbutton {
+        width: 100%;
+        margin-bottom: 0;
+        margin-top: auto;
+    }
+
+    .clear-textbox {
+        background-color: rgba(0,0,0,0.4);
+        color: @selected-color;
+        height: @spacer*1.5;
+        width: @spacer*1.5;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+        margin-top: -@spacer*1.5;
+        top: @spacer*1.5;
+        right: -1px;
+        font-weight: bold;
+        cursor: pointer;
+        float: right;
+    }
+
+    .checkboxes {
+        flex-grow: 2;
+    }
+
+    .organism-and-regions {
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+        justify-content: flex-start;
+        min-width: 30vw;
+    }
+
+    .allresults {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .results {
+        margin-top: @spacer/2;
+        .header-styles;
+        padding: 0 1em 1em;
+        border: solid 1px rgba(0,0,0,0.1);
+        background-color: @selected-color;
+        order: 1;
+        &.noresults {
+          order: 2;
+        }
+
+        h3 {
+            margin-bottom: 0;
+
+            strong {
+                font-weight: bolder;
+                text-transform: uppercase;
+            }
+        }
+        .single-feature {
+          &:hover {
+          cursor:pointer;
+          background-color: @deselected-color;
+        }
+          //override silly margins:
+          &[class*=grid-3]>.col {
+            padding:@spacer/2;
+          }
+        }
+
+        .paginator {
+            font-size: 0.8em;
+
+            button {
+                background: transparent;
+                border: 0;
+                font-weight:bolder;
+                &:hover {
+                    color: @highlight-color;
+                }
+
+                &:disabled {
+                    color: #999;
+                }
+            }
+        }
+    }
+
+    .graph {
+        .distribution {
+            position: relative;
+            margin-top: -45px; //this is 3/4 of the cvg height set in graphs.cljs
+            display: block;
+            left: 1em;
+            margin-bottom: 1em;
+            font-weight: bold;
+            //this shadow creates a complete outline.
+            @shadowcolor: #fff;
+            text-shadow: 1px 1px 0 @shadowcolor, -1px -1px 0 @shadowcolor, 1px -1px 0 @shadowcolor, -1px -1px 0 @shadowcolor, 1px 1px 0 @shadowcolor, -1px 1px 0 @shadowcolor;
+        }
     }
 }

@@ -54,7 +54,6 @@
     (let [min-start (apply min (map (comp :start :chromosomeLocation) results))
           max-end   (apply max (map (comp :end :chromosomeLocation) results))
           scale     (linear-scale [min-start max-end] [0 1])]
-      [:div
-       [:span "Distribution"]
-       [svg scale results to from]])))
-
+      [:div.graph
+       [svg scale results to from]
+       [:span.distribution "Distribution"]])))

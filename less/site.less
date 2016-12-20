@@ -20,7 +20,8 @@
 @import "overrides";
 @import "components/navbar";
 @import "layouts/sidebar";
-// @import "layouts/input-group";
+@import "layouts/input-group";
+@import "layouts/header";
 @import "transitions";
 @import "components/regions";
 @import "components/lists";
@@ -321,35 +322,36 @@ input.form-control:focus {
     background-color: white;
 }
 
-    input[type="checkbox"] {
-        @the-color: #999;
-        margin-right: 0.8em;
+input[type="checkbox"] {
+    @the-color: #999;
+    margin-right: 0.8em;
 
-        &:checked {
-            &:before {
-                content: '\2714';
-                color: darken(@the-color, 20%);
-            }
-        }
-        &:focus:before{
-          box-shadow:0px 0px 2px 1px fadeout(@highlight-color,20%);
-        }
-
+    &:checked {
         &:before {
-            .border-radius;
-            background: #fff;
-            border: solid 2px @the-color;
-            height: 1.2em;
-            width: 1.2em;
-            font-size: 1em;
-            content: "";
-            line-height: 1em;
-            margin-right: 1em;
-            vertical-align: middle;
-            text-align: center;
-            display: block;
+            content: '\2714';
+            color: darken(@the-color, 20%);
         }
     }
+
+    &:focus:before {
+        box-shadow: 0 0 2px 1px fadeout(@highlight-color,20%);
+    }
+
+    &:before {
+        .border-radius;
+        background: #fff;
+        border: solid 2px @the-color;
+        height: 1.2em;
+        width: 1.2em;
+        font-size: 1em;
+        content: "";
+        line-height: 1em;
+        margin-right: 1em;
+        vertical-align: middle;
+        text-align: center;
+        display: block;
+    }
+}
 
 label {
     line-height: 1.2em;
@@ -360,11 +362,23 @@ label {
     &:hover input[type=checkbox]:before {
         cursor: pointer;
     }
-
 }
 
 .results .im-table {
-  overflow-x:auto;
-  margin-left: calc(100vw - 100%);
+    overflow-x: auto;
+    margin-left: calc(100vw - 100%);
     margin-right: 0;
+}
+
+.loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    font-family: sans-serif;
+    font-size: 2em;
+    color: #999;
+    margin-left: 1em;
+    text-transform: uppercase;
+    margin-top: 1em;
 }
