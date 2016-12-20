@@ -4,6 +4,7 @@
             [redgenes.components.table :as table]
             [redgenes.components.collection :as collection]
             [redgenes.components.lighttable :as lighttable]
+            [redgenes.components.loader :refer [loader]]
             [redgenes.sections.reportpage.components.minelinks :as minelinks]
             [accountant.core :refer [navigate!]]
 ))
@@ -18,7 +19,7 @@
     (fn []
       [:div.container-fluid.report
        (if @fetching-report?
-         [:i.fa.fa-cog.fa-spin.fa-3x.fa-fw]
+         [loader (str (:type @params) " Report")]
          [:div
           [:ol.breadcrumb
            [:li [:a "Home"]]
