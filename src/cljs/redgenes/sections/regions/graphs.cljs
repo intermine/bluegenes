@@ -55,5 +55,5 @@
           max-end   (apply max (map (comp :end :chromosomeLocation) results))
           scale     (linear-scale [min-start max-end] [0 1])]
       [:div
-       [:span "Distribution"]
-       [svg scale results to from]])))
+       [svg scale results to from]
+       [:span.distribution "Distribution"]])))

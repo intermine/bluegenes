@@ -50,8 +50,8 @@
       (into [:ul.features-tree]
             (map (fn [f] [feature-branch f]) (sort-by (comp :displayName second) @known-feature-types))))))
 
-(defn region-header [chromosome from to]
-  [:h3 [:strong "Region: "] (str chromosome " " from ".." to)])
+(defn region-header [{:keys [chromosome from to results] :as feature}]
+  [:h3 [:strong "Region: "] (str chromosome " " from ".." to " ") [:small (count results) " results"]])
 
 (defn table-paginator [pager results]
   [:div.row [:div.btn-toolbar.pull-right
@@ -72,7 +72,7 @@
     (fn [{:keys [chromosome from to results] :as feature}]
       (if (pos? (count (:results feature)))
       [:div.results
-        [region-header chromosome from to]
+        [region-header feature]
         [graphs/main feature]
         [table-paginator pager results]
         [:div.grid-3_xs-3
