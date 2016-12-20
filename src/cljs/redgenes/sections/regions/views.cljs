@@ -50,16 +50,19 @@
       (into [:ul.features-tree]
             (map (fn [f] [feature-branch f]) (sort-by (comp :displayName second) @known-feature-types))))))
 
-(defn region-header [{:keys [chromosome from to results] :as feature} paginator]
+(defn region-header
+  "Header for each region. includes paginator and number of features."
+  [{:keys [chromosome from to results] :as feature} paginator]
   [:h3 [:strong "Region: "]
     (if chromosome
       [:span chromosome " " from ".." to " "]
       [:span feature " "])
    [:small.features-count (count results) " overlapping features"]
-   (.log js/console "%cfeature" "color:hotpink;font-weight:bold;" (clj->js feature))
    (cond (pos? (count results)) paginator)])
 
-(defn table-paginator [pager results]
+(defn table-paginator
+  "UI component to switch between pages of results"
+  [pager results]
   (let [page-count (int (.ceil js/Math (/ (count results) (:show @pager))))]
   [:div.pull-right.paginator
     [:button
@@ -72,14 +75,19 @@
       :on-click (fn [] (swap! pager update :page inc))} "Next >"]]
   ))
 
-(defn table-header []
+(defn table-header
+  "Headerfor results table."
+  []
   [:div.grid-3_xs-3
     [:div.col [:h4 "Feature"]]
     [:div.col [:h4 "Feature Type"]]
     [:div.col [:h4 "Location"]]])
 
-(defn table-row [chromosome {:keys [primaryIdentifier class chromosomeLocation] :as result}]
+(defn table-row
+  "A single result row for a single region feature."
+  [chromosome {:keys [primaryIdentifier class chromosomeLocation] :as result}]
   (let [model (subscribe [:model])]
+    (.log js/console "%cresult" "color:hotpink;font-weight:bold;" (clj->js result))
   [:div.grid-3_xs-3
    [:div.col {:style {:word-wrap "break-word"}} primaryIdentifier]
    [:div.col (str (get-in @model [(keyword class) :displayName]))]
@@ -89,7 +97,9 @@
                ".." (:end chromosomeLocation))]]))
 
 ; Results table
-(defn result-table []
+(defn result-table
+  "The result table for a region - all features"
+  []
   (let [pager (reagent/atom {:show 20
                              :page 0})]
     (fn [{:keys [chromosome from to results] :as feature}]
@@ -104,7 +114,9 @@
         [:div.results.noresults [region-header chromosome from to] "No features returned for this region"]
         ))))
 
-(defn organism-selection []
+(defn organism-selection
+  "UI component allowing user to choose which organisms to search. Defaults to all."
+  []
   (let [settings  (subscribe [:regions/settings])]
     [:div [:label "Organism"]
       [im-controls/organism-dropdown
@@ -116,7 +128,9 @@
   )
 
   ; Input box for regions
-  (defn region-input-box []
+  (defn region-input-box
+    "UI component allowing user to type in the regions they wish to search for"
+    []
     (reagent/create-class
       (let [to-search (subscribe [:regions/to-search])
             results (subscribe [:regions/results])]
@@ -131,6 +145,7 @@
          :component-did-mount (fn [this] (.focus (reagent/dom-node this)))})))
 
 (defn clear-textbox []
+  "Interactive UI component to clear any entered text present in the region input textarea."
   (let [to-search (subscribe [:regions/to-search])]
   [css-transition-group
    {:transition-name          "fade"
@@ -155,7 +170,10 @@
          [region-input-box]]
      ])
 
-(defn checkboxes [to-search settings]
+(defn checkboxes
+  "UI component ot allow user to select which types of overlapping features to find"
+  [to-search settings]
+
   (let [all-selected? (subscribe [:regions/sequence-feature-type-all-selected?])
         results (subscribe [:regions/results])]
   [:div.checkboxes
@@ -172,7 +190,9 @@
    [:div.feature-tree-container
     {:class (if @results "shrinkified")} [feature-types-tree]]]))
 
-(defn input-section []
+(defn input-section
+  "Entire UI input section / top half of the region search"
+  []
   (let [settings  (subscribe [:regions/settings])
   to-search (subscribe [:regions/to-search])]
   [:div.row.input-section
