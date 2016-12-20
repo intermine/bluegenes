@@ -50,46 +50,57 @@
       (into [:ul.features-tree]
             (map (fn [f] [feature-branch f]) (sort-by (comp :displayName second) @known-feature-types))))))
 
-(defn region-header [{:keys [chromosome from to results] :as feature}]
-  [:h3 [:strong "Region: "] (str chromosome " " from ".." to " ") [:small (count results) " results"]])
+(defn region-header [{:keys [chromosome from to results] :as feature} paginator]
+  [:h3 [:strong "Region: "]
+    (if chromosome
+      [:span chromosome " " from ".." to " "]
+      [:span feature " "])
+   [:small.features-count (count results) " overlapping features"]
+   (.log js/console "%cfeature" "color:hotpink;font-weight:bold;" (clj->js feature))
+   (cond (pos? (count results)) paginator)])
 
 (defn table-paginator [pager results]
-  [:div.row [:div.btn-toolbar.pull-right
-    [:button.btn.btn-primary
+  (let [page-count (int (.ceil js/Math (/ (count results) (:show @pager))))]
+  [:div.pull-right.paginator
+    [:button
      {:disabled (< (:page @pager) 1)
       :on-click (fn [] (swap! pager update :page dec))}
-     "Previous"]
-    [:button.btn.btn-primary
+     "< Previous"]
+   [:span.currentpage "Page " (inc (:page @pager)) " of " page-count]
+    [:button
      {:disabled (< (count results) (* (:show @pager) (inc (:page @pager))))
-      :on-click (fn [] (swap! pager update :page inc))} "Next"]]]
-  )
+      :on-click (fn [] (swap! pager update :page inc))} "Next >"]]
+  ))
+
+(defn table-header []
+  [:div.grid-3_xs-3
+    [:div.col [:h4 "Feature"]]
+    [:div.col [:h4 "Feature Type"]]
+    [:div.col [:h4 "Location"]]])
+
+(defn table-row [chromosome {:keys [primaryIdentifier class chromosomeLocation] :as result}]
+  (let [model (subscribe [:model])]
+  [:div.grid-3_xs-3 {:key (str chromosome primaryIdentifier (:start chromosomeLocation) (:end chromosomeLocation))}
+   [:div.col {:style {:word-wrap "break-word"}} primaryIdentifier]
+   [:div.col (str (get-in @model [(keyword class) :displayName]))]
+   [:div.col (str
+               (get-in chromosomeLocation [:locatedOn :primaryIdentifier])
+               ":"  (:start chromosomeLocation)
+               ".." (:end chromosomeLocation))]]))
 
 ; Results table
 (defn result-table []
-  (let [model (subscribe [:model])
-        pager (reagent/atom {:show 20
+  (let [pager (reagent/atom {:show 20
                              :page 0})]
     (fn [{:keys [chromosome from to results] :as feature}]
       (if (pos? (count (:results feature)))
       [:div.results
-        [region-header feature]
+        [region-header feature [table-paginator pager results]]
         [graphs/main feature]
-        [table-paginator pager results]
-        [:div.grid-3_xs-3
-         [:div.col [:h4 "Feature"]]
-         [:div.col [:h4 "Feature Type"]]
-         [:div.col [:h4 "Location"]]]
-      (doall  (map (fn [{:keys [primaryIdentifier class chromosomeLocation] :as result}]
-               [:div.grid-3_xs-3 {:key (str chromosome primaryIdentifier (:start chromosomeLocation) (:end chromosomeLocation))}
-                [:div.col {:style {:word-wrap "break-word"}} primaryIdentifier]
-                [:div.col (str (get-in @model [(keyword class) :displayName]))]
-                [:div.col (str
-                            (get-in chromosomeLocation [:locatedOn :primaryIdentifier])
-                            ":"
-                            (:start chromosomeLocation)
-                            ".."
-                            (:end chromosomeLocation))]])
-             (take (:show @pager) (drop (* (:show @pager) (:page @pager)) results))))]
+        [:div.tabulated [table-header]
+          (into [:div.results-body]
+            (map (fn [result]  [table-row chromosome result])
+              (take (:show @pager) (drop (* (:show @pager) (:page @pager)) results))))]]
   [:div.results.noresults [region-header chromosome from to] "No features returned for this region"]
         ))))
 
