@@ -36,7 +36,6 @@
 
 (defn svg []
   (fn [scale-fn data-points to from]
-;    (.log js/console "%cto %s from %s" "color:hotpink;font-weight:bold;" (clj->js to) (clj->js from))
     [:svg.region
      {:width                 "100%"
       :height                "60px"
@@ -55,7 +54,6 @@
     (let [min-start (apply min (map (comp :start :chromosomeLocation) results))
           max-end   (apply max (map (comp :end :chromosomeLocation) results))
           scale     (linear-scale [min-start max-end] [0 1])]
-      (.log js/console "%cmin-start %s max-start %s" "color:hotpink;font-weight:bold;" (clj->js min-start) (clj->js max-end) results)
       [:div
        [:span "Distribution"]
        [svg scale results to from]])))
