@@ -89,7 +89,11 @@
          [:li.homelink {:class (if (panel-is :home-panel) "active")} [:a {:on-click #(navigate! "/")} "Home"]]
          [:li {:class (if (panel-is :upload-panel) "active")} [:a {:on-click #(navigate! "/upload")} "Upload"]]
          [:li {:class (if (panel-is :templates-panel) "active")} [:a {:on-click #(navigate! "/templates")} "Templates"]]
-         [:li {:class (if (panel-is :regions-panel) "active")} [:a {:on-click #(navigate! "/regions")} "Regions"]]
+         
+         ;;don't show region search for mines that have no example configured
+         (cond (:regionsearch-example @current-mine)
+           [:li {:class (if (panel-is :regions-panel) "active")} [:a {:on-click #(navigate! "/regions")} "Regions"]]
+         )
          ;;never fear, the QB will be BACK
          ;[:li {:class (if (panel-is :querybuilder-panel) "active")} [:a {:on-click #(navigate! "/querybuilder")} "Query\u00A0Builder"]]
          [:li {:class (if (panel-is :saved-data-panel) "active")} [:a {:on-click #(navigate! "/saved-data")} (str "Lists\u00A0(" (apply + (map count (vals @lists))) ")")]
