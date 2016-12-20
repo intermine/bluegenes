@@ -1,5 +1,8 @@
 (ns redgenes.mines)
 
+;;; NOTE FOR PEOPLE EDITING THIS FILE: If you don't give a mine a regionsearch-example,
+;;; We assume that there *is* no regionsearch in your mine, and there's no link it in the navbar.
+
 (def mines {:humanmine     {:id                 :humanmine
                             :service            {:root "www.humanmine.org/humanmine" :token nil}
                             :name               "HumanMine"
