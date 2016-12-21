@@ -8,6 +8,7 @@
             [redgenes.components.inputgroup :as input]
             [redgenes.components.lighttable :as lighttable]
             [imcljs.path :as im-path]
+            [redgenes.components.ui.constraint :refer [constraint]]
             [oops.core :refer [oget]]))
 
 
@@ -53,7 +54,9 @@
                                         (and
                                           (one-of? ["IN" "NOT IN"] (:op new-constraint))
                                           (not-one-of? ["IN" "NOT IN"] (:op old-constraint))))
-                                    (reset! state (assoc new-constraint :value nil))
+                                    (do
+                                      (.log js/console "flipped")
+                                      (reset! state (assoc new-constraint :value nil)))
                                     (reset! state new-constraint))))
        :reagent-render        (fn [idx _ friendly-name class field-type]
                                 (let [change-op  (fn [e] (dispatch [:template-chooser/replace-constraint
@@ -83,7 +86,7 @@
 (defn template []
   (let [selected-template (subscribe [:selected-template])
         service           (subscribe [:selected-template-service])
-        row-count (subscribe [:template-chooser/count])]
+        row-count         (subscribe [:template-chooser/count])]
     (fn [[id query]]
       [:div.grid-1
        [:div.col.ani.template
@@ -95,17 +98,40 @@
         [:div.description (:description query)]
         (if (= (name id) (:name @selected-template))
           [:div.body
+
            [:div.col-xs-6.border-right
             (into [:form.form]
                   (map (fn [[idx con]]
                          (let [field-type (:type (last (im-path/walk (:model @service) (:path con))))
                                class      (if (im-path/class? (:model @service) (:path con))
                                             (im-path/class (:model @service) (:path con)))]
-                           [constraint-vertical
-                            idx con
-                            (im-path/friendly (:model @service) (:path con))
-                            class
-                            field-type]))
+
+
+                           [:div
+
+                            ;[con/main
+                            ; :model (:model @service)
+                            ; :path (:path con)
+                            ; :value (:value con)
+                            ; :selected (:op con)]
+
+                            [constraint
+                             :on-change (fn [x] (println "X" x))
+                             :model (:model @service)
+                             :path (:path con)
+                             :value (:value con)
+                             :op (:op con)
+                             :label? true]
+
+
+
+                            ;[constraint-vertical
+                            ; idx con
+                            ; (im-path/friendly (:model @service) (:path con))
+                            ; class
+                            ; field-type]
+
+                            ]))
                        (keep-indexed (fn [idx con]
                                        (if (:editable con)
                                          [idx con])) (:where @selected-template))))]
