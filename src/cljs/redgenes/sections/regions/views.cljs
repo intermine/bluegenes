@@ -6,6 +6,7 @@
             [redgenes.components.loader :refer [loader]]
             [redgenes.sections.regions.events]
             [redgenes.sections.regions.subs]
+            [redgenes.sections.regions.results :refer [results-section]]
             [redgenes.components.imcontrols.views :as im-controls]
             [redgenes.components.bootstrap :refer [popover tooltip]]
             [clojure.string :refer [split]]
@@ -16,20 +17,24 @@
 (def css-transition-group
   (reagent/adapt-react-class js/React.addons.CSSTransitionGroup))
 
-(defn ex []
+(defn ex
+  "Generate example region search input based on pre-configured per-mine settings"
+  []
   (let [active-mine (subscribe [:current-mine])
-        mines (subscribe [:mines])
         example-text (:regionsearch-example @active-mine)]
 (clojure.string/join "\n" example-text)))
 
-(def region-help-content-popover
+(def region-help-content-popover ;;help text
   [:span "Genome regions in the following formats are accepted:"
    [:ul
     [:li [:span "chromosome:start..end, e.g. 2L:11334..12296"]]
     [:li [:span "chromosome:start-end, e.g. 2R:5866746-5868284 or chrII:14646344-14667746"]]
     [:li [:span "tab delimited"]]]])
 
-(defn feature-branch []
+(defn feature-branch
+  "Recursively building a tree of user-selectable features as checkboxes"
+  []
+
   (let [settings (subscribe [:regions/settings])]
     (fn [[class-kw {:keys [displayName descendants] :as n}]]
       [:li {:class    (if (class-kw (:feature-types @settings)) "selected")
@@ -44,6 +49,7 @@
          (into [:ul.features-tree] (map (fn [d] [feature-branch d])) (sort-by (comp :displayName second) descendants)))])))
 
 (defn feature-types-tree []
+  "UI component for checkbox features selection"
   (let [known-feature-types (subscribe [:regions/sequence-feature-types])
         settings            (subscribe [:regions/settings])
         ]
@@ -51,73 +57,6 @@
       (into [:ul.features-tree]
             (map (fn [f] [feature-branch f]) (sort-by (comp :displayName second) @known-feature-types))))))
 
-(defn region-header
-  "Header for each region. includes paginator and number of features."
-  [{:keys [chromosome from to results] :as feature} paginator]
-  [:h3 [:strong "Region: "]
-    (if chromosome
-      [:span chromosome " " from ".." to " "]
-      [:span feature " "])
-   [:small.features-count (count results) " overlapping features"]
-   (cond (pos? (count results)) paginator)])
-
-(defn table-paginator
-  "UI component to switch between pages of results"
-  [pager results]
-  (let [page-count (int (.ceil js/Math (/ (count results) (:show @pager))))]
-  [:div.pull-right.paginator
-    [:button
-     {:disabled (< (:page @pager) 1)
-      :on-click (fn [] (swap! pager update :page dec))}
-     "< Previous"]
-   [:span.currentpage "Page " (inc (:page @pager)) " of " page-count]
-    [:button
-     {:disabled (< (count results) (* (:show @pager) (inc (:page @pager))))
-      :on-click (fn [] (swap! pager update :page inc))} "Next >"]]
-  ))
-
-(defn table-header
-  "Headerfor results table."
-  []
-  [:div.grid-3_xs-3
-    [:div.col [:h4 "Feature"]]
-    [:div.col [:h4 "Feature Type"]]
-    [:div.col [:h4 "Location"]]])
-
-(defn table-row
-  "A single result row for a single region feature."
-  [chromosome {:keys [primaryIdentifier class chromosomeLocation objectId] :as result}]
-  (let [model (subscribe [:model])
-        current-mine (subscribe [:current-mine])
-        the-type (get-in @model [(keyword class) :displayName])
-        ]
-  [:div.grid-3_xs-3.single-feature {:on-click #(navigate! (str "/reportpage/" (name (:id @current-mine)) "/" the-type "/" objectId))
-       }
-   [:div.col {:style {:word-wrap "break-word"}}
-    primaryIdentifier]
-   [:div.col the-type]
-   [:div.col (str
-               (get-in chromosomeLocation [:locatedOn :primaryIdentifier])
-               ":"  (:start chromosomeLocation)
-               ".." (:end chromosomeLocation))]]))
-
-; Results table
-(defn result-table
-  "The result table for a region - all features"
-  []
-  (let [pager (reagent/atom {:show 20
-                             :page 0})]
-    (fn [{:keys [chromosome from to results] :as feature}]
-      (if (pos? (count (:results feature)))
-        [:div.results
-          [region-header feature [table-paginator pager results]]
-          [graphs/main feature]
-          [:div.tabulated [table-header]
-            (into [:div.results-body]
-              (map (fn [result]  [table-row chromosome result])
-                (take (:show @pager) (drop (* (:show @pager) (:page @pager)) results))))]]
-        [:div.results.noresults [region-header chromosome from to] "No features returned for this region"]
-        ))))
 
 (defn organism-selection
   "UI component allowing user to choose which organisms to search. Defaults to all."
@@ -218,32 +157,6 @@
    ; Results section
    [checkboxes to-search settings]
    ]))
-
-(defn error-loading-results []
-  [:div.results.error
-   [:svg.icon.icon-sad [:use {:xlinkHref "#icon-sad"}]]
-   [:div.errordetails
-    [:h3 "Houston, we've had a problem. "]
-    [:p  "Looks like there was a problem fetching results."]
-    [:ul
-      [:li "Please check that your search regions are in the correct format."]
-      [:li "Please check you're connected to the internet."]]]
-   ])
-
-(defn results-section []
-  (let [results   (subscribe [:regions/results])
-        loading? (subscribe [:regions/loading])
-        error (subscribe [:regions/error])]
-  (if @loading? [loader "Regions"]
-
-   (if (not @error)
-    [:div
-     [:h2 (str "Results (" (apply + (map (comp count :results) @results)) ")")]
-      (into [:div.allresults]
-        (map (fn [result]
-          [result-table result]) @results))]
-     [error-loading-results]
-     ))))
 
 (defn main []
   (reagent/create-class
