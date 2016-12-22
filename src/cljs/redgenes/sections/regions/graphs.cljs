@@ -57,17 +57,15 @@
      [bar scale-fn max]
      ]))
 
-(defn resize-handler [atom this] (reset! atom (.-clientWidth (reagent/dom-node this))))
-
 (defn main []
-  (let [width (reagent/atom nil)]
-
-  (reagent/create-class
-   {:reagent-render
      (fn [{:keys [results to from]} x]
        (let [min-start (apply min (map (comp :start :chromosomeLocation) results))
           max-end   (apply max (map (comp :end :chromosomeLocation) results))
           scale     (linear-scale [min-start max-end] [0 1])]
+         (reagent/with-let
+           [width (reagent/atom nil)
+            handler #(reset! width (.-clientWidth (.querySelector js/document ".legend")))
+            listener (.addEventListener js/window "resize" #(handler))]
           [:div.graph
             [svg scale results to from min-start max-end]
             [:span.distribution "Distribution"]
@@ -76,11 +74,7 @@
              [:span.end {:title "End location of the last overlapping feature"} max-end]]
             [label-text scale from @width {:class "from" :title "This is the start location you input in the box above"}]
             [label-text scale to @width {:class "to" :title "This is the end location you input into the box above"}]
-       ]))
-      :component-did-mount
-        (fn [this]
-          (.addEventListener js/window "resize" #(resize-handler width this))
-          (resize-handler width this))
-      :component-did-update (fn [this] (resize-handler width this))
-      :component-will-unmount #(.removeEventListener js/window "resize" resize-handler)
-    })))
+       ]
+       (finally
+         (.removeEventListener js/window "resize" handler)))))
+    )
