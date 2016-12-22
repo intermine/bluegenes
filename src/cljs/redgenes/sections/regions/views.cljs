@@ -219,20 +219,31 @@
    [checkboxes to-search settings]
    ]))
 
+(defn error-loading-results []
+  [:div.results.error
+   [:svg.icon.icon-sad [:use {:xlinkHref "#icon-sad"}]]
+   [:div.errordetails
+    [:h3 "Houston, we've had a problem. "]
+    [:p  "Looks like there was a problem fetching results."]
+    [:ul
+      [:li "Please check that your search regions are in the correct format."]
+      [:li "Please check you're connected to the internet."]]]
+   ])
+
 (defn results-section []
   (let [results   (subscribe [:regions/results])
-        loading? (subscribe [:regions/loading])]
+        loading? (subscribe [:regions/loading])
+        error (subscribe [:regions/error])]
   (if @loading? [loader "Regions"]
-  [:div
 
+   (if (not @error)
+    [:div
      [:h2 (str "Results (" (apply + (map (comp count :results) @results)) ")")]
-     [:div
-      ; TODO: split this into a view per chromosome, otherwise it doesn't make sense on a linear plane
-      #_[:div
-         [graphs/main {:results (mapcat :results @results)}]]
       (into [:div.allresults]
         (map (fn [result]
-          [result-table result]) @results))]])))
+          [result-table result]) @results))]
+     [error-loading-results]
+     ))))
 
 (defn main []
   (reagent/create-class

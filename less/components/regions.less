@@ -34,7 +34,7 @@
         }
     }
 
-    svg.region {
+    .region {
         rect.datum {
             opacity: 0.2;
             fill: @highlight-color;
@@ -128,6 +128,29 @@
             order: 2;
         }
 
+        .icon {
+            width: 4em;
+            height: 4em;
+            fill: rgba(0,0,0,0.3);
+            margin: 0 @spacer*2 0 @spacer;
+        }
+
+        &.error {
+            display: flex;
+            align-items: center;
+            padding: @spacer;
+
+            h3 {
+                margin: 0;
+            }
+
+            .errordetails {
+                flex-grow: 1;
+                display: flex;
+                flex-direction: column;
+            }
+        }
+
         h3 {
             margin-bottom: 0;
 
@@ -184,8 +207,8 @@
             display: flex;
             justify-content: space-between;
             width: 100%;
-            margin-top:-8px;
-padding:0px 2px;
+            margin-top: -8px;
+            padding: 0 2px;
         }
 
         .label-text {

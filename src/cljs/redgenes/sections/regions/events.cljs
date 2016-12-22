@@ -18,18 +18,21 @@
   :regions/save-results
   (fn [db [_ result-response]]
     (let [searched-for   (get-in db [:regions :regions-searched])
-          mapped-results (map (fn [region]
-                                (assoc region :results (filter (fn [{{:keys [start end locatedOn] :as t} :chromosomeLocation}]
-                                                                 (and
-                                                                   (= (:primaryIdentifier locatedOn) (:chromosome region))
-                                                                   (or
-                                                                     (< (:from region) (int start) (:to region))
-                                                                     (< (:from region) (int end) (:to region)))))
-                                                               (:results result-response)))
-                                ) searched-for)]
+          error          (:error result-response)
+          mapped-results (map
+            (fn [region]
+                  (assoc region :results (filter (fn [{{:keys [start end locatedOn] :as t} :chromosomeLocation}]
+                   (and
+                     (= (:primaryIdentifier locatedOn) (:chromosome region))
+                     (or
+                       (< (:from region) (int start) (:to region))
+                       (< (:from region) (int end) (:to region)))))
+                 (:results result-response)))
+            ) searched-for)]
       (->
        (assoc-in db [:regions :results] mapped-results)
-       (assoc-in    [:regions :loading] false)))))
+       (assoc-in    [:regions :loading] false)
+       (assoc-in    [:regions :error]   error)))))
 
 
 (reg-event-db

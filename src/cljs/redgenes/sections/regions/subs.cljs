@@ -19,6 +19,11 @@
       )))
 
 (reg-sub
+  :regions/error
+  (fn [db]
+    (get-in db [:regions :error])))
+
+(reg-sub
   :regions/settings
   (fn [db]
     (get-in db [:regions :settings])))
