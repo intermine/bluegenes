@@ -1,9 +1,13 @@
 (ns redgenes.components.ui.constraint
   (:require [imcljs.path :as im-path]
             [oops.core :refer [oget]]
+            [reagent.core :as reagent :refer [create-class]]
             [redgenes.components.ui.list-dropdown :refer [list-dropdown]]))
 
-(def operators [{:op         "IN"
+(def operators [{:op         "LOOKUP"
+                 :label      "Lookup"
+                 :applies-to [nil]}
+                {:op         "IN"
                  :label      "In some list"
                  :applies-to [nil]}
                 {:op         "NOT IN"
@@ -41,10 +45,7 @@
                  :applies-to []}
                 {:op         "NONE OF"
                  :label      "None of"
-                 :applies-to []}
-                {:op         "LOOKUP"
-                 :label      "Lookup"
-                 :applies-to [nil]}])
+                 :applies-to []}])
 
 (defn applies-to? [type op]
   (some true? (map (partial = type) (:applies-to op))))

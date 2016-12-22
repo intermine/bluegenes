@@ -48,7 +48,7 @@
             filter-fn      (apply every-pred [text-filter type-filter])
             filtered-lists (filter filter-fn lists)]
         [:div.dropdown
-         [:button.btn.btn-default.btn-raised.dropdown-toggle
+         [:button.btn.btn-default.dropdown-toggle
           {:data-toggle "dropdown"}
           (str (or value "Choose a list") " ") [:span.caret]]
          [:div.dropdown-menu.dropdown-mixed-content
