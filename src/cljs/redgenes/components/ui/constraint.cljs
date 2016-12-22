@@ -1,6 +1,7 @@
 (ns redgenes.components.ui.constraint
   (:require [imcljs.path :as im-path]
-            [oops.core :refer [oget]]))
+            [oops.core :refer [oget]]
+            [redgenes.components.ui.list-dropdown :refer [list-dropdown]]))
 
 (def operators [{:op         "IN"
                  :label      "In some list"
@@ -48,13 +49,12 @@
 (defn applies-to? [type op]
   (some true? (map (partial = type) (:applies-to op))))
 
-(defn label-for [op]
+(defn constraint-label [op]
   (:label (first (filter #(= op (:op %)) operators))))
 
-(defn constraint-input []
-  (fn [& {:keys [model path value on-change]}]
+(defn constraint-text-input []
+  (fn [& {:keys [value on-change]}]
     [:div
-     [:label (im-path/friendly model path)]
      [:input.form-control {:type      "text"
                            :on-change (fn [e] (on-change (oget e :target :value)))
                            :value     value}]]))
@@ -66,11 +66,11 @@
   :op         The operator of the constraint
   :on-change  A function to call with the new operator"
   (fn [& {:keys [model path op on-change]}]
-    [:div.input-group-btn
-     [:button.btn.btn-default.dropdown-toggle
+    [:div.dropdown
+     [:button.btn.btn-default.btn-raised.dropdown-toggle
       {:style       {:text-transform "none"}
        :data-toggle "dropdown"}
-      (str (label-for op) " ") [:span.caret]]
+      (str (constraint-label op) " ") [:span.caret]]
      (into [:ul.dropdown-menu]
            (->> (filter (partial applies-to? (im-path/data-type model path)) operators)
                 (map (fn [operator]
@@ -86,24 +86,35 @@
   :op   The operator of the constraint
   :on-change  A function to call with the new constraint
   :label?     If true then include the path as a label"
-  (fn [& {:keys [model path value op on-change] :as args}]
-    [:div.input-group
-     [constraint-operator
-      :model model
-      :path path
-      :op op
-      :on-change (fn [op]
-                   (on-change {:path  path
+  (fn [& {:keys [lists model path value op on-change]}]
+    [:div
+     [:div.row
+      [:div.col-sm-9
+       [:label.lb-md (im-path/friendly model path)]]]
+     [:div.row
+      [:div.col-sm-3
+       {:style {:text-align "right"}}
+       [constraint-operator
+        :model model
+        :path path
+        :op op
+        :on-change (fn [op] (on-change {:path path :value value :op op}))]]
+      [:div.col-sm-9
+       (cond
+
+         ; If this is a LIST constraint then show a list dropdown
+         (or (= op "IN")
+             (= op "NOT IN")) [list-dropdown
                                :value value
-                               :op    op}))]
-     [constraint-input
-      :model model
-      :value value
-      :path path
-      :on-change (fn [val]
-                   (on-change {:path  path
-                               :value val
-                               :op    op}))]]))
+                               :lists lists
+                               :restrict-type (im-path/class model path)
+                               :on-change (fn [list] (on-change {:path path :value list :op op}))]
+         ; Otherwise show a text input
+         :else [constraint-text-input
+                :model model
+                :value value
+                :path path
+                :on-change (fn [val] (on-change {:path path :value val :op op}))])]]]))
 
 
 

@@ -33,60 +33,61 @@
 
 (def not-one-of? (complement one-of?))
 
-(defn constraint-vertical []
-  (let [state (reagent/atom {})]
-    (reagent/create-class
-      {:component-did-mount   (fn [this]
-                                (let [[_ _ constraint] (reagent/argv this)]
-                                  ; Populate the internal state atom with the constraint values.
-                                  (reset! state constraint)))
-       :component-will-update (fn [this new-argv]
-                                ; Check the old value and the new value of the constraint.
-                                ; If we went from a list constraint to a non-list constraint (or vice versa)
-                                ; then reset the value of the constraint. Otherwise the name of the list
-                                ; will be used as the search value in the new constraint. No bueno.
-                                (let [[_ _ old-constraint] (reagent/argv this)
-                                      [_ _ new-constraint] new-argv]
-                                  (if (or
-                                        (and
-                                          (one-of? ["IN" "NOT IN"] (:op old-constraint))
-                                          (not-one-of? ["IN" "NOT IN"] (:op new-constraint)))
-                                        (and
-                                          (one-of? ["IN" "NOT IN"] (:op new-constraint))
-                                          (not-one-of? ["IN" "NOT IN"] (:op old-constraint))))
-                                    (do
-                                      (.log js/console "flipped")
-                                      (reset! state (assoc new-constraint :value nil)))
-                                    (reset! state new-constraint))))
-       :reagent-render        (fn [idx _ friendly-name class field-type]
-                                (let [change-op  (fn [e] (dispatch [:template-chooser/replace-constraint
-                                                                    idx (assoc @state :op e)]))
-                                      change-val (fn [e] (dispatch [:template-chooser/replace-constraint
-                                                                    idx (assoc @state :value e)]))]
-                                  [:div.container-fluid
-                                   [:h4 friendly-name]
-                                   [:div.row
-                                    [:div.col-sm-4
-                                     [op-dropdown @state
-                                      {:type      field-type
-                                       :is-class? class
-                                       :on-change change-op}]]
-                                    [:div.col-sm-8
-                                     (if (some (partial = (:op @state)) ["IN" "NOT IN"])
-                                       [list-dropdown {:value           (:value @state)
-                                                       :restricted-type :Gene
-                                                       :on-change       (fn [im-list] (change-val (:name im-list)))}]
-                                       [:input.form-control
-                                        {:type        "text"
-                                         :on-change   (fn [e] (change-val (oget e :target :value)))
-                                         :placeholder "Search for..."
-                                         :value       (:value @state)}])]]]))})))
+;(defn constraint-vertical []
+;  (let [state (reagent/atom {})]
+;    (reagent/create-class
+;      {:component-did-mount   (fn [this]
+;                                (let [[_ _ constraint] (reagent/argv this)]
+;                                  ; Populate the internal state atom with the constraint values.
+;                                  (reset! state constraint)))
+;       :component-will-update (fn [this new-argv]
+;                                ; Check the old value and the new value of the constraint.
+;                                ; If we went from a list constraint to a non-list constraint (or vice versa)
+;                                ; then reset the value of the constraint. Otherwise the name of the list
+;                                ; will be used as the search value in the new constraint. No bueno.
+;                                (let [[_ _ old-constraint] (reagent/argv this)
+;                                      [_ _ new-constraint] new-argv]
+;                                  (if (or
+;                                        (and
+;                                          (one-of? ["IN" "NOT IN"] (:op old-constraint))
+;                                          (not-one-of? ["IN" "NOT IN"] (:op new-constraint)))
+;                                        (and
+;                                          (one-of? ["IN" "NOT IN"] (:op new-constraint))
+;                                          (not-one-of? ["IN" "NOT IN"] (:op old-constraint))))
+;                                    (do
+;                                      (.log js/console "flipped")
+;                                      (reset! state (assoc new-constraint :value nil)))
+;                                    (reset! state new-constraint))))
+;       :reagent-render        (fn [idx _ friendly-name class field-type]
+;                                (let [change-op  (fn [e] (dispatch [:template-chooser/replace-constraint
+;                                                                    idx (assoc @state :op e)]))
+;                                      change-val (fn [e] (dispatch [:template-chooser/replace-constraint
+;                                                                    idx (assoc @state :value e)]))]
+;                                  [:div.container-fluid
+;                                   [:h4 friendly-name]
+;                                   [:div.row
+;                                    [:div.col-sm-4
+;                                     [op-dropdown @state
+;                                      {:type      field-type
+;                                       :is-class? class
+;                                       :on-change change-op}]]
+;                                    [:div.col-sm-8
+;                                     (if (some (partial = (:op @state)) ["IN" "NOT IN"])
+;                                       [list-dropdown {:value           (:value @state)
+;                                                       :restricted-type :Gene
+;                                                       :on-change       (fn [im-list] (change-val (:name im-list)))}]
+;                                       [:input.form-control
+;                                        {:type        "text"
+;                                         :on-change   (fn [e] (change-val (oget e :target :value)))
+;                                         :placeholder "Search for..."
+;                                         :value       (:value @state)}])]]]))})))
 
 
 (defn template []
   (let [selected-template (subscribe [:selected-template])
         service           (subscribe [:selected-template-service])
-        row-count         (subscribe [:template-chooser/count])]
+        row-count         (subscribe [:template-chooser/count])
+        lists             (subscribe [:lists])]
     (fn [[id query]]
       [:div.grid-1
        [:div.col.ani.template
@@ -98,40 +99,19 @@
         [:div.description (:description query)]
         (if (= (name id) (:name @selected-template))
           [:div.body
-
            [:div.col-xs-6.border-right
             (into [:form.form]
                   (map (fn [[idx con]]
-                         (let [field-type (:type (last (im-path/walk (:model @service) (:path con))))
-                               class      (if (im-path/class? (:model @service) (:path con))
-                                            (im-path/class (:model @service) (:path con)))]
-
-
-                           [:div
-
-                            ;[con/main
-                            ; :model (:model @service)
-                            ; :path (:path con)
-                            ; :value (:value con)
-                            ; :selected (:op con)]
-
-                            [constraint
-                             :on-change (fn [x] (println "X" x))
-                             :model (:model @service)
-                             :path (:path con)
-                             :value (:value con)
-                             :op (:op con)
-                             :label? true]
-
-
-
-                            ;[constraint-vertical
-                            ; idx con
-                            ; (im-path/friendly (:model @service) (:path con))
-                            ; class
-                            ; field-type]
-
-                            ]))
+                         [constraint
+                          :model (:model @service)
+                          :path (:path con)
+                          :value (:value con)
+                          :op (:op con)
+                          :label? true
+                          :lists (second (first @lists))
+                          :on-change (fn [new-constraint]
+                                       (dispatch [:template-chooser/replace-constraint
+                                                  idx (merge con new-constraint)]))])
                        (keep-indexed (fn [idx con]
                                        (if (:editable con)
                                          [idx con])) (:where @selected-template))))]
