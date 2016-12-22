@@ -20,8 +20,7 @@
                             :selected-template-name id
                             :selected-template-service (get-in db [:mines (ns->kw id) :service])
                             :count nil)
-       :dispatch [:template-chooser/run-count]
-       })))
+       :dispatch [:template-chooser/run-count]})))
 
 (reg-event-db
   :template-chooser/set-category-filter
@@ -49,7 +48,8 @@
   :template-chooser/replace-constraint
   (fn [{db :db} [_ index value]]
     {:db       (assoc-in db [:components :template-chooser :selected-template :where index] value)
-     :dispatch [:template-chooser/run-count]}))
+     :dispatch [:template-chooser/run-count]
+     }))
 
 (reg-event-db
   :template-chooser/update-count
