@@ -7,7 +7,7 @@
             [redgenes.components.imcontrols.views :as im-controls]
             [redgenes.components.bootstrap :refer [popover tooltip]]
             [clojure.string :refer [split]]
-            [oops.core :refer [oget oset!]]))
+            [oops.core :refer [oget ocall]]))
 
 (defn linear-scale [[r1-lower r1-upper] [r2-lower r2-upper]]
   (fn [v]
@@ -57,24 +57,36 @@
      [bar scale-fn max]
      ]))
 
+(defn legend-width [width]
+  (reset! width
+  (.-clientWidth (.querySelector js/document ".legend"))))
+
 (defn main []
-     (fn [{:keys [results to from]} x]
-       (let [min-start (apply min (map (comp :start :chromosomeLocation) results))
-          max-end   (apply max (map (comp :end :chromosomeLocation) results))
-          scale     (linear-scale [min-start max-end] [0 1])]
-         (reagent/with-let
-           [width (reagent/atom nil)
-            handler #(reset! width (.-clientWidth (.querySelector js/document ".legend")))
-            listener (.addEventListener js/window "resize" #(handler))]
-          [:div.graph
-            [svg scale results to from min-start max-end]
-            [:span.distribution "Distribution"]
-            [:div.legend
-             [:span.start {:title "Starting location of the earliest overlaping feature(s)"} min-start]
-             [:span.end {:title "End location of the last overlapping feature"} max-end]]
-            [label-text scale from @width {:class "from" :title "This is the start location you input in the box above"}]
-            [label-text scale to @width {:class "to" :title "This is the end location you input into the box above"}]
-       ]
-       (finally
-         (.removeEventListener js/window "resize" handler)))))
-    )
+  (let [width (reagent/atom 1000)] ;;1000 is completely arbitrary. could equally be 0.
+  (reagent/create-class
+  {:reagent-render
+    (fn [{:keys [results to from]} x]
+    (reagent/with-let
+     [min-start (apply min (map (comp :start :chromosomeLocation) results))
+      max-end   (apply max (map (comp :end :chromosomeLocation) results))
+      scale     (linear-scale [min-start max-end] [0 1])
+      handler #(legend-width width)
+      listener (.addEventListener js/window "resize" #(handler))]
+        [:div.graph
+          [svg scale results to from min-start max-end]
+          [:span.distribution "Distribution"]
+          [:div.legend
+           [:span.start
+            {:title "Starting location of the earliest overlaping feature(s)"} min-start]
+           [:span.end
+            {:title "End location of the last overlapping feature"} max-end]]
+          [label-text scale from @width
+           {:class "from"
+            :title "This is the start location you input in the box above"}]
+          [label-text scale to @width
+           {:class "to"
+            :title "This is the end location you input into the box above"}]]
+     (finally
+       (.removeEventListener js/window "resize" handler))))
+   :component-did-mount #(legend-width width)
+   })))
