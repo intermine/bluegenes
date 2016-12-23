@@ -3,6 +3,7 @@
    (:require [re-frame.core :as re-frame :refer [subscribe]]
      [cljs.core.async :refer [put! chan <! >! timeout close!]]
      [redgenes.sections.reportpage.components.homologues :refer [homologues]]
+     [redgenes.components.loader :refer [mini-loader]]
      [reagent.core :as reagent]
     )
   )
@@ -62,7 +63,7 @@
 (defn status-waiting-for-homologues []
   "Visually output mine list for which we still have no results."
   [:div.awaiting-homologues
-   [:svg.icon.icon-waiting [:use {:xlinkHref "#icon-waiting"}]]
+   [mini-loader "tiny"]
    "Awaiting results from: "
     (doall
       (for [[k v] @(subscribe [:mines])]
@@ -124,7 +125,7 @@
       ;;if there are no results
       [:div.disabled
         [:svg.icon.icon-external [:use {:xlinkHref "#icon-question"}]]
-       "Loading..."])
+       [mini-loader]])
 
       ])
 

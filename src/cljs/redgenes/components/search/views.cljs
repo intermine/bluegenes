@@ -3,7 +3,7 @@
             [clojure.string :as str]
             [redgenes.components.search.resultrow :as resulthandler]
             [redgenes.components.search.filters :as filters]
-            [redgenes.components.spinner :as spinner]
+            [redgenes.components.loader :refer [loader]]
             [re-frame.core :as re-frame :refer [subscribe dispatch]]
             [oops.core :refer [ocall oget]]
 ))
@@ -80,7 +80,7 @@
       [:div.noresponse
        [:svg.icon.icon-info [:use {:xlinkHref "#icon-info"}]] "Try searching for something in the search box above - perhaps a gene, a protein, or a GO Term."]
       )
-      (cond @loading? [:div.noresponse "Loading results" [spinner/main]])
+      (cond @loading? [:div.noresponse [loader "search results"]])
     ]))
 
  (defn main []

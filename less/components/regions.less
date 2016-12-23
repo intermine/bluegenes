@@ -190,6 +190,59 @@
         }
     }
 
+    .results-summary {
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+
+        h2 {
+            margin: 0;
+            padding: 0;
+        }
+    }
+
+    .results-counts {
+        @internal-spacing: @spacer/2;
+        display: flex;
+        margin-left: auto;
+        //offset the last child to the correct margin.
+        //can't use last-child b/c we're also using flex order, and the last
+        //child might not be the last visual element.
+        margin-right: -@internal-spacing;
+
+        .results-count,
+        .skip-to {
+            .border-radius;
+            background: #dedede;
+            order: 2;
+            margin: 0 @internal-spacing;
+            padding: @internal-spacing/4 @internal-spacing*1.5;
+            cursor: pointer;
+            .transitions;
+
+            &.noresults {
+                order: 3;
+            }
+        }
+
+        .results-count:hover {
+            .transitions;
+            .button-color;
+
+            &.noresults {
+                background-color: #dedede;
+                text-shadow: none;
+                color: @body-foreground-color
+            }
+        }
+
+        .skip-to {
+            background-color: transparent;
+            order: 1;
+            cursor: auto;
+        }
+    }
+
     .graph {
         .distribution {
             position: relative;
@@ -240,6 +293,16 @@
             margin-left: -50%;
             display: block;
             margin-right: 50%;
+        }
+
+        .end,
+        .start,
+        .value {
+            background: #fff;
+            .border-radius;
+            width: 3em;
+            text-overflow: ellipsis;
+            overflow: hidden;
         }
     }
 }

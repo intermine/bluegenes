@@ -73,7 +73,8 @@
                           (dispatch ^:flush-dom [:lists/select name (not selected?)]))}
           [:td
             [:input {:type      "checkbox"
-                     :checked   selected?  }]]
+                     :checked   selected?
+                     :read-only true}]]
           [:td.list-description
             [:h4 [:span.flags
               (if authorized [:i.fa.fa-user] [:i.fa.fa-globe])

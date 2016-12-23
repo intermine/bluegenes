@@ -5,6 +5,7 @@
             [dommy.core :as dommy :refer-macros [sel sel1]]
             [redgenes.components.idresolver.events]
             [redgenes.components.icons :as icons]
+            [redgenes.components.loader :refer [mini-loader]]
             [redgenes.components.idresolver.subs]
             [redgenes.components.lighttable :as lighttable]))
 
@@ -121,7 +122,7 @@ example-text))
     :DUPLICATE [:i.fa.fa-clone.DUPLICATE]
     :TYPE_CONVERTED [:i.fa.fa-random.TYPE_CONVERTED]
     :OTHER [:svg.icon.icon-arrow-right.OTHER [:use {:xlinkHref "#icon-arrow-right"}]]
-    [:i.fa.fa-cog.fa-spin.fa-1x.fa-fw]))
+    [mini-loader "tiny"]))
 
 (def reasons
   {:TYPE_CONVERTED "we're searching for genes and you input a protein (or vice versa)."
@@ -292,13 +293,6 @@ example-text))
   (let [everything (subscribe [:idresolver/everything])]
     (fn []
       [:div (json-html/edn->hiccup @everything)])))
-
-(defn spinner []
-  (let [resolving? (subscribe [:idresolver/resolving?])]
-    (fn []
-      (if @resolving?
-        [:i.fa.fa-cog.fa-spin.fa-1x.fa-fw]
-        [:i.fa.fa-check]))))
 
 (defn selected []
   (let [selected (subscribe [:idresolver/selected])]

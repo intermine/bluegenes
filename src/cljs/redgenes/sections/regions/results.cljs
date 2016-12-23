@@ -10,12 +10,23 @@
             [redgenes.components.bootstrap :refer [popover tooltip]]
             [clojure.string :refer [split]]
             [accountant.core :refer [navigate!]]
-            [oops.core :refer [oget ocall]]))
+            [oops.core :refer [oget ocall oset!]]))
+
+(defn feature-to-uid [{:keys [chromosome from to results] :as feature}]
+  (let [regions-searched (subscribe [:regions/regions-searched])]
+    (if from
+      ;;if we have all the details
+      (str chromosome from to)
+      ;;for empty results - combes back as just the chromosome name otherwise
+      (let  [the-feature (first (filter
+                (fn [x] (= (:chromosome x) feature)) @regions-searched))]
+              (str (:chromosome the-feature) (:from the-feature) (:to the-feature))
+))))
 
 (defn region-header
   "Header for each region. includes paginator and number of features."
   [{:keys [chromosome from to results] :as feature} paginator]
-  [:h3 [:strong "Region: "]
+   [:h3 {:id (feature-to-uid feature)} [:strong "Region: "]
     (if chromosome
       [:span chromosome " " from ".." to " "]
       [:span feature " "])
@@ -38,7 +49,7 @@
   ))
 
 (defn table-header
-  "Headerfor results table."
+  "Header for results table."
   []
   [:div.grid-3_xs-3
     [:div.col [:h4 "Feature"]]
@@ -91,6 +102,26 @@
       [:li "Please check you're connected to the internet."]]]
    ])
 
+(defn results-count-summary [results]
+  (if (pos? (count results))
+    (reduce (fn [new-div result]
+
+      (let [num (count (:results result))
+            feature (feature-to-uid result)
+            ]
+        (conj new-div
+          [:span.results-count
+           {:class (cond (zero? num) "noresults")
+            :on-click (fn []
+              (.scrollIntoView (.getElementById js/document feature) {:behavior "smooth"})
+              (.scrollBy js/window 0 -80)
+            )}
+           [:strong (:chromosome result)] ": " num " results"]))
+    ) [:div.results-counts [:span.skip-to "Skip to:"]] results)
+    [:div]
+    )
+  )
+
 (defn results-section []
   (let [results   (subscribe [:regions/results])
         loading? (subscribe [:regions/loading])
@@ -99,7 +130,7 @@
 
    (if (not @error)
     [:div
-     [:h2 (str "Results (" (apply + (map (comp count :results) @results)) ")")]
+      [:div.results-summary [:h2 "Results"] [results-count-summary @results]]
       (into [:div.allresults]
         (map (fn [result]
           [result-table result]) @results))]

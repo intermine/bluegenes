@@ -7,6 +7,7 @@
             [clojure.spec :as spec]
             [redgenes.components.querybuilder.events]
             [redgenes.components.querybuilder.subs]
+            [redgenes.components.loader :refer [loader]]
             [redgenes.components.querybuilder.core :as c :refer [build-query where-tree]]
             [redgenes.components.querybuilder.views.constraints :as constraints]
             [redgenes.components.table :as table]
@@ -230,7 +231,7 @@
              ]
             [:div
              (if @counting?
-               [:i.fa.fa-cog.fa-spin.fa-1x.fa-fw]
+               [loader "preview"]
                (if @result-count
                  [:h3 [:span (str @result-count " rows")] [:span.qb-logic (:constraintLogic (build-query @query))]]))]]]]]
        [:div.col-sm-6

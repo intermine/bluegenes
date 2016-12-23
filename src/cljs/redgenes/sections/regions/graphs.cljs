@@ -77,15 +77,19 @@
           [:span.distribution "Distribution"]
           [:div.legend
            [:span.start
-            {:title "Starting location of the earliest overlaping feature(s)"} min-start]
+            {:title (str min-start " \n"
+                    "Starting location of the earliest overlapping feature(s)")} min-start]
            [:span.end
-            {:title "End location of the last overlapping feature"} max-end]]
+            {:title (str max-end " \n"
+                    "End location of the last overlapping feature(s)")} max-end]]
           [label-text scale from @width
            {:class "from"
-            :title "This is the start location you input in the box above"}]
+            :title (str from " \n"
+                    "This is the start location you input in the box above")}]
           [label-text scale to @width
            {:class "to"
-            :title "This is the end location you input into the box above"}]]
+            :title (str to " \n"
+                    "This is the end location you input into the box above")}]]
      (finally
        (.removeEventListener js/window "resize" handler))))
    :component-did-mount #(legend-width width)
