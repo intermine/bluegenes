@@ -167,8 +167,7 @@
         [:div.headerwithguidance
           [:h1 "Region Search"]
           [:a.guidance
-           {:on-click #(dispatch [:regions/set-to-search (ex)])
-          }
+           {:on-click #(dispatch [:regions/set-to-search (ex)])}
            "[Show me an example]"]]
        [input-section]
        [results-section]
