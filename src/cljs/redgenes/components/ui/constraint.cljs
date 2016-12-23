@@ -65,19 +65,27 @@
   :model      The intermine model to use
   :path       The path of the constraint
   :op         The operator of the constraint
-  :on-change  A function to call with the new operator"
-  (fn [& {:keys [model path op on-change]}]
+  :on-change  A function to call with the new operator
+  :lists      (Optional) if provided, automatically disable list constraints
+              if there are no lists of that type"
+  (fn [& {:keys [model path op on-change lists]}]
     [:div.dropdown
      [:button.btn.btn-default.btn-raised.dropdown-toggle
       {:style       {:text-transform "none"}
        :data-toggle "dropdown"}
       (str (constraint-label op) " ") [:span.caret]]
-     (into [:ul.dropdown-menu]
-           (->> (filter (partial applies-to? (im-path/data-type model path)) operators)
-                (map (fn [operator]
-                       [:li
-                        {:on-click (partial on-change (:op operator))}
-                        [:a (:label operator)]]))))]))
+     (let [path-class    (im-path/class model path)
+           any-lists-with-class? (some? (some (fn [list] (= path-class (keyword (:type list)))) lists))]
+       (into [:ul.dropdown-menu]
+             (->> (filter (partial applies-to? (im-path/data-type model path)) operators)
+                  (map (fn [{:keys [op label] :as operator}]
+                         ; If we were given a collection of lists, and this operator is a list operator,
+                         ; and there are no lists of the Class of this path, then disabled the operator.
+                         (let [disabled? (if (and lists (not any-lists-with-class?) (or (= op "IN") (= op "NOT IN"))) "disabled")]
+                           [:li
+                            {:class    (if disabled? "disabled")
+                             :on-click (if-not disabled? (partial on-change op))}
+                           [:a label]]))))))]))
 
 (defn constraint []
   "Creates a button group that represents a query constraint.
@@ -99,6 +107,7 @@
         :model model
         :path path
         :op op
+        :lists lists
         :on-change (fn [op] (on-change {:path path :value value :op op}))]]
       [:div.col-sm-9
        (cond
