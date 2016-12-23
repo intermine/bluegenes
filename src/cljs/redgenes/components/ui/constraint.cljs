@@ -98,7 +98,7 @@
   (fn [& {:keys [lists model path value op on-change]}]
     [:div
      [:div.row
-      [:div.col-sm-9
+      [:div.col-sm-9 ;.col-sm-offset-3
        [:label.lb-md (im-path/friendly model path)]]]
      [:div.row
       [:div.col-sm-3

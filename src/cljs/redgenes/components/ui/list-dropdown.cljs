@@ -49,7 +49,9 @@
             filtered-lists (filter filter-fn lists)]
         [:div.dropdown
          [:button.btn.btn-default.dropdown-toggle
-          {:data-toggle "dropdown"}
+          {:style {:text-transform "none"
+                   :white-space "normal"}
+           :data-toggle "dropdown"}
           (str (or value "Choose a list") " ") [:span.caret]]
          [:div.dropdown-menu.dropdown-mixed-content
           [:div.container-fluid
