@@ -1,0 +1,123 @@
+.mini-loader {
+    overflow: hidden;
+
+    &.tiny {
+        font-size: 40%;
+        display: inline-block;
+    }
+
+    .middle {
+        padding: 0;
+        margin: 0;
+        display: flex;
+        align-items: center;
+    }
+
+    .dot {
+        width: 0;
+        height: 0;
+    }
+
+    .mini-loader-content {
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        animation-name: spin;
+        animation-timing-function: linear;
+        animation-duration: @delay*8;
+        animation-iteration-count: infinite;
+    }
+    @delay: 0.2s;
+
+    .loader-organism {
+        box-sizing: border-box;
+        min-width: 1em;
+        min-height: 1em;
+        display: inline-block;
+        border: solid 0.6em #eee;
+        border-radius: 4em;
+        padding: 0;
+        margin: 0.1em;
+        opacity: 0.75;
+        font-size: 60%;
+        animation-timing-function: ease-in;
+        animation-duration: @delay*14;
+        animation-name: pulse;
+        animation-iteration-count: infinite;
+        background-color: rgba(0, 0, 0, 0.08);
+    }
+
+    .one {
+        animation-delay: @delay*2;
+        width: 1em;
+        height: 2em;
+    }
+
+    .two {
+        width: 2em;
+        height: 1em;
+        animation-delay: @delay*2;
+    }
+
+    .three {
+        animation-delay: @delay*3;
+        width: 2em;
+        height: 1em;
+    }
+
+    .four {
+        width: 1em;
+        height: 2em;
+        animation-delay: @delay*4;
+    }
+    //.one {border:solid 1px transparent}
+    @zebracolor: #FF5722;
+    @yeastcolor: #FFC107;
+    @humancolor: #8BC34A;
+    @wormcolor: #3F51B5;
+    @mousecolor: #00BCD4;
+    @ratcolor: #E91E63;
+    @flycolor: #9C27B0;
+    @keyframes pulse {
+         @fadeby: 0;
+
+        0% {
+            border-color: fadeout(@wormcolor, @fadeby);
+        }
+
+        15% {
+            border-color: fadeout(@flycolor, @fadeby);
+        }
+
+        30% {
+            border-color: fadeout(@ratcolor, @fadeby);
+        }
+
+        45% {
+            border-color: fadeout(@zebracolor, @fadeby);
+        }
+
+        60% {
+            border-color: fadeout(@yeastcolor, @fadeby);
+        }
+
+        75% {
+            border-color: fadeout(@humancolor, @fadeby);
+        }
+
+        90% {
+            border-color: fadeout(@mousecolor, @fadeby);
+        }
+
+        100% {
+            border-color: fadeout(@wormcolor, @fadeby);
+        }
+    }
+    @keyframes spin {
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+}
