@@ -28,9 +28,19 @@
     (get-in db [:components :template-chooser :count])))
 
 (reg-sub
+  :template-chooser/results-preview
+  (fn [db]
+    (get-in db [:components :template-chooser :results-preview])))
+
+(reg-sub
   :template-chooser/counting?
   (fn [db]
     (get-in db [:components :template-chooser :counting?])))
+
+(reg-sub
+  :template-chooser/fetching-preview?
+  (fn [db]
+    (get-in db [:components :template-chooser :fetching-preview?])))
 
 (reg-sub
   :template-chooser/text-filter

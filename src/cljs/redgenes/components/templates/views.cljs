@@ -9,6 +9,7 @@
             [redgenes.components.lighttable :as lighttable]
             [imcljs.path :as im-path]
             [redgenes.components.ui.constraint :refer [constraint]]
+            [redgenes.components.ui.results-preview :refer [preview-table]]
             [oops.core :refer [oget]]))
 
 
@@ -26,11 +27,16 @@
                     [:a category]])
                  @categories)))))
 
+(def css-transition-group
+  (reagent/adapt-react-class js/React.addons.CSSTransitionGroup))
+
 (defn template []
   (let [selected-template (subscribe [:selected-template])
         service           (subscribe [:selected-template-service])
         row-count         (subscribe [:template-chooser/count])
-        lists             (subscribe [:lists])]
+        fetching-preview? (subscribe [:template-chooser/fetching-preview?])
+        lists             (subscribe [:lists])
+        results-preview   (subscribe [:template-chooser/results-preview])]
     (fn [[id query]]
       [:div.grid-1
        [:div.col.ani.template
@@ -60,14 +66,23 @@
 
            [:div.col-xs-6
             {:style {:overflow-x "hidden"}}
-            [:span "Results Preview"]
-            [lighttable/main {:query      @selected-template
-                              :service    @service
-                              :no-repeats true}]
+            [:h4 "Results Preview"]
+            [preview-table
+             :loading? @fetching-preview?
+             :query-results @results-preview]
+
+            #_[lighttable/main {:query      @selected-template
+                                :service    @service
+                                :no-repeats true}]
             [:button.btn.btn-primary.btn-raised
              {:type     "button"
+              :disabled (if (< (:iTotalRecords @results-preview) 1) "disabled")
               :on-click (fn [] (dispatch [:templates/send-off-query]))}
-             (str "View All Results " "(" (js/parseInt @row-count) ")")]]])]])))
+             (if (< (:iTotalRecords @results-preview) 1)
+               (str "No Results")
+               (str "View "
+                    (js/parseInt (:iTotalRecords @results-preview))
+                    (if (> (:iTotalRecords @results-preview) 1) " rows" " row")))]]])]])))
 
 (defn templates []
   (fn [templates]
@@ -103,13 +118,6 @@
         :on-change   (fn [e]
                        (dispatch [:template-chooser/set-text-filter (.. e -target -value)]))}])))
 
-(defn add-commas [num]
-  (clojure.string/replace
-    (js/String. num)
-    (re-pattern "(\\d)(?=(\\d{3})+$)") "$1,"))
-
-
-
 
 (defn filters [categories template-filter filter-state]
   [:div.template-filters.container-fluid
@@ -122,12 +130,8 @@
 
 
 (defn main []
-  (let [im-templates         (subscribe [:templates-by-category])
-        selected-template    (subscribe [:selected-template])
-        filter-state         (reagent/atom nil)
-        result-count         (subscribe [:template-chooser/count])
-        counting?            (subscribe [:template-chooser/counting?])
-        selected-constraints (subscribe [:template-chooser/selected-template-constraints])]
+  (let [im-templates (subscribe [:templates-by-category])
+        filter-state (reagent/atom nil)]
     (fn []
       [:div.container-fluid
        ;(json-html/edn->hiccup @selected-template)

@@ -3,7 +3,8 @@
   (:require [re-frame.core :refer [reg-event-db reg-event-fx reg-fx dispatch subscribe]]
             [re-frame.events]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
-            [imcljsold.search :as search]))
+            [imcljsold.search :as search]
+            [imcljs.fetch :as fetch]))
 
 
 (def ns->kw (comp keyword namespace))
@@ -14,13 +15,15 @@
   :template-chooser/choose-template
   (fn [{db :db} [_ id]]
     (let [query (get-in db [:assets :templates (ns->kw id) (name->kw id)])]
-      {:db       (update-in db [:components :template-chooser]
-                            assoc
-                            :selected-template query
-                            :selected-template-name id
-                            :selected-template-service (get-in db [:mines (ns->kw id) :service])
-                            :count nil)
-       :dispatch [:template-chooser/run-count]})))
+      {:db         (update-in db [:components :template-chooser]
+                              assoc
+                              :selected-template query
+                              :selected-template-name id
+                              :selected-template-service (get-in db [:mines (ns->kw id) :service])
+                              :count nil)
+       :dispatch-n [[:template-chooser/run-count]
+                    [:template-chooser/fetch-preview]]
+       })))
 
 (reg-event-db
   :template-chooser/set-category-filter
@@ -59,9 +62,12 @@
           old-constraint      (get-in db constraint-location)]
       ; Only fetch the query results if the operator hasn't change from a LIST to a VALUE or vice versa
       (if (should-update? (:op old-constraint) (:op new-constraint))
-        {:db       (assoc-in db constraint-location new-constraint)
-         :dispatch [:template-chooser/run-count]}
-        {:db (assoc-in db constraint-location (assoc new-constraint :value nil))}))))
+        {:db         (assoc-in db constraint-location new-constraint)
+         :dispatch-n [[:template-chooser/run-count]
+                      [:template-chooser/fetch-preview]]}
+        {:db (-> db
+                 (assoc-in constraint-location (assoc new-constraint :value nil))
+                 (assoc-in [:components :template-chooser :results-preview] nil))}))))
 
 (reg-event-db
   :template-chooser/update-count
@@ -69,6 +75,36 @@
     (update-in db [:components :template-chooser] assoc
                :count c
                :counting? false)))
+
+
+
+
+(reg-event-db
+  :template-chooser/store-results-preview
+  (fn [db [_ results]]
+    (update-in db [:components :template-chooser] assoc
+               :results-preview results
+               :fetching-preview? false)))
+
+(reg-fx
+  :template-chooser/pipe-preview
+  (fn [preview-chan]
+    (go (dispatch [:template-chooser/store-results-preview (<! preview-chan)]))))
+
+(reg-event-fx
+  :template-chooser/fetch-preview
+  (fn [{db :db}]
+    (let [query         (get-in db [:components :template-chooser :selected-template])
+          template-name (get-in db [:components :template-chooser :selected-template-name])
+          service       (get-in db [:mines (ns->kw template-name) :service])
+          count-chan    (fetch/table-rows service query {:size 5})
+          new-db        (update-in db [:components :template-chooser] assoc
+                                   :preview-chan count-chan
+                                   :fetching-preview? true)]
+      {:db                            new-db
+       :template-chooser/pipe-preview count-chan})))
+
+
 
 (reg-fx
   :template-chooser/pipe-count
