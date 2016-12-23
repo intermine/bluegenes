@@ -26,7 +26,7 @@
                  [day8.re-frame/async-flow-fx "0.0.6"]
                  [day8.re-frame/forward-events-fx "0.0.5"]
                  [day8.re-frame/undo "0.3.2"]
-                 [com.rpl/specter "0.13.0"]
+                 [com.rpl/specter "0.13.2"]
                  [com.cognitect/transit-cljs "0.8.239"]
                  [servant "0.1.5"]
                  [com.lucasbradstreet/cljs-uuid-utils "1.0.2"]

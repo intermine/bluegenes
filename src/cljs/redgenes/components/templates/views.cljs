@@ -9,7 +9,7 @@
             [redgenes.components.lighttable :as lighttable]
             [imcljs.path :as im-path]
             [redgenes.components.ui.constraint :refer [constraint]]
-            [redgenes.components.ui.results-preview :refer [preview-table]]
+            [redgenes.components.ui.results_preview :refer [preview-table]]
             [oops.core :refer [oget]]))
 
 

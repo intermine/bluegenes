@@ -1,7 +1,6 @@
-(ns redgenes.components.ui.list-dropdown
+(ns redgenes.components.ui.list_dropdown
   (:require [re-frame.core :refer [subscribe]]
             [reagent.core :as reagent]
-            [imcljs.path :as im-path]
             [oops.core :refer [oget]]))
 
 (defn has-text?

@@ -1,4 +1,4 @@
-(ns redgenes.components.ui.results-preview
+(ns redgenes.components.ui.results_preview
   (:require [imcljs.path :as im-path]
             [oops.core :refer [oget]]
             [reagent.core :as reagent :refer [create-class]]
