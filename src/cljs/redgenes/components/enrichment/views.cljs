@@ -2,6 +2,7 @@
   (:require [re-frame.core :refer [subscribe dispatch]]
             [reagent.core :as reagent]
             [redgenes.components.table :as table]
+            [redgenes.components.loader :refer [mini-loader]]
             [redgenes.sections.results.subs]
             [imcljs.path :as path]
             [redgenes.components.bootstrap :refer [popover tooltip]]
@@ -91,7 +92,7 @@
               [:i.fa.fa-caret-right
                {:on-click (fn [] (swap! page-state update :page inc))
                 :title "View next 5 enrichment results"}]])]
-          [:span [:i.fa.fa-cog.fa-spin]])]
+          [:span [mini-loader "tiny"]])]
           (cond (seq (:results details)) enrichment-results-header)
        (into [:ul.enrichment-list]
          (map (fn [row] [enrichment-result-row row details])
