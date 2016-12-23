@@ -26,13 +26,12 @@
 (defn region-header
   "Header for each region. includes paginator and number of features."
   [{:keys [chromosome from to results] :as feature} paginator]
-  [:a {:id (feature-to-uid feature)}
-   [:h3 [:strong "Region: "]
+   [:h3 {:id (feature-to-uid feature)} [:strong "Region: "]
     (if chromosome
       [:span chromosome " " from ".." to " "]
       [:span feature " "])
    [:small.features-count (count results) " overlapping features"]
-   (cond (pos? (count results)) paginator)]])
+   (cond (pos? (count results)) paginator)])
 
 (defn table-paginator
   "UI component to switch between pages of results"
