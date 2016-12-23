@@ -39,17 +39,29 @@
     (let [summary-fields (get-in db [:assets :summary-fields (keyword type)])]
       {:db       db
        :dispatch [:results/set-query
-                  {:source (ns->kw (get-in db [:components :template-chooser :selected-template-name] ))
+                  {:source (ns->kw (get-in db [:components :template-chooser :selected-template-name]))
                    :type   :query
                    :value  (get-in db [:components :template-chooser :selected-template])}]
        :navigate (str "results")})))
 
+(defn one-of? [col value] (some? (some #{value} col)))
+(defn should-update? [old-op new-op]
+  (or
+    (and
+      (one-of? ["IN" "NOT IN"] old-op)
+      (one-of? ["IN" "NOT IN"] new-op))
+    (and (not (one-of? ["IN" "NOT IN"] old-op)) (not (one-of? ["IN" "NOT IN"] new-op)))))
+
 (reg-event-fx
   :template-chooser/replace-constraint
-  (fn [{db :db} [_ index value]]
-    {:db       (assoc-in db [:components :template-chooser :selected-template :where index] value)
-     :dispatch [:template-chooser/run-count]
-     }))
+  (fn [{db :db} [_ index new-constraint]]
+    (let [constraint-location [:components :template-chooser :selected-template :where index]
+          old-constraint      (get-in db constraint-location)]
+      ; Only fetch the query results if the operator hasn't change from a LIST to a VALUE or vice versa
+      (if (should-update? (:op old-constraint) (:op new-constraint))
+        {:db       (assoc-in db constraint-location new-constraint)
+         :dispatch [:template-chooser/run-count]}
+        {:db (assoc-in db constraint-location (assoc new-constraint :value nil))}))))
 
 (reg-event-db
   :template-chooser/update-count
@@ -66,15 +78,15 @@
 (reg-event-fx
   :template-chooser/run-count
   (fn [{db :db}]
-    (let [query      (get-in db [:components :template-chooser :selected-template])
+    (let [query         (get-in db [:components :template-chooser :selected-template])
           template-name (get-in db [:components :template-chooser :selected-template-name])
-          service (get-in db [:mines (ns->kw template-name) :service])
-          count-chan (search/raw-query-rows
-                       service
-                       query
-                       {:format "count"})
-          new-db     (update-in db [:components :template-chooser] assoc
-                                :count-chan count-chan
-                                :counting? true)]
+          service       (get-in db [:mines (ns->kw template-name) :service])
+          count-chan    (search/raw-query-rows
+                          service
+                          query
+                          {:format "count"})
+          new-db        (update-in db [:components :template-chooser] assoc
+                                   :count-chan count-chan
+                                   :counting? true)]
       {:db                          new-db
        :template-chooser/pipe-count count-chan})))
