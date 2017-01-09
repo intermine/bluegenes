@@ -10,6 +10,7 @@
             [redgenes.sections.reportpage.views :as reportpage]
             [redgenes.components.templates.views :as templates]
             [redgenes.components.querybuilder.views.main :as querybuilder]
+            [redgenes.sections.querybuilder.views :as qb]
             [redgenes.components.toast :as toast]
             [redgenes.components.idresolver.views :as idresolver]
             [redgenes.components.databrowser.views :as explore]
@@ -60,7 +61,8 @@
 (defmethod panels :saved-data-panel [] [lists/main])
 (defmethod panels :explore-panel [] [explore/main])
 (defmethod panels :help-panel [] [help/main])
-(defmethod panels :querybuilder-panel [] [:div.container [querybuilder/main]])
+(defmethod panels :querybuilder-panel [] [:div.container [qb/main]])
+;(defmethod panels :querybuilder-panel [] [:div.container [querybuilder/main]])
 (defmethod panels :default [] [home/main])
 
 (defn show-panel
