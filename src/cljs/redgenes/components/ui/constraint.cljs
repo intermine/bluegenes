@@ -2,7 +2,7 @@
   (:require [imcljs.path :as im-path]
             [oops.core :refer [oget]]
             [reagent.core :as reagent :refer [create-class]]
-            [redgenes.components.ui.list-dropdown :refer [list-dropdown]]))
+            [redgenes.components.ui.list_dropdown :refer [list-dropdown]]))
 
 (def operators [{:op         "LOOKUP"
                  :label      "Lookup"

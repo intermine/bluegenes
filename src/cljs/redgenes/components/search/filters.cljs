@@ -13,7 +13,7 @@
     [:a {
       :aria-label (str "Remove " filter-name " filter") ;;we need this to stop screen readers from reading the 'x' symbol out loud as though it was meaningful text
       :on-click (fn [e]
-        (.stopPropagation js/e) ;; if we don't do this the event bubbles to the tr click handler and re-applies the filter. lol.
+        (.stopPropagation e) ;; if we don't do this the event bubbles to the tr click handler and re-applies the filter. lol.
         (re-frame/dispatch [:search/remove-active-filter])
         )}
       [:span.close "×"]])) ;;that's a cute little &times; to us HTML folk

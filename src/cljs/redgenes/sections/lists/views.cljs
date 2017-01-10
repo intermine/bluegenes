@@ -15,6 +15,7 @@
 
 (def time-formatter (tf/formatter "HH:mm"))
 (def date-formatter (tf/formatter "dd/MM/YYYY"))
+
 (def css-transition-group
   (reagent/adapt-react-class js/React.addons.CSSTransitionGroup))
 (defn one-of? [haystack needle] (some? (some #{needle} haystack)))
