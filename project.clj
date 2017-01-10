@@ -1,4 +1,4 @@
-(defproject redgenes "0.2.0-alpha-candidate"
+(defproject redgenes "0.4.0-alpha-candidate"
   :dependencies [[org.clojure/clojure "1.9.0-alpha14"]
                  [figwheel-sidecar "0.5.8"]
                  [clj-http "3.3.0"]
