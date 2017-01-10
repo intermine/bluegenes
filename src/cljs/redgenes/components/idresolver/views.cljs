@@ -284,7 +284,7 @@ example-text))
                 [:span.title "Not\u00A0Found"]
                 [:svg.icon.icon-question [:use {:xlinkHref "#icon-question"}]]]
               [:div.details [:span.count (count @no-matches)]
-              [:p "The ID you input isn't one that's known for your chosen organism."]]]
+              [:p "The ID provided isn't one that's known for your chosen organism"]]]
         ]]
 
       )))
