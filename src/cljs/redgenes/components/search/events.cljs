@@ -59,7 +59,7 @@
  (fn [db [_ results]]
    (if (some? (:active-filter (:search-results db)))
      ;;if we're returning a filter result, leave the old facets intact.
-     (-> (assoc-in db [:search-results :results] (.-results results))
+     (-> (assoc-in db [:search-results :results] (aget results "results"))
          (assoc-in [:search-results :loading?] false))
      ;;if we're returning a non-filtered result, add new facets to the atom
      (assoc db :search-results
