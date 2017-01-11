@@ -15,15 +15,21 @@
                                                      :flags       {:authorized nil
                                                                    :favourite  nil}}
                                            :sort    {:title :asc}}}
-   :query-builder
-                               {
-                                :count  0
-                                :dcount 0
-                                :query
-                                        {
-                                         :q/select         #{}
-                                         :q/where          []
-                                         :constraint-paths #{}
-                                         }
-                                }
+   ;:query-builder
+   ;                            {
+   ;                             :count  0
+   ;                             :dcount 0
+   ;                             :query
+   ;                                     {
+   ;                                      :q/select         #{}
+   ;                                      :q/where          []
+   ;                                      :constraint-paths #{}
+   ;                                      }
+   ;                             }
+   :qb {:query-map {"Gene" {"symbol"   true
+                                       "organism" {"name" true}
+                                       "alleles"  {"name" true}}}
+        :query-constraints [{:path "Gene.symbol"
+                             :op "="
+                             :value "zen"}]}
    })

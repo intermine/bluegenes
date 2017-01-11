@@ -95,11 +95,11 @@
   :op   The operator of the constraint
   :on-change  A function to call with the new constraint
   :label?     If true then include the path as a label"
-  (fn [& {:keys [lists model path value op on-change]}]
+  (fn [& {:keys [lists model path value op on-change label?]}]
     [:div
-     [:div.row
-      [:div.col-sm-9 ;.col-sm-offset-3
-       [:label.lb-md (im-path/friendly model path)]]]
+     (if label? [:div.row
+       [:div.col-sm-9 ;.col-sm-offset-3
+        [:label.lb-md (im-path/friendly model path)]]])
      [:div.row
       [:div.col-sm-3
        {:style {:text-align "right"}}

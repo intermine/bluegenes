@@ -61,7 +61,7 @@
 (defmethod panels :saved-data-panel [] [lists/main])
 (defmethod panels :explore-panel [] [explore/main])
 (defmethod panels :help-panel [] [help/main])
-(defmethod panels :querybuilder-panel [] [:div.container [qb/main]])
+(defmethod panels :querybuilder-panel [] [qb/main])
 ;(defmethod panels :querybuilder-panel [] [:div.container [querybuilder/main]])
 (defmethod panels :default [] [home/main])
 

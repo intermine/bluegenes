@@ -4,6 +4,7 @@
             [redgenes.components.databrowser.subs]
             [redgenes.components.enrichment.subs]
             [redgenes.mines :as mines]
+            [redgenes.sections.querybuilder.subs]
             [redgenes.components.search.subs]))
 
 (reg-sub

@@ -224,6 +224,24 @@ dfh.active {
 
 
 
+@swith: 500px;
+
+.sidex {
+    position: fixed;
+    top: 60px;
+    left: 0;
+    bottom: 49px;
+    width: @swith;
+    overflow: auto;
+    border-right: 1px solid #e5e5e5;
+    background-color: white;
+}
+
+.main-window {
+    padding-left: @swith;
+    width: 100%;
+}
+
 .qb {
 
     padding: 0;
@@ -233,7 +251,9 @@ dfh.active {
     list-style-type: none;
 
     &.open {
-        border: 1px solid #d7d7d7;
+        border-top: 1px solid #d7d7d7;
+        border-left: 1px solid #d7d7d7;
+        border-bottom: 1px solid #d7d7d7;
         border-radius: 9px;
     }
 
@@ -270,12 +290,14 @@ dfh.active {
         margin-left: 7px;
     }
 
-    .btn {
+    .small-btn {
         color: #848484 !important;
         padding: 1px;
         margin: 0;
         text-transform: none;
         font-size: 0.8em;
         border: 1px solid #c6c6c6;
+        border-radius: 3px;
+        background-color: white;
     }
 }

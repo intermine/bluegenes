@@ -13,6 +13,7 @@
             [redgenes.components.enrichment.events]
             [redgenes.components.search.events :as search-full]
             [redgenes.sections.reportpage.handlers]
+            [redgenes.sections.querybuilder.events]
             [redgenes.effects]
             [redgenes.persistence :as persistence]
             [imcljsold.search :as search]
