@@ -143,7 +143,7 @@
         [:select.form-control
           {:on-change #(dispatch [:enrichment/update-enrichment-setting :correction (oget % "target" "value")])}
           [:option "Holm-Bonferroni"]
-          [:option "Benjamini Hochber"]
+          [:option "Benjamini Hochberg"]
           [:option "Bonferroni"]
           [:option "None"]]]
      [text-filter]
