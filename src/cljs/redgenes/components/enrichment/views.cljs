@@ -47,7 +47,8 @@
                         (dispatch [:results/add-to-history row details]))}
      [:div.container-fluid
       [:div.row
-       [:div.col-xs-8
+       [:div.col-xs-2 matches]
+       [:div.col-xs-6
         [popover
          [:span {:data-content   [popover-table matches p-value]
                  :data-placement "top"
@@ -70,7 +71,8 @@
   [:div.enrichment-header
    [:div.container-fluid
    [:div.row
-    [:div.col-xs-8 "Item"]
+    [:div.col-xs-2 "Matches"]
+    [:div.col-xs-6 "Item"]
     [:div.col-xs-4.p-val "p-value" [p-val-tooltip]]]]])
 
 (defn enrichment-results-preview []
