@@ -214,7 +214,11 @@
       [:div.enrichment
         {:on-mouse-enter (fn [] (reset! sidebar-hover true))
           :on-mouse-leave (fn [] (reset! sidebar-hover false))}
-        [:h3.inline "Enrichment: "]
+        [:h3 "Enrichment "]
+        [:a {:title "External link to enrichment documentation."
+             :target "_blank"
+             :href "http://intermine.readthedocs.io/en/latest/embedding/list-widgets/enrichment-widgets/"} "[How is this calculated? "
+          [:svg.icon.icon-external [:use {:xlinkHref "#icon-external"}]] " ] "]
           [enrichable-column-displayer]
 
           [enrichment-settings]

@@ -1,9 +1,173 @@
-div.enrichment {
-    font-size: 12px;
+.enrichment {
+    font-size: 0.9em;
 
-    .table-container {
-        height: 300px;
-        min-height: 300px;
-        overflow-y: scroll;
+    a .icon {
+        vertical-align: baseline;
     }
+
+    .form-control,
+    label {
+        font-size: 0.8em;
+        color: #525252;
+    }
+
+    .settings-bg {
+        background: rgba(0,0,0,0.04);
+    }
+
+    .standard-enrichment-padding {
+        padding: 0.5em 0.2em;
+    }
+    justify-content: space-between;
+
+    .fa:hover {
+        cursor: pointer;
+    }
+
+    h4 {
+        .standard-enrichment-padding;
+        background: fadeout(@highlight-color, 80%);
+        color: #333;
+        font-size: 1.2em;
+
+        &.inactive {
+            background: lightgrey;
+        }
+    }
+
+    i {
+        padding: 0 10px;
+    }
+
+    .enrichment-settings {
+        .standard-enrichment-padding;
+        .settings-bg;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        margin-bottom: @spacer/3;
+        //for when it breakpoint wraps underneath the table:
+        @media (max-width:990px) {
+            justify-content: flex-start;
+        }
+
+        input,
+        label select,
+        select {
+            font-size: 1em;
+            .border-radius;
+            border: solid 1px #ddd;
+        }
+
+        .pval select {
+            max-width: 7em;
+        }
+
+        .text-filter {
+            flex-grow: 1;
+        }
+
+        label {
+            font-size: 1em;
+            margin: @spacer/2
+        }
+    }
+
+    .enrichment-header,
+    .enrichment-list {
+        padding-left: 0;
+        font-size: 0.9em;
+
+        li {
+            transition: all 0.25s ease;
+            list-style-type: none;
+
+            &:not(:last-child) {
+                border-bottom: 1px dotted #c1c1c1;
+            }
+
+            &:hover {
+                background-color: white;
+                color: black;
+            }
+        }
+
+        .col-xs-8:first-child {
+            padding-left: 0;
+        }
+
+        .col-xs-4:last-child {
+            padding-right: 0;
+            padding-left: 0;
+        }
+    }
+
+    .enrichment-column-settings {
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        .settings-bg;
+        .standard-enrichment-padding;
+        .transitions;
+        margin-bottom: @spacer;
+
+        .icon {
+            fill: #aaa;
+            margin: @spacer/8 @spacer/4 @spacer/4;
+        }
+
+        .column-display {
+            flex-grow: 1;
+        }
+
+        .the-column {
+            white-space: nowrap;
+            display: inline;
+            text-overflow: ellipsis;
+            font-family: courier, mono, monospace;
+        }
+
+        .column-chooser {
+            .transitions;
+            margin-left: @spacer;
+
+            ul {
+                padding-left: @spacer;
+                word-wrap: break-word;
+
+                .active {
+                    font-weight: bold;
+
+                    &:hover {
+                        text-decoration: none;
+                        cursor: auto;
+                    }
+                }
+            }
+        }
+    }
+    h3 {display:inline}
+    .enrichment-header {
+        .p-val {
+            text-align: right;
+        }
+        font-weight: bold;
+    }
+
+    div.popover-contents {
+        padding: 5px 0;
+
+        div.title {
+            font-size: 1.2em;
+            padding-bottom: 4px;
+        }
+
+        div.value {}
+    }
+}
+
+//this can't be namespaced nicely because twitter bootstrap is evil and
+//creates a new element that won't inherit all of the nicely namespaced classes. Sigh.
+.enrichment-popover.popover-contents {
+    color: #fff;
 }
