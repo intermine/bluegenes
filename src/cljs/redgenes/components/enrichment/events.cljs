@@ -68,7 +68,9 @@
                       :service  (get-in db [:mines source :service])}]]})))
 
 
-(defn what-we-can-enrich [widgets query-parts]
+(defn what-we-can-enrich
+  "Returns list of columns in the results view that have widgets available for enrichment."
+  [widgets query-parts]
   (let [possible-roots (set (keys query-parts))
         possible-enrichments (reduce (fn [x y] (conj x (keyword (first (:targets y))))) #{} widgets)
         enrichable-roots  (intersection possible-enrichments possible-roots)
@@ -83,12 +85,16 @@
      :dispatch [:enrichment/enrich]}
 ))
 
-(defn can-we-enrich-on-existing-preference? [enrichable existing-enrichable]
+(defn can-we-enrich-on-existing-preference?
+  "Returns whether or not the previously used enrichment column is within the list of existing column types."
+  [enrichable existing-enrichable]
   (let [paths (reduce (fn [new x] (conj new (:path x))) #{} (flatten (vals enrichable)))]
     (contains? paths existing-enrichable)
   ))
 
-(defn resolve-what-to-enrich [db]
+(defn resolve-what-to-enrich
+  "This is complex - we need to resolve which columns are of a suitable type to be enriched by a widget, and then select one. Where possible we try to always preserve the same column that the user was looking at in the previous enrichment, to ensure general consistency."
+  [db]
   (let [query-parts (get-in db [:results :query-parts])
         widgets (get-in db [:assets :widgets (:current-mine db)])
         existing-enrichable-path (get-in db [:results :active-enrichment-column :path])
@@ -98,7 +104,7 @@
         enrichable-default (last (last (vals enrichable)))]
     (if use-existing-enrichable?
             ;;default to the type we had selected last enrichment if possible
-              (first (filter 
+              (first (filter
                       (fn [val] (= existing-enrichable-path (:path val)))    (existing-type enrichable)))
             ;;otherwise just default to whatever
               enrichable-default
