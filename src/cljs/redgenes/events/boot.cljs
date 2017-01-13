@@ -77,7 +77,7 @@
   (fn [db [_ mine-kw token]]
     (assoc-in db [:mines mine-kw :service :token] token)))
 
-; Fetch an anonymous token for a give
+; Fetch an anonymous token for a given mine
 (reg-event-fx
   :authentication/fetch-anonymous-token
   (fn [{db :db} [_ mine-kw]]
