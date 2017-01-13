@@ -85,20 +85,22 @@
 
 (defn can-we-enrich-on-existing-preference? [enrichable existing-enrichable]
   (let [paths (reduce (fn [new x] (conj new (:path x))) #{} (flatten (vals enrichable)))]
-    (contains? paths (:path existing-enrichable))
+    (contains? paths existing-enrichable)
   ))
 
 (defn resolve-what-to-enrich [db]
   (let [query-parts (get-in db [:results :query-parts])
         widgets (get-in db [:assets :widgets (:current-mine db)])
-        existing-enrichable (get-in db [:results :active-enrichment-column])
+        existing-enrichable-path (get-in db [:results :active-enrichment-column :path])
+        existing-type (get-in db [:results :active-enrichment-column :type])
         enrichable (what-we-can-enrich widgets query-parts)
-        use-existing-enrichable? (can-we-enrich-on-existing-preference? enrichable existing-enrichable)
+        use-existing-enrichable? (can-we-enrich-on-existing-preference? enrichable existing-enrichable-path)
         enrichable-default (last (last (vals enrichable)))]
-; 1 is there an existing? - if yes, is it in the current option set? -> use it
-; otherwise: default
     (if use-existing-enrichable?
-              existing-enrichable
+            ;;default to the type we had selected last enrichment if possible
+              (first (filter 
+                      (fn [val] (= existing-enrichable-path (:path val)))    (existing-type enrichable)))
+            ;;otherwise just default to whatever
               enrichable-default
             )))
 
