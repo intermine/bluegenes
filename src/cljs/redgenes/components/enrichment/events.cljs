@@ -81,7 +81,13 @@
 (reg-event-fx
  :enrichment/update-active-enrichment-column
   (fn [{db :db} [_ new-enrichment-column]]
-    {:db (assoc-in db [:results :active-enrichment-column] new-enrichment-column)
+    {:db (-> db
+          (assoc-in [:results :active-enrichment-column] new-enrichment-column)
+          ;;we need to remove the old results to prevent them showing up when a new
+          ;;column setting has been selected. Fixes Issue #52.
+          (update-in [:results] dissoc :enrichment-results)
+          (assoc-in [:results :enrichment-results-loading?] true)
+          )
      :dispatch [:enrichment/enrich]}
 ))
 
@@ -200,4 +206,7 @@
 (reg-event-db
   :enrichment/handle-results
   (fn [db [_ widget-name results]]
-    (assoc-in db [:results :enrichment-results (keyword widget-name)] results)))
+    (-> db
+      (assoc-in [:results :enrichment-results (keyword widget-name)] results)
+      (assoc-in [:results :enrichment-results-loading] false)
+  )))

@@ -105,11 +105,15 @@
               (drop (* (:page @page-state) (:show @page-state)) results)))))])))
 
 (defn enrichment-results []
-  (let [all-enrichment-results (subscribe [:enrichment/enrichment-results])]
+  (let [all-enrichment-results (subscribe [:enrichment/enrichment-results])
+        loading-widget-types (subscribe [:enrichment/enrichment-widgets-loading?])]
     (fn []
       (if (nil? (vals @all-enrichment-results))
         ;; No Enrichment widgets available - only if there are no widgets for any of the datatypes in the columns. If there are widgets but there are 0 results, the second option below (div.demo) fires.
-        [:div [:h4 "No Enrichment Widgets Available"]]
+        [:div (if @loading-widget-types
+                [:h4 "Finding enrichment widgets" [:span [mini-loader "tiny"]]]
+                [:h4 "No Enrichment Widgets Available"]
+                )]
         [:div.demo
          [css-transition-group
           {:transition-name          "fade"
