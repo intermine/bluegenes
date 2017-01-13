@@ -17,7 +17,6 @@
 (defn set-selected! [row-data elem]
   "selects an item and navigates there. "
   (let [current-mine (subscribe [:current-mine])]
-
     (navigate! (str "/reportpage/" (name (:id @current-mine)) "/" (aget (:result row-data) "type") "/" (aget (:result row-data) "id")))
   ))
 

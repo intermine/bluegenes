@@ -63,7 +63,7 @@
         current-mine (subscribe [:current-mine])
         the-type (get-in @model [(keyword class) :displayName])
         ]
-  [:div.grid-3_xs-3.single-feature {:on-click #(navigate! (str "/reportpage/" (name (:id @current-mine)) "/" the-type "/" objectId))
+  [:div.grid-3_xs-3.single-feature {:on-click #(navigate! (str "/reportpage/" (name (:id @current-mine)) "/" class "/" objectId))
        }
    [:div.col {:style {:word-wrap "break-word"}}
     primaryIdentifier]
