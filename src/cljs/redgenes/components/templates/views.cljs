@@ -30,6 +30,13 @@
 (def css-transition-group
   (reagent/adapt-react-class js/React.addons.CSSTransitionGroup))
 
+(defn results-count-text [results-preview]
+  (if (< (:iTotalRecords @results-preview) 1)
+   "No Results"
+    (str "View "
+     (js/parseInt (:iTotalRecords @results-preview))
+     (if (> (:iTotalRecords @results-preview) 1) " rows" " row"))))
+
 (defn preview-results
   "Preview results of template as configured by the user or default config"
   [results-preview fetching-preview]
@@ -40,15 +47,13 @@
       [preview-table
         :loading? @fetching-preview?
         :query-results @results-preview]
-    [:button.btn.btn-primary.btn-raised
+    [:button.btn.btn-primary.btn-raised.view-results
       {:type     "button"
-       :disabled (if (< (:iTotalRecords @results-preview) 1) "disabled")
+       :disabled (< (:iTotalRecords @results-preview) 1)
        :on-click (fn [] (dispatch [:templates/send-off-query]))}
-       (if (< (:iTotalRecords @results-preview) 1)
-       (str "No Results")
-       (str "View "
-         (js/parseInt (:iTotalRecords @results-preview))
-         (if (> (:iTotalRecords @results-preview) 1) " rows" " row")))]]))
+       (if @fetching-preview?
+         "Loading"
+         (results-count-text results-preview))]]))
 
 (defn select-template-settings
   "UI component to allow users to select template details, e.g. select a list to be in, lookup value grater than, less than, etc."
@@ -72,7 +77,8 @@
                   (dispatch [:template-chooser/replace-constraint
                     idx (merge con new-constraint)]))]))))]))
 
-(defn template []
+(defn template
+  "UI element for a single template." []
   (let [selected-template (subscribe [:selected-template])]
     (fn [[id query]]
       [:div.grid-1
@@ -88,7 +94,9 @@
            [select-template-settings selected-template]
            [preview-results]])]])))
 
-(defn templates []
+(defn templates
+  "Outputs all the templates that match the user's chosen filters."
+  []
   (fn [templates]
     (if (seq templates)
       ;;return the list of templates if there are some

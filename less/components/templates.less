@@ -2,21 +2,27 @@
 @crazy-padding: 40px;
 
 .lb-sm {
-  font-size: 0.6em;
+    font-size: 0.6em;
 }
 
 .lb-md {
-  font-size: 1.2em;
+    font-size: 1.2em;
 }
 
 .lb-lg {
-  font-size: 2em;
+    font-size: 2em;
 }
 
-
 .templates {
-  .preview {max-width:60vw;
-  overflow-x: "hidden"}}
+    .preview {
+        max-width: 60vw;
+        overflow-x: "hidden";
+    }
+
+    .view-results {
+        min-width: 200px;
+    }
+
     .template-filters {
         background: darken(@body-background-color,3%);
         //this padding stops content shwoing through at weird breakpoints;
@@ -46,7 +52,8 @@
 
     .no-results {
         font-size: 1.2em;
-        text-align:center;
+        text-align: center;
+
         a {
             color: @highlight-color;
         }
