@@ -48,7 +48,7 @@
         [:div.description (:description query)]
         (if (= (name id) (:name @selected-template))
           [:div.body
-           [:div.col-xs-6.border-right
+           [:div.col-xs-4.border-right
             (into [:form.form]
                   ; Only show editable constraints, but don't filter because we want the index!
                   (->> (keep-indexed (fn [idx con] (if (:editable con) [idx con])) (:where @selected-template))
@@ -64,16 +64,12 @@
                                             (dispatch [:template-chooser/replace-constraint
                                                        idx (merge con new-constraint)]))]))))]
 
-           [:div.col-xs-6
+           [:div.col-xs-8.preview
             {:style {:overflow-x "hidden"}}
             [:h4 "Results Preview"]
             [preview-table
              :loading? @fetching-preview?
              :query-results @results-preview]
-
-            #_[lighttable/main {:query      @selected-template
-                                :service    @service
-                                :no-repeats true}]
             [:button.btn.btn-primary.btn-raised
              {:type     "button"
               :disabled (if (< (:iTotalRecords @results-preview) 1) "disabled")
