@@ -27,9 +27,10 @@
 (defn controls []
   (let [flag-filters (subscribe [:lists/flag-filters])
         text-filter  (subscribe [:lists/text-filter])]
-    (fn [sort-icon]
+    (fn [sort-icon authorized?]
       [:div.list-filter-controls
-       [:div.flags
+       (cond authorized?
+        [:div.flags
         ; Public / Private
         [popover
          [:i.fa
@@ -48,7 +49,7 @@
            :class          (case (get @flag-filters :favourite)
                              true "fa-star" false "fa-star-o" nil "fa-star disabled")
            :on-click       (fn [] (dispatch [:lists/toggle-flag-filter :favourite]))}]]
-        ]
+        ])
         [:h3 "Title"]
         [:input.form-control.input-lg.square.text-filter
           {:type           "text"
@@ -63,9 +64,11 @@
 
 (defn in [needle haystack] (some? (some #{needle} haystack)))
 
-(defn list-row []
+(defn list-row
+  "UI component that shows details of a single list"
+  []
   (let [selected (subscribe [:lists/selected])]
-    (fn [{:keys [source description tags authorized name type size title timestamp dateCreated] :as l}]
+    (fn [{:keys [source description tags authorized name type size title timestamp dateCreated] :as l} show-logged-in-features?]
       (let [date-created (tf/parse dateCreated)
             selected? (in name @selected)]
         [:tr {:class (cond selected? "selected")
@@ -76,9 +79,10 @@
                      :checked   selected?
                      :read-only true}]]
           [:td.list-description
-            [:h4 [:span.flags
+            [:h4
+             (cond show-logged-in-features? [:span.flags
               (if authorized [:i.fa.fa-user] [:i.fa.fa-globe])
-              (if (one-of? tags "im:favourite") [:i.fa.fa-star] [:i.fa.fa-star-o])]
+              (if (one-of? tags "im:favourite") [:i.fa.fa-star] [:i.fa.fa-star-o])])
               [:a.stress {:on-click (fn [] (dispatch [:lists/view-results l]))} title]
               [:span.row-count (str " (" size " rows)")]]
             [:div.description description]]
@@ -121,18 +125,11 @@
         "Click here to clear your search"]]])))
 
 (defn select-all-checkbox [filtered-lists]
-  (let [lists (subscribe [:lists/filtered-lists])
-        ;selected (subscribe [:lists/selected])
-        ]
-;    (.log js/console "%c@lists" "color:hotpink;font-weight:bold;" (clj->js @lists))
-;    (.log js/console "%c@selected" "color:hotpink;font-weight:bold;" (clj->js @selected) (clj->js (some? @selected)))
+  (let [lists (subscribe [:lists/filtered-lists])]
     [:input
      {:type "checkbox"
       :on-change (fn [e]
         (dispatch [:lists/toggle-select-all (map :name filtered-lists)]))
-      ;  :checked (if (some? @selected)
-      ;             (= (count @lists) (count @selected))
-      ;             false)
     }]
 ))
 
@@ -141,13 +138,14 @@
   (let [sort-order (subscribe [:lists/sort-order])
         selected   (subscribe [:lists/selected])]
     (fn [lists]
+      (let [authorized? (:authorized (first lists))]
+        ;;I'm asserting that you won't be sent any lists you aren't authorised to see anyway. I hope this is true. (How could it not be, that would be so insecure)
       [:table.list-container
        [:thead
         [:tr
           [:th [select-all-checkbox lists]]
           [:th.list-description
-            [controls [sort-icon :title "fa-sort-alpha" (:title @sort-order)]]
-           ]
+            [controls [sort-icon :title "fa-sort-alpha" (:title @sort-order)] authorized?]]
           [:th.type-style [:h3 "Type "]]
           [:th.date-created [:h3 "Created"]]]]
 
@@ -159,7 +157,7 @@
          :transition-leave-timeout 100}
         (if (empty? lists)
           [no-results]
-          (map (fn [l] ^{:key (:name l)} [list-row l]) lists))]])))
+          (map (fn [l] ^{:key (:name l)} [list-row l authorized?]) lists))]]))))
 
 
 
