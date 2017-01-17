@@ -1,7 +1,9 @@
 (ns redgenes.components.search.resultrow
   (:require [re-frame.core :as re-frame :refer [subscribe]]
             [accountant.core :refer [navigate!]]
-            [reagent.core :as reagent]))
+            [reagent.core :as reagent]
+            [oops.core :refer [ocall oget oget+]]
+))
 
 (defn is-selected? [result selected-result]
   "returns true if 'result' is selected"
@@ -17,7 +19,7 @@
 (defn set-selected! [row-data elem]
   "selects an item and navigates there. "
   (let [current-mine (subscribe [:current-mine])]
-    (navigate! (str "/reportpage/" (name (:id @current-mine)) "/" (aget (:result row-data) "type") "/" (aget (:result row-data) "id")))
+    (navigate! (str "/reportpage/" (name (:id @current-mine)) "/" (oget (:result row-data) "type") "/" (oget (:result row-data) "id")))
   ))
 
 
@@ -25,11 +27,12 @@
   "This method abstracts away most of the common components for all the result-row baby methods."
   (let [result (:result row-data)]
   [:div.result {
-    :on-click (fn [this] (set-selected! row-data (.-target this)))
+    :on-click (fn [this] (set-selected! row-data (oget this "target")))
     ;:class (if (is-selected? result (:selected-result @state)) "selected")
     }
     [result-selection-control result]
-    [:span.result-type {:class (str "type-" (.-type result))} (.-type result)]
+   (.log js/console "%cTYPE" "color:hotpink;font-weight:bold;" (clj->js (oget result "type") ) (clj->js result))
+    [:span.result-type {:class (str "type-" (oget result "type"))} (oget result "type")]
     (contents)]
   ))
 
@@ -56,7 +59,8 @@
 
 (defn show [row-data selector]
   "Helper: fetch a result from the data model, adding a highlight if the setting is enabled."
-  (let [string (aget (:result row-data) "fields" selector)
+  (let [row (oget (:result row-data) "fields")
+        string (get (js->clj row) selector)
         term (:search-term row-data)
         highlight? (re-frame/subscribe [:search/highlight?])]
     (if (and @highlight? string)
@@ -70,7 +74,7 @@
 
 (defmulti result-row
   "Result-row outputs nicely formatted type-specific results for common types and has a default that just outputs all non id, type, and relevance fields."
-  (fn [row-data] (.-type (:result row-data))))
+  (fn [row-data] (oget (:result row-data) "type")))
 
 (defmethod result-row "Gene" [row-data]
     [row-structure row-data (fn []

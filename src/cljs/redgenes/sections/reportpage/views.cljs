@@ -22,7 +22,7 @@
          [loader (str (:type @params) " Report")]
          [:div
           [:ol.breadcrumb
-           [:li [:a "Home"]]
+           [:li [:a {:href "#/" :on-click #(navigate! "/")} "Home"]]
            [:li [:a {:href "#/search" :on-click #(navigate! "/search")} "Search Results"]]
            [:li.active [:a "Report"]]]
           [summary/main (:summary @report)]
