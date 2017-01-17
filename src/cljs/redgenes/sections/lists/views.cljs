@@ -83,7 +83,10 @@
              (cond show-logged-in-features? [:span.flags
               (if authorized [:i.fa.fa-user] [:i.fa.fa-globe])
               (if (one-of? tags "im:favourite") [:i.fa.fa-star] [:i.fa.fa-star-o])])
-              [:a.stress {:on-click (fn [] (dispatch [:lists/view-results l]))} title]
+              [:a.stress {:on-click
+                          (fn [e]
+                            (.stopPropagation e)
+                            (dispatch [:lists/view-results l]))} title]
               [:span.row-count (str " (" size " rows)")]]
             [:div.description description]]
           [:td.type-style {:class (str "type-" type)} type]
