@@ -93,7 +93,7 @@
 
 (defn error-loading-results []
   [:div.results.error
-   [:svg.icon.icon-sad [:use {:xlinkHref "#icon-sad"}]]
+   [:svg.icon.icon-wondering [:use {:xlinkHref "#icon-wondering"}]]
    [:div.errordetails
     [:h3 "Houston, we've had a problem. "]
     [:p  "Looks like there was a problem fetching results."]

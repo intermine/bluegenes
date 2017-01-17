@@ -103,7 +103,7 @@
       (into [:div] (map (fn [t] [template t]) templates))
       ;;if there are no templates, perhaps because of filters or perhaps not...
       [:div.no-results
-       [:svg.icon.icon-sad [:use {:xlinkHref "#icon-sad"}]]
+       [:svg.icon.icon-wondering [:use {:xlinkHref "#icon-wondering"}]]
        " No templates available. "
        (let [category-filter (subscribe [:selected-template-category])
              text-filter     (subscribe [:template-chooser/text-filter])
