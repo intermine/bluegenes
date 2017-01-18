@@ -20,20 +20,20 @@
     [:rect.datum
      {:x      (scale start)
       :y      0
+      :title (str start ".." end)
       :width  (scale end)
       :height 60
-      :filter "url(#blurMe)"}]))
+      }]))
 
 (defn bar []
   (fn [scale loc]
-    [:g
-     [:path.guide
+         [:path.guide
       {:stroke-width 0.002
        :d            (clojure.string/join
                        " "
                        ["M" (scale loc) 0
                         "L" (scale loc) 75])}]
-     ]))
+     ))
 
      (defn label-text [scale text width properties]
        [:div.layout [:div.label-text (merge properties
@@ -46,10 +46,6 @@
       :height                "60px"
       :preserve-aspect-ratio "none"
       :view-box              "0 0 1 100"}
-     [:filter#blurMe
-      [:feGaussianBlur
-       {:in           "SourceGraphic"
-        :stdDeviation 0.2}]]
      (into [:g] (map (fn [d] [datum scale-fn d]) (sort-by (comp :end :chromosomeLocation) data-points)))
      [bar scale-fn from]
      [bar scale-fn to]
@@ -67,8 +63,8 @@
   {:reagent-render
     (fn [{:keys [results to from]} x]
     (reagent/with-let
-     [min-start (apply min (map (comp :start :chromosomeLocation) results))
-      max-end   (apply max (map (comp :end :chromosomeLocation) results))
+     [min-start (apply min (conj (map (comp :start :chromosomeLocation) results) from))
+      max-end   (apply max (conj (map (comp :end :chromosomeLocation) results) to))
       scale     (linear-scale [min-start max-end] [0 1])
       handler #(legend-width width)
       listener (.addEventListener js/window "resize" #(handler))]
