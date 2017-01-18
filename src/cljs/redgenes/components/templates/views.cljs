@@ -30,13 +30,56 @@
 (def css-transition-group
   (reagent/adapt-react-class js/React.addons.CSSTransitionGroup))
 
-(defn template []
-  (let [selected-template (subscribe [:selected-template])
-        service           (subscribe [:selected-template-service])
-        row-count         (subscribe [:template-chooser/count])
-        fetching-preview? (subscribe [:template-chooser/fetching-preview?])
-        lists             (subscribe [:lists])
+(defn results-count-text [results-preview]
+  (if (< (:iTotalRecords @results-preview) 1)
+   "No Results"
+    (str "View "
+     (js/parseInt (:iTotalRecords @results-preview))
+     (if (> (:iTotalRecords @results-preview) 1) " rows" " row"))))
+
+(defn preview-results
+  "Preview results of template as configured by the user or default config"
+  [results-preview fetching-preview]
+  (let [fetching-preview? (subscribe [:template-chooser/fetching-preview?])
         results-preview   (subscribe [:template-chooser/results-preview])]
+    [:div.col-xs-8.preview
+      [:h4 "Results Preview"]
+      [preview-table
+        :loading? @fetching-preview?
+        :query-results @results-preview]
+    [:button.btn.btn-primary.btn-raised.view-results
+      {:type     "button"
+       :disabled (< (:iTotalRecords @results-preview) 1)
+       :on-click (fn [] (dispatch [:templates/send-off-query]))}
+       (if @fetching-preview?
+         "Loading"
+         (results-count-text results-preview))]]))
+
+(defn select-template-settings
+  "UI component to allow users to select template details, e.g. select a list to be in, lookup value grater than, less than, etc."
+  [selected-template]
+  (let [service           (subscribe [:selected-template-service])
+        row-count         (subscribe [:template-chooser/count])
+        lists             (subscribe [:lists])]
+    [:div.col-xs-4.border-right
+      (into [:form.form]
+         ; Only show editable constraints, but don't filter because we want the index!
+         (->> (keep-indexed (fn [idx con] (if (:editable con) [idx con])) (:where @selected-template))
+            (map (fn [[idx con]]
+              [constraint
+                :model (:model @service)
+                :path (:path con)
+                :value (:value con)
+                :op (:op con)
+                :label? true
+                :lists (second (first @lists))
+                :on-change (fn [new-constraint]
+                  (dispatch [:template-chooser/replace-constraint
+                    idx (merge con new-constraint)]))]))))]))
+
+(defn template
+  "UI element for a single template." []
+  (let [selected-template (subscribe [:selected-template])]
     (fn [[id query]]
       [:div.grid-1
        [:div.col.ani.template
@@ -48,50 +91,19 @@
         [:div.description (:description query)]
         (if (= (name id) (:name @selected-template))
           [:div.body
-           [:div.col-xs-6.border-right
-            (into [:form.form]
-                  ; Only show editable constraints, but don't filter because we want the index!
-                  (->> (keep-indexed (fn [idx con] (if (:editable con) [idx con])) (:where @selected-template))
-                       (map (fn [[idx con]]
-                              [constraint
-                               :model (:model @service)
-                               :path (:path con)
-                               :value (:value con)
-                               :op (:op con)
-                               :label? true
-                               :lists (second (first @lists))
-                               :on-change (fn [new-constraint]
-                                            (dispatch [:template-chooser/replace-constraint
-                                                       idx (merge con new-constraint)]))]))))]
+           [select-template-settings selected-template]
+           [preview-results]])]])))
 
-           [:div.col-xs-6
-            {:style {:overflow-x "hidden"}}
-            [:h4 "Results Preview"]
-            [preview-table
-             :loading? @fetching-preview?
-             :query-results @results-preview]
-
-            #_[lighttable/main {:query      @selected-template
-                                :service    @service
-                                :no-repeats true}]
-            [:button.btn.btn-primary.btn-raised
-             {:type     "button"
-              :disabled (if (< (:iTotalRecords @results-preview) 1) "disabled")
-              :on-click (fn [] (dispatch [:templates/send-off-query]))}
-             (if (< (:iTotalRecords @results-preview) 1)
-               (str "No Results")
-               (str "View "
-                    (js/parseInt (:iTotalRecords @results-preview))
-                    (if (> (:iTotalRecords @results-preview) 1) " rows" " row")))]]])]])))
-
-(defn templates []
+(defn templates
+  "Outputs all the templates that match the user's chosen filters."
+  []
   (fn [templates]
     (if (seq templates)
       ;;return the list of templates if there are some
       (into [:div] (map (fn [t] [template t]) templates))
       ;;if there are no templates, perhaps because of filters or perhaps not...
       [:div.no-results
-       [:svg.icon.icon-sad [:use {:xlinkHref "#icon-sad"}]]
+       [:svg.icon.icon-wondering [:use {:xlinkHref "#icon-wondering"}]]
        " No templates available. "
        (let [category-filter (subscribe [:selected-template-category])
              text-filter     (subscribe [:template-chooser/text-filter])

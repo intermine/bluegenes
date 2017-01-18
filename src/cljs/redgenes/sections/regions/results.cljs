@@ -63,7 +63,7 @@
         current-mine (subscribe [:current-mine])
         the-type (get-in @model [(keyword class) :displayName])
         ]
-  [:div.grid-3_xs-3.single-feature {:on-click #(navigate! (str "/reportpage/" (name (:id @current-mine)) "/" the-type "/" objectId))
+  [:div.grid-3_xs-3.single-feature {:on-click #(navigate! (str "/reportpage/" (name (:id @current-mine)) "/" class "/" objectId))
        }
    [:div.col {:style {:word-wrap "break-word"}}
     primaryIdentifier]
@@ -93,7 +93,7 @@
 
 (defn error-loading-results []
   [:div.results.error
-   [:svg.icon.icon-sad [:use {:xlinkHref "#icon-sad"}]]
+   [:svg.icon.icon-wondering [:use {:xlinkHref "#icon-wondering"}]]
    [:div.errordetails
     [:h3 "Houston, we've had a problem. "]
     [:p  "Looks like there was a problem fetching results."]

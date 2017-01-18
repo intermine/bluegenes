@@ -2,6 +2,7 @@
   (:require-macros [cljs.core.async.macros :refer [go go-loop]]
                    [com.rpl.specter :refer [traverse]])
   (:require [re-frame.core :as re-frame :refer [reg-event-db reg-event-fx reg-fx dispatch subscribe]]
+            [oops.core :refer [ocall oget]]
             [redgenes.db :as db]
             [imcljsold.search :as search]
             ))
@@ -59,12 +60,12 @@
  (fn [db [_ results]]
    (if (some? (:active-filter (:search-results db)))
      ;;if we're returning a filter result, leave the old facets intact.
-     (-> (assoc-in db [:search-results :results] (.-results results))
+     (-> (assoc-in db [:search-results :results] (aget results "results"))
          (assoc-in [:search-results :loading?] false))
      ;;if we're returning a non-filtered result, add new facets to the atom
      (assoc db :search-results
        {
-       :results  (.-results results)
+       :results  (aget results "results")
        :loading? false
        :highlight-results (:highlight-results (:search-results db))
        :facets {
@@ -96,7 +97,7 @@
 (defn is-active-result? [result active-filter]
  "returns true is the result should be considered 'active' - e.g. if there is no filter at all, or if the result matches the active filter type."
    (or
-     (= active-filter (.-type result))
+     (= active-filter (oget result "type"))
      (nil? active-filter)))
 
 (defn count-current-results [results filter]

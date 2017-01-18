@@ -1,5 +1,7 @@
 (ns redgenes.components.search.filters
   (:require [re-frame.core :as re-frame]
+    [oops.core :refer [ocall oget]]
+
             [json-html.core :as json-html]
             [reagent.core :as reagent]))
 (defn is-active [name active]
@@ -32,7 +34,7 @@
     [:input {:type "checkbox" :on-click
      (fn [e]
        ;;toggle highlight.
-       (re-frame/dispatch [:search/highlight-results (.-checked (.-target e))]))
+       (re-frame/dispatch [:search/highlight-results (oget e "target" "checked")]))
      }]
     [:span.checkbox-material [:span.check]]
     "Highlight search terms in results (experimental, may be sluggish)"]

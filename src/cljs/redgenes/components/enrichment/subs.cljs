@@ -8,6 +8,11 @@
     (get-in db [:results :enrichment-results])))
 
 (reg-sub
+  :enrichment/enrichment-widgets-loading?
+  (fn [db _]
+    (get-in db [:results :enrichment-results-loading?])))
+
+(reg-sub
   :enrichment/enrichment-config
   (fn [db]
     (get-in db [:results :active-widgets])))
