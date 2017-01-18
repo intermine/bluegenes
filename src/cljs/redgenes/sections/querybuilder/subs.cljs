@@ -10,3 +10,13 @@
   :qb/query-constraints
   (fn [db]
     (get-in db [:qb :query-constraints])))
+
+(reg-sub
+  :qb/invisible-constraints
+  :<- [:qb/query-map]
+  :<- [:qb/query-constraints]
+  (fn [[query-map query-constraints]]
+    (.log js/console "QM" query-map)
+    (.log js/console "QC" query-constraints)
+    "Test"
+    ))

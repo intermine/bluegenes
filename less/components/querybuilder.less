@@ -230,7 +230,7 @@ dfh.active {
     position: fixed;
     top: 60px;
     left: 0;
-    bottom: 49px;
+    bottom: 54px;
     width: @swith;
     overflow: auto;
     border-right: 1px solid #e5e5e5;
@@ -243,7 +243,6 @@ dfh.active {
 }
 
 .qb {
-
     padding: 0;
     padding-left: 15px;
     padding-right: 15px;
@@ -255,6 +254,10 @@ dfh.active {
         border-left: 1px solid #d7d7d7;
         border-bottom: 1px solid #d7d7d7;
         border-radius: 9px;
+    }
+
+    li:hover {
+        background-color: aliceblue;
     }
 
     .selected {
@@ -300,4 +303,8 @@ dfh.active {
         border-radius: 3px;
         background-color: white;
     }
+}
+
+.qbview {
+    display: flex;
 }

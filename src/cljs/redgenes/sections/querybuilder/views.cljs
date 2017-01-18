@@ -12,14 +12,19 @@
 (defn tree-view-recur [model root-class trail selected]
   (let [expanded? (reagent/atom (get-in selected trail))] ; Recursively auto-expand to selected values
     (fn [model root-class trail selected]
-      (let [{:keys [displayName attributes collections references]} (get-in model [:classes root-class])]
+      (let [{:keys [displayName attributes collections references] :as p} (get-in model [:classes root-class])]
         [:ul.qb {:class (if (and @expanded? (> (count trail) 1)) "open")}
          [:li {:on-click (fn [] (swap! expanded? not))}
           [:div.nowrap
            (if @expanded?
              [:span.glyphicon.glyphicon-chevron-down]
              [:span.glyphicon.glyphicon-chevron-right])
-           [:div.class.nowrap.inlineblock displayName]]]
+           [:div.class.nowrap.inlineblock displayName]
+           [:div.button-group
+            [:button.small-btn {:on-click (fn [e]
+                                            (ocall e :stopPropagation)
+                                            (.log js/console "CONNING" trail)
+                                            (dispatch [:qb/add-constraint trail]))} "Constrain"]]]]
          (if @expanded?
            (concat
              ; Create a map of the attributes
@@ -40,53 +45,65 @@
                            [:button.small-btn {:on-click (fn [] (dispatch [:qb/add-view (conj trail name)]))} "Show"])
                          [:button.small-btn {:on-click (fn [] (dispatch [:qb/add-constraint (conj trail name)]))} "Constrain"]
                          ]]]))
-                  attributes)
+                  (sort attributes))
              ; Combined with a map of collections and references
              (map (fn [[_ colref]]
                     ^{:key (str (name root-class) (:name colref))}
                     [:li [tree-view-recur model (keyword (:referencedType colref)) (conj trail (:name colref)) selected]])
-                  (merge collections references))))]))))
+                  (into (sorted-map) (merge collections references)))))]))))
 
 (defn tree-view []
   (fn [m model root-class]
     [tree-view-recur model root-class [(name root-class)] m]))
 
-(defn query-view []
+(defn query-view-old []
   (let [query-constraints (subscribe [:qb/query-constraints])]
     (fn [model m trail]
       (into [:ul.qb]
-            (map (fn [[k value]]
-                   (let [children?      (map? value)
-                         my-constraints (filter (fn [c] (= (join "." (conj trail k)) (:path c))) @query-constraints)]
-                     [:li
-                      [:div
-                       k
-                       [:div.button-group
-                        [:button.small-btn
-                         {:on-click (fn [e]
-                                      (ocall e :stopPropagation)
-                                      (dispatch [:qb/remove-view (conj trail k)]))}
-                         [:i.fa.fa-times]]]
-                       (if (not-empty my-constraints)
-                         (into [:div {:style {:padding-left "30px"
-                                              :display      "block"}}]
-                               (map (fn [con]
-                                      [:div
-                                       {:style {:display "block"}}
-                                       [constraint
-                                        :model model
-                                        :path (:path con)
-                                        :value (:value con)
-                                        :op (:op con)
-                                        :on-change (fn [] (println "CHANGED"))
-                                        :label? false]])
-                                    my-constraints)))
+            (->> (into (sorted-map) m) ; Sort our query-map alphabetically
+                 (map (fn [[k value]]
+                        (let [children?      (map? value)
+                              my-constraints (filter (fn [c] (= (join "." (conj trail k)) (:path c))) @query-constraints)]
+                          [:li
+                           [:div
 
-                       (if children? [query-view model value (if trail (conj trail k) [k])])]]))
-                 (into (sorted-map) m))))))
+                            [:div
+                             [:span k
+                              [:div.button-group {:style {:display "inline-block"}}
+                               [:button.small-btn
+                                {:on-click (fn [e]
+                                             (ocall e :stopPropagation)
+                                             (dispatch [:qb/remove-view (conj trail k)]))}
+                                [:i.fa.fa-times]]]]]
+                            (if (not-empty my-constraints)
+                              (into [:div {:style {:padding-left "30px"
+                                                   :display      "inline-block"}}]
+                                    (map (fn [con]
+                                           [:div
+                                            {:style {:display "block"}}
+                                            [constraint
+                                             :model model
+                                             :path (:path con)
+                                             :value (:value con)
+                                             :op (:op con)
+                                             :on-change (fn [] (println "CHANGED"))
+                                             :label? false]])
+                                         my-constraints)))
+
+                            (if children? [query-view-old model value (if trail (conj trail k) [k])])]]))))
+            ))))
 
 
+(defn query-view []
+  (let [query-constraints (subscribe [:qb/query-constraints])]
+    (fn []
+      [:div "QV"])))
 
+(defn non-visible-constraints []
+  (let [invisible-constraints (subscribe [:qb/invisible-constraints])]
+    (fn []
+      (.log js/console "query-constraints" @invisible-constraints)
+      [:div "visibile"])))
 
 (defn main []
   (let [query-map         (subscribe [:qb/query-map])
@@ -96,5 +113,17 @@
       [:div.main-window
        [:div.sidex
         [tree-view @query-map (get-in @cm [:service :model]) :Gene]]
-       [query-view (get-in @cm [:service :model]) @query-map]])))
+       [query-view-old (get-in @cm [:service :model]) @query-map]
+       [non-visible-constraints]
+       [:button.btn.btn-success
+        {:on-click (fn [] (.log js/console "map" @query-map))}
+        "Log Query Map"]
+       [:button.btn.btn-success
+        {:on-click (fn [] (.log js/console "map" @query-constraints))}
+        "Log Query Constraints"]
+       [:button.btn.btn-success
+        {:on-click (fn [] (dispatch [:qb/make-query]))}
+        "Make Query"]
+       ])))
+
 

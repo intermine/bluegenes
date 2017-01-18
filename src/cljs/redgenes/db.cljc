@@ -26,10 +26,10 @@
    ;                                      :constraint-paths #{}
    ;                                      }
    ;                             }
-   :qb {:query-map {"Gene" {"symbol"   true
-                                       "organism" {"name" true}
-                                       "alleles"  {"name" true}}}
-        :query-constraints [{:path "Gene.symbol"
-                             :op "="
-                             :value "zen"}]}
+   :qb                         {:query-map         {"Gene" {"symbol"   true
+                                                            "organism" {"name" true}
+                                                            "alleles"  {"name" true}}}
+                                :query-constraints [{:path  "Gene.symbol"
+                                                     :op    "="
+                                                     :value "zen"}]}
    })
