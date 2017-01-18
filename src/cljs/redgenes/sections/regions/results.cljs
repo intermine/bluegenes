@@ -83,11 +83,11 @@
       (if (pos? (count (:results feature)))
         [:div.results
           [region-header feature [table-paginator pager results]]
-          [graphs/main feature]
+          ;[graphs/main feature]
           [:div.tabulated [table-header]
             (into [:div.results-body]
               (map (fn [result]  [table-row chromosome result])
-                (take (:show @pager) (drop (* (:show @pager) (:page @pager)) results))))]]
+                (take (:show @pager) (drop (* (:show @pager) (:page @pager)) (sort-by (comp :start :chromosomeLocation) results)))))]]
         [:div.results.noresults [region-header chromosome from to] "No features returned for this region"]
         ))))
 
