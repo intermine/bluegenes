@@ -18,6 +18,16 @@
     (-> db :idresolver :results)))
 
 (reg-sub
+  :idresolver/results-preview
+  (fn [db]
+    (-> db :idresolver :results-preview)))
+
+(reg-sub
+  :idresolver/fetching-preview?
+  (fn [db]
+    (-> db :idresolver :fetching-preview?)))
+
+(reg-sub
   :idresolver/selected
   (fn [db]
     (get-in db [:idresolver :selected])))

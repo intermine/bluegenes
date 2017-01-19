@@ -5,6 +5,7 @@
             [dommy.core :as dommy :refer-macros [sel sel1]]
             [redgenes.components.idresolver.events]
             [redgenes.components.icons :as icons]
+            [redgenes.components.ui.results_preview :refer [preview-table]]
             [redgenes.components.loader :refer [mini-loader]]
             [redgenes.components.idresolver.subs]
             [redgenes.components.lighttable :as lighttable]))
@@ -85,7 +86,7 @@ example-text))
             ;stop old auto-submit counter.
             (js/clearInterval @timer)
             ;start new timer again
-            (reset! timer (js/setTimeout #((submit-input input val)) timeout))
+            (reset! timer (js/setTimeout #(submit-input input val) timeout))
             ;submit the stuff
             (if (has-separator? input)
               (do
@@ -329,9 +330,8 @@ example-text))
   (dommy/listen! (sel1 :body) :keyup key-up-handler))
 
 (defn preview [result-count]
-  ""
-  (let [query             (subscribe [:results/query])
-        service           (:service @(subscribe [:current-mine]))]
+  (let [results-preview (subscribe [:idresolver/results-preview])
+        fetching-preview? (subscribe [:idresolver/fetching-preview?])]
     [:div
      [:h4.title "Results preview:"
       [:small.pull-right "Showing " [:span.count (min 5 result-count)] " of " [:span.count result-count] " Total Good Identifiers. "
@@ -340,9 +340,9 @@ example-text))
             (fn [] (dispatch [:idresolver/analyse true]))}
             "View all >>"])
        ]]
-     [lighttable/main {:query      @query
-                      :service    service
-                      :no-repeats true}]]
+       [preview-table
+         :loading? @fetching-preview?
+         :query-results @results-preview]]
 ))
 
 (defn main []

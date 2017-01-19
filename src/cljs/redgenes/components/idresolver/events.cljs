@@ -4,12 +4,17 @@
   (:require [re-frame.core :as re-frame :refer [reg-event-db reg-event-fx reg-fx dispatch subscribe]]
             [redgenes.db :as db]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
+
             [imcljsold.idresolver :as idresolver]
             [imcljsold.filters :as filters]
+            [imcljsold.search :as search]
+
+            [imcljs.fetch :as fetch]
             [com.rpl.specter :as s]
             [accountant.core :refer [navigate!]]
             [clojure.zip :as zip]))
 
+(def ns->kw (comp keyword namespace))
 
 (defn dissoc-in
   "Dissociates an entry from a nested associative structure returning a new
@@ -164,25 +169,31 @@
   results))
 )
 
+(defn build-query [ids object-type summary-fields]
+  (let [label (str "Uploaded " (count ids) " " object-type)]
+  {:type  :query
+          :label label
+          :value {:title  label
+                  :from   object-type
+                  :select summary-fields
+                  :where  [{:path   (str object-type ".id")
+                            :op     "ONE OF"
+                            :values ids}]}}))
+
 (reg-event-fx
   :idresolver/analyse
   (fn [{db :db} [_ navigate?]]
     (let [uid            (str (gensym))
           ids            (pull-ids-from-idresolver (-> db :idresolver :results))
           current-mine (:current-mine db)
-          summary-fields (get-in db [:assets :summary-fields current-mine :Gene])
-          results        {:type  :query
-                          :label (str "Uploaded " (count ids) " Genes")
-                          :value {:title  (str "Uploaded " (count ids) " Genes")
-                                  :from   "Gene"
-                                  :select summary-fields
-                                  :where  [{:path   "Gene.id"
-                                            :op     "ONE OF"
-                                            :values ids}]}}]
+          object-type "Gene"
+          summary-fields (get-in db [:assets :summary-fields current-mine (keyword object-type)])
+          results (build-query ids object-type summary-fields)]
       (cond-> {}
-              true (assoc :dispatch [:results/set-query {:source (get db :current-mine)
+              true (assoc :dispatch-n [[:results/set-query {:source (get db :current-mine)
                                       :type   :query
-                                      :value  (:value results)}])
+                                      :value  (:value results)}]
+                                       [:idresolver/fetch-preview results]])
               navigate?  (assoc :navigate (str "results"))
       ))))
 
@@ -208,3 +219,28 @@
                                 {:input  symbol
                                  :status :inactive}
                                 next)) bank)))))))
+
+(reg-event-db
+  :idresolver/store-results-preview
+  (fn [db [_ results]]
+    (update-in db [:idresolver] assoc
+               :results-preview results
+               :fetching-preview? false)))
+
+(reg-fx
+  :idresolver/pipe-preview
+  (fn [preview-chan]
+    (go (dispatch [:idresolver/store-results-preview (<! preview-chan)]))))
+
+(reg-event-fx
+  :idresolver/fetch-preview
+  (fn [{db :db} [_ query]]
+    (let [mine (:current-mine db)
+          service (get-in db [:mines mine :service])
+          count-chan    (fetch/table-rows service (:value query) {:size 5})
+          new-db        (update-in db [:idresolver] assoc
+                                   :preview-chan count-chan
+                                   :fetching-preview? true)]
+
+      {:db                            new-db
+       :idresolver/pipe-preview count-chan})))
