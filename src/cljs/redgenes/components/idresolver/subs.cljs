@@ -41,6 +41,14 @@
 ))
 
 (reg-sub
+ :idresolver/selected-object-type
+ (fn [db]
+   (let [object-type-default (get-in db [:mines (:current-mine db) :default-object-types])
+         selected (get-in db [:idresolver :selected-object-type])]
+    (if (some? selected) selected organism-default))
+))
+
+(reg-sub
   :idresolver/saved
   (fn [db [_ id]]
     (-> db :idresolver :saved (get id))))

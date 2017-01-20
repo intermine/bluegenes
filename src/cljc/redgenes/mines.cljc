@@ -12,6 +12,7 @@
           ;                   :output?            true
           ;                   :abbrev             "H. sapiens"
           ;                   :default-organism   "H. sapiens"
+          ;                   :default-object-types   ["Gene" "Protein"]
           ;                   :status             {:status :na}
           ;                   :idresolver-example "PPARG, FTO, 3949, LEP, 946, MC3R, 9607, LPL, LDLR, P55916, 335, GLUT4, Notch1, SLC27A1"
           ;                   :regionsearch-example ["2:14615455..14619002"
@@ -31,6 +32,7 @@
           ;                   :status             {:status :na}
           ;                   :output?            true
           ;                   :abbrev             "D. melanogaster"
+          ;                   :default-object-types   ["Gene" "Protein"]
           ;                   :idresolver-example "CG9151, FBgn0000099, CG3629, TfIIB, Mad, CG1775, CG2262, TWIST_DROME, tinman, runt, E2f, CG8817, FBgn0010433, CG9786, CG1034, ftz, FBgn0024250, FBgn0001251, tll, CG1374, CG33473, ato, so, CG16738, tramtrack,  CG2328, gt"
           ;                   :regionsearch-example ["2L:14615455..14619002"
           ;                                           "2R:5866646..5868384"
@@ -48,6 +50,7 @@
                             :output?            true
                             :abbrev             "H. sapiens"
                             :default-organism   "H. sapiens"
+                            :default-object-types   ["Gene" "Protein"]
                             :status             {:status :na}
                             :idresolver-example "PPARG, FTO, 3949, LEP, 946, MC3R, 9607, LPL, LDLR, P55916, 335, GLUT4, Notch1, SLC27A1"
                             :regionsearch-example ["2:14615455..14619002"
@@ -66,6 +69,7 @@
                             :status             {:status :na}
                             :output?            true
                             :abbrev             "D. melanogaster"
+                            :default-object-types   ["Gene" "Protein"]
                             :default-organism   "D. melanogaster"
                             :regionsearch-example ["2L:14615455..14619002"
                                                     "2R:5866646..5868384"
@@ -84,6 +88,7 @@
             ;                 :icon               "icon-mouse"
             ;                 :abbrev             "M. musculus"
             ;                 :default-organism   "M. musculus"
+            ;            :default-object-types   ["Gene" "Protein" "Ontology Term" "Publication" "Sequence Feature"]
             ;                 :status             {:status :na}
             ;                 :regionsearch-example ["2:10000000..15000000"
             ;                                       "chr6:10000000..20000000"
@@ -103,6 +108,7 @@
             ;                 :icon               "icon-rat"
             ;                 :abbrev             "R. norvegicus"
             ;                 :default-organism    "R. norvegicus"
+            ;            :default-object-types   ["Gene" "Protein"]
             ;                 :status             {:status :na}
             ;                 :idresolver-example "Exo1, LEPR, PW:0000564, 2004, RGD:3001, Hypertension"
             ;                 :mine
@@ -117,6 +123,7 @@
             ;                 :common             "Zebrafish"
             ;                 :icon               "icon-zebrafish"
             ;                 :output?            true
+            ;            :default-object-types   ["Gene" "Protein"]
             ;                 :status             {:status :na}
             ;                 :abbrev             "D. rerio"
             ;                 :default-organism   "D. rerio"
@@ -133,6 +140,7 @@
             ;                 :icon               "icon-worm"
             ;                 :abbrev             "C. elegans"
             ;                 :default-organism   "C. elegans"
+            ;            :default-object-types   ["Gene" "Protein"]
             ;                 :status             {:status :na}
             ;                 :idresolver-example "acr-10, unc-26, hlh-2, WBGene00002299, WBGene00004323, WBGene00002992"
             ;                 :mine
@@ -148,6 +156,7 @@
             ;                 :common             "Yeast"
             ;                 :icon               "icon-yeast"
             ;                 :abbrev             "S. cerevisiae"
+            ;            :default-object-types   ["Gene"]
             ;                 :default-organism   "S. cerevisiae"
             ;                 :status             {:status :na}
             ;                 :idresolver-example "rad51; rad52; rad53; ddc1; rad55; rad57; spo11; dmc1; rad17; rad9; rad24; msh1; msh5; mre11; xrs2; ndt80; tid1; ssb1; pre3; acr1; doa3; rad54; ssf1"
@@ -167,6 +176,7 @@
             ;                 :icon               "icon-human"
             ;                 :abbrev             "H. sapiens" ;;HAVING A DEFAULT ORGANISM MAY BE A BAD IDEA!! ;; i know
             ;                 :default-organism   "H. sapiens"
+            ;            :default-object-types   ["Gene" "Protein"]
             ;                 :status             {:status :na}
             ;                 :idresolver-example "Atp5a1, Atp5b, Atp5d, Atp5c1"
             ;                 :mine
