@@ -56,102 +56,86 @@
   (fn [m model root-class]
     [tree-view-recur model root-class [(name root-class)] m]))
 
-(defn query-view-old []
-  (let [query-constraints (subscribe [:qb/query-constraints])]
-    (fn [model m trail]
-      (into [:ul.qb]
-            (->> (into (sorted-map) m) ; Sort our query-map alphabetically
-                 (map (fn [[k value]]
-                        (let [children?      (map? value)
-                              my-constraints (filter (fn [c] (= (join "." (conj trail k)) (:path c))) @query-constraints)]
-                          [:li
-                           [:div
-
-                            [:div
-                             [:span k
-                              [:div.button-group {:style {:display "inline-block"}}
-                               [:button.small-btn
-                                {:on-click (fn [e]
-                                             (ocall e :stopPropagation)
-                                             (dispatch [:qb/remove-view (conj trail k)]))}
-                                [:i.fa.fa-times]]]]]
-                            (if (not-empty my-constraints)
-                              (into [:div {:style {:padding-left "30px"
-                                                   :display      "inline-block"}}]
-                                    (map (fn [con]
-                                           [:div
-                                            {:style {:display "block"}}
-                                            [constraint
-                                             :model model
-                                             :path (:path con)
-                                             :value (:value con)
-                                             :op (:op con)
-                                             :on-change (fn [] (println "CHANGED"))
-                                             :label? false]])
-                                         my-constraints)))
-
-                            (if children? [query-view-old model value (if trail (conj trail k) [k])])]]))))
-            ))))
 
 
-(defn query-view []
-  (let [query-constraints (subscribe [:qb/query-constraints])]
-    (fn [model m trail]
-      (into [:div.qbcontainer]
-            (->> (into (sorted-map) m) ; Sort our query-map alphabetically
-                 (map (fn [[k value]]
-                        (let [children?      (map? value)
-                              my-constraints (filter (fn [c] (= (join "." (conj trail k)) (:path c))) @query-constraints)]
-                          [:div.qbrow
-                           [:div
 
-                            [:div.qrow
-                             [:div.button-group {:style {:display "inline-block"}}
+
+(defn query-view-new []
+  (fn [model m trail]
+    (into [:div.qbcontainer]
+          (->> (into (sorted-map) m) ; Sort our query-map alphabetically
+               (map (fn [[k {:keys [visible children constraints] :as value}]]
+                      (let [path (if trail (conj trail k) [k])]
+                        [:div.qbrow
+                         [:div
+                          [:div.qrow
+
+                           [:div.button-group {:style {:white-space "nowrap"}}
+
+                            ; Don't show the "visible" icon if this path is a class
+                            (cond
+                              (and (not (p/class? model (join "." path)))
+                                   (not-empty constraints))
                               [:button.small-btn
-                               {:on-click (fn [e]
-                                            (ocall e :stopPropagation)
-                                            (dispatch [:qb/remove-view (conj trail k)]))}
-                               [:i.fa.fa-times]]]
-                             [:span.key k]
-                             (if (not-empty my-constraints)
+                               {:class    (if visible "visible")
+                                :on-click (fn [e] (ocall e :stopPropagation) (dispatch [:qb/toggle-view path]))}
+                               (if visible [:i.fa.fa-eye] [:i.fa.fa-eye-slash])]
+                              (and (not (p/class? model (join "." path)))
+                                   (empty? constraints))
+                              [:span.small-btn.empty
+                               [:i.fa.fa-eye]])
+
+                            ; Provide an "X" icon to remove the view / constraint
+                            (if-not (empty? trail) ; Don't allow user to drop the root node
+                              [:button.small-btn
+                               {:on-click (fn [e] (ocall e :stopPropagation) (dispatch [:qb/remove-view path]))}
+                               [:i.fa.fa-times]])]
+                           [:span.key k]
+
+                           (if constraints
+                             (do
                                (into [:div.ts]
                                      (map-indexed (fn [idx con]
-                                            [constraint
-                                             :model model
-                                             :path (:path con)
-                                             :value (:value con)
-                                             :op (:op con)
-                                             :on-change (fn [c] (dispatch [:qb/update-constraint idx c]))
-                                             :label? false])
-                                          my-constraints)))]]
-
-
-
-                           (if children?
-                             [:div.qbcol
-                              [query-view model value (if trail (conj trail k) [k])]])]))))))))
+                                                    [:div.constraint-row
+                                                     [:button.small-btn
+                                                      {:on-click (fn []  (dispatch [:qb/remove-constraint path idx]) )}
+                                                      [:i.fa.fa-times]]
+                                                     [constraint
+                                                      :model model
+                                                      :path (join "." path)
+                                                      :value (:value con)
+                                                      :op (:op con)
+                                                      :on-change (fn [c] (dispatch [:qb/update-constraint path idx c]))
+                                                      :label? false]
+                                                     ])
+                                                  constraints))))]]
+                         (if children [:div.qbcol [query-view-new model children path]])])))))))
 
 
 
 (defn main []
-  (let [query-map         (subscribe [:qb/query-map])
-        query-constraints (subscribe [:qb/query-constraints])
-        cm                (subscribe [:current-mine])]
+  (let [query-map (subscribe [:qb/query-map])
+        qm        (subscribe [:qb/qm])
+        cm        (subscribe [:current-mine])]
     (fn []
       [:div.main-window
        [:div.sidex
         [tree-view @query-map (get-in @cm [:service :model]) :Gene]]
-       [query-view (get-in @cm [:service :model]) @query-map]
+       ;[query-view (get-in @cm [:service :model]) @query-map]
+       [query-view-new (get-in @cm [:service :model]) @qm]
 
        [:button.btn.btn-success
-        {:on-click (fn [] (.log js/console "map" @query-map))}
+        {:on-click (fn [] (.log js/console "map" @qm))}
         "Log Query Map"]
-       [:button.btn.btn-success
-        {:on-click (fn [] (.log js/console "map" @query-constraints))}
-        "Log Query Constraints"]
        [:button.btn.btn-success
         {:on-click (fn [] (dispatch [:qb/make-query]))}
         "Make Query"]
+
+       #_[:div.xdisplayer
+        [:div.xrows
+         [:div.xrow
+          [:div.xcontrols "controls"]
+          [:div.xconstraints [:span [:span "banana"] [:span "c1"]] [:span "c2"]]]]]
        ])))
 
 

@@ -112,7 +112,7 @@
      ;   [:li [:a "ONE"]]]]
      ; [:input.form-control {:type "text"}]]
 
-     [:div.row
+     [:div
 
       [:div.input-group
        [constraint-operator

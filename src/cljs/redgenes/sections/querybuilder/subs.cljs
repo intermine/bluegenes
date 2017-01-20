@@ -7,6 +7,11 @@
     (into (sorted-map) (get-in db [:qb :query-map]))))
 
 (reg-sub
+  :qb/qm
+  (fn [db]
+    (into (sorted-map) (get-in db [:qb :qm]))))
+
+(reg-sub
   :qb/query-constraints
   (fn [db]
     (get-in db [:qb :query-constraints])))

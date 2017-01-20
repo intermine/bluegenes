@@ -26,7 +26,13 @@
    ;                                      :constraint-paths #{}
    ;                                      }
    ;                             }
-   :qb                         {:query-map         {"Gene" {"symbol"   true
+   :qb                         {:qm                {"Gene" {:children {"symbol"   {:visible     true
+                                                                                   :constraints [{:op    "="
+                                                                                                  :value "zen"}]}
+                                                                       "organism" {:children {"name" {:visible true}}}
+                                                                       "alleles"  {:children {"name" {:visible true}}}}}}
+
+                                :query-map         {"Gene" {"symbol"   true
                                                             "organism" {"name" true}
                                                             "alleles"  {"name" true}}}
                                 :query-constraints [{:path  "Gene.symbol"

@@ -316,16 +316,21 @@ dfh.active {
 
 .qbrow {
     flex: 1 0;
-    padding: 5px;
-    padding-left: 50px;
+    // padding: 5px;
+    padding-left: 25px;
     // border: 1px solid hotpink;
     display: flex;
     flex-direction: column;
-    border-top: 1px solid #d7d7d7;
-    border-left: 1px solid #d7d7d7;
-    border-bottom: 1px solid #d7d7d7;
+    //border-top: 1px solid #d7d7d7;
+    //border-left: 1px solid #d7d7d7;
+    //border-bottom: 1px solid #d7d7d7;
     border-radius: 9px;
+
+    &.visible {
+        background-color: #d7f6d7;
+    }
 }
+
 
 .qbcol {
     display: flex;
@@ -338,6 +343,7 @@ dfh.active {
     // border: 1px solid yellow;
     display: flex;
     flex-direction: row;
+    align-items: center;
 }
 
     .small-btn {
@@ -349,10 +355,55 @@ dfh.active {
         border: 1px solid #c6c6c6;
         border-radius: 3px;
         background-color: white;
+
+        &.visible {
+                background-color: #d7f6d7;
+            }
+
+        &.empty {
+            border: none;
+            background-color: transparent;
+        }
     }
 
 
         .button-group {
             margin-left: 7px;
             margin-right: 7px;
+            display: flex;
+            align-items: center;
         }
+
+.constraint-row {
+    display: flex;
+    align-items: center;
+    // border: 1px solid red;
+}
+
+
+
+.xdisplayer {
+  border: 1px solid black;
+}
+
+.xrows {
+  display: flex;
+  flex-direction: column;
+  padding-left: 10px;
+}
+
+.xrow {
+  display: flex;
+  border: 1px solid red;
+}
+
+.xcontrols {
+    display: flex;
+    border: 1px solid hotpink;
+}
+
+.xconstraints {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid hotpink;
+}

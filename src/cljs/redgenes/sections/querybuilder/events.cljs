@@ -1,5 +1,5 @@
 (ns redgenes.sections.querybuilder.events
-  (:require [re-frame.core :refer [reg-event-db]]
+  (:require [re-frame.core :refer [reg-event-db reg-event-fx]]
             [clojure.string :refer [join split]]))
 
 (reg-event-db
@@ -10,29 +10,53 @@
 (reg-event-db
   :qb/add-view
   (fn [db [_ view-vec]]
-    (update-in db [:qb :query-map] assoc-in view-vec true)))
+    (let [true-path (-> (interpose :children view-vec) vec)]
+      (update-in db (concat [:qb :qm] true-path) assoc :visible true))))
 
 (reg-event-db
   :qb/remove-view
   (fn [db [_ view-vec]]
-    (-> db
-        ; First remove the view
-        (update-in [:qb :query-map] update-in (drop-last view-vec) dissoc (last view-vec))
-        ; Then remove any constraints
-        (update-in [:qb :query-constraints] (partial remove #(= (:path %) (join "." view-vec))))
-        )))
+    (let [true-path (-> (interpose :children view-vec) vec)]
+      ; Recursively drop parent nodes if they're empty
+      (loop [db db path true-path]
+        (let [new (update-in db (concat [:qb :qm] (butlast path)) dissoc (last path))]
+          (if (and (> (count (butlast path)) 1) ; Don't drop the root node infiniloop!
+                   (empty? (get-in new (concat [:qb :qm] (butlast path)))))
+            (recur new (butlast path))
+            new))))))
+
+(reg-event-db
+  :qb/toggle-view
+  (fn [db [_ view-vec]]
+    (let [true-path (-> (interpose :children view-vec) vec (conj :visible))]
+      (update-in db (concat [:qb :qm] true-path) not))))
 
 (reg-event-db
   :qb/add-constraint
   (fn [db [_ view-vec]]
-    (update-in db [:qb :query-constraints] conj {:path  (join "." view-vec)
-                                                 :op    "="
-                                                 :value nil})))
+    (let [true-path (-> (interpose :children view-vec) vec (conj :constraints))]
+      (update-in db (concat [:qb :qm] true-path) (comp vec conj) {:op "=" :value nil}))))
+
+
+(defn vec-remove
+  "remove elem in coll"
+  [coll pos]
+  (vec (concat (subvec coll 0 pos) (subvec coll (inc pos)))))
+
+
+(reg-event-db
+  :qb/remove-constraint
+  (fn [db [_ path idx]]
+    (println "REMOVING")
+    (let [true-path (-> (interpose :children path) vec (conj :constraints))]
+      (.log js/console "fin" (update-in db (concat [:qb :qm] true-path) vec-remove idx))
+      (update-in db (concat [:qb :qm] true-path) vec-remove idx))))
 
 (reg-event-db
   :qb/update-constraint
-  (fn [db [_ idx constraint]]
-    (assoc-in db [:qb :query-constraints idx] constraint)))
+  (fn [db [_ path idx constraint]]
+    (let [true-path (-> (interpose :children path) vec (conj :constraints) (conj idx))]
+      (assoc-in db (concat [:qb :qm] true-path) constraint))))
 
 (defn map-view->dot
   "Turn a map of nested views into dot notation.
@@ -68,10 +92,5 @@
 (reg-event-db
   :qb/make-query
   (fn [db]
-    (let [{:keys [query-map query-constraints]} (:qb db)]
-      ;(.log js/console "qm" (make-query query-map query-constraints))
-      (.log js/console "cd" (map-depth {1 true
-                                        2 {3 {4 {5 {6 {7 true}}}}}}))
-      )
     db))
 
