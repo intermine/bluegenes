@@ -66,7 +66,7 @@
   :idresolver/resolve
   (fn [{db :db} [_ id]]
     (let [service  (get-in db [:mines (get db :current-mine) :service])
-          organism (get-in db [:mines (get db :current-mine) :abbrev])]
+          organism (get-in db [:idresolver :selected-organism :shortName])]
       {:db
        (-> db
            (assoc-in [:idresolver :resolving?] true)
