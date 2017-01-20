@@ -11,6 +11,7 @@
           ;                   :icon               "icon-human"
           ;                   :output?            true
           ;                   :abbrev             "H. sapiens"
+          ;                   :default-organism   "H. sapiens"
           ;                   :status             {:status :na}
           ;                   :idresolver-example "PPARG, FTO, 3949, LEP, 946, MC3R, 9607, LPL, LDLR, P55916, 335, GLUT4, Notch1, SLC27A1"
           ;                   :regionsearch-example ["2:14615455..14619002"
@@ -46,6 +47,7 @@
                             :icon               "icon-human"
                             :output?            true
                             :abbrev             "H. sapiens"
+                            :default-organism   "H. sapiens"
                             :status             {:status :na}
                             :idresolver-example "PPARG, FTO, 3949, LEP, 946, MC3R, 9607, LPL, LDLR, P55916, 335, GLUT4, Notch1, SLC27A1"
                             :regionsearch-example ["2:14615455..14619002"
@@ -64,6 +66,7 @@
                             :status             {:status :na}
                             :output?            true
                             :abbrev             "D. melanogaster"
+                            :default-organism   "D. melanogaster"
                             :regionsearch-example ["2L:14615455..14619002"
                                                     "2R:5866646..5868384"
                                                     "3R:2578486..2580016"]
@@ -73,9 +76,6 @@
                                                  ;:url "beta.flymine.org/beta"
                                                  :url     "beta.flymine.org/beta"
                                                  :service {:root "beta.flymine.org/beta"}}}
-
-            ;  :url "www.flymine.org/flymine"
-            ;  :service {:root "www.flymine.org/flymine"}}}
             ; :mousemine     {:id                 :mousemine
             ;                 :service            {:root "www.mousemine.org/mousemine"}
             ;                 :name               "MouseMine"
@@ -83,6 +83,7 @@
             ;                 :output?            true
             ;                 :icon               "icon-mouse"
             ;                 :abbrev             "M. musculus"
+            ;                 :default-organism   "M. musculus"
             ;                 :status             {:status :na}
             ;                 :regionsearch-example ["2:10000000..15000000"
             ;                                       "chr6:10000000..20000000"
@@ -101,6 +102,7 @@
             ;                 :output?            true
             ;                 :icon               "icon-rat"
             ;                 :abbrev             "R. norvegicus"
+            ;                 :default-organism    "R. norvegicus"
             ;                 :status             {:status :na}
             ;                 :idresolver-example "Exo1, LEPR, PW:0000564, 2004, RGD:3001, Hypertension"
             ;                 :mine
@@ -117,6 +119,7 @@
             ;                 :output?            true
             ;                 :status             {:status :na}
             ;                 :abbrev             "D. rerio"
+            ;                 :default-organism   "D. rerio"
             ;                 :idresolver-example "esr1, pparg, esr2a, esr2b, sdr42e1, star, ENSDARG00000063438, apoa1b, apoa1a, npc2, dhcr7, ZDB-GENE-061013-742, cyp11a2, s2p"
             ;                 :mine
             ;                                     {:name    "ZebraFishMine"
@@ -129,6 +132,7 @@
             ;                 :output?            true
             ;                 :icon               "icon-worm"
             ;                 :abbrev             "C. elegans"
+            ;                 :default-organism   "C. elegans"
             ;                 :status             {:status :na}
             ;                 :idresolver-example "acr-10, unc-26, hlh-2, WBGene00002299, WBGene00004323, WBGene00002992"
             ;                 :mine
@@ -144,6 +148,7 @@
             ;                 :common             "Yeast"
             ;                 :icon               "icon-yeast"
             ;                 :abbrev             "S. cerevisiae"
+            ;                 :default-organism   "S. cerevisiae"
             ;                 :status             {:status :na}
             ;                 :idresolver-example "rad51; rad52; rad53; ddc1; rad55; rad57; spo11; dmc1; rad17; rad9; rad24; msh1; msh5; mre11; xrs2; ndt80; tid1; ssb1; pre3; acr1; doa3; rad54; ssf1"
             ;                 :regionsearch-example ["chrIII:1356..20455"
@@ -160,7 +165,8 @@
             ;                 :output?            true
             ;                 :common             "MitoMiner"
             ;                 :icon               "icon-human"
-            ;                 :abbrev             "H. sapiens" ;;HAVING A DEFAULT ORGANISM MAY BE A BAD IDEA!!
+            ;                 :abbrev             "H. sapiens" ;;HAVING A DEFAULT ORGANISM MAY BE A BAD IDEA!! ;; i know
+            ;                 :default-organism   "H. sapiens"
             ;                 :status             {:status :na}
             ;                 :idresolver-example "Atp5a1, Atp5b, Atp5d, Atp5c1"
             ;                 :mine

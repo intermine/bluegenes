@@ -33,6 +33,14 @@
     (get-in db [:idresolver :selected])))
 
 (reg-sub
+ :idresolver/selected-organism
+ (fn [db]
+   (let [organism-default (get-in db [:mines (:current-mine db) :default-organism])
+         selected (get-in db [:idresolver :selected-organism :shortName])]
+    (if selected selected organism-default))
+))
+
+(reg-sub
   :idresolver/saved
   (fn [db [_ id]]
     (-> db :idresolver :saved (get id))))

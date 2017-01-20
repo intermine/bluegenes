@@ -8,6 +8,7 @@
             [redgenes.components.ui.results_preview :refer [preview-table]]
             [redgenes.components.loader :refer [mini-loader]]
             [redgenes.components.idresolver.subs]
+            [redgenes.components.imcontrols.views :as im-controls]
             [redgenes.components.lighttable :as lighttable]))
 
 ;;; TODOS:
@@ -23,6 +24,16 @@ example-text))
 (def separators (set ".,; "))
 
 (def timeout 1500)
+
+(defn organism-selection
+  "UI component allowing user to choose which organisms to search. Defaults to all."
+  []
+  (let [selected-organism (subscribe [:idresolver/selected-organism])]
+    [:div [:label "Organism"]
+      [im-controls/organism-dropdown
+      {:label     @selected-organism
+       :on-change (fn [organism]
+                    (dispatch [:idresolver/set-selected-organism organism]))}]]))
 
 (defn splitter
   "Splits a string on any one of a set of strings."
@@ -357,6 +368,7 @@ example-text))
           [:div.headerwithguidance
            [:h1 "List Upload"]
            [:a.guidance {:on-click (fn [] (dispatch [:idresolver/resolve (splitter (ex))]))} "[Show me an example]"]]
+          [organism-selection]
            [input-div]
            [stats]
            (cond (> result-count 0) [preview result-count])

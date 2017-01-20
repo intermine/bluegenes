@@ -139,6 +139,11 @@
   (fn [db [_ tf]]
     (assoc-in db [:idresolver :select-range] tf)))
 
+(reg-event-db
+  :idresolver/set-selected-organism
+  (fn [db [_ organism]]
+    (assoc-in db [:idresolver :selected-organism] organism)))
+
 (reg-event-fx
   :idresolver/save-results
   (fn [{db :db}]
