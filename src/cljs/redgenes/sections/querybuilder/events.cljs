@@ -29,6 +29,10 @@
                                                  :op    "="
                                                  :value nil})))
 
+(reg-event-db
+  :qb/update-constraint
+  (fn [db [_ idx constraint]]
+    (assoc-in db [:qb :query-constraints idx] constraint)))
 
 (defn map-view->dot
   "Turn a map of nested views into dot notation.
@@ -57,6 +61,8 @@
                                  (if (map? v)
                                    (conj total (map-depth v (inc current-depth)))
                                    (conj total current-depth))) [] m)))))
+
+
 
 
 (reg-event-db

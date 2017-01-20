@@ -52,7 +52,7 @@
 
   :min-lein-version "2.5.3"
 
-  :source-paths ["src/clj" "src/cljs" "src/cljc" "src/workers"]
+  :source-paths ["src/clj" "src/cljs" "src/cljc" "src/workers" "script/"]
 
   :clean-targets ^{:protect false} ["resources/public/js/compiled" "target"
                                     "test/js"]

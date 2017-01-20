@@ -96,14 +96,42 @@
 
 (defn query-view []
   (let [query-constraints (subscribe [:qb/query-constraints])]
-    (fn []
-      [:div "QV"])))
+    (fn [model m trail]
+      (into [:div.qbcontainer]
+            (->> (into (sorted-map) m) ; Sort our query-map alphabetically
+                 (map (fn [[k value]]
+                        (let [children?      (map? value)
+                              my-constraints (filter (fn [c] (= (join "." (conj trail k)) (:path c))) @query-constraints)]
+                          [:div.qbrow
+                           [:div
 
-(defn non-visible-constraints []
-  (let [invisible-constraints (subscribe [:qb/invisible-constraints])]
-    (fn []
-      (.log js/console "query-constraints" @invisible-constraints)
-      [:div "visibile"])))
+                            [:div.qrow
+                             [:div.button-group {:style {:display "inline-block"}}
+                              [:button.small-btn
+                               {:on-click (fn [e]
+                                            (ocall e :stopPropagation)
+                                            (dispatch [:qb/remove-view (conj trail k)]))}
+                               [:i.fa.fa-times]]]
+                             [:span.key k]
+                             (if (not-empty my-constraints)
+                               (into [:div.ts]
+                                     (map-indexed (fn [idx con]
+                                            [constraint
+                                             :model model
+                                             :path (:path con)
+                                             :value (:value con)
+                                             :op (:op con)
+                                             :on-change (fn [c] (dispatch [:qb/update-constraint idx c]))
+                                             :label? false])
+                                          my-constraints)))]]
+
+
+
+                           (if children?
+                             [:div.qbcol
+                              [query-view model value (if trail (conj trail k) [k])]])]))))))))
+
+
 
 (defn main []
   (let [query-map         (subscribe [:qb/query-map])
@@ -113,8 +141,8 @@
       [:div.main-window
        [:div.sidex
         [tree-view @query-map (get-in @cm [:service :model]) :Gene]]
-       [query-view-old (get-in @cm [:service :model]) @query-map]
-       [non-visible-constraints]
+       [query-view (get-in @cm [:service :model]) @query-map]
+
        [:button.btn.btn-success
         {:on-click (fn [] (.log js/console "map" @query-map))}
         "Log Query Map"]

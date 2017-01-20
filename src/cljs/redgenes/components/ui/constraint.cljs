@@ -69,7 +69,7 @@
   :lists      (Optional) if provided, automatically disable list constraints
               if there are no lists of that type"
   (fn [& {:keys [model path op on-change lists]}]
-    [:div.dropdown
+    [:div.input-group-btn.dropdown
      [:button.btn.btn-default.btn-raised.dropdown-toggle
       {:style       {:text-transform "none"}
        :data-toggle "dropdown"}
@@ -97,19 +97,30 @@
   :label?     If true then include the path as a label"
   (fn [& {:keys [lists model path value op on-change label?]}]
     [:div
-     (if label? [:div.row
-       [:div.col-sm-9 ;.col-sm-offset-3
-        [:label.lb-md (im-path/friendly model path)]]])
+
+     ;(if label? [:div.row
+     ;  [:div.col-sm-9 ;.col-sm-offset-3
+     ;   [:label.lb-md (im-path/friendly model path)]]])
+
+
+     ;[:div.input-group
+     ; [:div.input-group-btn.dropdown
+     ;  [:button.btn.btn-default.dropdown-toggle
+     ;   {:data-toggle "dropdown"}
+     ;   "dfgdhdfh!"]
+     ;  [:ul.dropdown-menu
+     ;   [:li [:a "ONE"]]]]
+     ; [:input.form-control {:type "text"}]]
+
      [:div.row
-      [:div.col-sm-3
-       {:style {:text-align "right"}}
+
+      [:div.input-group
        [constraint-operator
         :model model
         :path path
         :op op
         :lists lists
-        :on-change (fn [op] (on-change {:path path :value value :op op}))]]
-      [:div.col-sm-9
+        :on-change (fn [op] (on-change {:path path :value value :op op}))]
        (cond
 
          ; If this is a LIST constraint then show a list dropdown
@@ -124,7 +135,9 @@
                 :model model
                 :value value
                 :path path
-                :on-change (fn [val] (on-change {:path path :value val :op op}))])]]]))
+                :on-change (fn [val] (on-change {:path path :value val :op op}))])]
+
+      ]]))
 
 
 
