@@ -41,12 +41,12 @@ Example usage:
     [:div.btn-group.object-type-dropdown
      [:button.btn.btn-primary.dropdown-toggle
       {:data-toggle "dropdown"}
-      [:span (if selected-value (str selected-value " ") "Select a type") [:span.caret]]]
+      [:span (if selected-value (str (get-in display-names [selected-value :displayName]) " ") "Select a type") [:span.caret]]]
      (-> [:ul.dropdown-menu]
          (into (map (fn [value]
             [:li [:a
                   {:on-click (partial on-change value)}
-                  (get-in display-names [(keyword value) :displayName])]])
+                  (get-in display-names [value :displayName])]])
           values)))])))
 
 

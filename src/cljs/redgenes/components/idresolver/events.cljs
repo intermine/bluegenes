@@ -54,11 +54,11 @@
 
 (reg-fx
   :idresolver/resolve-id
-  (fn [[id service extra]]
+  (fn [[id service extra object-type]]
     (let [job (idresolver/resolve
                 service
                 {:identifiers (if (seq? id) id [id])
-                 :type        "Gene"
+                 :type        object-type
                  :extra       extra})]
       (go (dispatch [:handle-id (<! job)])))))
 
@@ -66,7 +66,11 @@
   :idresolver/resolve
   (fn [{db :db} [_ id]]
     (let [service  (get-in db [:mines (get db :current-mine) :service])
-          organism (get-in db [:idresolver :selected-organism :shortName])]
+          organism (get-in db [:idresolver :selected-organism :shortName])
+          organism (cond (nil? organism) (get-in db [:mines (:current-mine db) :default-organism]))
+          object-type (get-in db [:idresolver :selected-object-type])
+          object-type (cond (nil? object-type) (get-in db [:mines (get db :current-mine) :default-selected-object-type]))
+          ]
       {:db
        (-> db
            (assoc-in [:idresolver :resolving?] true)
@@ -76,7 +80,7 @@
                                             (conj total {:input  next
                                                          :status :inactive})) bank id)))))
        :idresolver/resolve-id
-       [id service organism]})))
+       [id service organism object-type]})))
 
 (defn toggle-into-collection [coll val]
   (if-let [found (some #{val} coll)]
@@ -150,6 +154,8 @@
     (assoc-in db [:idresolver :selected-object-type] object-type)))
 
 (reg-event-fx
+ ;;TODO:    This is probably an obsolete method. If we do res it,
+ ;;         make sure it's generic and not gene-specific.
   :idresolver/save-results
   (fn [{db :db}]
     (let [ids     (remove nil? (map (fn [[_ {id :id}]] id) (-> db :idresolver :results)))
@@ -196,8 +202,8 @@
     (let [uid            (str (gensym))
           ids            (pull-ids-from-idresolver (-> db :idresolver :results))
           current-mine (:current-mine db)
-          object-type "Gene"
-          summary-fields (get-in db [:assets :summary-fields current-mine (keyword object-type)])
+          object-type (get-in db [:idresolver :selected-object-type])
+          summary-fields (get-in db [:assets :summary-fields current-mine  object-type])
           results (build-query ids object-type summary-fields)]
       (cond-> {}
               true (assoc :dispatch-n [[:results/set-query {:source (get db :current-mine)

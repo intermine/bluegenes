@@ -43,9 +43,9 @@
 (reg-sub
  :idresolver/selected-object-type
  (fn [db]
-   (let [object-type-default (get-in db [:mines (:current-mine db) :default-object-types])
+   (let [object-type-default (get-in db [:mines (:current-mine db) :default-selected-object-type])
          selected (get-in db [:idresolver :selected-object-type])]
-    (if (some? selected) selected (first object-type-default)))
+    (if (some? selected) selected object-type-default))
 ))
 
 (reg-sub

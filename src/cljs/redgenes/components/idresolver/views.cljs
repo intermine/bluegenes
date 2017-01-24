@@ -379,7 +379,10 @@ example-text))
          [:div.container.idresolverupload
           [:div.headerwithguidance
            [:h1 "List Upload"]
-           [:a.guidance {:on-click (fn [] (dispatch [:idresolver/resolve (splitter (ex))]))} "[Show me an example]"]]
+           [:a.guidance
+            {:on-click
+             (fn []
+              (dispatch [:idresolver/resolve (splitter (ex))]))} "[Show me an example]"]]
           [organism-selection]
           [object-type-selection]
            [input-div]
