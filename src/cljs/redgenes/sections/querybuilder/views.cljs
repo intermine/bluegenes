@@ -119,6 +119,44 @@
 
 
 
+(defn qb-row []
+  (fn [data]
+    (println "qb-row" data)
+    [:div.grid
+     [:div.col-3 "Title"]
+     [:div.col-3 "Visible"]
+     [:div.col-6 "Constraints"]
+     ]))
+
+(defn qb-table []
+  (fn [[k value]]
+    (.log js/console "query-map" k value)
+    [:div.qb-container
+     [qb-row "I am one"]
+     [qb-row "I am one"]]))
+
+
+(defn build-thing [[k {:keys [children visible]}] total]
+  (let [new-total (conj total k)]
+    (println "NEWTOTAL" new-total)
+    (if (not-empty children)
+      (do
+        (.log js/console "recuring with" new-total)
+        (into [] (map (fn [n] (build-thing n (conj new-total new-total))) children)))
+      (do
+        (.log js/console "got to end" new-total)
+        new-total)))
+  )
+
+;(defn build-thing [[k {:keys [children visible]}] total]
+;  (.log js/console "build-thing" k total)
+;  (if (not-empty children)
+;    (do
+;      (into [] (reduce conj (map (fn [n] (build-thing n (conj total k))) children))))
+;    (do
+;      (.log js/console "conjing to total" (conj total k))
+;      (into []  (conj total k)))))
+
 (defn main []
   (let [query-map (subscribe [:qb/query-map])
         qm        (subscribe [:qb/qm])
@@ -136,6 +174,20 @@
        [:button.btn.btn-success
         {:on-click (fn [] (dispatch [:qb/make-query]))}
         "Make Query"]
+
+       (.log js/console "MAPPED" (map (fn [x] (build-thing x [])) @qm))
+
+
+       ;(into [:div]
+       ;      (map (fn [kv]
+       ;             (.log js/console [qb-table kv])
+       ;             [qb-table kv]) @qm))
+
+
+
+
+
+
 
        #_[:div.xdisplayer
         [:div.xrows
