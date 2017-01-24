@@ -302,12 +302,17 @@ dfh.active {
         border: 1px solid #c6c6c6;
         border-radius: 3px;
         background-color: white;
+        align-self: flex-start;
     }
 
 
 }
 
-.key { margin-right: 7px; }
+.key {
+    margin-right: 7px;
+    margin-left: 7px;
+    padding: 3px;
+}
 
 .qbcontainer {
     display: flex;
@@ -343,12 +348,13 @@ dfh.active {
     // border: 1px solid yellow;
     display: flex;
     flex-direction: row;
-    align-items: center;
+    align-items: flex-start;
 }
 
     .small-btn {
+        align-self: flex-start;
         color: #848484 !important;
-        padding: 1px;
+        padding: 2px;
         margin: 0;
         text-transform: none;
         font-size: 0.8em;
@@ -359,6 +365,12 @@ dfh.active {
         &.visible {
                 background-color: #d7f6d7;
             }
+
+        &.danger {
+            background-color: #e95e5e;
+            // color: white;
+            color: white !important;
+        }
 
         &.empty {
             border: none;
@@ -406,4 +418,12 @@ dfh.active {
     display: flex;
     flex-direction: column;
     border: 1px solid hotpink;
+}
+
+.attribute {
+    // border: 1px solid green;
+    border-radius: 5px;
+    background-color: #039be5;
+    color: white;
+
 }

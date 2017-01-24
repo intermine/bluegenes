@@ -58,6 +58,12 @@
     (let [true-path (-> (interpose :children path) vec (conj :constraints) (conj idx))]
       (assoc-in db (concat [:qb :qm] true-path) constraint))))
 
+(reg-event-db
+  :qb/update-constraint
+  (fn [db [_ path idx constraint]]
+    (let [true-path (-> (interpose :children path) vec (conj :constraints) (conj idx))]
+      (assoc-in db (concat [:qb :qm] true-path) constraint))))
+
 (defn map-view->dot
   "Turn a map of nested views into dot notation.
   (map-view->dot {Gene {id true organism {name true}}}
@@ -87,10 +93,29 @@
                                    (conj total current-depth))) [] m)))))
 
 
+(defn serialize-query
+  ([m]
+    (serialize-query m [] "Gene"))
+  ([m views constraints]
+    (loop [])))
+
+(defn serialize-views [[k {:keys [children visible]}] total trail]
+  (if visible
+    (str trail "." k)
+    (flatten (reduce (fn [t n] (conj t (serialize-views n total (str trail (if trail ".") k)))) total children))))
+
+(defn serialize-constraints [[k {:keys [children constraints]}] total trail]
+  (if children
+    (flatten (reduce (fn [t n] (conj t (serialize-constraints n total (str trail (if trail ".") k)))) total children))
+    (conj total (map (fn [n] (assoc n :path (str trail (if trail ".") k))) constraints))))
 
 
 (reg-event-db
   :qb/make-query
   (fn [db]
+    ;(.log js/console (serialize-query (get-in db [:qb :qm])))
+    ;(.log js/console (map tester (get-in db [:qb :qm])))
+    (println (reduce conj (map serialize-views (get-in db [:qb :qm]))))
+    (println "c" (reduce conj (map serialize-constraints (get-in db [:qb :qm]))))
     db))
 

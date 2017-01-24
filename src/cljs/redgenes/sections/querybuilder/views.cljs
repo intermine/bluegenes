@@ -77,29 +77,31 @@
                               (and (not (p/class? model (join "." path)))
                                    (not-empty constraints))
                               [:button.small-btn
-                               {:class    (if visible "visible")
+                               {:class    nil ;(if visible "visible")
                                 :on-click (fn [e] (ocall e :stopPropagation) (dispatch [:qb/toggle-view path]))}
                                (if visible [:i.fa.fa-eye] [:i.fa.fa-eye-slash])]
                               (and (not (p/class? model (join "." path)))
                                    (empty? constraints))
                               [:span.small-btn.empty
-                               [:i.fa.fa-eye]])
+                               [:i.fa.fa-eye]]
+                              )
+
+                            [:span.key {:class (if visible "attribute")} k
+                             (if-not (empty? trail) ; Don't allow user to drop the root node
+                               [:button.small-btn
+                                {:on-click (fn [e] (ocall e :stopPropagation) (dispatch [:qb/remove-view path]))}
+                                [:i.fa.fa-times]])]
 
                             ; Provide an "X" icon to remove the view / constraint
-                            (if-not (empty? trail) ; Don't allow user to drop the root node
-                              [:button.small-btn
-                               {:on-click (fn [e] (ocall e :stopPropagation) (dispatch [:qb/remove-view path]))}
-                               [:i.fa.fa-times]])]
-                           [:span.key k]
+                            ]
+
 
                            (if constraints
                              (do
                                (into [:div.ts]
                                      (map-indexed (fn [idx con]
                                                     [:div.constraint-row
-                                                     [:button.small-btn
-                                                      {:on-click (fn []  (dispatch [:qb/remove-constraint path idx]) )}
-                                                      [:i.fa.fa-times]]
+
                                                      [constraint
                                                       :model model
                                                       :path (join "." path)
@@ -107,6 +109,10 @@
                                                       :op (:op con)
                                                       :on-change (fn [c] (dispatch [:qb/update-constraint path idx c]))
                                                       :label? false]
+
+                                                     [:button.small-btn.danger
+                                                      {:on-click (fn []  (dispatch [:qb/remove-constraint path idx]) )}
+                                                      [:i.fa.fa-times]]
                                                      ])
                                                   constraints))))]]
                          (if children [:div.qbcol [query-view-new model children path]])])))))))
