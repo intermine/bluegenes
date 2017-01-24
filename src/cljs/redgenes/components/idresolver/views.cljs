@@ -35,8 +35,20 @@ example-text))
        :on-change (fn [organism]
                     (dispatch [:idresolver/set-selected-organism organism]))}]]))
 
-(defn splitter
-  "Splits a string on any one of a set of strings."
+(defn object-type-selection
+  "UI component allowing user to choose which object type to search. Defaults to the first one configured for a mine."
+  []
+  (let [selected-object-type (subscribe [:idresolver/selected-object-type])
+        values (subscribe [:idresolver/object-types])]
+    [:div [:label "Type"]
+      [im-controls/object-type-dropdown
+      {:values @values
+       :selected-value @selected-object-type
+       :on-change (fn [object-type]
+                    (dispatch [:idresolver/set-selected-object-type object-type]))}]]))
+
+
+(defn splitter "Splits a string on any one of a set of strings."
   [string]
   (->> (clojure.string/split string (re-pattern (str "[" (reduce str separators) "\\r?\\n]")))
        (remove nil?)
@@ -369,6 +381,7 @@ example-text))
            [:h1 "List Upload"]
            [:a.guidance {:on-click (fn [] (dispatch [:idresolver/resolve (splitter (ex))]))} "[Show me an example]"]]
           [organism-selection]
+          [object-type-selection]
            [input-div]
            [stats]
            (cond (> result-count 0) [preview result-count])

@@ -35,6 +35,19 @@ Example usage:
                       (sort-by :shortName @organisms))))])))
 
 
+(defn object-type-dropdown []
+  (let [display-names @(subscribe [:model])]
+  (fn [{:keys [values selected-value on-change ]}]
+    [:div.btn-group.object-type-dropdown
+     [:button.btn.btn-primary.dropdown-toggle
+      {:data-toggle "dropdown"}
+      [:span (if selected-value (str selected-value " ") "Select a type") [:span.caret]]]
+     (-> [:ul.dropdown-menu]
+         (into (map (fn [value]
+            [:li [:a
+                  {:on-click (partial on-change value)}
+                  (get-in display-names [(keyword value) :displayName])]])
+          values)))])))
 
 
 (defn has-text?

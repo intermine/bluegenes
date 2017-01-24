@@ -144,6 +144,11 @@
   (fn [db [_ organism]]
     (assoc-in db [:idresolver :selected-organism] organism)))
 
+(reg-event-db
+  :idresolver/set-selected-object-type
+  (fn [db [_ object-type]]
+    (assoc-in db [:idresolver :selected-object-type] object-type)))
+
 (reg-event-fx
   :idresolver/save-results
   (fn [{db :db}]

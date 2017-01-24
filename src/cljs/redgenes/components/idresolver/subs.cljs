@@ -45,8 +45,16 @@
  (fn [db]
    (let [object-type-default (get-in db [:mines (:current-mine db) :default-object-types])
          selected (get-in db [:idresolver :selected-object-type])]
-    (if (some? selected) selected organism-default))
+    (if (some? selected) selected (first object-type-default)))
 ))
+
+(reg-sub
+ :idresolver/object-types
+ (fn [db]
+   (let [current-mine (get-in db [:mines (get db :current-mine)])
+         current-model (get-in current-mine [:service :model :classes])]
+    (get-in db [:mines (:current-mine db) :default-object-types])
+)))
 
 (reg-sub
   :idresolver/saved
