@@ -3,6 +3,47 @@
 ;;; NOTE FOR PEOPLE EDITING THIS FILE: If you don't give a mine a regionsearch-example,
 ;;; We assume that there *is* no regionsearch in your mine, and there's no link it in the navbar.
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;SAMPLE MINE CONFIG WITH COMMENTS:
+(def sample-mine
+  {:kittenmine
+   {;;This is just a keyword to identify your mine. It could
+    ;;be almost anything, but must be consistent with the map key
+    :id                 :kittenmine
+    ;;The web servce URL for your mine
+    :service            {:root "www.kittenmine.org/query" :token nil}
+    ;; The name of your Mine. This will show in the navbar
+    :name               "KittenMine"
+    ;; DEPRECATED - common name for your mine's organism. This may be
+    ;; removed in the future b/c mines are multi-organism . (Homology)
+    :common             "Fly"
+    ;; Probably deprecated as above
+    :abbrev             "D. melanogaster"
+    ;; The name for an icon to represent your InterMine. Should be
+    ;; defined as an SVG in src/cljs/redgenes/components/icons.cljs
+    ;; It will appear in the top-left corner of the navbar.
+    :icon               "icon-kitten"
+    ;; Mines have default "popular" object types that aren't available via the API
+    ;; This is the workaround. When in doubt,[:Gene] is a good bet.
+    ;; Also update selected object-type when you change the default types.
+    :default-object-types   [:Gene :Protein]
+    ;; This must be one of the types in default-object type, even if there's more than one. Initial value, may be overwritten by the user.
+    :selected-object-type :Gene
+    ;; Must be set to initialise organism dropdowns correctly
+    :default-organism   "D. melanogaster"
+    ;; What to populates the list upload / id resolver with when user clicks
+    ;; [Show me an example]. Make sure IDs are consistent with the
+    ;; selected-object-type and default organism.
+    :idresolver-example "CG9151, FBgn0000099, CG3629, TfIIB, Mad, CG1775, CG2262, TWIST_DROME, tinman, runt, E2f, CG8817, FBgn0010433, CG9786, CG1034, ftz, FBgn0024250, FBgn0001251, tll, CG1374, CG33473, ato, so, CG16738, tramtrack,  CG2328, gt"
+    ;;What to populate in regionsearch when user clicks [Show me an example].
+    ;;This is optional if your mine doesn't have region search. If you don't include
+    ;;it, the regionsearch tab won't show.
+    :regionsearch-example ["2L:14615455..14619002"
+                            "2R:5866646..5868384"
+                            "3R:2578486..2580016"]}})
+
+
+
 (def mines  {
           ; :humanmine     {:id                 :humanmine
           ;                   :service            {:root "www.humanmine.org/humanmine" :token nil}
