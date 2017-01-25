@@ -257,6 +257,9 @@ example-text))
        [:div.eenput
         {:class (if @drag-state "dragging")}
         [:div.idresolver
+          [:div.type-and-organism
+           [organism-selection]
+           [object-type-selection]]
           [input-items]
           [input-box]
          [controls]]
@@ -383,8 +386,6 @@ example-text))
             {:on-click
              (fn []
               (dispatch [:idresolver/resolve (splitter (ex))]))} "[Show me an example]"]]
-          [organism-selection]
-          [object-type-selection]
            [input-div]
            [stats]
            (cond (> result-count 0) [preview result-count])
