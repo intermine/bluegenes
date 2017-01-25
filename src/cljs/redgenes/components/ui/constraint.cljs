@@ -70,7 +70,8 @@
               if there are no lists of that type"
   (fn [& {:keys [model path op on-change lists]}]
     [:div.input-group-btn.dropdown
-     [:button.btn.btn-default.btn-raised.dropdown-toggle
+     [:button.btn.btn-default.dropdown-toggle
+      ;:button.btn.btn-default.btn-raised.dropdown-toggle
       {:style       {:text-transform "none"}
        :data-toggle "dropdown"}
       (str (constraint-label op) " ") [:span.caret]]

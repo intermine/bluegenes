@@ -1,5 +1,7 @@
 (ns redgenes.sections.querybuilder.events
   (:require [re-frame.core :refer [reg-event-db reg-event-fx]]
+            [imcljs.query :as im-query]
+            [imcljs.fetch :as fetch]
             [clojure.string :refer [join split]]))
 
 (reg-event-db
@@ -92,13 +94,6 @@
                                    (conj total (map-depth v (inc current-depth)))
                                    (conj total current-depth))) [] m)))))
 
-
-(defn serialize-query
-  ([m]
-    (serialize-query m [] "Gene"))
-  ([m views constraints]
-    (loop [])))
-
 (defn serialize-views [[k {:keys [children visible]}] total trail]
   (if visible
     (str trail "." k)
@@ -107,15 +102,56 @@
 (defn serialize-constraints [[k {:keys [children constraints]}] total trail]
   (if children
     (flatten (reduce (fn [t n] (conj t (serialize-constraints n total (str trail (if trail ".") k)))) total children))
-    (conj total (map (fn [n] (assoc n :path (str trail (if trail ".") k))) constraints))))
+    (conj total (map (fn [n]
+                       (.log js/console "n" n)
+                       (assoc n :path (str trail (if trail ".") k))) constraints))))
 
 
 (reg-event-db
-  :qb/make-query
-  (fn [db]
-    ;(.log js/console (serialize-query (get-in db [:qb :qm])))
-    ;(.log js/console (map tester (get-in db [:qb :qm])))
-    (println (reduce conj (map serialize-views (get-in db [:qb :qm]))))
-    (println "c" (reduce conj (map serialize-constraints (get-in db [:qb :qm]))))
+  :qb/success-count
+  (fn [db [_ count]]
+    (println "count" count)
     db))
+
+
+
+(def test-query {:path        "Gene"
+                 :visible     true
+                 :constraints [{:op    "IN"
+                                :value "My Favorite List"}]
+                 :children    [{:path        "symbol"
+                                :visible     true
+                                :constraints [{:op    "="
+                                               :value "zen"}]}
+                               {:path     "organism"
+                                :visible  true
+                                :children [{:path        "name"
+                                            :visible     true
+                                            :constraints [{:op    "="
+                                                           :value "Homo sapiens"}]}]}]})
+
+(defn extract-constraints
+  ([query]
+   (distinct (extract-constraints nil [] query)))
+  ([s c {:keys [path children constraints]}]
+   (let [dot (str s (if s ".") path)] ; Our path so far (Gene.alleles)
+     (if children
+       (mapcat (partial extract-constraints dot (reduce conj c (map #(assoc % :path dot) constraints))) children)
+       (reduce conj c (map #(assoc % :path dot) constraints))))))
+
+(reg-event-fx
+  :qb/make-query
+  (fn [{db :db}]
+    (let [service (get-in db [:mines (get-in db [:current-mine]) :service])
+          query   {:select (reduce conj (map serialize-views (get-in db [:qb :qm])))
+                   :where  (reduce conj (map serialize-constraints (get-in db [:qb :qm])))}]
+
+      (.log js/console "looped" (extract-constraints test-query))
+
+      {:db db
+       ;:im-operation {:on-success [:qb/success-count]
+       ;               :op         (partial fetch/row-count
+       ;                                    service
+       ;                                    query)}
+       })))
 

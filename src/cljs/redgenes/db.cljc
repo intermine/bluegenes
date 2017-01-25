@@ -29,8 +29,11 @@
    :qb                         {:qm                {"Gene" {:children {"symbol"   {:visible     true
                                                                                    :constraints [{:op    "="
                                                                                                   :value "zen"}]}
-                                                                       "organism" {:children {"name" {:visible true}}}
-                                                                       "alleles"  {:children {"name" {:visible true}}}}}}
+                                                                       "organism" {:children {"name" {:visible true
+                                                                                                      :constraints [{:op "="
+                                                                                                                     :value "Homo spaiens"}]}}}
+                                                                       "alleles"  {:children {"name" {:visible true}
+                                                                                              "id" {:visible true}}}}}}
 
                                 :query-map         {"Gene" {"symbol"   true
                                                             "organism" {"name" true}

@@ -352,7 +352,7 @@ dfh.active {
 }
 
     .small-btn {
-        align-self: flex-start;
+        // align-self: flex-start;
         color: #848484 !important;
         padding: 2px;
         margin: 0;
@@ -389,7 +389,8 @@ dfh.active {
 .constraint-row {
     display: flex;
     align-items: center;
-    // border: 1px solid red;
+    padding-top: 3px;
+    padding-bottom: 3px;
 }
 
 
@@ -422,8 +423,59 @@ dfh.active {
 
 .attribute {
     // border: 1px solid green;
+    padding: 5px;
     border-radius: 5px;
     background-color: #039be5;
     color: white;
 
+}
+
+[class*=col-] {
+    border-right: 1px solid rgb(236, 235, 235);
+    padding: 4px;
+
+}
+
+.white {
+    background-color: white;
+}
+
+.grid {
+    border-bottom: 1px solid rgb(236, 235, 235);
+}
+
+
+@spacer: 1em;
+.child {
+  position: relative;
+  margin-left: 1.8em;
+  &:before {
+    content: " ";
+    border-bottom: solid 2px #999;
+    border-left: solid 2px #999;
+    display: block;
+    position: absolute;
+    left: -@spacer;
+    width: @spacer;
+    height: @spacer;
+  }
+}
+
+.btn-simple {
+    opacity: 0.5;
+    margin: 0;
+    padding: 2px;
+    &:hover {
+        opacity: 1;
+    }
+}
+
+.soft {
+    opacity: 0.5;
+    margin: 0;
+    padding: 2px;
+}
+
+.padme {
+    padding: 4px;
 }

@@ -111,7 +111,7 @@
                                                       :label? false]
 
                                                      [:button.small-btn.danger
-                                                      {:on-click (fn []  (dispatch [:qb/remove-constraint path idx]) )}
+                                                      {:on-click (fn [] (dispatch [:qb/remove-constraint path idx]))}
                                                       [:i.fa.fa-times]]
                                                      ])
                                                   constraints))))]]
@@ -119,43 +119,77 @@
 
 
 
+(defn head []
+  [:div.grid
+   [:div.col-1]
+   [:div.col-1]
+
+   [:div.col-5 [:h4 "Field"]]
+
+   [:div.col-5 [:h4 "Constraints"]]
+   ])
+
 (defn qb-row []
-  (fn [data]
-    (println "qb-row" data)
-    [:div.grid
-     [:div.col-3 "Title"]
-     [:div.col-3 "Visible"]
-     [:div.col-6 "Constraints"]
-     ]))
+  (fn [model {:keys [view value]}]
+    (let [lists       (subscribe [:lists])
+          class?      (p/class? model (join "." view))
+          constraints (:constraints value)]
+      [:div.grid
 
-(defn qb-table []
-  (fn [[k value]]
-    (.log js/console "query-map" k value)
-    [:div.qb-container
-     [qb-row "I am one"]
-     [qb-row "I am one"]]))
+       [:div.col-1
+        {:style {:text-align "right"}}
+        [:button.btn.btn-danger.btn-simple
+         {:on-click (fn [] (dispatch [:qb/remove-view view]))}
+         [:i.fa.fa-times]]]
 
 
-(defn build-thing [[k {:keys [children visible]}] total]
+       [:div.col-1
+        (cond
+          (and (not-empty constraints) (not class?)) [:button.btn.btn-primary.btn-simple
+                                                      {:on-click (fn [] (dispatch [:qb/toggle-view view]))}
+                                                      (if (:visible value)
+                                                        [:i.fa.fa-eye]
+                                                        [:i.fa.fa-eye-slash])]
+          (and (not constraints) class?) nil
+          class? nil
+          :else [:i.soft.fa.fa-eye])]
+       [:div.col-5.white
+        [:span {
+                ;:class (if-not class? "attribute")
+                :style {:margin-left (str (* 20 (count view)) "px")}}
+
+         (str (last view))
+         ]]
+       [:div.col-5.white
+        (if constraints
+          (do
+            (into [:div.ts]
+                  (map-indexed (fn [idx con]
+                                 [:div.constraint-row
+                                  [:button.btn.btn-danger.btn-simple
+                                   {:on-click (fn [] (dispatch [:qb/remove-constraint view idx]))}
+                                   [:i.fa.fa-times]]
+                                  [constraint
+                                   :model model
+                                   :path (join "." view)
+                                   :lists (second (first @lists))
+                                   :value (:value con)
+                                   :op (:op con)
+                                   :on-change (fn [c] (dispatch [:qb/update-constraint view idx c]))
+                                   :label? false]])
+                               constraints))))
+        [:button.btn.btn-success.btn-simple
+         {:on-click (fn [] (dispatch [:qb/add-constraint view]))}
+         [:span [:i.fa.fa-plus]]]]])))
+
+
+
+(defn build-thing [[k {:keys [children] :as item}] total views]
   (let [new-total (conj total k)]
-    (println "NEWTOTAL" new-total)
     (if (not-empty children)
-      (do
-        (.log js/console "recuring with" new-total)
-        (into [] (map (fn [n] (build-thing n (conj new-total new-total))) children)))
-      (do
-        (.log js/console "got to end" new-total)
-        new-total)))
-  )
+      (into [] (mapcat (fn [n] (build-thing n new-total (conj views {:view new-total :value item}))) children))
+      (conj views {:view new-total :value item}))))
 
-;(defn build-thing [[k {:keys [children visible]}] total]
-;  (.log js/console "build-thing" k total)
-;  (if (not-empty children)
-;    (do
-;      (into [] (reduce conj (map (fn [n] (build-thing n (conj total k))) children))))
-;    (do
-;      (.log js/console "conjing to total" (conj total k))
-;      (into []  (conj total k)))))
 
 (defn main []
   (let [query-map (subscribe [:qb/query-map])
@@ -166,34 +200,29 @@
        [:div.sidex
         [tree-view @query-map (get-in @cm [:service :model]) :Gene]]
        ;[query-view (get-in @cm [:service :model]) @query-map]
-       [query-view-new (get-in @cm [:service :model]) @qm]
+       #_[query-view-new (get-in @cm [:service :model]) @qm]
 
-       [:button.btn.btn-success
-        {:on-click (fn [] (.log js/console "map" @qm))}
-        "Log Query Map"]
+       #_[:button.btn.btn-success
+          {:on-click (fn [] (.log js/console "map" @qm))}
+          "Log Query Map"]
        [:button.btn.btn-success
         {:on-click (fn [] (dispatch [:qb/make-query]))}
         "Make Query"]
 
-       (.log js/console "MAPPED" (map (fn [x] (build-thing x [])) @qm))
+       [head]
+       (into [:div]
+             (map (fn [v]
+                    [qb-row (get-in @cm [:service :model]) v]) (distinct (mapcat (fn [x] (build-thing x [] [])) @qm))))
 
-
-       ;(into [:div]
-       ;      (map (fn [kv]
-       ;             (.log js/console [qb-table kv])
-       ;             [qb-table kv]) @qm))
-
-
-
-
-
-
-
-       #_[:div.xdisplayer
-        [:div.xrows
-         [:div.xrow
-          [:div.xcontrols "controls"]
-          [:div.xconstraints [:span [:span "banana"] [:span "c1"]] [:span "c2"]]]]]
        ])))
 
+
+{"Gene" {:children {"symbol"   {:visible     true
+                                :constraints [{:op    "="
+                                               :value "zen"}]}
+                    "organism" {:children {"name" {:visible     true
+                                                   :constraints [{:op    "="
+                                                                  :value "Homo spaiens"}]}}}
+                    "alleles"  {:children {"name" {:visible true}
+                                           "id"   {:visible true}}}}}}
 
