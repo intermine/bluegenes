@@ -31,7 +31,7 @@ example-text))
   (let [selected-organism (subscribe [:idresolver/selected-organism])]
     [:div [:label "Organism"]
       [im-controls/organism-dropdown
-      {:selected-value @selected-organism
+      {:selected-value (if (some? @selected-organism) @selected-organism "Any")
        :on-change (fn [organism]
                     (dispatch [:idresolver/set-selected-organism organism]))}]]))
 

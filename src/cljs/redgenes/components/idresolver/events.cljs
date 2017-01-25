@@ -16,6 +16,24 @@
 
 (def ns->kw (comp keyword namespace))
 
+(defn get-object-type
+  "returns either the currently selected object-type or the default if none has been selected"
+  [db]
+  (let [object-type (get-in db [:idresolver :selected-object-type])
+        object-type-default (get-in db [:mines (get db :current-mine) :default-selected-object-type])]
+    (if (some? object-type)
+      object-type
+      object-type-default)))
+
+(defn get-organism-type
+  "returns either the currently selected organism or the default if none has been selected"
+  [db]
+  (let [organism (get-in db [:idresolver :selected-organism :shortName])]
+    (if (some? organism)
+      organism
+      :any)
+))
+
 (defn dissoc-in
   "Dissociates an entry from a nested associative structure returning a new
   nested structure. keys is a sequence of keys. Any empty maps that result
@@ -54,22 +72,21 @@
 
 (reg-fx
   :idresolver/resolve-id
-  (fn [[id service extra object-type]]
-    (let [job (idresolver/resolve
-                service
-                {:identifiers (if (seq? id) id [id])
-                 :type        object-type
-                 :extra       extra})]
+  (fn [[id service db]]
+    (let [organism (get-organism-type db)
+          job (idresolver/resolve service
+            (cond->
+              {:identifiers (if (seq? id) id [id])
+               :type        (get-object-type db)}
+              (not= organism :any) (assoc :extra organism)))]
       (go (dispatch [:handle-id (<! job)])))))
 
 (reg-event-fx
   :idresolver/resolve
   (fn [{db :db} [_ id]]
     (let [service  (get-in db [:mines (get db :current-mine) :service])
-          organism (get-in db [:idresolver :selected-organism :shortName])
-          organism (cond (nil? organism) (get-in db [:mines (:current-mine db) :default-organism]))
-          object-type (get-in db [:idresolver :selected-object-type])
-          object-type (cond (nil? object-type) (get-in db [:mines (get db :current-mine) :default-selected-object-type]))
+          organism (get-organism-type db)
+          object-type (get-object-type db)
           ]
       {:db
        (-> db
@@ -80,7 +97,7 @@
                                             (conj total {:input  next
                                                          :status :inactive})) bank id)))))
        :idresolver/resolve-id
-       [id service organism object-type]})))
+       [id service db]})))
 
 (defn toggle-into-collection [coll val]
   (if-let [found (some #{val} coll)]
@@ -185,8 +202,14 @@
   results))
 )
 
-(defn build-query [ids object-type summary-fields]
-  (let [label (str "Uploaded " (count ids) " " object-type)]
+(defn build-query
+  "Builds the structure for the preview results query, given a set of successfully identified IDs"
+  [ids object-type summary-fields]
+  (let [object-type (name object-type)
+        plural? (> (count ids) 1)
+        ;this pluralisation works for proteins and genes. one day we can get fancy
+        ; and worry about -ies and other pluralisations, but today is not that day.
+        label (str "Uploaded " (count ids) " " object-type (cond plural? "s"))]
   {:type  :query
           :label label
           :value {:title  label
@@ -202,7 +225,7 @@
     (let [uid            (str (gensym))
           ids            (pull-ids-from-idresolver (-> db :idresolver :results))
           current-mine (:current-mine db)
-          object-type (get-in db [:idresolver :selected-object-type])
+          object-type (get-object-type db)
           summary-fields (get-in db [:assets :summary-fields current-mine  object-type])
           results (build-query ids object-type summary-fields)]
       (cond-> {}

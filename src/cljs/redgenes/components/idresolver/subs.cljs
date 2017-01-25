@@ -35,9 +35,7 @@
 (reg-sub
  :idresolver/selected-organism
  (fn [db]
-   (let [organism-default (get-in db [:mines (:current-mine db) :default-organism])
-         selected (get-in db [:idresolver :selected-organism :shortName])]
-    (if (some? selected) selected organism-default))
+  (get-in db [:idresolver :selected-organism :shortName])
 ))
 
 (reg-sub
