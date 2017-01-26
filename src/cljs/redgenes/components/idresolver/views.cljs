@@ -15,12 +15,6 @@
 
 ;We need to handler more than X results :D right now 1000 results would ALL show on screen. Eep.
 
-(defn ex []
-  (let [active-mine (subscribe [:current-mine])
-        mines (subscribe [:mines])
-        example-text (:idresolver-example ((:id @active-mine) @mines))]
-example-text))
-
 (def separators (set ".,; "))
 
 (def timeout 1500)
@@ -385,7 +379,7 @@ example-text))
            [:a.guidance
             {:on-click
              (fn []
-              (dispatch [:idresolver/resolve (splitter (ex))]))} "[Show me an example]"]]
+              (dispatch [:idresolver/example splitter]))} "[Show me an example]"]]
            [input-div]
            [stats]
            (cond (> result-count 0) [preview result-count])

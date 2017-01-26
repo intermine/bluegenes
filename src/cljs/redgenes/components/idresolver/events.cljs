@@ -283,3 +283,46 @@
 
       {:db                            new-db
        :idresolver/pipe-preview count-chan})))
+
+(defn get-default-example
+  "Fallback for scenarios where soem one's using the id resolver nd it's not well configured"
+  [db]
+  (let [current-mine (get-in db [:mines (:current-mine db)])
+        ;pull the default from the db
+        object-type-default (:default-selected-object-type current-mine)
+        examples (get-in current-mine [:idresolver-example])
+        example-text-default (object-type-default examples)
+        ;can we use the default?
+        use-default? (some? example-text-default)
+        ;grab any example there is, in case there isn't a default.
+        any-example-type (first (keys examples))
+        any-example-text (any-example-type examples)
+        ;where we store the data
+        example-keys [:idresolver :selected-object-type]]
+    {:db (cond->
+          ;sets example to any type configured as a fallback
+          (assoc-in db example-keys any-example-type)
+          ;if there's a default type, set the example to it instead.
+          use-default? (assoc-in example-keys object-type-default))
+     :text (if use-default? example-text-default any-example-text)}
+  ))
+
+(reg-event-fx
+  :idresolver/example
+  (fn [{db :db} [_ splitter]]
+    (let [current-mine (get-in db [:mines (:current-mine db)])
+          object-type (get-object-type db)
+          ;reset entries to the upload when we choose an example.
+          cleared-db (assoc-in db [:idresolver :bank] [])
+          examples (get-in current-mine [:idresolver-example])
+          example-text (object-type examples)]
+      ; attempt to show an example from the currently selected object type.
+      ; If theres is no example configured, we'll try to fall back to a default.
+      (if (some? example-text)
+        {:db cleared-db
+         :dispatch [:idresolver/resolve (splitter example-text)]}
+        (let [fallback-example (get-default-example cleared-db)]
+          {:db (:db fallback-example)
+           :dispatch [:idresolver/resolve (splitter (:text fallback-example))]}
+        ))
+    )))

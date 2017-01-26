@@ -32,7 +32,8 @@
     ;; What to populates the list upload / id resolver with when user clicks
     ;; [Show me an example]. Make sure IDs are consistent with the
     ;; selected-object-type and default organism.
-    :idresolver-example "CG9151, FBgn0000099, CG3629, TfIIB, Mad, CG1775, CG2262, TWIST_DROME, tinman, runt, E2f, CG8817, FBgn0010433, CG9786, CG1034, ftz, FBgn0024250, FBgn0001251, tll, CG1374, CG33473, ato, so, CG16738, tramtrack,  CG2328, gt"
+    :idresolver-example {:Gene "CG9151, FBgn0000099, CG3629, TfIIB, Mad, CG1775, CG2262, TWIST_DROME, tinman, runt, E2f, CG8817, FBgn0010433, CG9786, CG1034, ftz, FBgn0024250, FBgn0001251, tll, CG1374, CG33473, ato, so, CG16738, tramtrack,  CG2328, gt"
+                         :Protein "Q8T3M3,FBpp0081318,FTZ_DROME"}
     ;;What to populate in regionsearch when user clicks [Show me an example].
     ;;This is optional if your mine doesn't have region search. If you don't include
     ;;it, the regionsearch tab won't show.
@@ -54,7 +55,8 @@
           ;                   :default-object-types   ["Gene" "Protein"]
           ;                   :default-selected-object-type :Gene
           ;                   :status             {:status :na}
-          ;                   :idresolver-example "PPARG, FTO, 3949, LEP, 946, MC3R, 9607, LPL, LDLR, P55916, 335, GLUT4, Notch1, SLC27A1"
+          ;                   :idresolver-example {:Gene "PPARG, FTO, 3949, LEP, 946, MC3R, 9607, LPL, LDLR, P55916, 335, GLUT4, Notch1, SLC27A1"
+          ;                   :Protein "P37231, PPARG_HUMAN"}
           ;                   :regionsearch-example ["2:14615455..14619002"
           ;                                          "4:5866646..5868384"
           ;                                          "3:2578486..2580016"]
@@ -74,7 +76,8 @@
           ;                   :abbrev             "D. melanogaster"
           ;                   :default-object-types   ["Gene" "Protein"]
           ;                   :default-selected-object-type :Gene
-          ;                   :idresolver-example "CG9151, FBgn0000099, CG3629, TfIIB, Mad, CG1775, CG2262, TWIST_DROME, tinman, runt, E2f, CG8817, FBgn0010433, CG9786, CG1034, ftz, FBgn0024250, FBgn0001251, tll, CG1374, CG33473, ato, so, CG16738, tramtrack,  CG2328, gt"
+          ;                   :idresolver-example {:Gene "CG9151, FBgn0000099, CG3629, TfIIB, Mad, CG1775, CG2262, TWIST_DROME, tinman, runt, E2f, CG8817, FBgn0010433, CG9786, CG1034, ftz, FBgn0024250, FBgn0001251, tll, CG1374, CG33473, ato, so, CG16738, tramtrack,  CG2328, gt"
+          ;                   :Protein "Q8T3M3,FBpp0081318,FTZ_DROME"}
           ;                   :regionsearch-example ["2L:14615455..14619002"
           ;                                           "2R:5866646..5868384"
           ;                                           "3R:2578486..2580016"]
@@ -92,7 +95,8 @@
                             :default-organism   "H. sapiens"
                             :default-object-types   [:Gene :Protein]
                             :default-selected-object-type :Gene
-                            :idresolver-example "PPARG, FTO, 3949, LEP, 946, MC3R, 9607, LPL, LDLR, P55916, 335, GLUT4, Notch1, SLC27A1"
+                            :idresolver-example {:Gene "PPARG, FTO, 3949, LEP, 946, MC3R, 9607, LPL, LDLR, P55916, 335, GLUT4, Notch1, SLC27A1"
+                                                 :Protein "P37231, PPARG_HUMAN"}
                             :regionsearch-example ["2:14615455..14619002"
                                                    "4:5866646..5868384"
                                                    "3:2578486..2580016"]
@@ -115,7 +119,8 @@
                             :regionsearch-example ["2L:14615455..14619002"
                                                     "2R:5866646..5868384"
                                                     "3R:2578486..2580016"]
-                            :idresolver-example "CG9151, FBgn0000099, CG3629, TfIIB, Mad, CG1775, CG2262, TWIST_DROME, tinman, runt, E2f, CG8817, FBgn0010433, CG9786, CG1034, ftz, FBgn0024250, FBgn0001251, tll, CG1374, CG33473, ato, so, CG16738, tramtrack,  CG2328, gt"
+                            :idresolver-example {:Gene "CG9151, FBgn0000099, CG3629, TfIIB, Mad, CG1775, CG2262, TWIST_DROME, tinman, runt, E2f, CG8817, FBgn0010433, CG9786, CG1034, ftz, FBgn0024250, FBgn0001251, tll, CG1374, CG33473, ato, so, CG16738, tramtrack,  CG2328, gt"
+                                                 :Protein "Q8T3M3,FBpp0081318,FTZ_DROME"}
                             :mine
                                                 {:name    "FlyMine"
                                                  ;:url "beta.flymine.org/beta"
@@ -129,13 +134,12 @@
             ;                 :icon               "icon-mouse"
             ;                 :abbrev             "M. musculus"
             ;                 :default-organism   "M. musculus"
-            ;            :default-object-types   [:Gene :Protein :OntologyTerm :Publication :SequenceFeature]
-            ;                   :default-selected-object-type :Gene
-            ;                 :status             {:status :na}
+            ;                 :default-object-types   [:Gene :Protein :OntologyTerm :Publication :SequenceFeature]
+            ;                 :default-selected-object-type :Gene
             ;                 :regionsearch-example ["2:10000000..15000000"
             ;                                       "chr6:10000000..20000000"
             ;                                       "X:53000000-54000000"]
-            ;                 :idresolver-example "MGI:88388 MGI:96677 Fgf2 Bmp4"
+            ;                 :idresolver-example {:Gene "MGI:88388 MGI:96677 Fgf2 Bmp4"}
             ;                 :mine
             ;                                     {:name    "MouseMine"
             ;                                      :url     "www.mousemine.org/mousemine"
@@ -153,7 +157,7 @@
             ;                 :default-object-types   [:Gene :Protein]
             ;                 :default-selected-object-type :Gene
             ;                 :status             {:status :na}
-            ;                 :idresolver-example "Exo1, LEPR, PW:0000564, 2004, RGD:3001, Hypertension"
+            ;                 :idresolver-example {:Gene "Exo1, LEPR, PW:0000564, 2004, RGD:3001, Hypertension"}
             ;                 :mine
             ;                                     {:name    "RatMine"
             ;                                      ; :url "dev.ratmine.mcw.edu/ratmine"
@@ -167,11 +171,10 @@
             ;                 :icon               "icon-zebrafish"
             ;                 :output?            true
             ;                 :default-selected-object-type :Gene
-            ;                 :default-object-types   [Gene :Protein]
-            ;                 :status             {:status :na}
+            ;                 :default-object-types   [Gene ]
             ;                 :abbrev             "D. rerio"
             ;                 :default-organism   "D. rerio"
-            ;                 :idresolver-example "esr1, pparg, esr2a, esr2b, sdr42e1, star, ENSDARG00000063438, apoa1b, apoa1a, npc2, dhcr7, ZDB-GENE-061013-742, cyp11a2, s2p"
+            ;                 :idresolver-example {:Gene "esr1, pparg, esr2a, esr2b, sdr42e1, star, ENSDARG00000063438, apoa1b, apoa1a, npc2, dhcr7, ZDB-GENE-061013-742, cyp11a2, s2p"}
             ;                 :mine
             ;                                     {:name    "ZebraFishMine"
             ;                                      :url     "www.zebrafishmine.org"
@@ -187,7 +190,7 @@
             ;                 :default-object-types   [:Gene :Protein]
             ;                 :default-selected-object-type :Gene
             ;                 :status             {:status :na}
-            ;                 :idresolver-example "acr-10, unc-26, hlh-2, WBGene00002299, WBGene00004323, WBGene00002992"
+            ;                 :idresolver-example {:Gene "acr-10, unc-26, hlh-2, WBGene00002299, WBGene00004323, WBGene00002992"}
             ;                 :mine
             ;                                     {:name    "WormMine"
             ;                                      ;    :url "im-253.wormbase.org/tools/wormmine"
@@ -225,7 +228,8 @@
             ;                 :default-selected-object-type :Gene
             ;                 :default-object-types   [:Gene :Protein]
             ;                 :status             {:status :na}
-            ;                 :idresolver-example "Atp5a1, Atp5b, Atp5d, Atp5c1"
+            ;                 :idresolver-example {:Gene "Atp5a1, Atp5b, Atp5d, Atp5c1"
+            ;                                      :Protein "Q03265, P56480, Q9D3D9, Q91VR2"}
             ;                 :mine
             ;                                     {:name    "MitoMiner"
             ;                                      :url     "mitominer.mrc-mbu.cam.ac.uk/release-4.0"
