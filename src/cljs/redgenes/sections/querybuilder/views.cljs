@@ -6,8 +6,7 @@
             [oops.core :refer [ocall]]
             [redgenes.components.ui.constraint :refer [constraint]]))
 
-(defn one-of? [haystack needle]
-  (some? (some #{needle} haystack)))
+(defn one-of? [haystack needle] (some? (some #{needle} haystack)))
 
 (defn tree-view-recur [model root-class trail selected]
   (let [expanded? (reagent/atom (get-in selected trail))] ; Recursively auto-expand to selected values
@@ -32,19 +31,19 @@
                     (let [selected? (get-in selected (conj trail name))]
                       ^{:key name}
                       [:li {:class (if selected? "selected")
-                            :style {:padding-left "35px"}
-                            ;:on-click (fn [] (if selected?
-                            ;                   (dispatch [:qb/remove-view (conj trail name)])
-                            ;                   (dispatch [:qb/add-view (conj trail name)])))
-                            }
+                            :style {:padding-left "35px"}}
+                       ;:on-click (fn [] (if selected?
+                       ;                   (dispatch [:qb/remove-view (conj trail name)])
+                       ;                   (dispatch [:qb/add-view (conj trail name)])))
+
                        [:span
                         name
                         [:div.button-group
                          (if selected?
                            [:button.small-btn {:on-click (fn [] (dispatch [:qb/remove-view (conj trail name)]))} "Hide"]
                            [:button.small-btn {:on-click (fn [] (dispatch [:qb/add-view (conj trail name)]))} "Show"])
-                         [:button.small-btn {:on-click (fn [] (dispatch [:qb/add-constraint (conj trail name)]))} "Constrain"]
-                         ]]]))
+                         [:button.small-btn {:on-click (fn [] (dispatch [:qb/add-constraint (conj trail name)]))} "Constrain"]]]]))
+
                   (sort attributes))
              ; Combined with a map of collections and references
              (map (fn [[_ colref]]
@@ -60,7 +59,7 @@
 
 
 
-(defn query-view-new []
+(defn query-view []
   (fn [model m trail]
     (into [:div.qbcontainer]
           (->> (into (sorted-map) m) ; Sort our query-map alphabetically
@@ -69,7 +68,6 @@
                         [:div.qbrow
                          [:div
                           [:div.qrow
-
                            [:div.button-group {:style {:white-space "nowrap"}}
 
                             ; Don't show the "visible" icon if this path is a class
@@ -80,21 +78,16 @@
                                {:class    nil ;(if visible "visible")
                                 :on-click (fn [e] (ocall e :stopPropagation) (dispatch [:qb/toggle-view path]))}
                                (if visible [:i.fa.fa-eye] [:i.fa.fa-eye-slash])]
-                              (and (not (p/class? model (join "." path)))
-                                   (empty? constraints))
-                              [:span.small-btn.empty
-                               [:i.fa.fa-eye]]
-                              )
+                              (and (not (p/class? model (join "." path))) (empty? constraints))
+                              [:span.small-btn.empty [:i.fa.fa-eye]])
 
                             [:span.key {:class (if visible "attribute")} k
                              (if-not (empty? trail) ; Don't allow user to drop the root node
                                [:button.small-btn
                                 {:on-click (fn [e] (ocall e :stopPropagation) (dispatch [:qb/remove-view path]))}
-                                [:i.fa.fa-times]])]
+                                [:i.fa.fa-times]])]]
 
-                            ; Provide an "X" icon to remove the view / constraint
-                            ]
-
+                           ; Provide an "X" icon to remove the view / constraint
 
                            (if constraints
                              (do
@@ -112,54 +105,57 @@
 
                                                      [:button.small-btn.danger
                                                       {:on-click (fn [] (dispatch [:qb/remove-constraint path idx]))}
-                                                      [:i.fa.fa-times]]
-                                                     ])
+                                                      [:i.fa.fa-times]]])
+
                                                   constraints))))]]
-                         (if children [:div.qbcol [query-view-new model children path]])])))))))
+                         (if children [:div.qbcol [query-view model children path]])])))))))
 
 
 
-(defn head []
+(defn table-header []
   [:div.grid
-   [:div.col-1]
-   [:div.col-1]
-
-   [:div.col-5 [:h4 "Field"]]
-
-   [:div.col-5 [:h4 "Constraints"]]
-   ])
+   [:div.col-1] [:div.col-1] [:div.col-5 [:h4 "Field"]] [:div.col-5 [:h4 "Constraints"]]])
 
 (defn qb-row []
-  (fn [model {:keys [view value]}]
-    (let [lists       (subscribe [:lists])
-          class?      (p/class? model (join "." view))
-          constraints (:constraints value)]
+  (fn [model {:keys [id-count path constraints visible]}]
+    (let [lists  (subscribe [:lists])
+          class? (p/class? model (join "." path))]
       [:div.grid
-
-       [:div.col-1
+       [:div.col-1.white
         {:style {:text-align "right"}}
         [:button.btn.btn-danger.btn-simple
-         {:on-click (fn [] (dispatch [:qb/remove-view view]))}
+         {:on-click (fn [] (dispatch [:qb/remove-view path]))}
          [:i.fa.fa-times]]]
 
-
-       [:div.col-1
+       ; Controls column
+       [:div.col-1.white
         (cond
-          (and (not-empty constraints) (not class?)) [:button.btn.btn-primary.btn-simple
-                                                      {:on-click (fn [] (dispatch [:qb/toggle-view view]))}
-                                                      (if (:visible value)
-                                                        [:i.fa.fa-eye]
-                                                        [:i.fa.fa-eye-slash])]
+          ; If we have constraints and we're an attribute allow visibility to be toggled
+          (and (not-empty constraints) (not class?))
+          [:button.btn.btn-primary.btn-simple
+           {:on-click (fn [] (dispatch [:qb/toggle-view path]))}
+           (if visible
+             [:i.fa.fa-eye]
+             [:i.fa.fa-eye-slash])]
+          ; If we don't have constraints and we're a class then we can't be visible
           (and (not constraints) class?) nil
+          ; Classes can never be visible
           class? nil
+          ; Otherwise show a permanently fixed visible icon
           :else [:i.soft.fa.fa-eye])]
-       [:div.col-5.white
-        [:span {
-                ;:class (if-not class? "attribute")
-                :style {:margin-left (str (* 20 (count view)) "px")}}
 
-         (str (last view))
-         ]]
+       ; Field column
+       [:div.col-5.white
+        [:span.child {:on-click (fn [x] (dispatch [:qb/summarize-view path]))
+                      :class (if class? "class" "attribute")
+                      :style {:margin-left (str (* 20 (count path)) "px")}}
+         [:span (str (last path))]
+         (when id-count [:span.id-count  (str (.toLocaleString (js/parseInt id-count) "en-US" ))])
+
+         #_(str (last path))]]
+
+
+       ; Constraint column
        [:div.col-5.white
         (if constraints
           (do
@@ -167,62 +163,40 @@
                   (map-indexed (fn [idx con]
                                  [:div.constraint-row
                                   [:button.btn.btn-danger.btn-simple
-                                   {:on-click (fn [] (dispatch [:qb/remove-constraint view idx]))}
+                                   {:on-click (fn [] (dispatch [:qb/remove-constraint path idx]))}
                                    [:i.fa.fa-times]]
                                   [constraint
                                    :model model
-                                   :path (join "." view)
+                                   :path (join "." path)
                                    :lists (second (first @lists))
                                    :value (:value con)
                                    :op (:op con)
-                                   :on-change (fn [c] (dispatch [:qb/update-constraint view idx c]))
+                                   :on-change (fn [c] (dispatch [:qb/update-constraint path idx c]))
                                    :label? false]])
                                constraints))))
         [:button.btn.btn-success.btn-simple
-         {:on-click (fn [] (dispatch [:qb/add-constraint view]))}
+         {:on-click (fn [] (dispatch [:qb/add-constraint path]))}
          [:span [:i.fa.fa-plus]]]]])))
 
 
 
-(defn build-thing [[k {:keys [children] :as item}] total views]
-  (let [new-total (conj total k)]
-    (if (not-empty children)
-      (into [] (mapcat (fn [n] (build-thing n new-total (conj views {:view new-total :value item}))) children))
-      (conj views {:view new-total :value item}))))
-
-
 (defn main []
-  (let [query-map (subscribe [:qb/query-map])
-        qm        (subscribe [:qb/qm])
-        cm        (subscribe [:current-mine])]
+  (let [query           (subscribe [:qb/query])
+        flattened-query (subscribe [:qb/flattened])
+        current-mine    (subscribe [:current-mine])]
     (fn []
       [:div.main-window
        [:div.sidex
-        [tree-view @query-map (get-in @cm [:service :model]) :Gene]]
-       ;[query-view (get-in @cm [:service :model]) @query-map]
-       #_[query-view-new (get-in @cm [:service :model]) @qm]
-
-       #_[:button.btn.btn-success
-          {:on-click (fn [] (.log js/console "map" @qm))}
-          "Log Query Map"]
+        [tree-view @query (get-in @current-mine [:service :model]) :Gene]]
        [:button.btn.btn-success
         {:on-click (fn [] (dispatch [:qb/make-query]))}
         "Make Query"]
-
-       [head]
-       (into [:div]
-             (map (fn [v]
-                    [qb-row (get-in @cm [:service :model]) v]) (distinct (mapcat (fn [x] (build-thing x [] [])) @qm))))
-
-       ])))
+       [table-header]
+       (into [:div] (map (fn [v] [qb-row (get-in @current-mine [:service :model]) v]) @flattened-query))
+       [:button.btn.btn-primary.btn-raised
+        {:on-click (fn [] (dispatch [:qb/export-query]))}
+        "View Results"]])))
 
 
-{"Gene" {:children {"symbol"   {:visible     true
-                                :constraints [{:op    "="
-                                               :value "zen"}]}
-                    "organism" {:children {"name" {:visible     true
-                                                   :constraints [{:op    "="
-                                                                  :value "Homo spaiens"}]}}}
-                    "alleles"  {:children {"name" {:visible true}
-                                           "id"   {:visible true}}}}}}
+
 

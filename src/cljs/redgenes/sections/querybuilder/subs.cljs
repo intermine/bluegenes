@@ -2,12 +2,7 @@
   (:require [re-frame.core :refer [reg-sub]]))
 
 (reg-sub
-  :qb/query-map
-  (fn [db]
-    (into (sorted-map) (get-in db [:qb :query-map]))))
-
-(reg-sub
-  :qb/qm
+  :qb/query
   (fn [db]
     (into (sorted-map) (get-in db [:qb :qm]))))
 
@@ -23,5 +18,16 @@
   (fn [[query-map query-constraints]]
     (.log js/console "QM" query-map)
     (.log js/console "QC" query-constraints)
-    "Test"
-    ))
+    "Test"))
+
+
+(defn flatten-query [[k value] total views]
+  (let [new-total (conj total k)]
+    (if-let [children (not-empty (select-keys value (filter (complement keyword?) (keys value))))] ; Keywords are reserved for flags
+      (into [] (mapcat (fn [c] (flatten-query c new-total (conj views (assoc value :path new-total)))) children))
+      (conj views (assoc value :path new-total)))))
+
+(reg-sub
+  :qb/flattened
+  (fn [db]
+    (distinct (flatten-query (first (get-in db [:qb :qm])) [] []))))

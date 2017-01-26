@@ -15,30 +15,13 @@
                                                      :flags       {:authorized nil
                                                                    :favourite  nil}}
                                            :sort    {:title :asc}}}
-   ;:query-builder
-   ;                            {
-   ;                             :count  0
-   ;                             :dcount 0
-   ;                             :query
-   ;                                     {
-   ;                                      :q/select         #{}
-   ;                                      :q/where          []
-   ;                                      :constraint-paths #{}
-   ;                                      }
-   ;                             }
-   :qb                         {:qm                {"Gene" {:children {"symbol"   {:visible     true
-                                                                                   :constraints [{:op    "="
-                                                                                                  :value "zen"}]}
-                                                                       "organism" {:children {"name" {:visible true
-                                                                                                      :constraints [{:op "="
-                                                                                                                     :value "Homo spaiens"}]}}}
-                                                                       "alleles"  {:children {"name" {:visible true}
-                                                                                              "id" {:visible true}}}}}}
 
-                                :query-map         {"Gene" {"symbol"   true
-                                                            "organism" {"name" true}
-                                                            "alleles"  {"name" true}}}
-                                :query-constraints [{:path  "Gene.symbol"
-                                                     :op    "="
-                                                     :value "zen"}]}
-   })
+   :qb                         {:qm                {"Gene" {:visible true
+                                                            :constraints []
+                                                            "symbol"     {:visible true
+                                                                          :constraints [{:op    "="
+                                                                                         :value "zen"}]}
+                                                            "organism"   {"name" {:constraints []
+                                                                                  :visible     true}}
+                                                            "alleles"    {"name"     {:visible true}
+                                                                          "dataSets" {"description" {:visible true}}}}}}})
