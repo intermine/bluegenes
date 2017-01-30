@@ -101,6 +101,7 @@
                                                       :value (:value con)
                                                       :op (:op con)
                                                       :on-change (fn [c] (dispatch [:qb/update-constraint path idx c]))
+                                                      :on-blur (fn [c] (println "BLURRY"))
                                                       :label? false]
 
                                                      [:button.small-btn.danger
@@ -150,7 +151,10 @@
                       :class (if class? "class" "attribute")
                       :style {:margin-left (str (* 20 (count path)) "px")}}
          [:span (str (last path))]
-         (when id-count [:span.id-count  (str (.toLocaleString (js/parseInt id-count) "en-US" ))])
+         (when class?
+           (if id-count
+             [:span.id-count (str (.toLocaleString (js/parseInt id-count) "en-US"))]
+             [:i.fa.fa-cog.fa-spin.fa-1x.fa-fw]))
 
          #_(str (last path))]]
 
@@ -172,6 +176,7 @@
                                    :value (:value con)
                                    :op (:op con)
                                    :on-change (fn [c] (dispatch [:qb/update-constraint path idx c]))
+                                   :on-blur (fn [] (dispatch [:qb/make-query]))
                                    :label? false]])
                                constraints))))
         [:button.btn.btn-success.btn-simple

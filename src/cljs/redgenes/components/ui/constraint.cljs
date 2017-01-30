@@ -54,10 +54,11 @@
   (:label (first (filter #(= op (:op %)) operators))))
 
 (defn constraint-text-input []
-  (fn [& {:keys [value on-change]}]
+  (fn [& {:keys [value on-change on-blur]}]
     [:div
      [:input.form-control {:type      "text"
                            :on-change (fn [e] (on-change (oget e :target :value)))
+                           :on-blur   on-blur
                            :value     value}]]))
 
 (defn constraint-operator []
@@ -75,7 +76,7 @@
       {:style       {:text-transform "none"}
        :data-toggle "dropdown"}
       (str (constraint-label op) " ") [:span.caret]]
-     (let [path-class    (im-path/class model path)
+     (let [path-class            (im-path/class model path)
            any-lists-with-class? (some? (some (fn [list] (= path-class (keyword (:type list)))) lists))]
        (into [:ul.dropdown-menu]
              (->> (filter (partial applies-to? (im-path/data-type model path)) operators)
@@ -86,7 +87,7 @@
                            [:li
                             {:class    (if disabled? "disabled")
                              :on-click (if-not disabled? (partial on-change op))}
-                           [:a label]]))))))]))
+                            [:a label]]))))))]))
 
 (defn constraint []
   "Creates a button group that represents a query constraint.
@@ -96,7 +97,7 @@
   :op   The operator of the constraint
   :on-change  A function to call with the new constraint
   :label?     If true then include the path as a label"
-  (fn [& {:keys [lists model path value op on-change label?]}]
+  (fn [& {:keys [lists model path value op on-change on-blur label?]}]
     [:div
 
      ;(if label? [:div.row
@@ -136,7 +137,8 @@
                 :model model
                 :value value
                 :path path
-                :on-change (fn [val] (on-change {:path path :value val :op op}))])]
+                :on-change (fn [val] (on-change {:path path :value val :op op}))
+                :on-blur on-blur])]
 
       ]]))
 

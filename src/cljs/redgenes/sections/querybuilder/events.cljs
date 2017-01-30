@@ -184,6 +184,8 @@
           query    (make-query (get-in db loc))
           id-paths (countable-views (:model service) (get-in db loc))]
 
+      (.log js/console "make-query" query)
+
       {:db             db
        :im-operation-n (map (fn [id-path]
                               {:on-success [:qb/success-summary id-path]
