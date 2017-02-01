@@ -84,10 +84,15 @@
          :forward-events (im-tables-events-forwarder)})
       )))
 
+(defn remove-stateful-keys-from-db
+  "Any tools / components that have mine-specific state should lose that state if we switch mines. For example, in list upload (ID Resolver), drosophila IDs are no longer valid when using humanmine."
+  [db]
+  (dissoc db :regions :idresolver :results))
+
 (reg-event-fx
   :reboot
   (fn [{db :db}]
-    {:db         db
+    {:db         (remove-stateful-keys-from-db db)
      :async-flow (boot-flow db)}))
 
 (reg-event-fx
