@@ -16,7 +16,8 @@
                                                                    :favourite  nil}}
                                            :sort    {:title :asc}}}
 
-   :qb                         {:qm                {"Gene" {:visible true
+   :qb                         {:root-class :Gene
+                                :qm                {"Gene" {:visible true
                                                             :constraints []
                                                             "symbol"     {:visible true
                                                                           :constraints [{:op    "="

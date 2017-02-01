@@ -36,3 +36,8 @@
   :qb/constraint-logic
   (fn [db]
     (get-in db [:qb :constraint-logic])))
+
+(reg-sub
+  :qb/root-class
+  (fn [db]
+    (get-in db [:qb :root-class])))

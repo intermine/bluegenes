@@ -214,14 +214,26 @@
                                 :code  "B"
                                 :value "mad"}]})
 
+(defn root-class-dropdown []
+  (let [current-mine (subscribe [:current-mine])]
+    (fn []
+      (into [:select.form-control
+             {:on-change (fn [e] (dispatch [:qb/set-root-class (oget e :target :value)]))}]
+            (map (fn [[class-kw details]]
+                   [:option {:value class-kw} (:displayName details)])
+                 (sort-by (comp :displayName second) (get-in @current-mine [:service :model :classes])))))))
+
 (defn main []
   (let [query           (subscribe [:qb/query])
         flattened-query (subscribe [:qb/flattened])
-        current-mine    (subscribe [:current-mine])]
+        current-mine    (subscribe [:current-mine])
+        root-class      (subscribe [:qb/root-class])]
     (fn []
+      (println "RC" @root-class)
       [:div.main-window
        [:div.sidex
-        [tree-view @query (get-in @current-mine [:service :model]) :Gene]]
+        [root-class-dropdown]
+        [tree-view @query (get-in @current-mine [:service :model]) (keyword @root-class)]]
        [:button.btn.btn-success
         {:on-click (fn [] (dispatch [:qb/make-query]))}
         "Make Query"]

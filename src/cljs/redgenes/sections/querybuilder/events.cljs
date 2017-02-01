@@ -3,6 +3,7 @@
             [imcljs.query :as im-query]
             [imcljs.path :as im-path]
             [imcljs.fetch :as fetch]
+            [cljs.reader :as reader]
             [clojure.string :refer [join split]]))
 
 (def loc [:qb :qm])
@@ -139,24 +140,29 @@
       (update-in db loc assoc-in (conj v :id-count) summary))))
 
 
-(defn make-query [query]
-  {:from   "Gene"
-   :select (serialize-views (first query) [] [])
+(defn make-query [model root-class query constraintLogic ]
+  {:select (serialize-views (first query) [] [])
    :where  (remove empty? (mapcat (fn [n] (map (fn [c]
                                                  (assoc c :path (join "." (:path n)))) (:constraints n)))
-                                  (extract-constraints (first query) [] [])))})
+                                  (extract-constraints (first query) [] [])))
+   :constraintLogic constraintLogic})
 
 (defn countable-views [model query]
   (let [views (serialize-views (first query) [] [])]
     (map (comp #(str % ".id") (partial im-path/trim-to-last-class model)) views)))
 
+(defn get-letters [query]
+  (let [logic (reader/read-string "(A and B or C or D)")]
+    ))
+
 
 (reg-event-fx
   :qb/summarize-view
   (fn [{db :db} [_ view]]
-    (let [query   (assoc (make-query (get-in db loc)) :constraintLogic (get-in db [:qb :constraint-logic]))
+    (let [
           service (get-in db [:mines (get-in db [:current-mine]) :service])
-          id-path (str (im-path/trim-to-last-class (:model service) (join "." view)) ".id")]
+          id-path (str (im-path/trim-to-last-class (:model service) (join "." view)) ".id")
+          query   (make-query (:model service) (get-in db [:qm :root-class]) (get-in db loc) (get-in db [:qb :constraint-logic]))]
       {:db           db
        :im-operation {:on-success [:qb/success-summary id-path]
                       :op         (partial fetch/row-count
@@ -173,8 +179,10 @@
   :qb/count-query
   (fn [{db :db}]
     (let [service  (get-in db [:mines (get-in db [:current-mine]) :service])
-          query    (assoc (make-query (get-in db loc)) :constraintLogic (get-in db [:qb :constraint-logic]))
+          query    (make-query (:model service) (get-in db [:qm :root-class]) (get-in db loc) (get-in db [:qb :constraint-logic]))
           id-paths (countable-views (:model service) (get-in db loc))]
+
+      (println "IDS" id-paths)
 
       {:db             db
        :im-operation-n (map (fn [id-path]
@@ -187,8 +195,11 @@
   :qb/make-query
   (fn [{db :db}]
     (let [service  (get-in db [:mines (get-in db [:current-mine]) :service])
-          query    (assoc (make-query (get-in db loc)) :constraintLogic (get-in db [:qb :constraint-logic]))
+          query    (make-query (:model service) (get-in db [:qm :root-class]) (get-in db loc) (get-in db [:qb :constraint-logic]))
           id-paths (countable-views (:model service) (get-in db loc))]
+
+      (.log js/console "query" query)
+      (println "codes" (get-letters query))
 
       {:db             db
        :im-operation-n (map (fn [id-path]
@@ -233,16 +244,26 @@
               :qm (treeify model (im-query/sterilize-query query))
               :constraint-logic (:constraintLogic query)))))
 
+(reg-event-db
+  :qb/set-root-class
+  (fn [db [_ root-class-kw]]
+    (let [model (get-in db [:mines (get-in db [:current-mine]) :service :model])]
+      (update db :qb assoc
+              :constraint-logic nil
+              :root-class (keyword root-class-kw)
+              :qm {root-class-kw {:visible true}}))))
+
 
 (reg-event-fx
   :qb/export-query
   (fn [{db :db} [_]]
-    (.log js/console "exporting" (make-query (get-in db loc)))
-    {:db       db
-     :dispatch [:results/set-query
-                {:source :flymine-beta
-                 :type   :query
-                 :value  (assoc (make-query (get-in db loc)) :constraintLogic (get-in db [:qb :constraint-logic]))}]
-     :navigate (str "results")}))
+    ;(.log js/console "exporting" (make-query (get-in db loc)))
+    (let [service (get-in db [:mines (get-in db [:current-mine]) :service])]
+      {:db       db
+      :dispatch [:results/set-query
+                 {:source :flymine-beta
+                  :type   :query
+                  :value  (make-query (:model service) (get-in db [:qm :root-class]) (get-in db loc) (get-in db [:qb :constraint-logic]))}]
+      :navigate (str "results")})))
 
 
