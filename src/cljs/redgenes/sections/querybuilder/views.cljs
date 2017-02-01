@@ -3,7 +3,7 @@
             [reagent.core :as reagent :refer [create-class]]
             [imcljs.path :as p]
             [clojure.string :refer [split join]]
-            [oops.core :refer [ocall]]
+            [oops.core :refer [ocall oget]]
             [redgenes.components.ui.constraint :refer [constraint]]))
 
 (defn one-of? [haystack needle] (some? (some #{needle} haystack)))
@@ -117,6 +117,20 @@
   [:div.grid
    [:div.col-1] [:div.col-1] [:div.col-5 [:h4 "Field"]] [:div.col-5 [:h4 "Constraints"]]])
 
+(defn constraint-logic-row []
+  (let [logic (subscribe [:qb/constraint-logic])]
+    (fn []
+      [:div.grid
+       [:div.col-1]
+       [:div.col-1]
+       [:div.col-5]
+       [:div.col-5.white
+        [:label "Logic"]
+        [:input.form-control
+         {:value     @logic
+          :on-change (fn [e] (dispatch [:qb/update-constraint-logic (oget e :target :value)]))
+          :type      "text"}]]])))
+
 (defn qb-row []
   (fn [model {:keys [id-count path constraints visible]}]
     (let [lists  (subscribe [:lists])
@@ -148,8 +162,8 @@
        ; Field column
        [:div.col-5.white
         [:span.child {:on-click (fn [x] (dispatch [:qb/summarize-view path]))
-                      :class (if class? "class" "attribute")
-                      :style {:margin-left (str (* 20 (count path)) "px")}}
+                      :class    (if class? "class" "attribute")
+                      :style    {:margin-left (str (* 20 (count path)) "px")}}
          [:span (str (last path))]
          (when class?
            (if id-count
@@ -166,6 +180,7 @@
             (into [:div.ts]
                   (map-indexed (fn [idx con]
                                  [:div.constraint-row
+                                  [:span (:code con)]
                                   [:button.btn.btn-danger.btn-simple
                                    {:on-click (fn [] (dispatch [:qb/remove-constraint path idx]))}
                                    [:i.fa.fa-times]]
@@ -177,13 +192,27 @@
                                    :op (:op con)
                                    :on-change (fn [c] (dispatch [:qb/update-constraint path idx c]))
                                    :on-blur (fn [] (dispatch [:qb/make-query]))
-                                   :label? false]])
+                                   :label? false]
+                                  ])
                                constraints))))
         [:button.btn.btn-success.btn-simple
          {:on-click (fn [] (dispatch [:qb/add-constraint path]))}
          [:span [:i.fa.fa-plus]]]]])))
 
-
+(def aquery {:from            "Gene"
+             :constraintLogic "A or B"
+             :select          ["symbol"
+                               "organism.name"
+                               "alleles.name"
+                               "alleles.dataSets.description"]
+             :where           [{:path  "Gene.symbol"
+                                :op    "="
+                                :code  "A"
+                                :value "zen"}
+                               {:path  "Gene.symbol"
+                                :op    "="
+                                :code  "B"
+                                :value "mad"}]})
 
 (defn main []
   (let [query           (subscribe [:qb/query])
@@ -196,8 +225,12 @@
        [:button.btn.btn-success
         {:on-click (fn [] (dispatch [:qb/make-query]))}
         "Make Query"]
+       [:button.btn.btn-success
+        {:on-click (fn [] (dispatch [:qb/load-query aquery]))}
+        "Load Query"]
        [table-header]
        (into [:div] (map (fn [v] [qb-row (get-in @current-mine [:service :model]) v]) @flattened-query))
+       [constraint-logic-row]
        [:button.btn.btn-primary.btn-raised
         {:on-click (fn [] (dispatch [:qb/export-query]))}
         "View Results"]])))

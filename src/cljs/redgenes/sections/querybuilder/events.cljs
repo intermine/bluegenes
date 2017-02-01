@@ -25,12 +25,12 @@
 (reg-event-fx
   :qb/remove-view
   (fn [{db :db} [_ view-vec]]
-    {:db (loop [db db path view-vec]
-       (let [new (update-in db (concat loc (butlast path)) dissoc (last path))]
-         (if (and (> (count (butlast path)) 1) ; Don't drop the root node infiniloop!
-                  (empty? (get-in new (concat [:qb :qm] (butlast path)))))
-           (recur new (butlast path))
-           new)))
+    {:db       (loop [db db path view-vec]
+                 (let [new (update-in db (concat loc (butlast path)) dissoc (last path))]
+                   (if (and (> (count (butlast path)) 1) ; Don't drop the root node infiniloop!
+                            (empty? (get-in new (concat [:qb :qm] (butlast path)))))
+                     (recur new (butlast path))
+                     new)))
      :dispatch [:qb/count-query]}))
 
 (reg-event-db
@@ -51,7 +51,13 @@
 (reg-event-db
   :qb/update-constraint
   (fn [db [_ path idx constraint]]
+    (.log js/console (get-in db [:qb :qm]))
     (update-in db loc assoc-in (reduce conj path [:constraints idx]) constraint)))
+
+(reg-event-db
+  :qb/update-constraint-logic
+  (fn [db [_ logic]]
+    (assoc-in db [:qb :constraint-logic] logic)))
 
 
 (defn map-view->dot
@@ -148,7 +154,7 @@
 (reg-event-fx
   :qb/summarize-view
   (fn [{db :db} [_ view]]
-    (let [query   (make-query (get-in db loc))
+    (let [query   (assoc (make-query (get-in db loc)) :constraintLogic (get-in db [:qb :constraint-logic]))
           service (get-in db [:mines (get-in db [:current-mine]) :service])
           id-path (str (im-path/trim-to-last-class (:model service) (join "." view)) ".id")]
       {:db           db
@@ -167,7 +173,7 @@
   :qb/count-query
   (fn [{db :db}]
     (let [service  (get-in db [:mines (get-in db [:current-mine]) :service])
-          query    (make-query (get-in db loc))
+          query    (assoc (make-query (get-in db loc)) :constraintLogic (get-in db [:qb :constraint-logic]))
           id-paths (countable-views (:model service) (get-in db loc))]
 
       {:db             db
@@ -181,10 +187,8 @@
   :qb/make-query
   (fn [{db :db}]
     (let [service  (get-in db [:mines (get-in db [:current-mine]) :service])
-          query    (make-query (get-in db loc))
+          query    (assoc (make-query (get-in db loc)) :constraintLogic (get-in db [:qb :constraint-logic]))
           id-paths (countable-views (:model service) (get-in db loc))]
-
-      (.log js/console "make-query" query)
 
       {:db             db
        :im-operation-n (map (fn [id-path]
@@ -192,14 +196,53 @@
                                :op         (partial fetch/row-count
                                                     service
                                                     (assoc query :select [id-path]))}) id-paths)})))
+
+(def aquery {:from            "Gene"
+             :constraintLogic "A or B"
+             :select          ["symbol"
+                               "organism.name"
+                               "alleles.name"
+                               "alleles.dataSets.description"]
+             :where           [{:path  "Gene.symbol"
+                                :op    "="
+                                :code  "A"
+                                :value "zen"}
+                               {:path  "Gene.symbol"
+                                :op    "="
+                                :code  "B"
+                                :value "mad"}]})
+
+(defn view-map [model q]
+  (->> (map (fn [v] (split v ".")) (:select q))
+       (reduce (fn [total next] (assoc-in total next {:visible true})) {})))
+
+(defn with-constraints [model q query-map]
+  (reduce (fn [total next]
+            (let [path (conj (vec (split (:path next) ".")) :constraints)]
+              (update-in total path (comp vec conj) (dissoc next :path)))) query-map (:where q)))
+
+(defn treeify [model q]
+  (->> (view-map model q)
+       (with-constraints model q)))
+
+(reg-event-db
+  :qb/load-query
+  (fn [db [_ query]]
+    (let [model (get-in db [:mines (get-in db [:current-mine]) :service :model])]
+      (update db :qb assoc
+              :qm (treeify model (im-query/sterilize-query query))
+              :constraint-logic (:constraintLogic query)))))
+
+
 (reg-event-fx
   :qb/export-query
   (fn [{db :db} [_]]
+    (.log js/console "exporting" (make-query (get-in db loc)))
     {:db       db
      :dispatch [:results/set-query
                 {:source :flymine-beta
                  :type   :query
-                 :value  (make-query (get-in db loc))}]
+                 :value  (assoc (make-query (get-in db loc)) :constraintLogic (get-in db [:qb :constraint-logic]))}]
      :navigate (str "results")}))
 
 

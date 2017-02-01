@@ -31,3 +31,8 @@
   :qb/flattened
   (fn [db]
     (distinct (flatten-query (first (get-in db [:qb :qm])) [] []))))
+
+(reg-sub
+  :qb/constraint-logic
+  (fn [db]
+    (get-in db [:qb :constraint-logic])))
