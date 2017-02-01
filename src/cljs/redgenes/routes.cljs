@@ -44,7 +44,7 @@
       (if @are-there-results?
         ;cool, show the results:
         (re-frame/dispatch [:set-active-panel :results-panel])
-        (do ;hm, somehow we've ended up at the results page when we shouldn't have. Maybe we navigated directly? 
+        (do ;hm, somehow we've ended up at the results page when we shouldn't have. Maybe we navigated directly?
           (.debug js/console "Oh blast, there aren't any results available. Redirecting to homepage.")
           (re-frame/dispatch [:set-active-panel :home-panel])))
       ))
