@@ -108,9 +108,10 @@
 (reg-event-fx
   :authentication/fetch-anonymous-token
   (fn [{db :db} [_ mine-kw]]
+    (let [mine (dissoc (get-in db [:mines mine-kw :service]) :token)]
     {:db           db
      :im-operation {:on-success [:authentication/store-token mine-kw]
-                    :op         (partial fetch/session (get-in db [:mines mine-kw :service]))}}))
+                    :op         (partial fetch/session mine)}})))
 
 ; Fetch model
 
