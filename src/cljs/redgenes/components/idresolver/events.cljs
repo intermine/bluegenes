@@ -72,22 +72,20 @@
 
 (reg-fx
   :idresolver/resolve-id
-  (fn [[id service db]]
+  (fn [[ids service db]]
     (let [organism (get-organism-type db)
+          object-type (get-object-type db)
           job (idresolver/resolve service
             (cond->
-              {:identifiers (if (seq? id) id [id])
-               :type        (get-object-type db)}
+              {:identifiers (if (seq ids) ids [ids])
+               :type        object-type}
               (not= organism :any) (assoc :extra organism)))]
       (go (dispatch [:handle-id (<! job)])))))
 
 (reg-event-fx
   :idresolver/resolve
-  (fn [{db :db} [_ id]]
-    (let [service  (get-in db [:mines (get db :current-mine) :service])
-          organism (get-organism-type db)
-          object-type (get-object-type db)
-          ]
+  (fn [{db :db} [_ ids]]
+    (let [service  (get-in db [:mines (get db :current-mine) :service])]
       {:db
        (-> db
            (assoc-in [:idresolver :resolving?] true)
@@ -95,9 +93,9 @@
                       (fn [bank]
                         (distinct (reduce (fn [total next]
                                             (conj total {:input  next
-                                                         :status :inactive})) bank id)))))
+                                                         :status :inactive})) bank ids)))))
        :idresolver/resolve-id
-       [id service db]})))
+       [ids service db]})))
 
 (defn toggle-into-collection [coll val]
   (if-let [found (some #{val} coll)]
@@ -165,10 +163,21 @@
   (fn [db [_ organism]]
     (assoc-in db [:idresolver :selected-organism] organism)))
 
-(reg-event-db
+(defn pull-inputs-from-id-resolver [db]
+  (let [bank (get-in db [:idresolver :bank])]
+    (reduce (fn [new-idlist id] (conj new-idlist (:input id))) [] bank)
+  ))
+
+(reg-event-fx
   :idresolver/set-selected-object-type
-  (fn [db [_ object-type]]
-    (assoc-in db [:idresolver :selected-object-type] object-type)))
+  (fn [{db :db} [_ object-type]]
+    (let [service (get-in db [:mines (:current-mine db) :service])
+          ids (pull-inputs-from-id-resolver db)]
+  {:db (-> db
+           (assoc-in [:idresolver :selected-object-type] object-type)
+           (assoc-in [:idresolver :bank] nil))
+
+   :dispatch [:idresolver/resolve ids]})))
 
 (reg-event-fx
  ;;TODO:    This is probably an obsolete method. If we do res it,

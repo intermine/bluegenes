@@ -113,7 +113,7 @@
                             :status             {:status :na}
                             :output?            true
                             :abbrev             "D. melanogaster"
-                            :default-object-types   [:Gene :Protein]
+                            :default-object-types   [:Gene :Protein :BioEntity]
                             :default-organism   "D. melanogaster"
                             :default-selected-object-type :Gene
                             :regionsearch-example ["2L:14615455..14619002"
