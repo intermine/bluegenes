@@ -9,7 +9,7 @@
   [item]
   (let [current-mine (subscribe [:current-mine])]
     (dispatch [:search/reset-selection])
-    (navigate! (str "#/reportpage/" (name (:id @current-mine)) "/" (:type item) "/" (:id item)))))
+    (navigate! (str "/reportpage/" (name (:id @current-mine)) "/" (:type item) "/" (:id item)))))
 
 (defn navigate-to-full-results
   "Navigate to the full results page. duh." []
