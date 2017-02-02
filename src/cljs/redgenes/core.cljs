@@ -30,10 +30,12 @@
 
 (defn navigate-to-deep-links []
   (let [url (oget js/window "location" "hash")
-        hashless-path (last (clojure.string/split url #"#/"))]
+        hashless-path (last (clojure.string/split url #"#"))]
     (cond (> (count url) 2) ;; if there is more than #/ in the url, navigate there
-      (navigate! hashless-path)
-)))
+      (if (= (first hashless-path) "/")
+        (navigate! hashless-path)
+        (navigate! (str "/" hashless-path)
+    )))))
 
 (defn ^:export init []
   (routes/app-routes)
