@@ -204,12 +204,15 @@
         current-mine (subscribe [:current-mine])
         model (:model (:service @current-mine))
         the-path (first (:select (:query @active-enrichment-column)))]
-    [:div.enrichment-column-settings.sidebar-item
+    ; TODO why is the-path nil when the query root is, say, "DataSet"?
+    ; This breaks the browser, so ignore nil paths for now. Issue #58
+    (when the-path
+      [:div.enrichment-column-settings.sidebar-item
       [:div.column-display [:svg.icon.icon-table [:use {:xlinkHref "#icon-table"}]]
-      "Enrichment column: "
-      [:div.the-column (path-to-last-two-classes model the-path)]]
-     (cond multiple-options? [enrichable-column-chooser enrichable-options @active-enrichment-column])
-     ]))
+       "Enrichment column: "
+       [:div.the-column (path-to-last-two-classes model the-path)]]
+      (cond multiple-options? [enrichable-column-chooser enrichable-options @active-enrichment-column])
+      ])))
 
 (defn enrich []
   (let [query-parts (subscribe [:results/query-parts])
