@@ -117,7 +117,7 @@
 (defn input-item-duplicate []
   "Input control. allows user to resolve when an ID has matched more than one object."
   (fn [[oid data]]
-    [:span [:span.dropdown
+    [:span.id-item [:span.dropdown
      [:span.dropdown-toggle
       {:type        "button"
        :data-toggle "dropdown"}
@@ -149,7 +149,7 @@
 (defn input-item-converted [original results]
   (let [new-primary-id (get-in results [:matches 0 :summary :primaryIdentifier])
         conversion-reason ((:status results) reasons)]
-    [:span {:title (str "You input '" original "', but we converted it to '" new-primary-id "', because " conversion-reason)}
+    [:span.id-item {:title (str "You input '" original "', but we converted it to '" new-primary-id "', because " conversion-reason)}
      original " -> " new-primary-id]
 ))
 
@@ -180,8 +180,8 @@
                :DUPLICATE [input-item-duplicate (first @result)]
                :TYPE_CONVERTED [input-item-converted (:input i) result-vals]
                :OTHER [input-item-converted (:input i) result-vals]
-               :MATCH [:span (:input i)]
-               [:span (:input i)])
+               :MATCH [:span.id-item (:input i)]
+               [:span.id-item (:input i)])
               ]]))})))
 
 (defn input-items []
