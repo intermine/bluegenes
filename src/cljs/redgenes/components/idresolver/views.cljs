@@ -5,26 +5,43 @@
             [dommy.core :as dommy :refer-macros [sel sel1]]
             [redgenes.components.idresolver.events]
             [redgenes.components.icons :as icons]
+            [redgenes.components.ui.results_preview :refer [preview-table]]
             [redgenes.components.loader :refer [mini-loader]]
             [redgenes.components.idresolver.subs]
+            [redgenes.components.imcontrols.views :as im-controls]
             [redgenes.components.lighttable :as lighttable]))
 
 ;;; TODOS:
 
 ;We need to handler more than X results :D right now 1000 results would ALL show on screen. Eep.
 
-(defn ex []
-  (let [active-mine (subscribe [:current-mine])
-        mines (subscribe [:mines])
-        example-text (:idresolver-example ((:id @active-mine) @mines))]
-example-text))
-
 (def separators (set ".,; "))
 
 (def timeout 1500)
 
-(defn splitter
-  "Splits a string on any one of a set of strings."
+(defn organism-selection
+  "UI component allowing user to choose which organisms to search. Defaults to all."
+  []
+  (let [selected-organism (subscribe [:idresolver/selected-organism])]
+    [:div [:label "Organism"]
+      [im-controls/organism-dropdown
+      {:selected-value (if (some? @selected-organism) @selected-organism "Any")
+       :on-change (fn [organism]
+                    (dispatch [:idresolver/set-selected-organism organism]))}]]))
+
+(defn object-type-selection
+  "UI component allowing user to choose which object type to search. Defaults to the first one configured for a mine."
+  []
+  (let [selected-object-type (subscribe [:idresolver/selected-object-type])
+        values (subscribe [:idresolver/object-types])]
+    [:div [:label "Type"]
+      [im-controls/object-type-dropdown
+      {:values @values
+       :selected-value @selected-object-type
+       :on-change (fn [object-type]
+                    (dispatch [:idresolver/set-selected-object-type object-type]))}]]))
+
+(defn splitter "Splits a string on any one of a set of strings."
   [string]
   (->> (clojure.string/split string (re-pattern (str "[" (reduce str separators) "\\r?\\n]")))
        (remove nil?)
@@ -40,6 +57,7 @@ example-text))
         matches  (subscribe [:idresolver/results-matches])
         selected (subscribe [:idresolver/selected])]
     (fn []
+      (.log js/console "%c@matches" "color:hotpink;font-weight:bold;" (clj->js @matches) "results" (clj->js @results))
       [:div.btn-toolbar.controls
        [:button.btn.btn-warning
         {:class    (if (nil? @results) "disabled")
@@ -50,8 +68,8 @@ example-text))
          :on-click (fn [] (dispatch [:idresolver/delete-selected]))}
         (str "Remove selected (" (count @selected) ")")]
        [:button.btn.btn-primary.btn-raised
-        {:class    (if (nil? @results) "disabled")
-         :on-click (fn [] (if (some? @results) (dispatch [:idresolver/analyse true])))}
+        {:disabled (if (empty? @matches) "disabled")
+         :on-click (fn [] (if (some? @matches) (dispatch [:idresolver/analyse true])))}
         "View Results"]])))
 
 (defn submit-input
@@ -85,7 +103,7 @@ example-text))
             ;stop old auto-submit counter.
             (js/clearInterval @timer)
             ;start new timer again
-            (reset! timer (js/setTimeout #((submit-input input val)) timeout))
+            (reset! timer (js/setTimeout #(submit-input input val) timeout))
             ;submit the stuff
             (if (has-separator? input)
               (do
@@ -95,25 +113,44 @@ example-text))
      ;;autofocus on the entry field when the page loads
      :component-did-mount (fn [this] (.focus (reagent/dom-node this)))})))
 
+(defn organism-identifier
+  "Sometimes the ambiguity we're resolving with duplicate ids is the sme symbol from two similar organisms, so we'll need to ass organism name where known."
+  [summary]
+  (if (:organism.name summary)
+    (str " (" (:organism.name summary) ")")
+    ""
+    )
+)
+
+(defn build-duplicate-identifier
+  "Different objects types have different summary fields. Try to select one intelligently or fall back to primary identifier if the others ain't there."
+  [result]
+  (let [summary (:summary result)
+        symbol (:symbol summary)
+        accession (:primaryAccession summary)
+        primaryId (:primaryId summary)]
+    (str
+     (first (remove nil? [symbol accession primaryId]))
+     (organism-identifier summary)
+)))
 
 (defn input-item-duplicate []
   "Input control. allows user to resolve when an ID has matched more than one object."
   (fn [[oid data]]
-    [:span [:span.dropdown
+    [:span.id-item [:span.dropdown
      [:span.dropdown-toggle
       {:type        "button"
        :data-toggle "dropdown"}
       (:input data)
       [:span.caret]]
      (into [:ul.dropdown-menu]
-           (map (fn [result]
-                  [:li
-                   {:on-click (fn [e]
-                                (.preventDefault e)
-                                (dispatch [:idresolver/resolve-duplicate
-                                           (:input data)
-                                           result]))}
-                   [:a (-> result :summary :symbol)]]) (:matches data)))]]))
+       (map (fn [result]
+          [:li {:on-click
+            (fn [e]
+              (.preventDefault e)
+              (dispatch [:idresolver/resolve-duplicate
+                 (:input data) result]))}
+           [:a (build-duplicate-identifier result)]]) (:matches data)))]]))
 
 (defn get-icon [icon-type]
   (case icon-type
@@ -131,7 +168,7 @@ example-text))
 (defn input-item-converted [original results]
   (let [new-primary-id (get-in results [:matches 0 :summary :primaryIdentifier])
         conversion-reason ((:status results) reasons)]
-    [:span {:title (str "You input '" original "', but we converted it to '" new-primary-id "', because " conversion-reason)}
+    [:span.id-item {:title (str "You input '" original "', but we converted it to '" new-primary-id "', because " conversion-reason)}
      original " -> " new-primary-id]
 ))
 
@@ -162,8 +199,8 @@ example-text))
                :DUPLICATE [input-item-duplicate (first @result)]
                :TYPE_CONVERTED [input-item-converted (:input i) result-vals]
                :OTHER [input-item-converted (:input i) result-vals]
-               :MATCH [:span (:input i)]
-               [:span (:input i)])
+               :MATCH [:span.id-item (:input i)]
+               [:span.id-item (:input i)])
               ]]))})))
 
 (defn input-items []
@@ -233,6 +270,9 @@ example-text))
        [:div.eenput
         {:class (if @drag-state "dragging")}
         [:div.idresolver
+          [:div.type-and-organism
+           [organism-selection]
+           [object-type-selection]]
           [input-items]
           [input-box]
          [controls]]
@@ -329,9 +369,8 @@ example-text))
   (dommy/listen! (sel1 :body) :keyup key-up-handler))
 
 (defn preview [result-count]
-  ""
-  (let [query             (subscribe [:results/query])
-        service           (:service @(subscribe [:current-mine]))]
+  (let [results-preview (subscribe [:idresolver/results-preview])
+        fetching-preview? (subscribe [:idresolver/fetching-preview?])]
     [:div
      [:h4.title "Results preview:"
       [:small.pull-right "Showing " [:span.count (min 5 result-count)] " of " [:span.count result-count] " Total Good Identifiers. "
@@ -340,9 +379,9 @@ example-text))
             (fn [] (dispatch [:idresolver/analyse true]))}
             "View all >>"])
        ]]
-     [lighttable/main {:query      @query
-                      :service    service
-                      :no-repeats true}]]
+       [preview-table
+         :loading? @fetching-preview?
+         :query-results @results-preview]]
 ))
 
 (defn main []
@@ -356,7 +395,10 @@ example-text))
          [:div.container.idresolverupload
           [:div.headerwithguidance
            [:h1 "List Upload"]
-           [:a.guidance {:on-click (fn [] (dispatch [:idresolver/resolve (splitter (ex))]))} "[Show me an example]"]]
+           [:a.guidance
+            {:on-click
+             (fn []
+              (dispatch [:idresolver/example splitter]))} "[Show me an example]"]]
            [input-div]
            [stats]
            (cond (> result-count 0) [preview result-count])

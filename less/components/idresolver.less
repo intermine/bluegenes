@@ -34,14 +34,12 @@
         }
 
         &.MATCH,
-        &.TYPE_CONVERTED,
-        &.OTHER {
+        &.OTHER,
+        &.TYPE_CONVERTED {
             .dark-text;
             background: @goodcolor;
         }
-
-        &.DUPLICATE,
-         {
+         &.DUPLICATE {
             text-shadow: 1px 1px 1px rgba(255, 255, 255, 0.2);
             .dark-text;
             background: @needsinputcolor;
@@ -56,6 +54,26 @@
         }
     }
 
+    .type-and-organism {
+        display: flex;
+        justify-content: space-around;
+        margin-top: -10px;
+        border-bottom: dashed 1px #ccc;
+
+        label {
+            color: #444;
+            font-size: 0.9em;
+        }
+
+        .btn-group {
+            margin: 0;
+        }
+
+        .btn {
+            font-size: 0.85em;
+        }
+    }
+
     .eenput {
         .transitions;
         display: flex;
@@ -65,7 +83,7 @@
 
         .idresolver,
         .upload-file {
-          .input-dashed-style;
+            .input-dashed-style;
         }
 
         .idresolver button {
@@ -174,7 +192,7 @@
                 .button-color;
             }
 
-            span {
+            .id-item {
                 padding-left: 5px;
             }
         }
@@ -211,15 +229,17 @@
 
         .results {
             display: flex;
-            flex-wrap:wrap;
+            flex-wrap: wrap;
+
             > div {
-              flex-grow:1;
-              .transitions;
+                flex-grow: 1;
+                .transitions;
                 margin: 0.25em;
-                cursor:pointer;
+                cursor: pointer;
                 display: block;
                 background: rgba(0,0,0,0.075);
                 .border-radius;
+
                 .details {
                     display: flex;
                     align-items: center;
@@ -227,7 +247,7 @@
                     transition: all 2s;
 
                     .count {
-                        height:(100% - @syze);
+                        height: (100% - @syze);
                         min-width: 2em;
                         flex-grow: 1;
                     }
@@ -238,17 +258,19 @@
                 }
 
                 &:focus {
-                  flex-grow:2;
-                  .transitions;
-                  .details p {
-                    flex-grow: 1;
-                    margin:0;
-                    display: block;
-                    animation-duration: 1s;
-                    max-width:25vw;
-                    animation-name: slide-guidance;
-                    transition-timing-function: ease;
-                }}
+                    flex-grow: 2;
+                    .transitions;
+
+                    .details p {
+                        flex-grow: 1;
+                        margin: 0;
+                        display: block;
+                        animation-duration: 1s;
+                        max-width: 25vw;
+                        animation-name: slide-guidance;
+                        transition-timing-function: ease;
+                    }
+                }
             }
 
             .type-head {
@@ -256,7 +278,11 @@
                 background: rgba(0,0,0,0.025);
                 height: @syze;
                 line-height: @syze;
-                .icon-question {fill:rgba(0,0,0,0.6);width:@syze}
+
+                .icon-question {
+                    fill: rgba(0,0,0,0.6);
+                    width: @syze
+                }
             }
 
             .count {
@@ -290,7 +316,6 @@
             box-sizing: border-box;
         }
     }
-
 
     .dropzone {
         width: 300px;

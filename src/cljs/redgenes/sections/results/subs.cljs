@@ -65,3 +65,9 @@
     (let [{:keys [source value]} (get-in db [:results :package])]
       {:service (get-in db [:mines source :service])
        :query value})))
+
+(reg-sub
+ :results/are-there-results?
+ (fn [db]
+   (let [results (get-in db [:results :query])]
+     (some? results))))

@@ -14,6 +14,7 @@
     ;[redgenes.workers :as workers]
             [redgenes.components.querybuilder.subs]
             [redgenes.components.templates.core]
+            [accountant.core :refer [navigate!]]
             [oops.core :refer [oget oset! ocall oapply ocall! oapply!
                                oget+ oset!+ ocall+ oapply+ ocall!+ oapply!+]]))
 
@@ -27,9 +28,17 @@
   (reagent/render [views/main-panel]
                   (ocall js/document "getElementById" "app")))
 
+(defn navigate-to-deep-links []
+  (let [url (oget js/window "location" "hash")
+        hashless-path (last (clojure.string/split url #"#/"))]
+    (cond (> (count url) 2) ;; if there is more than #/ in the url, navigate there
+      (navigate! hashless-path)
+)))
+
 (defn ^:export init []
   (routes/app-routes)
   (re-frame/dispatch-sync [:boot])
+  (navigate-to-deep-links)
   (dev-setup)
   (mount-root))
 
