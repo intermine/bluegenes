@@ -57,7 +57,6 @@
         matches  (subscribe [:idresolver/results-matches])
         selected (subscribe [:idresolver/selected])]
     (fn []
-      (.log js/console "%c@matches" "color:hotpink;font-weight:bold;" (clj->js @matches) "results" (clj->js @results))
       [:div.btn-toolbar.controls
        [:button.btn.btn-warning
         {:class    (if (nil? @results) "disabled")
