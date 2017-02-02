@@ -89,7 +89,7 @@
          [:li.homelink {:class (if (panel-is :home-panel) "active")} [:a {:on-click #(navigate! "/")} "Home"]]
          [:li {:class (if (panel-is :upload-panel) "active")} [:a {:on-click #(navigate! "/upload")} "Upload"]]
          [:li {:class (if (panel-is :templates-panel) "active")} [:a {:on-click #(navigate! "/templates")} "Templates"]]
-         
+
          ;;don't show region search for mines that have no example configured
          (cond (:regionsearch-example @current-mine)
            [:li {:class (if (panel-is :regions-panel) "active")} [:a {:on-click #(navigate! "/regions")} "Regions"]]
@@ -103,6 +103,7 @@
          [:li.search [search/main]]
          (cond (not (panel-is :search-panel)) [:li.search-mini [:a {:on-click #(navigate! "/search")} [:svg.icon.icon-search [:use {:xlinkHref "#icon-search"}]]]])
          [:li [:a {:on-click #(navigate! "/help")} [:i.fa.fa-question]]]
-         [user]
+         ;;This may have worked at some point in the past. We need to res it.
+        ; [user]
          [settings]]]
        [progress-bar/main]])))

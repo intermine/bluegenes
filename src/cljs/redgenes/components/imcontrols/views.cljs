@@ -8,22 +8,22 @@
 "Creates a dropdown of known organisms. The supplied :on-change function will
 receive all attributes of the organism selected.
 Options {}:
-  :label (optional) Supply this if you want to change the dropdown's label
+  :selected-value (optional) Supply this if you want to change the dropdown's selected-value
   :on-change Function to call when changed
 Example usage:
   [im-controls/organism-dropdown
-   {:label     (if-let [sn (get-in @app-db [:my-tool :selected-organism :shortName])]
+   {:selected-value     (if-let [sn (get-in @app-db [:my-tool :selected-organism :shortName])]
                  sn \"All Organisms\")
     :on-change (fn [organism]
                  (dispatch [:mytool/set-selected-organism organism]))}]
 "
 (defn organism-dropdown []
   (let [organisms (subscribe [:cache/organisms])]
-    (fn [{:keys [label on-change]}]
-      [:div.btn-group
+    (fn [{:keys [selected-value on-change ]}]
+      [:div.btn-group.organism-dropdown
        [:button.btn.btn-primary.dropdown-toggle
         {:data-toggle "dropdown"}
-        [:span (if label (str label " ") "All Organism ") [:span.caret]]]
+        [:span (if selected-value (str selected-value " ") "All Organisms ") [:span.caret]]]
        (-> [:ul.dropdown-menu]
            (into [[:li [:a {:on-click (partial on-change nil)}
                         [:span [:i.fa.fa-times] " Clear"]]]
@@ -35,6 +35,19 @@ Example usage:
                       (sort-by :shortName @organisms))))])))
 
 
+(defn object-type-dropdown []
+  (let [display-names @(subscribe [:model])]
+  (fn [{:keys [values selected-value on-change ]}]
+    [:div.btn-group.object-type-dropdown
+     [:button.btn.btn-primary.dropdown-toggle
+      {:data-toggle "dropdown"}
+      [:span (if selected-value (str (get-in display-names [selected-value :displayName]) " ") "Select a type") [:span.caret]]]
+     (-> [:ul.dropdown-menu]
+         (into (map (fn [value]
+            [:li [:a
+                  {:on-click (partial on-change value)}
+                  (get-in display-names [value :displayName])]])
+          values)))])))
 
 
 (defn has-text?
@@ -189,4 +202,3 @@ Example usage:
                  (if (and (not-empty filtered-ops) (not-empty list-ops)) [[:li.divider]])
                  (map (fn [o] [:li {:on-click (partial on-change (:op o))} [:a (or (:label o) (:op o))]])
                       filtered-ops))))])))
-

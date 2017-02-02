@@ -53,7 +53,6 @@
    ;;So this saves assets and current mine to the db. We don't do any complex caching right now - every boot or mine change, these will be loaded afresh and applied on top. It *does* mean that the assets can be used before they are loaded.
    ;;why isn't there caching? because it gets very complex deciding what and when to expire, so it's not really a minimum use case feature.
    (let [saved-keys (select-keys db [:current-mine :mines :assets])]
-    (.log js/console "%cSaving state: " "background-color:darkseagreen;font-weight:bold;border-radius:2px" (clj->js saved-keys))
     (persistence/persist! saved-keys)
    {:db db}
    )))

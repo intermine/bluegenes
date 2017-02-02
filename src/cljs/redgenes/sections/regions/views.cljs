@@ -64,7 +64,7 @@
   (let [settings  (subscribe [:regions/settings])]
     [:div [:label "Organism"]
       [im-controls/organism-dropdown
-      {:label     (if-let [sn (get-in @settings [:organism :shortName])]
+      {:selected-value     (if-let [sn (get-in @settings [:organism :shortName])]
                     sn
                     "All Organisms")
        :on-change (fn [organism]

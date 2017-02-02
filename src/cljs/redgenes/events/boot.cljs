@@ -33,17 +33,44 @@
    :events      #{:imt.io/save-list-success}
    :dispatch-to [:assets/fetch-lists]})
 
+(defn get-current-mines
+  "This method is implemented for robust updates. It ensures that local-storage client-cached mine entries are deleted if the mine entry is removed from mines.cljc. Goes hand in hand with get-active mine to ensure that we still have an active mine to select"
+  [state-mines config-mines]
+  (let [good-mines (set (keys config-mines))]
+    (doall
+      (reduce
+        (fn [new-mine-list [mine-name details]]
+          (if (contains? good-mines mine-name)
+            (assoc new-mine-list mine-name details))) {} state-mines))
+    ))
+
+(defn get-active-mine "Return the current mine if it still exists after a config update, or else just return the first one if the ID doesn't exist for some reason"
+  [all-mines mine-name]
+  (let [mine-names (set (keys all-mines))]
+    (if (contains? mine-names mine-name)
+      mine-name
+      (do
+        (.debug js/console (clj->js mine-name) "doesn't exist so we've auto-selected the first available mine")
+        (first mine-names)))
+    ))
+
 ; Boot the application.
 (reg-event-fx
   :boot
   (fn []
     (let [db         (assoc db/default-db :mines default-mines/mines)
           state      (persistence/get-state!)
-          has-state? (seq state)]
+          has-state? (seq state)
+          ;;prune out old mines from localstorage that aren't part of the app anymore
+          good-state-mines (get-current-mines (:mines state) (:mines db))
+          ;;make sure we have all current localstorage mines and all new ones (if any)
+          all-mines (merge default-mines/mines good-state-mines)
+          ;;make sure the active mine wasn't removed. Will select a default if needed.
+          current-mine (get-active-mine all-mines (:current-mine state))]
       (if has-state?
         {:db             (assoc db/default-db
-                           :current-mine (:current-mine state)
-                           :mines (:mines state)
+                           :current-mine current-mine
+                           :mines all-mines
                            :assets (:assets state)
                            ;;we had assets in localstorage. We'll still load the fresh ones in the background in case they changed, but we can make do with these for now.
                            :fetching-assets? false)
@@ -57,10 +84,15 @@
          :forward-events (im-tables-events-forwarder)})
       )))
 
+(defn remove-stateful-keys-from-db
+  "Any tools / components that have mine-specific state should lose that state if we switch mines. For example, in list upload (ID Resolver), drosophila IDs are no longer valid when using humanmine."
+  [db]
+  (dissoc db :regions :idresolver :results))
+
 (reg-event-fx
   :reboot
   (fn [{db :db}]
-    {:db         db
+    {:db         (remove-stateful-keys-from-db db)
      :async-flow (boot-flow db)}))
 
 (reg-event-fx
@@ -77,13 +109,14 @@
   (fn [db [_ mine-kw token]]
     (assoc-in db [:mines mine-kw :service :token] token)))
 
-; Fetch an anonymous token for a give
+; Fetch an anonymous token for a given mine
 (reg-event-fx
   :authentication/fetch-anonymous-token
   (fn [{db :db} [_ mine-kw]]
+    (let [mine (dissoc (get-in db [:mines mine-kw :service]) :token)]
     {:db           db
      :im-operation {:on-success [:authentication/store-token mine-kw]
-                    :op         (partial fetch/session (get-in db [:mines mine-kw :service]))}}))
+                    :op         (partial fetch/session mine)}})))
 
 ; Fetch model
 

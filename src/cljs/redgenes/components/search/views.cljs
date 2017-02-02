@@ -1,9 +1,9 @@
 (ns redgenes.components.search.views
   (:require [reagent.core :as reagent]
             [clojure.string :as str]
+            [redgenes.components.loader :refer [loader]]
             [redgenes.components.search.resultrow :as resulthandler]
             [redgenes.components.search.filters :as filters]
-            [redgenes.components.loader :refer [loader]]
             [re-frame.core :as re-frame :refer [subscribe dispatch]]
             [oops.core :refer [ocall oget]]
 ))
@@ -14,7 +14,7 @@
 (defn is-active-result? [result]
  "returns true is the result should be considered 'active' - e.g. if there is no filter at all, or if the result matches the active filter type."
    (or
-     (= (:active-filter @(subscribe [:search/full-results])) (.-type result))
+     (= (:active-filter @(subscribe [:search/full-results])) (oget result "type"))
      (nil? (:active-filter @(subscribe [:search/full-results])))))
 
 (defn count-total-results [state]
@@ -41,7 +41,7 @@
    [:form
        (doall (let [active-results (filter (fn [result] (is-active-result? result)) (:results @state))]
          (for [result active-results]
-           ^{:key (.-id result)}
+           ^{:key (oget result "id")}
            [resulthandler/result-row {:result result :search-term @(subscribe [:search-term])}])))
     ]
   ]))
@@ -80,7 +80,7 @@
       [:div.noresponse
        [:svg.icon.icon-info [:use {:xlinkHref "#icon-info"}]] "Try searching for something in the search box above - perhaps a gene, a protein, or a GO Term."]
       )
-      (cond @loading? [:div.noresponse [loader "search results"]])
+      (cond @loading? [:div.noresponse [loader "results"]])
     ]))
 
  (defn main []

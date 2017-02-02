@@ -63,7 +63,7 @@
         current-mine (subscribe [:current-mine])
         the-type (get-in @model [(keyword class) :displayName])
         ]
-  [:div.grid-3_xs-3.single-feature {:on-click #(navigate! (str "/reportpage/" (name (:id @current-mine)) "/" the-type "/" objectId))
+  [:div.grid-3_xs-3.single-feature {:on-click #(navigate! (str "/reportpage/" (name (:id @current-mine)) "/" class "/" objectId))
        }
    [:div.col {:style {:word-wrap "break-word"}}
     primaryIdentifier]
@@ -83,17 +83,17 @@
       (if (pos? (count (:results feature)))
         [:div.results
           [region-header feature [table-paginator pager results]]
-          [graphs/main feature]
+          ;[graphs/main feature]
           [:div.tabulated [table-header]
             (into [:div.results-body]
               (map (fn [result]  [table-row chromosome result])
-                (take (:show @pager) (drop (* (:show @pager) (:page @pager)) results))))]]
+                (take (:show @pager) (drop (* (:show @pager) (:page @pager)) (sort-by (comp :start :chromosomeLocation) results)))))]]
         [:div.results.noresults [region-header chromosome from to] "No features returned for this region"]
         ))))
 
 (defn error-loading-results []
   [:div.results.error
-   [:svg.icon.icon-sad [:use {:xlinkHref "#icon-sad"}]]
+   [:svg.icon.icon-wondering [:use {:xlinkHref "#icon-wondering"}]]
    [:div.errordetails
     [:h3 "Houston, we've had a problem. "]
     [:p  "Looks like there was a problem fetching results."]

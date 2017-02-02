@@ -2,8 +2,9 @@
 
 (def default-db
   {:name                       "Intermine"
-   :short-name                 "IM"
    :mine-name                  :fly
+   ;;events/boot.cljs auto-selects the first mine available if current-mine
+   ;;doesn't exist for any reason.
    :current-mine               :flymine-beta
    :saved-data                 {:items {}}
    :quicksearch-selected-index -1 ;;this defaults to select all in the quicksearch

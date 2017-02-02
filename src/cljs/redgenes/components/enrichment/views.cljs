@@ -47,7 +47,8 @@
                         (dispatch [:results/add-to-history row details]))}
      [:div.container-fluid
       [:div.row
-       [:div.col-xs-8
+       [:div.col-xs-2 matches]
+       [:div.col-xs-6
         [popover
          [:span {:data-content   [popover-table matches p-value]
                  :data-placement "top"
@@ -70,7 +71,8 @@
   [:div.enrichment-header
    [:div.container-fluid
    [:div.row
-    [:div.col-xs-8 "Item"]
+    [:div.col-xs-2 "Matches"]
+    [:div.col-xs-6 "Item"]
     [:div.col-xs-4.p-val "p-value" [p-val-tooltip]]]]])
 
 (defn enrichment-results-preview []
@@ -103,11 +105,15 @@
               (drop (* (:page @page-state) (:show @page-state)) results)))))])))
 
 (defn enrichment-results []
-  (let [all-enrichment-results (subscribe [:enrichment/enrichment-results])]
+  (let [all-enrichment-results (subscribe [:enrichment/enrichment-results])
+        loading-widget-types (subscribe [:enrichment/enrichment-widgets-loading?])]
     (fn []
       (if (nil? (vals @all-enrichment-results))
         ;; No Enrichment widgets available - only if there are no widgets for any of the datatypes in the columns. If there are widgets but there are 0 results, the second option below (div.demo) fires.
-        [:div [:h4 "No Enrichment Widgets Available"]]
+        [:div (if @loading-widget-types
+                [:h4 "Finding enrichment widgets" [:span [mini-loader "tiny"]]]
+                [:h4 "No Enrichment Widgets Available"]
+                )]
         [:div.demo
          [css-transition-group
           {:transition-name          "fade"
@@ -143,7 +149,7 @@
         [:select.form-control
           {:on-change #(dispatch [:enrichment/update-enrichment-setting :correction (oget % "target" "value")])}
           [:option "Holm-Bonferroni"]
-          [:option "Benjamini Hochber"]
+          [:option "Benjamini Hochberg"]
           [:option "Bonferroni"]
           [:option "None"]]]
      [text-filter]
@@ -212,7 +218,11 @@
       [:div.enrichment
         {:on-mouse-enter (fn [] (reset! sidebar-hover true))
           :on-mouse-leave (fn [] (reset! sidebar-hover false))}
-        [:h3.inline "Enrichment: "]
+        [:h3 "Enrichment "]
+        [:a {:title "External link to enrichment documentation."
+             :target "_blank"
+             :href "http://intermine.readthedocs.io/en/latest/embedding/list-widgets/enrichment-widgets/"} "[How is this calculated? "
+          [:svg.icon.icon-external [:use {:xlinkHref "#icon-external"}]] " ] "]
           [enrichable-column-displayer]
 
           [enrichment-settings]

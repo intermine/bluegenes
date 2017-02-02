@@ -1,5 +1,5 @@
-(defproject redgenes "0.1.1-SNAPSHOT"
-  :dependencies [[org.clojure/clojure "1.9.0-alpha12"]
+(defproject redgenes "0.4.0-alpha-candidate"
+  :dependencies [[org.clojure/clojure "1.9.0-alpha14"]
                  [figwheel-sidecar "0.5.8"]
                  [clj-http "3.3.0"]
                  [org.clojure/clojurescript "1.9.293"]
@@ -26,7 +26,7 @@
                  [day8.re-frame/async-flow-fx "0.0.6"]
                  [day8.re-frame/forward-events-fx "0.0.5"]
                  [day8.re-frame/undo "0.3.2"]
-                 [com.rpl/specter "0.13.2"]
+                 [com.rpl/specter "0.13.0"]
                  [com.cognitect/transit-cljs "0.8.239"]
                  [servant "0.1.5"]
                  [com.lucasbradstreet/cljs-uuid-utils "1.0.2"]

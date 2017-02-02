@@ -32,12 +32,10 @@
   (t/write (t/writer :json-verbose) state))
 
 (defn persist! [state]
-  (.log js/console "persist state")
   (js/localStorage.setItem "redgenes/state" (to-transit state))
   state)
 
 (defn destroy! []
-  (.log js/console "destroy state")
   (js/localStorage.removeItem "redgenes/state")
   true)
 
@@ -49,14 +47,12 @@
   ([state]
     (get-state! state []))
   ([state paths]
-   (println "restore state")
     (merge-state state
       (t/read (t/reader :json)
         (js/localStorage.getItem "redgenes/state"))
       paths)))
 
 (defn merge-state-from-file [state file]
-  (println "merge state with " file)
   (merge state (t/read (t/reader :json) file)))
 
 (defn download!
@@ -77,12 +73,10 @@
   (str (get-in s [:msas (:selected-msa s) :name]) "-" (:selected-msa s) ".dg"))
 
 (defn load! [s]
-(println "load state")
   (-> (sel1 :#file_button) .click)
    s)
 
 (defn save! [s]
-(println "save state")
   (download! "JSON"
     (make-filename s)
     (to-transit s)) s)
