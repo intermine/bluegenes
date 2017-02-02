@@ -139,9 +139,10 @@
       [:div.grid
        [:div.col-1.white
         {:style {:text-align "right"}}
-        [:button.btn.btn-danger.btn-simple
-         {:on-click (fn [] (dispatch [:qb/remove-view path]))}
-         [:i.fa.fa-times]]]
+        (when (> (count path) 1)
+          [:button.btn.btn-danger.btn-simple
+          {:on-click (fn [] (dispatch [:qb/remove-view path]))}
+          [:i.fa.fa-times]])]
 
        ; Controls column
        [:div.col-1.white
