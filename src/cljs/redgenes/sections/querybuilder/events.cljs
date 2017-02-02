@@ -13,15 +13,30 @@
   [coll pos]
   (vec (concat (subvec coll 0 pos) (subvec coll (inc pos)))))
 
-(reg-event-db
-  :qb/set-query
-  (fn [db [_ query]]
-    (assoc-in db [:qb :query-map] query)))
+(def alphabet (into [] "ABCDEFGHIJKLMNOPQRSTUVWXYZ"))
 
-(reg-event-db
+(defn used-const-code
+  "Walks down the query map and pulls all codes from constraints"
+  [query]
+  (map :code (mapcat :constraints (tree-seq map? vals query))))
+
+(defn next-available-const-code
+  "Gets the next available unused constraint letter from the query map"
+  [query]
+  (let [used-codes (used-const-code query)]
+    (first (filter #(not (some #{%} used-codes)) alphabet))))
+
+(reg-event-fx
+  :qb/set-query
+  (fn [{db :db} [_ query]]
+    {:db       (assoc-in db [:qb :query-map] query)
+     :dispatch [:qb/build-im-query]}))
+
+(reg-event-fx
   :qb/add-view
-  (fn [db [_ view-vec]]
-    (update-in db loc assoc-in (conj view-vec :visible) true)))
+  (fn [{db :db} [_ view-vec]]
+    {:db       (update-in db loc assoc-in (conj view-vec :visible) true)
+     :dispatch [:qb/build-im-query]}))
 
 (reg-event-fx
   :qb/remove-view
@@ -32,27 +47,31 @@
                             (empty? (get-in new (concat [:qb :qm] (butlast path)))))
                      (recur new (butlast path))
                      new)))
-     :dispatch [:qb/count-query]}))
+     :dispatch [:qb/build-im-query]}))
 
-(reg-event-db
+(reg-event-fx
   :qb/toggle-view
-  (fn [db [_ view-vec]]
-    (update-in db loc update-in (conj view-vec :visible) not)))
+  (fn [{db :db} [_ view-vec]]
+    {:db       (update-in db loc update-in (conj view-vec :visible) not)
+     :dispatch [:qb/build-im-query]}))
 
 (reg-event-db
   :qb/add-constraint
   (fn [db [_ view-vec]]
-    (update-in db loc update-in (conj view-vec :constraints) (comp vec conj) {:op "=" :value nil})))
+    (let [code (next-available-const-code (get-in db loc))]
+      (update-in db loc update-in (conj view-vec :constraints) (comp vec conj) {:code code :op "=" :value nil}))))
 
-(reg-event-db
+(reg-event-fx
   :qb/remove-constraint
-  (fn [db [_ path idx]]
-    (update-in db loc update-in (conj path :constraints) drop-nth idx)))
+  (fn [{db :db} [_ path idx]]
+    {:db       (update-in db loc update-in (conj path :constraints) drop-nth idx)
+     :dispatch [:qb/build-im-query]}))
 
+; Do not re-count because this fires on every keystroke!
+; Instead, attach (dispatch [:qb/count-query]) to the :on-blur of the constraints component
 (reg-event-db
   :qb/update-constraint
   (fn [db [_ path idx constraint]]
-    (.log js/console (get-in db [:qb :qm]))
     (update-in db loc assoc-in (reduce conj path [:constraints idx]) constraint)))
 
 (reg-event-db
@@ -118,6 +137,18 @@
     (println "count" count)
     db))
 
+
+
+
+
+(reg-event-db
+  :qb/mention
+  (fn [db [_ count]]
+    (let [query (get-in db [:qb :qm])]
+      (.log js/console "Q" query)
+      (.log js/console "rec" (next-available-const-code query)))
+    db))
+
 ;(defn extract-constraints-old
 ;  ([query]
 ;   (distinct (extract-constraints-old nil [] query)))
@@ -140,20 +171,39 @@
       (update-in db loc assoc-in (conj v :id-count) summary))))
 
 
-(defn make-query [model root-class query constraintLogic ]
-  {:select (serialize-views (first query) [] [])
-   :where  (remove empty? (mapcat (fn [n] (map (fn [c]
-                                                 (assoc c :path (join "." (:path n)))) (:constraints n)))
-                                  (extract-constraints (first query) [] [])))
-   :constraintLogic constraintLogic})
+(defn make-query [model root-class query constraintLogic]
+  (let [constraints (remove empty? (mapcat (fn [n]
+                                             (map (fn [c]
+                                                    (assoc c :path (join "." (:path n)))) (:constraints n)))
+                                           (extract-constraints (first query) [] [])))]
+    (cond-> {:select (serialize-views (first query) [] [])}
+            (not-empty constraints) (assoc :where constraints)
+            constraintLogic (assoc :constraintLogic constraintLogic))))
 
-(defn countable-views [model query]
-  (let [views (serialize-views (first query) [] [])]
-    (map (comp #(str % ".id") (partial im-path/trim-to-last-class model)) views)))
+(defn remove-keyword-keys
+  "Removes all keys from a map that are keywords.
+  In our query map, keywords are reserved for special attributes such as :constraints and :visible"
+  [m]
+  (into {} (filter (comp (complement keyword?) first) m)))
+
+(defn class-paths
+  "Walks the query map and retrieves all im-paths that resolve to a class"
+  ([model query]
+   (let [[root children] (first query)]
+     (filter (partial im-path/class? model) (map #(join "." %) (distinct (class-paths model [root children] [root] []))))))
+  ([model [parent children] running total]
+   (let [total (conj total running)]
+     (if-let [children (not-empty (remove-keyword-keys children))]
+       (mapcat (fn [[k v]] (class-paths model [k v] (conj running k) total)) children)
+       total))))
+
+(defn countable-views
+  "Retrieve all im-paths that can be counted in the query map"
+  [model query]
+  (map #(str % ".id") (class-paths model query)))
 
 (defn get-letters [query]
-  (let [logic (reader/read-string "(A and B or C or D)")]
-    ))
+  (let [logic (reader/read-string "(A and B or C or D)")]))
 
 
 (reg-event-fx
@@ -169,20 +219,15 @@
                                            service
                                            (assoc query :select [id-path]))}})))
 
-;(partial fetch/row-count
-;         service
-;         (assoc query :select [(join "." view)])
-;         #_{:summaryPath (join "." view)
-;            :format      "jsonrows"})
 
 (reg-event-fx
   :qb/count-query
   (fn [{db :db}]
+
     (let [service  (get-in db [:mines (get-in db [:current-mine]) :service])
           query    (make-query (:model service) (get-in db [:qm :root-class]) (get-in db loc) (get-in db [:qb :constraint-logic]))
           id-paths (countable-views (:model service) (get-in db loc))]
-
-      (println "IDS" id-paths)
+      (println "COUNTING" id-paths)
 
       {:db             db
        :im-operation-n (map (fn [id-path]
@@ -236,34 +281,56 @@
   (->> (view-map model q)
        (with-constraints model q)))
 
-(reg-event-db
+(reg-event-fx
   :qb/load-query
-  (fn [db [_ query]]
-    (let [model (get-in db [:mines (get-in db [:current-mine]) :service :model])]
-      (update db :qb assoc
-              :qm (treeify model (im-query/sterilize-query query))
-              :constraint-logic (:constraintLogic query)))))
+  (fn [{db :db} [_ query]]
+    (let [model (get-in db [:mines (get-in db [:current-mine]) :service :model])
+          query (im-query/sterilize-query query)]
+      {:db       (update db :qb assoc
+                         :qm (treeify model query)
+                         :root-class (keyword (:from query))
+                         :constraint-logic (:constraintLogic query))
+       :dispatch [:qb/build-im-query]})))
 
-(reg-event-db
+(reg-event-fx
   :qb/set-root-class
-  (fn [db [_ root-class-kw]]
+  (fn [{db :db} [_ root-class-kw]]
     (let [model (get-in db [:mines (get-in db [:current-mine]) :service :model])]
-      (update db :qb assoc
-              :constraint-logic nil
-              :root-class (keyword root-class-kw)
-              :qm {root-class-kw {:visible true}}))))
+      {:db       (update db :qb assoc
+                         :constraint-logic nil
+                         :query-is-valid? false
+                         :root-class (keyword root-class-kw)
+                         :qm {root-class-kw {:visible true}})
+       :dispatch [:qb/count-query]})))
+
+
+
+
+(defn has-views? [model query]
+  "True if a query has at least one view. Queries without views are invalid."
+  (not (empty? (filter (partial (complement im-path/class?) model) (:select query)))))
+
+(reg-event-fx
+  :qb/build-im-query
+  (fn [{db :db}]
+    (let [service (get-in db [:mines (get-in db [:current-mine]) :service])
+          query   (make-query (:model service) (get-in db [:qm :root-class]) (get-in db loc) (get-in db [:qb :constraint-logic]))]
+      {:db       (update db :qb assoc
+                         :im-query (im-query/sterilize-query query)
+                         :query-is-valid? (has-views? (:model service) query))
+       :dispatch [:qb/count-query]})))
 
 
 (reg-event-fx
   :qb/export-query
   (fn [{db :db} [_]]
-    ;(.log js/console "exporting" (make-query (get-in db loc)))
     (let [service (get-in db [:mines (get-in db [:current-mine]) :service])]
-      {:db       db
-      :dispatch [:results/set-query
-                 {:source :flymine-beta
-                  :type   :query
-                  :value  (make-query (:model service) (get-in db [:qm :root-class]) (get-in db loc) (get-in db [:qb :constraint-logic]))}]
-      :navigate (str "results")})))
+      (println "passing" (get-in db [:qb :im-query]))
+      (when (get-in db [:qb :query-is-valid?])
+        {:dispatch [:results/set-query
+                    {:source :flymine-beta
+                     :type   :query
+                     :value  (get-in db [:qb :im-query])}]
+         :navigate (str "results")}))))
 
 

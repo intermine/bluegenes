@@ -12,6 +12,16 @@
     (get-in db [:qb :query-constraints])))
 
 (reg-sub
+  :qb/query-constraints
+  (fn [db]
+    (get-in db [:qb :query-constraints])))
+
+(reg-sub
+  :qb/query-is-valid?
+  (fn [db]
+    (get-in db [:qb :query-is-valid?])))
+
+(reg-sub
   :qb/invisible-constraints
   :<- [:qb/query-map]
   :<- [:qb/query-constraints]
