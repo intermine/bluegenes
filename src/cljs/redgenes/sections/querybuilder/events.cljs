@@ -126,9 +126,7 @@
 (defn serialize-constraints [[k {:keys [children constraints]}] total trail]
   (if children
     (flatten (reduce (fn [t n] (conj t (serialize-constraints n total (str trail (if trail ".") k)))) total children))
-    (conj total (map (fn [n]
-                       (.log js/console "n" n)
-                       (assoc n :path (str trail (if trail ".") k))) constraints))))
+    (conj total (map (fn [n] (assoc n :path (str trail (if trail ".") k))) constraints))))
 
 
 (reg-event-db
@@ -141,13 +139,7 @@
 
 
 
-(reg-event-db
-  :qb/mention
-  (fn [db [_ count]]
-    (let [query (get-in db [:qb :qm])]
-      (.log js/console "Q" query)
-      (.log js/console "rec" (next-available-const-code query)))
-    db))
+
 
 ;(defn extract-constraints-old
 ;  ([query]
@@ -200,6 +192,7 @@
 (defn countable-views
   "Retrieve all im-paths that can be counted in the query map"
   [model query]
+  ;(println "classpaths" (class-paths model query))
   (map #(str % ".id") (class-paths model query)))
 
 (defn get-letters [query]
@@ -227,7 +220,7 @@
     (let [service  (get-in db [:mines (get-in db [:current-mine]) :service])
           query    (make-query (:model service) (get-in db [:qm :root-class]) (get-in db loc) (get-in db [:qb :constraint-logic]))
           id-paths (countable-views (:model service) (get-in db loc))]
-      (println "COUNTING" id-paths)
+      (println "Countable IDs" id-paths)
 
       {:db             db
        :im-operation-n (map (fn [id-path]
@@ -236,22 +229,6 @@
                                                     service
                                                     (assoc query :select [id-path]))}) id-paths)})))
 
-(reg-event-fx
-  :qb/make-query
-  (fn [{db :db}]
-    (let [service  (get-in db [:mines (get-in db [:current-mine]) :service])
-          query    (make-query (:model service) (get-in db [:qm :root-class]) (get-in db loc) (get-in db [:qb :constraint-logic]))
-          id-paths (countable-views (:model service) (get-in db loc))]
-
-      (.log js/console "query" query)
-      (println "codes" (get-letters query))
-
-      {:db             db
-       :im-operation-n (map (fn [id-path]
-                              {:on-success [:qb/success-summary id-path]
-                               :op         (partial fetch/row-count
-                                                    service
-                                                    (assoc query :select [id-path]))}) id-paths)})))
 
 (def aquery {:from            "Gene"
              :constraintLogic "A or B"
@@ -324,13 +301,11 @@
 (reg-event-fx
   :qb/export-query
   (fn [{db :db} [_]]
-    (let [service (get-in db [:mines (get-in db [:current-mine]) :service])]
-      (println "passing" (get-in db [:qb :im-query]))
-      (when (get-in db [:qb :query-is-valid?])
-        {:dispatch [:results/set-query
-                    {:source :flymine-beta
-                     :type   :query
-                     :value  (get-in db [:qb :im-query])}]
-         :navigate (str "results")}))))
+    (when (get-in db [:qb :query-is-valid?])
+      {:dispatch [:results/set-query
+                  {:source :flymine-beta
+                   :type   :query
+                   :value  (get-in db [:qb :im-query])}]
+       :navigate (str "results")})))
 
 

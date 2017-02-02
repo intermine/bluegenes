@@ -234,7 +234,6 @@
         root-class      (subscribe [:qb/root-class])
         query-is-valid? (subscribe [:qb/query-is-valid?])]
     (fn []
-      (println "RC" @query-is-valid?)
       [:div.main-window
        [:div.sidex
         [root-class-dropdown]
@@ -243,12 +242,6 @@
         {:disabled (not @query-is-valid?)
          :on-click (fn [] (dispatch [:qb/export-query]))}
         "View Results"]
-       [:button.btn.btn-success
-        {:on-click (fn [] (dispatch [:qb/make-query]))}
-        "Make Query"]
-       [:button.btn.btn-success
-        {:on-click (fn [] (dispatch [:qb/mention]))}
-        "Mention Query"]
        [:button.btn.btn-success
         {:on-click (fn [] (dispatch [:qb/load-query aquery]))}
         "Example Query"]
