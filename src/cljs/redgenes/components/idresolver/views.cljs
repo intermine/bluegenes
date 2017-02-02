@@ -113,6 +113,26 @@
      ;;autofocus on the entry field when the page loads
      :component-did-mount (fn [this] (.focus (reagent/dom-node this)))})))
 
+(defn organism-identifier
+  "Sometimes the ambiguity we're resolving with duplicate ids is the sme symbol from two similar organisms, so we'll need to ass organism name where known."
+  [summary]
+  (if (:organism.name summary)
+    (str " (" (:organism.name summary) ")")
+    ""
+    )
+)
+
+(defn build-duplicate-identifier
+  "Different objects types have different summary fields. Try to select one intelligently or fall back to primary identifier if the others ain't there."
+  [result]
+  (let [summary (:summary result)
+        symbol (:symbol summary)
+        accession (:primaryAccession summary)
+        primaryId (:primaryId summary)]
+    (str
+     (first (remove nil? [symbol accession primaryId]))
+     (organism-identifier summary)
+)))
 
 (defn input-item-duplicate []
   "Input control. allows user to resolve when an ID has matched more than one object."
@@ -124,14 +144,13 @@
       (:input data)
       [:span.caret]]
      (into [:ul.dropdown-menu]
-           (map (fn [result]
-                  [:li
-                   {:on-click (fn [e]
-                                (.preventDefault e)
-                                (dispatch [:idresolver/resolve-duplicate
-                                           (:input data)
-                                           result]))}
-                   [:a (-> result :summary :symbol)]]) (:matches data)))]]))
+       (map (fn [result]
+          [:li {:on-click
+            (fn [e]
+              (.preventDefault e)
+              (dispatch [:idresolver/resolve-duplicate
+                 (:input data) result]))}
+           [:a (build-duplicate-identifier result)]]) (:matches data)))]]))
 
 (defn get-icon [icon-type]
   (case icon-type
