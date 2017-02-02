@@ -2,7 +2,7 @@
   (:require [re-frame.core :refer [subscribe dispatch]]
             [reagent.core :as reagent :refer [create-class]]
             [imcljs.path :as p]
-            [clojure.string :refer [split join]]
+            [clojure.string :refer [split join blank?]]
             [oops.core :refer [ocall oget]]
             [redgenes.components.ui.constraint :refer [constraint]]))
 
@@ -194,7 +194,8 @@
                                    :value (:value con)
                                    :op (:op con)
                                    :on-change (fn [c] (dispatch [:qb/update-constraint path idx c]))
-                                   :on-blur (fn [] (dispatch [:qb/count-query]))
+                                   :on-blur (fn [x]
+                                              (dispatch [:qb/build-im-query]))
                                    :label? false]
                                   ])
                                constraints))))

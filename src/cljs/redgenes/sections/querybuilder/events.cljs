@@ -55,11 +55,12 @@
     {:db       (update-in db loc update-in (conj view-vec :visible) not)
      :dispatch [:qb/build-im-query]}))
 
-(reg-event-db
+(reg-event-fx
   :qb/add-constraint
-  (fn [db [_ view-vec]]
+  (fn [{db :db} [_ view-vec]]
     (let [code (next-available-const-code (get-in db loc))]
-      (update-in db loc update-in (conj view-vec :constraints) (comp vec conj) {:code code :op "=" :value nil}))))
+      {:db (update-in db loc update-in (conj view-vec :constraints) (comp vec conj) {:code code :op "=" :value nil})
+       :dispatch [:qb/build-im-query]})))
 
 (reg-event-fx
   :qb/remove-constraint
@@ -164,10 +165,11 @@
 
 
 (defn make-query [model root-class query constraintLogic]
-  (let [constraints (remove empty? (mapcat (fn [n]
-                                             (map (fn [c]
-                                                    (assoc c :path (join "." (:path n)))) (:constraints n)))
-                                           (extract-constraints (first query) [] [])))]
+  (let [constraints (remove (fn [c] (= nil (:value c))) (remove empty? (mapcat (fn [n]
+                                              (map (fn [c]
+                                                     (assoc c :path (join "." (:path n)))) (:constraints n)))
+                                            (extract-constraints (first query) [] []))))]
+    (println "CONSTRAINTS" constraints)
     (cond-> {:select (serialize-views (first query) [] [])}
             (not-empty constraints) (assoc :where constraints)
             constraintLogic (assoc :constraintLogic constraintLogic))))
