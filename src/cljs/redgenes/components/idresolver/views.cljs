@@ -41,7 +41,6 @@
        :on-change (fn [object-type]
                     (dispatch [:idresolver/set-selected-object-type object-type]))}]]))
 
-
 (defn splitter "Splits a string on any one of a set of strings."
   [string]
   (->> (clojure.string/split string (re-pattern (str "[" (reduce str separators) "\\r?\\n]")))
@@ -58,6 +57,7 @@
         matches  (subscribe [:idresolver/results-matches])
         selected (subscribe [:idresolver/selected])]
     (fn []
+      (.log js/console "%c@matches" "color:hotpink;font-weight:bold;" (clj->js @matches) "results" (clj->js @results))
       [:div.btn-toolbar.controls
        [:button.btn.btn-warning
         {:class    (if (nil? @results) "disabled")
@@ -68,8 +68,8 @@
          :on-click (fn [] (dispatch [:idresolver/delete-selected]))}
         (str "Remove selected (" (count @selected) ")")]
        [:button.btn.btn-primary.btn-raised
-        {:class    (if (nil? @results) "disabled")
-         :on-click (fn [] (if (some? @results) (dispatch [:idresolver/analyse true])))}
+        {:disabled (if (empty? @matches) "disabled")
+         :on-click (fn [] (if (some? @matches) (dispatch [:idresolver/analyse true])))}
         "View Results"]])))
 
 (defn submit-input
