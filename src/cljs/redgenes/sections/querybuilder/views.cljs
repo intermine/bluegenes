@@ -10,7 +10,8 @@
 
 (defn one-of? [haystack needle] (some? (some #{needle} haystack)))
 
-(defn tree-view-recur [model root-class trail selected]
+(defn tree-view-recur [model root-class trail selected & [override]]
+  (println "root-class" root-class override)
   (let [expanded? (reagent/atom (get-in selected trail))] ; Recursively auto-expand to selected values
     (fn [model root-class trail selected]
       (let [{:keys [displayName attributes collections references] :as p} (get-in model [:classes root-class])]
@@ -20,7 +21,7 @@
            (if @expanded?
              [:span.glyphicon.glyphicon-chevron-down]
              [:span.glyphicon.glyphicon-chevron-right])
-           [:div.class.nowrap.inlineblock displayName]
+           [:div.class.nowrap.inlineblock (or override displayName)]
            [:div.button-group
             [:button.small-btn {:on-click (fn [e]
                                             (ocall e :stopPropagation)
@@ -47,9 +48,11 @@
 
                   (sort attributes))
              ; Combined with a map of collections and references
+             (.log js/console "MERGED" (merge collections references))
              (map (fn [[_ colref]]
+                    (println "colref" colref)
                     ^{:key (str (name root-class) (:name colref))}
-                    [:li [tree-view-recur model (keyword (:referencedType colref)) (conj trail (:name colref)) selected]])
+                    [:li [tree-view-recur model (keyword (:referencedType colref)) (conj trail (:name colref)) selected (uncamel (:name colref))]])
                   (into (sorted-map) (merge collections references)))))]))))
 
 (defn tree-view []
