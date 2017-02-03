@@ -18,12 +18,15 @@
                                            :sort    {:title :asc}}}
 
    :qb                         {:root-class :Gene
-                                :qm                {"Gene" {:visible true
-                                                            :constraints []
-                                                            "symbol"     {:visible true
-                                                                          :constraints [{:op    "="
-                                                                                         :value "zen"}]}
-                                                            "organism"   {"name" {:constraints []
-                                                                                  :visible     true}}
-                                                            "alleles"    {"name"     {:visible true}
-                                                                          "dataSets" {"description" {:visible true}}}}}}})
+                                :qm                nil}})
+
+
+{"Gene" {:visible true
+         :constraints []
+         "symbol"     {:visible true
+                       :constraints [{:op    "="
+                                      :value "zen"}]}
+         "organism"   {"name" {:constraints []
+                               :visible     true}}
+         "alleles"    {"name"     {:visible true}
+                       "dataSets" {"description" {:visible true}}}}}

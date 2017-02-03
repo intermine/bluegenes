@@ -4,6 +4,8 @@
             [imcljs.path :as p]
             [clojure.string :refer [split join blank?]]
             [oops.core :refer [ocall oget]]
+            [clojure.string :as str]
+            [redgenes.utils :refer [uncamel]]
             [redgenes.components.ui.constraint :refer [constraint]]))
 
 (defn one-of? [haystack needle] (some? (some #{needle} haystack)))
@@ -22,7 +24,6 @@
            [:div.button-group
             [:button.small-btn {:on-click (fn [e]
                                             (ocall e :stopPropagation)
-                                            (.log js/console "CONNING" trail)
                                             (dispatch [:qb/add-constraint trail]))} "Constrain"]]]]
          (if @expanded?
            (concat
@@ -37,7 +38,7 @@
                        ;                   (dispatch [:qb/add-view (conj trail name)])))
 
                        [:span
-                        name
+                        (uncamel name)
                         [:div.button-group
                          (if selected?
                            [:button.small-btn {:on-click (fn [] (dispatch [:qb/remove-view (conj trail name)]))} "Hide"]
@@ -55,64 +56,6 @@
   (fn [m model root-class]
     [tree-view-recur model root-class [(name root-class)] m]))
 
-
-
-
-
-;(defn query-view []
-;  (fn [model m trail]
-;    (into [:div.qbcontainer]
-;          (->> (into (sorted-map) m) ; Sort our query-map alphabetically
-;               (map (fn [[k {:keys [visible children constraints] :as value}]]
-;                      (let [path (if trail (conj trail k) [k])]
-;                        [:div.qbrow
-;                         [:div
-;                          [:div.qrow
-;                           [:div.button-group {:style {:white-space "nowrap"}}
-;
-;                            ; Don't show the "visible" icon if this path is a class
-;                            (cond
-;                              (and (not (p/class? model (join "." path)))
-;                                   (not-empty constraints))
-;                              [:button.small-btn
-;                               {:class    nil ;(if visible "visible")
-;                                :on-click (fn [e] (ocall e :stopPropagation) (dispatch [:qb/toggle-view path]))}
-;                               (if visible [:i.fa.fa-eye] [:i.fa.fa-eye-slash])]
-;                              (and (not (p/class? model (join "." path))) (empty? constraints))
-;                              [:span.small-btn.empty [:i.fa.fa-eye]])
-;
-;                            [:span.key {:class (if visible "attribute")} k
-;                             (if-not (empty? trail) ; Don't allow user to drop the root node
-;                               [:button.small-btn
-;                                {:on-click (fn [e] (ocall e :stopPropagation) (dispatch [:qb/remove-view path]))}
-;                                [:i.fa.fa-times]])]]
-;
-;                           ; Provide an "X" icon to remove the view / constraint
-;
-;                           (if constraints
-;                             (do
-;                               (into [:div.ts]
-;                                     (map-indexed (fn [idx con]
-;                                                    [:div.constraint-row
-;
-;                                                     [constraint
-;                                                      :model model
-;                                                      :path (join "." path)
-;                                                      :value (:value con)
-;                                                      :op (:op con)
-;                                                      :on-change (fn [c] (dispatch [:qb/update-constraint path idx c]))
-;                                                      :on-blur (fn [c] (println "BLURRY"))
-;                                                      :label? false]
-;
-;                                                     [:button.small-btn.danger
-;                                                      {:on-click (fn [] (dispatch [:qb/remove-constraint path idx]))}
-;                                                      [:i.fa.fa-times]]])
-;
-;                                                  constraints))))]]
-;                         (if children [:div.qbcol [query-view model children path]])])))))))
-
-
-
 (defn table-header []
   [:div.grid
    [:div.col-1] [:div.col-1] [:div.col-5 [:h4 "Field"]] [:div.col-5 [:h4 "Constraints"]]])
@@ -129,7 +72,7 @@
         [:input.form-control
          {:value     @logic
           :on-change (fn [e] (dispatch [:qb/update-constraint-logic (oget e :target :value)]))
-          :on-blur (fn [] (dispatch [:qb/count-query]))
+          :on-blur   (fn [] (dispatch [:qb/count-query]))
           :type      "text"}]]])))
 
 (defn qb-row []
@@ -141,8 +84,8 @@
         {:style {:text-align "right"}}
         (when (> (count path) 1)
           [:button.btn.btn-danger.btn-simple
-          {:on-click (fn [] (dispatch [:qb/remove-view path]))}
-          [:i.fa.fa-times]])]
+           {:on-click (fn [] (dispatch [:qb/remove-view path]))}
+           [:i.fa.fa-times]])]
 
        ; Controls column
        [:div.col-1.white
@@ -182,7 +125,6 @@
             (into [:div.ts]
                   (map-indexed (fn [idx con]
                                  [:div.constraint-row
-
                                   [:button.btn.btn-danger.btn-simple
                                    {:on-click (fn [] (dispatch [:qb/remove-constraint path idx]))}
                                    [:i.fa.fa-times]]
@@ -191,6 +133,7 @@
                                    :model model
                                    :path (join "." path)
                                    :lists (second (first @lists))
+                                   :code (:code con)
                                    :value (:value con)
                                    :op (:op con)
                                    :on-change (fn [c] (dispatch [:qb/update-constraint path idx c]))
@@ -220,14 +163,16 @@
 
 (defn root-class-dropdown []
   (let [current-mine (subscribe [:current-mine])
-        root-class (subscribe [:qb/root-class])]
+        root-class   (subscribe [:qb/root-class])]
     (fn []
       (into [:select.form-control
              {:on-change (fn [e] (dispatch [:qb/set-root-class (oget e :target :value)]))
-              :value @root-class}]
+              :value     @root-class}]
             (map (fn [[class-kw details]]
                    [:option {:value class-kw} (:displayName details)])
                  (sort-by (comp :displayName second) (get-in @current-mine [:service :model :classes])))))))
+
+
 
 (defn main []
   (let [query           (subscribe [:qb/query])
@@ -235,22 +180,26 @@
         current-mine    (subscribe [:current-mine])
         root-class      (subscribe [:qb/root-class])
         query-is-valid? (subscribe [:qb/query-is-valid?])]
-    (fn []
-      [:div.main-window
-       [:div.sidex
-        [root-class-dropdown]
-        [tree-view @query (get-in @current-mine [:service :model]) (keyword @root-class)]]
-       [:button.btn.btn-primary.btn-raised
-        {:disabled (not @query-is-valid?)
-         :on-click (fn [] (dispatch [:qb/export-query]))}
-        "View Results"]
-       [:button.btn.btn-success
-        {:on-click (fn [] (dispatch [:qb/load-query aquery]))}
-        "Example Query"]
-       [table-header]
-       (into [:div] (map (fn [v] [qb-row (get-in @current-mine [:service :model]) v]) @flattened-query))
-       [constraint-logic-row]
-       ])))
+    (reagent/create-class
+      {:component-did-mount (fn [x]
+                              (when (empty? @query)
+                                (dispatch [:qb/set-root-class root-class])))
+       :reagent-render (fn []
+                         [:div.main-window
+                          [:div.sidex
+                           [root-class-dropdown]
+                           [tree-view @query (get-in @current-mine [:service :model]) (keyword @root-class)]]
+                          [:button.btn.btn-primary.btn-raised
+                           {:disabled (not @query-is-valid?)
+                            :on-click (fn [] (dispatch [:qb/export-query]))}
+                           "View Results"]
+                          [:button.btn.btn-success
+                           {:on-click (fn [] (dispatch [:qb/load-query aquery]))}
+                           "Example Query"]
+                          [table-header]
+                          (into [:div] (map (fn [v] [qb-row (get-in @current-mine [:service :model]) v]) @flattened-query))
+                          [constraint-logic-row]
+                          ])})))
 
 
 

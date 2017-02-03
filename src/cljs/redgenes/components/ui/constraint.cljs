@@ -94,10 +94,11 @@
   :model      The Intermine model to use
   :path       The path of the constraint
   :value      The value of the constraint
+  :code       The letter code of the constraint
   :op   The operator of the constraint
   :on-change  A function to call with the new constraint
   :label?     If true then include the path as a label"
-  (fn [& {:keys [lists model path value op on-change on-blur label?]}]
+  (fn [& {:keys [lists model path value op code on-change on-blur label?]}]
     [:div
 
      ;(if label? [:div.row
@@ -131,13 +132,13 @@
                                :value value
                                :lists lists
                                :restrict-type (im-path/class model path)
-                               :on-change (fn [list] (on-change {:path path :value list :op op}))]
+                               :on-change (fn [list] (on-change {:path path :value list :code code :op op}))]
          ; Otherwise show a text input
          :else [constraint-text-input
                 :model model
                 :value value
                 :path path
-                :on-change (fn [val] (on-change {:path path :value val :op op}))
+                :on-change (fn [val] (on-change {:path path :value val :op op :code code}))
                 :on-blur on-blur])]
 
       ]]))

@@ -4,9 +4,11 @@
             [imcljs.path :as im-path]
             [imcljs.fetch :as fetch]
             [cljs.reader :as reader]
-            [clojure.string :refer [join split]]))
+            [clojure.string :refer [join split blank?]]))
 
 (def loc [:qb :qm])
+
+(def not-blank? (complement blank?))
 
 (defn drop-nth
   "remove elem in coll"
@@ -59,7 +61,7 @@
   :qb/add-constraint
   (fn [{db :db} [_ view-vec]]
     (let [code (next-available-const-code (get-in db loc))]
-      {:db (update-in db loc update-in (conj view-vec :constraints) (comp vec conj) {:code code :op "=" :value nil})
+      {:db (update-in db loc update-in (conj view-vec :constraints) (comp vec conj) {:code nil :op "=" :value nil})
        :dispatch [:qb/build-im-query]})))
 
 (reg-event-fx
@@ -73,7 +75,12 @@
 (reg-event-db
   :qb/update-constraint
   (fn [db [_ path idx constraint]]
-    (update-in db loc assoc-in (reduce conj path [:constraints idx]) constraint)))
+    (let [updated-constraint (cond-> constraint
+                                     (and
+                                       (blank? (:code constraint))
+                                       (not-blank? (:value constraint))) (assoc :code (next-available-const-code (get-in db loc)))
+                                     (blank? (:value constraint)) (dissoc :code))]
+      (update-in db loc assoc-in (reduce conj path [:constraints idx]) updated-constraint))))
 
 (reg-event-db
   :qb/update-constraint-logic
@@ -133,7 +140,6 @@
 (reg-event-db
   :qb/success-count
   (fn [db [_ count]]
-    (println "count" count)
     db))
 
 
@@ -169,7 +175,7 @@
                                               (map (fn [c]
                                                      (assoc c :path (join "." (:path n)))) (:constraints n)))
                                             (extract-constraints (first query) [] []))))]
-    (println "CONSTRAINTS" constraints)
+    ;(println "CONSTRAINTS" constraints)
     (cond-> {:select (serialize-views (first query) [] [])}
             (not-empty constraints) (assoc :where constraints)
             constraintLogic (assoc :constraintLogic constraintLogic))))
@@ -222,7 +228,6 @@
     (let [service  (get-in db [:mines (get-in db [:current-mine]) :service])
           query    (make-query (:model service) (get-in db [:qm :root-class]) (get-in db loc) (get-in db [:qb :constraint-logic]))
           id-paths (countable-views (:model service) (get-in db loc))]
-      (println "Countable IDs" id-paths)
 
       {:db             db
        :im-operation-n (map (fn [id-path]
