@@ -4,7 +4,7 @@
   (:require
     #?(:cljs [re-frame.core :as re-frame :refer [reg-event-db reg-event-fx reg-fx reg-sub]])
     #?(:cljs [day8.re-frame.undo :as undo :refer [undoable]])
-    [clojure.string :refer [join split upper-case]]))
+    [clojure.string :refer [blank? join split upper-case]]))
 
 (defn ^:export register!
   "
@@ -73,9 +73,12 @@
    {:reframe-key  :query-builder/reset-query
     :reframe-kind :effect}))
 
-(defn uncamel [s]
-  (join (-> (split (join " " (split s #"(?=[A-Z][^A-Z])")) "")
-                (update 0 upper-case))))
+(def not-blank? (complement blank?))
 
+(defn uncamel [s]
+  (if (not-blank? s)
+    (join (-> (split (join " " (split s #"(?=[A-Z][^A-Z])")) "")
+             (update 0 upper-case)))
+    s))
 
 ;(register! #'reset-query)

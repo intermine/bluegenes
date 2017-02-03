@@ -185,8 +185,8 @@
         query-is-valid? (subscribe [:qb/query-is-valid?])]
     (reagent/create-class
       {:component-did-mount (fn [x]
-                              #_(when (empty? @query)
-                                  (dispatch [:qb/set-root-class root-class])))
+                              (when (empty? @query)
+                                  (dispatch [:qb/set-root-class "Gene"])))
        :reagent-render      (fn []
                               [:div.main-window
                                [:div.sidex
