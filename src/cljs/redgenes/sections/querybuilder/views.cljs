@@ -6,6 +6,7 @@
             [oops.core :refer [ocall oget]]
             [clojure.string :as str]
             [redgenes.utils :refer [uncamel]]
+            [redgenes.components.bootstrap :refer [tooltip-new]]
             [redgenes.components.ui.constraint :refer [constraint]]))
 
 (defn one-of? [haystack needle] (some? (some #{needle} haystack)))
@@ -55,7 +56,8 @@
 
 (defn tree-view []
   (fn [m model root-class]
-    [tree-view-recur model root-class [(name root-class)] m]))
+    (when root-class
+      [tree-view-recur model root-class [(name root-class)] m])))
 
 (defn table-header []
   [:div.grid
@@ -110,7 +112,7 @@
         [:span.child {:on-click (fn [x] (dispatch [:qb/summarize-view path]))
                       :class    (if class? "class" "attribute")
                       :style    {:margin-left (str (* 20 (count path)) "px")}}
-         [:span (str (last path))]
+         [:span (str (uncamel (last path)))]
          (when class?
            (if id-count
              [:span.id-count (str (.toLocaleString (js/parseInt id-count) "en-US"))]
@@ -183,24 +185,33 @@
         query-is-valid? (subscribe [:qb/query-is-valid?])]
     (reagent/create-class
       {:component-did-mount (fn [x]
-                              (when (empty? @query)
-                                (dispatch [:qb/set-root-class root-class])))
-       :reagent-render (fn []
-                         [:div.main-window
-                          [:div.sidex
-                           [root-class-dropdown]
-                           [tree-view @query (get-in @current-mine [:service :model]) (keyword @root-class)]]
-                          [:button.btn.btn-primary.btn-raised
-                           {:disabled (not @query-is-valid?)
-                            :on-click (fn [] (dispatch [:qb/export-query]))}
-                           "View Results"]
-                          [:button.btn.btn-success
-                           {:on-click (fn [] (dispatch [:qb/load-query aquery]))}
-                           "Example Query"]
-                          [table-header]
-                          (into [:div] (map (fn [v] [qb-row (get-in @current-mine [:service :model]) v]) @flattened-query))
-                          [constraint-logic-row]
-                          ])})))
+                              #_(when (empty? @query)
+                                  (dispatch [:qb/set-root-class root-class])))
+       :reagent-render      (fn []
+                              [:div.main-window
+                               [:div.sidex
+                                [root-class-dropdown]
+                                [tree-view @query (get-in @current-mine [:service :model]) (keyword @root-class)]]
+                               ;(.log js/console "flattened" @flattened-query)
+
+
+                               [:button.btn.btn-success
+                                {:on-click (fn [] (dispatch [:qb/load-query aquery]))}
+                                "Example Query"]
+                               [table-header]
+                               (into [:div] (map (fn [v] [qb-row (get-in @current-mine [:service :model]) v]) @flattened-query))
+                               [constraint-logic-row]
+
+                               (if @query-is-valid?
+                                 [:button.btn.btn-primary.btn-raised
+                                  {:on-click (fn [] (dispatch [:qb/export-query]))} "View Results"]
+                                 [tooltip-new {:title          "Please select at least one visible attribute."
+                                               :data-trigger   "hover"
+                                               :data-placement "bottom"}
+                                  [:button.btn.btn-primary.btn-raised
+                                   {:class "disabled"} "View Results"]])
+
+                               ])})))
 
 
 
