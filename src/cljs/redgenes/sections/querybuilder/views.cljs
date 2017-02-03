@@ -11,7 +11,6 @@
 (defn one-of? [haystack needle] (some? (some #{needle} haystack)))
 
 (defn tree-view-recur [model root-class trail selected & [override]]
-  (println "root-class" root-class override)
   (let [expanded? (reagent/atom (get-in selected trail))] ; Recursively auto-expand to selected values
     (fn [model root-class trail selected]
       (let [{:keys [displayName attributes collections references] :as p} (get-in model [:classes root-class])]
@@ -26,6 +25,7 @@
             [:button.small-btn {:on-click (fn [e]
                                             (ocall e :stopPropagation)
                                             (dispatch [:qb/add-constraint trail]))} "Constrain"]]]]
+
          (if @expanded?
            (concat
              ; Create a map of the attributes
@@ -46,11 +46,9 @@
                            [:button.small-btn {:on-click (fn [] (dispatch [:qb/add-view (conj trail name)]))} "Show"])
                          [:button.small-btn {:on-click (fn [] (dispatch [:qb/add-constraint (conj trail name)]))} "Constrain"]]]]))
 
-                  (sort attributes))
+                  (sort (dissoc attributes :id)))
              ; Combined with a map of collections and references
-             (.log js/console "MERGED" (merge collections references))
              (map (fn [[_ colref]]
-                    (println "colref" colref)
                     ^{:key (str (name root-class) (:name colref))}
                     [:li [tree-view-recur model (keyword (:referencedType colref)) (conj trail (:name colref)) selected (uncamel (:name colref))]])
                   (into (sorted-map) (merge collections references)))))]))))
