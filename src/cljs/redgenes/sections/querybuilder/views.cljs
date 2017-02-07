@@ -79,7 +79,7 @@
           :type      "text"}]]])))
 
 (defn qb-row []
-  (fn [model {:keys [id-count path constraints visible]}]
+  (fn [model {:keys [id-count path constraints visible possible-values]}]
     (let [lists  (subscribe [:lists])
           class? (p/class? model (join "." path))]
       [:div.grid
@@ -137,6 +137,7 @@
                                    :path (join "." path)
                                    :lists (second (first @lists))
                                    :code (:code con)
+                                   :possible-values (map :value possible-values)
                                    :value (:value con)
                                    :op (:op con)
                                    :on-change (fn [c] (dispatch [:qb/update-constraint path idx c]))
@@ -177,6 +178,7 @@
 
 
 
+
 (defn main []
   (let [query           (subscribe [:qb/query])
         flattened-query (subscribe [:qb/flattened])
@@ -186,12 +188,19 @@
     (reagent/create-class
       {:component-did-mount (fn [x]
                               (when (empty? @query)
-                                  (dispatch [:qb/set-root-class "Gene"])))
+                                (dispatch [:qb/set-root-class "Gene"])))
        :reagent-render      (fn []
                               [:div.main-window
                                [:div.sidex
                                 [root-class-dropdown]
                                 [tree-view @query (get-in @current-mine [:service :model]) (keyword @root-class)]]
+
+
+                               [:div.dropdown
+                                [:input.form-control {:data-toggle "dropdown"
+                                                      :type        "text"}]
+                                [:ul.dropdown-menu
+                                 [:li [:a "One"]]]]
                                ;(.log js/console "flattened" @flattened-query)
 
 

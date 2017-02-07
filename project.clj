@@ -36,7 +36,7 @@
                  [fipp "0.6.6"]
                  [binaryage/oops "0.5.2"]
                  [inflections "0.12.2"]
-                 [intermine/imcljs "0.1.13-SNAPSHOT"]
+                 [intermine/imcljs "0.1.14-SNAPSHOT"]
                  [intermine/im-tables "0.1.12-SNAPSHOT"]
                  [re-frisk "0.3.1"]]
 

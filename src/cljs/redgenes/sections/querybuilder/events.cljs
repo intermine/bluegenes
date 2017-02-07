@@ -1,5 +1,5 @@
 (ns redgenes.sections.querybuilder.events
-  (:require [re-frame.core :refer [reg-event-db reg-event-fx]]
+  (:require [re-frame.core :refer [reg-event-db reg-fx reg-event-fx]]
             [imcljs.query :as im-query]
             [imcljs.path :as im-path]
             [imcljs.fetch :as fetch]
@@ -37,8 +37,23 @@
 (reg-event-fx
   :qb/add-view
   (fn [{db :db} [_ view-vec]]
-    {:db       (update-in db loc assoc-in (conj view-vec :visible) true)
-     :dispatch [:qb/build-im-query]}))
+    {:db         (update-in db loc assoc-in (conj view-vec :visible) true)
+     :dispatch-n [[:qb/fetch-possible-values view-vec]
+                  [:qb/build-im-query]]}))
+
+(reg-event-db
+  :qb/store-possible-values
+  (fn [db [_ view-vec results]]
+    (update-in db [:qb :qm] update-in view-vec assoc :possible-values (:results results))))
+
+(reg-event-fx
+  :qb/fetch-possible-values
+  (fn [{db :db} [_ view-vec]]
+    (let [service (get-in db [:mines (get-in db [:current-mine]) :service])]
+      {:im-operation {:on-success [:qb/store-possible-values view-vec]
+                      :op         (partial fetch/possible-values
+                                           service
+                                           (join "." view-vec))}})))
 
 (reg-event-fx
   :qb/remove-view
@@ -61,7 +76,7 @@
   :qb/add-constraint
   (fn [{db :db} [_ view-vec]]
     (let [code (next-available-const-code (get-in db loc))]
-      {:db (update-in db loc update-in (conj view-vec :constraints) (comp vec conj) {:code nil :op "=" :value nil})
+      {:db       (update-in db loc update-in (conj view-vec :constraints) (comp vec conj) {:code nil :op "=" :value nil})
        :dispatch [:qb/build-im-query]})))
 
 (reg-event-fx
@@ -172,9 +187,9 @@
 
 (defn make-query [model root-class query constraintLogic]
   (let [constraints (remove (fn [c] (= nil (:value c))) (remove empty? (mapcat (fn [n]
-                                              (map (fn [c]
-                                                     (assoc c :path (join "." (:path n)))) (:constraints n)))
-                                            (extract-constraints (first query) [] []))))]
+                                                                                 (map (fn [c]
+                                                                                        (assoc c :path (join "." (:path n)))) (:constraints n)))
+                                                                               (extract-constraints (first query) [] []))))]
     ;(println "CONSTRAINTS" constraints)
     (cond-> {:select (serialize-views (first query) [] [])}
             (not-empty constraints) (assoc :where constraints)
@@ -228,7 +243,6 @@
     (let [service  (get-in db [:mines (get-in db [:current-mine]) :service])
           query    (make-query (:model service) (get-in db [:qm :root-class]) (get-in db loc) (get-in db [:qb :constraint-logic]))
           id-paths (countable-views (:model service) (get-in db loc))]
-
       {:db             db
        :im-operation-n (map (fn [id-path]
                               {:on-success [:qb/success-summary id-path]

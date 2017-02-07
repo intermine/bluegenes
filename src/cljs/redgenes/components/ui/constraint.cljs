@@ -54,12 +54,21 @@
   (:label (first (filter #(= op (:op %)) operators))))
 
 (defn constraint-text-input []
-  (fn [& {:keys [value on-change on-blur]}]
-    [:div
-     [:input.form-control {:type      "text"
-                           :on-change (fn [e] (on-change (oget e :target :value)))
-                           :on-blur   on-blur
-                           :value     value}]]))
+  (fn [& {:keys [value on-change on-blur possible-values]}]
+    [:div.dropdown
+     [:input.form-control {:data-toggle "dropdown"
+                           :type        "text"
+                           :on-change   (fn [e] (on-change (oget e :target :value)))
+                           :on-blur     on-blur
+                           :value       value}]
+     (into [:ul.dropdown-menu]
+           (map (fn [v]
+                  [:li {:on-click (fn []
+                                    (on-change v)
+                                    (on-blur))} [:a v]])) possible-values)]))
+
+
+
 
 (defn constraint-operator []
   "Creates a dropdown for a query constraint.
@@ -98,7 +107,7 @@
   :op   The operator of the constraint
   :on-change  A function to call with the new constraint
   :label?     If true then include the path as a label"
-  (fn [& {:keys [lists model path value op code on-change on-blur label?]}]
+  (fn [& {:keys [lists model path value op code on-change on-blur label? possible-values]}]
     [:div
 
      ;(if label? [:div.row
@@ -138,6 +147,7 @@
                 :model model
                 :value value
                 :path path
+                :possible-values possible-values
                 :on-change (fn [val] (on-change {:path path :value val :op op :code code}))
                 :on-blur on-blur])]
 
