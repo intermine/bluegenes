@@ -1,5 +1,7 @@
 (ns redgenes.sections.querybuilder.events
-  (:require [re-frame.core :refer [reg-event-db reg-fx reg-event-fx]]
+  (:require-macros [cljs.core.async.macros :refer [go go-loop]])
+  (:require [re-frame.core :refer [reg-event-db reg-fx reg-event-fx dispatch]]
+            [cljs.core.async :refer [<!]]
             [imcljs.query :as im-query]
             [imcljs.path :as im-path]
             [imcljs.fetch :as fetch]
@@ -46,14 +48,28 @@
   (fn [db [_ view-vec results]]
     (update-in db [:qb :qm] update-in view-vec assoc :possible-values (:results results))))
 
+(reg-fx
+  :qb/pv
+  (fn [{:keys [service view-vec]}]
+    (let [str-path (join "." view-vec)]
+      (println "str-path" str-path)
+      (when-not (im-path/class? (:model service) str-path)
+        (let [count-chan (fetch/row-count service {:from (first view-vec) :select [str-path]})]
+          (go (when (> 100 (<! count-chan))
+                (dispatch [:qb/store-possible-values view-vec (<! (fetch/possible-values service str-path))]))))
+        ))))
+
 (reg-event-fx
   :qb/fetch-possible-values
   (fn [{db :db} [_ view-vec]]
     (let [service (get-in db [:mines (get-in db [:current-mine]) :service])]
-      {:im-operation {:on-success [:qb/store-possible-values view-vec]
-                      :op         (partial fetch/possible-values
-                                           service
-                                           (join "." view-vec))}})))
+      {:qb/pv {:service  service
+               :view-vec view-vec}}
+
+      ;{:im-operation {:on-success [:qb/store-possible-values view-vec]
+      ;                :op         (partial fetch/possible-values service (join "." view-vec))}}
+
+      )))
 
 (reg-event-fx
   :qb/remove-view

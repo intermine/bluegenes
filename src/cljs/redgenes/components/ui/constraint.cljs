@@ -59,13 +59,15 @@
      [:input.form-control {:data-toggle "dropdown"
                            :type        "text"
                            :on-change   (fn [e] (on-change (oget e :target :value)))
-                           :on-blur     on-blur
+                           :on-blur     (fn [x]
+                                          (.log js/console (oget x :relatedTarget))
+                                          (on-blur))
                            :value       value}]
-     (into [:ul.dropdown-menu]
-           (map (fn [v]
-                  [:li {:on-click (fn []
-                                    (on-change v)
-                                    (on-blur))} [:a v]])) possible-values)]))
+     (when (not-empty possible-values)
+       (into [:ul.dropdown-menu]
+             (map (fn [v]
+                    [:li {:on-click (fn [] (on-change v))}
+                     [:a v]])) possible-values))]))
 
 
 

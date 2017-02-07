@@ -194,16 +194,6 @@
                                [:div.sidex
                                 [root-class-dropdown]
                                 [tree-view @query (get-in @current-mine [:service :model]) (keyword @root-class)]]
-
-
-                               [:div.dropdown
-                                [:input.form-control {:data-toggle "dropdown"
-                                                      :type        "text"}]
-                                [:ul.dropdown-menu
-                                 [:li [:a "One"]]]]
-                               ;(.log js/console "flattened" @flattened-query)
-
-
                                [:button.btn.btn-success
                                 {:on-click (fn [] (dispatch [:qb/load-query aquery]))}
                                 "Example Query"]
