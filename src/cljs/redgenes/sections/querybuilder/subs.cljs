@@ -51,3 +51,8 @@
   :qb/root-class
   (fn [db]
     (get-in db [:qb :root-class])))
+
+(reg-sub
+  :qb/mappy
+  (fn [db]
+    (get-in db [:qb :mappy])))

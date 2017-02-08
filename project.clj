@@ -7,7 +7,7 @@
                  [binaryage/devtools "0.8.2"]
                  [reagent "0.6.0" :exclusions [cljsjs/react]]
                  [cljsjs/react-with-addons "15.3.1-0"]
-                 [binaryage/devtools "0.8.2"]
+                 [binaryage/devtools "0.9.0"]
                  [re-frame "0.8.0"]
                  [secretary "1.2.3"]
                  [lein-cljsbuild "1.1.5"]
@@ -69,8 +69,8 @@
    {:dependencies []
 
     :plugins      [[lein-figwheel "0.5.8"]
-                   [lein-doo "0.1.6"]]
-    }}
+                   [lein-doo "0.1.6"]]}}
+
 
   :cljsbuild
   {
@@ -88,12 +88,12 @@
                     :asset-path           "js/compiled"
                     :source-map-timestamp true
                     :pretty-print         true
-                    :parallel-build       true
+                    :parallel-build       true}}
                     ;:foreign-libs [{:file "resources/public/vendor/im.min.js"
                     ;                :provides ["intermine.imjs"]}
                     ;               {:file "resources/public/vendor/imtables.js"
                     ;                :provides ["intermine.imtables"]}]
-                    }}
+
     :modules
     {
      :source-paths ["src/cljs"]
@@ -111,24 +111,24 @@
                                            :app
                                            {
                                             :output-to "resources/public/js/modules/app.js"
-                                            :entries   #{"redgenes.core"}
+                                            :entries   #{"redgenes.core"}}
                                             ;;:preamble             ["preamble.js"]
-                                            }
+
                                            :query-builder
                                            {
                                             :output-to "resources/public/js/modules/qb.js"
                                             ;;:preamble             ["preamble.js"]
                                             :entries
                                                        #{
-                                                         "redgenes.components.querybuilder.views.main"
-                                                         }
-                                            }
+                                                         "redgenes.components.querybuilder.views.main"}}
+
+
                                            :main
                                            {
                                             :output-to "resources/public/js/modules/main.js"
                                             ;;:preamble             ["preamble.js"]
-                                            :entries   #{"redgenes.main" "redgenes.modules"}
-                                            }}}}
+                                            :entries   #{"redgenes.main" "redgenes.modules"}}}}}
+
     :min
     {
      :source-paths ["src/cljs"]
@@ -140,20 +140,20 @@
                                       "externs/imtables.js"]
                     :optimizations   :advanced
                     :closure-defines {goog.DEBUG false}
-                    :pretty-print    false
+                    :pretty-print    false}}
                     ;:foreign-libs [{:file "resources/public/vendor/im.min.js"
                     ;                :provides ["intermine.imjs"]}
                     ;               {:file "resources/public/vendor/imtables.min.js"
                     ;                :provides ["intermine.imtables"]}]
-                    }}
+
     :test
     {
      :source-paths ["src/cljs" "test/cljs"]
      :compiler     {:output-to     "resources/public/js/test/test.js"
                     :output-dir    "resources/public/js/test"
                     :main          redgenes.runner
-                    :optimizations :none}}
-    }}
+                    :optimizations :none}}}}
+
 
   :main redgenes.server
 
@@ -162,11 +162,11 @@
   ;:prep-tasks [["cljsbuild" "once" "min"] "compile"]
 
   :repositories [
-    ["clojars"
-     {:url "https://clojars.org/repo"
+                 ["clojars"
+                  {:url "https://clojars.org/repo"
       ;; How often should this repository be checked for
       ;; snapshot updates? (:daily, :always, or :never)
-      :update :always
-    }]]
+                   :update :always}]])
 
-  )
+
+

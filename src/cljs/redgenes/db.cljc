@@ -18,12 +18,15 @@
                                            :sort    {:title :asc}}}
 
    :qb                         {:root-class :Gene
-                                :qm                nil}})
+                                :qm         nil
+                                :mappy      {"Gene" {"secondaryIdentifier" {}, "organism" {"name" {}}, "symbol" {}}}}})
 
 
-{"Gene" {:visible true
+
+
+{"Gene" {:visible     true
          :constraints []
-         "symbol"     {:visible true
+         "symbol"     {:visible     true
                        :constraints [{:op    "="
                                       :value "zen"}]}
          "organism"   {"name" {:constraints []

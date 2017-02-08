@@ -56,20 +56,20 @@
       (when-not (im-path/class? (:model service) str-path)
         (let [count-chan (fetch/row-count service {:from (first view-vec) :select [str-path]})]
           (go (when (> 100 (<! count-chan))
-                (dispatch [:qb/store-possible-values view-vec (<! (fetch/possible-values service str-path))]))))
-        ))))
+                (dispatch [:qb/store-possible-values view-vec (<! (fetch/possible-values service str-path))]))))))))
+
 
 (reg-event-fx
   :qb/fetch-possible-values
   (fn [{db :db} [_ view-vec]]
     (let [service (get-in db [:mines (get-in db [:current-mine]) :service])]
       {:qb/pv {:service  service
-               :view-vec view-vec}}
+               :view-vec view-vec}})))
 
       ;{:im-operation {:on-success [:qb/store-possible-values view-vec]
       ;                :op         (partial fetch/possible-values service (join "." view-vec))}}
 
-      )))
+
 
 (reg-event-fx
   :qb/remove-view
@@ -345,4 +345,14 @@
                    :value  (get-in db [:qb :im-query])}]
        :navigate (str "results")})))
 
+
+(reg-event-db
+  :qb/mappy-add-view
+  (fn [db [_ path-vec]]
+    (update-in db [:qb :mappy] assoc-in path-vec {})))
+
+(reg-event-db
+  :qb/mappy-remove-view
+  (fn [db [_ path-vec]]
+    (update-in db [:qb :mappy] update-in (butlast path-vec) dissoc (last path-vec))))
 

@@ -496,3 +496,84 @@ dfh.active {
 .dropdown.open .dropdown-menu {
 margin-top:2.4em;
 }
+
+
+.playground {
+
+    background-color: white;
+    padding: 20px;
+    ul, li {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+    ul {
+        padding-left: 1em;
+    }
+    li {
+        padding-left: 1em;
+        border: 1px solid #d5d5d5;
+        border-width: 0 0 1px 1px;
+    }
+    li.haschildren {
+        border-bottom: 0px;
+    }
+    li.empty {
+        font-style: italic;
+        color: silver;
+        border-color: silver;
+    }
+    li p {
+        margin: 0;
+        // font-size: 1.2em;
+        background: white;
+        position: relative;
+        top: 0.5em;
+
+        &.classy {
+            font-size: 1.5em;
+            font-style: italic;
+            font-weight: bold;
+        }
+    }
+
+    li ul {
+        border-top: 1px solid #d5d5d5;
+        margin-left: -1em;
+        padding-left: 2em;
+    }
+    ul li:last-child ul {
+        border-left: 1px solid white;
+        margin-left: -17px;
+    }
+
+    .il {
+        margin: 2px;
+        padding: 2px;
+        text-transform: none;
+        // font-size: 0.8em;
+    }
+
+    .attributes {
+        // margin-top: 10px;
+        // padding: 10px;
+        // background-color: green;
+    }
+
+    .hotlink {
+        a {
+            color: #039be5;
+            padding-left: 3px;
+            padding-right: 3px;
+            font-size: 0.8em;
+            font-style: italic;
+
+        }
+    }
+
+    .test123 {
+        display: flex;
+        flex-direction: row;
+        align-items: flex-start;
+    }
+}
