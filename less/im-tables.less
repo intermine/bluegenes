@@ -8,7 +8,6 @@
 /// You may, if need be, paste the new im-tables styles in here, but leave   ///
 /// this warning intact. Kthxbye.                                            ///
 ////////////////////////////////////////////////////////////////////////////////
-
 .table > thead > tr > th {
   vertical-align: top;
 }
@@ -81,6 +80,14 @@
   /* CSS Triangles - see Trevor's post */
   /* IE can just show/hide with no transition */
 }
+.im-table .no-value {
+  font-weight: bold;
+  color: #666;
+  font-family: "Fira Mono", "DejaVu Sans Mono", Menlo, Consolas, "Liberation Mono", Monaco, "Lucida Console", monospace;
+  background-color: #ddd;
+  border-radius: 2px;
+  padding: 1px 2px;
+}
 .im-table .fade-enter {
   opacity: 0.01;
 }
@@ -141,10 +148,18 @@
   align-items: center;
   justify-content: center;
 }
-.im-table .column-summary,
+.im-table .column-summary .main-view,
 .im-table .filter-view {
-  max-height: 500px;
+  max-height: 60vh;
   overflow-y: scroll;
+}
+.im-table .column-summary-toolbar {
+  box-shadow: 0px -1px 1px rgba(0, 0, 0, 0.35);
+  padding: 0.25em;
+  display: flex;
+  justify-content: flex-end;
+  background-color: #ddd;
+  margin-left: 0px;
 }
 .im-table .square-view .collection {
   background-color: aliceblue;
@@ -191,7 +206,30 @@
 .im-table ul.tree-view i {
   padding-right: 5px;
 }
+.im-table .inline-filter {
+  display: flex;
+  align-items: stretch;
+  background-color: #ededed;
+}
+.im-table .inline-filter input {
+  border-radius: 0;
+  border-width: 1px 1px 1px 0;
+}
+.im-table .inline-filter .fa {
+  width: 2em;
+  text-align: center;
+  border: solid 1px #ccc;
+  line-height: 2em;
+  display: block;
+}
+.im-table .no-histogram {
+  padding: 0.25em;
+  text-align: center;
+  background-color: #ccc;
+  color: #333;
+}
 .im-table .histogram {
+  width: 100%;
   max-width: 50vw;
   height: 50px;
   background-color: #f0f8ff;
@@ -203,6 +241,10 @@
   width: 12px;
   border-right: solid 1px #f0f8ff;
 }
+.im-table .dropdown-right {
+  right: 100%;
+  left: auto;
+}
 .im-table .summary-toolbar {
   vertical-align: top;
   display: inline-block;
@@ -210,6 +252,7 @@
 }
 .im-table .summary-toolbar .dropdown-menu {
   min-width: 35vw;
+  padding: 0;
 }
 .im-table .summary-toolbar .filter-icon.active-filter {
   color: #6495ed;
@@ -219,9 +262,20 @@
   padding: 2px;
 }
 .im-table .dropdown-menu {
+  animation-duration: 0.4s;
+  animation-name: fadein;
+  transition-timing-function: ease-in;
   padding-top: 0;
   font-weight: normal;
   white-space: normal;
+}
+@keyframes fadein {
+  from {
+    opacity: 0.1;
+  }
+  to {
+    opacity: 1;
+  }
 }
 .im-table .dropdown-menu .alert {
   border-radius: 0;
