@@ -296,8 +296,7 @@
                                [:p
                                 [:span (str " " (uncamel k))]]]))))
 
-                (list [:li.haschildren [:p [:span.hotlink [:a "ID"] [:a "Primary Identifier"] [:a "Another thing"]]
-                                          ]])
+                ;(list [:li.haschildren [:p [:span.hotlink [:a "ID"] [:a "Primary Identifier"] [:a "Another thing"]]]])
 
 
 
@@ -326,6 +325,63 @@
                  "Gene.secondaryIdentifier"
                  "Gene.organism.name"]})
 
+; model :Gene
+(defn tree-browser-old []
+  (let [open? (reagent/atom false)]
+    (fn [model class]
+      (println "OPEN" @open?)
+      (into [:ul]
+            (map (fn [[field {:keys [referencedType]}]]
+                   [:li
+                    [:span {:class    (when @open? "open")
+                            :on-click #(swap! open? not)} (uncamel (name field))]
+                    (if @open? "OPEN")])
+                 (sort (im-path/relationships model (str class))))))))
+
+; model :Gene
+
+
+(defn attribute []
+  (fn [model [k {:keys [name type]}]]
+    [:li.haschildren [:p (uncamel name)]]))
+
+(defn node []
+  (let [open? (reagent/atom false)]
+    (fn [model [k {:keys [name referencedType]}]]
+      [:li.haschildren
+       [:p
+        [:span {:on-click (fn [] (swap! open? not))}
+         (if @open?
+           [:i.fa.fa-minus-square]
+           [:i.fa.fa-plus-square])
+         (str " " (uncamel name))]]
+       (when @open?
+         (into [:ul]
+               (concat
+                 (map (fn [i] [attribute model i]) (sort (im-path/attributes model referencedType)))
+                 (map (fn [i] [node model i]) (sort (im-path/relationships model referencedType))))))])))
+
+(defn root []
+  (fn [model class]
+    [:ul [node model [:Gene {:name "Gene" :referencedType "Gene"}]]]))
+
+
+
+
+(defn tree-browser []
+  (fn [model class]
+
+
+
+    (into [:ul]
+          (map (fn [[field {:keys [referencedType]}]]
+                 (let [open? (reagent/atom false)]
+                   [:li
+                    [:span {:class    (when @open? "open")
+                            :on-click #(swap! open? not)} (uncamel (name field))]
+                    (if @open? "OPEN")]))
+               (sort (im-path/relationships model (str class)))))))
+
 
 (defn main []
   (let [query           (subscribe [:qb/query])
@@ -340,6 +396,11 @@
                                 (dispatch [:qb/set-root-class "Gene"])))
        :reagent-render      (fn []
                               [:div.container
+
+                               ;[tree-browser (:model (:service @current-mine)) "Gene"]
+                               [:div.playground2
+
+                                [root (:model (:service @current-mine)) "Gene"]]
 
                                [:div.playground
                                 [:span "Query"]
@@ -369,18 +430,18 @@
 
 
 
-                               [table-header]
-                               (into [:div] (map (fn [v] [qb-row (get-in @current-mine [:service :model]) v]) @flattened-query))
-                               [constraint-logic-row]
+                               ;[table-header]
+                               ;(into [:div] (map (fn [v] [qb-row (get-in @current-mine [:service :model]) v]) @flattened-query))
+                               ;[constraint-logic-row]
 
-                               (if @query-is-valid?
-                                 [:button.btn.btn-primary.btn-raised
-                                  {:on-click (fn [] (dispatch [:qb/export-query]))} "View Results"]
-                                 [tooltip-new {:title          "Please select at least one visible attribute."
-                                               :data-trigger   "hover"
-                                               :data-placement "bottom"}
-                                  [:button.btn.btn-primary.btn-raised
-                                   {:class "disabled"} "View Results"]])])})))
+                               #_(if @query-is-valid?
+                                   [:button.btn.btn-primary.btn-raised
+                                    {:on-click (fn [] (dispatch [:qb/export-query]))} "View Results"]
+                                   [tooltip-new {:title          "Please select at least one visible attribute."
+                                                 :data-trigger   "hover"
+                                                 :data-placement "bottom"}
+                                    [:button.btn.btn-primary.btn-raised
+                                     {:class "disabled"} "View Results"]])])})))
 
 
 

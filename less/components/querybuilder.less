@@ -497,8 +497,31 @@ dfh.active {
 margin-top:2.4em;
 }
 
+.noselect {
+  -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+     -khtml-user-select: none; /* Konqueror HTML */
+       -moz-user-select: none; /* Firefox */
+        -ms-user-select: none; /* Internet Explorer/Edge */
+            user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome and Opera */
+}
+
 
 .playground {
+
+    font-size: 0.8em;
+    font-family: "monospace";
+    max-height: 500px;
+    overflow-y: scroll;
+
+    .noselect;
+
+    cursor: pointer;
+
+
+
+
 
     background-color: white;
     padding: 20px;
@@ -529,6 +552,8 @@ margin-top:2.4em;
         background: white;
         position: relative;
         top: 0.5em;
+
+
 
         &.classy {
             font-size: 1.5em;
@@ -576,4 +601,98 @@ margin-top:2.4em;
         flex-direction: row;
         align-items: flex-start;
     }
+}
+
+.open {
+    font-weight: bold;
+    color: red;
+}
+
+.qb-container {
+    font-size: 0.8em;
+    // font-family: "monospace";
+
+    .qb-attribute {
+        font-style: italic;
+    }
+}
+
+
+
+
+
+.playground2 {
+
+    font-size: 0.8em;
+    font-family: "monospace";
+    height: 500px;
+    width: 400px;
+    overflow-y: scroll;
+    color: hotpink;
+
+    .noselect;
+
+    cursor: pointer;
+
+
+
+
+    background-color: white;
+    padding: 20px;
+    ul, li {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+    ul {
+        padding-left: 1em;
+    }
+    li {
+        padding-left: 1em;
+        border: 1px solid #d5d5d5;
+        border-width: 0 0 1px 1px;
+    }
+    li.haschildren {
+        border-bottom: 0px;
+    }
+    li.empty {
+        font-style: italic;
+        color: silver;
+        border-color: silver;
+    }
+    li p {
+        margin: 0;
+        // font-size: 1.2em;
+        background: white;
+        position: relative;
+        top: 0.5em;
+
+
+
+        &.classy {
+            font-size: 1.5em;
+            font-style: italic;
+            font-weight: bold;
+        }
+    }
+
+    li ul {
+        border-top: 1px solid #d5d5d5;
+        margin-left: -1em;
+        padding-left: 2em;
+    }
+    ul li:last-child ul {
+        border-left: 1px solid white;
+        margin-left: -17px;
+    }
+
+
+    .il {
+        margin: 2px;
+        padding: 2px;
+        text-transform: none;
+        // font-size: 0.8em;
+    }
+
+
 }
