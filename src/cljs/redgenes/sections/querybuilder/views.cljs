@@ -348,9 +348,9 @@
       (let [path (vec (conj trail (name k)))]
         [:li.haschildren
          [:p
-          [:span.qb-class {:on-click (fn [] (swap! open? not))}
-           [:i.fa.fa-plus.fa-fw.arr.light {:class (when @open? "arrow-down")}]
-           [:span.qb-label (str " " (uncamel (:name properties)))]]]
+          [:span {:on-click (fn [] (swap! open? not))}
+           [:i.fa.fa-plus.fa-fw.arr.semilight {:class (when @open? "arrow-down")}]
+           [:span.qb-class (uncamel (:name properties))]]]
          (when @open?
            (into [:ul]
                  (concat
@@ -358,8 +358,46 @@
                    (map (fn [i] [node model i path]) (sort (im-path/relationships model (:referencedType properties)))))))]))))
 
 (defn model-browser []
-  (fn [model class]
-    [:div.playground2 [:ul [node model [:Gene {:name "Gene" :referencedType "Gene"} "Gene"]]]]))
+  (fn [model root-class]
+    [:div.playground2
+     (let [path [root-class]]
+       (into [:ul]
+            (concat
+              (map (fn [i] [attribute model i path]) (sort (im-path/attributes model root-class)))
+              (map (fn [i] [node model i path]) (sort (im-path/relationships model root-class))))))]))
+
+
+(defn queryview-node []
+  (let [mappy (subscribe [:qb/mappy])]
+    (fn [model [k properties] & [trail]]
+      (let [path (vec (conj trail (name k)))]
+        [:li.haschildren
+         [:p
+          [:span {:class (if (im-path/class? model (join "." path)) "qb-class" "qb-attribute")}
+           [:i.fa.fa-trash-o.fa-fw.semilight
+            {:on-click (fn [] (dispatch [:qb/mappy-remove-view path]))}]
+           [:span.qb-label (uncamel k)]]]
+         (when (not-empty properties)
+           (let [with-children    (filter has-children? properties)
+                 without-children (filter (complement has-children?) properties)]
+             (into [:ul]
+                   (concat
+                     (map (fn [n] [queryview-node model n path]) (sort without-children))
+                     (map (fn [n] [queryview-node model n path]) (sort with-children))))))]))))
+
+
+
+(defn queryview-browser []
+  (let [mappy (subscribe [:qb/mappy])]
+    (fn [model]
+      [:div.playground2
+       (into [:ul]
+             (map (fn [n]
+                    [queryview-node model n]) @mappy))])))
+
+
+
+
 
 
 (defn main []
@@ -377,9 +415,17 @@
                               [:div.container {:style {:width "100%"}}
 
                                ;[tree-browser (:model (:service @current-mine)) "Gene"]
-                               [:div.row
-                                [:div.col-sm-6 [model-browser (:model (:service @current-mine)) "Gene"]]
-                                [:div.col-sm-6 [:div (str @mappy)]]]
+                               [:div.sidex
+                                [:div.container-fluid
+                                 [:h4 "Model Browser"]
+                                 [root-class-dropdown]
+                                 [model-browser (:model (:service @current-mine)) (name @root-class)]]]
+                               [:div.panel
+                                [:div.main-window
+                                 ;[:div.playground2 [tree @mappy (:model (:service @current-mine))]]
+                                 [:h4 "Query"]
+                                 [queryview-browser (:model (:service @current-mine))]
+                                 ]]
 
 
                                #_[:div.playground
