@@ -325,62 +325,41 @@
                  "Gene.secondaryIdentifier"
                  "Gene.organism.name"]})
 
-; model :Gene
-(defn tree-browser-old []
-  (let [open? (reagent/atom false)]
-    (fn [model class]
-      (println "OPEN" @open?)
-      (into [:ul]
-            (map (fn [[field {:keys [referencedType]}]]
-                   [:li
-                    [:span {:class    (when @open? "open")
-                            :on-click #(swap! open? not)} (uncamel (name field))]
-                    (if @open? "OPEN")])
-                 (sort (im-path/relationships model (str class))))))))
-
-; model :Gene
-
-
 (defn attribute []
-  (fn [model [k {:keys [name type]}]]
-    [:li.haschildren [:p (uncamel name)]]))
+  (let [mappy (subscribe [:qb/mappy])]
+    (fn [model [k properties] & [trail]]
+      (let [path      (conj trail (name k))
+            selected? (get-in @mappy path)]
+        [:li.haschildren
+         [:p
+          [:span
+           {:on-click (fn [] (if selected?
+                               (dispatch [:qb/mappy-remove-view path])
+                               (dispatch [:qb/mappy-add-view path])
+                               ))}
+           (if (get-in @mappy path)
+             [:i.fa.fa-check-square-o.fa-fw]
+             [:i.fa.fa-square-o.fa-fw.light])
+           [:span.qb-label (str " " (uncamel (:name properties)))]]]]))))
 
 (defn node []
   (let [open? (reagent/atom false)]
-    (fn [model [k {:keys [name referencedType]}]]
-      [:li.haschildren
-       [:p
-        [:span {:on-click (fn [] (swap! open? not))}
-         (if @open?
-           [:i.fa.fa-minus-square]
-           [:i.fa.fa-plus-square])
-         (str " " (uncamel name))]]
-       (when @open?
-         (into [:ul]
-               (concat
-                 (map (fn [i] [attribute model i]) (sort (im-path/attributes model referencedType)))
-                 (map (fn [i] [node model i]) (sort (im-path/relationships model referencedType))))))])))
+    (fn [model [k properties] & [trail]]
+      (let [path (vec (conj trail (name k)))]
+        [:li.haschildren
+         [:p
+          [:span.qb-class {:on-click (fn [] (swap! open? not))}
+           [:i.fa.fa-plus.fa-fw.arr.light {:class (when @open? "arrow-down")}]
+           [:span.qb-label (str " " (uncamel (:name properties)))]]]
+         (when @open?
+           (into [:ul]
+                 (concat
+                   (map (fn [i] [attribute model i path]) (sort (im-path/attributes model (:referencedType properties))))
+                   (map (fn [i] [node model i path]) (sort (im-path/relationships model (:referencedType properties)))))))]))))
 
-(defn root []
+(defn model-browser []
   (fn [model class]
-    [:ul [node model [:Gene {:name "Gene" :referencedType "Gene"}]]]))
-
-
-
-
-(defn tree-browser []
-  (fn [model class]
-
-
-
-    (into [:ul]
-          (map (fn [[field {:keys [referencedType]}]]
-                 (let [open? (reagent/atom false)]
-                   [:li
-                    [:span {:class    (when @open? "open")
-                            :on-click #(swap! open? not)} (uncamel (name field))]
-                    (if @open? "OPEN")]))
-               (sort (im-path/relationships model (str class)))))))
+    [:div.playground2 [:ul [node model [:Gene {:name "Gene" :referencedType "Gene"} "Gene"]]]]))
 
 
 (defn main []
@@ -395,17 +374,18 @@
                               (when (empty? @query)
                                 (dispatch [:qb/set-root-class "Gene"])))
        :reagent-render      (fn []
-                              [:div.container
+                              [:div.container {:style {:width "100%"}}
 
                                ;[tree-browser (:model (:service @current-mine)) "Gene"]
-                               [:div.playground2
+                               [:div.row
+                                [:div.col-sm-6 [model-browser (:model (:service @current-mine)) "Gene"]]
+                                [:div.col-sm-6 [:div (str @mappy)]]]
 
-                                [root (:model (:service @current-mine)) "Gene"]]
 
-                               [:div.playground
-                                [:span "Query"]
-                                ;(prn "USING MAP" (im-query->map q))
-                                [tree @mappy (:model (:service @current-mine))]]
+                               #_[:div.playground
+                                  [:span "Query"]
+                                  ;(prn "USING MAP" (im-query->map q))
+                                  [tree @mappy (:model (:service @current-mine))]]
 
 
                                ;.main-window

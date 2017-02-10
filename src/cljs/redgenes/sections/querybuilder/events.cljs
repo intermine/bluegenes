@@ -349,6 +349,7 @@
 (reg-event-db
   :qb/mappy-add-view
   (fn [db [_ path-vec]]
+    (println "PATH" path-vec)
     (update-in db [:qb :mappy] assoc-in path-vec {})))
 
 (reg-event-db
