@@ -313,6 +313,7 @@
       {:db       (update db :qb assoc
                          :constraint-logic nil
                          :query-is-valid? false
+                         :mappy {}
                          :root-class (keyword root-class-kw)
                          :qm {root-class-kw {:visible true}})
        :dispatch [:qb/count-query]})))
@@ -352,8 +353,19 @@
     (println "PATH" path-vec)
     (update-in db [:qb :mappy] assoc-in path-vec {})))
 
+
+
 (reg-event-db
   :qb/mappy-remove-view
   (fn [db [_ path-vec]]
     (update-in db [:qb :mappy] update-in (butlast path-vec) dissoc (last path-vec))))
+
+(reg-event-fx
+  :qb/mappy-add-constraint
+  (fn [{db :db} [_ view-vec]]
+    (let [code (next-available-const-code (get-in db loc))]
+      (println "view-bec" view-vec)
+      {:db       (update-in db [:qb :mappy] update-in (conj view-vec :constraints) (comp vec conj) {:code nil :op "=" :value nil})
+       ;:dispatch [:qb/build-im-query]
+       })))
 

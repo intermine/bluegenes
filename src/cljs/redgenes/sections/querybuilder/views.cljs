@@ -81,77 +81,7 @@
           :on-blur   (fn [] (dispatch [:qb/count-query]))
           :type      "text"}]]])))
 
-(defn qb-row []
-  (fn [model {:keys [id-count path constraints visible possible-values]}]
-    (let [lists  (subscribe [:lists])
-          class? (p/class? model (join "." path))]
-      [:div.grid
-       [:div.col-1.white
-        {:style {:text-align "right"}}
-        (when (> (count path) 1)
-          [:button.btn.btn-danger.btn-simple
-           {:on-click (fn [] (dispatch [:qb/remove-view path]))}
-           [:i.fa.fa-times]])]
 
-       ; Controls column
-       [:div.col-1.white
-        (cond
-          ; If we have constraints and we're an attribute allow visibility to be toggled
-          (and (not-empty constraints) (not class?))
-          [:button.btn.btn-primary.btn-simple
-           {:on-click (fn [] (dispatch [:qb/toggle-view path]))}
-           (if visible
-             [:i.fa.fa-eye]
-             [:i.fa.fa-eye-slash])]
-          ; If we don't have constraints and we're a class then we can't be visible
-          (and (not constraints) class?) nil
-          ; Classes can never be visible
-          class? nil
-          ; Otherwise show a permanently fixed visible icon
-          :else [:i.soft.fa.fa-eye])]
-
-       ; Field column
-       [:div.col-5.white
-        [:span.child {:on-click (fn [x] (dispatch [:qb/summarize-view path]))
-                      :class    (if class? "class" "attribute")
-                      :style    {:margin-left (str (* 20 (count path)) "px")}}
-         [:span (str (uncamel (last path)))]
-         (when class?
-           (if id-count
-             [:span.id-count (str (.toLocaleString (js/parseInt id-count) "en-US"))]
-             [:i.fa.fa-cog.fa-spin.fa-1x.fa-fw]))
-
-         #_(str (last path))]]
-
-
-       ; Constraint column
-       [:div.col-5.white
-        (if constraints
-          (do
-            (into [:div.ts]
-                  (map-indexed (fn [idx con]
-                                 [:div.constraint-row
-                                  [:button.btn.btn-danger.btn-simple
-                                   {:on-click (fn [] (dispatch [:qb/remove-constraint path idx]))}
-                                   [:i.fa.fa-times]]
-                                  [:span (:code con)]
-                                  [constraint
-                                   :model model
-                                   :path (join "." path)
-                                   :lists (second (first @lists))
-                                   :code (:code con)
-                                   :possible-values (map :value possible-values)
-                                   :value (:value con)
-                                   :op (:op con)
-                                   :on-change (fn [c] (dispatch [:qb/update-constraint path idx c]))
-                                   :on-blur (fn [x]
-                                              (dispatch [:qb/build-im-query]))
-                                   :label? false]])
-
-                               constraints))))
-        [:button.btn.btn-success.btn-simple
-         {:on-click (fn [] (dispatch [:qb/add-constraint path]))}
-         [:span [:i.fa.fa-plus]]]]])))
 
 (def aquery {:from            "Gene"
              :constraintLogic "A or B"
@@ -195,19 +125,6 @@
 
 (defn not-selected [selected [k attributes-map]]
   (not (within? selected (name k))))
-
-(defn atts-old []
-  (fn [model path-vec selected]
-    (let [attributes (im-path/attributes model (join "." path-vec))
-          unselected (doall (filter (partial not-selected (map first selected)) attributes))]
-      (into [:div.attributes]
-            (map (fn [[field-kw properties]]
-                   [:div
-                    {:on-click (fn []
-                                 (dispatch [:qb/mappy-add-view (conj path-vec (name field-kw))]))}
-                    [:i.fa.fa-square-o.fa-fw]
-                    (uncamel (name field-kw))])
-                 unselected)))))
 
 (defn atts []
   (fn [model path-vec selected]
@@ -333,10 +250,10 @@
         [:li.haschildren
          [:p
           [:span
-           {:on-click (fn [] (if selected?
-                               (dispatch [:qb/mappy-remove-view path])
-                               (dispatch [:qb/mappy-add-view path])
-                               ))}
+           {:on-click (fn []
+                        (if selected?
+                          (dispatch [:qb/mappy-remove-view path])
+                          (dispatch [:qb/mappy-add-view path])))}
            (if (get-in @mappy path)
              [:i.fa.fa-check-square-o.fa-fw]
              [:i.fa.fa-square-o.fa-fw.light])
@@ -359,45 +276,60 @@
 
 (defn model-browser []
   (fn [model root-class]
-    [:div.playground2
+    [:div.model-browser
      (let [path [root-class]]
        (into [:ul]
-            (concat
-              (map (fn [i] [attribute model i path]) (sort (im-path/attributes model root-class)))
-              (map (fn [i] [node model i path]) (sort (im-path/relationships model root-class))))))]))
+             (concat
+               (map (fn [i] [attribute model i path]) (sort (im-path/attributes model root-class)))
+               (map (fn [i] [node model i path]) (sort (im-path/relationships model root-class))))))]))
 
+
+(defn dissoc-keywords [m]
+  (apply dissoc m (filter keyword? (keys m))))
 
 (defn queryview-node []
-  (let [mappy (subscribe [:qb/mappy])]
-    (fn [model [k properties] & [trail]]
-      (let [path (vec (conj trail (name k)))]
-        [:li.haschildren
-         [:p
-          [:span {:class (if (im-path/class? model (join "." path)) "qb-class" "qb-attribute")}
-           [:i.fa.fa-trash-o.fa-fw.semilight
-            {:on-click (fn [] (dispatch [:qb/mappy-remove-view path]))}]
-           [:span.qb-label (uncamel k)]]]
-         (when (not-empty properties)
-           (let [with-children    (filter has-children? properties)
-                 without-children (filter (complement has-children?) properties)]
-             (into [:ul]
-                   (concat
-                     (map (fn [n] [queryview-node model n path]) (sort without-children))
-                     (map (fn [n] [queryview-node model n path]) (sort with-children))))))]))))
+  (fn [model [k properties] & [trail]]
+    (let [path (vec (conj trail (name k)))]
+      [:li.haschildren
+       [:p.flexmex
+        [:span.lab {:class (if (im-path/class? model (join "." path)) "qb-class" "qb-attribute")}
+         [:i.fa.fa-trash-o.fa-fw.semilight {:on-click (fn [] (dispatch [:qb/mappy-remove-view path]))}]
 
-
+         [:span.qb-label (uncamel k)]
+         [:i.fa.fa-filter.semilight
+          {:on-click (fn [] (dispatch [:qb/mappy-add-constraint path]))}]]]
+       (when-let [constraints (:constraints properties)]
+         (into [:ul]
+               (map (fn [con]
+                      [:li.haschildren
+                       [:p
+                        [:div.contract
+                         [:div.input-group
+                          [:span.input-group-btn
+                           [:button.btn.btn-primary {:type "button"} "Go!"]]
+                          [:input.form-control {:type "text"}]]]]]) constraints)))
+       (when (not-empty properties)
+         (let [with-children    (filter has-children? (dissoc-keywords properties))
+               without-children (filter (complement has-children?) (dissoc-keywords properties))]
+           (into [:ul]
+                 (concat
+                   (map (fn [n] [queryview-node model n path]) (sort without-children))
+                   (map (fn [n] [queryview-node model n path]) (sort with-children))))))])))
 
 (defn queryview-browser []
   (let [mappy (subscribe [:qb/mappy])]
     (fn [model]
-      [:div.playground2
-       (into [:ul]
-             (map (fn [n]
-                    [queryview-node model n]) @mappy))])))
+      (if (not-empty @mappy)
+        [:div.query-browser
+         (into [:ul]
+               (map (fn [n]
+                      [queryview-node model n]) @mappy))]
+        [:div "Please select an attribute."]))))
 
 
-
-
+(defn controls []
+  [:div.button-group
+   [:button.btn.btn-primary.btn-raised "Show Results"]])
 
 
 (defn main []
@@ -413,133 +345,13 @@
                                 (dispatch [:qb/set-root-class "Gene"])))
        :reagent-render      (fn []
                               [:div.container {:style {:width "100%"}}
-
-                               ;[tree-browser (:model (:service @current-mine)) "Gene"]
                                [:div.sidex
                                 [:div.container-fluid
                                  [:h4 "Model Browser"]
                                  [root-class-dropdown]
                                  [model-browser (:model (:service @current-mine)) (name @root-class)]]]
-                               [:div.panel
-                                [:div.main-window
-                                 ;[:div.playground2 [tree @mappy (:model (:service @current-mine))]]
+                               [:div.main-window
+                                [:div.container-fluid
                                  [:h4 "Query"]
                                  [queryview-browser (:model (:service @current-mine))]
-                                 ]]
-
-
-                               #_[:div.playground
-                                  [:span "Query"]
-                                  ;(prn "USING MAP" (im-query->map q))
-                                  [tree @mappy (:model (:service @current-mine))]]
-
-
-                               ;.main-window
-                               #_[:div.sidex
-
-
-
-                                  [:button.btn.btn-success
-                                   {:on-click (fn [] (.log js/console "M" (im-query->map q)))}
-                                   "Do It"]
-
-
-                                  [root-class-dropdown]
-                                  [tree-view @query (get-in @current-mine [:service :model]) (keyword @root-class)]]
-
-                               ;[:button.btn.btn-success
-                               ; {:on-click (fn [] (dispatch [:qb/load-query aquery]))}
-                               ; "Example Query"]
-                               ;
-                               ;(println "giving tree" (im-query->map q))
-
-
-
-
-                               ;[table-header]
-                               ;(into [:div] (map (fn [v] [qb-row (get-in @current-mine [:service :model]) v]) @flattened-query))
-                               ;[constraint-logic-row]
-
-                               #_(if @query-is-valid?
-                                   [:button.btn.btn-primary.btn-raised
-                                    {:on-click (fn [] (dispatch [:qb/export-query]))} "View Results"]
-                                   [tooltip-new {:title          "Please select at least one visible attribute."
-                                                 :data-trigger   "hover"
-                                                 :data-placement "bottom"}
-                                    [:button.btn.btn-primary.btn-raised
-                                     {:class "disabled"} "View Results"]])])})))
-
-
-
-
-
-
-#_(defn tree []
-    (let [editing? (reagent/atom false)]
-      (fn [m model & [trail]]
-
-        (let [with-no-children (filter (complement has-children?) m)
-              with-children    (filter has-children? m)]
-          (into [:ul]
-                (concat
-
-                  ; Attributes first!
-                  (if (and trail @editing?)
-                    [:li.haschildren [:p [atts model trail with-no-children]]]
-                    (->> with-no-children
-                         (map (fn [[k v]]
-                                (let [loc (vec (conj trail k))]
-                                  [:li.haschildren [:p (uncamel k)]])))))
-
-                  (list (when trail [:i.fa.fa-plus {:on-click (fn [] (swap! editing? not))}]))
-
-                  ; Attributes first!
-                  #_(cond-> []
-                            (and trail @editing?)
-                            (vec (->> with-no-children
-                                      (map (fn [[k v]]
-                                             (let [loc (vec (conj trail k))]
-                                               [:li.haschildren [:p
-                                                                 (when @editing?
-                                                                   [:i.fa.fa-check-square-o]) (uncamel k)]])))))
-                            true (conj [:li.haschildren
-                                        [:div
-                                         [:p.test123
-                                          [:div ;button.btn.btn-primary.il
-                                           (when trail
-                                             [:i.fa.fa-plus
-                                              {:on-click (fn [] (swap! editing? not))}])]
-                                          (when (and trail @editing?)
-                                            [:div
-                                             [atts model trail with-no-children]])]]]))
-
-
-
-                  ;(cond-> (vec (->> with-no-children
-                  ;                  (map (fn [[k v]]
-                  ;                         (let [loc (vec (conj trail k))]
-                  ;                           [:li.haschildren [:p
-                  ;                                             (when @editing?
-                  ;                                               [:i.fa.fa-check-square-o]) (uncamel k)]])))))
-                  ;        true (conj [:li.haschildren
-                  ;                    [:div
-                  ;                     [:p.test123
-                  ;                      [:div ;button.btn.btn-primary.il
-                  ;                       (when trail
-                  ;                         [:i.fa.fa-plus
-                  ;                          {:on-click (fn [] (swap! editing? not))}])]
-                  ;                      (when (and trail @editing?)
-                  ;                        [:div
-                  ;                         [atts model trail with-no-children]])]
-                  ;                     ]]))
-
-                  ; Then collections!
-                  (->> with-children
-                       (map (fn [[k v]]
-                              (let [loc (vec (conj trail k))]
-                                [:li.haschildren
-                                 [:p {:class "classy"}
-                                  k
-                                  [:button.btn.btn-primary.il [:i.fa.fa-share-alt]]]
-                                 [:div
-                                  [tree v model loc]]]))))))))))
+                                 [controls]]]])})))
