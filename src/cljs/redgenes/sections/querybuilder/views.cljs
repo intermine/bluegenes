@@ -294,27 +294,45 @@
        [:p.flexmex
         [:span.lab {:class (if (im-path/class? model (join "." path)) "qb-class" "qb-attribute")}
          [:i.fa.fa-trash-o.fa-fw.semilight {:on-click (fn [] (dispatch [:qb/mappy-remove-view path]))}]
-
          [:span.qb-label (uncamel k)]
-         [:i.fa.fa-filter.semilight
-          {:on-click (fn [] (dispatch [:qb/mappy-add-constraint path]))}]]]
+         #_[:i.fa.fa-filter.semilight
+            {:on-click (fn [] (dispatch [:qb/mappy-add-constraint path]))}]
+         [:span.addfilter
+          {:on-click (fn [] (dispatch [:qb/mappy-add-constraint path]))}
+          ;"Add filter..."
+          [:span {:class (when (:constraints properties) "badge")} [:i.fa.fa-filter]]
+          ]]]
        (when-let [constraints (:constraints properties)]
          (into [:ul]
-               (map (fn [con]
-                      [:li.haschildren
-                       [:p
-                        [:div.contract
-                         [:div.input-group
-                          [:span.input-group-btn
-                           [:button.btn.btn-primary {:type "button"} "Go!"]]
-                          [:input.form-control {:type "text"}]]]]]) constraints)))
+               (map-indexed (fn [idx con]
+                              (println "CON" con)
+                              [:li.haschildren
+                               [:p
+                                [:div.contract
+                                 [:span (:code con)]
+                                 [constraint
+                                  :model model
+                                  :path (join "." path)
+                                  ;:lists (second (first @lists))
+                                  :code (:code con)
+                                  ;:possible-values (map :value possible-values)
+                                  :value (:value con)
+                                  :op (:op con)
+                                  :on-change (fn [c]
+                                               (println "path" path idx c)
+                                               (dispatch [:qb/mappy-update-constraint path idx c]))
+                                  :on-blur (fn [x]
+                                             ;(dispatch [:qb/build-im-query])
+                                             )
+                                  :label? false]]]]) constraints)))
        (when (not-empty properties)
-         (let [with-children    (filter has-children? (dissoc-keywords properties))
-               without-children (filter (complement has-children?) (dissoc-keywords properties))]
+         (let [
+               classes    (filter (fn [[k p]] (im-path/class? model (join "." (conj path k)))) (dissoc-keywords properties))
+               attributes (filter (fn [[k p]] ((complement im-path/class?) model (join "." (conj path k)))) (dissoc-keywords properties))]
            (into [:ul]
                  (concat
-                   (map (fn [n] [queryview-node model n path]) (sort without-children))
-                   (map (fn [n] [queryview-node model n path]) (sort with-children))))))])))
+                   (map (fn [n] [queryview-node model n path]) (sort attributes))
+                   (map (fn [n] [queryview-node model n path]) (sort classes))))))])))
 
 (defn queryview-browser []
   (let [mappy (subscribe [:qb/mappy])]
@@ -329,7 +347,9 @@
 
 (defn controls []
   [:div.button-group
-   [:button.btn.btn-primary.btn-raised "Show Results"]])
+   [:button.btn.btn-primary.btn-raised
+    {:on-click (fn [] (dispatch [:qb/mappy-build-im-query]))}
+    "Show Results"]])
 
 
 (defn main []
@@ -348,6 +368,7 @@
                                [:div.sidex
                                 [:div.container-fluid
                                  [:h4 "Model Browser"]
+                                 [:span "Starting with..."]
                                  [root-class-dropdown]
                                  [model-browser (:model (:service @current-mine)) (name @root-class)]]]
                                [:div.main-window
@@ -355,3 +376,10 @@
                                  [:h4 "Query"]
                                  [queryview-browser (:model (:service @current-mine))]
                                  [controls]]]])})))
+
+
+(defn toggle-all-checkbox []
+  [:span
+   [:input {:type    "checkbox"
+            :checked @(subscribe [:todos/all-complete?])}]
+   [:label {:for "toggle-all"} "Mark all as complete"]])

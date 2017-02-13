@@ -66,8 +66,8 @@
       {:qb/pv {:service  service
                :view-vec view-vec}})))
 
-      ;{:im-operation {:on-success [:qb/store-possible-values view-vec]
-      ;                :op         (partial fetch/possible-values service (join "." view-vec))}}
+;{:im-operation {:on-success [:qb/store-possible-values view-vec]
+;                :op         (partial fetch/possible-values service (join "." view-vec))}}
 
 
 
@@ -365,7 +365,51 @@
   (fn [{db :db} [_ view-vec]]
     (let [code (next-available-const-code (get-in db loc))]
       (println "view-bec" view-vec)
-      {:db       (update-in db [:qb :mappy] update-in (conj view-vec :constraints) (comp vec conj) {:code nil :op "=" :value nil})
+      {:db (update-in db [:qb :mappy] update-in (conj view-vec :constraints) (comp vec conj) {:code nil :op "=" :value nil})
        ;:dispatch [:qb/build-im-query]
        })))
 
+
+(reg-event-db
+  :qb/mappy-update-constraint
+  (fn [db [_ path idx constraint]]
+    (let [updated-constraint (cond-> constraint
+                                     (and
+                                       (blank? (:code constraint))
+                                       (not-blank? (:value constraint))) (assoc :code (next-available-const-code (get-in db [:qb :mappy])))
+                                     (blank? (:value constraint)) (dissoc :code))]
+      (update-in db [:qb :mappy] assoc-in (reduce conj path [:constraints idx]) updated-constraint))))
+
+
+
+
+(defn without-logic [l] (filter (fn [v] (not (some? (some #{v} #{'OR 'AND 'or 'and})))) l))
+
+(defn walker [tree val]
+  (clojure.walk/prewalk
+    (fn [e]
+      (if (list? e)
+        (when-let [finished (not-empty (remove (partial = val) e))]
+          (if (every? list? finished) (mapcat identity finished) finished))
+        e)) tree))
+
+(def logic (vec (list :a :or :b :and :c :and :d :or :e)))
+
+(defn nest-ands [l]
+  (let [first-and (dec (first (keep-indexed (fn [idx e] (when (= :and e) idx)) l)))
+        following-or (first (filter (partial < first-and) (keep-indexed (fn [idx e] (when (= :or e) idx)) l)))]
+    (vec (concat (conj (vec (take first-and l)) (vec (take (- following-or first-and) (drop first-and l)))) (drop following-or l)))))
+
+
+(reg-event-fx
+  :qb/mappy-build-im-query
+  (fn [{db :db}]
+    (let [service (get-in db [:mines (get-in db [:current-mine]) :service])
+          query   (make-query (:model service) (get-in db [:qm :root-class]) (get-in db [:qb :mappy]) (get-in db [:qb :constraint-logic]))]
+      (.log js/console "clean" (without-logic (list 'A 'OR 'B)))
+      (println "walked" (walker (list :a :b :c (list :d :e)) :c))
+      {:db       (update db :qb assoc
+                         :im-query (im-query/sterilize-query query)
+                         :query-is-valid? (has-views? (:model service) query))
+       ;:dispatch [:qb/count-query]
+       })))
