@@ -8,6 +8,8 @@
 /// You may, if need be, paste the new im-tables styles in here, but leave   ///
 /// this warning intact. Kthxbye.                                            ///
 ////////////////////////////////////////////////////////////////////////////////
+
+
 .table > thead > tr > th {
   vertical-align: top;
 }
@@ -115,6 +117,9 @@
 .im-table .summary-table {
   font-size: 0.9em;
 }
+.im-table .im-table-toolbar .col-xs-6 {
+  padding-left: 0;
+}
 .im-table .table-bordered > tbody > tr > td.drag-left,
 .im-table .table-bordered > tbody > tr > th.drag-left,
 .im-table .table-bordered > tfoot > tr > td.drag-left,
@@ -151,15 +156,28 @@
 .im-table .column-summary .main-view,
 .im-table .filter-view {
   max-height: 60vh;
-  overflow-y: scroll;
+  overflow: auto;
+}
+.im-table .column-summary .main-view .imtable-constraint,
+.im-table .filter-view .imtable-constraint {
+  display: flex;
+}
+.im-table .column-summary .main-view .constraint-input,
+.im-table .filter-view .constraint-input {
+  flex-grow: 1;
+  padding: 0 0.3em;
+}
+.im-table .column-summary .main-view .toolbar,
+.im-table .filter-view .toolbar {
+  margin: 0 0.3em 0.3em;
 }
 .im-table .column-summary-toolbar {
-  box-shadow: 0px -1px 1px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 -1px 1px rgba(0, 0, 0, 0.35);
   padding: 0.25em;
   display: flex;
   justify-content: flex-end;
   background-color: #ddd;
-  margin-left: 0px;
+  margin-left: 0;
 }
 .im-table .square-view .collection {
   background-color: aliceblue;
