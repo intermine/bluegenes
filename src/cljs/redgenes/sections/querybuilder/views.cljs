@@ -4,11 +4,13 @@
             [imcljs.path :as p]
             [clojure.string :refer [split join blank?]]
             [oops.core :refer [ocall oget]]
-            [clojure.string :as str]
+            [clojure.string :as str :refer [starts-with? ends-with?]]
             [redgenes.utils :refer [uncamel]]
             [redgenes.components.bootstrap :refer [tooltip-new]]
             [redgenes.components.ui.constraint :refer [constraint]]
-            [imcljs.path :as im-path]))
+            [imcljs.path :as im-path]
+            [cljs.reader :refer [read-string]]
+            [redgenes.components.ui.results_preview :refer [preview-table]]))
 
 (defn one-of? [haystack needle] (some? (some #{needle} haystack)))
 
@@ -294,27 +296,28 @@
        [:p.flexmex
         [:span.lab {:class (if (im-path/class? model (join "." path)) "qb-class" "qb-attribute")}
          [:i.fa.fa-trash-o.fa-fw.semilight {:on-click (fn [] (dispatch [:qb/mappy-remove-view path]))}]
-         [:span.qb-label (uncamel k)]
-         #_[:i.fa.fa-filter.semilight
-            {:on-click (fn [] (dispatch [:qb/mappy-add-constraint path]))}]
-         [:span.addfilter
+         [:span
           {:on-click (fn [] (dispatch [:qb/mappy-add-constraint path]))}
-          ;"Add filter..."
-          [:span {:class (when (:constraints properties) "badge")} [:i.fa.fa-filter]]
-          ]]]
+          [:span [:span [:i.fa.fa-filter.semilight]]]
+          ]
+         [:span.qb-label {:style {:margin-left 5}} (uncamel k)]
+         (when-let [c (:id-count properties)]
+           [:span.label.label-info
+            {:style {:margin-left 5}} (str " " c)])
+         ]]
        (when-let [constraints (:constraints properties)]
          (into [:ul]
                (map-indexed (fn [idx con]
-                              (println "CON" con)
                               [:li.haschildren
                                [:p
                                 [:div.contract
-                                 [:span (:code con)]
+                                 {:class (when (empty? (:value con)) "empty")}
                                  [constraint
                                   :model model
                                   :path (join "." path)
                                   ;:lists (second (first @lists))
                                   :code (:code con)
+                                  :on-remove (fn [] (dispatch [:qb/mappy-remove-constraint path idx]))
                                   ;:possible-values (map :value possible-values)
                                   :value (:value con)
                                   :op (:op con)
@@ -326,8 +329,7 @@
                                              )
                                   :label? false]]]]) constraints)))
        (when (not-empty properties)
-         (let [
-               classes    (filter (fn [[k p]] (im-path/class? model (join "." (conj path k)))) (dissoc-keywords properties))
+         (let [classes    (filter (fn [[k p]] (im-path/class? model (join "." (conj path k)))) (dissoc-keywords properties))
                attributes (filter (fn [[k p]] ((complement im-path/class?) model (join "." (conj path k)))) (dissoc-keywords properties))]
            (into [:ul]
                  (concat
@@ -344,21 +346,107 @@
                       [queryview-node model n]) @mappy))]
         [:div "Please select an attribute."]))))
 
+(defn listify [logic-vector]
+  (let [v logic-vector]
+    (let [first-and (first (keep-indexed (fn [idx e] (if (some #{e} #{'and 'AND}) idx)) v))
+          first-or  (or (first (keep-indexed (fn [idx e] (if (and (some #{e} #{'or 'OR}) (>= idx first-and)) idx)) v)) (count v))]
+      (if first-and
+        (let [trunk     (subvec v 0 (dec first-and))
+              anded     (subvec v (dec first-and) first-or)
+              remaining (subvec v first-or (count v))
+              fixed     (reduce conj (conj trunk anded) remaining)]
+          (recur fixed))
+        (do
+          (if (and (= 1 (count v)) (vector? (first v)))
+            (first v)
+            v))))))
+
+(defn add-code [l code]
+  (listify (reduce conj l [:and code])))
+
+
+(defn wrap-string-in-parens [string]
+  (if (and (starts-with? string "(") (ends-with? string ")"))
+    string
+    (str "(" string ")")))
+
+(defn replace-parens-with-brackets [string]
+  (-> string
+      (clojure.string/replace (re-pattern "\\[") "(")
+      (clojure.string/replace (re-pattern "\\]") ")")))
+
+(defn stringify-vec [v]
+  (apply str (interpose " " v)))
+
+(defn lists-to-vectors [s]
+  (clojure.walk/prewalk (fn [e] (if (list? e) (vec e) e)) s))
+
+
+(defn format-logic-string [string]
+  (->> string
+       wrap-string-in-parens
+       read-string
+       vec
+       listify
+       stringify-vec
+       replace-parens-with-brackets))
+
+(defn remove-thing [vec]
+  (clojure.walk/postwalk
+    (fn [x]
+      (println "X" x)
+      x) vec))
+
+(def <sub (comp deref subscribe))
+
+
+
+(defn logic-box []
+  (let [logic (subscribe [:qb/constraint-logic])]
+    (fn []
+      [:div
+       [:input.form-control
+        {:style     {:max-width "300"}
+         :type      "text"
+         :value     @logic
+         :on-blur   (fn [] (dispatch [:qb/update-constraint-logic (format-logic-string @logic)]))
+         :on-change (fn [e] (dispatch [:qb/update-constraint-logic (oget e :target :value)]))}]])))
 
 (defn controls []
   [:div.button-group
    [:button.btn.btn-primary.btn-raised
+    {:on-click (fn [] (dispatch [:qb/load-query aquery]))}
+    ;{:on-click (fn [] (println "finished" (listify nil)))}
+
+    "Example"]
+   [:button.btn.btn-primary.btn-raised
     {:on-click (fn [] (dispatch [:qb/mappy-build-im-query]))}
+    ;{:on-click (fn [] (println "finished" (listify nil)))}
+
     "Show Results"]])
 
+(defn preview [result-count]
+  (let [results-preview (subscribe [:qb/preview])
+        fetching-preview? (subscribe [:idresolver/fetching-preview?])]
+    [preview-table
+     :loading? @fetching-preview?
+     :query-results @results-preview]
+    ))
+
+
+(defn view-order []
+  (fn []
+    [:ul.sort-order
+     [:li [:i.fa.fa-sort] "Gene > Symbol"]
+     [:li [:i.fa.fa-sort] "Gene > Symbol"]
+     [:li [:i.fa.fa-sort] "Gene > Symbol"]
+     [:li [:i.fa.fa-sort] "Gene > Symbol"]
+     ]))
 
 (defn main []
   (let [query           (subscribe [:qb/query])
-        flattened-query (subscribe [:qb/flattened])
         current-mine    (subscribe [:current-mine])
-        root-class      (subscribe [:qb/root-class])
-        query-is-valid? (subscribe [:qb/query-is-valid?])
-        mappy           (subscribe [:qb/mappy])]
+        root-class      (subscribe [:qb/root-class])]
     (reagent/create-class
       {:component-did-mount (fn [x]
                               (when (empty? @query)
@@ -373,9 +461,24 @@
                                  [model-browser (:model (:service @current-mine)) (name @root-class)]]]
                                [:div.main-window
                                 [:div.container-fluid
-                                 [:h4 "Query"]
-                                 [queryview-browser (:model (:service @current-mine))]
-                                 [controls]]]])})))
+                                 [:div.row
+                                  [:div.col-sm-6
+                                   [:h4 "Query"]
+                                   [queryview-browser (:model (:service @current-mine))]
+                                   [:h4 "Constraint Logic"]
+                                   [logic-box]]
+                                  [:div.col-sm-6
+                                   [:h4 "Column Order"
+                                    [view-order]
+                                    [controls]]]]
+
+
+
+
+                                 ;[:h4 "Preview"]
+
+                                 ;[preview]
+                                 ]]])})))
 
 
 (defn toggle-all-checkbox []

@@ -363,3 +363,59 @@
   width: 1.28571429em;
   content: ' ';
 }
+
+
+.contract {
+
+    &.empty {
+        .input-group input[type=text]{
+            border:0;
+            border-left:solid 1px #ccc;
+            border-radius:0;
+            background-color: #f7f7f7;
+            }
+    }
+
+    padding:0.3em 0px;
+
+    .input-group {
+        border:solid #ccc 1px;
+    }
+
+    .input-group input[type=text]{
+    border:0;
+    border-left:solid 1px #ccc;
+    border-radius:0;
+    }
+
+    .input-group-btn .btn {
+      margin-bottom:0;
+      padding: 6px 12px;
+    }
+
+    .input-group .input-group-btn {padding:0;
+      background-color:#ddd;
+    }
+
+    .constraint-label {border-left:solid 1px #ccc;
+        background-color:#ddd;
+        display:table-cell;
+        width:2.5em; text-align:center; vertical-align:middle;
+    }
+
+    .form-control {height:2em; }
+
+}
+
+.sort-order {
+    .list-unstyled;
+    li {
+        i {
+            padding: 0 10px;
+        }
+        margin: 5px;
+        padding: 10px;
+        background-color: #03a9f4;
+        color: white;
+    }
+}

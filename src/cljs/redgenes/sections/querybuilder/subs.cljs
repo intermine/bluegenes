@@ -56,3 +56,9 @@
   :qb/mappy
   (fn [db]
     (get-in db [:qb :mappy])))
+
+
+(reg-sub
+  :qb/preview
+  (fn [db]
+    (get-in db [:qb :preview])))
