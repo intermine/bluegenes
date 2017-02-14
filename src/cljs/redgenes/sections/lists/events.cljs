@@ -154,7 +154,7 @@
                   {:source source
                    :type   :query
                    :value  (build-list-query type summary-fields name title)}]
-       :navigate (str "results")})))
+       :navigate "/results"})))
 
 
 (reg-event-db
