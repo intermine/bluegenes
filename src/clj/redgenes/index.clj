@@ -23,6 +23,7 @@
     (include-css "css/site.css")
     [:meta {:charset "utf-8"}]
     [:meta {:content "width=device-width, initial-scale=1", :name "viewport"}]
+    [:link {:rel "shortcut icon" :href "https://cdn.rawgit.com/intermine/design-materials/f5f00be4/logos/intermine/fav32x32.png" :type "image/png"}]
     [:script {:src
       "http://cdn.intermine.org/js/intermine/im-tables/2.0.0/imtables.min.js"}]
     [:script {:src
