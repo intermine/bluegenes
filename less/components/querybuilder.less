@@ -16,21 +16,33 @@
 
 @swith: 300px;
 
+div.column-container {
+    display: flex;
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: 60px;
+    bottom: 54px;
+    background-color: green;
+
+    .model-browser-column {
+        width: 300px;
+        background-color: @model-browser-bg;
+        color: @model-browser-fg;
+        overflow: auto;
+    }
+
+    .query-view-column {
+        flex: 1 0;
+        background-color: white;
+    }
+}
+
 .contract {
     max-width: 400px;
 }
 
-.sidex {
-    position: fixed;
-    top: 60px;
-    left: 0;
-    bottom: 54px;
-    width: @swith;
-    overflow: auto;
-    border-right: 1px solid #e5e5e5;
-    background-color: @model-browser-bg;
-    color: @model-browser-fg;
-}
+
 
 .main-window {
     position: fixed;
@@ -194,7 +206,7 @@
 
 .query-browser {
     .noselect;
-    font-size: 0.9em;
+    font-size: 1.1em;
     cursor: pointer;
     background-color: @query-browser-bg;
     color: @query-browser-fg;
@@ -256,7 +268,7 @@
     }
     .qb-class {
         font-weight: 500;
-        color: @query-browser-class;
+        // color: @query-browser-class;
     }
     .light {
         color: #898989;
@@ -429,7 +441,6 @@
         margin: 2px;
         border: 1px solid grey;
         display: inline;
-        float: left;
         &.dragging {
             background-color: @model-browser-class;
             // background-color: white;
@@ -444,5 +455,49 @@
 }
 
 .part {
-    padding: 4px;
+    padding: 2px;
+}
+
+.sort-order-container {
+    display: flex;
+    flex-wrap: wrap;
+    padding: 10px;
+     // flex-direction: column;
+    transition: all 100ms ease;
+
+    &.dragtest {
+        background-color: #f7f7f7;
+        border-radius: 10px;
+
+        > * {
+            background-color: white;
+        }
+    }
+
+    > * {
+        font-size: 0.9em;
+        cursor: -webkit-grab;
+        transition: all 100ms ease;
+        background-color: #f7f7f7;
+        padding: 7px;
+        margin: 2px;
+        border: 1px solid grey;
+        display: inline;
+        &.dragging {
+            background-color: @model-browser-class;
+            // background-color: white;
+            opacity: 0.8;
+            color: white;
+            margin-left: 15px;
+            // margin-top: 15px;
+            // padding-top: 15px;
+        }
+    }
+
+}
+
+.label-soft {
+    background-color: #c8ced0;
+    color: #666;
+    border-radius: 3px;
 }

@@ -114,9 +114,7 @@
     [:div
      [:div
       {:style {:display "table"}}
-      [:i.fa.fa-trash-o.fa-fw.semilight
-       {:on-click (fn [op] (on-remove {:path path :value value :op op}))
-        :style    {:display "table-cell" :vertical-align "middle"}}]
+
       [:div.input-group
        [constraint-operator
         :model model
@@ -140,7 +138,10 @@
                 :possible-values possible-values
                 :on-change (fn [val] (on-change {:path path :value val :op op :code code}))
                 :on-blur on-blur])
-       (when code [:span.constraint-label code])]]]))
+       (when code [:span.constraint-label code])]
+      [:i.fa.fa-trash-o.fa-fw.semilight
+       {:on-click (fn [op] (on-remove {:path path :value value :op op}))
+        :style    {:display "table-cell" :vertical-align "middle"}}]]]))
 
 
 

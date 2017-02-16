@@ -52,7 +52,6 @@
   :qb/pv
   (fn [{:keys [service view-vec]}]
     (let [str-path (join "." view-vec)]
-      (println "str-path" str-path)
       (when-not (im-path/class? (:model service) str-path)
         (let [count-chan (fetch/row-count service {:from (first view-vec) :select [str-path]})]
           (go (when (> 100 (<! count-chan))
@@ -338,7 +337,6 @@
 (reg-event-fx
   :qb/mappy-add-view
   (fn [{db :db} [_ path-vec]]
-    (println "PATH" path-vec)
     {:db       (update-in db [:qb :mappy] assoc-in path-vec {})
      :dispatch [:qb/mappy-build-im-query]}))
 
@@ -361,7 +359,6 @@
   :qb/mappy-add-constraint
   (fn [{db :db} [_ view-vec]]
     (let [code (next-available-const-code (get-in db loc))]
-      (println "view-bec" view-vec)
       {:db (update-in db [:qb :mappy] update-in (conj view-vec :constraints) (comp vec conj) {:code nil :op "=" :value nil})})))
 ;:dispatch [:qb/build-im-query]
 
@@ -442,7 +439,6 @@
 (reg-event-fx
   :qb/fetch-preview
   (fn [{db :db} [_ service query]]
-    (.log js/console "previewing" query)
     {:im-operation {:on-success [:qb/save-preview]
                     :op         (partial fetch/table-rows service query {:size 5})}}))
 
@@ -451,7 +447,6 @@
   (fn [{db :db} [_ service query]]
 
     (let [id-paths (countable-paths (:model service) (:select query))]
-      (.log js/console "id-paths" id-paths)
       {:db             db
        :dispatch       [:qb/fetch-preview service query]
        :im-operation-n (map (fn [id-path]

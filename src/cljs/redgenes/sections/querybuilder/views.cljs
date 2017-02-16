@@ -295,15 +295,16 @@
       [:li.haschildren
        [:p.flexmex
         [:span.lab {:class (if (im-path/class? model (join "." path)) "qb-class" "qb-attribute")}
+
+
+         [:span.qb-label {:style {:margin-left 5}} (uncamel k)]
          [:i.fa.fa-trash-o.fa-fw.semilight {:on-click (fn [] (dispatch [:qb/mappy-remove-view path]))}]
          [:span
           {:on-click (fn [] (dispatch [:qb/mappy-add-constraint path]))}
           [:span [:span [:i.fa.fa-filter.semilight]]]]
-
-         [:span.qb-label {:style {:margin-left 5}} (uncamel k)]
          (when-let [c (:id-count properties)]
-           [:span.label.label-info
-            {:style {:margin-left 5}} (str " " c)])]]
+           [:span.label.label-soft
+            {:style {:margin-left 5}} (str c " row" (when (not= c 1) "s"))])]]
 
        (when-let [constraints (:constraints properties)]
          (into [:ul]
@@ -322,7 +323,6 @@
                                   :value (:value con)
                                   :op (:op con)
                                   :on-change (fn [c]
-                                               (println "path" path idx c)
                                                (dispatch [:qb/mappy-update-constraint path idx c]))
                                   :on-blur (fn [x])
                                   ;(dispatch [:qb/build-im-query])
@@ -440,30 +440,26 @@
   (let [order (subscribe [:qb/order])
         state (reagent/atom {:items ["A" "B" "C" "D"] :selected nil})]
     (fn []
-      (into [:ul.dragme]
+      (into [:div.sort-order-container
+             {:class (when (some? (:selected @state)) "dragtest")}]
             (map-indexed
               (fn [idx i]
-                [:li {:class
-                      (when (= idx (:selected @state)) "dragging")
-                      :draggable
-                      true
-                      :on-drag-start
-                      (fn [] (swap! state assoc :selected idx))
-                      :on-drag-enter
-                      (fn [] (let [selected-idx  (:selected @state)
-                                   items         @order
-                                   selected-item (get items selected-idx)
-                                   [before after] (split-at idx (drop-nth selected-idx items))]
-                               #_(swap! state assoc
-                                        :selected idx
-                                        :items (vec (concat (vec before) (vec (list selected-item)) (vec after))))
-                               (swap! state assoc :selected idx)
-                               (dispatch [:qb/set-order (vec (concat (vec before) (vec (list selected-item)) (vec after)))])))
-                      :on-drag-end
-                      (fn [] (swap! state assoc :selected nil))
-                      }
-                 (map (fn [part]
-                        [:span.part part]) (interpose ">" (map uncamel (split i "."))))])) @order
+                [:div {:class         (when (= idx (:selected @state)) "dragging")
+                       :draggable     true
+                       :on-drag-start (fn [e]
+                                        (ocall e "dataTransfer.setData" "banana" "cakes")
+                                        (swap! state assoc :selected idx))
+                       :on-drag-enter (fn [] (let [selected-idx  (:selected @state)
+                                                   items         @order
+                                                   selected-item (get items selected-idx)
+                                                   [before after] (split-at idx (drop-nth selected-idx items))]
+                                               #_(swap! state assoc
+                                                        :selected idx
+                                                        :items (vec (concat (vec before) (vec (list selected-item)) (vec after))))
+                                               (swap! state assoc :selected idx)
+                                               (dispatch [:qb/set-order (vec (concat (vec before) (vec (list selected-item)) (vec after)))])))
+                       :on-drag-end   (fn [] (swap! state assoc :selected nil))}
+                 (map (fn [part] [:span.part part]) (interpose ">" (map uncamel (split i "."))))])) @order
             ))))
 
 (defn main []
@@ -475,32 +471,29 @@
                               (when (empty? @query)
                                 (dispatch [:qb/set-root-class "Gene"])))
        :reagent-render      (fn []
-                              [:div.container {:style {:width "100%"}}
-                               [:div.sidex
+                              [:div.column-container
+                               [:div.model-browser-column
                                 [:div.container-fluid
                                  [:h4 "Model Browser"]
                                  [:span "Starting with..."]
                                  [root-class-dropdown]
                                  [model-browser (:model (:service @current-mine)) (name @root-class)]]]
-                               [:div.main-window
+                               [:div.query-view-column
                                 [:div.container-fluid
                                  [:div.row
-                                  [:div.col-sm-6
-                                   [:h4 "Query"]
-                                   [queryview-browser (:model (:service @current-mine))]
-                                   [:h4 "Constraint Logic"]
-                                   [logic-box]
+                                  [:div.col-md-6
                                    [:div
-                                    [:h4 "Column Order"]
-                                    [sortable-list]
-                                    [controls]]
-                                   ]
-                                  ;[view-order]
-
-                                  [:div.col-sm-6
-
-                                   ;[:h4 "Column Order" [controls]]
-                                   ]]]]])})))
+                                    [:h4 "Query"]
+                                    [queryview-browser (:model (:service @current-mine))]
+                                    [:h4 "Constraint Logic"]
+                                    [logic-box]]]
+                                  [:div.col-md-6
+                                   [:div
+                                    [:div
+                                     [:h4 "Column Order"]
+                                     [sortable-list]]
+                                    [controls]
+                                    ]]]]]])})))
 
 
 
