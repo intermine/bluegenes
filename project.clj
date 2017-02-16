@@ -37,7 +37,7 @@
                  [binaryage/oops "0.5.2"]
                  [inflections "0.12.2"]
                  [intermine/imcljs "0.1.13-SNAPSHOT"]
-                 [intermine/im-tables "0.1.12-SNAPSHOT"]
+                 [intermine/im-tables "0.1.13-SNAPSHOT"]
                  [re-frisk "0.3.1"]]
 
   :plugins [[lein-cljsbuild "1.1.4"]
