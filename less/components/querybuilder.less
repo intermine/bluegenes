@@ -419,3 +419,30 @@
         color: white;
     }
 }
+
+.dragme {
+    .list-unstyled;
+    li {
+        transition: all 100ms ease;
+        background-color: #f7f7f7;
+        padding: 7px;
+        margin: 2px;
+        border: 1px solid grey;
+        display: inline;
+        float: left;
+        &.dragging {
+            background-color: @model-browser-class;
+            // background-color: white;
+            opacity: 0.8;
+            color: white;
+            // margin-top: 15px;
+            // padding-top: 15px;
+        }
+    }
+
+
+}
+
+.part {
+    padding: 4px;
+}

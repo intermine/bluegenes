@@ -15,7 +15,7 @@
 (defn one-of? [haystack needle] (some? (some #{needle} haystack)))
 
 (defn tree-view-recur [model root-class trail selected & [override]]
-  (let [expanded? (reagent/atom (get-in selected trail))] ; Recursively auto-expand to selected values
+  (let [expanded? (reagent/atom (get-in selected trail))]   ; Recursively auto-expand to selected values
     (fn [model root-class trail selected]
       (let [{:keys [displayName attributes collections references] :as p} (get-in model [:classes root-class])]
         [:ul.qb {:class (if (and @expanded? (> (count trail) 1)) "open")}
@@ -145,8 +145,8 @@
                         [:span.ex
                          {:on-click (fn [] (dispatch [:qb/mappy-add-view (conj path-vec (name field-kw))]))}
                          [:i.fa.fa-square-o.fa-fw]
-                         (uncamel (name field-kw))]]
-                       )))
+                         (uncamel (name field-kw))]])))
+
                  (sort attributes))))))
 
 
@@ -193,15 +193,15 @@
                                           [:button.btn.btn-primary.il
                                            {:class    (if @editing? "btn-raised")
                                             :on-click (fn [] (swap! editing? not))}
-                                           [:i.fa.fa-pencil] " Attributes"
-                                           ]]]
+                                           [:i.fa.fa-pencil] " Attributes"]]]
+
                                         [:li.haschildren
                                          [:p
                                           [:button.btn.btn-primary.il
                                            {:class    (if @adding-rel? "btn-raised")
                                             :on-click (fn [] (swap! adding-rel? not))}
-                                           [:i.fa.fa-share-alt] " Relationships"
-                                           ]]]]]))
+                                           [:i.fa.fa-share-alt] " Relationships"]]]]]))
+
 
                 ; Attributes first!
                 (if (and trail @editing?)
@@ -233,8 +233,8 @@
                                   ;[:button.btn.btn-primary.il [:i.fa.fa-share-alt]]
                                   #_[:button.btn.btn-primary.il
                                      {:on-click (fn [] (swap! adding-rel? not))}
-                                     [:i.fa.fa-share-alt] " Add Relationship "]
-                                  ]
+                                     [:i.fa.fa-share-alt] " Add Relationship "]]
+
                                  [:div
                                   [tree v model loc]]])))))))))))
 
@@ -298,13 +298,13 @@
          [:i.fa.fa-trash-o.fa-fw.semilight {:on-click (fn [] (dispatch [:qb/mappy-remove-view path]))}]
          [:span
           {:on-click (fn [] (dispatch [:qb/mappy-add-constraint path]))}
-          [:span [:span [:i.fa.fa-filter.semilight]]]
-          ]
+          [:span [:span [:i.fa.fa-filter.semilight]]]]
+
          [:span.qb-label {:style {:margin-left 5}} (uncamel k)]
          (when-let [c (:id-count properties)]
            [:span.label.label-info
-            {:style {:margin-left 5}} (str " " c)])
-         ]]
+            {:style {:margin-left 5}} (str " " c)])]]
+
        (when-let [constraints (:constraints properties)]
          (into [:ul]
                (map-indexed (fn [idx con]
@@ -324,9 +324,9 @@
                                   :on-change (fn [c]
                                                (println "path" path idx c)
                                                (dispatch [:qb/mappy-update-constraint path idx c]))
-                                  :on-blur (fn [x]
-                                             ;(dispatch [:qb/build-im-query])
-                                             )
+                                  :on-blur (fn [x])
+                                  ;(dispatch [:qb/build-im-query])
+
                                   :label? false]]]]) constraints)))
        (when (not-empty properties)
          (let [classes    (filter (fn [[k p]] (im-path/class? model (join "." (conj path k)))) (dissoc-keywords properties))
@@ -426,27 +426,50 @@
     "Show Results"]])
 
 (defn preview [result-count]
-  (let [results-preview (subscribe [:qb/preview])
+  (let [results-preview   (subscribe [:qb/preview])
         fetching-preview? (subscribe [:idresolver/fetching-preview?])]
     [preview-table
      :loading? @fetching-preview?
-     :query-results @results-preview]
-    ))
+     :query-results @results-preview]))
 
 
-(defn view-order []
-  (fn []
-    [:ul.sort-order
-     [:li [:i.fa.fa-sort] "Gene > Symbol"]
-     [:li [:i.fa.fa-sort] "Gene > Symbol"]
-     [:li [:i.fa.fa-sort] "Gene > Symbol"]
-     [:li [:i.fa.fa-sort] "Gene > Symbol"]
-     ]))
+
+(defn drop-nth [n coll] (vec (keep-indexed #(if (not= %1 n) %2) coll)))
+
+(defn sortable-list []
+  (let [order (subscribe [:qb/order])
+        state (reagent/atom {:items ["A" "B" "C" "D"] :selected nil})]
+    (fn []
+      (into [:ul.dragme]
+            (map-indexed
+              (fn [idx i]
+                [:li {:class
+                      (when (= idx (:selected @state)) "dragging")
+                      :draggable
+                      true
+                      :on-drag-start
+                      (fn [] (swap! state assoc :selected idx))
+                      :on-drag-enter
+                      (fn [] (let [selected-idx  (:selected @state)
+                                   items         @order
+                                   selected-item (get items selected-idx)
+                                   [before after] (split-at idx (drop-nth selected-idx items))]
+                               #_(swap! state assoc
+                                        :selected idx
+                                        :items (vec (concat (vec before) (vec (list selected-item)) (vec after))))
+                               (swap! state assoc :selected idx)
+                               (dispatch [:qb/set-order (vec (concat (vec before) (vec (list selected-item)) (vec after)))])))
+                      :on-drag-end
+                      (fn [] (swap! state assoc :selected nil))
+                      }
+                 (map (fn [part]
+                        [:span.part part]) (interpose ">" (map uncamel (split i "."))))])) @order
+            ))))
 
 (defn main []
-  (let [query           (subscribe [:qb/query])
-        current-mine    (subscribe [:current-mine])
-        root-class      (subscribe [:qb/root-class])]
+  (let [query        (subscribe [:qb/query])
+        current-mine (subscribe [:current-mine])
+        root-class   (subscribe [:qb/root-class])]
     (reagent/create-class
       {:component-did-mount (fn [x]
                               (when (empty? @query)
@@ -466,19 +489,26 @@
                                    [:h4 "Query"]
                                    [queryview-browser (:model (:service @current-mine))]
                                    [:h4 "Constraint Logic"]
-                                   [logic-box]]
+                                   [logic-box]
+                                   [:div
+                                    [:h4 "Column Order"]
+                                    [sortable-list]]
+                                   ]
+                                  ;[view-order]
+
                                   [:div.col-sm-6
-                                   [:h4 "Column Order"
-                                    [view-order]
-                                    [controls]]]]
+
+                                   ;[:h4 "Column Order" [controls]]
+                                   ]]]]])})))
 
 
 
 
-                                 ;[:h4 "Preview"]
+;[:h4 "Preview"]
 
-                                 ;[preview]
-                                 ]]])})))
+;[preview]
+
+
 
 
 (defn toggle-all-checkbox []

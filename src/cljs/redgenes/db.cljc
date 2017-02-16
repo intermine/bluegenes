@@ -18,6 +18,7 @@
                                            :sort    {:title :asc}}}
 
    :qb                         {:root-class :Gene
+                                :order []
                                 :qm         nil
                                 :mappy      {"Gene" {"secondaryIdentifier" {}, "organism" {"name" {}}, "symbol" {}}}}})
 

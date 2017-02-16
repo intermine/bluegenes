@@ -62,3 +62,13 @@
   :qb/preview
   (fn [db]
     (get-in db [:qb :preview])))
+
+(reg-sub
+  :qb/im-query
+  (fn [db]
+    (get-in db [:qb :im-query])))
+
+(reg-sub
+  :qb/order
+  (fn [db]
+    (get-in db [:qb :order])))
