@@ -492,7 +492,8 @@
                                    [logic-box]
                                    [:div
                                     [:h4 "Column Order"]
-                                    [sortable-list]]
+                                    [sortable-list]
+                                    [controls]]
                                    ]
                                   ;[view-order]
 

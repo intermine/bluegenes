@@ -342,13 +342,20 @@
     {:db       (update-in db [:qb :mappy] assoc-in path-vec {})
      :dispatch [:qb/mappy-build-im-query]}))
 
-
+(defn dissoc-keywords [m]
+  (apply dissoc m (filter keyword? (keys m))))
 
 (reg-event-fx
   :qb/mappy-remove-view
   (fn [{db :db} [_ path-vec]]
-    {:db (update-in db [:qb :mappy] update-in (butlast path-vec) dissoc (last path-vec))
-     :dispatch [:qb/mappy-build-im-query]}))
+    (let [trimmed (loop [path-vec path-vec
+                         mappy    (get-in db [:qb :mappy])]
+                    (let [updated (update-in mappy (butlast path-vec) dissoc (last path-vec))]
+                      (if (empty? (dissoc-keywords (get-in updated (butlast path-vec))))
+                        (recur (butlast path-vec) updated)
+                        updated)))]
+      {:db       (assoc-in db [:qb :mappy] trimmed)
+       :dispatch [:qb/mappy-build-im-query]})))
 
 (reg-event-fx
   :qb/mappy-add-constraint
