@@ -15,7 +15,7 @@
 
 ;We need to handler more than X results :D right now 1000 results would ALL show on screen. Eep.
 
-(def separators (set ".,; "))
+(def separators (set ",; "))
 
 (def timeout 1500)
 
