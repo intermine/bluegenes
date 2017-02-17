@@ -112,9 +112,12 @@
                                      (blank? (:value constraint)) (dissoc :code))]
       (update-in db loc assoc-in (reduce conj path [:constraints idx]) updated-constraint))))
 
+
+
 (reg-event-db
   :qb/update-constraint-logic
   (fn [db [_ logic]]
+    (.log js/console "new logic" logic)
     (assoc-in db [:qb :constraint-logic] logic)))
 
 
@@ -303,7 +306,7 @@
                          :mappy {}
                          :root-class (keyword root-class-kw)
                          :qm {root-class-kw {:visible true}})
-       :dispatch [:qb/count-query]})))
+       :dispatch [:qb/mappy-count-query]})))
 
 
 
@@ -320,7 +323,7 @@
       {:db       (update db :qb assoc
                          :im-query (im-query/sterilize-query query)
                          :query-is-valid? (has-views? (:model service) query))
-       :dispatch [:qb/count-query]})))
+       :dispatch [:qb/mappy-count-query]})))
 
 
 (reg-event-fx
@@ -445,6 +448,7 @@
 (reg-event-fx
   :qb/mappy-count-query
   (fn [{db :db} [_ service query]]
+    (.log js/console "counting" query)
 
     (let [id-paths (countable-paths (:model service) (:select query))]
       {:db             db
@@ -459,4 +463,4 @@
   :qb/mappy-success-summary
   (fn [db [_ dot-path summary]]
     (let [v (vec (butlast (split dot-path ".")))]
-      (update-in db [:qb :mappy] assoc-in (conj v :id-count) summary))))
+      (update-in db [:qb :mappy] assoc-in (conj v :id-count) (js/parseInt summary)))))
