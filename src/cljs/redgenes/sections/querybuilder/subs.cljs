@@ -1,5 +1,7 @@
 (ns redgenes.sections.querybuilder.subs
-  (:require [re-frame.core :refer [reg-sub]]))
+  (:require [re-frame.core :refer [reg-sub]]
+            [clojure.string :refer [join]]
+            [redgenes.sections.querybuilder.logic :as con-logic]))
 
 (reg-sub
   :qb/query
@@ -45,7 +47,7 @@
 (reg-sub
   :qb/constraint-logic
   (fn [db]
-    (get-in db [:qb :constraint-logic])))
+    (join "" (drop-last (rest (apply vector (str (con-logic/vec->list (get-in db [:qb :constraint-logic])))))))))
 
 (reg-sub
   :qb/root-class
@@ -72,3 +74,9 @@
   :qb/order
   (fn [db]
     (get-in db [:qb :order])))
+
+(reg-sub
+  :qb/menu
+  (fn [db]
+    (get-in db [:qb :menu])))
+

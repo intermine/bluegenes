@@ -86,21 +86,22 @@
              [:i.fa.fa-square-o.fa-fw.light])
            [:span.qb-label (str " " (uncamel (:name properties)))]]]]))))
 
-(defn node [model [k properties] & [trail o]]
+(defn node []
   (let [mappy (subscribe [:qb/mappy])
-        open? (reagent/atom o)]
+        menu (subscribe [:qb/menu])]
     (fn [model [k properties] & [trail]]
       (let [path     (vec (conj trail (name k)))
-            selected (get-in @mappy path)]
+            selected (get-in @mappy path)
+            open? (get-in @menu path)]
         [:li.haschildren
          [:p
           [:span {:on-click (fn []
-                              ;(reset! auto false)
-                              (swap! open? not)
-                              )}
-           [:i.fa.fa-plus.fa-fw.arr.semilight {:class (when @open? "arrow-down")}]
+                              (if open?
+                                (dispatch [:qb/collapse-path path])
+                                (dispatch [:qb/expand-path path])))}
+           [:i.fa.fa-plus.fa-fw.arr.semilight {:class (when open? "arrow-down")}]
            [:span.qb-class (uncamel (:name properties))]]]
-         (when (or @open? (and @auto selected))
+         (when open?
            (into [:ul]
                  (concat
                    (map (fn [i] [attribute model i path]) (sort (im-path/attributes model (:referencedType properties))))
@@ -110,7 +111,14 @@
   (fn [model root-class]
     [:div.model-browser
      (let [path [root-class]]
-       (into [:ul]
+       (into [:ul
+              [:li [:div.btn-toolbar
+                    [:button.btn.btn-primary.btn-slim
+                     {:on-click (fn [] (dispatch [:qb/expand-all]))}
+                     "Show Selected"]
+                    [:button.btn.btn-primary.btn-slim
+                     {:on-click (fn [] (dispatch [:qb/collapse-all]))}
+                     "Collapse All"]]]]
              (concat
                (map (fn [i] [attribute model i path]) (sort (im-path/attributes model root-class)))
                (map (fn [i] [node model i path]) (sort (im-path/relationships model root-class))))))]))
@@ -126,7 +134,7 @@
        [:p.flexmex
         [:span.lab {:class (if (im-path/class? model (join "." path)) "qb-class" "qb-attribute")}
          [:span.qb-label {:style {:margin-left 5}} [:a (uncamel k)]]
-         [:i.fa.fa-trash-o.fa-fw.semilight {:on-click (fn [] (dispatch [:qb/mappy-remove-view path]))}]
+         (when (> (count path) 1) [:i.fa.fa-trash-o.fa-fw.semilight {:on-click (fn [] (dispatch [:qb/mappy-remove-view path]))}])
          [:span
           {:on-click (fn [] (dispatch [:qb/mappy-add-constraint path]))}
           [:span [:span [:i.fa.fa-filter.semilight]]]]
@@ -174,139 +182,7 @@
                       [queryview-node model n]) @mappy))]
         [:div "Please select an attribute."]))))
 
-(defn listify [logic-vector]
-  (let [v logic-vector]
-    (let [first-and (first (keep-indexed (fn [idx e] (if (some #{e} #{'and 'AND}) idx)) v))
-          first-or  (or (first (keep-indexed (fn [idx e] (if (and (some #{e} #{'or 'OR}) (>= idx first-and)) idx)) v)) (count v))]
-      (if first-and
-        (let [trunk     (subvec v 0 (dec first-and))
-              anded     (subvec v (dec first-and) first-or)
-              remaining (subvec v first-or (count v))
-              fixed     (reduce conj (conj trunk anded) remaining)]
-          (recur fixed))
-        (do
-          (if (and (= 1 (count v)) (vector? (first v)))
-            (first v)
-            v))))))
-
-(defn add-code [l code]
-  (listify (reduce conj l [:and code])))
-
-
-(defn wrap-string-in-parens [string]
-  (if (and (starts-with? string "(") (ends-with? string ")"))
-    string
-    (str "(" string ")")))
-
-(defn replace-parens-with-brackets [string]
-  (-> string
-      (clojure.string/replace (re-pattern "\\[") "(")
-      (clojure.string/replace (re-pattern "\\]") ")")))
-
-(defn stringify-vec [v]
-  (apply str (interpose " " v)))
-
-(defn lists-to-vectors [s]
-  (clojure.walk/prewalk (fn [e] (if (list? e) (vec e) e)) s))
-
-
-(defn format-logic-string [string]
-  (->> string
-       wrap-string-in-parens
-       read-string
-       vec
-       listify
-       stringify-vec
-       replace-parens-with-brackets))
-
-
 (def <sub (comp deref subscribe))
-
-(defn append-code [v code]
-  (vec (concat v ['and code])))
-
-(defn index-of [haystack needle]
-  (first (keep-indexed (fn [idx e] (when (= needle e) idx)) haystack)))
-
-(defn group-ands
-  "Recurisvely groups entities in a vector that are connected by the 'and symbol"
-  [v]
-  (let [first-part (vec (take (dec (index-of v 'and)) v))
-        grouped    (vec (take-while (partial not= 'or) (drop (count first-part) v)))
-        end        (take-last (- (count v) (+ (count first-part) (count grouped))) v)
-        grouped (if (= 1 (count grouped)) (first grouped) grouped)]
-    (let [final (reduce conj (conj first-part grouped) end)]
-      (if (index-of final 'and) (recur final) final))))
-
-(defn without-operators [col]
-  (vec (filter (fn [item] (not (some? (some #{item} #{'and 'or})))) col)))
-
-(defn single-vec-of-vec? [item]
-  "Is the item a vector containing one vector? [[A]]"
-  (and (= (count item) 1) (vector? (first item))))
-
-(defn single-vec-of-symbol? [item]
-  "Is the item a vector containing a symbol? ['A]"
-  (and (= (count item) 1) (symbol? (first item))))
-
-(defn remove-code
-  "Recursively removes a symbol from a tree and raises neighbours with a count of one"
-  [v code]
-  (clojure.walk/postwalk
-    (fn [e]
-      (if (vector? e)
-        (let [removed     (vec (remove (partial = code) e))
-              without-ops (without-operators removed)]
-          (cond
-            (single-vec-of-vec? without-ops) (vec (mapcat identity without-ops))
-            (single-vec-of-symbol? without-ops) (first without-ops)
-            :else removed))
-        e))
-    v))
-
-(defn vec->list
-  "Recursively convert vectors to lists"
-  [v]
-  (clojure.walk/postwalk (fn [e] (if (vector? e) (apply list e) e)) v))
-
-(defn list->vec
-  "Recursively convert lists to vectors"
-  [v]
-  (clojure.walk/postwalk (fn [e] (if (list? e) (vec e) e)) v))
-
-
-
-
-
-(defn logic-box-2 []
-  (let [
-        ;logic     (reagent/atom ['A 'or ['B 'and ['C 'and 'B]]])
-        logic     (reagent/atom ['A 'and 'B 'or ['C 'and 'D]])
-
-        str-value (reagent/atom nil)]
-    (fn []
-      [:div
-       [:pre (str @logic)]
-       [:input.form-control
-        {:style     {:max-width "300"}
-         :type      "text"
-         :value     @str-value
-         :on-change (fn [e] (reset! str-value (oget e :target :value)))}]
-       [:button.btn.btn-primary "Validate"]
-       [:button.btn.btn-primary
-        {:on-click (fn [] (swap! logic vec->list))} "LIST"]
-       [:button.btn.btn-primary
-        {:on-click (fn [] (println "READ" (map type (read-string "(A or B and C)"))))} "READ"]
-       [:button.btn.btn-primary
-        {:on-click (fn [] (println "without code" (->
-                                                    (remove-code @logic 'D)
-                                                    ;raise
-                                                    )))} "Remove Code"]
-       [:button.btn.btn-primary
-        {:on-click (fn [] (println "grouping" (group-ands @logic)))} "Group"]
-       [:button.btn.btn-primary
-        {:on-click (fn [] (println (group-ands (append-code @logic 'X))))} "Add Code"]
-       ])))
 
 (defn logic-box []
   (let [logic (subscribe [:qb/constraint-logic])]
@@ -316,7 +192,7 @@
         {:style     {:max-width "300"}
          :type      "text"
          :value     @logic
-         :on-blur   (fn [] (dispatch [:qb/update-constraint-logic (format-logic-string @logic)]))
+         :on-blur   (fn [] (dispatch [:qb/format-constraint-logic @logic]))
          :on-change (fn [e] (dispatch [:qb/update-constraint-logic (oget e :target :value)]))}]])))
 
 (defn controls []
@@ -338,8 +214,6 @@
     [preview-table
      :loading? @fetching-preview?
      :query-results @results-preview]))
-
-
 
 (defn drop-nth [n coll] (vec (keep-indexed #(if (not= %1 n) %2) coll)))
 
@@ -366,7 +240,7 @@
                                                (swap! state assoc :selected idx)
                                                (dispatch [:qb/set-order (vec (concat (vec before) (vec (list selected-item)) (vec after)))])))
                        :on-drag-end   (fn [] (swap! state assoc :selected nil))}
-                 (map (fn [part] [:span.part part]) (interpose ">" (map uncamel (split i "."))))])) @order
+                 (into [:div] (map (fn [part] [:span.part part]) (interpose ">" (map uncamel (split i ".")))))])) @order
             ))))
 
 (defn main []
@@ -382,7 +256,14 @@
                                [:div.model-browser-column
                                 [:div.container-fluid
                                  [:h4 "Model Browser"]
-                                 [:span "Starting with..."]
+                                 #_[:div.btn-toolbar
+                                  [:button.btn.btn-primary.btn-slim
+                                   {:on-click (fn [] (dispatch [:qb/expand-all]))}
+                                   "Expand to Query"]
+                                  [:button.btn.btn-primary.btn-slim
+                                   {:on-click (fn [] (dispatch [:qb/collapse-all]))}
+                                   "Collapse All"]]
+                                 [:span "Start with..."]
                                  [root-class-dropdown]
                                  [model-browser (:model (:service @current-mine)) (name @root-class)]]]
                                [:div.query-view-column
@@ -393,7 +274,9 @@
                                     [:h4 "Query"]
                                     [queryview-browser (:model (:service @current-mine))]
                                     [:h4 "Constraint Logic"]
-                                    [logic-box-2]]]
+
+                                    [logic-box]
+                                    ]]
                                   [:div.col-md-6
                                    [:div
                                     [:div
