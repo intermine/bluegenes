@@ -130,7 +130,7 @@
 (defn queryview-node []
   (fn [model [k properties] & [trail]]
     (let [path (vec (conj trail (name k)))]
-      [:li.haschildren
+      [:li.tree.haschildren
        [:p.flexmex
         [:span.lab {:class (if (im-path/class? model (join "." path)) "qb-class" "qb-attribute")}
          [:span.qb-label {:style {:margin-left 5}} [:a (uncamel k)]]
@@ -143,9 +143,9 @@
             {:class (when (= 0 c) "label-no-results")
              :style {:margin-left 5}} (str c " row" (when (not= c 1) "s"))])]]
        (when-let [constraints (:constraints properties)]
-         (into [:ul]
+         (into [:ul.tree.banana]
                (map-indexed (fn [idx con]
-                              [:li.haschildren
+                              [:li
                                [:p
                                 [:div.contract
                                  {:class (when (empty? (:value con)) "empty")}
@@ -164,10 +164,10 @@
                                   ;(dispatch [:qb/build-im-query])
 
                                   :label? false]]]]) constraints)))
-       (when (not-empty properties)
+       (when (not-empty (dissoc-keywords properties))
          (let [classes    (filter (fn [[k p]] (im-path/class? model (join "." (conj path k)))) (dissoc-keywords properties))
                attributes (filter (fn [[k p]] ((complement im-path/class?) model (join "." (conj path k)))) (dissoc-keywords properties))]
-           (into [:ul]
+           (into [:ul.tree.banana2]
                  (concat
                    (map (fn [n] [queryview-node model n path]) (sort attributes))
                    (map (fn [n] [queryview-node model n path]) (sort classes))))))])))
@@ -177,7 +177,7 @@
     (fn [model]
       (if (not-empty @mappy)
         [:div.query-browser
-         (into [:ul]
+         (into [:ul.tree]
                (map (fn [n]
                       [queryview-node model n]) @mappy))]
         [:div

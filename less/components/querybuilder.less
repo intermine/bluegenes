@@ -211,30 +211,30 @@ div.column-container {
     background-color: @query-browser-bg;
     color: @query-browser-fg;
     padding: 0 20px 20px 20px;
-    ul, li {
+    ul.tree, li.tree {
         list-style: none;
         margin: 0;
         padding: 0;
     }
-    ul {
+    ul.tree {
         padding-left: 1em;
         padding-left: 0em;
     }
-    li {
+    li.tree {
         padding-left: 1em;
         // padding-left: 0.2em;
         border: 1px solid #d5d5d5;
         border-width: 0 0 1px 1px;
     }
-    li.haschildren {
+    li.tree.haschildren {
         border-bottom: 0px;
     }
-    li.empty {
+    li.tree.empty {
         font-style: italic;
         color: silver;
         border-color: silver;
     }
-    li p {
+    li.tree p {
         margin: 0;
         // font-size: 1.2em;
         background: @query-browser-bg;
@@ -247,12 +247,12 @@ div.column-container {
             font-weight: bold;
         }
     }
-    li ul {
+    li.tree ul.tree {
         border-top: 1px solid #d5d5d5;
         margin-left: -1em;
         padding-left: 2em;
     }
-    ul li:last-child ul {
+    ul.tree li.tree:last-child ul.tree {
         border-left: 1px solid white;
         margin-left: -1em;
     }
@@ -279,6 +279,7 @@ div.column-container {
     select {
         background-color: gainsboro;
     }
+
 }
 
 .model-browser {

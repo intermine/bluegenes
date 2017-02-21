@@ -63,9 +63,11 @@
           (not (ends-with? s ")")) add-right-bracket))
 
 (defn append-code [v code]
-  (-> (vec (concat v ['and code]))
-      group-ands
-      raise))
+  (if (empty? v)
+    [code]
+    (-> (vec (concat v ['and code]))
+       group-ands
+       raise)))
 
 (defn remove-code
   "Recursively removes a symbol from a tree and raises neighbours with a count of one"
