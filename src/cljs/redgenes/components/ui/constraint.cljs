@@ -121,7 +121,7 @@
         :path path
         :op op
         :lists lists
-        :on-change (fn [op] (on-change {:path path :value value :op op}))]
+        :on-change (fn [op] (on-change {:code code :path path :value value :op op}))]
        (cond
          ; If this is a LIST constraint then show a list dropdown
          (or (= op "IN")

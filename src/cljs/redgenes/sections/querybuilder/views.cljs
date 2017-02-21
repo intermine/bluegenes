@@ -88,11 +88,11 @@
 
 (defn node []
   (let [mappy (subscribe [:qb/mappy])
-        menu (subscribe [:qb/menu])]
+        menu  (subscribe [:qb/menu])]
     (fn [model [k properties] & [trail]]
       (let [path     (vec (conj trail (name k)))
             selected (get-in @mappy path)
-            open? (get-in @menu path)]
+            open?    (get-in @menu path)]
         [:li.haschildren
          [:p
           [:span {:on-click (fn []
@@ -180,7 +180,13 @@
          (into [:ul]
                (map (fn [n]
                       [queryview-node model n]) @mappy))]
-        [:div "Please select an attribute."]))))
+        [:div
+         [:div "Please select at least one attribute from the Model Browser."]
+         [:button.btn.btn-primary.btn-raised
+          {:on-click (fn [] (dispatch [:qb/load-query aquery]))}
+          ;{:on-click (fn [] (println "finished" (listify nil)))}
+
+          "Example"]]))))
 
 (def <sub (comp deref subscribe))
 
@@ -197,11 +203,7 @@
 
 (defn controls []
   [:div.button-group
-   [:button.btn.btn-primary.btn-raised
-    {:on-click (fn [] (dispatch [:qb/load-query aquery]))}
-    ;{:on-click (fn [] (println "finished" (listify nil)))}
 
-    "Example"]
    [:button.btn.btn-primary.btn-raised
     {:on-click (fn [] (dispatch [:qb/mappy-build-im-query]))}
     ;{:on-click (fn [] (println "finished" (listify nil)))}
@@ -244,7 +246,8 @@
             ))))
 
 (defn main []
-  (let [query        (subscribe [:qb/query])
+  (let [mappy        (subscribe [:qb/mappy])
+        query        (subscribe [:qb/query])
         current-mine (subscribe [:current-mine])
         root-class   (subscribe [:qb/root-class])]
     (reagent/create-class
@@ -257,12 +260,12 @@
                                 [:div.container-fluid
                                  [:h4 "Model Browser"]
                                  #_[:div.btn-toolbar
-                                  [:button.btn.btn-primary.btn-slim
-                                   {:on-click (fn [] (dispatch [:qb/expand-all]))}
-                                   "Expand to Query"]
-                                  [:button.btn.btn-primary.btn-slim
-                                   {:on-click (fn [] (dispatch [:qb/collapse-all]))}
-                                   "Collapse All"]]
+                                    [:button.btn.btn-primary.btn-slim
+                                     {:on-click (fn [] (dispatch [:qb/expand-all]))}
+                                     "Expand to Query"]
+                                    [:button.btn.btn-primary.btn-slim
+                                     {:on-click (fn [] (dispatch [:qb/collapse-all]))}
+                                     "Collapse All"]]
                                  [:span "Start with..."]
                                  [root-class-dropdown]
                                  [model-browser (:model (:service @current-mine)) (name @root-class)]]]
@@ -273,17 +276,19 @@
                                    [:div
                                     [:h4 "Query"]
                                     [queryview-browser (:model (:service @current-mine))]
-                                    [:h4 "Constraint Logic"]
-
-                                    [logic-box]
+                                    (when (not-empty @mappy)
+                                      [:div
+                                       [:h4 "Constraint Logic"]
+                                       [logic-box]])
                                     ]]
-                                  [:div.col-md-6
-                                   [:div
-                                    [:div
-                                     [:h4 "Column Order"]
-                                     [sortable-list]]
-                                    [controls]
-                                    ]]]]]])})))
+                                  (when (not-empty @mappy)
+                                    [:div.col-md-6
+                                     [:div
+                                      [:div
+                                       [:h4 "Column Order"]
+                                       [sortable-list]]
+                                      [controls]
+                                      ]])]]]])})))
 
 
 
