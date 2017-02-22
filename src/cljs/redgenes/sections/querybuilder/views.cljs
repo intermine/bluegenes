@@ -134,7 +134,9 @@
        [:p.flexmex
         [:span.lab {:class (if (im-path/class? model (join "." path)) "qb-class" "qb-attribute")}
          [:span.qb-label {:style {:margin-left 5}} [:a (uncamel k)]]
-         (when (> (count path) 1) [:i.fa.fa-trash-o.fa-fw.semilight {:on-click (fn [] (dispatch [:qb/mappy-remove-view path]))}])
+         [:i.fa.fa-trash-o.fa-fw.semilight {:on-click (if (> (count path) 1)
+                                                        (fn [] (dispatch [:qb/mappy-remove-view path]))
+                                                        (fn [] (dispatch [:qb/mappy-clear-query path])))}]
          [:span
           {:on-click (fn [] (dispatch [:qb/mappy-add-constraint path]))}
           [:span [:span [:i.fa.fa-filter.semilight]]]]
@@ -205,7 +207,7 @@
   [:div.button-group
 
    [:button.btn.btn-primary.btn-raised
-    {:on-click (fn [] (dispatch [:qb/mappy-build-im-query]))}
+    {:on-click (fn [] (dispatch [:qb/export-query]))}
     ;{:on-click (fn [] (println "finished" (listify nil)))}
 
     "Show Results"]])

@@ -72,6 +72,7 @@
 (defn remove-code
   "Recursively removes a symbol from a tree and raises neighbours with a count of one"
   [v code]
+  (println "trying to remove code" v code)
   (->
     (clojure.walk/postwalk
      (fn [e]

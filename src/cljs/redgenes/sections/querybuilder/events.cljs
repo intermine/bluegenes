@@ -327,7 +327,7 @@
 (reg-event-db
   :qb/expand-path
   (fn [db [_ path]]
-    (update-in db [:qb :menu] assoc-in path true)))
+    (update-in db [:qb :menu] assoc-in path {})))
 
 (reg-event-db
   :qb/expand-all
@@ -367,19 +367,24 @@
 (reg-event-fx
   :qb/export-query
   (fn [{db :db} [_]]
-    (when (get-in db [:qb :query-is-valid?])
-      {:dispatch [:results/set-query
-                  {:source :flymine-beta
-                   :type   :query
-                   :value  (get-in db [:qb :im-query])}]
-       :navigate (str "results")})))
+    (let [current-mine (get-in db [:current-mine])
+          query        (get-in db [:qb :im-query])]
+      (.log js/console "query" query)
+      (println "CM" current-mine))
+    {:db db}
+    #_(when (get-in db [:qb :query-is-valid?])
+        {:dispatch [:results/set-query
+                    {:source :flymine-beta
+                     :type   :query
+                     :value  (get-in db [:qb :im-query])}]
+         :navigate (str "results")})))
 
 
 (reg-event-fx
   :qb/mappy-add-view
   (fn [{db :db} [_ path-vec]]
     {:db       (update-in db [:qb :mappy] assoc-in path-vec {})
-     :dispatch [:qb/mappy-build-im-query]}))
+     :dispatch [:qb/mappy-build-im-query true]}))
 
 (defn dissoc-keywords [m]
   (apply dissoc m (filter keyword? (keys m))))
@@ -434,7 +439,7 @@
   :qb/mappy-update-constraint
   (fn [db [_ path idx constraint]]
     (let [add-code?    (and (blank? (:code constraint)) (not-blank? (:value constraint)))
-          remove-code? (blank? (:value constraint))]
+          remove-code? (and (blank? (:value constraint)) (:code constraint))]
       (let [updated-constraint (cond-> constraint
                                        add-code? (assoc :code (next-available-const-code (get-in db [:qb :mappy])))
                                        remove-code? (dissoc :code))]
@@ -453,9 +458,16 @@
     col))
 
 
+(reg-event-db
+  :qb/mappy-clear-query
+  (fn [db]
+    (update-in db [:qb] assoc
+               :mappy {}
+               :menu {})))
+
 (reg-event-fx
   :qb/mappy-build-im-query
-  (fn [{db :db}]
+  (fn [{db :db} [_ rebuild?]]
     (let [service (get-in db [:mines (get-in db [:current-mine]) :service])
           query   (make-query
                     (:model service)
@@ -467,19 +479,18 @@
                                (remove (partial (complement within?) (:select query)))
                                vec)
             ordered-query (assoc query :select new-order)]
-        {:db       (update db :qb assoc
-                           :im-query (im-query/sterilize-query ordered-query)
-                           :order new-order
-                           :query-is-valid? (has-views? (:model service) ordered-query))
-         :dispatch [:qb/mappy-count-query service ordered-query]})
-
-      )))
+        (cond-> {:db (update db :qb assoc
+                             :im-query (im-query/sterilize-query ordered-query)
+                             :order new-order
+                             :query-is-valid? (has-views? (:model service) ordered-query))}
+                (true? rebuild?) (assoc :dispatch [:qb/mappy-count-query service ordered-query]))))))
 
 
-(reg-event-db
+(reg-event-fx
   :qb/set-order
-  (fn [db [_ ordered-vec]]
-    (assoc-in db [:qb :order] ordered-vec)))
+  (fn [{db :db} [_ ordered-vec]]
+    {:db       (assoc-in db [:qb :order] ordered-vec)
+     :dispatch [:qb/mappy-build-im-query false]}))
 
 
 (defn countable-paths
@@ -534,4 +545,6 @@
   :qb/mappy-success-summary
   (fn [db [_ dot-path summary]]
     (let [v (vec (butlast (split dot-path ".")))]
-      (update-in db [:qb :mappy] assoc-in (conj v :id-count) (js/parseInt summary)))))
+      (if summary
+        (update-in db [:qb :mappy] assoc-in (conj v :id-count) (js/parseInt summary))
+        (update-in db [:qb :mappy] assoc-in (conj v :id-count) nil)))))
