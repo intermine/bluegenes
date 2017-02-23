@@ -71,7 +71,7 @@
 
 (defn attribute []
   (let [mappy (subscribe [:qb/mappy])]
-    (fn [model [k properties] & [trail]]
+    (fn [model [k properties] & [trail sub]]
       (let [path      (conj trail (name k))
             selected? (get-in @mappy path)]
         [:li.haschildren
@@ -79,20 +79,23 @@
           [:span
            {:on-click (fn []
                         (if selected?
-                          (dispatch [:qb/mappy-remove-view path])
-                          (dispatch [:qb/mappy-add-view path])))}
+                          (dispatch [:qb/mappy-remove-view path sub])
+                          (dispatch [:qb/mappy-add-view path sub])))}
            (if (get-in @mappy path)
              [:i.fa.fa-check-square-o.fa-fw]
              [:i.fa.fa-square-o.fa-fw.light])
            [:span.qb-label (str " " (uncamel (:name properties)))]]]]))))
 
 (defn node []
-  (let [mappy (subscribe [:qb/mappy])
-        menu  (subscribe [:qb/menu])]
+  (let [menu (subscribe [:qb/menu])]
     (fn [model [k properties] & [trail]]
       (let [path     (vec (conj trail (name k)))
-            selected (get-in @mappy path)
-            open?    (get-in @menu path)]
+            open?    (get-in @menu path)
+            str-path (join "." path)
+            sub      (get-in @menu (conj path :subclass))]
+
+        (println "sub" sub)
+
         [:li.haschildren
          [:p
           [:span {:on-click (fn []
@@ -104,8 +107,21 @@
          (when open?
            (into [:ul]
                  (concat
-                   (map (fn [i] [attribute model i path]) (sort (im-path/attributes model (:referencedType properties))))
-                   (map (fn [i] [node model i path false]) (sort (im-path/relationships model (:referencedType properties)))))))]))))
+                   (when (im-path/class? model str-path)
+                     (when-let [subclasses (im-path/subclasses model str-path)]
+                       (list
+                         [:li [:p
+                               [:span
+                                (into
+                                  [:select.form-control
+                                   {:on-change (fn [e] (dispatch [:qb/mappy-choose-subclass path (oget e :target :value)]))}]
+                                  (map (fn [subclass] [:option {:value subclass} (uncamel (name subclass))]) (conj subclasses (:referencedType properties))))]]])))
+                   (if sub
+                     (map (fn [i] [attribute model i path sub]) (sort (im-path/attributes model sub)))
+                     (map (fn [i] [attribute model i path sub]) (sort (im-path/attributes model (:referencedType properties)))))
+                   (if sub
+                     (map (fn [i] [node model i path false]) (sort (im-path/relationships model sub)))
+                     (map (fn [i] [node model i path false]) (sort (im-path/relationships model (:referencedType properties))))))))]))))
 
 (defn model-browser []
   (fn [model root-class]
@@ -130,13 +146,16 @@
 (defn queryview-node []
   (fn [model [k properties] & [trail]]
     (let [path (vec (conj trail (name k)))]
+      (println "properties" properties)
       [:li.tree.haschildren
        [:p.flexmex
         [:span.lab {:class (if (im-path/class? model (join "." path)) "qb-class" "qb-attribute")}
          [:span.qb-label {:style {:margin-left 5}} [:a (uncamel k)]]
-         [:i.fa.fa-trash-o.fa-fw.semilight {:on-click (if (> (count path) 1)
-                                                        (fn [] (dispatch [:qb/mappy-remove-view path]))
-                                                        (fn [] (dispatch [:qb/mappy-clear-query path])))}]
+         (when-let [s (:subclass properties)] [:span.label.label-default (uncamel s)])
+         [:i.fa.fa-trash-o.fa-fw.semilight
+          {:on-click (if (> (count path) 1)
+                       (fn [] (dispatch [:qb/mappy-remove-view path]))
+                       (fn [] (dispatch [:qb/mappy-clear-query path])))}]
          [:span
           {:on-click (fn [] (dispatch [:qb/mappy-add-constraint path]))}
           [:span [:span [:i.fa.fa-filter.semilight]]]]

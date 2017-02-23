@@ -327,12 +327,21 @@
 (reg-event-db
   :qb/expand-path
   (fn [db [_ path]]
-    (update-in db [:qb :menu] assoc-in path {})))
+    (update-in db [:qb :menu] assoc-in path {:open? true})))
 
 (reg-event-db
   :qb/expand-all
   (fn [db [_]]
     (assoc-in db [:qb :menu] (get-in db [:qb :mappy]))))
+
+(reg-event-db
+  :qb/mappy-choose-subclass
+  (fn [db [_ path-vec subclass]]
+    (let [mappy (get-in db [:qb :mappy])
+          {current-subclass :subclass} (get-in db (concat [:qb :menu] path-vec))]
+      (if (= current-subclass subclass)
+        (update-in db [:qb :menu] assoc-in (conj path-vec :subclass) nil)
+        (update-in db [:qb :menu] assoc-in (conj path-vec :subclass) subclass)))))
 
 (reg-event-db
   :qb/collapse-all
@@ -380,11 +389,16 @@
          :navigate (str "results")})))
 
 
+
 (reg-event-fx
   :qb/mappy-add-view
-  (fn [{db :db} [_ path-vec]]
-    {:db       (update-in db [:qb :mappy] assoc-in path-vec {})
-     :dispatch [:qb/mappy-build-im-query true]}))
+  (fn [{db :db} [_ path-vec sub]]
+    (println "adding sub" path-vec sub)
+    (println "with" (conj (butlast path-vec) sub))
+    {:db       (cond-> (update-in db [:qb :mappy] assoc-in path-vec {})
+                       sub (update-in [:qb :mappy] update-in (butlast path-vec) assoc :subclass sub)
+                       )
+     :dispatch [:qb/mappy-build-im-query false]}))
 
 (defn dissoc-keywords [m]
   (apply dissoc m (filter keyword? (keys m))))
@@ -483,7 +497,7 @@
                              :im-query (im-query/sterilize-query ordered-query)
                              :order new-order
                              :query-is-valid? (has-views? (:model service) ordered-query))}
-                (true? rebuild?) (assoc :dispatch [:qb/mappy-count-query service ordered-query]))))))
+                #_(true? rebuild?) #_(assoc :dispatch [:qb/mappy-count-query service ordered-query]))))))
 
 
 (reg-event-fx
