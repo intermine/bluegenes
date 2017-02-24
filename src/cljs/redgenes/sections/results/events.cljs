@@ -64,7 +64,8 @@
                               :query-parts (filters/get-parts model value)
                               :enrichment-results nil)
        ; TOOD ^:flush-dom
-       :dispatch-n [[:enrichment/enrich]
+       :dispatch-n [
+                    [:enrichment/enrich]
                     [:im-tables.main/replace-all-state
                      [:results :fortable]
                      {:settings {:links {:vocab    {:mine (name source)}

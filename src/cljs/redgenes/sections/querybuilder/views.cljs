@@ -94,7 +94,6 @@
             str-path (join "." path)
             sub      (get-in @menu (conj path :subclass))]
 
-        (println "sub" sub)
 
         [:li.haschildren
          [:p
@@ -146,13 +145,12 @@
 (defn queryview-node []
   (fn [model [k properties] & [trail]]
     (let [path (vec (conj trail (name k)))]
-      (println "properties" properties)
       [:li.tree.haschildren
        [:p.flexmex
         [:span.lab {:class (if (im-path/class? model (join "." path)) "qb-class" "qb-attribute")}
          [:span.qb-label {:style {:margin-left 5}} [:a (uncamel k)]]
          (when-let [s (:subclass properties)] [:span.label.label-default (uncamel s)])
-         [:i.fa.fa-trash-o.fa-fw.semilight
+         [:i.fa.fa-trash-o.fa-fw.danger
           {:on-click (if (> (count path) 1)
                        (fn [] (dispatch [:qb/mappy-remove-view path]))
                        (fn [] (dispatch [:qb/mappy-clear-query path])))}]
@@ -251,9 +249,15 @@
                 [:div {:class         (when (= idx (:selected @state)) "dragging")
                        :draggable     true
                        :on-drag-start (fn [e]
+                                        ;(.preventDefault e)
+                                        (.stopPropagation e)
                                         (ocall e "dataTransfer.setData" "banana" "cakes")
                                         (swap! state assoc :selected idx))
-                       :on-drag-enter (fn [] (let [selected-idx  (:selected @state)
+                       :on-drag-enter (fn [e]
+                                        (println "ENTERING")
+                                        (.preventDefault e)
+                                        (.stopPropagation e)
+                                        (let [selected-idx  (:selected @state)
                                                    items         @order
                                                    selected-item (get items selected-idx)
                                                    [before after] (split-at idx (drop-nth selected-idx items))]
