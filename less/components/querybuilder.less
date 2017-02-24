@@ -1,6 +1,7 @@
 @import "../variables";
 @import "../datatype-colors";
 
+
 @model-browser-bg: #616161;
 @model-browser-fg: white;
 
@@ -429,8 +430,10 @@ div.column-container {
 }
 
 .sort-order {
-    .list-unstyled;
+    margin: 0;
+    padding: 0;
     li {
+        list-style-type: none;
         i {
             padding: 0 10px;
         }
@@ -442,8 +445,10 @@ div.column-container {
 }
 
 .dragme {
-    .list-unstyled;
+    margin: 0;
+    padding: 0;
     li {
+        list-style-type: none;
         transition: all 100ms ease;
         background-color: #f7f7f7;
         padding: 7px;
