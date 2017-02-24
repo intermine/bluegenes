@@ -52,6 +52,9 @@
           (re-frame/dispatch [:set-active-panel :home-panel])))
       ))
 
+      (re-frame/dispatch [:set-active-panel :results-panel]))
+
+
   (defroute "/regions" []
             (re-frame/dispatch [:set-active-panel :regions-panel]))
 

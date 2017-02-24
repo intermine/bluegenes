@@ -104,19 +104,25 @@
       ;;if there are no templates, perhaps because of filters or perhaps not...
       [:div.no-results
        [:svg.icon.icon-wondering [:use {:xlinkHref "#icon-wondering"}]]
-       " No templates available. "
+       " No templates available"
        (let [category-filter (subscribe [:selected-template-category])
              text-filter     (subscribe [:template-chooser/text-filter])
              filters-active? (or (some? @category-filter) (not (blank? @text-filter)))]
          (cond filters-active?
-               [:span "Try "
-                [:a {:on-click
-                     (fn []
-                       (dispatch [:template-chooser/set-text-filter ""])
-                       (dispatch [:template-chooser/set-category-filter nil])
-                       )
-                     } "removing the filters"]
-                " to view more results. "])
+
+           [:span
+            [:span
+              (cond @category-filter
+                (str " in the '" @category-filter "' category"))
+              (cond @text-filter
+                (str " containing the text '" @text-filter "'"))]
+            [:span ". Try "
+              [:a {:on-click
+                 (fn []
+                   (dispatch [:template-chooser/set-text-filter ""])
+                   (dispatch [:template-chooser/set-category-filter nil]))
+                 } "removing the filters"]
+            " to view more results. "]])
          )
        ])))
 
