@@ -40,6 +40,7 @@
                                 [:query-builder/make-tree]]))
 
   (defroute "/results" []
+
     (let [are-there-results? (subscribe [:results/are-there-results?])]
       ; TODO This isn't quite the right fix. It's blocking access to /results
       ; for queries that are valid but aren't enrichable. Current workaround is in
@@ -51,8 +52,6 @@
           (.debug js/console "Oh blast, there aren't any results available. Redirecting to homepage.")
           (re-frame/dispatch [:set-active-panel :home-panel])))
       ))
-
-      (re-frame/dispatch [:set-active-panel :results-panel]))
 
 
   (defroute "/regions" []
