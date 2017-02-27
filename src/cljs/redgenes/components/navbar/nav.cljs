@@ -4,6 +4,7 @@
             [redgenes.components.search.typeahead :as search]
             [redgenes.components.tooltip.views :as tooltip]
             [accountant.core :refer [navigate!]]
+            [oops.core :refer [ocall]]
             [redgenes.components.progress_bar :as progress-bar]))
 
 (defn mine-icon [mine]
@@ -95,7 +96,7 @@
            [:li {:class (if (panel-is :regions-panel) "active")} [:a {:on-click #(navigate! "/regions")} "Regions"]]
          )
          ;;never fear, the QB will be BACK
-         ;[:li {:class (if (panel-is :querybuilder-panel) "active")} [:a {:on-click #(navigate! "/querybuilder")} "Query\u00A0Builder"]]
+         [:li {:class (if (panel-is :querybuilder-panel) "active")} [:a {:on-click #(ocall js/window "alert" "Coming very soon!")} "Query\u00A0Builder"]]
          [:li {:class (if (panel-is :saved-data-panel) "active")} [:a {:on-click #(navigate! "/saved-data")} (str "Lists\u00A0(" (apply + (map count (vals @lists))) ")")]
           ;;example tooltip. Include as last child, probably with some conditional to display and an event handler for saving the name
           (if @ttip [save-data-tooltip @ttip])]]

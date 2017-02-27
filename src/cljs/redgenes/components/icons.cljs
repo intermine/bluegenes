@@ -12,6 +12,19 @@
    :width "0",
    :style {:position "absolute" :width 0 :height 0}}
   [:defs
+
+  [:symbol#icon-intermine
+   {:viewBox "0 0 16 16"}
+   [:title "InterMine Logo"]
+   [:rect.intermine-logo.lowlight {:x 0 :y 1 :width 7 :height 4 :fill "#bbb"}]
+   [:rect.intermine-logo.highlight {:x 0 :y 6 :width 7 :height 4}]
+   [:rect.intermine-logo.highlight {:x 0 :y 11 :width 7 :height 4}]
+   [:rect.intermine-logo.highlight {:x 8 :y 1 :width 7 :height 4}]
+   [:rect.intermine-logo.lowlight {:x 8 :y 6 :width 7 :height 4 :fill "#bbb"}]
+   [:rect.intermine-logo.lowlight {:x 8 :y 11 :width 7 :height 4 :fill "#bbb"}]
+   ]
+
+
    [:symbol#icon-bar-chart
     {:viewBox "0 0 32 28"}
     [:title "bar-chart"]

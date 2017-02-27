@@ -43,12 +43,9 @@
         ;;show results
         [:div.container.results
          [breadcrumb]
-         [:div.row
-          [:div.col-md-8.col-sm-12
-           [:div.panel.panel-default
-            [:div.panel-body
-             [tables/main [:results :fortable]]
-             ]]]
+         [:div.results-and-enrichment
+          [:div.col-md-8.col-sm-12.panel
+             [tables/main [:results :fortable]]]
           [:div.col-md-4.col-sm-12
            [enrichment/enrich]]]]
         ;;oh noes, somehow we made it here with noresults. Fail elegantly, not just console errors.

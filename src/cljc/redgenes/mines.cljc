@@ -126,6 +126,44 @@
                                                  ;:url "beta.flymine.org/beta"
                                                  :url     "beta.flymine.org/beta"
                                                  :service {:root "beta.flymine.org/beta"}}}
+            :beanmine  {:id         :beanmine
+                :service            {:root "mines.legumeinfo.org/beanmine" :token nil}
+                :name               "BeanMine"
+                :common             "Bean"
+                :icon               "icon-intermine"
+                :status             {:status :na}
+                :output?            true
+                :abbrev             "P. vulgaris"
+                :default-object-types   [:Gene] ;;there are other 'default' identifers but they have no examples so I'm not adding them right now.
+                :default-organism   "P. vulgaris"
+                :default-selected-object-type :Gene
+                :regionsearch-example ["phavu.Chr01:29733..37349"
+                                       "phavu.Chr01:393758..394189"
+                                       "phavu.Chr07:1495567..1503324"]
+                :idresolver-example {:Gene "Phvul.001G011500"}
+                :mine
+                                    {:name    "BeanMine"
+                                     :url     "mines.legumeinfo.org/beanmine"
+                                     :service {:root "mines.legumeinfo.org/beanmine"}}}
+
+            :legumemine  {:id         :legumemine
+                :service            {:root "intermine.legumefederation.org/legumemine" :token nil}
+                :name               "LegumeMine"
+                :common             "Legume"
+                :icon               "icon-intermine"
+                :status             {:status :na}
+                :output?            true
+                :abbrev             "G. max"
+                :default-object-types   [:Gene] ;;there are other 'default' identifers but they have no examples so I'm not adding them right now.
+                :default-organism   "G. max"
+                :default-selected-object-type :Gene
+                :regionsearch-example ["phavu.Chr01:1000000..2000000"]
+                :idresolver-example {:Gene "Glyma.16G153700"}
+                :mine
+                                    {:name    "LegumeMine"
+                                     :url     "intermine.legumefederation.org/legumemine"
+                                     :service {:root "intermine.legumefederation.org/legumemine"}}}
+
             ; :mousemine     {:id                 :mousemine
             ;                 :service            {:root "www.mousemine.org/mousemine"}
             ;                 :name               "MouseMine"
