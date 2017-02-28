@@ -55,7 +55,8 @@
     (let [str-path (join "." view-vec)]
       (when-not (im-path/class? (:model service) str-path)
         (let [count-chan (fetch/row-count service {:from (first view-vec) :select [str-path]})]
-          (go (when (> 100 (<! count-chan))
+          (go
+            (when (> 100 (<! count-chan))
                 (dispatch [:qb/store-possible-values view-vec (<! (fetch/possible-values service str-path))]))))))))
 
 
@@ -439,14 +440,15 @@
   (fn [{db :db} [_ path-vec subclass]]
     ;(println "adding sub" path-vec subclass)
     ;(println "with" (conj (butlast path-vec) subclass))
-    {:db       (cond-> db
-                       path-vec (update-in [:qb :mappy] assoc-in path-vec {})
-                       subclass (update-in [:qb :mappy] update-in (butlast path-vec) assoc :subclass subclass)
-                       path-vec (update-in [:qb :order] add-if-missing (join "." path-vec))
-                       )
+    {:db         (cond-> db
+                         path-vec (update-in [:qb :mappy] assoc-in path-vec {})
+                         subclass (update-in [:qb :mappy] update-in (butlast path-vec) assoc :subclass subclass)
+                         path-vec (update-in [:qb :order] add-if-missing (join "." path-vec))
+                         )
      #_(cond-> (update-in db [:qb :mappy] assoc-in path-vec {})
                subclass (update-in [:qb :mappy] update-in (butlast path-vec) assoc :subclass subclass))
-     :dispatch [:qb/mappy-build-im-query false]}))
+     :dispatch-n [[:qb/fetch-possible-values path-vec]
+                  [:qb/mappy-build-im-query false]]}))
 
 
 
