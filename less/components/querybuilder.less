@@ -11,7 +11,10 @@
 
 @query-browser-bg: white;
 @query-browser-fg: black;
+
 @query-browser-class: #29b6ff;
+@model-browser-class: #0090da;
+
 
 
 
@@ -27,7 +30,7 @@ div.column-container {
     background-color: green;
 
     .model-browser-column {
-        width: 300px;
+        width: 400px;
         background-color: @model-browser-bg;
         color: @model-browser-fg;
         overflow: auto;
@@ -269,7 +272,7 @@ div.column-container {
     }
     .qb-class {
         font-weight: 500;
-        // color: @query-browser-class;
+        color: @query-browser-class;
     }
     .light {
         color: #898989;
@@ -471,6 +474,22 @@ div.column-container {
 .part {
     padding: 2px;
 }
+
+.label-button {
+    font-size: 0.8em;
+    margin-left: 2px;
+    padding: 1px 3px;
+    transition: all 100ms ease;
+    border: 1px solid #c4c4c4;
+    border-radius: 3px;
+    background-color: white;
+    &:hover {
+        background-color: @model-browser-class;
+        border: 1px solid @model-browser-class;
+        color: white;
+    }
+}
+
 
 .sort-order-container {
     display: flex;

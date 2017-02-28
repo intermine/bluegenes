@@ -438,8 +438,6 @@
 (reg-event-fx
   :qb/mappy-add-view
   (fn [{db :db} [_ path-vec subclass]]
-    ;(println "adding sub" path-vec subclass)
-    ;(println "with" (conj (butlast path-vec) subclass))
     {:db         (cond-> db
                          path-vec (update-in [:qb :mappy] assoc-in path-vec {})
                          subclass (update-in [:qb :mappy] update-in (butlast path-vec) assoc :subclass subclass)
@@ -450,6 +448,36 @@
      :dispatch-n [[:qb/fetch-possible-values path-vec]
                   [:qb/mappy-build-im-query false]]}))
 
+(reg-event-fx
+  :qb/mappy-add-views
+  (fn [{db :db} [_ path-vecs subclass]]
+    {:db         (reduce (fn [db path-vec]
+                           (cond-> db
+                                   path-vec (update-in [:qb :mappy] assoc-in path-vec {})
+                                   subclass (update-in [:qb :mappy] update-in (butlast path-vec) assoc :subclass subclass)
+                                   path-vec (update-in [:qb :order] add-if-missing (join "." path-vec))))
+                         db path-vecs)
+     :dispatch-n [
+                  ;[:qb/fetch-possible-values path-vec]
+                  [:qb/mappy-build-im-query false]]}))
+
+(defn split-and-drop-first [parent-path summary-field]
+  (concat parent-path ((comp vec (partial drop 1) #(clojure.string/split % ".")) summary-field)))
+
+(reg-event-fx
+  :qb/mappy-add-summary-views
+  (fn [{db :db} [_ original-path-vec subclass]]
+    (let [current-mine-name  (get db :current-mine)
+          model (get-in db [:mines current-mine-name :service :model])
+          all-summary-fields (get-in db [:assets :summary-fields current-mine-name])
+          summary-fields (get all-summary-fields (or (keyword subclass) (im-path/class model (join "." original-path-vec))))
+          adjusted-views (map (partial split-and-drop-first original-path-vec) summary-fields)]
+      {:db (reduce (fn [db path-vec]
+                     (cond-> db
+                             path-vec (update-in [:qb :mappy] assoc-in path-vec {})
+                             subclass (update-in [:qb :mappy] update-in (butlast path-vec) assoc :subclass subclass)
+                             path-vec (update-in [:qb :order] add-if-missing (join "." path-vec))))
+                   db adjusted-views)})))
 
 (defn dissoc-in
   "Dissociates an entry from a nested associative structure returning a new

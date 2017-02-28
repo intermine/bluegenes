@@ -86,8 +86,10 @@
              [:i.fa.fa-square-o.fa-fw.light])
            [:span.qb-label (str " " (uncamel (:name properties)))]]]]))))
 
+
+
 (defn node []
-  (let [menu (subscribe [:qb/menu])]
+  (let [menu              (subscribe [:qb/menu])]
     (fn [model [k properties] & [trail]]
       (let [path     (vec (conj trail (name k)))
             open?    (get-in @menu path)
@@ -97,12 +99,19 @@
 
         [:li.haschildren
          [:p
-          [:span {:on-click (fn []
-                              (if open?
-                                (dispatch [:qb/collapse-path path])
-                                (dispatch [:qb/expand-path path])))}
+          [:div
+           {:style    {:white-space "nowrap"}
+            :on-click (fn []
+                        (if open?
+                          (dispatch [:qb/collapse-path path])
+                          (dispatch [:qb/expand-path path])))}
            [:i.fa.fa-plus.fa-fw.arr.semilight {:class (when open? "arrow-down")}]
-           [:span.qb-class (uncamel (:name properties))]]]
+           [:span.qb-class (uncamel (:name properties))]
+           [:span.label-button
+            {:on-click (fn [e]
+                         (.stopPropagation e)
+                         (dispatch [:qb/mappy-add-summary-views path sub]))}
+            "Summary"]]]
          (when open?
            (into [:ul]
                  (concat
@@ -127,7 +136,13 @@
     [:div.model-browser
      (let [path [root-class]]
        (into [:ul
-              [:li [:div.btn-toolbar
+              [:li [:div
+                    {:style {:white-space "nowrap"}}
+                    [:button.btn.btn-default.btn-slim
+                     {:on-click (fn [] (dispatch [:qb/mappy-add-summary-views [root-class]]))}
+                     [:span.label-button
+
+                      "Summary"]]
                     [:button.btn.btn-primary.btn-slim
                      {:on-click (fn [] (dispatch [:qb/expand-all]))}
                      "Show Selected"]
@@ -259,14 +274,14 @@
                                         (.preventDefault e)
                                         (.stopPropagation e)
                                         (let [selected-idx  (:selected @state)
-                                                   items         @order
-                                                   selected-item (get items selected-idx)
-                                                   [before after] (split-at idx (drop-nth selected-idx items))]
-                                               #_(swap! state assoc
-                                                        :selected idx
-                                                        :items (vec (concat (vec before) (vec (list selected-item)) (vec after))))
-                                               (swap! state assoc :selected idx)
-                                               (dispatch [:qb/set-order (vec (concat (vec before) (vec (list selected-item)) (vec after)))])))
+                                              items         @order
+                                              selected-item (get items selected-idx)
+                                              [before after] (split-at idx (drop-nth selected-idx items))]
+                                          #_(swap! state assoc
+                                                   :selected idx
+                                                   :items (vec (concat (vec before) (vec (list selected-item)) (vec after))))
+                                          (swap! state assoc :selected idx)
+                                          (dispatch [:qb/set-order (vec (concat (vec before) (vec (list selected-item)) (vec after)))])))
                        :on-drag-end   (fn [] (swap! state assoc :selected nil))}
                  (into [:div] (map (fn [part] [:span.part part]) (interpose ">" (map uncamel (split i ".")))))])) @order
             ))))
@@ -292,7 +307,9 @@
                                     [:button.btn.btn-primary.btn-slim
                                      {:on-click (fn [] (dispatch [:qb/collapse-all]))}
                                      "Collapse All"]]
-                                 [:span "Start with..."]
+                                 [:div
+                                  [:span "Start with..."]
+                                  ]
                                  [root-class-dropdown]
                                  [model-browser (:model (:service @current-mine)) (name @root-class)]]]
                                [:div.query-view-column
