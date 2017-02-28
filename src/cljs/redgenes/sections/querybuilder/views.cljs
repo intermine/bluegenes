@@ -141,7 +141,6 @@
                     [:button.btn.btn-default.btn-slim
                      {:on-click (fn [] (dispatch [:qb/mappy-add-summary-views [root-class]]))}
                      [:span.label-button
-
                       "Summary"]]
                     [:button.btn.btn-primary.btn-slim
                      {:on-click (fn [] (dispatch [:qb/expand-all]))}
@@ -149,7 +148,6 @@
                     [:button.btn.btn-primary.btn-slim
                      {:on-click (fn [] (dispatch [:qb/collapse-all]))}
                      "Collapse All"]]]]
-             ;(.log js/console "ATTRIBUTES" (im-path/attributes model root-class))
              (concat
                (map (fn [i] [attribute model i path]) (sort (remove (comp (partial = :id) first) (im-path/attributes model root-class))))
                (map (fn [i] [node model i path]) (sort (im-path/relationships model root-class))))))]))
@@ -160,7 +158,6 @@
 
 (defn queryview-node []
   (fn [model [k properties] & [trail]]
-    ;(.log js/console "k m" k trail)
     (let [path (vec (conj trail (name k)))]
       [:li.tree.haschildren
        [:p.flexmex
@@ -322,7 +319,8 @@
                                     (when (not-empty @mappy)
                                       [:div
                                        [:h4 "Constraint Logic"]
-                                       [logic-box]])
+                                       [logic-box]
+                                       [controls]])
                                     ]]
                                   (when (not-empty @mappy)
                                     [:div.col-md-6
@@ -330,8 +328,12 @@
                                       [:div
                                        [:h4 "Column Order"]
                                        [sortable-list]]
-                                      [controls]
-                                      ]])]]]])})))
+
+                                      ]])]
+                                 #_[:div.row
+                                  [:h4 "Results Preview (First 5)"]
+                                  [:div.col-md-12
+                                   [preview]]]]]])})))
 
 
 

@@ -42,7 +42,7 @@
   (fn [{db :db} [_ view-vec]]
     {:db         (update-in db loc assoc-in (conj view-vec :visible) true)
      :dispatch-n [[:qb/fetch-possible-values view-vec]
-                  [:qb/build-im-query]]}))
+                  [:qb/build-im-query true]]}))
 
 (reg-event-db
   :qb/store-possible-values
@@ -126,7 +126,7 @@
   (fn [{db :db} [_]]
     (let [logic (get-in db [:qb :constraint-logic])]
       {:db       (assoc-in db [:qb :constraint-logic] (read-logic-string logic))
-       :dispatch [:qb/mappy-build-im-query]})))
+       :dispatch [:qb/mappy-build-im-query true]})))
 
 
 
@@ -311,7 +311,7 @@
                          :order (:select query)
                          :root-class (keyword (:from query))
                          :constraint-logic (read-logic-string (:constraintLogic query)))
-       :dispatch [:qb/mappy-build-im-query]})))
+       :dispatch [:qb/mappy-build-im-query true]})))
 
 (reg-event-fx
   :qb/set-root-class
@@ -446,20 +446,9 @@
      #_(cond-> (update-in db [:qb :mappy] assoc-in path-vec {})
                subclass (update-in [:qb :mappy] update-in (butlast path-vec) assoc :subclass subclass))
      :dispatch-n [[:qb/fetch-possible-values path-vec]
-                  [:qb/mappy-build-im-query false]]}))
+                  [:qb/mappy-build-im-query true]]}))
 
-(reg-event-fx
-  :qb/mappy-add-views
-  (fn [{db :db} [_ path-vecs subclass]]
-    {:db         (reduce (fn [db path-vec]
-                           (cond-> db
-                                   path-vec (update-in [:qb :mappy] assoc-in path-vec {})
-                                   subclass (update-in [:qb :mappy] update-in (butlast path-vec) assoc :subclass subclass)
-                                   path-vec (update-in [:qb :order] add-if-missing (join "." path-vec))))
-                         db path-vecs)
-     :dispatch-n [
-                  ;[:qb/fetch-possible-values path-vec]
-                  [:qb/mappy-build-im-query false]]}))
+
 
 (defn split-and-drop-first [parent-path summary-field]
   (concat parent-path ((comp vec (partial drop 1) #(clojure.string/split % ".")) summary-field)))
@@ -475,16 +464,17 @@
   :qb/mappy-add-summary-views
   (fn [{db :db} [_ original-path-vec subclass]]
     (let [current-mine-name  (get db :current-mine)
-          model (get-in db [:mines current-mine-name :service :model])
+          model              (get-in db [:mines current-mine-name :service :model])
           all-summary-fields (get-in db [:assets :summary-fields current-mine-name])
-          summary-fields (get all-summary-fields (or (keyword subclass) (im-path/class model (join "." original-path-vec))))
-          adjusted-views (map (partial split-and-drop-first original-path-vec) summary-fields)]
-      {:db (reduce (fn [db path-vec]
-                     (cond-> db
-                             path-vec (update-in [:qb :mappy] update-in path-vec deep-merge {})
-                             subclass (update-in [:qb :mappy] update-in (butlast path-vec) assoc :subclass subclass)
-                             path-vec (update-in [:qb :order] add-if-missing (join "." path-vec))))
-                   db adjusted-views)})))
+          summary-fields     (get all-summary-fields (or (keyword subclass) (im-path/class model (join "." original-path-vec))))
+          adjusted-views     (map (partial split-and-drop-first original-path-vec) summary-fields)]
+      {:db       (reduce (fn [db path-vec]
+                           (cond-> db
+                                   path-vec (update-in [:qb :mappy] update-in path-vec deep-merge {})
+                                   subclass (update-in [:qb :mappy] update-in (butlast path-vec) assoc :subclass subclass)
+                                   path-vec (update-in [:qb :order] add-if-missing (join "." path-vec))))
+                         db adjusted-views)
+       :dispatch [:qb/mappy-build-im-query true]})))
 
 (defn dissoc-in
   "Dissociates an entry from a nested associative structure returning a new
@@ -518,7 +508,7 @@
                             :mappy trimmed
                             :constraint-logic (reduce remove-code (get-in db [:qb :constraint-logic]) codes-to-remove)
                             :order new-order)
-       :dispatch [:qb/mappy-build-im-query]})))
+       :dispatch [:qb/mappy-build-im-query true]})))
 
 (reg-event-fx
   :qb/mappy-add-constraint
@@ -536,7 +526,7 @@
       {:db       (-> db
                      (update-in [:qb :mappy] update-in (conj path :constraints) drop-nth idx)
                      (update-in [:qb :constraint-logic] remove-code (when dropped-code (symbol dropped-code))))
-       :dispatch [:qb/mappy-build-im-query]})))
+       :dispatch [:qb/mappy-build-im-query true]})))
 ;:dispatch [:qb/build-im-query]
 
 
@@ -570,27 +560,26 @@
     (update-in db [:qb] assoc
                :mappy {}
                :order []
+               :preview nil
                :constraint-logic '()
                :im-query nil
                :menu {})))
 
 (reg-event-fx
   :qb/mappy-build-im-query
-  (fn [{db :db} [_ rebuild?]]
-    (let [mappy    (get-in db [:qb :mappy])
-          im-query (get-in db [:qb :im-query])
-          service  (get-in db [:mines (get-in db [:current-mine]) :service])]
-      (let [#_new-order #_(->> (:select im-query)
-                               (reduce add-if-missing (get-in db [:qb :order]))
-                               (remove (partial (complement within?) (:select im-query)))
-                               vec)
-            im-query (-> {:from            (name (get-in db [:qb :root-class]))
+  (fn [{db :db} [_ fetch-preview?]]
+    (let [mappy   (get-in db [:qb :mappy])
+          service (get-in db [:mines (get-in db [:current-mine]) :service])]
+      (println "FETCHING" fetch-preview?)
+      (let [im-query (-> {:from            (name (get-in db [:qb :root-class]))
                           :select          (get-in db [:qb :order])
                           :constraintLogic (not-empty (str (not-empty (vec->list (get-in db [:qb :constraint-logic])))))
                           :where           (concat (regular-constraints mappy) (subclass-constraints mappy))}
                          im-query/sterilize-query)]
 
-        {:db (update-in db [:qb] assoc :im-query im-query)}))))
+        (-> {:db (update-in db [:qb] assoc :im-query im-query)}
+            ;fetch-preview? (assoc :dispatch [:qb/fetch-preview service im-query])
+            )))))
 
 
 (reg-event-fx
@@ -613,11 +602,13 @@
 (reg-event-db
   :qb/save-preview
   (fn [db [_ results]]
+    (.log js/console "results" results)
     (assoc-in db [:qb :preview] results)))
 
 (reg-event-fx
   :qb/fetch-preview
   (fn [{db :db} [_ service query]]
+    (.log js/console "fetching" service query)
     {:im-operation {:on-success [:qb/save-preview]
                     :op         (partial fetch/table-rows service query {:size 5})}}))
 
