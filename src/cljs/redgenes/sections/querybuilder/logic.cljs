@@ -72,19 +72,6 @@
 (defn remove-code
   "Recursively removes a symbol from a tree and raises neighbours with a count of one"
   [v code]
-  (println "trying to remove code" v code)
-  (println "GOT" (clojure.walk/postwalk
-                   (fn [e]
-                     (if (vector? e)
-                       (let [removed     (vec (remove (partial = code) e))
-                             without-ops (without-operators removed)]
-                         (println "REMOVED" removed)
-                         (cond
-                           (single-vec-of-vec? without-ops) (do (println 1) (vec (mapcat identity without-ops)))
-                           (single-vec-of-symbol? without-ops) (do (println 2) (first without-ops))
-                           :else (do (println 3) removed)))
-                       e))
-                   v))
   (->
     (clojure.walk/postwalk
      (fn [e]

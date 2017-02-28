@@ -57,7 +57,7 @@
         (let [count-chan (fetch/row-count service {:from (first view-vec) :select [str-path]})]
           (go
             (when (> 100 (<! count-chan))
-                (dispatch [:qb/store-possible-values view-vec (<! (fetch/possible-values service str-path))]))))))))
+              (dispatch [:qb/store-possible-values view-vec (<! (fetch/possible-values service str-path))]))))))))
 
 
 (reg-event-fx
@@ -357,7 +357,7 @@
 
 
 (defn dissoc-keywords [m]
-  (when (map? m) (apply dissoc m (filter keyword? (keys m)))))
+  (when (map? m) (apply dissoc m (filter (some-fn keyword? nil?) (keys m)))))
 
 
 (defn has-views? [model query]
@@ -451,31 +451,37 @@
                   [:qb/mappy-build-im-query false]]}))
 
 
+(defn dissoc-in
+  "Dissociates an entry from a nested associative structure returning a new
+  nested structure. keys is a sequence of keys. Any empty maps that result
+  will not be present in the new structure."
+  [m [k & ks :as keys]]
+  (if ks
+    (if-let [nextmap (get m k)]
+      (let [newmap (dissoc-in nextmap ks)]
+        (if (seq newmap)
+          (assoc m k newmap)
+          (dissoc m k)))
+      m)
+    (dissoc m k)))
 
 (reg-event-fx
   :qb/mappy-remove-view
   (fn [{db :db} [_ path-vec]]
-    (let [trimmed         (loop [path-vec path-vec
-                                 mappy    (get-in db [:qb :mappy])]
-                            (let [updated (update-in mappy (butlast path-vec) dissoc (last path-vec))]
-                              (if (empty? (dissoc-keywords (get-in updated (butlast path-vec))))
-                                (recur (butlast path-vec) updated)
-                                updated)))
+
+    (let [trimmed         (dissoc-in (get-in db [:qb :mappy]) path-vec)
           remaining-views (map (partial join ".") (all-views trimmed))
           new-order       (->> remaining-views
                                (reduce add-if-missing (get-in db [:qb :order]))
                                (remove (partial (complement within?) remaining-views))
-                               vec)]
-
-
-
-
-
-
-      ; TODO remove all constraints from the parent down
+                               vec)
+          current-codes   (set (used-const-code (get-in db [:qb :mappy])))
+          remaining-codes (set (used-const-code trimmed))
+          codes-to-remove (map symbol (clojure.set/difference current-codes remaining-codes))]
 
       {:db       (update-in db [:qb] assoc
                             :mappy trimmed
+                            :constraint-logic (reduce remove-code (get-in db [:qb :constraint-logic]) codes-to-remove)
                             :order new-order)
        :dispatch [:qb/mappy-build-im-query]})))
 
@@ -528,6 +534,9 @@
   (fn [db]
     (update-in db [:qb] assoc
                :mappy {}
+               :order []
+               :constraint-logic '()
+               :im-query nil
                :menu {})))
 
 (reg-event-fx
@@ -540,10 +549,10 @@
                                (reduce add-if-missing (get-in db [:qb :order]))
                                (remove (partial (complement within?) (:select im-query)))
                                vec)
-            im-query (-> {:from             (name (get-in db [:qb :root-class]))
-                          :select           (get-in db [:qb :order])
+            im-query (-> {:from            (name (get-in db [:qb :root-class]))
+                          :select          (get-in db [:qb :order])
                           :constraintLogic (not-empty (str (not-empty (vec->list (get-in db [:qb :constraint-logic])))))
-                          :where            (concat (regular-constraints mappy) (subclass-constraints mappy))}
+                          :where           (concat (regular-constraints mappy) (subclass-constraints mappy))}
                          im-query/sterilize-query)]
 
         {:db (update-in db [:qb] assoc :im-query im-query)}))))

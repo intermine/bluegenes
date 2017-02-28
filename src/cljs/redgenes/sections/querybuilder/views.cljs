@@ -144,6 +144,7 @@
 
 (defn queryview-node []
   (fn [model [k properties] & [trail]]
+    ;(.log js/console "k m" k trail)
     (let [path (vec (conj trail (name k)))]
       [:li.tree.haschildren
        [:p.flexmex
@@ -254,7 +255,6 @@
                                         (ocall e "dataTransfer.setData" "banana" "cakes")
                                         (swap! state assoc :selected idx))
                        :on-drag-enter (fn [e]
-                                        (println "ENTERING")
                                         (.preventDefault e)
                                         (.stopPropagation e)
                                         (let [selected-idx  (:selected @state)
