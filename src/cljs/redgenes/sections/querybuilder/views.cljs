@@ -116,8 +116,8 @@
                                    {:on-change (fn [e] (dispatch [:qb/mappy-choose-subclass path (oget e :target :value)]))}]
                                   (map (fn [subclass] [:option {:value subclass} (uncamel (name subclass))]) (conj subclasses (:referencedType properties))))]]])))
                    (if sub
-                     (map (fn [i] [attribute model i path sub]) (sort (im-path/attributes model sub)))
-                     (map (fn [i] [attribute model i path sub]) (sort (im-path/attributes model (:referencedType properties)))))
+                     (map (fn [i] [attribute model i path sub]) (sort (remove (comp (partial = :id) first) (im-path/attributes model sub))))
+                     (map (fn [i] [attribute model i path sub]) (sort (remove (comp (partial = :id) first) (im-path/attributes model (:referencedType properties))))))
                    (if sub
                      (map (fn [i] [node model i path false]) (sort (im-path/relationships model sub)))
                      (map (fn [i] [node model i path false]) (sort (im-path/relationships model (:referencedType properties))))))))]))))
@@ -134,8 +134,9 @@
                     [:button.btn.btn-primary.btn-slim
                      {:on-click (fn [] (dispatch [:qb/collapse-all]))}
                      "Collapse All"]]]]
+             ;(.log js/console "ATTRIBUTES" (im-path/attributes model root-class))
              (concat
-               (map (fn [i] [attribute model i path]) (sort (im-path/attributes model root-class)))
+               (map (fn [i] [attribute model i path]) (sort (remove (comp (partial = :id) first) (im-path/attributes model root-class))))
                (map (fn [i] [node model i path]) (sort (im-path/relationships model root-class))))))]))
 
 
