@@ -464,6 +464,13 @@
 (defn split-and-drop-first [parent-path summary-field]
   (concat parent-path ((comp vec (partial drop 1) #(clojure.string/split % ".")) summary-field)))
 
+(defn deep-merge [a b]
+  (merge-with (fn [x y]
+                (cond (map? y) (deep-merge x y)
+                      (vector? y) (concat x y)
+                      :else y))
+              a b))
+
 (reg-event-fx
   :qb/mappy-add-summary-views
   (fn [{db :db} [_ original-path-vec subclass]]
@@ -474,7 +481,7 @@
           adjusted-views (map (partial split-and-drop-first original-path-vec) summary-fields)]
       {:db (reduce (fn [db path-vec]
                      (cond-> db
-                             path-vec (update-in [:qb :mappy] assoc-in path-vec {})
+                             path-vec (update-in [:qb :mappy] update-in path-vec deep-merge {})
                              subclass (update-in [:qb :mappy] update-in (butlast path-vec) assoc :subclass subclass)
                              path-vec (update-in [:qb :order] add-if-missing (join "." path-vec))))
                    db adjusted-views)})))

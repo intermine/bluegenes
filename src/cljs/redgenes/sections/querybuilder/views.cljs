@@ -145,7 +145,7 @@
                       "Summary"]]
                     [:button.btn.btn-primary.btn-slim
                      {:on-click (fn [] (dispatch [:qb/expand-all]))}
-                     "Show Selected"]
+                     "Expand to Selection"]
                     [:button.btn.btn-primary.btn-slim
                      {:on-click (fn [] (dispatch [:qb/collapse-all]))}
                      "Collapse All"]]]]
