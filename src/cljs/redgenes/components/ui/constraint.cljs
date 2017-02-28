@@ -111,7 +111,7 @@
   :on-remove A function to call with the constraint is removed
   :label?     If true then include the path as a label"
   (fn [& {:keys [lists model path value op code on-change on-remove on-blur label? possible-values]}]
-    [:div
+    [:div.constraint-component
      [:div
       {:style {:display "table"}}
 
@@ -139,7 +139,7 @@
                 :on-change (fn [val] (on-change {:path path :value val :op op :code code}))
                 :on-blur on-blur])
        (when code [:span.constraint-label code])]
-      [:i.fa.fa-trash-o.fa-fw.semilight
+      [:i.fa.fa-trash-o.fa-fw.semilight.danger
        {:on-click (fn [op] (on-remove {:path path :value value :op op}))
         :style    {:display "table-cell" :vertical-align "middle"}}]]]))
 
