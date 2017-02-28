@@ -239,12 +239,12 @@
 
 (defn controls []
   [:div.button-group
-
    [:button.btn.btn-primary.btn-raised
     {:on-click (fn [] (dispatch [:qb/export-query]))}
-    ;{:on-click (fn [] (println "finished" (listify nil)))}
-
-    "Show Results"]])
+    "Show Results"]
+   [:button.btn.btn-danger
+    {:on-click (fn [] (dispatch [:qb/mappy-clear-query]))}
+    "Clear Query"]])
 
 (defn preview [result-count]
   (let [results-preview   (subscribe [:qb/preview])
