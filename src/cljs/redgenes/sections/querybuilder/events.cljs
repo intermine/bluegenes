@@ -414,7 +414,6 @@
           mappy        (get-in db [:qb :mappy])]
       ;(map :code (mapcat :constraints (tree-seq map? vals query)))
       )
-    (.log js/console "EXPORTING" (get-in db [:qb :im-query]))
     {:db       db
      :dispatch [:results/set-query
                 {:source :flymine-beta
@@ -440,7 +439,6 @@
 (reg-event-fx
   :qb/mappy-add-view
   (fn [{db :db} [_ path-vec subclass]]
-    (.log js/console "PATHVEC" path-vec)
     {:db         (cond-> db
                          path-vec (update-in [:qb :mappy] assoc-in path-vec {})
                          subclass (update-in [:qb :mappy] update-in (butlast path-vec) assoc :subclass subclass)
@@ -546,7 +544,6 @@
             (cond-> constraint
                     add-code? (assoc :code (next-available-const-code (get-in db [:qb :mappy])))
                     remove-code? (dissoc :code))]
-        (println "updated" updated-constraint)
         (cond-> db
                 updated-constraint (update-in [:qb :mappy] assoc-in (reduce conj path [:constraints idx]) updated-constraint)
                 add-code? (update-in [:qb :constraint-logic] append-code (symbol (:code updated-constraint)))
@@ -574,7 +571,6 @@
   (fn [db]
     (let [service (get-in db [:mines (get-in db [:current-mine]) :service])
           query   (get-in db [:qb :im-query])]
-      (.log js/console "query" (->xml (:model service) query)))
     db))
 
 (reg-event-fx
@@ -582,16 +578,11 @@
   (fn [{db :db} [_ fetch-preview?]]
     (let [mappy   (get-in db [:qb :mappy])
           service (get-in db [:mines (get-in db [:current-mine]) :service])]
-      (.log js/console "building" mappy)
-      (.log js/console "ORDER" (get-in db [:qb :order]))
       (let [im-query (-> {:from            (name (get-in db [:qb :root-class]))
                           :select          (get-in db [:qb :order])
                           :constraintLogic (not-empty (str (not-empty (vec->list (get-in db [:qb :constraint-logic])))))
                           :where           (concat (regular-constraints mappy) (subclass-constraints mappy))}
                          im-query/sterilize-query)]
-
-        (.log js/console "sodhgusdg" im-query)
-
         (cond-> {:db (update-in db [:qb] assoc :im-query im-query)}
             fetch-preview? (assoc :dispatch [:qb/fetch-preview service im-query])
             )))))
@@ -617,15 +608,11 @@
 (reg-event-db
   :qb/save-preview
   (fn [db [_ results]]
-    (.log js/console "results" results)
     (update db :qb assoc :preview results :fetching-preview? false)))
 
 (reg-event-fx
   :qb/fetch-preview
   (fn [{db :db} [_ service query]]
-
-    (.log js/console "table rows query" query)
-
     {:db (assoc-in db [:qb :fetching-preview?] true)
      :im-operation {:on-success [:qb/save-preview]
                     :op         (partial fetch/table-rows service query {:size 5})}}))

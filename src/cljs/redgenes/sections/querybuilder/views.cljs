@@ -255,7 +255,6 @@
     (if @fetching-preview?
       [loader]
       [:div
-       (.log js/console "results-preview" @results-preview)
        (when @results-preview
          [:div
           [preview-table
@@ -333,7 +332,6 @@
         tab-index    (reagent/atom 0)
         prev         (subscribe [:qb/preview])]
     (fn []
-      (println "tabindex" @tab-index)
       [:div.panel-body
        [:ul.nav.nav-tabs
         [:li {:class (when (= @tab-index 0) "active")} [:a {:on-click #(reset! tab-index 0)} "Preview"]]]
