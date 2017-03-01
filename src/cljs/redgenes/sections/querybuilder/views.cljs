@@ -10,7 +10,9 @@
             [redgenes.components.ui.constraint :refer [constraint]]
             [imcljs.path :as im-path]
             [cljs.reader :refer [read]]
+            [imcljs.query :refer [->xml]]
             [cljs.reader :refer [read-string]]
+            [redgenes.components.loader :refer [mini-loader loader]]
             [redgenes.components.ui.results_preview :refer [preview-table]]))
 
 (defn one-of? [haystack needle] (some? (some #{needle} haystack)))
@@ -25,8 +27,10 @@
              :constraintLogic "A or B"
              :select          ["symbol"
                                "organism.name"
-                               "alleles.name"
-                               "alleles.dataSets.description"]
+                               "alleles.symbol"
+                               "alleles.phenotypeAnnotations.annotationType"
+                               "alleles.phenotypeAnnotations.description"
+                               ]
              :where           [{:path  "Gene.symbol"
                                 :op    "="
                                 :code  "A"
@@ -89,7 +93,7 @@
 
 
 (defn node []
-  (let [menu              (subscribe [:qb/menu])]
+  (let [menu (subscribe [:qb/menu])]
     (fn [model [k properties] & [trail]]
       (let [path     (vec (conj trail (name k)))
             open?    (get-in @menu path)
@@ -235,20 +239,31 @@
          :on-change (fn [e] (dispatch [:qb/update-constraint-logic (oget e :target :value)]))}]])))
 
 (defn controls []
-  [:div.button-group
-   [:button.btn.btn-primary.btn-raised
-    {:on-click (fn [] (dispatch [:qb/export-query]))}
-    "Show Results"]
-   [:button.btn.btn-danger
-    {:on-click (fn [] (dispatch [:qb/mappy-clear-query]))}
-    "Clear Query"]])
+  (let [results-preview (subscribe [:qb/preview])]
+    (fn []
+      [:div.button-group
+       [:button.btn.btn-primary.btn-raised
+        {:on-click (fn [] (dispatch [:qb/export-query]))}
+        (str "Show All " (when-let [c (:iTotalRecords @results-preview)] (str c " ")) "Rows")]
+       [:button.btn.btn-danger
+        {:on-click (fn [] (dispatch [:qb/mappy-clear-query]))}
+        "Clear Query"]])))
 
 (defn preview [result-count]
   (let [results-preview   (subscribe [:qb/preview])
-        fetching-preview? (subscribe [:idresolver/fetching-preview?])]
-    [preview-table
-     :loading? @fetching-preview?
-     :query-results @results-preview]))
+        fetching-preview? (subscribe [:qb/fetching-preview?])]
+    (if @fetching-preview?
+      [loader]
+      [:div
+       (.log js/console "results-preview" @results-preview)
+       (when @results-preview
+         [:div
+          [preview-table
+           :loading? @fetching-preview?
+           :hide-count? true
+           :query-results @results-preview]
+          (if (> (:iTotalRecords @results-preview) 5)
+            [:h4 (str "+ " (:iTotalRecords @results-preview) " more rows")])])])))
 
 (defn drop-nth [n coll] (vec (keep-indexed #(if (not= %1 n) %2) coll)))
 
@@ -283,11 +298,55 @@
                  (into [:div] (map (fn [part] [:span.part part]) (interpose ">" (map uncamel (split i ".")))))])) @order
             ))))
 
+(defn xml-view []
+  (let [query        (subscribe [:qb/im-query])
+        current-mine (subscribe [:current-mine])]
+    (fn []
+
+      [:pre (str (->xml (:model (:service @current-mine)) @query))])))
+
+
+(defn query-viewer []
+  (let [mappy        (subscribe [:qb/mappy])
+        current-mine (subscribe [:current-mine])
+        tab-index    (reagent/atom 0)]
+    (fn []
+      [:div.panel-body
+       [:ul.nav.nav-tabs
+        [:li {:class (when (= @tab-index 0) "active")} [:a {:on-click #(reset! tab-index 0)} "Query"]]
+        [:li {:class (when (= @tab-index 1) "active")} [:a {:on-click #(reset! tab-index 1)} "Column Order"]]
+        [:li {:class (when (= @tab-index 2) "active")} [:a {:on-click #(reset! tab-index 2)} "XML"]]]
+       (case @tab-index
+         0 [:div [queryview-browser (:model (:service @current-mine))]
+            (when (not-empty @mappy)
+              [:div
+               [:h4 "Constraint Logic"]
+               [logic-box]
+               ])]
+         1 [sortable-list]
+         2 [xml-view])
+       (when (not-empty @mappy) [controls])])))
+
+(defn column-order-preview []
+  (let [mappy        (subscribe [:qb/mappy])
+        current-mine (subscribe [:current-mine])
+        tab-index    (reagent/atom 0)
+        prev         (subscribe [:qb/preview])]
+    (fn []
+      (println "tabindex" @tab-index)
+      [:div.panel-body
+       [:ul.nav.nav-tabs
+        [:li {:class (when (= @tab-index 0) "active")} [:a {:on-click #(reset! tab-index 0)} "Preview"]]]
+       (case @tab-index
+         0 [preview @prev]
+         )])))
+
 (defn main []
   (let [mappy        (subscribe [:qb/mappy])
         query        (subscribe [:qb/query])
         current-mine (subscribe [:current-mine])
-        root-class   (subscribe [:qb/root-class])]
+        root-class   (subscribe [:qb/root-class])
+        prev         (subscribe [:qb/preview])]
     (reagent/create-class
       {:component-did-mount (fn [x]
                               (when (empty? @query)
@@ -310,30 +369,15 @@
                                  [root-class-dropdown]
                                  [model-browser (:model (:service @current-mine)) (name @root-class)]]]
                                [:div.query-view-column
+
+
+
                                 [:div.container-fluid
                                  [:div.row
-                                  [:div.col-md-6
-                                   [:div
-                                    [:h4 "Query"]
-                                    [queryview-browser (:model (:service @current-mine))]
-                                    (when (not-empty @mappy)
-                                      [:div
-                                       [:h4 "Constraint Logic"]
-                                       [logic-box]
-                                       [controls]])
-                                    ]]
-                                  (when (not-empty @mappy)
-                                    [:div.col-md-6
-                                     [:div
-                                      [:div
-                                       [:h4 "Column Order"]
-                                       [sortable-list]]
-
-                                      ]])]
-                                 #_[:div.row
-                                  [:h4 "Results Preview (First 5)"]
-                                  [:div.col-md-12
-                                   [preview]]]]]])})))
+                                  [:div.col-md-5
+                                   [query-viewer]]
+                                  [:div.col-md-7
+                                   [column-order-preview]]]]]])})))
 
 
 

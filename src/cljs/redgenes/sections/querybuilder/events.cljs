@@ -5,6 +5,7 @@
             [imcljs.query :as im-query]
             [imcljs.path :as im-path]
             [imcljs.fetch :as fetch]
+            [imcljs.query :refer [->xml]]
             [cljs.reader :as reader]
             [redgenes.sections.querybuilder.logic :refer [read-logic-string remove-code vec->list append-code]]
             [clojure.string :refer [join split blank?]]))
@@ -37,12 +38,12 @@
     {:db       (assoc-in db [:qb :query-map] query)
      :dispatch [:qb/build-im-query]}))
 
-(reg-event-fx
-  :qb/add-view
-  (fn [{db :db} [_ view-vec]]
-    {:db         (update-in db loc assoc-in (conj view-vec :visible) true)
-     :dispatch-n [[:qb/fetch-possible-values view-vec]
-                  [:qb/build-im-query true]]}))
+;(reg-event-fx
+;  :qb/add-view
+;  (fn [{db :db} [_ view-vec]]
+;    {:db         (update-in db loc assoc-in (conj view-vec :visible) true)
+;     :dispatch-n [[:qb/fetch-possible-values view-vec]
+;                  [:qb/build-im-query true]]}))
 
 (reg-event-db
   :qb/store-possible-values
@@ -71,23 +72,23 @@
 ;                :op         (partial fetch/possible-values service (join "." view-vec))}}
 
 
+;
+;(reg-event-fx
+;  :qb/remove-view
+;  (fn [{db :db} [_ view-vec]]
+;    {:db       (loop [db db path view-vec]
+;                 (let [new (update-in db (concat loc (butlast path)) dissoc (last path))]
+;                   (if (and (> (count (butlast path)) 1)    ; Don't drop the root node infiniloop!
+;                            (empty? (get-in new (concat [:qb :qm] (butlast path)))))
+;                     (recur new (butlast path))
+;                     new)))
+;     :dispatch [:qb/build-im-query]}))
 
-(reg-event-fx
-  :qb/remove-view
-  (fn [{db :db} [_ view-vec]]
-    {:db       (loop [db db path view-vec]
-                 (let [new (update-in db (concat loc (butlast path)) dissoc (last path))]
-                   (if (and (> (count (butlast path)) 1)    ; Don't drop the root node infiniloop!
-                            (empty? (get-in new (concat [:qb :qm] (butlast path)))))
-                     (recur new (butlast path))
-                     new)))
-     :dispatch [:qb/build-im-query]}))
-
-(reg-event-fx
-  :qb/toggle-view
-  (fn [{db :db} [_ view-vec]]
-    {:db       (update-in db loc update-in (conj view-vec :visible) not)
-     :dispatch [:qb/build-im-query]}))
+;(reg-event-fx
+;  :qb/toggle-view
+;  (fn [{db :db} [_ view-vec]]
+;    {:db       (update-in db loc update-in (conj view-vec :visible) not)
+;     :dispatch [:qb/build-im-query]}))
 
 (reg-event-fx
   :qb/add-constraint
@@ -320,6 +321,7 @@
       {:db       (update db :qb assoc
                          :constraint-logic nil
                          :query-is-valid? false
+                         :order []
                          :mappy {}
                          :root-class (keyword root-class-kw)
                          :qm {root-class-kw {:visible true}})
@@ -438,11 +440,13 @@
 (reg-event-fx
   :qb/mappy-add-view
   (fn [{db :db} [_ path-vec subclass]]
+    (.log js/console "PATHVEC" path-vec)
     {:db         (cond-> db
                          path-vec (update-in [:qb :mappy] assoc-in path-vec {})
                          subclass (update-in [:qb :mappy] update-in (butlast path-vec) assoc :subclass subclass)
                          path-vec (update-in [:qb :order] add-if-missing (join "." path-vec))
                          )
+
      #_(cond-> (update-in db [:qb :mappy] assoc-in path-vec {})
                subclass (update-in [:qb :mappy] update-in (butlast path-vec) assoc :subclass subclass))
      :dispatch-n [[:qb/fetch-possible-values path-vec]
@@ -565,20 +569,31 @@
                :im-query nil
                :menu {})))
 
+(reg-event-db
+  :qb/to-xml
+  (fn [db]
+    (let [service (get-in db [:mines (get-in db [:current-mine]) :service])
+          query   (get-in db [:qb :im-query])]
+      (.log js/console "query" (->xml (:model service) query)))
+    db))
+
 (reg-event-fx
   :qb/mappy-build-im-query
   (fn [{db :db} [_ fetch-preview?]]
     (let [mappy   (get-in db [:qb :mappy])
           service (get-in db [:mines (get-in db [:current-mine]) :service])]
-      (println "FETCHING" fetch-preview?)
+      (.log js/console "building" mappy)
+      (.log js/console "ORDER" (get-in db [:qb :order]))
       (let [im-query (-> {:from            (name (get-in db [:qb :root-class]))
                           :select          (get-in db [:qb :order])
                           :constraintLogic (not-empty (str (not-empty (vec->list (get-in db [:qb :constraint-logic])))))
                           :where           (concat (regular-constraints mappy) (subclass-constraints mappy))}
                          im-query/sterilize-query)]
 
-        (-> {:db (update-in db [:qb] assoc :im-query im-query)}
-            ;fetch-preview? (assoc :dispatch [:qb/fetch-preview service im-query])
+        (.log js/console "sodhgusdg" im-query)
+
+        (cond-> {:db (update-in db [:qb] assoc :im-query im-query)}
+            fetch-preview? (assoc :dispatch [:qb/fetch-preview service im-query])
             )))))
 
 
@@ -586,7 +601,7 @@
   :qb/set-order
   (fn [{db :db} [_ ordered-vec]]
     {:db       (assoc-in db [:qb :order] ordered-vec)
-     :dispatch [:qb/mappy-build-im-query false]}))
+     :dispatch [:qb/mappy-build-im-query true]}))
 
 
 (defn countable-paths
@@ -603,13 +618,16 @@
   :qb/save-preview
   (fn [db [_ results]]
     (.log js/console "results" results)
-    (assoc-in db [:qb :preview] results)))
+    (update db :qb assoc :preview results :fetching-preview? false)))
 
 (reg-event-fx
   :qb/fetch-preview
   (fn [{db :db} [_ service query]]
-    (.log js/console "fetching" service query)
-    {:im-operation {:on-success [:qb/save-preview]
+
+    (.log js/console "table rows query" query)
+
+    {:db (assoc-in db [:qb :fetching-preview?] true)
+     :im-operation {:on-success [:qb/save-preview]
                     :op         (partial fetch/table-rows service query {:size 5})}}))
 
 
@@ -627,17 +645,17 @@
   (doall (map (comp close! :chan) col)))
 
 
-(reg-event-fx
-  :qb/mappy-count-query
-  (fn [{db :db} [_ service query]]
-    (let [id-paths (countable-paths (:model service) (:select query))
-          _        (update-in db [:qb :chans] close-all-channels)
-          chans    (map (fn [id-path]
-                          {:path id-path
-                           :chan (fetch/row-count service (assoc query :select [id-path]))}) id-paths)]
-      {:db             (assoc-in db [:qb :chans] chans)
-       :dispatch       [:qb/fetch-preview service query]
-       :wait-for-count chans})))
+;(reg-event-fx
+;  :qb/mappy-count-query
+;  (fn [{db :db} [_ service query]]
+;    (let [id-paths (countable-paths (:model service) (:select query))
+;          _        (update-in db [:qb :chans] close-all-channels)
+;          chans    (map (fn [id-path]
+;                          {:path id-path
+;                           :chan (fetch/row-count service (assoc query :select [id-path]))}) id-paths)]
+;      {:db             (assoc-in db [:qb :chans] chans)
+;       :dispatch       [:qb/fetch-preview service query]
+;       :wait-for-count chans})))
 
 (reg-event-db
   :qb/mappy-success-summary

@@ -16,8 +16,10 @@
     "tests"
   ],
   "dependencies": {
-    "bootstrap-material-design": "0.5.10",
     "font-awesome": "4.6.3",
     "bootstrap": "^3.3.7"
+  },
+  "devDependencies": {
+    "bootstrap-material-design": "https://github.com/intermine/bootstrap-material-design.git#6ae0de1"
   }
 }
