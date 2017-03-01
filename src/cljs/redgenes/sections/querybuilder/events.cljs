@@ -41,8 +41,7 @@
 (reg-event-db
   :qb/store-possible-values
   (fn [db [_ view-vec results]]
-    (.log js/console "results" results)
-    (update-in db [:qb :qm] update-in view-vec assoc :possible-values (:results results))))
+    (update-in db [:qb :mappy] update-in view-vec assoc :possible-values (:results results))))
 
 (reg-fx
   :qb/pv
@@ -413,8 +412,10 @@
 (reg-event-fx
   :qb/mappy-add-constraint
   (fn [{db :db} [_ view-vec]]
+    (println "ADDING CONSTRAING" view-vec)
     (let [code (next-available-const-code (get-in db loc))]
-      {:db (update-in db [:qb :mappy] update-in (conj view-vec :constraints) (comp vec conj) {:code nil :op "=" :value nil})})))
+      {:db (update-in db [:qb :mappy] update-in (conj view-vec :constraints) (comp vec conj) {:code nil :op "=" :value nil})
+       :dispatch [:qb/fetch-possible-values view-vec]})))
 ;:dispatch [:qb/build-im-query]
 
 
@@ -500,6 +501,7 @@
 (reg-event-fx
   :qb/fetch-preview
   (fn [{db :db} [_ service query]]
+    (.log js/console "query" query)
     {:db           (assoc-in db [:qb :fetching-preview?] true)
      :im-operation {:on-success [:qb/save-preview]
                     :op         (partial fetch/table-rows service query {:size 5})}}))

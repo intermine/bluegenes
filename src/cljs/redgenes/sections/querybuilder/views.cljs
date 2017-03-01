@@ -192,11 +192,13 @@
                                   ;:lists (second (first @lists))
                                   :code (:code con)
                                   :on-remove (fn [] (dispatch [:qb/mappy-remove-constraint path idx]))
-                                  ;:possible-values (map :value possible-values)
+                                  :possible-values (map :value (:possible-values properties))
                                   :value (:value con)
                                   :op (:op con)
-                                  :on-change (fn [c]
-                                               (dispatch [:qb/mappy-update-constraint path idx c]))
+                                  :on-change-operator (fn [x]
+                                                        (dispatch [:qb/mappy-update-constraint path idx x])
+                                                        (dispatch [:qb/mappy-build-im-query true]))
+                                  :on-change (fn [c] (dispatch [:qb/mappy-update-constraint path idx c]))
                                   :on-blur (fn [x] (dispatch [:qb/mappy-build-im-query true]))
                                   ;(dispatch [:qb/build-im-query])
 

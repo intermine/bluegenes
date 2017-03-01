@@ -53,21 +53,36 @@
 (defn constraint-label [op]
   (:label (first (filter #(= op (:op %)) operators))))
 
+(defn has-text?
+  "Return true if a label contains a string"
+  [string v]
+  (if string
+    (if v
+      (re-find (re-pattern (str "(?i)" string)) v)
+      false)
+    true))
+
 (defn constraint-text-input []
-  (fn [& {:keys [value on-change on-blur possible-values]}]
-    [:div.dropdown
-     [:input.form-control {:data-toggle "dropdown"
-                           :type        "text"
-                           :on-change   (fn [e] (on-change (oget e :target :value)))
-                           :on-blur     (fn [x] (on-blur))
-                           :value       value}]
-     (when (not-empty possible-values)
-       (into [:ul.dropdown-menu]
-             (map (fn [v]
-                    [:li {:on-click (fn [] (on-change v))}
-                     [:a v]])) possible-values))]))
-
-
+  (fn [& {:keys [value on-change on-blur allow-possible-values possible-values]}]
+    [:div
+     [:input.form-control.dropdown
+      {:data-toggle "dropdown"
+       :type        "text"
+       :on-change   (fn [e] (on-change (oget e :target :value)))
+       :on-blur     (fn [x] (on-blur))
+       :placeholder "NULL"
+       :value       value}]
+     (when allow-possible-values
+       (if (not-empty possible-values)
+         (if-let [filtered (not-empty (filter (partial has-text? value) possible-values))]
+           (into [:ul.dropdown-menu.scrollable-dropdown]
+                 (map (fn [v]
+                        [:li {:on-click (fn [] (on-change v))}
+                         [:a v]]) filtered))
+           [:ul.ul.dropdown-menu
+            [:li [:a "No matches"]]])
+         [:ul.dropdown-menu.scrollable-dropdown
+          [:li [:a "Too many values to show"]]]))]))
 
 
 (defn constraint-operator []
@@ -108,7 +123,7 @@
   :on-change  A function to call with the new constraint
   :on-remove A function to call with the constraint is removed
   :label?     If true then include the path as a label"
-  (fn [& {:keys [lists model path value op code on-change on-remove on-blur label? possible-values]}]
+  (fn [& {:keys [lists model path value op code on-change on-change-operator on-remove on-blur label? possible-values]}]
     [:div.constraint-component
      [:div
       {:style {:display "table"}}
@@ -119,7 +134,7 @@
         :path path
         :op op
         :lists lists
-        :on-change (fn [op] (on-change {:code code :path path :value value :op op}))]
+        :on-change (fn [op] (on-change-operator {:code code :path path :value value :op op}))]
        (cond
          ; If this is a LIST constraint then show a list dropdown
          (or (= op "IN")
@@ -133,6 +148,7 @@
                 :model model
                 :value value
                 :path path
+                :allow-possible-values (and (not= op "IN") (not= op "NOT IN"))
                 :possible-values possible-values
                 :on-change (fn [val] (on-change {:path path :value val :op op :code code}))
                 :on-blur on-blur])
