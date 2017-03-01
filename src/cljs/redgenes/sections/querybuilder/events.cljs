@@ -38,13 +38,6 @@
     {:db       (assoc-in db [:qb :query-map] query)
      :dispatch [:qb/build-im-query]}))
 
-;(reg-event-fx
-;  :qb/add-view
-;  (fn [{db :db} [_ view-vec]]
-;    {:db         (update-in db loc assoc-in (conj view-vec :visible) true)
-;     :dispatch-n [[:qb/fetch-possible-values view-vec]
-;                  [:qb/build-im-query true]]}))
-
 (reg-event-db
   :qb/store-possible-values
   (fn [db [_ view-vec results]]
@@ -67,28 +60,6 @@
     (let [service (get-in db [:mines (get-in db [:current-mine]) :service])]
       {:qb/pv {:service  service
                :view-vec view-vec}})))
-
-;{:im-operation {:on-success [:qb/store-possible-values view-vec]
-;                :op         (partial fetch/possible-values service (join "." view-vec))}}
-
-
-;
-;(reg-event-fx
-;  :qb/remove-view
-;  (fn [{db :db} [_ view-vec]]
-;    {:db       (loop [db db path view-vec]
-;                 (let [new (update-in db (concat loc (butlast path)) dissoc (last path))]
-;                   (if (and (> (count (butlast path)) 1)    ; Don't drop the root node infiniloop!
-;                            (empty? (get-in new (concat [:qb :qm] (butlast path)))))
-;                     (recur new (butlast path))
-;                     new)))
-;     :dispatch [:qb/build-im-query]}))
-
-;(reg-event-fx
-;  :qb/toggle-view
-;  (fn [{db :db} [_ view-vec]]
-;    {:db       (update-in db loc update-in (conj view-vec :visible) not)
-;     :dispatch [:qb/build-im-query]}))
 
 (reg-event-fx
   :qb/add-constraint
@@ -144,30 +115,6 @@
                         (conj total (map-view->dot v (str string-path (if-not (nil? string-path) ".") k)))
                         (conj total (str string-path (if-not (nil? string-path) ".") k)))) [] query-map))))
 
-
-
-(defn map-depth
-  "Returns the depth of a map."
-  ([m]
-   (map-depth m 1))
-  ([m current-depth]
-   (apply max (flatten (reduce (fn [total [k v]]
-                                 (if (map? v)
-                                   (conj total (map-depth v (inc current-depth)))
-                                   (conj total current-depth))) [] m)))))
-
-;(defn serialize-views [[k {:keys [children visible]}] total trail]
-;  (if visible
-;    (str trail "." k)
-;    (flatten (reduce (fn [t n] (conj t (serialize-views n total (str trail (if trail ".") k)))) total children))))
-
-#_(defn serialize-views [[k value] total trail]
-    (if-let [children (not-empty (select-keys value (filter (complement keyword?) (keys value))))]
-      (println "children" children))
-    #_(if visible
-        (str trail "." k)
-        (flatten (reduce (fn [t n] (conj t (serialize-views n total (str trail (if trail ".") k)))) total children))))
-
 (defn serialize-views [[k value] total views]
   (let [new-total (vec (conj total k))]
     (if-let [children (not-empty (select-keys value (filter (complement keyword?) (keys value))))] ; Keywords are reserved for flags
@@ -186,21 +133,6 @@
   (fn [db [_ count]]
     db))
 
-
-
-
-
-
-
-;(defn extract-constraints-old
-;  ([query]
-;   (distinct (extract-constraints-old nil [] query)))
-;  ([s c {:keys [path children constraints]}]
-;   (let [dot (str s (if s ".") path)] ; Our path so far (Gene.alleles)
-;     (if children
-;       (mapcat (partial extract-constraints-old dot (reduce conj c (map #(assoc % :path dot) constraints))) children)
-;       (reduce conj c (map #(assoc % :path dot) constraints))))))
-
 (defn extract-constraints [[k value] total views]
   (let [new-total (conj total k)]
     (if-let [children (not-empty (select-keys value (filter (complement keyword?) (keys value))))] ; Keywords are reserved for flags
@@ -215,11 +147,11 @@
 
 
 (defn make-query [model root-class query constraintLogic]
-  (let [constraints (remove (fn [c] (= nil (:value c))) (remove empty? (mapcat (fn [n]
-                                                                                 (map (fn [c]
-                                                                                        (assoc c :path (join "." (:path n)))) (:constraints n)))
-                                                                               (extract-constraints (first query) [] []))))]
-    ;(println "CONSTRAINTS" constraints)
+  (let [constraints (remove (fn [c] (= nil (:value c)))
+                            (remove empty? (mapcat (fn [n]
+                                                     (map (fn [c]
+                                                            (assoc c :path (join "." (:path n)))) (:constraints n)))
+                                                   (extract-constraints (first query) [] []))))]
     (cond-> {:select (serialize-views (first query) [] [])}
             (not-empty constraints) (assoc :where constraints)
             constraintLogic (assoc :constraintLogic constraintLogic))))
@@ -270,24 +202,6 @@
 ;                                           (assoc query :select [id-path]))}})))
 
 
-
-
-
-(def aquery {:from            "Gene"
-             :constraintLogic "A or B"
-             :select          ["symbol"
-                               "organism.name"
-                               "alleles.name"
-                               "alleles.dataSets.description"]
-             :where           [{:path  "Gene.symbol"
-                                :op    "="
-                                :code  "A"
-                                :value "zen"}
-                               {:path  "Gene.symbol"
-                                :op    "="
-                                :code  "B"
-                                :value "mad"}]})
-
 (defn view-map [model q]
   (->> (map (fn [v] (split v ".")) (:select q))
        (reduce (fn [total next] (assoc-in total next {:visible true})) {})))
@@ -322,6 +236,7 @@
                          :constraint-logic nil
                          :query-is-valid? false
                          :order []
+                         :preview nil
                          :mappy {}
                          :root-class (keyword root-class-kw)
                          :qm {root-class-kw {:visible true}})
@@ -356,25 +271,8 @@
   (fn [db [_ path]]
     (update-in db [:qb :menu] update-in (butlast path) dissoc (last path))))
 
-
-
 (defn dissoc-keywords [m]
   (when (map? m) (apply dissoc m (filter (some-fn keyword? nil?) (keys m)))))
-
-
-(defn has-views? [model query]
-  "True if a query has at least one view. Queries without views are invalid."
-  (not (empty? (filter (partial (complement im-path/class?) model) (:select query)))))
-
-;(reg-event-fx
-;  :qb/build-im-query
-;  (fn [{db :db}]
-;    (let [service (get-in db [:mines (get-in db [:current-mine]) :service])
-;          query   (make-query (:model service) (get-in db [:qm :root-class]) (get-in db loc) (get-in db [:qb :constraint-logic]))]
-;      {:db       (update db :qb assoc
-;                         :im-query (im-query/sterilize-query query)
-;                         :query-is-valid? (has-views? (:model service) query))
-;       :dispatch [:qb/mappy-count-query]})))
 
 (defn all-views
   "Builds path-query subclass constraints from the query structure"
@@ -550,11 +448,6 @@
                 remove-code? (update-in [:qb :constraint-logic] remove-code (symbol (:code constraint)))
                 )))))
 
-
-
-
-
-
 (reg-event-db
   :qb/mappy-clear-query
   (fn [db]
@@ -565,7 +458,6 @@
                :constraint-logic '()
                :im-query nil
                :menu {})))
-
 
 
 (reg-event-fx
@@ -579,8 +471,8 @@
                           :where           (concat (regular-constraints mappy) (subclass-constraints mappy))}
                          im-query/sterilize-query)]
         (cond-> {:db (update-in db [:qb] assoc :im-query im-query)}
-            fetch-preview? (assoc :dispatch [:qb/fetch-preview service im-query])
-            )))))
+                fetch-preview? (assoc :dispatch [:qb/fetch-preview service im-query])
+                )))))
 
 
 (reg-event-fx
@@ -608,7 +500,7 @@
 (reg-event-fx
   :qb/fetch-preview
   (fn [{db :db} [_ service query]]
-    {:db (assoc-in db [:qb :fetching-preview?] true)
+    {:db           (assoc-in db [:qb :fetching-preview?] true)
      :im-operation {:on-success [:qb/save-preview]
                     :op         (partial fetch/table-rows service query {:size 5})}}))
 
