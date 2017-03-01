@@ -20,7 +20,6 @@
   "Creates a dropdown for a query constraint.
   :query-results  The intermine model to use"
   (fn [& {:keys [query-results loading? hide-count?]}]
-    (println "query-results" query-results)
     (if loading?
       [loader]
       [:table.table.small

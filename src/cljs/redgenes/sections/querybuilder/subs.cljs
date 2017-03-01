@@ -23,16 +23,6 @@
   (fn [db]
     (get-in db [:qb :query-is-valid?])))
 
-(reg-sub
-  :qb/invisible-constraints
-  :<- [:qb/query-map]
-  :<- [:qb/query-constraints]
-  (fn [[query-map query-constraints]]
-    (.log js/console "QM" query-map)
-    (.log js/console "QC" query-constraints)
-    "Test"))
-
-
 (defn flatten-query [[k value] total views]
   (let [new-total (conj total k)]
     (if-let [children (not-empty (select-keys value (filter (complement keyword?) (keys value))))] ; Keywords are reserved for flags
