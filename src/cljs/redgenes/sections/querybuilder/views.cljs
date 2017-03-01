@@ -197,7 +197,7 @@
                                   :op (:op con)
                                   :on-change (fn [c]
                                                (dispatch [:qb/mappy-update-constraint path idx c]))
-                                  :on-blur (fn [x] (dispatch [:qb/mappy-build-im-query]))
+                                  :on-blur (fn [x] (dispatch [:qb/mappy-build-im-query true]))
                                   ;(dispatch [:qb/build-im-query])
 
                                   :label? false]]]]) constraints)))

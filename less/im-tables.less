@@ -1,309 +1,431 @@
+////////////////////////////////////////////////////////////////////////////////
+/// DO NOT EDIT // DO NOT EDIT // DO NOT EDIT // DO NOT EDIT // DO NOT EDIT  ///
+/// This is a straight copy/paste from imtables and is pasted in manually    ///
+/// until we get something smarter set up. Edit anything here and it'll      ///
+/// disappear next time we copy/paste. If you want to override an imtables   ///
+/// style, go to im-tables-overrides instead.                                ///
+////////////////////////////////////////////////////////////////////////////////
+/// You may, if need be, paste the new im-tables styles in here, but leave   ///
+/// this warning intact. Kthxbye.                                            ///
+////////////////////////////////////////////////////////////////////////////////
+
+
+.table > thead > tr > th {
+  vertical-align: top;
+}
+.im-table .im-tooltip {
+  position: absolute;
+  background: #ffffff;
+  border: 1px solid #c2e1f5;
+  min-width: 25vw;
+  max-width: 45vw;
+  min-height: 50px;
+  -webkit-box-shadow: 2px 2px 12px 1px rgba(0, 0, 0, 0.35);
+  -moz-box-shadow: 2px 2px 12px 1px rgba(0, 0, 0, 0.35);
+  box-shadow: 2px 2px 12px 1px rgba(0, 0, 0, 0.35);
+  padding: 5px;
+  margin-top: 10px;
+  z-index: 999;
+  animation-duration: 0.4s;
+  animation-name: fadein;
+  transition-timing-function: ease-in;
+}
+@keyframes fadein {
+  from {
+    opacity: 0.1;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.im-table .im-tooltip:after,
+.im-table .im-tooltip:before {
+  bottom: 50%;
+  content: " ";
+  border-color: rgba(255, 255, 255, 0);
+  height: 0;
+  position: absolute;
+  pointer-events: none;
+  border-style: solid;
+}
+.im-table .im-tooltip.tooltip-right:before {
+  border-right-color: #c2e1f5;
+}
+.im-table .im-tooltip.tooltip-right:after {
+  border-right-color: #ffffff;
+  margin-right: -1px;
+}
+.im-table .im-tooltip.tooltip-right:after,
+.im-table .im-tooltip.tooltip-right:before {
+  right: 100%;
+  border-width: 10px 10px 10px 0;
+}
+.im-table .im-tooltip.tooltip-left:after,
+.im-table .im-tooltip.tooltip-left:before {
+  left: 100%;
+  border-width: 10px 0 10px 10px;
+}
+.im-table .im-tooltip.tooltip-left:before {
+  border-left-color: #c2e1f5;
+}
+.im-table .im-tooltip.tooltip-left:after {
+  margin-left: -1px;
+  border-left-color: #ffffff;
+}
+.im-table .im-tooltip .table {
+  margin-bottom: 0;
+}
 .im-table {
-
-    .btn-group {
-        margin: 0;
-
-        button {
-            padding: 3px 5px;
-        }
-    }
-
-    .arrow_box {
-        position: relative;
-        background: #ffffff;
-        border: 1px solid #c2e1f5;
-        min-width: 150px;
-        -webkit-box-shadow: 2px 2px 12px 1px rgba(0,0,0,0.35);
-        -moz-box-shadow: 2px 2px 12px 1px rgba(0,0,0,0.35);
-        box-shadow: 2px 2px 12px 1px rgba(0,0,0,0.35);
-        padding: 5px;
-        margin-top: 10px;
-        z-index: 999;
-    }
-    .arrow_box:after, .arrow_box:before {
-        bottom: 100%;
-        left: 50%;
-        border: solid transparent;
-        content: " ";
-        height: 0;
-        width: 0;
-        position: absolute;
-        pointer-events: none;
-    }
-
-    .arrow_box:after {
-        border-color: rgba(255, 255, 255, 0);
-        border-bottom-color: #ffffff;
-        border-width: 10px;
-        margin-left: -10px;
-    }
-    .arrow_box:before {
-        border-color: rgba(194, 225, 245, 0);
-        border-bottom-color: #c2e1f5;
-        border-width: 11px;
-        margin-left: -11px;
-    }
-
-
-
-    ;;;;;;;;;;;;;;;;;;;;;;;
-
-    .table>thead>tr>th {
-        vertical-align: top;
-    }
-
-    ;;;;;;;;;;;;;;;
-
-
-    .fade-enter {
-      opacity: 0.01;
-    }
-
-    .fade-enter.fade-enter-active {
-      opacity: 1;
-      transition: opacity 50ms ease-in;
-    }
-
-    .fade-leave {
-      opacity: 1;
-    }
-
-    .fade-leave.fade-leave-active {
-      opacity: 0.01;
-      transition: opacity 50ms ease-in;
-    }
-
-    .fade-appear {
-      opacity: 0.01;
-    }
-
-    .fade-appear.fade-appear-active {
-      opacity: 1;
-      transition: opacity 50ms ease-in;
-    }
-
-    .relative {
-        position: relative;
-    }
-
-    .table-bordered>tbody>tr>td, .table-bordered>tbody>tr>th, .table-bordered>tfoot>tr>td, .table-bordered>tfoot>tr>th, .table-bordered>thead>tr>td, .table-bordered>thead>tr>th {
-        &.drag-left {
-            border-left: 5px solid #337ab7;
-        }
-
-        &.drag-right {
-            border-right: 5px solid #337ab7;
-        }
-    }
-
-
-
-
-    .drag-right {
-        border-right: 3px solid red;
-    }
-
-    .overlay {
-        background-color: white;
-        position: absolute;
-        top: 0;
-        left: 0;
-        z-index: 999;
-        width: 100%;
-        height: 100%;
-        opacity: 0.95;
-        display: flex;
-        color: black;
-        align-items: center;
-         justify-content: center;
-
-
-    }
-
-    .max-height-500 {
-        max-height: 500px;
-        overflow-y: scroll;
-    }
-
-    .square-view {
-        .collection {
-            background-color: aliceblue;
-            border-radius: 5px;
-            margin: 10px;
-            padding: 10px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            border: 1px solid transparent;
-            // min-width: 75px;
-            &:hover {
-                border: 1px solid blue;
-            }
-        }
-    }
-
-
-    .no-select {
-      -webkit-touch-callout: none; /* iOS Safari */
-        -webkit-user-select: none; /* Chrome/Safari/Opera */
-         -khtml-user-select: none; /* Konqueror */
-           -moz-user-select: none; /* Firefox */
-            -ms-user-select: none; /* Internet Explorer/Edge */
-                user-select: none; /* Non-prefixed version, currently
-                                      not supported by any browser */
-    }
-
-    .tree-view {
-        cursor: pointer;
-        .selected {
-            background-color: green;
-        }
-        .padme {
-            padding: 2px;
-            border-radius: 3px;
-        }
-    }
-    ul.tree-view {
-        margin-left: 35px;
-    }
-
-    ul.tree-view i {
-        padding-right: 5px;
-
-    }
-
-    svg.graph {
-        background-color: aliceblue;
-    }
-
-    rect.histo {
-        fill: #0058a6;
-        stroke-width: 0;
-    }
-
-    div.summary-toolbar {
-        vertical-align: top;
-        display: inline-block;
-        white-space: nowrap;
-        & > * {
-            padding: 2px;
-        }
-    }
-
-    .dropdown-menu {
-        white-space: normal;
-    }
-
-    .more-below {
-        /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#000000+0,000000+100&0+0,0.65+100 */
-        background: -moz-linear-gradient(top,  rgba(0,0,0,0) 0%, rgba(0,0,0,0.65) 100%); /* FF3.6-15 */
-        background: -webkit-linear-gradient(top,  rgba(0,0,0,0) 0%,rgba(0,0,0,0.65) 100%); /* Chrome10-25,Safari5.1-6 */
-        background: linear-gradient(to bottom,  rgba(0,0,0,0) 0%,rgba(0,0,0,0.65) 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
-        filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#00000000', endColorstr='#a6000000',GradientType=0 ); /* IE6-9 */
-        position: fixed;
-        bottom: 0;
-        left: 0;
-    }
-
-    .mostly-transparent {
-        opacity: 0.2;
-    }
-
-    .max-height-400 {
-        max-height: 350px;
-        overflow-y: scroll;
-    }
-
-    .min-width-250 {
-        min-width: 250px;
-    }
-
-    .cell:hover {
-        background-color: #e8e8f0;
-        transition: background-color 200ms;
-    }
-
-    .hoverable:hover {
-        background-color: #e8e8f0;
-        transition: background-color 200ms;
-    }
-
-    .wrapper {
-      -webkit-transform: translateZ(0); /* webkit flicker fix */
-      -webkit-font-smoothing: antialiased; /* webkit text rendering fix */
-    }
-
-    .wrapper .tooltip {
-      background: white;
-      bottom: 100%;
-      display: block;
-      left: -25px;
-      margin-bottom: 15px;
-      opacity: 0;
-      padding: 20px;
-      pointer-events: none;
-      position: absolute;
-      width: 100%;
-      -webkit-transform: translateY(10px);
-         -moz-transform: translateY(10px);
-          -ms-transform: translateY(10px);
-           -o-transform: translateY(10px);
-              transform: translateY(10px);
-      -webkit-transition: all .25s ease-out;
-         -moz-transition: all .25s ease-out;
-          -ms-transition: all .25s ease-out;
-           -o-transition: all .25s ease-out;
-              transition: all .25s ease-out;
-      -webkit-box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.28);
-         -moz-box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.28);
-          -ms-box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.28);
-           -o-box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.28);
-              box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.28);
-    }
-
-    /* This bridges the gap so you can mouse into the tooltip without it disappearing */
-    .wrapper .tooltip:before {
-      bottom: -20px;
-      content: " ";
-      display: block;
-      height: 20px;
-      left: 0;
-      position: absolute;
-      width: 100%;
-    }
-
-    /* CSS Triangles - see Trevor's post */
-    .wrapper .tooltip:after {
-      border-left: solid transparent 10px;
-      border-right: solid transparent 10px;
-      border-top: solid white 10px;
-      bottom: -10px;
-      content: " ";
-      height: 0;
-      left: 50%;
-      margin-left: -13px;
-      position: absolute;
-      width: 0;
-    }
-
-    .wrapper:hover .tooltip {
-      opacity: 1;
-      pointer-events: auto;
-      -webkit-transform: translateY(0px);
-         -moz-transform: translateY(0px);
-          -ms-transform: translateY(0px);
-           -o-transform: translateY(0px);
-              transform: translateY(0px);
-    }
-
-    /* IE can just show/hide with no transition */
-    .lte8 .wrapper .tooltip {
-      display: none;
-    }
-
-    .lte8 .wrapper:hover .tooltip {
-      display: block;
-    }
-
+  min-height: 200px;
+  padding-bottom: 40px;
+  /* This bridges the gap so you can mouse into the tooltip without it disappearing */
+  /* CSS Triangles - see Trevor's post */
+  /* IE can just show/hide with no transition */
+}
+.im-table .no-value {
+  font-weight: bold;
+  color: #666;
+  font-family: "Fira Mono", "DejaVu Sans Mono", Menlo, Consolas, "Liberation Mono", Monaco, "Lucida Console", monospace;
+  background-color: #ddd;
+  border-radius: 2px;
+  padding: 1px 2px;
+}
+.im-table .fade-enter {
+  opacity: 0.01;
+}
+.im-table .fade-enter.fade-enter-active {
+  opacity: 1;
+  transition: opacity 50ms ease-in;
+}
+.im-table .fade-leave {
+  opacity: 1;
+}
+.im-table .fade-leave.fade-leave-active {
+  opacity: 0.01;
+  transition: opacity 50ms ease-in;
+}
+.im-table .fade-appear {
+  opacity: 0.01;
+}
+.im-table .fade-appear.fade-appear-active {
+  opacity: 1;
+  transition: opacity 50ms ease-in;
+}
+.im-table .relative {
+  position: relative;
+}
+.im-table .summary-table {
+  font-size: 0.9em;
+}
+.im-table .im-table-toolbar .col-xs-6 {
+  padding-left: 0;
+}
+.im-table .table-bordered > tbody > tr > td.drag-left,
+.im-table .table-bordered > tbody > tr > th.drag-left,
+.im-table .table-bordered > tfoot > tr > td.drag-left,
+.im-table .table-bordered > tfoot > tr > th.drag-left,
+.im-table .table-bordered > thead > tr > td.drag-left,
+.im-table .table-bordered > thead > tr > th.drag-left {
+  border-left: 5px solid #337ab7;
+}
+.im-table .table-bordered > tbody > tr > td.drag-right,
+.im-table .table-bordered > tbody > tr > th.drag-right,
+.im-table .table-bordered > tfoot > tr > td.drag-right,
+.im-table .table-bordered > tfoot > tr > th.drag-right,
+.im-table .table-bordered > thead > tr > td.drag-right,
+.im-table .table-bordered > thead > tr > th.drag-right {
+  border-right: 5px solid #337ab7;
+}
+.im-table .drag-right {
+  border-right: 3px solid red;
+}
+.im-table .overlay {
+  background-color: white;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 999;
+  width: 100%;
+  height: 100%;
+  opacity: 0.95;
+  display: flex;
+  color: black;
+  align-items: center;
+  justify-content: center;
+}
+.im-table .column-summary .main-view,
+.im-table .filter-view {
+  max-height: 60vh;
+  overflow: auto;
+}
+.im-table .column-summary .main-view .imtable-constraint,
+.im-table .filter-view .imtable-constraint {
+  display: flex;
+}
+.im-table .column-summary .main-view .constraint-input,
+.im-table .filter-view .constraint-input {
+  flex-grow: 1;
+  padding: 0 0.3em;
+}
+.im-table .column-summary .main-view .toolbar,
+.im-table .filter-view .toolbar {
+  margin: 0 0.3em 0.3em;
+}
+.im-table .column-summary-toolbar {
+  box-shadow: 0 -1px 1px rgba(0, 0, 0, 0.35);
+  padding: 0.25em;
+  display: flex;
+  justify-content: flex-end;
+  background-color: #ddd;
+  margin-left: 0;
+}
+.im-table .square-view .collection {
+  background-color: aliceblue;
+  border-radius: 5px;
+  margin: 10px;
+  padding: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  border: 1px solid transparent;
+}
+.im-table .square-view .collection:hover {
+  border: 1px solid blue;
+}
+.im-table .no-select {
+  -webkit-touch-callout: none;
+  /* iOS Safari */
+  -webkit-user-select: none;
+  /* Chrome/Safari/Opera */
+  -khtml-user-select: none;
+  /* Konqueror */
+  -moz-user-select: none;
+  /* Firefox */
+  -ms-user-select: none;
+  /* Internet Explorer/Edge */
+  user-select: none;
+  /* Non-prefixed version, currently
+                                  not supported by any browser */
+}
+.im-table .tree-view {
+  cursor: pointer;
+}
+.im-table .tree-view .selected {
+  background-color: green;
+}
+.im-table .tree-view .padme {
+  padding: 2px;
+  border-radius: 3px;
+}
+.im-table ul.tree-view {
+  margin-left: 35px;
+}
+.im-table ul.tree-view i {
+  padding-right: 5px;
+}
+.im-table .inline-filter {
+  display: flex;
+  align-items: stretch;
+  background-color: #ededed;
+}
+.im-table .inline-filter input {
+  border-radius: 0;
+  border-width: 1px 1px 1px 0;
+}
+.im-table .inline-filter .fa {
+  width: 2em;
+  text-align: center;
+  border: solid 1px #ccc;
+  line-height: 2em;
+  display: block;
+}
+.im-table .no-histogram {
+  padding: 0.25em;
+  text-align: center;
+  background-color: #ccc;
+  color: #333;
+}
+.im-table .histogram {
+  width: 100%;
+  max-width: 50vw;
+  height: 50px;
+  background-color: #f0f8ff;
+  display: flex;
+  align-items: flex-end;
+}
+.im-table .histo-bar {
+  background-color: #0058a6;
+  width: 12px;
+  border-right: solid 1px #f0f8ff;
+}
+.im-table .dropdown-right {
+  right: 100%;
+  left: auto;
+}
+.im-table .summary-toolbar {
+  vertical-align: top;
+  display: inline-block;
+  white-space: nowrap;
+}
+.im-table .summary-toolbar .dropdown-menu {
+  min-width: 35vw;
+  padding: 0;
+}
+.im-table .summary-toolbar .filter-icon.active-filter {
+  color: #6495ed;
+  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.1);
+}
+.im-table .summary-toolbar > * {
+  padding: 2px;
+}
+.im-table .dropdown-menu {
+  animation-duration: 0.4s;
+  animation-name: fadein;
+  transition-timing-function: ease-in;
+  padding-top: 0;
+  font-weight: normal;
+  white-space: normal;
+}
+@keyframes fadein {
+  from {
+    opacity: 0.1;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.im-table .dropdown-menu .alert {
+  border-radius: 0;
+  font-size: 0.9em;
+  padding: 0.25em;
+  margin: 0;
+}
+.im-table .dropdown-menu .alert h4 {
+  font-size: 1em;
+  line-height: 1.2em;
+  padding: 0;
+  margin: 0;
+}
+.im-table .dropdown-menu .table-condensed > tbody > tr > td,
+.im-table .dropdown-menu .table-condensed > tbody > tr > th,
+.im-table .dropdown-menu .table-condensed > tfoot > tr > td,
+.im-table .dropdown-menu .table-condensed > tfoot > tr > th,
+.im-table .dropdown-menu .table-condensed > thead > tr > td,
+.im-table .dropdown-menu .table-condensed > thead > tr > th {
+  padding: 4px;
+}
+.im-table .more-below {
+  /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#000000+0,000000+100&0+0,0.65+100 */
+  background: -moz-linear-gradient(top, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.65) 100%);
+  /* FF3.6-15 */
+  background: -webkit-linear-gradient(top, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.65) 100%);
+  /* Chrome10-25,Safari5.1-6 */
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.65) 100%);
+  /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#00000000', endColorstr='#a6000000', GradientType=0);
+  /* IE6-9 */
+  position: fixed;
+  bottom: 0;
+  left: 0;
+}
+.im-table .mostly-transparent {
+  opacity: 0.2;
+}
+.im-table .max-height-400 {
+  max-height: 350px;
+  overflow-y: scroll;
+}
+.im-table .min-width-250 {
+  min-width: 250px;
+}
+.im-table .cell {
+  position: relative;
+}
+.im-table .cell:hover {
+  background-color: #e8e8f0;
+  transition: background-color 200ms;
+}
+.im-table .hoverable:hover {
+  background-color: #e8e8f0;
+  transition: background-color 200ms;
+}
+.im-table .wrapper {
+  -webkit-transform: translateZ(0);
+  /* webkit flicker fix */
+  -webkit-font-smoothing: antialiased;
+  /* webkit text rendering fix */
+}
+.im-table .wrapper .tooltip {
+  background: white;
+  bottom: 100%;
+  display: block;
+  left: -25px;
+  margin-bottom: 15px;
+  opacity: 0;
+  padding: 20px;
+  pointer-events: none;
+  position: absolute;
+  width: 100%;
+  -webkit-transform: translateY(10px);
+  -moz-transform: translateY(10px);
+  -ms-transform: translateY(10px);
+  -o-transform: translateY(10px);
+  transform: translateY(10px);
+  -webkit-transition: all 0.25s ease-out;
+  -moz-transition: all 0.25s ease-out;
+  -ms-transition: all 0.25s ease-out;
+  -o-transition: all 0.25s ease-out;
+  transition: all 0.25s ease-out;
+  -webkit-box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.28);
+  -moz-box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.28);
+  -ms-box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.28);
+  -o-box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.28);
+  box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.28);
+}
+.im-table .wrapper .tooltip:before {
+  bottom: -20px;
+  content: " ";
+  display: block;
+  height: 20px;
+  left: 0;
+  position: absolute;
+  width: 100%;
+}
+.im-table .wrapper .tooltip:after {
+  border-left: solid transparent 10px;
+  border-right: solid transparent 10px;
+  border-top: solid white 10px;
+  bottom: -10px;
+  content: " ";
+  height: 0;
+  left: 50%;
+  margin-left: -13px;
+  position: absolute;
+  width: 0;
+}
+.im-table .wrapper:hover .tooltip {
+  opacity: 1;
+  pointer-events: auto;
+  -webkit-transform: translateY(0px);
+  -moz-transform: translateY(0px);
+  -ms-transform: translateY(0px);
+  -o-transform: translateY(0px);
+  transform: translateY(0px);
+}
+.im-table .lte8 .wrapper .tooltip {
+  display: none;
+}
+.im-table .lte8 .wrapper:hover .tooltip {
+  display: block;
+}
+.im-table .ontop {
+  background-color: #6495ed;
+}
+.im-table .modal-body {
+  max-height: 70vh;
+  overflow: auto;
+}
+.im-table .modal-header h3 {
+  margin: 0;
 }

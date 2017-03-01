@@ -1,0 +1,83 @@
+@import "overrides";
+@import "variables"; // well done, you've found the correct location to edit redgenes specific
+// imtables styles. Don't use im-tables.less, because it's a copy/paste from
+// the imtables repo.
+
+.im-table {
+    .btn-group {
+        margin: 0;
+
+        button {
+            padding: 3px 5px;
+        }
+    }
+
+    .column-summary-toolbar .btn {
+        .btn-raised-override;
+        margin: 0;
+    }
+
+    .no-histogram {
+        border-top-left-radius: 2px;
+    }
+
+    .column-summary {
+        .table {
+            margin-bottom: 0;
+        }
+        border-bottom: solid 1px #ccc;
+        box-shadow: 1px 1px 1px 1px rgba(0,0,0,0.18);
+    }
+
+    .filter-view {
+        .btn-primary {
+            .btn-raised-override;
+        }
+
+        .imtable-constraint {
+            border: solid 1px #ccc;
+
+            .constraint-input {
+                margin: 0;
+                padding: 0;
+            }
+
+            select.form-control {
+                border: 0;
+                border-right: solid 1px #ccc;
+            }
+
+            .btn,
+            input {
+                border: 0;
+                border-radius: 0;
+            }
+
+            .btn {
+                border-left: solid 1px #ccc;
+            }
+
+            .btn,
+            select {
+                background-color: #ddd;
+            }
+        }
+
+        .btn {
+            margin: 0;
+        }
+    }
+}
+
+.results-and-enrichment {
+    display: flex;
+    flex-direction: row;
+    //smaller screens:
+    @media (max-width:1000px) {
+        flex-direction: column;
+    }
+
+    .im-table {
+        height: 100%;
+    }
+}

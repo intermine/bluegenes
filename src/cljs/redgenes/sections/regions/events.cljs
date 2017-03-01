@@ -9,7 +9,7 @@
   (let [parsed (into []
     (remove
       (fn [c] (some? (some #{c} #{":" ".." "-"})))
-      (clojure.string/split region-string (re-pattern "(:|\\..|-)"))))]
+      (clojure.string/split region-string (re-pattern "(:|\\.\\.|-)"))))]
     {:chromosome (nth parsed 0)
      :from       (int (nth parsed 1))
      :to         (int (nth parsed 2))}))

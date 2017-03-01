@@ -19,7 +19,6 @@
 (reg-fx
   :fetch-report
   (fn [[db mine type id]]
-    (println "fetching mine" mine)
     (let [type-kw (keyword type)
           q       {:from   type
                    :select (-> db :assets :summary-fields mine type-kw)
@@ -71,7 +70,6 @@
 (reg-event-fx
   :load-report
   (fn [{db :db} [_ mine type id]]
-    (println "load-report mine" mine)
     {:db           (-> db
                        (assoc :fetching-report? true)
                        (dissoc :report))

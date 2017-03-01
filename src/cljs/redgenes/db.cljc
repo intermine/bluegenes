@@ -5,7 +5,7 @@
    :mine-name                  :fly
    ;;events/boot.cljs auto-selects the first mine available if current-mine
    ;;doesn't exist for any reason.
-   :current-mine               :flymine-beta
+   :current-mine               :beanmine
    :saved-data                 {:items {}}
    :quicksearch-selected-index -1 ;;this defaults to select all in the quicksearch
    :databrowser/whitelist      #{:Gene :Author :Protein :Organism :Publication :GOAnnotation :GOTerm :Homologue :Interaction :DataSet :genes :authors :proteins :organisms :publications :goAnnotation :goTerms :homologues :dataSets :interactions}

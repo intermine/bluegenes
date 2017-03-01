@@ -147,6 +147,22 @@ select.form-control {
 input.form-control:focus {
     background-image: none;
 }
+//use this as a mixin to override default .btn styling (like for imtables).
+.btn-raised-override {
+  &.btn.btn-primary,
+  &.btn.btn-primary:not(.btn-link) {
+      background: @highlight-color;
+      color: @cta-color-text;
+
+      &:focus,
+      &:hover {
+          background: lighten(@highlight-color,10%);
+          color: @cta-color-text;
+      }
+      &:active {box-shadow:0 0 8px rgba(0, 0, 0, 0.18), 0 8px 16px rgba(0, 0, 0, 0.36)}
+  }
+
+}
 //coloured bg, light text
 .btn-group.open > .dropdown-toggle.btn.btn-primary,
 .btn.btn-primary.btn-raised,
