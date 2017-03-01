@@ -41,6 +41,7 @@
 (reg-event-db
   :qb/store-possible-values
   (fn [db [_ view-vec results]]
+    (.log js/console "results" results)
     (update-in db [:qb :qm] update-in view-vec assoc :possible-values (:results results))))
 
 (reg-fx
@@ -393,14 +394,13 @@
 (reg-event-fx
   :qb/mappy-remove-view
   (fn [{db :db} [_ path-vec]]
-
     (let [trimmed         (dissoc-in (get-in db [:qb :mappy]) path-vec)
           remaining-views (map (partial join ".") (all-views trimmed))
           new-order       (->> remaining-views
                                (reduce add-if-missing (get-in db [:qb :order]))
                                (remove (partial (complement within?) remaining-views))
                                vec)
-          current-codes   (set (used-const-code (get-in db [:qb :mappy])))
+          current-codes   (set (remove nil? (used-const-code (get-in db [:qb :mappy]))))
           remaining-codes (set (used-const-code trimmed))
           codes-to-remove (map symbol (clojure.set/difference current-codes remaining-codes))]
 
