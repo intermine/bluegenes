@@ -566,12 +566,7 @@
                :im-query nil
                :menu {})))
 
-(reg-event-db
-  :qb/to-xml
-  (fn [db]
-    (let [service (get-in db [:mines (get-in db [:current-mine]) :service])
-          query   (get-in db [:qb :im-query])]
-    db))
+
 
 (reg-event-fx
   :qb/mappy-build-im-query
