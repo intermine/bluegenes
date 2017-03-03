@@ -17,6 +17,11 @@
     (accountant/navigate! url)))
 
 (reg-fx
+  :im-chan
+  (fn [{:keys [on-success on-failure response-format chan params]}]
+    (go (dispatch (conj on-success (<! chan))))))
+
+(reg-fx
   :im-operation
   (fn [{:keys [on-success on-failure response-format op params]}]
     (go (dispatch (conj on-success (<! (op)))))))

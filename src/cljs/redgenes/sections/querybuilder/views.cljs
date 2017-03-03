@@ -192,14 +192,16 @@
                                   ;:lists (second (first @lists))
                                   :code (:code con)
                                   :on-remove (fn [] (dispatch [:qb/mappy-remove-constraint path idx]))
-                                  :possible-values (map :value (:possible-values properties))
+                                  :possible-values (map :item (:possible-values properties))
                                   :value (:value con)
                                   :op (:op con)
                                   :on-change-operator (fn [x]
                                                         (dispatch [:qb/mappy-update-constraint path idx x])
                                                         (dispatch [:qb/mappy-build-im-query true]))
                                   :on-change (fn [c] (dispatch [:qb/mappy-update-constraint path idx c]))
-                                  :on-blur (fn [x] (dispatch [:qb/mappy-build-im-query true]))
+                                  :on-blur (fn [c]
+                                             (dispatch [:qb/mappy-update-constraint path idx c])
+                                             (dispatch [:qb/mappy-build-im-query true]))
                                   ;(dispatch [:qb/build-im-query])
 
                                   :label? false]]]]) constraints)))
@@ -315,8 +317,7 @@
       [:div.panel-body
        [:ul.nav.nav-tabs
         [:li {:class (when (= @tab-index 0) "active")} [:a {:on-click #(reset! tab-index 0)} "Query"]]
-        [:li {:class (when (= @tab-index 1) "active")} [:a {:on-click #(reset! tab-index 1)} "Column Order"]]
-        [:li {:class (when (= @tab-index 2) "active")} [:a {:on-click #(reset! tab-index 2)} "XML"]]]
+        [:li {:class (when (= @tab-index 1) "active")} [:a {:on-click #(reset! tab-index 1)} "Column Order"]]]
        (case @tab-index
          0 [:div [queryview-browser (:model (:service @current-mine))]
             (when (not-empty @mappy)
@@ -324,8 +325,7 @@
                [:h4 "Constraint Logic"]
                [logic-box]
                ])]
-         1 [sortable-list]
-         2 [xml-view])
+         1 [sortable-list])
        (when (not-empty @mappy) [controls])])))
 
 (defn column-order-preview []
@@ -336,9 +336,11 @@
     (fn []
       [:div.panel-body
        [:ul.nav.nav-tabs
-        [:li {:class (when (= @tab-index 0) "active")} [:a {:on-click #(reset! tab-index 0)} "Preview"]]]
+        [:li {:class (when (= @tab-index 0) "active")} [:a {:on-click #(reset! tab-index 0)} "Preview"]]
+        [:li {:class (when (= @tab-index 1) "active")} [:a {:on-click #(reset! tab-index 1)} "XML"]]]
        (case @tab-index
          0 [preview @prev]
+         1 [xml-view]
          )])))
 
 (defn main []

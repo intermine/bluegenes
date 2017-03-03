@@ -1,7 +1,9 @@
 (ns redgenes.components.ui.constraint
   (:require [imcljs.path :as im-path]
-            [oops.core :refer [oget]]
+            [oops.core :refer [oget ocall]]
+            [clojure.string :refer [includes?]]
             [reagent.core :as reagent :refer [create-class]]
+            [dommy.core :as dommy :refer-macros [sel sel1]]
             [redgenes.components.ui.list_dropdown :refer [list-dropdown]]))
 
 (def operators [{:op         "LOOKUP"
@@ -62,27 +64,38 @@
       false)
     true))
 
+
+(extend-type js/NodeList
+  ISeqable
+  (-seq [array] (array-seq array 0)))
+
+(defn set-text-value [node value] (-> (sel1 node :input) (dommy/set-value! value)))
+
 (defn constraint-text-input []
-  (fn [& {:keys [value on-change on-blur allow-possible-values possible-values]}]
-    [:div
-     [:input.form-control.dropdown
-      {:data-toggle "dropdown"
-       :type        "text"
-       :on-change   (fn [e] (on-change (oget e :target :value)))
-       :on-blur     (fn [x] (on-blur))
-       :placeholder "NULL"
-       :value       value}]
-     (when allow-possible-values
-       (if (not-empty possible-values)
-         (if-let [filtered (not-empty (filter (partial has-text? value) possible-values))]
-           (into [:ul.dropdown-menu.scrollable-dropdown]
-                 (map (fn [v]
-                        [:li {:on-click (fn [] (on-change v))}
-                         [:a v]]) filtered))
-           [:ul.ul.dropdown-menu
-            [:li [:a "No matches"]]])
-         [:ul.dropdown-menu.scrollable-dropdown
-          [:li [:a "Too many values to show"]]]))]))
+  (let [component (reagent/atom nil)
+        focused?  (reagent/atom false)]
+    (fn [& {:keys [value on-change on-blur allow-possible-values possible-values]}]
+      [:div
+       {:ref   (fn [e] (reset! component e))
+        :class (when @focused? "open")}
+       [:input.form-control.dropdown
+        {:data-toggle "none"
+         :type        "text"
+         :on-focus    (fn [e] (reset! focused? true))
+         :on-change   (fn [e] (on-change (oget e :target :value)))
+         :on-blur     (fn [e] (on-blur (oget e :target :value)) (reset! focused? false))
+         :value       value}]
+       (when (some? possible-values)
+         (if (not-empty possible-values)
+           (let [filtered   (not-empty (filter (partial has-text? value) (sort possible-values)))
+                 unfiltered (not-empty (filter (partial (complement has-text?) value) (sort possible-values)))]
+             (into [:ul.dropdown-menu.scrollable-dropdown]
+                   (concat
+                     (map (fn [v] [:li {:on-mouse-down (fn [] (set-text-value @component v))} [:a v]]) filtered)
+                     (when (and filtered unfiltered) [[:li.divider]])
+                     (map (fn [v] [:li {:on-mouse-down (fn [] (set-text-value @component v))} [:a v]]) unfiltered))))
+           [:ul.dropdown-menu.scrollable-dropdown
+            [:li [:a {:style {:color "grey"}} "Too many values to show"]]]))])))
 
 
 (defn constraint-operator []
@@ -151,11 +164,11 @@
                 :allow-possible-values (and (not= op "IN") (not= op "NOT IN"))
                 :possible-values possible-values
                 :on-change (fn [val] (on-change {:path path :value val :op op :code code}))
-                :on-blur on-blur])
+                :on-blur (fn [val] (on-blur {:path path :value val :op op :code code}))])
        (when code [:span.constraint-label code])]
-      [:i.fa.fa-trash-o.fa-fw.semilight.danger
-       {:on-click (fn [op] (on-remove {:path path :value value :op op}))
-        :style    {:display "table-cell" :vertical-align "middle"}}]]]))
+      (when on-remove [:i.fa.fa-trash-o.fa-fw.semilight.danger
+                       {:on-click (fn [op] (on-remove {:path path :value value :op op}))
+                        :style    {:display "table-cell" :vertical-align "middle"}}])]]))
 
 
 
