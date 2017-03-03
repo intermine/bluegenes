@@ -19,10 +19,6 @@
 
 (def auto (reagent/atom true))
 
-
-
-
-
 (def aquery {:from            "Gene"
              :constraintLogic "A or B"
              :select          ["symbol"
@@ -113,7 +109,7 @@
            [:span.qb-class (uncamel (:name properties))]
            [:span.label-button
             {:on-click (fn [e]
-                         (.stopPropagation e)
+                         (ocall e :stopPropagation)
                          (dispatch [:qb/mappy-add-summary-views path sub]))}
             "Summary"]]]
          (when open?
@@ -282,12 +278,12 @@
                        :draggable     true
                        :on-drag-start (fn [e]
                                         ;(.preventDefault e)
-                                        (.stopPropagation e)
+                                        (ocall e :stopPropagation)
                                         (ocall e "dataTransfer.setData" "banana" "cakes")
                                         (swap! state assoc :selected idx))
                        :on-drag-enter (fn [e]
-                                        (.preventDefault e)
-                                        (.stopPropagation e)
+                                        (ocall e :preventDefault)
+                                        (ocall e :stopPropagation)
                                         (let [selected-idx  (:selected @state)
                                               items         @order
                                               selected-item (get items selected-idx)
@@ -381,18 +377,3 @@
                                   [:div.col-md-7
                                    [column-order-preview]]]]]])})))
 
-
-
-
-;[:h4 "Preview"]
-
-;[preview]
-
-
-
-
-(defn toggle-all-checkbox []
-  [:span
-   [:input {:type    "checkbox"
-            :checked @(subscribe [:todos/all-complete?])}]
-   [:label {:for "toggle-all"} "Mark all as complete"]])

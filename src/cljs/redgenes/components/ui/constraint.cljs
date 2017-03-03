@@ -69,7 +69,8 @@
   ISeqable
   (-seq [array] (array-seq array 0)))
 
-(defn set-text-value [node value] (-> (sel1 node :input) (dommy/set-value! value)))
+(defn set-text-value [node value]
+  (when node (-> (sel1 node :input) (dommy/set-value! value))))
 
 (defn constraint-text-input []
   (let [component (reagent/atom nil)
