@@ -1,4 +1,7 @@
-(defproject redgenes "0.4.0-alpha-candidate-3.3"
+(def props {:version "0.4.0-alpha-candidate-3.4"})
+
+
+(defproject redgenes (:version props)
   :dependencies [[org.clojure/clojure "1.9.0-alpha14"]
                  [figwheel-sidecar "0.5.8"]
                  [clj-http "3.3.0"]
@@ -45,6 +48,8 @@
             [lein-shell "0.5.0"]
             [lein-cljfmt "0.5.5"]]
 
+  :testing (println "HIJOSHSGHSOGHSODGHSODGHSDOGHSODGUD")
+
   :aliases {"foreign" ["do"
                        ["shell" "curl" "-o" "resources/public/vendor/imtables.js" "http://cdn.intermine.org/js/intermine/im-tables/2.0.0/imtables.min.js"]
                        ["shell" "curl" "-o" "resources/public/vendor/im.min.js" "http://cdn.intermine.org/js/intermine/imjs/3.15.0/im.min.js"]]}
@@ -90,16 +95,17 @@
                     :source-map-timestamp true
                     :pretty-print         true
                     :parallel-build       true}}
-                    ;:foreign-libs [{:file "resources/public/vendor/im.min.js"
-                    ;                :provides ["intermine.imjs"]}
-                    ;               {:file "resources/public/vendor/imtables.js"
-                    ;                :provides ["intermine.imtables"]}]
+    ;:foreign-libs [{:file "resources/public/vendor/im.min.js"
+    ;                :provides ["intermine.imjs"]}
+    ;               {:file "resources/public/vendor/imtables.js"
+    ;                :provides ["intermine.imtables"]}]
 
     :modules
     {
      :source-paths ["src/cljs"]
      ;:figwheel     {:on-jsload "redgenes.core/mount-root"}
      :compiler     {
+
                     :optimizations        :simple
                     :output-dir           "resources/public/js/modules"
                     :source-map           "resources/public/js/modules"
@@ -113,7 +119,7 @@
                                            {
                                             :output-to "resources/public/js/modules/app.js"
                                             :entries   #{"redgenes.core"}}
-                                            ;;:preamble             ["preamble.js"]
+                                           ;;:preamble             ["preamble.js"]
 
                                            :query-builder
                                            {
@@ -135,17 +141,21 @@
      :source-paths ["src/cljs"]
      :jar          true
      :compiler     {:main            redgenes.core
+
+
+
                     :output-to       "resources/public/js/compiled/app.js"
                     :output-dir      "resources/public/js/min/test"
                     :externs         ["externs/imjs.js"
                                       "externs/imtables.js"]
                     :optimizations   :advanced
-                    :closure-defines {goog.DEBUG false}
+                    :closure-defines {goog.DEBUG false
+                                      redgenes.core/version ~(:version props)}
                     :pretty-print    false}}
-                    ;:foreign-libs [{:file "resources/public/vendor/im.min.js"
-                    ;                :provides ["intermine.imjs"]}
-                    ;               {:file "resources/public/vendor/imtables.min.js"
-                    ;                :provides ["intermine.imtables"]}]
+    ;:foreign-libs [{:file "resources/public/vendor/im.min.js"
+    ;                :provides ["intermine.imjs"]}
+    ;               {:file "resources/public/vendor/imtables.min.js"
+    ;                :provides ["intermine.imtables"]}]
 
     :test
     {
@@ -164,9 +174,9 @@
 
   :repositories [
                  ["clojars"
-                  {:url "https://clojars.org/repo"
-      ;; How often should this repository be checked for
-      ;; snapshot updates? (:daily, :always, or :never)
+                  {:url    "https://clojars.org/repo"
+                   ;; How often should this repository be checked for
+                   ;; snapshot updates? (:daily, :always, or :never)
                    :update :always}]])
 
 
