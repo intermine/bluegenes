@@ -29,7 +29,7 @@
                      :halt?      true}]})
 
 (defn im-tables-events-forwarder []
-  {:register    :im-tables-events ;;  <-- used
+  {:register    :im-tables-events                           ;;  <-- used
    :events      #{:imt.io/save-list-success}
    :dispatch-to [:assets/fetch-lists]})
 
@@ -58,16 +58,19 @@
 (reg-event-fx
   :boot
   (fn []
-    (let [db         (assoc db/default-db :mines default-mines/mines)
-          state      (persistence/get-state!)
-          has-state? (seq state)
+    (let [db               (assoc db/default-db :mines default-mines/mines)
+          state            (persistence/get-state!)
+          has-state?       (seq state)
           ;;prune out old mines from localstorage that aren't part of the app anymore
           good-state-mines (get-current-mines (:mines state) (:mines db))
           ;;make sure we have all current localstorage mines and all new ones (if any)
-          all-mines (merge default-mines/mines good-state-mines)
+          all-mines        (merge default-mines/mines good-state-mines)
           ;;make sure the active mine wasn't removed. Will select a default if needed.
-          current-mine (get-active-mine all-mines (:current-mine state))]
-      (if has-state?
+          current-mine     (get-active-mine all-mines (:current-mine state))]
+
+      ; Do not use data from local storage if the client version in local storage
+      ; is not the same as the current client version
+      (if (and has-state? (= redgenes.core/version (:version state)))
         {:db             (assoc db/default-db
                            :current-mine current-mine
                            :mines all-mines
@@ -114,9 +117,9 @@
   :authentication/fetch-anonymous-token
   (fn [{db :db} [_ mine-kw]]
     (let [mine (dissoc (get-in db [:mines mine-kw :service]) :token)]
-    {:db           db
-     :im-operation {:on-success [:authentication/store-token mine-kw]
-                    :op         (partial fetch/session mine)}})))
+      {:db           db
+       :im-operation {:on-success [:authentication/store-token mine-kw]
+                      :op         (partial fetch/session mine)}})))
 
 ; Fetch model
 
@@ -179,25 +182,25 @@
   ;;fetches all enrichment widgets. afaik the non-enrichment widgets are InterMine 1.x UI specific so are filtered out upon success
   (fn [{db :db}]
     {:im-operation
-     {:op (partial fetch/widgets (get-in db [:mines (:current-mine db) :service]))
+     {:op         (partial fetch/widgets (get-in db [:mines (:current-mine db) :service]))
       :on-success [:assets/success-fetch-widgets (:current-mine db)]}}
     ))
 
 (reg-event-db
   :assets/success-fetch-widgets
   (fn [db [_ mine-kw widgets]]
-    (let [widget-type "enrichment"
+    (let [widget-type      "enrichment"
           filtered-widgets (doall (filter (fn [widget]
-      (= widget-type (:widgetType widget))
-      ) (:widgets widgets)))]
-    (assoc-in db [:assets :widgets mine-kw] filtered-widgets))))
+                                            (= widget-type (:widgetType widget))
+                                            ) (:widgets widgets)))]
+      (assoc-in db [:assets :widgets mine-kw] filtered-widgets))))
 
 (reg-event-fx
   :assets/fetch-intermine-version
   ;;fetches all enrichment widgets. afaik the non-enrichment widgets are InterMine 1.x UI specific so are filtered out upon success
   (fn [{db :db}]
     {:im-operation
-     {:op (partial fetch/version-intermine (get-in db [:mines (:current-mine db) :service]))
+     {:op         (partial fetch/version-intermine (get-in db [:mines (:current-mine db) :service]))
       :on-success [:assets/success-fetch-intermine-version (:current-mine db)]}}
     ))
 
