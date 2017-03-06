@@ -2,7 +2,7 @@
 
 (def default-db
   {:name                       "Intermine"
-   :mine-name                  :fly
+   :mine-name                  :fly-beta
    ;;events/boot.cljs auto-selects the first mine available if current-mine
    ;;doesn't exist for any reason.
    :current-mine               :beanmine
