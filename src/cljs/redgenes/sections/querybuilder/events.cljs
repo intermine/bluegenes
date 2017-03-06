@@ -237,14 +237,14 @@
   :qb/set-root-class
   (fn [{db :db} [_ root-class-kw]]
     (let [model (get-in db [:mines (get-in db [:current-mine]) :service :model])]
-      {:db       (update db :qb assoc
-                         :constraint-logic nil
-                         :query-is-valid? false
-                         :order []
-                         :preview nil
-                         :mappy {}
-                         :root-class (keyword root-class-kw)
-                         :qm {root-class-kw {:visible true}})})))
+      {:db (update db :qb assoc
+                   :constraint-logic nil
+                   :query-is-valid? false
+                   :order []
+                   :preview nil
+                   :mappy {}
+                   :root-class (keyword root-class-kw)
+                   :qm {root-class-kw {:visible true}})})))
 
 (reg-event-db
   :qb/expand-path
@@ -517,7 +517,7 @@
                     (update-in [:qb :preview-chan] (fnil close! (chan)))
                     (assoc-in [:qb :preview-chan] new-request))
        :im-chan {:on-success [:qb/save-preview]
-                 :chan         new-request}})))
+                 :chan       new-request}})))
 
 
 

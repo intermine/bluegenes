@@ -62,28 +62,48 @@
           (not (starts-with? s "(")) add-left-bracket
           (not (ends-with? s ")")) add-right-bracket))
 
+(defn clause-type [v]
+  (cond
+    (some? (some #{'or} v)) :or
+    (some? (some #{'and} v)) :and
+    :else nil))
+
 (defn append-code [v code]
   (if (empty? v)
     [code]
-    (-> (vec (concat v ['and code]))
-       group-ands
-       raise)))
+    (do
+      (let [type (clause-type v)]
+        (-> (case type
+              :or (reduce conj [] [v 'and code])
+              (reduce conj v ['and code]))
+            group-ands
+            raise)))))
+
+(defn one-of? [haystack needle] (some? (some #{needle} haystack)))
+
+
+(defn remove-repeats [v]
+  (let [without-repeats (reduce (fn [total next] (if (not= next (last total)) (conj total next) total)) [] v)]
+    (vec (cond->> without-repeats
+              (one-of? ['or 'and] (first without-repeats)) (drop 1)
+              (one-of? ['or 'and] (last without-repeats)) butlast))))
 
 (defn remove-code
   "Recursively removes a symbol from a tree and raises neighbours with a count of one"
   [v code]
+  (println "removing code" code v)
   (->
     (clojure.walk/postwalk
-     (fn [e]
-       (if (vector? e)
-         (let [removed     (vec (remove (partial = code) e))
-               without-ops (without-operators removed)]
-           (cond
-             (single-vec-of-vec? without-ops) (vec (mapcat identity without-ops))
-             (single-vec-of-symbol? without-ops) (first without-ops)
-             :else removed))
-         e))
-     v)
+      (fn [e]
+        (if (vector? e)
+          (let [removed     (vec (remove (partial = code) e))
+                without-ops (without-operators removed)]
+            (cond
+              (single-vec-of-vec? without-ops) (vec (mapcat identity without-ops))
+              (single-vec-of-symbol? without-ops) (first without-ops)
+              :else (remove-repeats removed)))
+          e))
+      v)
     group-ands
     raise))
 
