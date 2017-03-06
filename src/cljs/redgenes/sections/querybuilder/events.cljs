@@ -244,9 +244,7 @@
                          :preview nil
                          :mappy {}
                          :root-class (keyword root-class-kw)
-                         :qm {root-class-kw {:visible true}})
-       ;:dispatch [:qb/mappy-count-query]
-       })))
+                         :qm {root-class-kw {:visible true}})})))
 
 (reg-event-db
   :qb/expand-path
