@@ -75,7 +75,7 @@
 (defn constraint-text-input []
   (let [component (reagent/atom nil)
         focused?  (reagent/atom false)]
-    (fn [& {:keys [value on-change on-blur allow-possible-values possible-values]}]
+    (fn [& {:keys [model path value on-change on-blur allow-possible-values possible-values]}]
       [:div
        {:ref   (fn [e] (reset! component e))
         :class (when @focused? "open")}
@@ -86,7 +86,7 @@
          :on-change   (fn [e] (on-change (oget e :target :value)))
          :on-blur     (fn [e] (on-blur (oget e :target :value)) (reset! focused? false))
          :value       value}]
-       (when (some? possible-values)
+       (when (not (im-path/class? model path))
          (if (not-empty possible-values)
            (let [filtered   (not-empty (filter (partial has-text? value) (sort possible-values)))
                  unfiltered (not-empty (filter (partial (complement has-text?) value) (sort possible-values)))]
@@ -96,7 +96,8 @@
                      (when (and filtered unfiltered) [[:li.divider]])
                      (map (fn [v] [:li {:on-mouse-down (fn [] (set-text-value @component v))} [:a v]]) unfiltered))))
            [:ul.dropdown-menu.scrollable-dropdown
-            [:li [:a {:style {:color "grey"}} "Too many values to show"]]]))])))
+            [:li [:a {:style {:color "grey"}} "Too many values to show"]]]))
+       ])))
 
 
 (defn constraint-operator []
@@ -141,7 +142,6 @@
     [:div.constraint-component
      [:div
       {:style {:display "table"}}
-
       [:div.input-group
        [constraint-operator
         :model model

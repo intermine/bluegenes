@@ -45,26 +45,25 @@
 
 (reg-fx
   :qb/pv
-  (fn [{:keys [service view-vec query]}]
-    (let [str-path (join "." view-vec)]
-      (let [sum-chan (fetch/unique-values service query str-path 100)]
-        (go (dispatch [:qb/store-possible-values view-vec (<! sum-chan)])))
-
-      #_(when-not (im-path/class? (:model service) str-path)
-          (let [count-chan (fetch/row-count service {:from (first view-vec) :select [str-path]})]
-            (go
-              (when (> 100 (<! count-chan))
-                (dispatch [:qb/store-possible-values view-vec (<! (fetch/possible-values service str-path))]))))))))
+  (fn [{:keys [service store-in summary-path query]}]
+    (let [sum-chan (fetch/unique-values service query summary-path 100)]
+      (go (dispatch [:qb/store-possible-values store-in (<! sum-chan)])))))
 
 
 (reg-event-fx
   :qb/fetch-possible-values
   (fn [{db :db} [_ view-vec]]
-    (let [service (get-in db [:mines (get-in db [:current-mine]) :service])
-          query   (get-in db [:qb :im-query])]
-      {:qb/pv {:service  service
-               :query    query
-               :view-vec view-vec}})))
+
+    (let [service            (get-in db [:mines (get-in db [:current-mine]) :service])
+          summary-path       (im-path/adjust-path-to-last-class (:model service) (join "." view-vec))
+          split-summary-path (split summary-path ".")]
+      (if (not (im-path/class? (:model service) summary-path))
+        {:qb/pv {:service      service
+                 :query        {:from   (first split-summary-path)
+                                :select [(last split-summary-path)]}
+                 :summary-path summary-path
+                 :store-in     view-vec}}
+        {:dispatch [:qb/store-possible-values view-vec false]}))))
 
 (reg-event-fx
   :qb/add-constraint
