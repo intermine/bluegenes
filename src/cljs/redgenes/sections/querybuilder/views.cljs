@@ -157,57 +157,62 @@
   (apply dissoc m (filter keyword? (keys m))))
 
 (defn queryview-node []
-  (fn [model [k properties] & [trail]]
-    (let [path (vec (conj trail (name k)))]
-      [:li.tree.haschildren
-       [:p.flexmex
-        [:span.lab {:class (if (im-path/class? model (join "." path)) "qb-class" "qb-attribute")}
-         [:span.qb-label {:style {:margin-left 5}} [:a (uncamel k)]]
-         (when-let [s (:subclass properties)] [:span.label.label-default (uncamel s)])
-         [:i.fa.fa-trash-o.fa-fw.danger
-          {:on-click (if (> (count path) 1)
-                       (fn [] (dispatch [:qb/mappy-remove-view path]))
-                       (fn [] (dispatch [:qb/mappy-clear-query path])))}]
-         [:span
-          {:on-click (fn [] (dispatch [:qb/mappy-add-constraint path]))}
-          [:span [:span [:i.fa.fa-filter.semilight]]]]
-         (when-let [c (:id-count properties)]
-           [:span.label.label-soft
-            {:class (when (= 0 c) "label-no-results")
-             :style {:margin-left 5}} (str c " row" (when (not= c 1) "s"))])]]
-       (when-let [constraints (:constraints properties)]
-         (into [:ul.tree.banana]
-               (map-indexed (fn [idx con]
-                              [:li
-                               [:p
-                                [:div.contract
-                                 {:class (when (empty? (:value con)) "empty")}
-                                 [constraint
-                                  :model model
-                                  :path (join "." path)
-                                  ;:lists (second (first @lists))
-                                  :code (:code con)
-                                  :on-remove (fn [] (dispatch [:qb/mappy-remove-constraint path idx]))
-                                  :possible-values (when (some? (:possible-values properties)) (map :item (:possible-values properties)))
-                                  :value (:value con)
-                                  :op (:op con)
-                                  :on-change-operator (fn [x]
-                                                        (dispatch [:qb/mappy-update-constraint path idx x])
-                                                        (dispatch [:qb/mappy-build-im-query true]))
-                                  :on-change (fn [c] (dispatch [:qb/mappy-update-constraint path idx c]))
-                                  :on-blur (fn [c]
-                                             (dispatch [:qb/mappy-update-constraint path idx c])
-                                             (dispatch [:qb/mappy-build-im-query true]))
-                                  ;(dispatch [:qb/build-im-query])
+  (let [lists (subscribe [:current-lists])]
+    (fn [model [k properties] & [trail]]
+     (let [path (vec (conj trail (name k)))]
+       [:li.tree.haschildren
+        [:p.flexmex
+         [:span.lab {:class (if (im-path/class? model (join "." path)) "qb-class" "qb-attribute")}
+          [:span.qb-label {:style {:margin-left 5}} [:a (uncamel k)]]
+          (when-let [s (:subclass properties)] [:span.label.label-default (uncamel s)])
+          [:i.fa.fa-trash-o.fa-fw.danger
+           {:on-click (if (> (count path) 1)
+                        (fn [] (dispatch [:qb/mappy-remove-view path]))
+                        (fn [] (dispatch [:qb/mappy-clear-query path])))}]
+          [:span
+           {:on-click (fn [] (dispatch [:qb/mappy-add-constraint path]))}
+           [:span [:span [:i.fa.fa-filter.semilight]]]]
+          (when-let [c (:id-count properties)]
+            [:span.label.label-soft
+             {:class (when (= 0 c) "label-no-results")
+              :style {:margin-left 5}} (str c " row" (when (not= c 1) "s"))])]]
+        (when-let [constraints (:constraints properties)]
+          (into [:ul.tree.banana]
+                (map-indexed (fn [idx con]
+                               [:li
+                                [:p
+                                 [:div.contract
+                                  {:class (when (empty? (:value con)) "empty")}
+                                  [constraint
+                                   :model model
+                                   :path (join "." path)
+                                   :lists @lists
+                                   :code (:code con)
+                                   :on-remove (fn [] (dispatch [:qb/mappy-remove-constraint path idx]))
+                                   :possible-values (when (some? (:possible-values properties)) (map :item (:possible-values properties)))
+                                   :value (:value con)
+                                   :op (:op con)
+                                   :on-select-list (fn [c]
+                                                     (dispatch [:qb/mappy-update-constraint path idx c])
+                                                     (dispatch [:qb/mappy-build-im-query true]))
+                                   :on-change-operator (fn [x]
+                                                         (dispatch [:qb/mappy-update-constraint path idx x])
+                                                         (dispatch [:qb/mappy-build-im-query true]))
+                                   :on-change (fn [c]
+                                                (dispatch [:qb/mappy-update-constraint path idx c]))
+                                   :on-blur (fn [c]
+                                              (dispatch [:qb/mappy-update-constraint path idx c])
+                                              (dispatch [:qb/mappy-build-im-query true]))
+                                   ;(dispatch [:qb/build-im-query])
 
-                                  :label? false]]]]) constraints)))
-       (when (not-empty (dissoc-keywords properties))
-         (let [classes    (filter (fn [[k p]] (im-path/class? model (join "." (conj path k)))) (dissoc-keywords properties))
-               attributes (filter (fn [[k p]] ((complement im-path/class?) model (join "." (conj path k)))) (dissoc-keywords properties))]
-           (into [:ul.tree.banana2]
-                 (concat
-                   (map (fn [n] [queryview-node model n path]) (sort attributes))
-                   (map (fn [n] [queryview-node model n path]) (sort classes))))))])))
+                                   :label? false]]]]) constraints)))
+        (when (not-empty (dissoc-keywords properties))
+          (let [classes    (filter (fn [[k p]] (im-path/class? model (join "." (conj path k)))) (dissoc-keywords properties))
+                attributes (filter (fn [[k p]] ((complement im-path/class?) model (join "." (conj path k)))) (dissoc-keywords properties))]
+            (into [:ul.tree.banana2]
+                  (concat
+                    (map (fn [n] [queryview-node model n path]) (sort attributes))
+                    (map (fn [n] [queryview-node model n path]) (sort classes))))))]))))
 
 (defn queryview-browser []
   (let [mappy (subscribe [:qb/mappy])]
@@ -262,7 +267,7 @@
            :hide-count? true
            :query-results @results-preview]
           (if (> (:iTotalRecords @results-preview) 5)
-            [:h4 (str "+ " (:iTotalRecords @results-preview) " more rows")])])])))
+            [:h4 (str "... and  " (- (:iTotalRecords @results-preview) 5) " more rows")])])])))
 
 (defn drop-nth [n coll] (vec (keep-indexed #(if (not= %1 n) %2) coll)))
 

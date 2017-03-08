@@ -138,7 +138,7 @@
   :on-change  A function to call with the new constraint
   :on-remove A function to call with the constraint is removed
   :label?     If true then include the path as a label"
-  (fn [& {:keys [lists model path value op code on-change on-change-operator on-remove on-blur label? possible-values]}]
+  (fn [& {:keys [lists model path value op code on-change on-select-list on-change-operator on-remove on-blur label? possible-values]}]
     [:div.constraint-component
      [:div
       {:style {:display "table"}}
@@ -156,7 +156,9 @@
                                :value value
                                :lists lists
                                :restrict-type (im-path/class model path)
-                               :on-change (fn [list] (on-change {:path path :value list :code code :op op}))]
+                               :on-change (fn [list]
+                                            (println "ON CHANGING" {:path path :value list :code code :op op})
+                                            (on-select-list {:path path :value list :code code :op op}))]
          ; Otherwise show a text input
          :else [constraint-text-input
                 :model model

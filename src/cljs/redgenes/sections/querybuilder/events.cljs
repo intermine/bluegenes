@@ -308,8 +308,8 @@
                                       total))
                                   total-constraints constraints)]
      (if (not-empty (dissoc-keywords properties))
-       (mapcat #(regular-constraints % next-trail next-constraints) properties)
-       (concat total-constraints next-constraints)))))
+       (distinct (mapcat #(regular-constraints % next-trail next-constraints) properties))
+       (distinct (concat total-constraints next-constraints))))))
 
 (reg-event-fx
   :qb/export-query

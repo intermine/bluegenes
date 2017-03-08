@@ -144,3 +144,10 @@
   :version
   (fn [db [_ mine-keyword]]
     (get-in db  [:assets :intermine-version mine-keyword])))
+
+(reg-sub
+  :current-lists
+  :<- [:lists]
+  :<- [:current-mine-name]
+  (fn [[all-lists current-mine-name]]
+    (get all-lists current-mine-name)))
