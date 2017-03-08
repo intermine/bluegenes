@@ -2,10 +2,10 @@
 
 (def default-db
   {:name                       "Intermine"
-   :mine-name                  :fly-beta
+   :mine-name                  :flymine-beta
    ;;events/boot.cljs auto-selects the first mine available if current-mine
    ;;doesn't exist for any reason.
-   :current-mine               :beanmine
+   :current-mine               :flymine-beta
    :saved-data                 {:items {}}
    :quicksearch-selected-index -1 ;;this defaults to select all in the quicksearch
    :databrowser/whitelist      #{:Gene :Author :Protein :Organism :Publication :GOAnnotation :GOTerm :Homologue :Interaction :DataSet :genes :authors :proteins :organisms :publications :goAnnotation :goTerms :homologues :dataSets :interactions}
