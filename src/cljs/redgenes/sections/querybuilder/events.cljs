@@ -69,7 +69,8 @@
   :qb/add-constraint
   (fn [{db :db} [_ view-vec]]
     (let [code (next-available-const-code (get-in db loc))]
-      {:db       (update-in db loc update-in (conj view-vec :constraints) (comp vec conj) {:code nil :op "=" :value nil})
+      {:db       (update-in db loc update-in (conj view-vec :constraints)
+                            (comp vec conj) {:code nil :op nil :value nil})
        :dispatch [:qb/build-im-query]})))
 
 (reg-event-fx
@@ -420,7 +421,8 @@
   :qb/mappy-add-constraint
   (fn [{db :db} [_ view-vec]]
     (let [code (next-available-const-code (get-in db [:qb :mappy]))]
-      {:db       (update-in db [:qb :mappy] update-in (conj view-vec :constraints) (comp vec conj) {:code nil :op "=" :value nil})
+      {:db       (update-in db [:qb :mappy] update-in (conj view-vec :constraints)
+                            (comp vec conj) {:code nil :op nil :value nil})
        :dispatch [:qb/fetch-possible-values view-vec]})))
 ;:dispatch [:qb/build-im-query]
 

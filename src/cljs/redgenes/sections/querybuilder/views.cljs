@@ -237,11 +237,13 @@
     (fn []
       [:div
        [:input.form-control
-        {:style     {:max-width "300"}
-         :type      "text"
-         :value     @logic
-         :on-blur   (fn [] (dispatch [:qb/format-constraint-logic @logic]))
-         :on-change (fn [e] (dispatch [:qb/update-constraint-logic (oget e :target :value)]))}]])))
+        {:style       {:max-width "300"}
+         :type        "text"
+         :value       @logic
+         :on-key-down (fn [e] (when (= (oget e :keyCode) 13)
+                                (dispatch [:qb/format-constraint-logic @logic])))
+         :on-blur     (fn [] (dispatch [:qb/format-constraint-logic @logic]))
+         :on-change   (fn [e] (dispatch [:qb/update-constraint-logic (oget e :target :value)]))}]])))
 
 (defn controls []
   (let [results-preview (subscribe [:qb/preview])]

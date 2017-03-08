@@ -85,6 +85,9 @@
          :on-focus    (fn [e] (reset! focused? true))
          :on-change   (fn [e] (on-change (oget e :target :value)))
          :on-blur     (fn [e] (on-blur (oget e :target :value)) (reset! focused? false))
+         :on-key-down (fn [e] (when (= (oget e :keyCode) 13)
+                                (on-blur (oget e :target :value))
+                                (reset! focused? false)))
          :value       value}]
        (when (not (im-path/class? model path))
          (if (not-empty possible-values)
@@ -138,40 +141,43 @@
   :on-change  A function to call with the new constraint
   :on-remove A function to call with the constraint is removed
   :label?     If true then include the path as a label"
-  (fn [& {:keys [lists model path value op code on-change on-select-list on-change-operator on-remove on-blur label? possible-values]}]
-    [:div.constraint-component
-     [:div
-      {:style {:display "table"}}
-      [:div.input-group
-       [constraint-operator
-        :model model
-        :path path
-        :op op
-        :lists lists
-        :on-change (fn [op] (on-change-operator {:code code :path path :value value :op op}))]
-       (cond
-         ; If this is a LIST constraint then show a list dropdown
-         (or (= op "IN")
-             (= op "NOT IN")) [list-dropdown
-                               :value value
-                               :lists lists
-                               :restrict-type (im-path/class model path)
-                               :on-change (fn [list]
-                                            (println "ON CHANGING" {:path path :value list :code code :op op})
-                                            (on-select-list {:path path :value list :code code :op op}))]
-         ; Otherwise show a text input
-         :else [constraint-text-input
-                :model model
-                :value value
-                :path path
-                :allow-possible-values (and (not= op "IN") (not= op "NOT IN"))
-                :possible-values possible-values
-                :on-change (fn [val] (on-change {:path path :value val :op op :code code}))
-                :on-blur (fn [val] (on-blur {:path path :value val :op op :code code}))])
-       (when code [:span.constraint-label code])]
-      (when on-remove [:i.fa.fa-trash-o.fa-fw.semilight.danger
-                       {:on-click (fn [op] (on-remove {:path path :value value :op op}))
-                        :style    {:display "table-cell" :vertical-align "middle"}}])]]))
+  (fn [& {:keys [lists model path value op code on-change
+                 on-select-list on-change-operator on-remove
+                 on-blur label? possible-values]}]
+    (let [class? (im-path/class? model path)]
+      [:div.constraint-component
+       [:div
+        {:style {:display "table"}}
+        [:div.input-group
+         [constraint-operator
+          :model model
+          :path path
+          ; Default to an OP if one has not been given
+          :op (or op (if class? "LOOKUP" "="))
+          :lists lists
+          :on-change (fn [op] (on-change-operator {:code code :path path :value value :op op}))]
+         (cond
+           ; If this is a LIST constraint then show a list dropdown
+           (or (= op "IN")
+               (= op "NOT IN")) [list-dropdown
+                                 :value value
+                                 :lists lists
+                                 :restrict-type (im-path/class model path)
+                                 :on-change (fn [list]
+                                              (on-select-list {:path path :value list :code code :op op}))]
+           ; Otherwise show a text input
+           :else [constraint-text-input
+                  :model model
+                  :value value
+                  :path path
+                  :allow-possible-values (and (not= op "IN") (not= op "NOT IN"))
+                  :possible-values possible-values
+                  :on-change (fn [val] (on-change {:path path :value val :op op :code code}))
+                  :on-blur (fn [val] (on-blur {:path path :value val :op op :code code}))])
+         (when code [:span.constraint-label code])]
+        (when on-remove [:i.fa.fa-trash-o.fa-fw.semilight.danger
+                         {:on-click (fn [op] (on-remove {:path path :value value :op op}))
+                          :style    {:display "table-cell" :vertical-align "middle"}}])]])))
 
 
 
