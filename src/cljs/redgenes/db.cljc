@@ -2,10 +2,10 @@
 
 (def default-db
   {:name                       "Intermine"
-   :mine-name                  :fly
+   :mine-name                  :flymine-beta
    ;;events/boot.cljs auto-selects the first mine available if current-mine
    ;;doesn't exist for any reason.
-   :current-mine               :beanmine
+   :current-mine               :flymine-beta
    :saved-data                 {:items {}}
    :quicksearch-selected-index -1 ;;this defaults to select all in the quicksearch
    :databrowser/whitelist      #{:Gene :Author :Protein :Organism :Publication :GOAnnotation :GOTerm :Homologue :Interaction :DataSet :genes :authors :proteins :organisms :publications :goAnnotation :goTerms :homologues :dataSets :interactions}
@@ -16,15 +16,8 @@
                                                      :flags       {:authorized nil
                                                                    :favourite  nil}}
                                            :sort    {:title :asc}}}
-   :query-builder
-                               {
-                                :count  0
-                                :dcount 0
-                                :query
-                                        {
-                                         :q/select         #{}
-                                         :q/where          []
-                                         :constraint-paths #{}
-                                         }
-                                }
-   })
+
+   :qb                         {:root-class :Gene
+                                :order []
+                                :qm         nil
+                                :mappy      {"Gene" {"secondaryIdentifier" {}, "organism" {"name" {}}, "symbol" {}}}}})

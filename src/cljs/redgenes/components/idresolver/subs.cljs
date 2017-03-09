@@ -35,24 +35,24 @@
 (reg-sub
  :idresolver/selected-organism
  (fn [db]
-  (get-in db [:idresolver :selected-organism :shortName])
-))
+  (get-in db [:idresolver :selected-organism :shortName])))
+
 
 (reg-sub
  :idresolver/selected-object-type
  (fn [db]
    (let [object-type-default (get-in db [:mines (:current-mine db) :default-selected-object-type])
          selected (get-in db [:idresolver :selected-object-type])]
-    (if (some? selected) selected object-type-default))
-))
+    (if (some? selected) selected object-type-default))))
+
 
 (reg-sub
  :idresolver/object-types
  (fn [db]
    (let [current-mine (get-in db [:mines (get db :current-mine)])
          current-model (get-in current-mine [:service :model :classes])]
-    (get-in db [:mines (:current-mine db) :default-object-types])
-)))
+    (get-in db [:mines (:current-mine db) :default-object-types]))))
+
 
 (reg-sub
   :idresolver/saved

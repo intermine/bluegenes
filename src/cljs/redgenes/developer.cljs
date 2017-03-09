@@ -32,6 +32,11 @@
          {:on-click (fn [e] (.preventDefault e))} "Save"]]
        ])))
 
+(defn version-number []
+  [:div.panel.container
+   [:h3 "Client Version: "]
+   [:pre (str redgenes.core/version)]])
+
  (defn localstorage-destroyer []
      (fn []
        [:div.panel.container [:h3 "Delete local storage: "]
@@ -64,5 +69,6 @@
       [:div.developer
        [mine-config]
        [localstorage-destroyer]
+       [version-number]
        [iconview]
        ]))

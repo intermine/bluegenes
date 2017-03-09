@@ -48,21 +48,24 @@
             filtered-lists (filter filter-fn lists)]
         [:div.dropdown
          [:button.btn.btn-default.dropdown-toggle
-          {:style {:text-transform "none"
-                   :white-space "normal"}
+          {:style       {:text-transform "none"
+                         :white-space    "normal"}
            :data-toggle "dropdown"}
           (str (or value "Choose a list") " ") [:span.caret]]
          [:div.dropdown-menu.dropdown-mixed-content
-          [:div.container-fluid
-           [text-filter-form text-filter-atom]
-           [:div.col-md-6
-            [:h4 [:i.fa.fa-clock-o] " Recently Created"]
-            [im-lists
-             :lists (take 5 (sort-by :timestamp filtered-lists))
-             :on-change on-change]]
-           [:div.col-md-6
-            [:h4 [:i.fa.fa-sort-alpha-asc] " All Lists"]
-            [:div.clip-400
-             [im-lists
-              :lists (sort-by :name filtered-lists)
-              :on-change on-change]]]]]]))))
+          (if (some? (not-empty lists))
+            [:div.container-fluid
+             [text-filter-form text-filter-atom]
+             [:div.col-md-6
+              [:h4 [:i.fa.fa-clock-o] " Recently Created"]
+              [im-lists
+               :lists (take 5 (sort-by :timestamp filtered-lists))
+               :on-change on-change]]
+             [:div.col-md-6
+              [:h4 [:i.fa.fa-sort-alpha-asc] " All Lists"]
+              [:div.clip-400
+               [im-lists
+                :lists (sort-by :name filtered-lists)
+                :on-change on-change]]]]
+            [:div.container-fluid
+             [:h4 (str "No lists available of type " restrict-type)]])]]))))

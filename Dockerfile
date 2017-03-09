@@ -59,7 +59,7 @@ WORKDIR /usr/src/app
 RUN npm install -g bower grunt-cli
 RUN npm install -g less
 RUN bower install
-RUN echo '@import "../../bootstrap/less/variables.less";'> '/usr/src/app/resources/public/vendor/bootstrap-material-design/less/_import-bs-less.less'
+# RUN echo '@import "../../bootstrap/less/variables.less";'> '/usr/src/app/resources/public/vendor/bootstrap-material-design/less/_import-bs-less.less'
 
 RUN lein clean
 RUN lein less once

@@ -18,6 +18,10 @@
             [oops.core :refer [oget oset! ocall oapply ocall! oapply!
                                oget+ oset!+ ocall+ oapply+ ocall!+ oapply!+]]))
 
+; When compiled with Advanced Compilation, redgenes.core/version will be replaced
+; with (:version props) in project.clj
+(goog-define version "dev")
+
 (defn dev-setup []
   (when config/debug?
     (devtools/install!)

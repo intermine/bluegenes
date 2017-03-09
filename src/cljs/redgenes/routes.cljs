@@ -40,7 +40,7 @@
                                 [:query-builder/make-tree]]))
 
   (defroute "/results" []
-      (re-frame/dispatch [:set-active-panel :results-panel]))
+            (re-frame/dispatch [:set-active-panel :results-panel]))
 
   (defroute "/regions" []
             (re-frame/dispatch [:set-active-panel :regions-panel]))

@@ -39,5 +39,22 @@
      :reagent-render
      (fn [[element attributes & rest]] [element attributes rest])}))
 
+(defn tooltip-new
+  "Reagent wrapper for bootstrap's tooltip component.
+  Usage:
+  [tooltip [:i.fa.fa-question {:data-trigger hover
+                               :data-placement right
+                               :title Some string here]"
+  []
+  (reagent/create-class
+    {:component-did-mount
+     (fn [this]
+       (let [node (reagent/dom-node this)]
+         (ocall (-> node js/$) "tooltip")))
+     :reagent-render
+     (fn [props & [contents]]
+       [:span props contents])}))
+
+
 
 

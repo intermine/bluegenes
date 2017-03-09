@@ -47,7 +47,8 @@
           [:div.col-md-8.col-sm-12.panel
              [tables/main [:results :fortable]]]
           [:div.col-md-4.col-sm-12
-           [enrichment/enrich]]]]
+           [enrichment/enrich]
+           ]]]
         ;;oh noes, somehow we made it here with noresults. Fail elegantly, not just console errors.
         [no-results]
         )

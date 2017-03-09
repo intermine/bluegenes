@@ -19,7 +19,7 @@
 (defn preview-table []
   "Creates a dropdown for a query constraint.
   :query-results  The intermine model to use"
-  (fn [& {:keys [query-results loading?]}]
+  (fn [& {:keys [query-results loading? hide-count?]}]
     (if loading?
       [loader]
       [:table.table.small
@@ -29,11 +29,16 @@
                      ^{:key h} [table-header h])
                    (:columnHeaders query-results)))]
        [:tbody
-        (doall (map
-                 (fn [r]
-                   ^{:key (reduce str (map :id r))} [table-row r])
-                 (:results query-results)))
-        (if (> (:iTotalRecords query-results) 5)
+        (if
+          (< (:iTotalRecords query-results) 1)
+          [:tr
+           [:td {:col-span (count (:columnHeaders query-results))}
+            [:h4 "Query returned no results"]]]
+          (doall (map
+                   (fn [r]
+                     ^{:key (reduce str (map :id r))} [table-row r])
+                   (:results query-results))))
+        (if (and (not hide-count?) (> (:iTotalRecords query-results) 5))
           [:tr
            [:td
             {:col-span (count (:columnHeaders query-results))}
