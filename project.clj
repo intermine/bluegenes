@@ -1,4 +1,4 @@
-(def props {:version "0.4.0-alpha-candidate-3.6"})
+(def props {:version "0.4.0-alpha-candidate-3.7"})
 
 
 (defproject redgenes (:version props)
@@ -48,7 +48,6 @@
             [lein-shell "0.5.0"]
             [lein-cljfmt "0.5.5"]]
 
-  :testing (println "HIJOSHSGHSOGHSODGHSODGHSDOGHSODGUD")
 
   :aliases {"foreign" ["do"
                        ["shell" "curl" "-o" "resources/public/vendor/imtables.js" "http://cdn.intermine.org/js/intermine/im-tables/2.0.0/imtables.min.js"]

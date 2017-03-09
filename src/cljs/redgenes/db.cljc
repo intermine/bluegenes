@@ -21,16 +21,3 @@
                                 :order []
                                 :qm         nil
                                 :mappy      {"Gene" {"secondaryIdentifier" {}, "organism" {"name" {}}, "symbol" {}}}}})
-
-
-
-
-{"Gene" {:visible     true
-         :constraints []
-         "symbol"     {:visible     true
-                       :constraints [{:op    "="
-                                      :value "zen"}]}
-         "organism"   {"name" {:constraints []
-                               :visible     true}}
-         "alleles"    {"name"     {:visible true}
-                       "dataSets" {"description" {:visible true}}}}}
