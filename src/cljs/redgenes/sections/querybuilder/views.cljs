@@ -12,6 +12,7 @@
             [cljs.reader :refer [read]]
             [imcljs.query :refer [->xml]]
             [cljs.reader :refer [read-string]]
+            [dommy.core :refer-macros [sel1]]
             [redgenes.components.loader :refer [mini-loader loader]]
             [redgenes.components.ui.results_preview :refer [preview-table]]))
 
@@ -159,60 +160,60 @@
 (defn queryview-node []
   (let [lists (subscribe [:current-lists])]
     (fn [model [k properties] & [trail]]
-     (let [path (vec (conj trail (name k)))]
-       [:li.tree.haschildren
-        [:p.flexmex
-         [:span.lab {:class (if (im-path/class? model (join "." path)) "qb-class" "qb-attribute")}
-          [:span.qb-label {:style {:margin-left 5}} [:a (uncamel k)]]
-          (when-let [s (:subclass properties)] [:span.label.label-default (uncamel s)])
-          [:i.fa.fa-trash-o.fa-fw.danger
-           {:on-click (if (> (count path) 1)
-                        (fn [] (dispatch [:qb/mappy-remove-view path]))
-                        (fn [] (dispatch [:qb/mappy-clear-query path])))}]
-          [:span
-           {:on-click (fn [] (dispatch [:qb/mappy-add-constraint path]))}
-           [:span [:span [:i.fa.fa-filter.semilight]]]]
-          (when-let [c (:id-count properties)]
-            [:span.label.label-soft
-             {:class (when (= 0 c) "label-no-results")
-              :style {:margin-left 5}} (str c " row" (when (not= c 1) "s"))])]]
-        (when-let [constraints (:constraints properties)]
-          (into [:ul.tree.banana]
-                (map-indexed (fn [idx con]
-                               [:li
-                                [:p
-                                 [:div.contract
-                                  {:class (when (empty? (:value con)) "empty")}
-                                  [constraint
-                                   :model model
-                                   :path (join "." path)
-                                   :lists @lists
-                                   :code (:code con)
-                                   :on-remove (fn [] (dispatch [:qb/mappy-remove-constraint path idx]))
-                                   ;:possible-values (when (some? (:possible-values properties)) (map :item (:possible-values properties)))
-                                   :value (:value con)
-                                   :op (:op con)
-                                   :on-select-list (fn [c]
-                                                     (dispatch [:qb/mappy-update-constraint path idx c])
-                                                     (dispatch [:qb/mappy-build-im-query true]))
-                                   :on-change-operator (fn [x]
-                                                         (dispatch [:qb/mappy-update-constraint path idx x])
-                                                         (dispatch [:qb/mappy-build-im-query true]))
-                                   :on-change (fn [c]
-                                                (dispatch [:qb/mappy-update-constraint path idx c]))
-                                   :on-blur (fn [c]
-                                              (dispatch [:qb/mappy-update-constraint path idx c])
-                                              (dispatch [:qb/mappy-build-im-query true]))
-                                   ;(dispatch [:qb/build-im-query])
+      (let [path (vec (conj trail (name k)))]
+        [:li.tree.haschildren
+         [:p.flexmex
+          [:span.lab {:class (if (im-path/class? model (join "." path)) "qb-class" "qb-attribute")}
+           [:span.qb-label {:style {:margin-left 5}} [:a (uncamel k)]]
+           (when-let [s (:subclass properties)] [:span.label.label-default (uncamel s)])
+           [:i.fa.fa-trash-o.fa-fw.danger
+            {:on-click (if (> (count path) 1)
+                         (fn [] (dispatch [:qb/mappy-remove-view path]))
+                         (fn [] (dispatch [:qb/mappy-clear-query path])))}]
+           [:span
+            {:on-click (fn [] (dispatch [:qb/mappy-add-constraint path]))}
+            [:span [:span [:i.fa.fa-filter.semilight]]]]
+           (when-let [c (:id-count properties)]
+             [:span.label.label-soft
+              {:class (when (= 0 c) "label-no-results")
+               :style {:margin-left 5}} (str c " row" (when (not= c 1) "s"))])]]
+         (when-let [constraints (:constraints properties)]
+           (into [:ul.tree.banana]
+                 (map-indexed (fn [idx con]
+                                [:li
+                                 [:p
+                                  [:div.contract
+                                   {:class (when (empty? (:value con)) "empty")}
+                                   [constraint
+                                    :model model
+                                    :path (join "." path)
+                                    :lists @lists
+                                    :code (:code con)
+                                    :on-remove (fn [] (dispatch [:qb/mappy-remove-constraint path idx]))
+                                    ;:possible-values (when (some? (:possible-values properties)) (map :item (:possible-values properties)))
+                                    :value (:value con)
+                                    :op (:op con)
+                                    :on-select-list (fn [c]
+                                                      (dispatch [:qb/mappy-update-constraint path idx c])
+                                                      (dispatch [:qb/mappy-build-im-query true]))
+                                    :on-change-operator (fn [x]
+                                                          (dispatch [:qb/mappy-update-constraint path idx x])
+                                                          (dispatch [:qb/mappy-build-im-query true]))
+                                    :on-change (fn [c]
+                                                 (dispatch [:qb/mappy-update-constraint path idx c]))
+                                    :on-blur (fn [c]
+                                               (dispatch [:qb/mappy-update-constraint path idx c])
+                                               (dispatch [:qb/mappy-build-im-query true]))
+                                    ;(dispatch [:qb/build-im-query])
 
-                                   :label? false]]]]) constraints)))
-        (when (not-empty (dissoc-keywords properties))
-          (let [classes    (filter (fn [[k p]] (im-path/class? model (join "." (conj path k)))) (dissoc-keywords properties))
-                attributes (filter (fn [[k p]] ((complement im-path/class?) model (join "." (conj path k)))) (dissoc-keywords properties))]
-            (into [:ul.tree.banana2]
-                  (concat
-                    (map (fn [n] [queryview-node model n path]) (sort attributes))
-                    (map (fn [n] [queryview-node model n path]) (sort classes))))))]))))
+                                    :label? false]]]]) constraints)))
+         (when (not-empty (dissoc-keywords properties))
+           (let [classes    (filter (fn [[k p]] (im-path/class? model (join "." (conj path k)))) (dissoc-keywords properties))
+                 attributes (filter (fn [[k p]] ((complement im-path/class?) model (join "." (conj path k)))) (dissoc-keywords properties))]
+             (into [:ul.tree.banana2]
+                   (concat
+                     (map (fn [n] [queryview-node model n path]) (sort attributes))
+                     (map (fn [n] [queryview-node model n path]) (sort classes))))))]))))
 
 (defn queryview-browser []
   (let [mappy (subscribe [:qb/mappy])]
@@ -233,17 +234,30 @@
 (def <sub (comp deref subscribe))
 
 (defn logic-box []
-  (let [logic (subscribe [:qb/constraint-logic])]
+  (let [editing? (reagent/atom false)
+        logic (subscribe [:qb/constraint-logic])]
     (fn []
       [:div
-       [:input.form-control
-        {:style       {:max-width "300"}
-         :type        "text"
-         :value       @logic
-         :on-key-down (fn [e] (when (= (oget e :keyCode) 13)
-                                (dispatch [:qb/format-constraint-logic @logic])))
-         :on-blur     (fn [] (dispatch [:qb/format-constraint-logic @logic]))
-         :on-change   (fn [e] (dispatch [:qb/update-constraint-logic (oget e :target :value)]))}]])))
+       {:ref (fn [x]
+               (some-> x (ocall :getElementsByTagName "input") array-seq first (ocall :focus))
+
+
+               )}
+       (if @editing?
+         [:input.form-control.input-sm
+          {:type        "text"
+           :value       @logic
+           :on-key-down (fn [e] (when (= (oget e :keyCode) 13)
+                                  (reset! editing? false)
+                                  (dispatch [:qb/format-constraint-logic @logic])))
+           :on-blur     (fn []
+                          (reset! editing? false)
+                          (dispatch [:qb/format-constraint-logic @logic]))
+           :on-change   (fn [e] (dispatch [:qb/update-constraint-logic (oget e :target :value)]))}]
+         [:pre
+          {:style {:display "flex" :align-items "center"}}
+          [:span.pull-left [:button.btn.btn-primary.btn-slim {:on-click (fn [] (reset! editing? true))} [:i.fa.fa-pencil]]]
+          [:span.pull-left @logic]])])))
 
 (defn controls []
   (let [results-preview (subscribe [:qb/preview])]
@@ -315,15 +329,18 @@
 (defn query-viewer []
   (let [mappy        (subscribe [:qb/mappy])
         current-mine (subscribe [:current-mine])
-        tab-index    (reagent/atom 0)]
+        query        (subscribe [:qb/im-query])
+        tab-index    (reagent/atom 0)
+        constraint-value-count (subscribe [:qb/constraint-value-count])]
     (fn []
       [:div.panel-body
        [:ul.nav.nav-tabs
         [:li {:class (when (= @tab-index 0) "active")} [:a {:on-click #(reset! tab-index 0)} "Query"]]
         [:li {:class (when (= @tab-index 1) "active")} [:a {:on-click #(reset! tab-index 1)} "Column Order"]]]
        (case @tab-index
-         0 [:div [queryview-browser (:model (:service @current-mine))]
-            (when (not-empty @mappy)
+         0 [:div
+            [queryview-browser (:model (:service @current-mine))]
+            (when (>= @constraint-value-count 2)
               [:div
                [:h4 "Constraint Logic"]
                [logic-box]

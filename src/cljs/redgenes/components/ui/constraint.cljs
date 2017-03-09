@@ -167,7 +167,7 @@
     (create-class
       {:component-did-mount (fn []
                               (when (nil? @pv)
-                                (dispatch [:cache/fetch-possible-values (split path ".")])))
+                                (dispatch [:cache/fetch-possible-values path])))
        :reagent-render      (fn [& {:keys [lists model path value op code on-change
                                            on-select-list on-change-operator on-remove
                                            on-blur label? possible-values typeahead?]}]

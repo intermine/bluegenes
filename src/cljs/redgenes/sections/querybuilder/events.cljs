@@ -6,6 +6,7 @@
             [imcljs.path :as im-path]
             [imcljs.fetch :as fetch]
             [imcljs.query :refer [->xml]]
+            [clojure.set :refer [difference]]
             [cljs.reader :as reader]
             [redgenes.sections.querybuilder.logic :refer [read-logic-string remove-code vec->list append-code]]
             [clojure.string :refer [join split blank?]]))
@@ -101,12 +102,13 @@
 (reg-event-fx
   :qb/format-constraint-logic
   (fn [{db :db} [_]]
-    (let [logic (get-in db [:qb :constraint-logic])]
-      {:db       (assoc-in db [:qb :constraint-logic] (read-logic-string logic))
+    (let [mappy              (get-in db [:qb :mappy])
+          logic-vec          (get-in db [:qb :constraint-logic])
+          used-codes         (set (used-const-code mappy))
+          codes-in-logic-vec (set (map name (remove #{'or 'and} (flatten (read-logic-string logic-vec)))))
+          codes-to-append    (into (sorted-set) (difference used-codes codes-in-logic-vec))]
+      {:db       (assoc-in db [:qb :constraint-logic] (reduce append-code (read-logic-string logic-vec) (map symbol codes-to-append)))
        :dispatch [:qb/mappy-build-im-query true]})))
-
-
-
 
 (defn map-view->dot
   "Turn a map of nested views into dot notation.
@@ -423,7 +425,7 @@
     (let [code (next-available-const-code (get-in db [:qb :mappy]))]
       {:db         (update-in db [:qb :mappy] update-in (conj view-vec :constraints)
                               (comp vec conj) {:code nil :op nil :value nil})
-       :dispatch-n [[:cache/fetch-possible-values view-vec]
+       :dispatch-n [[:cache/fetch-possible-values (join "." view-vec)]
                     [:qb/fetch-possible-values view-vec]]})))
 ;:dispatch [:qb/build-im-query]
 

@@ -1,6 +1,6 @@
 (ns redgenes.sections.querybuilder.subs
   (:require [re-frame.core :refer [reg-sub]]
-            [clojure.string :refer [join]]
+            [clojure.string :refer [join blank?]]
             [redgenes.sections.querybuilder.logic :as con-logic]))
 
 (reg-sub
@@ -48,6 +48,17 @@
   :qb/mappy
   (fn [db]
     (get-in db [:qb :mappy])))
+
+(defn constraint-values
+  "Walks down the query map and pulls all codes from constraints"
+  [query]
+  (map :value (mapcat :constraints (tree-seq map? vals query))))
+
+(reg-sub
+  :qb/constraint-value-count
+  :<- [:qb/mappy]
+  (fn [mappy]
+    (count (remove blank? (constraint-values mappy)))))
 
 
 (reg-sub

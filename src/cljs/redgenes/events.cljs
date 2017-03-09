@@ -132,36 +132,31 @@
                                            {:format "jsonobjects"})
                       :on-success [:cache/store-organisms]}})))
 
-
 (reg-event-db
   :cache/store-possible-values
   (fn [db [_ mine-kw view-vec results]]
     (if (false? results)
-      (do
-        (assoc-in db (concat [:mines mine-kw :possible-values] view-vec) false))
-      (update-in db [:mines mine-kw :possible-values] assoc-in view-vec (not-empty (map :item (:results results)))))))
+      (assoc-in db [:mines mine-kw :possible-values view-vec] false)
+      (assoc-in db [:mines mine-kw :possible-values view-vec] (not-empty (map :item (:results results)))))))
 
 (reg-fx
   :cache/fetch-possible-values-fx
   (fn [{:keys [mine-kw service store-in summary-path query]}]
     (let [sum-chan (fetch/unique-values service query summary-path 7000)]
       (go
-        (dispatch [:cache/store-possible-values mine-kw store-in (<! sum-chan)])))))
-
+        (dispatch [:cache/store-possible-values mine-kw summary-path (<! sum-chan)])))))
 
 (reg-event-fx
   :cache/fetch-possible-values
-  (fn [{db :db} [_ view-vec]]
-    (let [mine               (get-in db [:mines (get db :current-mine)])
-          summary-path       (join "." view-vec)
-          split-summary-path (split summary-path ".")
-          existing-value     (get-in db (concat [:mines (get db :current-mine) :possible-values] split-summary-path))]
+  (fn [{db :db} [_ path]]
+    (let [mine           (get-in db [:mines (get db :current-mine)])
+          split-path     (split path ".")
+          existing-value (get-in db [:mines (get db :current-mine) :possible-values split-path])]
 
-      (if (and (nil? existing-value) (not (im-path/class? (get-in mine [:service :model]) summary-path)))
+      (if (and (nil? existing-value) (not (im-path/class? (get-in mine [:service :model]) path)))
         {:cache/fetch-possible-values-fx {:service      (get mine :service)
-                                          :query        {:from   (first split-summary-path)
-                                                         :select [summary-path]}
+                                          :query        {:from   (first split-path)
+                                                         :select [path]}
                                           :mine-kw      (get mine :id)
-                                          :summary-path summary-path
-                                          :store-in     split-summary-path}}
-        {:dispatch [:cache/store-possible-values (get mine :id) view-vec false]}))))
+                                          :summary-path path}}
+        {:dispatch [:cache/store-possible-values (get mine :id) path false]}))))

@@ -158,5 +158,5 @@
   :current-possible-values
   :<- [:current-mine]
   (fn [current-mine [_ path] ]
-    (get-in current-mine (apply conj [:possible-values] (split path ".")))))
+    (get-in current-mine [:possible-values path])))
 
