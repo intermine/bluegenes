@@ -1,7 +1,8 @@
 (ns redgenes.components.ui.constraint
   (:require [imcljs.path :as im-path]
+            [re-frame.core :refer [subscribe dispatch]]
             [oops.core :refer [oget ocall]]
-            [clojure.string :refer [includes?]]
+            [clojure.string :refer [includes? split]]
             [reagent.core :as reagent :refer [create-class]]
             [dommy.core :as dommy :refer-macros [sel sel1]]
             [redgenes.components.ui.list_dropdown :refer [list-dropdown]]))
@@ -64,6 +65,15 @@
       false)
     true))
 
+(defn has-three-matching-letters?
+  "Return true if a label contains a string"
+  [string v]
+  (if (and string (>= (count string) 3))
+    (if v
+      (re-find (re-pattern (str "(?i)" string)) v)
+      false)
+    false))
+
 
 (extend-type js/NodeList
   ISeqable
@@ -75,7 +85,7 @@
 (defn constraint-text-input []
   (let [component (reagent/atom nil)
         focused?  (reagent/atom false)]
-    (fn [& {:keys [model path value on-change on-blur allow-possible-values possible-values]}]
+    (fn [& {:keys [model path value typeahead? on-change on-blur allow-possible-values possible-values]}]
       [:div
        {:ref   (fn [e] (reset! component e))
         :class (when @focused? "open")}
@@ -89,18 +99,30 @@
                                 (on-blur (oget e :target :value))
                                 (reset! focused? false)))
          :value       value}]
-       (when (not (im-path/class? model path))
-         (if (not-empty possible-values)
-           (let [filtered   (not-empty (filter (partial has-text? value) (sort possible-values)))
-                 unfiltered (not-empty (filter (partial (complement has-text?) value) (sort possible-values)))]
-             (into [:ul.dropdown-menu.scrollable-dropdown]
-                   (concat
-                     (map (fn [v] [:li {:on-mouse-down (fn [] (set-text-value @component v))} [:a v]]) filtered)
-                     (when (and filtered unfiltered) [[:li.divider]])
-                     (map (fn [v] [:li {:on-mouse-down (fn [] (set-text-value @component v))} [:a v]]) unfiltered))))
-           [:ul.dropdown-menu.scrollable-dropdown
-            [:li [:a {:style {:color "grey"}} "Too many values to show"]]]))
-       ])))
+       (when (and (not (false? typeahead?)) (not (im-path/class? model path)))
+         (cond
+           (false? possible-values) [:ul.dropdown-menu.scrollable-dropdown
+                                     [:li [:a {:style {:color "grey"}} "Too many values to show"]]]
+           (<= (count possible-values) 100) (let [filtered   (not-empty (filter (partial has-text? value) (sort possible-values)))
+                                                  unfiltered (not-empty (filter (partial (complement has-text?) value) (sort possible-values)))]
+                                              (if (nil? possible-values)
+                                                [:ul.dropdown-menu.scrollable-dropdown
+                                                 [:li [:a {:style {:color "grey"}} [:i.fa.fa-cog.fa-spin.fa-fw]]]]
+                                                (into [:ul.dropdown-menu.scrollable-dropdown]
+                                                      (concat
+                                                        (map (fn [v] [:li {:on-mouse-down (fn [] (set-text-value @component v))} [:a v]]) filtered)
+                                                        (when (and filtered unfiltered) [[:li.divider]])
+                                                        (map (fn [v] [:li {:on-mouse-down (fn [] (set-text-value @component v))} [:a v]]) unfiltered)))))
+           (> (count possible-values) 100) (let [filtered (not-empty (filter (partial has-three-matching-letters? value) (sort possible-values)))]
+                                             (if (< (count value) 3)
+                                               [:ul.dropdown-menu.scrollable-dropdown
+                                                [:li [:a {:style {:color "grey"}} "Type more to filter values..."]]]
+                                               (if (empty? filtered)
+                                                 [:ul.dropdown-menu.scrollable-dropdown
+                                                  [:li [:a {:style {:color "grey"}} "No results"]]]
+                                                 (into [:ul.dropdown-menu.scrollable-dropdown]
+                                                       (map (fn [v] [:li {:on-mouse-down (fn [] (set-text-value @component v))} [:a v]])
+                                                            filtered)))))))])))
 
 
 (defn constraint-operator []
@@ -131,7 +153,7 @@
                              :on-click (if-not disabled? (partial on-change op))}
                             [:a label]]))))))]))
 
-(defn constraint []
+(defn constraint [& {:keys [model path]}]
   "Creates a button group that represents a query constraint.
   :model      The Intermine model to use
   :path       The path of the constraint
@@ -141,43 +163,50 @@
   :on-change  A function to call with the new constraint
   :on-remove A function to call with the constraint is removed
   :label?     If true then include the path as a label"
-  (fn [& {:keys [lists model path value op code on-change
-                 on-select-list on-change-operator on-remove
-                 on-blur label? possible-values]}]
-    (let [class? (im-path/class? model path)]
-      [:div.constraint-component
-       [:div
-        {:style {:display "table"}}
-        [:div.input-group
-         [constraint-operator
-          :model model
-          :path path
-          ; Default to an OP if one has not been given
-          :op (or op (if class? "LOOKUP" "="))
-          :lists lists
-          :on-change (fn [op] (on-change-operator {:code code :path path :value value :op op}))]
-         (cond
-           ; If this is a LIST constraint then show a list dropdown
-           (or (= op "IN")
-               (= op "NOT IN")) [list-dropdown
-                                 :value value
-                                 :lists lists
-                                 :restrict-type (im-path/class model path)
-                                 :on-change (fn [list]
-                                              (on-select-list {:path path :value list :code code :op op}))]
-           ; Otherwise show a text input
-           :else [constraint-text-input
-                  :model model
-                  :value value
-                  :path path
-                  :allow-possible-values (and (not= op "IN") (not= op "NOT IN"))
-                  :possible-values possible-values
-                  :on-change (fn [val] (on-change {:path path :value val :op op :code code}))
-                  :on-blur (fn [val] (on-blur {:path path :value val :op op :code code}))])
-         (when code [:span.constraint-label code])]
-        (when on-remove [:i.fa.fa-trash-o.fa-fw.semilight.danger
-                         {:on-click (fn [op] (on-remove {:path path :value value :op op}))
-                          :style    {:display "table-cell" :vertical-align "middle"}}])]])))
+  (let [pv (subscribe [:current-possible-values path])]
+    (create-class
+      {:component-did-mount (fn []
+                              (when (nil? @pv)
+                                (dispatch [:cache/fetch-possible-values (split path ".")])))
+       :reagent-render      (fn [& {:keys [lists model path value op code on-change
+                                           on-select-list on-change-operator on-remove
+                                           on-blur label? possible-values typeahead?]}]
+                              (let [class? (im-path/class? model path)
+                                    op     (or op (if class? "LOOKUP" "="))]
+                                [:div.constraint-component
+                                 [:div
+                                  {:style {:display "table"}}
+                                  [:div.input-group
+                                   [constraint-operator
+                                    :model model
+                                    :path path
+                                    ; Default to an OP if one has not been given
+                                    :op op
+                                    :lists lists
+                                    :on-change (fn [op] (on-change-operator {:code code :path path :value value :op op}))]
+                                   (cond
+                                     ; If this is a LIST constraint then show a list dropdown
+                                     (or (= op "IN")
+                                         (= op "NOT IN")) [list-dropdown
+                                                           :value value
+                                                           :lists lists
+                                                           :restrict-type (im-path/class model path)
+                                                           :on-change (fn [list]
+                                                                        (on-select-list {:path path :value list :code code :op op}))]
+                                     ; Otherwise show a text input
+                                     :else [constraint-text-input
+                                            :model model
+                                            :value value
+                                            :typeahead? typeahead?
+                                            :path path
+                                            :allow-possible-values (and (not= op "IN") (not= op "NOT IN"))
+                                            :possible-values @pv
+                                            :on-change (fn [val] (on-change {:path path :value val :op op :code code}))
+                                            :on-blur (fn [val] (when on-blur (on-blur {:path path :value val :op op :code code})))])
+                                   (when code [:span.constraint-label code])]
+                                  (when on-remove [:i.fa.fa-trash-o.fa-fw.semilight.danger
+                                                   {:on-click (fn [op] (on-remove {:path path :value value :op op}))
+                                                    :style    {:display "table-cell" :vertical-align "middle"}}])]]))})))
 
 
 

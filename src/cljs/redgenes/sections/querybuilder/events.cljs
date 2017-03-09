@@ -421,9 +421,10 @@
   :qb/mappy-add-constraint
   (fn [{db :db} [_ view-vec]]
     (let [code (next-available-const-code (get-in db [:qb :mappy]))]
-      {:db       (update-in db [:qb :mappy] update-in (conj view-vec :constraints)
-                            (comp vec conj) {:code nil :op nil :value nil})
-       :dispatch [:qb/fetch-possible-values view-vec]})))
+      {:db         (update-in db [:qb :mappy] update-in (conj view-vec :constraints)
+                              (comp vec conj) {:code nil :op nil :value nil})
+       :dispatch-n [[:cache/fetch-possible-values view-vec]
+                    [:qb/fetch-possible-values view-vec]]})))
 ;:dispatch [:qb/build-im-query]
 
 

@@ -32,10 +32,10 @@
 
 (defn results-count-text [results-preview]
   (if (< (:iTotalRecords @results-preview) 1)
-   "No Results"
+    "No Results"
     (str "View "
-     (js/parseInt (:iTotalRecords @results-preview))
-     (if (> (:iTotalRecords @results-preview) 1) " rows" " row"))))
+         (js/parseInt (:iTotalRecords @results-preview))
+         (if (> (:iTotalRecords @results-preview) 1) " rows" " row"))))
 
 (defn preview-results
   "Preview results of template as configured by the user or default config"
@@ -43,39 +43,40 @@
   (let [fetching-preview? (subscribe [:template-chooser/fetching-preview?])
         results-preview   (subscribe [:template-chooser/results-preview])]
     [:div.col-xs-8.preview
-      [:h4 "Results Preview"]
-      [preview-table
-        :loading? @fetching-preview?
-        :query-results @results-preview]
-    [:button.btn.btn-primary.btn-raised.view-results
+     [:h4 "Results Preview"]
+     [preview-table
+      :loading? @fetching-preview?
+      :query-results @results-preview]
+     [:button.btn.btn-primary.btn-raised.view-results
       {:type     "button"
        :disabled (< (:iTotalRecords @results-preview) 1)
        :on-click (fn [] (dispatch [:templates/send-off-query]))}
-       (if @fetching-preview?
-         "Loading"
-         (results-count-text results-preview))]]))
+      (if @fetching-preview?
+        "Loading"
+        (results-count-text results-preview))]]))
 
 (defn select-template-settings
   "UI component to allow users to select template details, e.g. select a list to be in, lookup value grater than, less than, etc."
   [selected-template]
-  (let [service           (subscribe [:selected-template-service])
-        row-count         (subscribe [:template-chooser/count])
-        lists             (subscribe [:lists])]
+  (let [service   (subscribe [:selected-template-service])
+        row-count (subscribe [:template-chooser/count])
+        lists     (subscribe [:lists])]
     [:div.col-xs-4.border-right
-      (into [:form.form]
-         ; Only show editable constraints, but don't filter because we want the index!
-         (->> (keep-indexed (fn [idx con] (if (:editable con) [idx con])) (:where @selected-template))
-            (map (fn [[idx con]]
-              [constraint
-                :model (:model @service)
-                :path (:path con)
-                :value (:value con)
-                :op (:op con)
-                :label? true
-                :lists (second (first @lists))
-                :on-change (fn [new-constraint]
-                  (dispatch [:template-chooser/replace-constraint
-                    idx (merge con new-constraint)]))]))))]))
+     (into [:form.form]
+           ; Only show editable constraints, but don't filter because we want the index!
+           (->> (keep-indexed (fn [idx con] (if (:editable con) [idx con])) (:where @selected-template))
+                (map (fn [[idx con]]
+                       [constraint
+                        :model (:model @service)
+                        :typeahead? false
+                        :path (:path con)
+                        :value (:value con)
+                        :op (:op con)
+                        :label? true
+                        :lists (second (first @lists))
+                        :on-change (fn [new-constraint]
+                                     (dispatch [:template-chooser/replace-constraint
+                                                idx (merge con new-constraint)]))]))))]))
 
 (defn template
   "UI element for a single template." []
@@ -110,19 +111,19 @@
              filters-active? (or (some? @category-filter) (not (blank? @text-filter)))]
          (cond filters-active?
 
-           [:span
-            [:span
-              (cond @category-filter
-                (str " in the '" @category-filter "' category"))
-              (cond @text-filter
-                (str " containing the text '" @text-filter "'"))]
-            [:span ". Try "
-              [:a {:on-click
-                 (fn []
-                   (dispatch [:template-chooser/set-text-filter ""])
-                   (dispatch [:template-chooser/set-category-filter nil]))
-                 } "removing the filters"]
-            " to view more results. "]])
+               [:span
+                [:span
+                 (cond @category-filter
+                       (str " in the '" @category-filter "' category"))
+                 (cond @text-filter
+                       (str " containing the text '" @text-filter "'"))]
+                [:span ". Try "
+                 [:a {:on-click
+                      (fn []
+                        (dispatch [:template-chooser/set-text-filter ""])
+                        (dispatch [:template-chooser/set-category-filter nil]))
+                      } "removing the filters"]
+                 " to view more results. "]])
          )
        ])))
 

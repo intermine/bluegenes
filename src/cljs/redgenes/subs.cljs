@@ -4,6 +4,7 @@
             [redgenes.components.databrowser.subs]
             [redgenes.components.enrichment.subs]
             [redgenes.mines :as mines]
+            [clojure.string :refer [split]]
             [redgenes.sections.querybuilder.subs]
             [redgenes.components.search.subs]))
 
@@ -151,3 +152,11 @@
   :<- [:current-mine-name]
   (fn [[all-lists current-mine-name]]
     (get all-lists current-mine-name)))
+
+
+(reg-sub
+  :current-possible-values
+  :<- [:current-mine]
+  (fn [current-mine [_ path] ]
+    (get-in current-mine (apply conj [:possible-values] (split path ".")))))
+

@@ -25,7 +25,7 @@
 (defn dev-setup []
   (when config/debug?
     (devtools/install!)
-    ;(enable-re-frisk!)
+    (enable-re-frisk!)
     (println "dev mode")))
 
 (defn mount-root []

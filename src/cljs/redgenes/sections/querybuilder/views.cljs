@@ -189,7 +189,7 @@
                                    :lists @lists
                                    :code (:code con)
                                    :on-remove (fn [] (dispatch [:qb/mappy-remove-constraint path idx]))
-                                   :possible-values (when (some? (:possible-values properties)) (map :item (:possible-values properties)))
+                                   ;:possible-values (when (some? (:possible-values properties)) (map :item (:possible-values properties)))
                                    :value (:value con)
                                    :op (:op con)
                                    :on-select-list (fn [c]
