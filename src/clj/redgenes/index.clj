@@ -3,7 +3,7 @@
 
 ;;Hello dear maker of the internet. You want to edit *this* file for prod, NOT the index.html copy. Why did we configure it this way? It's not to drive you mad, I assure you. It's because figwheel likes to highjack routes at / and display a default page if there is no index.html in place. Naughty figwheel!
 
-(defn version [] (-> "project.clj" slurp read-string (nth 2)))
+(defn version [] (:version (-> "project.clj" slurp read-string (nth 2))))
 
 (def loader-style
   [:style
