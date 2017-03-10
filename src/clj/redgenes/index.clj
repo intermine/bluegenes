@@ -3,7 +3,7 @@
 
 ;;Hello dear maker of the internet. You want to edit *this* file for prod, NOT the index.html copy. Why did we configure it this way? It's not to drive you mad, I assure you. It's because figwheel likes to highjack routes at / and display a default page if there is no index.html in place. Naughty figwheel!
 
-(defn version [] (-> "project.clj" slurp read-string (nth 2)))
+(defn version [] (:version (-> "project.clj" slurp read-string (nth 2))))
 
 (def loader-style
   [:style
@@ -24,7 +24,7 @@
     [:meta {:charset "utf-8"}]
     [:meta {:content "width=device-width, initial-scale=1", :name "viewport"}]
     [:link {:rel "shortcut icon" :href "https://cdn.rawgit.com/intermine/design-materials/f5f00be4/logos/intermine/fav32x32.png" :type "image/png"}]
-    [:script {:src
+    #_[:script {:src
       "http://cdn.intermine.org/js/intermine/im-tables/2.0.0/imtables.min.js"}]
     [:script {:src
       "http://cdn.intermine.org/js/intermine/imjs/3.15.0/im.min.js"}]
@@ -34,6 +34,7 @@
       :src "https://code.jquery.com/jquery-3.1.0.min.js"}]
     ;[:script {:src "vendor/bootstrap-material-design/scripts/material.js"}]
     ;[:script {:src "vendor/bootstrap-material-design/scripts/ripples.js"}]
+    [:script {:src "vendor/bootstrap/dist/js/bootstrap.js"}]
     [:script {:src "vendor/bootstrap/js/tooltip.js"}]
     [:script {:src "vendor/bootstrap/js/popover.js"}]
   ]
