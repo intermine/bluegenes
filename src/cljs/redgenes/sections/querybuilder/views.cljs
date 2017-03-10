@@ -226,7 +226,8 @@
         [:div
          [:div "Please select at least one attribute from the Model Browser."]
          [:button.btn.btn-primary.btn-raised
-          {:on-click (fn [] (dispatch [:qb/load-query aquery]))}
+          {:on-click (fn [] (dispatch [:qb/load-example aquery]))}
+          ;{:on-click (fn [] (dispatch [:qb/load-query aquery]))}
           ;{:on-click (fn [] (println "finished" (listify nil)))}
 
           "Example"]]))))
@@ -388,8 +389,10 @@
                                  [:div
                                   [:span "Start with..."]
                                   ]
-                                 [root-class-dropdown]
-                                 [model-browser (:model (:service @current-mine)) (name @root-class)]]]
+                                 (when @root-class
+                                   [root-class-dropdown])
+                                 (when @root-class
+                                   [model-browser (:model (:service @current-mine)) (name @root-class)])]]
                                [:div.query-view-column
 
 

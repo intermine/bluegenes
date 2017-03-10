@@ -39,6 +39,12 @@
     {:db       (assoc-in db [:qb :query-map] query)
      :dispatch [:qb/build-im-query]}))
 
+(reg-event-fx
+  :qb/load-example
+  (fn [{db :db}]
+    (let [default-query (get-in db [:mines (get db :current-mine) :default-query-example])]
+      {:dispatch [:qb/load-query default-query]})))
+
 (reg-event-db
   :qb/store-possible-values
   (fn [db [_ view-vec results]]
@@ -317,23 +323,12 @@
 (reg-event-fx
   :qb/export-query
   (fn [{db :db} [_]]
-    (let [current-mine (get-in db [:current-mine])
-          query        (get-in db [:qb :im-query])
-          mappy        (get-in db [:qb :mappy])]
-      ;(map :code (mapcat :constraints (tree-seq map? vals query)))
-      )
     {:db       db
      :dispatch [:results/set-query
-                {:source :flymine-beta
+                {:source (get-in db [:current-mine])
                  :type   :query
                  :value  (get-in db [:qb :im-query])}]
-     :navigate (str "results")}
-    #_(when (get-in db [:qb :query-is-valid?])
-        {:dispatch [:results/set-query
-                    {:source :flymine-beta
-                     :type   :query
-                     :value  (get-in db [:qb :im-query])}]
-         :navigate (str "results")})))
+     :navigate (str "results")}))
 
 (defn within? [col item]
   (some? (some #{item} col)))

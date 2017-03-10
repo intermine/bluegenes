@@ -90,7 +90,7 @@
 (defn remove-stateful-keys-from-db
   "Any tools / components that have mine-specific state should lose that state if we switch mines. For example, in list upload (ID Resolver), drosophila IDs are no longer valid when using humanmine."
   [db]
-  (dissoc db :regions :idresolver :results))
+  (dissoc db :regions :idresolver :results :qb))
 
 (reg-event-fx
   :reboot
