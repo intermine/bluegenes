@@ -66,26 +66,26 @@
           ;                                        :service {:root "www.humanmine.org/humanmine"}}}
           ;   ;  :url "beta.humanmine.org/beta"
           ;   ;  :service {:root "beta.humanmine.org/beta"}}}
-          ;   :flymine       {:id                 :flymine
-          ;                   :service            {:root "www.flymine.org/query" :token nil}
-          ;                   :name               "FlyMine"
-          ;                   :common             "Fly"
-          ;                   :icon               "icon-fly"
-          ;                   :status             {:status :na}
-          ;                   :output?            true
-          ;                   :abbrev             "D. melanogaster"
-          ;                   :default-object-types   ["Gene" "Protein"]
-          ;                   :default-selected-object-type :Gene
-          ;                   :idresolver-example {:Gene "CG9151, FBgn0000099, CG3629, TfIIB, Mad, CG1775, CG2262, TWIST_DROME, tinman, runt, E2f, CG8817, FBgn0010433, CG9786, CG1034, ftz, FBgn0024250, FBgn0001251, tll, CG1374, CG33473, ato, so, CG16738, tramtrack,  CG2328, gt"
-          ;                   :Protein "Q8T3M3,FBpp0081318,FTZ_DROME"}
-          ;                   :regionsearch-example ["2L:14615455..14619002"
-          ;                                           "2R:5866646..5868384"
-          ;                                           "3R:2578486..2580016"]
-          ;                   :mine
-          ;                                       {:name    "FlyMine"
-          ;                                        :url     "www.flymine.org/query"
-          ;                                        :service {:root "www.flymine.org/query"}}}
-          ;
+            :flymine       {:id                 :flymine
+                            :service            {:root "www.flymine.org/query" :token nil}
+                            :name               "FlyMine"
+                            :common             "Fly"
+                            :icon               "icon-fly"
+                            :status             {:status :na}
+                            :output?            true
+                            :abbrev             "D. melanogaster"
+                            :default-object-types   ["Gene" "Protein"]
+                            :default-selected-object-type :Gene
+                            :idresolver-example {:Gene "CG9151, FBgn0000099, CG3629, TfIIB, Mad, CG1775, CG2262, TWIST_DROME, tinman, runt, E2f, CG8817, FBgn0010433, CG9786, CG1034, ftz, FBgn0024250, FBgn0001251, tll, CG1374, CG33473, ato, so, CG16738, tramtrack,  CG2328, gt"
+                            :Protein "Q8T3M3,FBpp0081318,FTZ_DROME"}
+                            :regionsearch-example ["2L:14615455..14619002"
+                                                    "2R:5866646..5868384"
+                                                    "3R:2578486..2580016"]
+                            :mine
+                                                {:name    "FlyMine"
+                                                 :url     "www.flymine.org/query"
+                                                 :service {:root "www.flymine.org/query"}}}
+
           :humanmine-beta  {:id                 :humanmine-beta
                             :service            {:root "beta.humanmine.org/beta" :token nil}
                             :name               "HumanMine Beta"
@@ -129,7 +129,7 @@
             :beanmine  {:id         :beanmine
                 :service            {:root "mines.legumeinfo.org/beanmine" :token nil}
                 :name               "BeanMine"
-                :common             "Bean"
+                :common             "String Bean"
                 :icon               "icon-intermine"
                 :status             {:status :na}
                 :output?            true
@@ -145,6 +145,46 @@
                                     {:name    "BeanMine"
                                      :url     "mines.legumeinfo.org/beanmine"
                                      :service {:root "mines.legumeinfo.org/beanmine"}}}
+
+            :soymine  {:id         :soymine
+                :service            {:root "mines.legumeinfo.org/soymine" :token nil}
+                :name               "SoyMine"
+                :common             "Soy"
+                :icon               "icon-intermine"
+                :status             {:status :na}
+                :output?            true
+                :abbrev             "G. max"
+                :default-object-types   [:Gene] ;;there are other 'default' identifers but they have no examples so I'm not adding them right now.
+                :default-organism   "G. max"
+                :default-selected-object-type :Gene
+                :regionsearch-example ["Chr01:1000000..2000000"]
+                :idresolver-example {:Gene "Glyma.16G153700"}
+                :mine
+                                    {:name    "SoyMine"
+                                     :url     "mines.legumeinfo.org/soymine"
+                                     :service {:root "mines.legumeinfo.org/soymine"}}}
+
+
+
+            ; :peanutmine  {:id         :peanutmine
+            ;     :service            {:root "mines.legumeinfo.org/peanutmine" :token nil}
+            ;     :name               "PeanutMine"
+            ;     :common             "Peanut"
+            ;     :icon               "icon-intermine"
+            ;     :status             {:status :na}
+            ;     :output?            true
+            ;     :abbrev             "A. hypogaea"
+            ;     :default-object-types   [:Gene] ;;there are other 'default' identifers but they have no examples so I'm not adding them right now.
+            ;     :default-organism   "A. hypogaea"
+            ;     :default-selected-object-type :Gene
+            ;     :regionsearch-example ["aradu.Chr01:29733..37349"
+            ;                           "araip.Chr03:393758..394189"
+            ;                           "araip.Chr10:1495567..1503324"]
+            ;     :idresolver-example {:Gene "Glyma.16G153700"}
+            ;     :mine
+            ;                         {:name    "SoyMine"
+            ;                          :url     "mines.legumeinfo.org/soymine"
+            ;                          :service {:root "mines.legumeinfo.org/soymine"}}}
 
             :legumemine  {:id         :legumemine
                 :service            {:root "intermine.legumefederation.org/legumemine" :token nil}
@@ -235,26 +275,26 @@
             ;                                      ;    :service {:root "im-253.wormbase.org/tools/wormmine"}}}
             ;                                      :url     "intermine.wormbase.org/tools/wormmine"
             ;                                      :service {:root "intermine.wormbase.org/tools/wormmine"}}}
-            ; :yeastmine     {:id                 :yeastmine
-            ;                 :service            {:root "yeastmine.yeastgenome.org/yeastmine"}
-            ;                 :name               "YeastMine"
-            ;                 :output?            true
-            ;                 :common             "Yeast"
-            ;                 :icon               "icon-yeast"
-            ;                 :abbrev             "S. cerevisiae"
-            ;                 :default-object-types   [:Gene]
-            ;                 :default-selected-object-type :Gene
-            ;                 :default-organism   "S. cerevisiae"
-            ;                 :status             {:status :na}
-            ;                 :idresolver-example "rad51; rad52; rad53; ddc1; rad55; rad57; spo11; dmc1; rad17; rad9; rad24; msh1; msh5; mre11; xrs2; ndt80; tid1; ssb1; pre3; acr1; doa3; rad54; ssf1"
-            ;                 :regionsearch-example ["chrIII:1356..20455"
-            ;                                       "chrIV:11331..18001"
-            ;                                       "chrVI:9856..100010"]
-            ;                 :mine
-            ;                                     {:name    "YeastMine"
-            ;                                      :url     "yeastmine.yeastgenome.org/yeastmine"
-            ;                                      :service {:root "yeastmine.yeastgenome.org/yeastmine"}}}
-            ;
+            :yeastmine     {:id                 :yeastmine
+                            :service            {:root "yeastmine-test-aws.yeastgenome.org/yeastmine-dev/"}
+                            :name               "YeastMine"
+                            :output?            true
+                            :common             "Yeast"
+                            :icon               "icon-yeast"
+                            :abbrev             "S. cerevisiae"
+                            :default-object-types   [:Gene]
+                            :default-selected-object-type :Gene
+                            :default-organism   "S. cerevisiae"
+                            :status             {:status :na}
+                            :idresolver-example "rad51; rad52; rad53; ddc1; rad55; rad57; spo11; dmc1; rad17; rad9; rad24; msh1; msh5; mre11; xrs2; ndt80; tid1; ssb1; pre3; acr1; doa3; rad54; ssf1"
+                            :regionsearch-example ["chrIII:1356..20455"
+                                                  "chrIV:11331..18001"
+                                                  "chrVI:9856..100010"]
+                            :mine
+                                                {:name    "YeastMine"
+                                                 :url     "yeastmine.yeastgenome.org/yeastmine"
+                                                 :service {:root "yeastmine.yeastgenome.org/yeastmine"}}}
+
             ; :mitominer     {:id                 :mitominer
             ;                 :service            {:root "mitominer.mrc-mbu.cam.ac.uk/release-4.0"}
             ;                 :name               "MitoMiner"
