@@ -1,4 +1,4 @@
-(def props {:version "0.4.0-alpha-candidate-3.7"})
+(def props {:version "0.4.0-alpha"})
 
 
 (defproject redgenes (:version props)
@@ -177,6 +177,3 @@
                    ;; How often should this repository be checked for
                    ;; snapshot updates? (:daily, :always, or :never)
                    :update :always}]])
-
-
-
