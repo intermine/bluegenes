@@ -107,9 +107,9 @@
     raise))
 
 (defn read-logic-string [s]
-  (-> s
-      wrap-string-in-brackets
-      read-string
-      list->vec
-      group-ands
-      raise))
+  (some-> s
+          wrap-string-in-brackets
+          read-string
+          list->vec
+          group-ands
+          raise))
