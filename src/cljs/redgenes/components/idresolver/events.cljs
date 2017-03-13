@@ -158,15 +158,17 @@
   (fn [db [_ tf]]
     (assoc-in db [:idresolver :select-range] tf)))
 
-(reg-event-db
-  :idresolver/set-selected-organism
-  (fn [db [_ organism]]
-    (assoc-in db [:idresolver :selected-organism] organism)))
-
 (defn pull-inputs-from-id-resolver [db]
   (let [bank (get-in db [:idresolver :bank])]
     (reduce (fn [new-idlist id] (conj new-idlist (:input id))) [] bank)
-  ))
+    ))
+
+(reg-event-fx
+  :idresolver/set-selected-organism
+  (fn [{db :db} [_ organism]]
+    {:db (assoc-in db [:idresolver :selected-organism] organism)
+     :dispatch [:idresolver/resolve (pull-inputs-from-id-resolver db)]}))
+
 
 (reg-event-fx
   :idresolver/set-selected-object-type
