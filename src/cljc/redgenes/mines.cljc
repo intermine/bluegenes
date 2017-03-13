@@ -7,216 +7,162 @@
   {:kittenmine
    {;;This is just a keyword to identify your mine. It could
     ;;be almost anything, but must be consistent with the map key
-    :id                           :kittenmine
+    :id                 :kittenmine
     ;;The web servce URL for your mine
-    :service                      {:root "www.kittenmine.org/query" :token nil}
+    :service            {:root "www.kittenmine.org/query" :token nil}
     ;; The name of your Mine. This will show in the navbar
-    :name                         "KittenMine"
+    :name               "KittenMine"
     ;; DEPRECATED - common name for your mine's organism. This may be
     ;; removed in the future b/c mines are multi-organism . (Homology)
-    :common                       "Fly"
+    :common             "Fly"
     ;; Probably deprecated as above
-    :abbrev                       "D. melanogaster"
+    :abbrev             "D. melanogaster"
     ;; The name for an icon to represent your InterMine. Should be
     ;; defined as an SVG in src/cljs/redgenes/components/icons.cljs
     ;; It will appear in the top-left corner of the navbar.
-    :icon                         "icon-kitten"
+    :icon               "icon-kitten"
     ;; Mines have default "popular" object types that aren't available via the API
     ;; This is the workaround. When in doubt,[:Gene] is a good bet.
     ;; Also update selected object-type when you change the default types.
-    :default-object-types         [:Gene :Protein]
+    :default-object-types   [:Gene :Protein]
     ;; This must be one of the types in default-object type, even if there's more than one. Initial / default value for the query
     :default-selected-object-type :Gene
     ;; Must be set to initialise organism dropdowns correctly
-    :default-organism             "D. melanogaster"
+    :default-organism   "D. melanogaster"
     ;; What to populates the list upload / id resolver with when user clicks
     ;; [Show me an example]. Make sure IDs are consistent with the
     ;; selected-object-type and default organism.
-    :idresolver-example           {:Gene    "CG9151, FBgn0000099, CG3629, TfIIB, Mad, CG1775, CG2262, TWIST_DROME, tinman, runt, E2f, CG8817, FBgn0010433, CG9786, CG1034, ftz, FBgn0024250, FBgn0001251, tll, CG1374, CG33473, ato, so, CG16738, tramtrack,  CG2328, gt"
-                                   :Protein "Q8T3M3,FBpp0081318,FTZ_DROME"}
+    :idresolver-example {:Gene "CG9151, FBgn0000099, CG3629, TfIIB, Mad, CG1775, CG2262, TWIST_DROME, tinman, runt, E2f, CG8817, FBgn0010433, CG9786, CG1034, ftz, FBgn0024250, FBgn0001251, tll, CG1374, CG33473, ato, so, CG16738, tramtrack,  CG2328, gt"
+                         :Protein "Q8T3M3,FBpp0081318,FTZ_DROME"}
     ;;What to populate in regionsearch when user clicks [Show me an example].
     ;;This is optional if your mine doesn't have region search. If you don't include
     ;;it, the regionsearch tab won't show.
-    :regionsearch-example         ["2L:14615455..14619002"
-                                   "2R:5866646..5868384"
-                                   "3R:2578486..2580016"]}})
+    :regionsearch-example ["2L:14615455..14619002"
+                            "2R:5866646..5868384"
+                            "3R:2578486..2580016"]}})
 
 
 
-(def mines {
-            ; :humanmine     {:id                 :humanmine
-            ;                   :service            {:root "www.humanmine.org/humanmine" :token nil}
-            ;                   :name               "HumanMine"
-            ;                   :common             "Human"
-            ;                   :icon               "icon-human"
-            ;                   :output?            true
-            ;                   :abbrev             "H. sapiens"
-            ;                   :default-organism   "H. sapiens"
-            ;                   :default-object-types   ["Gene" "Protein"]
-            ;                   :default-selected-object-type :Gene
-            ;                   :status             {:status :na}
-            ;                   :idresolver-example {:Gene "PPARG, FTO, 3949, LEP, 946, MC3R, 9607, LPL, LDLR, P55916, 335, GLUT4, Notch1, SLC27A1"
-            ;                   :Protein "P37231, PPARG_HUMAN"}
-            ;                   :regionsearch-example ["2:14615455..14619002"
-            ;                                          "4:5866646..5868384"
-            ;                                          "3:2578486..2580016"]
-            ;                   :mine
-            ;                                       {:name    "HumanMine"
-            ;                                        :url     "www.humanmine.org/humanmine"
-            ;                                        :service {:root "www.humanmine.org/humanmine"}}}
-            ;   ;  :url "beta.humanmine.org/beta"
-            ;   ;  :service {:root "beta.humanmine.org/beta"}}}
-            ;   :flymine       {:id                 :flymine
-            ;                   :service            {:root "www.flymine.org/query" :token nil}
-            ;                   :name               "FlyMine"
-            ;                   :common             "Fly"
-            ;                   :icon               "icon-fly"
-            ;                   :status             {:status :na}
-            ;                   :output?            true
-            ;                   :abbrev             "D. melanogaster"
-            ;                   :default-object-types   ["Gene" "Protein"]
-            ;                   :default-selected-object-type :Gene
-            ;                   :idresolver-example {:Gene "CG9151, FBgn0000099, CG3629, TfIIB, Mad, CG1775, CG2262, TWIST_DROME, tinman, runt, E2f, CG8817, FBgn0010433, CG9786, CG1034, ftz, FBgn0024250, FBgn0001251, tll, CG1374, CG33473, ato, so, CG16738, tramtrack,  CG2328, gt"
-            ;                   :Protein "Q8T3M3,FBpp0081318,FTZ_DROME"}
-            ;                   :regionsearch-example ["2L:14615455..14619002"
-            ;                                           "2R:5866646..5868384"
-            ;                                           "3R:2578486..2580016"]
-            ;                   :mine
-            ;                                       {:name    "FlyMine"
-            ;                                        :url     "www.flymine.org/query"
-            ;                                        :service {:root "www.flymine.org/query"}}}
-            ;
-            :humanmine-beta {:id                           :humanmine-beta
-                             :service                      {:root "beta.humanmine.org/beta" :token nil}
-                             :name                         "HumanMine Beta"
-                             :common                       "Human"
-                             :icon                         "icon-human"
-                             :abbrev                       "H. sapiens"
-                             :default-organism             "H. sapiens"
-                             :default-object-types         [:Gene :Protein]
-                             :default-selected-object-type :Gene
-                             :idresolver-example           {:Gene    "PPARG, FTO, 3949, LEP, 946, MC3R, 9607, LPL, LDLR, P55916, 335, GLUT4, Notch1, SLC27A1"
-                                                            :Protein "P37231, PPARG_HUMAN"}
-                             :regionsearch-example         ["2:14615455..14619002"
-                                                            "4:5866646..5868384"
-                                                            "3:2578486..2580016"]
-                             :default-query-example        {:from            "Gene"
-                                                            :constraintLogic "A and B"
-                                                            :select          ["primaryIdentifier"
-                                                                              "symbol"
-                                                                              "name"
-                                                                              "goAnnotation.ontologyTerm.identifier"
-                                                                              "goAnnotation.ontologyTerm.name"
-                                                                              "organism.shortName"
-                                                                              ]
-                                                            :where           [{:path  "goAnnotation.ontologyTerm.name"
-                                                                               :op    "="
-                                                                               :code  "A"
-                                                                               :value "DNA binding"}
-                                                                              {:path  "organism.shortName"
-                                                                               :op    "="
-                                                                               :code  "B"
-                                                                               :value "H. sapiens"}]}
-                             :mine
-                                                           {:name    "HumanMine"
-                                                            :url     "beta.humanmine.org/beta"
-                                                            :service {:root "beta.humanmine.org/beta"}}}
+(def mines  {
+          ; :humanmine     {:id                 :humanmine
+          ;                   :service            {:root "www.humanmine.org/humanmine" :token nil}
+          ;                   :name               "HumanMine"
+          ;                   :common             "Human"
+          ;                   :icon               "icon-human"
+          ;                   :output?            true
+          ;                   :abbrev             "H. sapiens"
+          ;                   :default-organism   "H. sapiens"
+          ;                   :default-object-types   ["Gene" "Protein"]
+          ;                   :default-selected-object-type :Gene
+          ;                   :status             {:status :na}
+          ;                   :idresolver-example {:Gene "PPARG, FTO, 3949, LEP, 946, MC3R, 9607, LPL, LDLR, P55916, 335, GLUT4, Notch1, SLC27A1"
+          ;                   :Protein "P37231, PPARG_HUMAN"}
+          ;                   :regionsearch-example ["2:14615455..14619002"
+          ;                                          "4:5866646..5868384"
+          ;                                          "3:2578486..2580016"]
+          ;                   :mine
+          ;                                       {:name    "HumanMine"
+          ;                                        :url     "www.humanmine.org/humanmine"
+          ;                                        :service {:root "www.humanmine.org/humanmine"}}}
+          ;   ;  :url "beta.humanmine.org/beta"
+          ;   ;  :service {:root "beta.humanmine.org/beta"}}}
+          :flymine  {:id                 :flymine
+                          :service            {:root "www.flymine.org/query" :token nil}
+                          :name               "Flymine"
+                          :common             "Fly"
+                          :icon               "icon-fly"
+                          :status             {:status :na}
+                          :output?            true
+                          :abbrev             "D. melanogaster"
+                          :default-object-types   [:Gene :Protein]
+                          :default-organism   "D. melanogaster"
+                          :default-selected-object-type :Gene
+                          :regionsearch-example ["2L:14615455..14619002"
+                                                  "2R:5866646..5868384"
+                                                  "3R:2578486..2580016"]
+                          :idresolver-example {:Gene "CG9151, FBgn0000099, CG3629, TfIIB, Mad, CG1775, CG2262, TWIST_DROME, tinman, runt, E2f, CG8817, FBgn0010433, CG9786, CG1034, ftz, FBgn0024250, FBgn0001251, tll, CG1374, CG33473, ato, so, CG16738, tramtrack,  CG2328, gt"
+                                               :Protein "Q8T3M3,FBpp0081318,FTZ_DROME"}
+                          :mine
+                                              {:name    "FlyMine"
+                                               :url     "www.flymine.org/query"
+                                               :service {:root "www.flymine.org/query"}}}
+          :humanmine-beta  {:id                 :humanmine-beta
+                            :service            {:root "beta.humanmine.org/beta" :token nil}
+                            :name               "HumanMine Beta"
+                            :common             "Human"
+                            :icon               "icon-human"
+                            :abbrev             "H. sapiens"
+                            :default-organism   "H. sapiens"
+                            :default-object-types   [:Gene :Protein]
+                            :default-selected-object-type :Gene
+                            :idresolver-example {:Gene "PPARG, FTO, 3949, LEP, 946, MC3R, 9607, LPL, LDLR, P55916, 335, GLUT4, Notch1, SLC27A1"
+                                                 :Protein "P37231, PPARG_HUMAN"}
+                            :regionsearch-example ["2:14615455..14619002"
+                                                   "4:5866646..5868384"
+                                                   "3:2578486..2580016"]
+                            :mine
+                                                {:name    "HumanMine"
+                                                 :url     "beta.humanmine.org/beta"
+                                                 :service {:root "beta.humanmine.org/beta"}}}
 
-            :flymine-beta   {:id                           :flymine-beta
-                             :service                      {:root "beta.flymine.org/beta" :token nil}
-                             :name                         "Flymine Beta"
-                             :common                       "Fly"
-                             :icon                         "icon-fly"
-                             :status                       {:status :na}
-                             :output?                      true
-                             :abbrev                       "D. melanogaster"
-                             :default-object-types         [:Gene :Protein]
-                             :default-organism             "D. melanogaster"
-                             :default-selected-object-type :Gene
-                             :regionsearch-example         ["2L:14615455..14619002"
-                                                            "2R:5866646..5868384"
-                                                            "3R:2578486..2580016"]
-                             :idresolver-example           {:Gene    "CG9151, FBgn0000099, CG3629, TfIIB, Mad, CG1775, CG2262, TWIST_DROME, tinman, runt, E2f, CG8817, FBgn0010433, CG9786, CG1034, ftz, FBgn0024250, FBgn0001251, tll, CG1374, CG33473, ato, so, CG16738, tramtrack,  CG2328, gt"
-                                                            :Protein "Q8T3M3,FBpp0081318,FTZ_DROME"}
-                             :default-query-example        {:from            "Gene"
-                                                            :constraintLogic "A or B"
-                                                            :select          ["symbol"
-                                                                              "organism.name"
-                                                                              "alleles.symbol"
-                                                                              "alleles.phenotypeAnnotations.annotationType"
-                                                                              "alleles.phenotypeAnnotations.description"
-                                                                              ]
-                                                            :where           [{:path  "Gene.symbol"
-                                                                               :op    "="
-                                                                               :code  "A"
-                                                                               :value "zen"}
-                                                                              {:path  "Gene.symbol"
-                                                                               :op    "="
-                                                                               :code  "B"
-                                                                               :value "mad"}]}
-                             :mine
-                                                           {:name    "FlyMine"
-                                                            ;:url "beta.flymine.org/beta"
-                                                            :url     "beta.flymine.org/beta"
-                                                            :service {:root "beta.flymine.org/beta"}}}
-            :beanmine       {:id                           :beanmine
-                             :service                      {:root "mines.legumeinfo.org/beanmine" :token nil}
-                             :name                         "BeanMine"
-                             :common                       "Bean"
-                             :icon                         "icon-intermine"
-                             :status                       {:status :na}
-                             :output?                      true
-                             :abbrev                       "P. vulgaris"
-                             :default-object-types         [:Gene] ;;there are other 'default' identifers but they have no examples so I'm not adding them right now.
-                             :default-organism             "P. vulgaris"
-                             :default-selected-object-type :Gene
-                             :regionsearch-example         ["phavu.Chr01:29733..37349"
-                                                            "phavu.Chr01:393758..394189"
-                                                            "phavu.Chr07:1495567..1503324"]
-                             :idresolver-example           {:Gene "Phvul.001G011500"}
-                             :default-query-example        {:from   "Gene"
-                                                            :select ["primaryIdentifier"
-                                                                     "length"
-                                                                     "goAnnotation.ontologyTerm.identifier"
-                                                                     "goAnnotation.ontologyTerm.name"
-                                                                     "goAnnotation.ontologyTerm.description"
-                                                                     ]
-                                                            :where  [{:path  "Gene.length"
-                                                                      :op    "<"
-                                                                      :code  "A"
-                                                                      :value "222"}]}
-                             :mine
-                                                           {:name    "BeanMine"
-                                                            :url     "mines.legumeinfo.org/beanmine"
-                                                            :service {:root "mines.legumeinfo.org/beanmine"}}}
+            :flymine-beta  {:id                 :flymine-beta
+                            :service            {:root "beta.flymine.org/beta" :token nil}
+                            :name               "Flymine Beta"
+                            :common             "Fly"
+                            :icon               "icon-fly"
+                            :status             {:status :na}
+                            :output?            true
+                            :abbrev             "D. melanogaster"
+                            :default-object-types   [:Gene :Protein]
+                            :default-organism   "D. melanogaster"
+                            :default-selected-object-type :Gene
+                            :regionsearch-example ["2L:14615455..14619002"
+                                                    "2R:5866646..5868384"
+                                                    "3R:2578486..2580016"]
+                            :idresolver-example {:Gene "CG9151, FBgn0000099, CG3629, TfIIB, Mad, CG1775, CG2262, TWIST_DROME, tinman, runt, E2f, CG8817, FBgn0010433, CG9786, CG1034, ftz, FBgn0024250, FBgn0001251, tll, CG1374, CG33473, ato, so, CG16738, tramtrack,  CG2328, gt"
+                                                 :Protein "Q8T3M3,FBpp0081318,FTZ_DROME"}
+                            :mine
+                                                {:name    "FlyMine"
+                                                 ;:url "beta.flymine.org/beta"
+                                                 :url     "beta.flymine.org/beta"
+                                                 :service {:root "beta.flymine.org/beta"}}}
+            :beanmine  {:id         :beanmine
+                :service            {:root "mines.legumeinfo.org/beanmine" :token nil}
+                :name               "BeanMine"
+                :common             "Bean"
+                :icon               "icon-intermine"
+                :status             {:status :na}
+                :output?            true
+                :abbrev             "P. vulgaris"
+                :default-object-types   [:Gene] ;;there are other 'default' identifers but they have no examples so I'm not adding them right now.
+                :default-organism   "P. vulgaris"
+                :default-selected-object-type :Gene
+                :regionsearch-example ["phavu.Chr01:29733..37349"
+                                       "phavu.Chr01:393758..394189"
+                                       "phavu.Chr07:1495567..1503324"]
+                :idresolver-example {:Gene "Phvul.001G011500"}
+                :mine
+                                    {:name    "BeanMine"
+                                     :url     "mines.legumeinfo.org/beanmine"
+                                     :service {:root "mines.legumeinfo.org/beanmine"}}}
 
-            :legumemine     {:id                           :legumemine
-                             :service                      {:root "intermine.legumefederation.org/legumemine" :token nil}
-                             :name                         "LegumeMine"
-                             :common                       "Legume"
-                             :icon                         "icon-intermine"
-                             :status                       {:status :na}
-                             :output?                      true
-                             :abbrev                       "G. max"
-                             :default-object-types         [:Gene] ;;there are other 'default' identifers but they have no examples so I'm not adding them right now.
-                             :default-organism             "G. max"
-                             :default-selected-object-type :Gene
-                             :regionsearch-example         ["phavu.Chr01:1000000..2000000"]
-                             :idresolver-example           {:Gene "Glyma.16G153700"}
-                             :default-query-example        {:from   "Gene"
-                                                            :select ["primaryIdentifier"
-                                                                     "length"
-                                                                     "goAnnotation.ontologyTerm.identifier"
-                                                                     "goAnnotation.ontologyTerm.name"
-                                                                     "goAnnotation.ontologyTerm.description"
-                                                                     ]
-                                                            :where  [{:path  "Gene.length"
-                                                                      :op    "<"
-                                                                      :code  "A"
-                                                                      :value "222"}]}
-                             :mine                         {:name    "LegumeMine"
-                                                            :url     "intermine.legumefederation.org/legumemine"
-                                                            :service {:root "intermine.legumefederation.org/legumemine"}}}
+            :legumemine  {:id         :legumemine
+                :service            {:root "intermine.legumefederation.org/legumemine" :token nil}
+                :name               "LegumeMine"
+                :common             "Legume"
+                :icon               "icon-intermine"
+                :status             {:status :na}
+                :output?            true
+                :abbrev             "G. max"
+                :default-object-types   [:Gene] ;;there are other 'default' identifers but they have no examples so I'm not adding them right now.
+                :default-organism   "G. max"
+                :default-selected-object-type :Gene
+                :regionsearch-example ["phavu.Chr01:1000000..2000000"]
+                :idresolver-example {:Gene "Glyma.16G153700"}
+                :mine
+                                    {:name    "LegumeMine"
+                                     :url     "intermine.legumefederation.org/legumemine"
+                                     :service {:root "intermine.legumefederation.org/legumemine"}}}
 
             ; :mousemine     {:id                 :mousemine
             ;                 :service            {:root "www.mousemine.org/mousemine"}
@@ -289,38 +235,26 @@
             ;                                      ;    :service {:root "im-253.wormbase.org/tools/wormmine"}}}
             ;                                      :url     "intermine.wormbase.org/tools/wormmine"
             ;                                      :service {:root "intermine.wormbase.org/tools/wormmine"}}}
-            :yeastmine      {:id                           :yeastmine
-                             :service                      {:root "yeastmine-test-aws.yeastgenome.org/yeastmine-dev/"}
-                             :name                         "YeastMine"
-                             :output?                      true
-                             :common                       "Yeast"
-                             :icon                         "icon-yeast"
-                             :abbrev                       "S. cerevisiae"
-                             :default-object-types         [:Gene]
-                             :default-selected-object-type :Gene
-                             :default-organism             "S. cerevisiae"
-                             :status                       {:status :na}
-                             :idresolver-example           {:Gene "rad51; rad52; rad53; ddc1; rad55; rad57; spo11; dmc1; rad17; rad9; rad24; msh1; msh5; mre11; xrs2; ndt80; tid1; ssb1; pre3; acr1; doa3; rad54; ssf1"}
-                             :regionsearch-example         ["chrIII:1356..20455"
-                                                            "chrIV:11331..18001"
-                                                            "chrVI:9856..100010"]
-                             :default-query-example        {:from   "Phenotype"
-                                                            :select ["genes.primaryIdentifier"
-                                                                     "genes.secondaryIdentifier"
-                                                                     "genes.symbol"
-                                                                     "genes.qualifier"
-                                                                     "genes.sgdAlias"
-                                                                     "experimentType"
-                                                                     "mutantType"
-                                                                     "observable"]
-                                                            :where  [{:path  "observable"
-                                                                      :op    "="
-                                                                      :value "Protein secretion"
-                                                                      :code "A"}]}
-                             :mine                         {:name    "YeastMine"
-                                                            :url     "yeastmine.yeastgenome.org/yeastmine"
-                                                            :service {:root "yeastmine.yeastgenome.org/yeastmine"}}}
-
+            ; :yeastmine     {:id                 :yeastmine
+            ;                 :service            {:root "yeastmine.yeastgenome.org/yeastmine"}
+            ;                 :name               "YeastMine"
+            ;                 :output?            true
+            ;                 :common             "Yeast"
+            ;                 :icon               "icon-yeast"
+            ;                 :abbrev             "S. cerevisiae"
+            ;                 :default-object-types   [:Gene]
+            ;                 :default-selected-object-type :Gene
+            ;                 :default-organism   "S. cerevisiae"
+            ;                 :status             {:status :na}
+            ;                 :idresolver-example "rad51; rad52; rad53; ddc1; rad55; rad57; spo11; dmc1; rad17; rad9; rad24; msh1; msh5; mre11; xrs2; ndt80; tid1; ssb1; pre3; acr1; doa3; rad54; ssf1"
+            ;                 :regionsearch-example ["chrIII:1356..20455"
+            ;                                       "chrIV:11331..18001"
+            ;                                       "chrVI:9856..100010"]
+            ;                 :mine
+            ;                                     {:name    "YeastMine"
+            ;                                      :url     "yeastmine.yeastgenome.org/yeastmine"
+            ;                                      :service {:root "yeastmine.yeastgenome.org/yeastmine"}}}
+            ;
             ; :mitominer     {:id                 :mitominer
             ;                 :service            {:root "mitominer.mrc-mbu.cam.ac.uk/release-4.0"}
             ;                 :name               "MitoMiner"
