@@ -214,7 +214,7 @@
                                                                       :op    "<"
                                                                       :code  "A"
                                                                       :value "222"}]}
-                             :mine {:name    "LegumeMine"
+                             :mine                         {:name    "LegumeMine"
                                                             :url     "intermine.legumefederation.org/legumemine"
                                                             :service {:root "intermine.legumefederation.org/legumemine"}}}
 
@@ -304,6 +304,19 @@
                              :regionsearch-example         ["chrIII:1356..20455"
                                                             "chrIV:11331..18001"
                                                             "chrVI:9856..100010"]
+                             :default-query-example        {:from   "Phenotype"
+                                                            :select ["genes.primaryIdentifier"
+                                                                     "genes.secondaryIdentifier"
+                                                                     "genes.symbol"
+                                                                     "genes.qualifier"
+                                                                     "genes.sgdAlias"
+                                                                     "experimentType"
+                                                                     "mutantType"
+                                                                     "observable"]
+                                                            :where  [{:path  "observable"
+                                                                      :op    "="
+                                                                      :value "Protein secretion"
+                                                                      :code "A"}]}
                              :mine                         {:name    "YeastMine"
                                                             :url     "yeastmine.yeastgenome.org/yeastmine"
                                                             :service {:root "yeastmine.yeastgenome.org/yeastmine"}}}
