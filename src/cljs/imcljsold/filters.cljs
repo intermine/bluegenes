@@ -124,7 +124,6 @@
 (defn get-parts
   "Get all of the different parts of an intermine query and group them by type"
   [model query]
-  (.log js/console "query" query)
   (group-by :type
             (distinct
               (map (fn [path]
