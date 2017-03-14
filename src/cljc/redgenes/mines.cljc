@@ -39,7 +39,7 @@
     ;;it, the regionsearch tab won't show.
     :regionsearch-example         ["2L:14615455..14619002"
                                    "2R:5866646..5868384"
-                                   "3R:2578486..2580016"]}
+                                   "3R:2578486..2580016"]
    ;;this is for the "example query" button in the query builder. Create an example that will produce interesting
    ;;results but ideally not hundreds of rows - include a constraint in the example too.
     :default-query-example        { :from   "Gene"
@@ -47,54 +47,86 @@
                                     :where  [{:path  "Gene.symbol"
                                               :op    "="
                                               :code  "A"
-                                              :value "GATA1"}]}
+                                              :value "GATA1"}]}}
 })
 
 
 
 (def mines {
-            ; :humanmine     {:id                 :humanmine
-            ;                   :service            {:root "www.humanmine.org/humanmine" :token nil}
-            ;                   :name               "HumanMine"
-            ;                   :common             "Human"
-            ;                   :icon               "icon-human"
-            ;                   :output?            true
-            ;                   :abbrev             "H. sapiens"
-            ;                   :default-organism   "H. sapiens"
-            ;                   :default-object-types   ["Gene" "Protein"]
-            ;                   :default-selected-object-type :Gene
-            ;                   :status             {:status :na}
-            ;                   :idresolver-example {:Gene "PPARG, FTO, 3949, LEP, 946, MC3R, 9607, LPL, LDLR, P55916, 335, GLUT4, Notch1, SLC27A1"
-            ;                   :Protein "P37231, PPARG_HUMAN"}
-            ;                   :regionsearch-example ["2:14615455..14619002"
-            ;                                          "4:5866646..5868384"
-            ;                                          "3:2578486..2580016"]
-            ;                   :mine
-            ;                                       {:name    "HumanMine"
-            ;                                        :url     "www.humanmine.org/humanmine"
-            ;                                        :service {:root "www.humanmine.org/humanmine"}}}
-            ;   ;  :url "beta.humanmine.org/beta"
-            ;   ;  :service {:root "beta.humanmine.org/beta"}}}
-            ;   :flymine       {:id                 :flymine
-            ;                   :service            {:root "www.flymine.org/query" :token nil}
-            ;                   :name               "FlyMine"
-            ;                   :common             "Fly"
-            ;                   :icon               "icon-fly"
-            ;                   :status             {:status :na}
-            ;                   :output?            true
-            ;                   :abbrev             "D. melanogaster"
-            ;                   :default-object-types   ["Gene" "Protein"]
-            ;                   :default-selected-object-type :Gene
-            ;                   :idresolver-example {:Gene "CG9151, FBgn0000099, CG3629, TfIIB, Mad, CG1775, CG2262, TWIST_DROME, tinman, runt, E2f, CG8817, FBgn0010433, CG9786, CG1034, ftz, FBgn0024250, FBgn0001251, tll, CG1374, CG33473, ato, so, CG16738, tramtrack,  CG2328, gt"
-            ;                   :Protein "Q8T3M3,FBpp0081318,FTZ_DROME"}
-            ;                   :regionsearch-example ["2L:14615455..14619002"
-            ;                                           "2R:5866646..5868384"
-            ;                                           "3R:2578486..2580016"]
-            ;                   :mine
-            ;                                       {:name    "FlyMine"
-            ;                                        :url     "www.flymine.org/query"
-            ;                                        :service {:root "www.flymine.org/query"}}}
-            ;
+  :humanmine     {:id                 :humanmine
+                  :service            {:root "www.humanmine.org/humanmine" :token nil}
+                  :name               "HumanMine"
+                  :common             "Human"
+                  :icon               "icon-human"
+                  :output?            true
+                  :abbrev             "H. sapiens"
+                  :default-organism   "H. sapiens"
+                  :default-object-types   ["Gene" "Protein"]
+                  :default-selected-object-type :Gene
+                  :status             {:status :na}
+                  :idresolver-example {:Gene "PPARG, FTO, 3949, LEP, 946, MC3R, 9607, LPL, LDLR, P55916, 335, GLUT4, Notch1, SLC27A1"
+                  :Protein "P37231, PPARG_HUMAN"}
+                  :regionsearch-example ["2:14615455..14619002"
+                                         "4:5866646..5868384"
+                                         "3:2578486..2580016"]
+                  :default-query-example        {:from            "Gene"
+                                                 :constraintLogic "A and B"
+                                                 :select          ["primaryIdentifier"
+                                                                  "symbol"
+                                                                  "name"
+                                                                  "goAnnotation.ontologyTerm.identifier"
+                                                                  "goAnnotation.ontologyTerm.name"
+                                                                  "organism.shortName"
+                                                                  ]
+                                                 :where           [{:path  "goAnnotation.ontologyTerm.name"
+                                                                   :op    "="
+                                                                   :code  "A"
+                                                                   :value "DNA binding"}
+                                                                  {:path  "organism.shortName"
+                                                                   :op    "="
+                                                                   :code  "B"
+                                                                   :value "H. sapiens"}]}
+                  :mine
+                                      {:name    "HumanMine"
+                                       :url     "www.humanmine.org/humanmine"
+                                       :service {:root "www.humanmine.org/humanmine"}}}
+
+            :flymine       {:id                 :flymine
+                            :service            {:root "www.flymine.org/query" :token nil}
+                            :name               "FlyMine"
+                            :common             "Fly"
+                            :icon               "icon-fly"
+                            :status             {:status :na}
+                            :output?            true
+                            :abbrev             "D. melanogaster"
+                            :default-object-types   ["Gene" "Protein"]
+                            :default-selected-object-type :Gene
+                            :idresolver-example {:Gene "CG9151, FBgn0000099, CG3629, TfIIB, Mad, CG1775, CG2262, TWIST_DROME, tinman, runt, E2f, CG8817, FBgn0010433, CG9786, CG1034, ftz, FBgn0024250, FBgn0001251, tll, CG1374, CG33473, ato, so, CG16738, tramtrack,  CG2328, gt"
+                            :Protein "Q8T3M3,FBpp0081318,FTZ_DROME"}
+                            :regionsearch-example ["2L:14615455..14619002"
+                                                    "2R:5866646..5868384"
+                                                    "3R:2578486..2580016"]
+                            :default-query-example        {:from            "Gene"
+                                                           :constraintLogic "A or B"
+                                                           :select          ["symbol"
+                                                                             "organism.name"
+                                                                             "alleles.symbol"
+                                                                             "alleles.phenotypeAnnotations.annotationType"
+                                                                             "alleles.phenotypeAnnotations.description"
+                                                                             ]
+                                                           :where           [{:path  "Gene.symbol"
+                                                                              :op    "="
+                                                                              :code  "A"
+                                                                              :value "zen"}
+                                                                             {:path  "Gene.symbol"
+                                                                              :op    "="
+                                                                              :code  "B"
+                                                                              :value "mad"}]}
+                                            :mine
+                                                                {:name    "FlyMine"
+                                                                 :url     "www.flymine.org/query"
+                                                                 :service {:root "www.flymine.org/query"}}}
+
             :humanmine-beta {:id                           :humanmine-beta
                              :service                      {:root "beta.humanmine.org/beta" :token nil}
                              :name                         "HumanMine Beta"
