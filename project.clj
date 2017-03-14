@@ -1,4 +1,4 @@
-(def props {:version "0.4.0-alpha"})
+(def props {:version "0.4.1-alpha"})
 
 
 (defproject redgenes (:version props)

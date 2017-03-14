@@ -41,7 +41,7 @@
                                    "2R:5866646..5868384"
                                    "3R:2578486..2580016"]}
    ;;this is for the "example query" button in the query builder. Create an example that will produce interesting
-   ;;results but ideally not hundreds of rows - include a constraint in the example too. 
+   ;;results but ideally not hundreds of rows - include a constraint in the example too.
     :default-query-example        { :from   "Gene"
                                     :select ["Gene.primaryIdentifier" "Gene.homologues.homologue.primaryIdentifier" "Gene.homologues.homologue.symbol" "Gene.symbol" "Gene.homologues.homologue.organism.name"]
                                     :where  [{:path  "Gene.symbol"
