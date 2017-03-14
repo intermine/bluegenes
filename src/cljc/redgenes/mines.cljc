@@ -218,26 +218,33 @@
                                                             :url     "intermine.legumefederation.org/legumemine"
                                                             :service {:root "intermine.legumefederation.org/legumemine"}}}
 
-            ; :mousemine     {:id                 :mousemine
-            ;                 :service            {:root "www.mousemine.org/mousemine"}
-            ;                 :name               "MouseMine"
-            ;                 :common             "Mouse"
-            ;                 :output?            true
-            ;                 :icon               "icon-mouse"
-            ;                 :abbrev             "M. musculus"
-            ;                 :default-organism   "M. musculus"
-            ;                 :default-object-types   [:Gene :Protein :OntologyTerm :Publication :SequenceFeature]
-            ;                 :default-selected-object-type :Gene
-            ;                 :regionsearch-example ["2:10000000..15000000"
-            ;                                       "chr6:10000000..20000000"
-            ;                                       "X:53000000-54000000"]
-            ;                 :idresolver-example {:Gene "MGI:88388 MGI:96677 Fgf2 Bmp4"}
-            ;                 :mine
-            ;                                     {:name    "MouseMine"
-            ;                                      :url     "www.mousemine.org/mousemine"
-            ;                                      :service {:root "www.mousemine.org/mousemine"}}}
-            ; ; :url "beta.mousemine.org/mousemine"
-            ; ; :service {:root "beta.mousemine.org/mousemine"}}}
+            :mousemine     {:id                 :mousemine
+                            :service            {:root "www.mousemine.org/mousemine"}
+                            :name               "MouseMine"
+                            :common             "Mouse"
+                            :output?            true
+                            :icon               "icon-mouse"
+                            :abbrev             "M. musculus"
+                            :default-organism   "M. musculus"
+                            :default-object-types   [:Gene :Protein :OntologyTerm :Publication :SequenceFeature]
+                            :default-selected-object-type :Gene
+                            :regionsearch-example ["2:10000000..15000000"
+                                                  "chr6:10000000..20000000"
+                                                  "X:53000000-54000000"]
+                            :idresolver-example {:Gene "MGI:88388 MGI:96677 Fgf2 Bmp4"}
+                            :default-query-example        {:from   "Gene"
+                                                           :select ["Gene.primaryIdentifier" "Gene.homologues.homologue.primaryIdentifier" "Gene.homologues.homologue.symbol" "Gene.symbol" "Gene.homologues.homologue.organism.name"]
+                                                           :where  [{:path  "Gene.symbol"
+                                                                     :op    "="
+                                                                     :code  "A"
+                                                                     :value "GATA1"}]}
+
+                            :mine
+                                                {:name    "MouseMine"
+                                                 :url     "www.mousemine.org/mousemine"
+                                                 :service {:root "www.mousemine.org/mousemine"}}}
+            ; :url "beta.mousemine.org/mousemine"
+            ; :service {:root "beta.mousemine.org/mousemine"}}}
             ; :ratmine       {:id                 :ratmine
             ;                 :service            {:root "stearman.hmgc.mcw.edu/ratmine"}
             ;                 :name               "RatMine"
