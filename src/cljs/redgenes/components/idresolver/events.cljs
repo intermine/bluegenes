@@ -170,6 +170,7 @@
 (reg-event-fx
   :idresolver/set-selected-organism
   (fn [{db :db} [_ organism]]
+
     (let [ids (pull-inputs-from-id-resolver db)]
       {:db       (-> db
                      (assoc-in [:idresolver :selected-organism] organism)
