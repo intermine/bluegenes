@@ -12,6 +12,7 @@
             [redgenes.components.querybuilder.views.main :as querybuilder]
             [redgenes.sections.querybuilder.views :as qb]
             [redgenes.components.toast :as toast]
+            [redgenes.components.ui.alerts :as alerts]
             [redgenes.components.idresolver.views :as idresolver]
             [redgenes.components.databrowser.views :as explore]
             [redgenes.sections.results.views :as results]
@@ -81,5 +82,7 @@
        [:main [show-panel @active-panel]]
        [footer]
        [toast/main]
+       [alerts/invalid-token-alert]
+
 
        ])))
