@@ -128,9 +128,9 @@
         (if can-enrich?
           (let [enrich-query (:query what-to-enrich)]
             {:db (-> db
-                    (assoc-in [:results :active-enrichment-column] what-to-enrich)
-                    (assoc-in [:results :enrichable-columns] enrichable))
-             :fetch-ids-from-query [(get-in db [:mines source-kw :service]) enrich-query what-to-enrich]})
+                     (assoc-in [:results :active-enrichment-column] what-to-enrich)
+                     (assoc-in [:results :enrichable-columns] enrichable))
+             :dispatch [:fetch-ids-from-query (get-in db [:mines source-kw :service]) enrich-query what-to-enrich]})
           {:db db}))))
 
 (reg-event-fx
