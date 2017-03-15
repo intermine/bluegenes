@@ -89,7 +89,8 @@
                        (dispatch [:template-chooser/choose-template id])))
          :class    (if (= (name id) (:name @selected-template)) "selected")}
         [:div.title [:h4 (:title query)]]
-        [:div.description (:description query)]
+        [:div.description
+         {:dangerouslySetInnerHTML {:__html (:description query)}}]
         (if (= (name id) (:name @selected-template))
           [:div.body
            [select-template-settings selected-template]
