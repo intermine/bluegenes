@@ -130,8 +130,7 @@
                      (assoc {}
                        :type (im-type model path)
                        :path (str (trim-path-to-class model path) ".id")
-                       :query {:select [(str (trim-path-to-class model path) ".id")]
-                               :where (:where query)}))
+                       :query (merge query {:select [(str (trim-path-to-class model path) ".id")]}) ))
                    (:select query)))))
 
 
