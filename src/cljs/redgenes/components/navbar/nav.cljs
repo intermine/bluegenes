@@ -87,7 +87,6 @@
            [active-mine-logo]
            [:span.long-name (:name @current-mine)]]]
         [:ul.nav.navbar-nav.navbar-collapse.navigation
-         [:li [:a {:on-click (fn [] (dispatch [:scramble-tokens]))} "Scramble Tokens"]]
          [:li.homelink {:class (if (panel-is :home-panel) "active")} [:a {:on-click #(navigate! "/")} "Home"]]
          [:li {:class (if (panel-is :upload-panel) "active")} [:a {:on-click #(navigate! "/upload")} "Upload"]]
          [:li {:class (if (panel-is :templates-panel) "active")} [:a {:on-click #(navigate! "/templates")} "Templates"]]

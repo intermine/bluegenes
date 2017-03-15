@@ -130,7 +130,7 @@
 (reg-fx
   :fetch-ids-from-query
   (fn [[service query]]
-    (go (let [results  (<! (search/raw-query-rows
+    (go (let [results  (<! (fetch/rows
                                        service
                                        query))]
           (dispatch [:success-fetch-ids (flatten (:results results))])))))

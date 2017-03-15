@@ -165,3 +165,11 @@
   :flag-invalid-tokens
   (fn [db]
     (assoc db :invalid-tokens? true)))
+
+(reg-event-db
+  :scramble-tokens
+  (fn [db]
+    (assoc-in db [:mines :flymine-beta :service :token] "faketoken")))
+
+(defn ^:export scrambleTokens []
+  (dispatch [:scramble-tokens]))

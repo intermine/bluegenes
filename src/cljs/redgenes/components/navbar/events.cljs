@@ -13,7 +13,3 @@
       (.setTimeout js/window #(oset! navbar ["className"] navbar-class) 3000)
   )))
 
-(reg-event-db
-  :scramble-tokens
-  (fn [db]
-    (assoc-in db [:mines :flymine-beta :service :token] "faketoken")))
