@@ -4,11 +4,9 @@
   (:require [re-frame.core :as re-frame :refer [reg-event-db reg-event-fx reg-fx dispatch subscribe]]
             [redgenes.db :as db]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
-
             [imcljsold.idresolver :as idresolver]
             [imcljsold.filters :as filters]
             [imcljsold.search :as search]
-
             [imcljs.fetch :as fetch]
             [com.rpl.specter :as s]
             [accountant.core :refer [navigate!]]
@@ -19,7 +17,7 @@
 (defn get-object-type
   "returns either the currently selected object-type or the default if none has been selected"
   [db]
-  (let [object-type (get-in db [:idresolver :selected-object-type])
+  (let [object-type         (get-in db [:idresolver :selected-object-type])
         object-type-default (get-in db [:mines (get db :current-mine) :default-selected-object-type])]
     (if (some? object-type)
       object-type
@@ -73,7 +71,7 @@
 (reg-fx
   :idresolver/resolve-id
   (fn [[ids service db]]
-    (let [organism (get-organism-type db)
+    (let [organism    (get-organism-type db)
           object-type (get-object-type db)
           job (idresolver/resolve service
                                   (cond->
@@ -158,15 +156,22 @@
   (fn [db [_ tf]]
     (assoc-in db [:idresolver :select-range] tf)))
 
-(reg-event-db
-  :idresolver/set-selected-organism
-  (fn [db [_ organism]]
-    (assoc-in db [:idresolver :selected-organism] organism)))
-
 (defn pull-inputs-from-id-resolver [db]
   (let [bank (get-in db [:idresolver :bank])]
     (reduce (fn [new-idlist id] (conj new-idlist (:input id))) [] bank)
     ))
+
+
+(reg-event-fx
+  :idresolver/set-selected-organism
+  (fn [{db :db} [_ organism]]
+
+    (let [ids (pull-inputs-from-id-resolver db)]
+      {:db       (-> db
+                     (assoc-in [:idresolver :selected-organism] organism)
+                     (assoc-in [:idresolver :bank] nil)
+                     (assoc-in [:idresolver :results] nil))
+       :dispatch [:idresolver/resolve ids]})))
 
 (reg-event-fx
   :idresolver/set-selected-object-type
@@ -176,7 +181,6 @@
       {:db (-> db
                (assoc-in [:idresolver :selected-object-type] object-type)
                (assoc-in [:idresolver :bank] nil))
-
        :dispatch [:idresolver/resolve ids]})))
 
 (reg-event-fx
@@ -215,7 +219,7 @@
   "Builds the structure for the preview results query, given a set of successfully identified IDs"
   [ids object-type summary-fields]
   (let [object-type (name object-type)
-        plural? (> (count ids) 1)
+        plural?     (> (count ids) 1)
         ;this pluralisation works for proteins and genes. one day we can get fancy
         ; and worry about -ies and other pluralisations, but today is not that day.
         label (str "Uploaded " (count ids) " " object-type (cond plural? "s"))]
@@ -242,8 +246,7 @@
                                                             :type :query
                                                             :value (:value results)}]
                                        [:idresolver/fetch-preview results]])
-              navigate? (assoc :navigate (str "results"))
-              ))))
+              navigate? (assoc :navigate (str "results"))))))
 
 
 
@@ -289,50 +292,49 @@
           new-db (update-in db [:idresolver] assoc
                             :preview-chan count-chan
                             :fetching-preview? true)]
-
       {:db new-db
        :im-chan {:chan count-chan
                  :on-success [:idresolver/store-results-preview]}})))
 
+
 (defn get-default-example
   "Fallback for scenarios where soem one's using the id resolver nd it's not well configured"
   [db]
-  (let [current-mine (get-in db [:mines (:current-mine db)])
+  (let [current-mine         (get-in db [:mines (:current-mine db)])
         ;pull the default from the db
-        object-type-default (:default-selected-object-type current-mine)
-        examples (get-in current-mine [:idresolver-example])
+        object-type-default  (:default-selected-object-type current-mine)
+        examples             (get-in current-mine [:idresolver-example])
         example-text-default (object-type-default examples)
         ;can we use the default?
-        use-default? (some? example-text-default)
+        use-default?         (some? example-text-default)
         ;grab any example there is, in case there isn't a default.
-        any-example-type (first (keys examples))
-        any-example-text (any-example-type examples)
+        any-example-type     (first (keys examples))
+        any-example-text     (any-example-type examples)
         ;where we store the data
-        example-keys [:idresolver :selected-object-type]]
-    {:db (cond->
-           ;sets example to any type configured as a fallback
-           (assoc-in db example-keys any-example-type)
-           ;if there's a default type, set the example to it instead.
-           use-default? (assoc-in example-keys object-type-default))
-     :text (if use-default? example-text-default any-example-text)}
-    ))
+        example-keys         [:idresolver :selected-object-type]]
+    {:db   (cond->
+             ;sets example to any type configured as a fallback
+             (assoc-in db example-keys any-example-type)
+             ;if there's a default type, set the example to it instead.
+             use-default? (assoc-in example-keys object-type-default))
+     :text (if use-default? example-text-default any-example-text)}))
 
 (reg-event-fx
   :idresolver/example
   (fn [{db :db} [_ splitter]]
     (let [current-mine (get-in db [:mines (:current-mine db)])
-          object-type (get-object-type db)
+          object-type  (get-object-type db)
           ;reset entries to the upload when we choose an example.
-          cleared-db (assoc-in db [:idresolver :bank] [])
-          examples (get-in current-mine [:idresolver-example])
+          cleared-db   (assoc-in db [:idresolver :bank] [])
+          examples     (get-in current-mine [:idresolver-example])
           example-text (object-type examples)]
       ; attempt to show an example from the currently selected object type.
       ; If theres is no example configured, we'll try to fall back to a default.
       (if (some? example-text)
-        {:db cleared-db
+        {:db       cleared-db
          :dispatch [:idresolver/resolve (splitter example-text)]}
         (let [fallback-example (get-default-example cleared-db)]
-          {:db (:db fallback-example)
+          {:db       (:db fallback-example)
            :dispatch [:idresolver/resolve (splitter (:text fallback-example))]}
           ))
       )))

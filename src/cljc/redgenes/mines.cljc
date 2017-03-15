@@ -214,8 +214,7 @@
                                                                       :op    "<"
                                                                       :code  "A"
                                                                       :value "222"}]}
-                             :mine
-                                                           {:name    "LegumeMine"
+                             :mine                         {:name    "LegumeMine"
                                                             :url     "intermine.legumefederation.org/legumemine"
                                                             :service {:root "intermine.legumefederation.org/legumemine"}}}
 
@@ -290,26 +289,38 @@
             ;                                      ;    :service {:root "im-253.wormbase.org/tools/wormmine"}}}
             ;                                      :url     "intermine.wormbase.org/tools/wormmine"
             ;                                      :service {:root "intermine.wormbase.org/tools/wormmine"}}}
-            ; :yeastmine     {:id                 :yeastmine
-            ;                 :service            {:root "yeastmine.yeastgenome.org/yeastmine"}
-            ;                 :name               "YeastMine"
-            ;                 :output?            true
-            ;                 :common             "Yeast"
-            ;                 :icon               "icon-yeast"
-            ;                 :abbrev             "S. cerevisiae"
-            ;                 :default-object-types   [:Gene]
-            ;                 :default-selected-object-type :Gene
-            ;                 :default-organism   "S. cerevisiae"
-            ;                 :status             {:status :na}
-            ;                 :idresolver-example "rad51; rad52; rad53; ddc1; rad55; rad57; spo11; dmc1; rad17; rad9; rad24; msh1; msh5; mre11; xrs2; ndt80; tid1; ssb1; pre3; acr1; doa3; rad54; ssf1"
-            ;                 :regionsearch-example ["chrIII:1356..20455"
-            ;                                       "chrIV:11331..18001"
-            ;                                       "chrVI:9856..100010"]
-            ;                 :mine
-            ;                                     {:name    "YeastMine"
-            ;                                      :url     "yeastmine.yeastgenome.org/yeastmine"
-            ;                                      :service {:root "yeastmine.yeastgenome.org/yeastmine"}}}
-            ;
+            :yeastmine      {:id                           :yeastmine
+                             :service                      {:root "yeastmine-test-aws.yeastgenome.org/yeastmine-dev/"}
+                             :name                         "YeastMine"
+                             :output?                      true
+                             :common                       "Yeast"
+                             :icon                         "icon-yeast"
+                             :abbrev                       "S. cerevisiae"
+                             :default-object-types         [:Gene]
+                             :default-selected-object-type :Gene
+                             :default-organism             "S. cerevisiae"
+                             :status                       {:status :na}
+                             :idresolver-example           {:Gene "rad51; rad52; rad53; ddc1; rad55; rad57; spo11; dmc1; rad17; rad9; rad24; msh1; msh5; mre11; xrs2; ndt80; tid1; ssb1; pre3; acr1; doa3; rad54; ssf1"}
+                             :regionsearch-example         ["chrIII:1356..20455"
+                                                            "chrIV:11331..18001"
+                                                            "chrVI:9856..100010"]
+                             :default-query-example        {:from   "Phenotype"
+                                                            :select ["genes.primaryIdentifier"
+                                                                     "genes.secondaryIdentifier"
+                                                                     "genes.symbol"
+                                                                     "genes.qualifier"
+                                                                     "genes.sgdAlias"
+                                                                     "experimentType"
+                                                                     "mutantType"
+                                                                     "observable"]
+                                                            :where  [{:path  "observable"
+                                                                      :op    "="
+                                                                      :value "Protein secretion"
+                                                                      :code "A"}]}
+                             :mine                         {:name    "YeastMine"
+                                                            :url     "yeastmine.yeastgenome.org/yeastmine"
+                                                            :service {:root "yeastmine.yeastgenome.org/yeastmine"}}}
+
             ; :mitominer     {:id                 :mitominer
             ;                 :service            {:root "mitominer.mrc-mbu.cam.ac.uk/release-4.0"}
             ;                 :name               "MitoMiner"
