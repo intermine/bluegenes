@@ -19,7 +19,11 @@
 (reg-fx
   :im-chan
   (fn [{:keys [on-success on-failure response-format chan params]}]
-    (go (dispatch (conj on-success (<! chan))))))
+    (go
+      (let [{:keys [statusCode] :as response} (<! chan)]
+        (if (and statusCode (>= statusCode 400))
+          (dispatch [:flag-invalid-tokens])
+          (dispatch (conj on-success response)))))))
 
 (reg-fx
   :im-operation

@@ -160,3 +160,8 @@
                                           :mine-kw      (get mine :id)
                                           :summary-path path}}
         {:dispatch [:cache/store-possible-values (get mine :id) path false]}))))
+
+(reg-event-db
+  :flag-invalid-tokens
+  (fn [db]
+    (assoc db :invalid-tokens? true)))
