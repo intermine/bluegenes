@@ -102,7 +102,8 @@
                                    :preview-chan count-chan
                                    :fetching-preview? true)]
       {:db                            new-db
-       :template-chooser/pipe-preview count-chan})))
+       :im-chan {:chan count-chan
+                 :on-success [:template-chooser/store-results-preview]}})))
 
 
 

@@ -127,18 +127,16 @@
                       :service  (get-in db [:mines (:source package) :service])}]]})))
 
 
-(reg-fx
+(reg-event-fx
   :fetch-ids-from-query
-  (fn [[service query]]
-    (go (let [results  (<! (search/raw-query-rows
-                                       service
-                                       query))]
-          (dispatch [:success-fetch-ids (flatten (:results results))])))))
+  (fn [world [_ service query what-to-enrich]]
+    {:im-chan {:chan (fetch/rows service query)
+               :on-success [:success-fetch-ids]}}))
 
 (reg-event-fx
   :success-fetch-ids
   (fn [{db :db} [_ results]]
-    {:db       (assoc-in db [:results :ids-to-enrich] results)
+    {:db       (assoc-in db [:results :ids-to-enrich] (flatten (:results results)))
      :dispatch [:enrichment/run-all-enrichment-queries]}))
 
 

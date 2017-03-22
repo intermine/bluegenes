@@ -160,3 +160,16 @@
                                           :mine-kw      (get mine :id)
                                           :summary-path path}}
         {:dispatch [:cache/store-possible-values (get mine :id) path false]}))))
+
+(reg-event-db
+  :flag-invalid-tokens
+  (fn [db]
+    (assoc db :invalid-tokens? true)))
+
+(reg-event-db
+  :scramble-tokens
+  (fn [db]
+    (assoc-in db [:mines :flymine-beta :service :token] "faketoken")))
+
+(defn ^:export scrambleTokens []
+  (dispatch [:scramble-tokens]))

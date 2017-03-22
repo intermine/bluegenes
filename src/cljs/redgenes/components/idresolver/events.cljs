@@ -4,11 +4,9 @@
   (:require [re-frame.core :as re-frame :refer [reg-event-db reg-event-fx reg-fx dispatch subscribe]]
             [redgenes.db :as db]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
-
             [imcljsold.idresolver :as idresolver]
             [imcljsold.filters :as filters]
             [imcljsold.search :as search]
-
             [imcljs.fetch :as fetch]
             [com.rpl.specter :as s]
             [accountant.core :refer [navigate!]]
@@ -51,27 +49,23 @@
 (reg-event-fx
   :handle-id
   (fn [{db :db} [_ id]]
-    {:db       (let [{{:keys [MATCH
-                              TYPE_CONVERTED
-                              OTHER
-                              WILDCARD
-                              DUPLICATE] :as resolved} :matches
-                      unresolved                       :unresolved} id
-                     tagged    (remove empty? (mapcat (fn [[k v]] (map (fn [r] (assoc r :status k)) v)) resolved))
-                     tagged-un (reduce (fn [total next] (assoc total next {:input [next] :status :UNRESOLVED})) {} unresolved)]
+    {:db (let [{{:keys [MATCH TYPE_CONVERTED OTHER WILDCARD DUPLICATE] :as resolved} :matches
+                unresolved :unresolved} id
+               tagged (remove empty? (mapcat (fn [[k v]] (map (fn [r] (assoc r :status k)) v)) resolved))
+               tagged-un (reduce (fn [total next] (assoc total next {:input [next] :status :UNRESOLVED})) {} unresolved)]
 
-                 (-> db
-                     (update-in [:idresolver :results]
-                                (fn [results]
-                                  (merge tagged-un
-                                         (reduce (fn [total next-id]
-                                                   (merge total
-                                                          (reduce (fn [n next-input]
-                                                                    (assoc n next-input next-id)) {}
-                                                                  (if (vector? (:input next-id))
-                                                                    (:input next-id)
-                                                                    [(:input next-id)]))))
-                                                 results tagged))))))
+           (-> db
+               (update-in [:idresolver :results]
+                          (fn [results]
+                            (merge tagged-un
+                                   (reduce (fn [total next-id]
+                                             (merge total
+                                                    (reduce (fn [n next-input]
+                                                              (assoc n next-input next-id)) {}
+                                                            (if (vector? (:input next-id))
+                                                              (:input next-id)
+                                                              [(:input next-id)]))))
+                                           results tagged))))))
      :dispatch [:idresolver/analyse false]}))
 
 (reg-fx
@@ -79,11 +73,11 @@
   (fn [[ids service db]]
     (let [organism    (get-organism-type db)
           object-type (get-object-type db)
-          job         (idresolver/resolve service
-                                          (cond->
-                                            {:identifiers (if (seq ids) ids [ids])
-                                             :type        object-type}
-                                            (not= organism :any) (assoc :extra organism)))]
+          job (idresolver/resolve service
+                                  (cond->
+                                    {:identifiers (if (seq ids) ids [ids])
+                                     :type object-type}
+                                    (not= organism :any) (assoc :extra organism)))]
       (go (dispatch [:handle-id (<! job)])))))
 
 (reg-event-fx
@@ -96,7 +90,7 @@
            (update-in [:idresolver :bank]
                       (fn [bank]
                         (distinct (reduce (fn [total next]
-                                            (conj total {:input  next
+                                            (conj total {:input next
                                                          :status :inactive})) bank ids)))))
        :idresolver/resolve-id
        [ids service db]})))
@@ -134,7 +128,7 @@
   :idresolver/delete-selected
   (fn [{db :db}]
     (let [selected (get-in db [:idresolver :selected])]
-      {:db         (assoc-in db [:idresolver :selected] '())
+      {:db (assoc-in db [:idresolver :selected] '())
        :dispatch-n [[:idresolver/remove-from-bank selected]
                     [:idresolver/remove-from-results selected]]})))
 
@@ -167,6 +161,7 @@
     (reduce (fn [new-idlist id] (conj new-idlist (:input id))) [] bank)
     ))
 
+
 (reg-event-fx
   :idresolver/set-selected-organism
   (fn [{db :db} [_ organism]]
@@ -178,15 +173,14 @@
                      (assoc-in [:idresolver :results] nil))
        :dispatch [:idresolver/resolve ids]})))
 
-
 (reg-event-fx
   :idresolver/set-selected-object-type
   (fn [{db :db} [_ object-type]]
     (let [service (get-in db [:mines (:current-mine db) :service])
-          ids     (pull-inputs-from-id-resolver db)]
-      {:db       (-> db
-                     (assoc-in [:idresolver :selected-object-type] object-type)
-                     (assoc-in [:idresolver :bank] nil))
+          ids (pull-inputs-from-id-resolver db)]
+      {:db (-> db
+               (assoc-in [:idresolver :selected-object-type] object-type)
+               (assoc-in [:idresolver :bank] nil))
        :dispatch [:idresolver/resolve ids]})))
 
 (reg-event-fx
@@ -194,17 +188,17 @@
   ;;         make sure it's generic and not gene-specific.
   :idresolver/save-results
   (fn [{db :db}]
-    (let [ids     (remove nil? (map (fn [[_ {id :id}]] id) (-> db :idresolver :results)))
-          results {:sd/type    :query
+    (let [ids (remove nil? (map (fn [[_ {id :id}]] id) (-> db :idresolver :results)))
+          results {:sd/type :query
                    :sd/service :flymine
-                   :sd/label   (str "Uploaded " (count ids) " Genes")
-                   :sd/value   {:from   "Gene"
-                                :title  (str "Uploaded " (count ids) " Genes")
-                                :select (get-in db [:assets :summary-fields :Gene])
-                                :where  [{:path   "Gene.id"
-                                          :op     "ONE OF"
-                                          :values ids}]}}]
-      {:db       db
+                   :sd/label (str "Uploaded " (count ids) " Genes")
+                   :sd/value {:from "Gene"
+                              :title (str "Uploaded " (count ids) " Genes")
+                              :select (get-in db [:assets :summary-fields :Gene])
+                              :where [{:path "Gene.id"
+                                       :op "ONE OF"
+                                       :values ids}]}}]
+      {:db db
        :dispatch [:save-data results]
        ;:navigate "saved-data"
        })))
@@ -228,32 +222,31 @@
         plural?     (> (count ids) 1)
         ;this pluralisation works for proteins and genes. one day we can get fancy
         ; and worry about -ies and other pluralisations, but today is not that day.
-        label       (str "Uploaded " (count ids) " " object-type (cond plural? "s"))]
-    {:type  :query
+        label (str "Uploaded " (count ids) " " object-type (cond plural? "s"))]
+    {:type :query
      :label label
-     :value {:title  label
-             :from   object-type
+     :value {:title label
+             :from object-type
              :select summary-fields
-             :where  [{:path   (str object-type ".id")
-                       :op     "ONE OF"
-                       :values ids}]}}))
+             :where [{:path (str object-type ".id")
+                      :op "ONE OF"
+                      :values ids}]}}))
 
 (reg-event-fx
   :idresolver/analyse
   (fn [{db :db} [_ navigate?]]
-    (let [uid            (str (gensym))
-          ids            (pull-ids-from-idresolver (-> db :idresolver :results))
-          current-mine   (:current-mine db)
-          object-type    (get-object-type db)
+    (let [uid (str (gensym))
+          ids (pull-ids-from-idresolver (-> db :idresolver :results))
+          current-mine (:current-mine db)
+          object-type (get-object-type db)
           summary-fields (get-in db [:assets :summary-fields current-mine object-type])
-          results        (build-query ids object-type summary-fields)]
+          results (build-query ids object-type summary-fields)]
       (cond-> {}
               true (assoc :dispatch-n [[:results/set-query {:source (get db :current-mine)
-                                                            :type   :query
-                                                            :value  (:value results)}]
+                                                            :type :query
+                                                            :value (:value results)}]
                                        [:idresolver/fetch-preview results]])
-              navigate? (assoc :navigate (str "results"))
-              ))))
+              navigate? (assoc :navigate (str "results"))))))
 
 
 
@@ -274,7 +267,7 @@
                      (fn [bank]
                        (map (fn [next]
                               (if (= input (:input next))
-                                {:input  symbol
+                                {:input symbol
                                  :status :inactive}
                                 next)) bank)))))))
 
@@ -293,15 +286,16 @@
 (reg-event-fx
   :idresolver/fetch-preview
   (fn [{db :db} [_ query]]
-    (let [mine       (:current-mine db)
-          service    (get-in db [:mines mine :service])
+    (let [mine (:current-mine db)
+          service (get-in db [:mines mine :service])
           count-chan (fetch/table-rows service (:value query) {:size 5})
-          new-db     (update-in db [:idresolver] assoc
-                                :preview-chan count-chan
-                                :fetching-preview? true)]
+          new-db (update-in db [:idresolver] assoc
+                            :preview-chan count-chan
+                            :fetching-preview? true)]
+      {:db new-db
+       :im-chan {:chan count-chan
+                 :on-success [:idresolver/store-results-preview]}})))
 
-      {:db                      new-db
-       :idresolver/pipe-preview count-chan})))
 
 (defn get-default-example
   "Fallback for scenarios where soem one's using the id resolver nd it's not well configured"
@@ -323,8 +317,7 @@
              (assoc-in db example-keys any-example-type)
              ;if there's a default type, set the example to it instead.
              use-default? (assoc-in example-keys object-type-default))
-     :text (if use-default? example-text-default any-example-text)}
-    ))
+     :text (if use-default? example-text-default any-example-text)}))
 
 (reg-event-fx
   :idresolver/example

@@ -176,4 +176,5 @@
                   {:url    "https://clojars.org/repo"
                    ;; How often should this repository be checked for
                    ;; snapshot updates? (:daily, :always, or :never)
-                   :update :always}]])
+                   ;:update :always
+                   }]])

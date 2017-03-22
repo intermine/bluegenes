@@ -12,3 +12,4 @@
       (oset! navbar ["className"] (str navbar-class " recently-changed"))
       (.setTimeout js/window #(oset! navbar ["className"] navbar-class) 3000)
   )))
+

@@ -160,3 +160,7 @@
   (fn [current-mine [_ path] ]
     (get-in current-mine [:possible-values path])))
 
+(reg-sub
+  :invalid-tokens?
+  (fn [db]
+    (get db :invalid-tokens?)))
