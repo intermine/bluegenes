@@ -33,7 +33,6 @@ lein less auto
 ### Run application:
 
 ```
-lein clean
 lein figwheel dev
 ```
 
