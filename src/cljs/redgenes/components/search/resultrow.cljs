@@ -31,7 +31,6 @@
     ;:class (if (is-selected? result (:selected-result @state)) "selected")
     }
     [result-selection-control result]
-   (.log js/console "%cTYPE" "color:hotpink;font-weight:bold;" (clj->js (oget result "type") ) (clj->js result))
     [:span.result-type {:class (str "type-" (oget result "type"))} (oget result "type")]
     (contents)]
   ))
@@ -104,7 +103,7 @@
 
 (defmethod result-row :default [row-data]
   "format a row in a readable way when no other templates apply. Adds 'name: description' default first rows if present."
-  (let [details (js->clj (.-fields (:result row-data)))]
+  (let [details (:fields (js->clj (:result row-data) :keywordize-keys true))]
   [row-structure row-data (fn []
     [:div.details
     (if (contains? details "name")
