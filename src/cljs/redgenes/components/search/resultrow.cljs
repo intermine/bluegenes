@@ -110,8 +110,14 @@
       [:span.name (show row-data "name")])
     (if (contains? details "description")
       [:span.description (show row-data "description")])
-     (for [[k value] details]
-       (if (and (not= k "name") (not= k "description"))
-       ^{:key k}
-       [:span [:span.default-description k] [:span.default-value value]]))
+
+(doall           (reduce (fn [my-list [k value]]
+    (.log js/console "%c" "color:mediumorchid;font-weight:bold;" (clj->js value))       (if (and (not= k "name") (not= k "description"))
+            (conj my-list [:li [:h6.default-description k] [:div.default-value value]]
+             ))
+                     ) [:ul] details))
+    ;  (for [[k value] details]
+    ;    (if (and (not= k "name") (not= k "description"))
+    ;    ^{:key k}
+    ;    [:span [:span.default-description k] [:span.default-value value]]))
   ])]))
