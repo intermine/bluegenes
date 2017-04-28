@@ -10,7 +10,8 @@
 
 @color-Nuffink: #ccc; // for things that aren't exciting enough to get their own colour
 
-.type-DataSet, .type-UniProtFeature, .type-MeshTerm,  .type-AnatomyTerm, .type-RNAiResult, .type-Chromosome, .type-CVTerm, .type-OntologyTerm, .type-style {
+//there has to be a better way than having all the model here. Pre-build css from models?
+.type-DataSet, .type-UniProtFeature, .type-MeshTerm,  .type-AnatomyTerm, .type-RNAiResult, .type-Chromosome, .type-CVTerm, .type-OntologyTerm, .type-style, .type-OntologyTermSynonym, .type-MammalianPhenotypeTerm, .type-GWASResult, .type-GWAS, .type-HPOTerm, .type-Pathway, .type-ProteinStructure, .type-GXDExpression, .type-Genotype, .type-Allele {
   background: @color-Nuffink;
   fill: @color-Nuffink;
   border: solid 3px @color-Nuffink;
@@ -49,7 +50,7 @@
   border:solid 3px @color-Organism;
 }
 
-.type-interactions, .type-Interaction, .type-InteractionTerm, .type-InteractionExperiment {
+.type-interactions, .type-Interaction, .type-InteractionTerm, .type-InteractionExperiment, .type-Complex {
   background:@color-Interaction;
   fill:@color-Interaction;
   border:solid 3px @color-Interaction;
@@ -57,7 +58,7 @@
 
 .colortypes {
   //this is a mixin that's copy pasted from above.
-  .type-DataSet, .type-UniProtFeature, .type-MeshTerm, .type-AnatomyTerm, .type-RNAiResult, .type-Chromosome, .type-CVTerm, .type-OntologyTerm {
+.type-DataSet, .type-UniProtFeature, .type-MeshTerm,  .type-AnatomyTerm, .type-RNAiResult, .type-Chromosome, .type-CVTerm, .type-OntologyTerm, .type-style, .type-OntologyTermSynonym, .type-MammalianPhenotypeTerm, .type-GWASResult, .type-GWAS, .type-HPOTerm, .type-Pathway, .type-ProteinStructure, .type-GXDExpression, .type-Genotype, .type-Allele, .type-QTL, .type-Transgene {
     background: @color-Nuffink;
     fill: @color-Nuffink;
     border: solid 3px @color-Nuffink;
@@ -96,7 +97,7 @@
     border:solid 3px @color-Organism;
   }
 
-  .type-interactions, .type-Interaction, .type-InteractionTerm, .type-InteractionExperiment {
+  .type-interactions, .type-Interaction, .type-InteractionTerm, .type-InteractionExperiment, .type-Complex {
     background:@color-Interaction;
     fill:@color-Interaction;
     border:solid 3px @color-Interaction;
