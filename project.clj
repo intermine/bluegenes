@@ -1,4 +1,4 @@
-(def props {:version "0.4.3-alpha"})
+(def props {:version "0.4.4-search-template-tweaks"})
 
 
 (defproject redgenes (:version props)
