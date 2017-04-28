@@ -17,14 +17,16 @@
   (let [categories        (subscribe [:template-chooser-categories])
         selected-category (subscribe [:selected-template-category])]
     (fn []
-      (into [:ul.nav.nav-pills
+      (into [:ul.nav.nav-pills.template-categories
              [:li {:on-click #(dispatch [:template-chooser/set-category-filter nil])
                    :class    (if (nil? @selected-category) "active")}
-              [:a "All"]]]
+              [:a.type-all "All"]]]
             (map (fn [category]
                    [:li {:on-click #(dispatch [:template-chooser/set-category-filter category])
-                         :class    (if (= category @selected-category) "active")}
-                    [:a category]])
+                         :class
+             (if (= category @selected-category) " active")}
+                    [:a {:class (str
+                               "type-" category)} category]])
                  @categories)))))
 
 (def css-transition-group
@@ -78,6 +80,27 @@
                                      (dispatch [:template-chooser/replace-constraint
                                                 idx (merge con new-constraint)]))]))))]))
 
+(defn tags
+  "UI element to visually output all aspect tags into each template card for easy scanning / identification of tags.
+  ** Expects: format im:aspect:thetag.
+  ** Will output 'thetag'.
+  ** Won't output any other tag types or formats"
+  [tagvec]
+  (into
+   [:div.template-tags "Template categories: "]
+    (if (> (count tagvec) 0)
+        (map (fn [tag]
+               (let [tag-parts (clojure.string/split tag #":")
+                     tag-name (peek tag-parts)
+                     is-aspect (and (= 3 (count tag-parts)) (= "aspect" (nth tag-parts 1)))]
+               (if is-aspect
+                 [:span.tag-type {:class (str "type-" tag-name)} tag-name]
+                 nil)
+                 )) tagvec)
+      " none"
+      )
+   ))
+
 (defn template
   "UI element for a single template." []
   (let [selected-template (subscribe [:selected-template])]
@@ -94,7 +117,9 @@
         (if (= (name id) (:name @selected-template))
           [:div.body
            [select-template-settings selected-template]
-           [preview-results]])]])))
+           [preview-results]])
+        [tags (:tags query)]
+        ]])))
 
 (defn templates
   "Outputs all the templates that match the user's chosen filters."

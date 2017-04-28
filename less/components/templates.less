@@ -42,6 +42,30 @@
         }
     }
 
+    .template-categories {
+        display: flex;
+        flex-wrap: wrap;
+        border-bottom: solid 1px #ddd;
+
+        &.nav {
+            li {
+                a {
+                    border-width: 0;
+                    color: inherit;
+                    padding: 0 0.5em;
+                    border-bottom-width: 3px;
+                    border-bottom-left-radius: 0;
+                    border-bottom-right-radius: 0;
+                    background: rgba(0,0,0,0.05);
+                }
+                &.active a {
+                  background-color:rgba(0,0,0,0.5);color:#fff;
+
+                }
+            }
+        }
+    }
+
     .bad-placeholder .template-filters {
         //this is some wicked, evil styling which keeps a placeholder for the
         //position:fixed filters, and pushes the content after it down so it's not
@@ -51,7 +75,7 @@
     }
 
     .no-results {
-      margin-top:@spacer;
+        margin-top: @spacer;
         font-size: 1.2em;
         text-align: center;
 
@@ -220,8 +244,9 @@
     .template {
         background-color: white;
         margin: 5px 20px;
-        padding: 20px;
+        padding: @spacer @spacer 0 @spacer;
         border: 1px solid #ecebeb;
+        border-bottom:solid 3px #ecebeb;
         .transitions;
 
         .title {
@@ -269,6 +294,24 @@
             box-shadow: 0 2px 5px -1px rgba(0,0,0,0.33);
         }
     }
+
+    .template-tags {
+    display:flex;
+    align-items:baseline;
+    justify-content:flex-end;
+    bottom:-3px;
+    position:relative;
+
+
+    .tag-type {
+    background-color:#eee;
+    color:inherit;
+    padding:0.2em 0.4em;
+    margin:0em 0em 0em 0.2em;
+    border-width: 0 0 3px 0;
+    border-radius:2px;
+    }    }
+
 }
 @media (min-width:1200px) {
     .templates .template-filters {
