@@ -3,9 +3,11 @@
 BlueGenes is designed to make searching and analysing genomic data easy. It's powered by [InterMine](http://intermine.org/) web services, meaning that the data from nearly 30 InterMines worldwide can be accessed from the same familiar interface.
 
 [Try BlueGenes now](http://redgenes.apps.intermine.org/)
+
+
 ![BlueGene screenshots](http://i.imgur.com/zwp0uxM.jpg)
 
-**Feedback: ** Please create an issue in this repo or email `info - at - intermine - dot - org`
+**Feedback:** Please create an issue in this repo or email `info - at - intermine - dot - org`
 
 ## Developers
 
