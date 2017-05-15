@@ -72,6 +72,23 @@
         justify-content: center;
     }
 
+    .search-header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        border-bottom: solid 1px #ccc;
+    }
+
+    a.cta::after {
+        content: ">>";
+    }
+
+    a.cta {
+        font-weight: bold;
+        text-align: right;
+        flex-grow: 1;
+    }
+
     .noresponse {
         text-align: center;
         margin-top: 1em;
@@ -181,9 +198,8 @@
 
             .result {
                 border-bottom: solid 1px #e4e4e4;
-                display:flex;
-                align-items:center;
-
+                display: flex;
+                align-items: center;
 
                 &:hover {
                     cursor: pointer;
@@ -222,24 +238,27 @@
 
                     ul {
                         display: inline-block;
-                        margin:0
+                        margin: 0;
                     }
 
                     li {
-                        padding:@spacer/16 @spacer/4;
+                        padding: @spacer/16 @spacer/4;
                         display: flex;
                         font-size: 1em;
-                        align-items:baseline;
+                        align-items: baseline;
 
                         h6 {
                             padding: 0;
                             margin: 0;
                             font-size: 1em;
                             padding-right: @spacer/4;
-                            min-width:6em;
+                            min-width: 6em;
                         }
                     }
-                    cite {width:60%;}
+
+                    cite {
+                        width: 60%;
+                    }
                 }
             }
             flex-grow: 4;
@@ -299,7 +318,7 @@
 
     .result-type {
         padding: 0 0.2em;
-        align-self:flex-start;
+        align-self: flex-start;
         border-radius: @border-radius;
         margin: 0.2em 0.4em 0.2em 0.2em;
     }
@@ -344,9 +363,15 @@
             }
         }
     }
-    .result {flex-wrap:wrap;
-      .result-type {width:100%; text-align:left;}
-      align-items:center;
+
+    .result {
+        flex-wrap: wrap;
+
+        .result-type {
+            width: 100%;
+            text-align: left;
+        }
+        align-items: center;
     }
 }
 

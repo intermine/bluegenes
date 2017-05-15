@@ -1,5 +1,5 @@
 (ns redgenes.components.search.resultrow
-  (:require [re-frame.core :as re-frame :refer [subscribe]]
+  (:require [re-frame.core :as re-frame :refer [subscribe dispatch]]
             [accountant.core :refer [navigate!]]
             [reagent.core :as reagent]
             [oops.core :refer [ocall oget oget+]]))
@@ -10,9 +10,14 @@
 
 (defn result-selection-control [result]
   "UI control suggesting to the user that there is only one result selectable at any one time; there's no actual form functionality here."
-  [:input {:type "radio"
-           :name "keyword-search" ;;todo, dynamic names. would we ever really have two keyword searches on one page though? That seems like madness!
-}])
+  (let [selected? (subscribe [:search/am-i-selected? result])]
+    [:input {:type "checkbox"
+           :on-click (fn [e] (ocall e :stopPropagation)
+            (if @selected?
+              (dispatch [:search/deselect-result result])
+              (dispatch [:search/select-result result])))
+           :name "keyword-search"}
+   ]))
 
 (defn set-selected! [row-data elem]
   "selects an item and navigates there. "
@@ -21,13 +26,19 @@
 
 (defn row-structure [row-data contents]
   "This method abstracts away most of the common components for all the result-row baby methods."
-  (let [result (:result row-data)]
-    [:div.result {:on-click (fn [this] (set-selected! row-data (oget this "target")))
-    ;:class (if (is-selected? result (:selected-result @state)) "selected")
-}
-    ;[result-selection-control result]
+  (fn [row-data contents]
+  (let [result (:result row-data)
+        active-filter (subscribe [:search/active-filter])
+        selected? (subscribe [:search/am-i-selected? (oget result :id)])]
+    ;;Todo: Add a conditional row highlight on selected rows.
+    [:div.result {:on-click
+                  (fn [this]
+                    (set-selected! row-data (oget this "target")))
+                  :class (if @selected? "selected")}
+     (cond (some? @active-filter)
+    [result-selection-control result])
      [:span.result-type {:class (str "type-" (oget result "type"))} (oget result "type")]
-     (contents)]))
+     (contents)])))
 
 (defn wrap-term [broken-string term]
   "Joins an array of terms which have already been broken on [term] adding a highlight class as we go.
