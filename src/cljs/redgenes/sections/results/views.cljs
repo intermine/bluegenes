@@ -45,6 +45,7 @@
          [breadcrumb]
          [:div.results-and-enrichment
           [:div.col-md-8.col-sm-12.panel
+           ;;[:results :fortable] is the key where the imtables data (appdb) are stored.
              [tables/main [:results :fortable]]]
           [:div.col-md-4.col-sm-12
            [enrichment/enrich]
