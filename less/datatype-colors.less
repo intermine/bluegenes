@@ -10,26 +10,27 @@
 
 @color-Nuffink: #ccc; // for things that aren't exciting enough to get their own colour
 
-.type-DataSet, .type-UniProtFeature, .type-MeshTerm,  .type-AnatomyTerm, .type-RNAiResult, .type-Chromosome, .type-CVTerm, .type-OntologyTerm, .type-style {
+//there has to be a better way than having all the model here. Pre-build css from models?
+.type-DataSet, .type-UniProtFeature, .type-MeshTerm,  .type-AnatomyTerm, .type-RNAiResult, .type-Chromosome, .type-CVTerm, .type-OntologyTerm, .type-style, .type-OntologyTermSynonym, .type-MammalianPhenotypeTerm, .type-GWASResult, .type-GWAS, .type-HPOTerm, .type-Pathway, .type-Pathways, .type-Regulation, .type-ProteinStructure, .type-GXDExpression, .type-Genotype, .type-Allele, .type-Comparative, .type-Phenotypes, .type-Function, .type-Expression, .type-SNPs, .type-Disease, .type-Ontology, .type-Phenotype, .type-Summary, .type-summary, .type-all, .type-Variation {
   background: @color-Nuffink;
   fill: @color-Nuffink;
   border: solid 3px @color-Nuffink;
 }
 
-.type-Gene, .type-genes,  .type-gene, .type-homologues, .type-Homologue {
+.type-Gene, .type-Genes, .type-Genomics, .type-genes,  .type-gene, .type-homologues, .type-Homologue, .type-Homology, .type-Genome {
   background: @color-Gene;
   fill: @color-Gene;
   color: #fff;
   border: solid 3px @color-Gene;
 
 }
-.type-Publication, .type-publications, .type-Author {
+.type-Publication, .type-publications, .type-Author, .type-Literature {
   background: @color-Publication;
   fill: @color-Publication;
   border: solid 3px @color-Publication;
 
 }
-.type-Protein, .type-proteins, .type-ProteinDomain {
+.type-Protein, .type-Proteins, .type-proteins, .type-ProteinDomain {
   background: @color-Protein;
   fill: @color-Protein;
   border: solid 3px @color-Protein;
@@ -49,7 +50,7 @@
   border:solid 3px @color-Organism;
 }
 
-.type-interactions, .type-Interaction, .type-InteractionTerm, .type-InteractionExperiment {
+.type-interactions, .type-Interaction, .type-InteractionTerm, .type-InteractionExperiment, .type-Complex, .type-Interactions {
   background:@color-Interaction;
   fill:@color-Interaction;
   border:solid 3px @color-Interaction;
@@ -57,26 +58,26 @@
 
 .colortypes {
   //this is a mixin that's copy pasted from above.
-  .type-DataSet, .type-UniProtFeature, .type-MeshTerm, .type-AnatomyTerm, .type-RNAiResult, .type-Chromosome, .type-CVTerm, .type-OntologyTerm {
+.type-DataSet, .type-UniProtFeature, .type-MeshTerm, .type-AnatomyTerm, .type-RNAiResult, .type-Chromosome, .type-CVTerm, .type-OntologyTerm, .type-style, .type-OntologyTermSynonym, .type-MammalianPhenotypeTerm, .type-GWASResult, .type-GWAS, .type-HPOTerm, .type-Pathway, .type-Pathways, .type-ProteinStructure, .type-GXDExpression, .type-Genotype, .type-Allele, .type-Regulation, .type-Comparative, .type-Function, .type-Ontology, .type-Phenotype, .type-Summary, .type-summary, .type-Expression, .type-SNPs, .type-Disease, .type-Phenotypes, .type-all, .type-Variation  {
     background: @color-Nuffink;
     fill: @color-Nuffink;
     border: solid 3px @color-Nuffink;
   }
 
-  .type-Gene, .type-genes,  .type-gene, .type-homologues, .type-Homologue {
+  .type-Gene, .type-Genes, .type-genes,  .type-gene, .type-homologues, .type-Homologue, .type-Homology, .type-Genomics, .type-Genome  {
     background: @color-Gene;
     fill: @color-Gene;
     color: #fff;
     border: solid 3px @color-Gene;
 
   }
-  .type-Publication, .type-publications, .type-Author {
+  .type-Publication, .type-publications, .type-Author, .type-Literature {
     background: @color-Publication;
     fill: @color-Publication;
     border: solid 3px @color-Publication;
 
   }
-  .type-Protein, .type-proteins, .type-ProteinDomain {
+  .type-Protein, .type-Proteins, .type-proteins, .type-ProteinDomain {
     background: @color-Protein;
     fill: @color-Protein;
     border: solid 3px @color-Protein;
@@ -96,7 +97,7 @@
     border:solid 3px @color-Organism;
   }
 
-  .type-interactions, .type-Interaction, .type-InteractionTerm, .type-InteractionExperiment {
+  .type-interactions, .type-Interaction, .type-InteractionTerm, .type-InteractionExperiment, .type-Complex {
     background:@color-Interaction;
     fill:@color-Interaction;
     border:solid 3px @color-Interaction;

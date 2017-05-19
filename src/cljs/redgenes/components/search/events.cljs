@@ -125,7 +125,8 @@
 (reg-event-fx
   :search/set-active-filter
   (fn [{:keys [db]} [_ filter]]
-    (let [new-db (assoc-in db [:search-results :active-filter] filter)]
+    (let [new-db (-> (assoc-in db [:search-results :active-filter] filter)
+             (assoc-in [:search :selected-results] #{}))]
     {:db new-db
      :load-more-results-if-needed (:search-results new-db)}
 )))
@@ -138,7 +139,38 @@
      }
 ))
 
+(reg-event-fx
+  :search/to-results
+  (fn [{:keys [db]}]
+    (let [object-type (get-in db [:search-results :active-filter])
+          ids (reduce (fn [result-ids result](conj result-ids (oget result :id))) [] (get-in db [:search :selected-results]))
+          current-mine (:current-mine db)
+          summary-fields (get-in db [:assets :summary-fields current-mine (keyword object-type)])]
+    {:db db
+     :dispatch [:results/set-query
+                 {:source current-mine
+                  :type :query
+                  :value {:from object-type
+                          :select summary-fields
+                          :where [{:path (str object-type ".id")
+                                   :op "ONE OF"
+                                   :values ids}]}}]
+     })))
+
+
 (reg-event-db :search/highlight-results
   (fn [db [_ highlight?]]
     (assoc-in db [:search-results :highlight-results] highlight?)
 ))
+
+(reg-event-db
+ :search/select-result
+ (fn [db [_ result]]
+   (update-in db [:search :selected-results] conj result)
+   ))
+
+(reg-event-db
+  :search/deselect-result
+  (fn [db [_ result]]
+    (update-in db [:search :selected-results] disj result)
+  ))
