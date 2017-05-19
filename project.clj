@@ -1,5 +1,4 @@
-(def props {:version "0.4.5-export"})
-
+(def props {:version "0.4.5"})
 
 (defproject redgenes (:version props)
   :dependencies [[org.clojure/clojure "1.9.0-alpha14"]
