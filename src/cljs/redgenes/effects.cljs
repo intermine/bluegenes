@@ -21,7 +21,7 @@
   (fn [{:keys [on-success on-failure response-format chan params]}]
     (go
       (let [{:keys [statusCode] :as response} (<! chan)]
-        (if (and statusCode (>= statusCode 400))
+        (if (and statusCode (= statusCode 401))
           (dispatch [:flag-invalid-tokens])
           (dispatch (conj on-success response)))))))
 
