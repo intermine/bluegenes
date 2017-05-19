@@ -8,7 +8,7 @@
             [day8.re-frame.async-flow-fx]
             [bluegenes.sections.reportpage.handlers]
             [bluegenes.components.search.events]
-            [bluegenes.components.databrowser.events]
+            ;[bluegenes.components.databrowser.events]
             [bluegenes.components.navbar.events]
             [bluegenes.components.enrichment.events]
             [bluegenes.components.search.events :as search-full]
