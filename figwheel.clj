@@ -5,7 +5,7 @@
  '[ring.middleware.json :refer [wrap-json-response wrap-json-params]]
  '[ring.middleware.params :refer [wrap-params]]
  '[ring.util.response :refer [response]]
- '[redgenes.routes :as routes])
+ '[bluegenes.routes :as routes])
 
 (def figwheel-config
    {:figwheel-options {} ;; <-- figwheel server config goes here
@@ -13,8 +13,8 @@
     :all-builds          ;; <-- supply your build configs here
     [{:id           "dev"
       :source-paths ["src/cljs"]
-      :figwheel     {:on-jsload "redgenes.core/mount-root"}
-      :compiler     {:main                 "redgenes.core"
+      :figwheel     {:on-jsload "bluegenes.core/mount-root"}
+      :compiler     {:main                 "bluegenes.core"
                      :output-to            "resources/public/js/compiled/app.js"
                      :output-dir           "resources/public/js/compiled/out"
                      :asset-path           "js/compiled/out"
@@ -24,7 +24,7 @@
      {:id           "min"
       :source-paths ["src/cljs"]
       :jar          true
-      :compiler     {:main            "redgenes.core"
+      :compiler     {:main            "bluegenes.core"
                      :output-to       "resources/public/js/compiled/app.js"
                      :externs         ["externs/imjs.js"
                                        "externs/imtables.js"]
@@ -35,7 +35,7 @@
      {:id           "test"
       :source-paths ["src/cljs" "test/cljs"]
       :compiler     {:output-to     "resources/public/js/compiled/test.js"
-                     :main          "redgenes.runner"
+                     :main          "bluegenes.runner"
                      :optimizations :none}}
      ]})
 

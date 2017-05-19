@@ -1,6 +1,6 @@
 (def props {:version "0.4.5"})
 
-(defproject redgenes (:version props)
+(defproject bluegenes (:version props)
   :dependencies [[org.clojure/clojure "1.9.0-alpha14"]
                  [figwheel-sidecar "0.5.8"]
                  [clj-http "3.3.0"]
@@ -62,7 +62,7 @@
                                     "test/js"]
 
   :figwheel {:css-dirs         ["resources/public/css"]
-             :ring-handler     redgenes.handler/dev-handler
+             :ring-handler     bluegenes.handler/dev-handler
              :reload-clj-files {:cljc true}}
 
   :less {:source-paths ["less"]
@@ -83,9 +83,9 @@
     :dev
     {
      :source-paths ["src/cljs"]
-     :figwheel     {:on-jsload "redgenes.core/mount-root"}
+     :figwheel     {:on-jsload "bluegenes.core/mount-root"}
      :compiler     {
-                    :main                 redgenes.core
+                    :main                 bluegenes.core
                     :optimizations        :none
                     :output-to            "resources/public/js/compiled/app.js"
                     :output-dir           "resources/public/js/compiled"
@@ -101,7 +101,7 @@
     :modules
     {
      :source-paths ["src/cljs"]
-     ;:figwheel     {:on-jsload "redgenes.core/mount-root"}
+     ;:figwheel     {:on-jsload "bluegenes.core/mount-root"}
      :compiler     {
 
                     :optimizations        :simple
@@ -116,7 +116,7 @@
                                            :app
                                            {
                                             :output-to "resources/public/js/modules/app.js"
-                                            :entries   #{"redgenes.core"}}
+                                            :entries   #{"bluegenes.core"}}
                                            ;;:preamble             ["preamble.js"]
 
                                            :query-builder
@@ -125,20 +125,20 @@
                                             ;;:preamble             ["preamble.js"]
                                             :entries
                                                        #{
-                                                         "redgenes.components.querybuilder.views.main"}}
+                                                         "bluegenes.components.querybuilder.views.main"}}
 
 
                                            :main
                                            {
                                             :output-to "resources/public/js/modules/main.js"
                                             ;;:preamble             ["preamble.js"]
-                                            :entries   #{"redgenes.main" "redgenes.modules"}}}}}
+                                            :entries   #{"bluegenes.main" "bluegenes.modules"}}}}}
 
     :min
     {
      :source-paths ["src/cljs"]
      :jar          true
-     :compiler     {:main            redgenes.core
+     :compiler     {:main            bluegenes.core
 
 
 
@@ -148,7 +148,7 @@
                                       "externs/imtables.js"]
                     :optimizations   :advanced
                     :closure-defines {goog.DEBUG false
-                                      redgenes.core/version ~(:version props)}
+                                      bluegenes.core/version ~(:version props)}
                     :pretty-print    false}}
     ;:foreign-libs [{:file "resources/public/vendor/im.min.js"
     ;                :provides ["intermine.imjs"]}
@@ -160,13 +160,13 @@
      :source-paths ["src/cljs" "test/cljs"]
      :compiler     {:output-to     "resources/public/js/test/test.js"
                     :output-dir    "resources/public/js/test"
-                    :main          redgenes.runner
+                    :main          bluegenes.runner
                     :optimizations :none}}}}
 
 
-  :main redgenes.server
+  :main bluegenes.server
 
-  ;:aot [redgenes.server]
+  ;:aot [bluegenes.server]
 
   ;:prep-tasks [["cljsbuild" "once" "min"] "compile"]
 

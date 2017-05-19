@@ -2,7 +2,7 @@
 ## About
 BlueGenes is designed to make searching and analysing genomic data easy. It's powered by [InterMine](http://intermine.org/) web services, meaning that the data from nearly 30 InterMines worldwide can be accessed from the same familiar interface.
 
-[Try BlueGenes now](http://redgenes.apps.intermine.org/)
+[Try BlueGenes now](http://bluegenes.apps.intermine.org/)
 
 
 ![BlueGene screenshots](http://i.imgur.com/zwp0uxM.jpg)
@@ -81,7 +81,7 @@ lein cljsbuild once min
 ### Minified deployment using dokku
 One of the easiest ways to deploy the prod minified version is to set up [Dokku](http://dokku.viewdocs.io/dokku/) on your intended server. Once dokku is configured on your remote host, all you need to do to deploy a minified build is add the server as a remote and push to it:
 
-	git remote add my-awesome-server redgenes@my-awesome-server.git
+	git remote add my-awesome-server bluegenes@my-awesome-server.git
     git push my-awesome-server master
 
 
