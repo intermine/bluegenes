@@ -194,7 +194,7 @@
                               :url     "beta.flymine.org/beta"
                               :service {:root "beta.flymine.org/beta"}}}
             :beanmine       {:id                           :beanmine
-                             :service                      {:root "mines.legumeinfo.org/beanmine" :token nil}
+                             :service                      {:root "https://mines.legumeinfo.org/beanmine" :token nil}
                              :name                         "BeanMine"
                              :common                       "Bean"
                              :icon                         "icon-intermine"
@@ -220,11 +220,11 @@
                                                                       :value "222"}]}
                              :mine
                              {:name    "BeanMine"
-                              :url     "mines.legumeinfo.org/beanmine"
-                              :service {:root "mines.legumeinfo.org/beanmine"}}}
+                              :url     "https://mines.legumeinfo.org/beanmine"
+                              :service {:root "https://mines.legumeinfo.org/beanmine"}}}
 
             :legumemine     {:id                           :legumemine
-                             :service                      {:root "intermine.legumefederation.org/legumemine" :token nil}
+                             :service                      {:root "https://intermine.legumefederation.org/legumemine" :token nil}
                              :name                         "LegumeMine"
                              :common                       "Legume"
                              :icon                         "icon-intermine"
@@ -247,8 +247,66 @@
                                                                       :code  "A"
                                                                       :value "222"}]}
                              :mine                         {:name    "LegumeMine"
-                                                            :url     "intermine.legumefederation.org/legumemine"
-                                                            :service {:root "intermine.legumefederation.org/legumemine"}}}
+                                                            :url     "https://intermine.legumefederation.org/legumemine"
+                                                            :service {:root "https://intermine.legumefederation.org/legumemine"}}}
+
+            :medicmine      {:id                           :medicmine
+                             :service                      {:root "medicmine.jcvi.org/medicmine" :token nil}
+                             :name                         "MedicMine"
+                             :common                       "Medicago truncatula"
+                             :icon                         "icon-intermine"
+                             :status                       {:status :na}
+                             :output?                      true
+                             :abbrev                       "M. truncatula"
+                             :default-object-types         [:Gene] ;;there are other 'default' identifers but they have no examples so I'm not adding them right now.
+                             :default-organism             "M. truncatula"
+                             :default-selected-object-type :Gene
+                             :regionsearch-example         ["chr1:29733..37349" "chr5:393758..394189" "chr8:1495567..1503324"]
+                             :idresolver-example           {:Protein "A0A0C3W820, A0A0C3WAQ7, A0A0C3Y4A2, Medtr1g088775, Medtr2g008430, Medtr3g084500, Medtr4g092620, Medtr5g022700, Medtr6g033260.1, Medtr7g072350.1, Medtr7g075090.1"
+                                                            :Gene "Medtr1g088775, Medtr2g008430, Medtr2g042330, Medtr3g084500, Medtr4g092620, Medtr5g022700, Medtr6g033260, Medtr7g072350, Medtr7g075090, Medtr7g083920, Medtr7g100345, Medtr8g028145, Medtr8g036020, Medtr8g036035, Medtr8g036040, Medtr8g036050, Medtr8g083210, Medtr8g105860"}
+                             :default-query-example        {:from   "Gene"
+                                                            :select ["primaryIdentifier"
+                                                                     "length"
+                                                                     "goAnnotation.ontologyTerm.identifier"
+                                                                     "goAnnotation.ontologyTerm.name"
+                                                                     "goAnnotation.ontologyTerm.description"]
+                                                            :where  [{:path  "Gene.length"
+                                                                      :op    "<"
+                                                                      :code  "A"
+                                                                      :value "222"}]}
+                             :mine                         {:name    "MedicMine"
+                                                            :url     "medicmine.jcvi.org/medicmine"
+                                                            :service {:root "medicmine.jcvi.org/medicmine"}}}
+
+            :thalemine      {:id                           :thalemine
+                             :service                      {:root "https://apps.araport.org/thalemine" :token nil}
+                             :name                         "ThaleMine"
+                             :common                       "Arabidopsis thaliana"
+                             :icon                         "icon-intermine"
+                             :status                       {:status :na}
+                             :output?                      true
+                             :abbrev                       "A. thaliana"
+                             :default-object-types         [:Gene] ;;there are other 'default' identifers but they have no examples so I'm not adding them right now.
+                             :default-organism             "A.thaliana"
+                             :default-selected-object-type :Gene
+                             :regionsearch-example         ["chr1:29733..37349" "chr5:393758..394189" "chr8:1495567..1503324"]
+                             :idresolver-example           {:Protein "A0MES8, B3H6J0_ARATH, AT1G02145, AAE14, AT4G00124.1, AT4G01515"
+                                                            :Gene "AT1G02850, AT1G05240, AT1G05250, AT1G05260, AT1G14540, AT1G14550, AT1G15950, AT1G24110, AT1G24735, AT1G26560, AT1G30870, AT1G34510, AT1G44970, AT1G45191, AT1G48130, AT1G49570, AT1G51680, AT1G52760, AT1G61810, AT1G61820"}
+                             :default-query-example        {:from   "Gene"
+                                                            :select ["primaryIdentifier"
+                                                                     "length"
+                                                                     "goAnnotation.ontologyTerm.identifier"
+                                                                     "goAnnotation.ontologyTerm.name"
+                                                                     "goAnnotation.ontologyTerm.description"]
+                                                            :where  [{:path  "Gene.length"
+                                                                      :op    "<"
+                                                                      :code  "A"
+                                                                      :value "222"}]}
+                             :mine                         {:name    "ThaleMine"
+                                                            :url     "https://apps.araport.org/thalemine/begin.do"
+                                                            :service {:root "https://apps.araport.org/thalemine/begin.do"}}}
+
+
 
             :mousemine     {:id                 :mousemine
                             :service            {:root "www.mousemine.org/mousemine"}
