@@ -194,7 +194,7 @@
                               :url     "beta.flymine.org/beta"
                               :service {:root "beta.flymine.org/beta"}}}
             :beanmine       {:id                           :beanmine
-                             :service                      {:root "mines.legumeinfo.org/beanmine" :token nil}
+                             :service                      {:root "https://mines.legumeinfo.org/beanmine" :token nil}
                              :name                         "BeanMine"
                              :common                       "Bean"
                              :icon                         "icon-intermine"
@@ -220,11 +220,11 @@
                                                                       :value "222"}]}
                              :mine
                              {:name    "BeanMine"
-                              :url     "mines.legumeinfo.org/beanmine"
-                              :service {:root "mines.legumeinfo.org/beanmine"}}}
+                              :url     "https://mines.legumeinfo.org/beanmine"
+                              :service {:root "https://mines.legumeinfo.org/beanmine"}}}
 
             :legumemine     {:id                           :legumemine
-                             :service                      {:root "intermine.legumefederation.org/legumemine" :token nil}
+                             :service                      {:root "https://intermine.legumefederation.org/legumemine" :token nil}
                              :name                         "LegumeMine"
                              :common                       "Legume"
                              :icon                         "icon-intermine"
@@ -247,8 +247,8 @@
                                                                       :code  "A"
                                                                       :value "222"}]}
                              :mine                         {:name    "LegumeMine"
-                                                            :url     "intermine.legumefederation.org/legumemine"
-                                                            :service {:root "intermine.legumefederation.org/legumemine"}}}
+                                                            :url     "https://intermine.legumefederation.org/legumemine"
+                                                            :service {:root "https://intermine.legumefederation.org/legumemine"}}}
 
             :mousemine     {:id                 :mousemine
                             :service            {:root "www.mousemine.org/mousemine"}
