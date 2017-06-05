@@ -12,7 +12,7 @@ BlueGenes is designed to make searching and analysing genomic data easy. It's po
 ## Configuration
 
 #### Adding a new mine
-Open `src/cljc/bluegenes/mines.cljc` and copy the value of the `sample-mine` variable into the `mines` hashmap. Change the key to something unique (`:yourmine`) and edit the default values appropriately. Be sure to edit the {:id ...} value to reflect the key you used for `:yourmine`
+Open [src/cljc/bluegenes/mines.cljc](https://github.com/intermine/bluegenes/blob/dev/src/cljc/bluegenes/mines.cljc#L7-L51) and copy the value of the `sample-mine` variable into the `mines` hashmap. Change the key to something unique (`:yourmine`) and edit the default values appropriately. Be sure to edit the {:id ...} value to reflect the key you used for `:yourmine`
 
 ```clj
 (def mines {:humanmine {...}
@@ -31,7 +31,7 @@ Open `src/cljs/bluegenes/db.cljs` and edit the `:current-mine` hashmap value to 
    :mine-name :yourmine
    ...}
 ```
-Please note that you will have to recompile the application for the changes to take effect (see below). Also, may need to clear your local storage for the `:default-mine` to take effect. You can do this by visiting the web application, clicking the cog on the top right, selecting Debug, and then clicking the button to delete location storage.
+Please note that you will have to recompile the application for the changes to take effect (see below). Also, may need to clear your local storage for the `:default-mine` to take effect. You can do this by visiting the web application, clicking the cog on the top right, selecting Debug, and then clicking the button to delete local storage.
 
 ## Developers
 
