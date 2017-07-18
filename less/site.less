@@ -392,3 +392,15 @@ label {
     padding: 10px;
     ul { display:inline}
 }
+
+.extra-tiny-screen {
+  display:none;
+  @media (max-width:@even-tinier-screen) {
+    display:inline-block;
+  }
+}
+.larger-screen-only, .navbar.navbar-default li.larger-screen-only {
+  @media (max-width:@even-tinier-screen) {
+   display: none;
+ }
+}

@@ -18,7 +18,7 @@
   (let [current-mine (subscribe [:current-mine])]
   (fn []
     [:li.dropdown.mine-settings
-     [:a.dropdown-toggle {:data-toggle "dropdown" :role "button"} [:i.fa.fa-cog]]
+     [:a.dropdown-toggle {:data-toggle "dropdown" :role "button"} [:svg.icon.icon-cog [:use {:xlinkHref "#icon-cog"}]]]
       (conj (into [:ul.dropdown-menu]
         (map (fn [[id details]]
           [:li {:on-click (fn [e] (dispatch [:set-active-mine (keyword id)]))
@@ -86,8 +86,10 @@
          [:li [:span.navbar-brand {:on-click #(navigate! "/")}
            [active-mine-logo]
            [:span.long-name (:name @current-mine)]]]
-         [:li.homelink {:class (if (panel-is :home-panel) "active")} [:a {:on-click #(navigate! "/")} "Home"]]
-         [:li {:class (if (panel-is :upload-panel) "active")} [:a {:on-click #(navigate! "/upload")} "Upload"]]
+         [:li.homelink.larger-screen-only {:class (if (panel-is :home-panel) "active")} [:a {:on-click #(navigate! "/")} "Home"]]
+         [:li {:class (if (panel-is :upload-panel) "active")} [:a {:on-click #(navigate! "/upload")}
+          [:svg.icon.icon-upload.extra-tiny-screen [:use {:xlinkHref "#icon-upload"}]]
+          [:span.larger-screen-only "Upload"]]]
          [:li {:class (if (panel-is :templates-panel) "active")} [:a {:on-click #(navigate! "/templates")} "Templates"]]
 
          ;;don't show region search for mines that have no example configured
@@ -101,7 +103,7 @@
         [:ul.nav.navbar-nav.navbar-right.buttons
          [:li.search [search/main]]
          (cond (not (panel-is :search-panel)) [:li.search-mini [:a {:on-click #(navigate! "/search")} [:svg.icon.icon-search [:use {:xlinkHref "#icon-search"}]]]])
-         [:li [:a {:on-click #(navigate! "/help")} [:i.fa.fa-question]]]
+         [:li.larger-screen-only [:a {:on-click #(navigate! "/help")} [:svg.icon.icon-question [:use {:xlinkHref "#icon-question"}]]]]
          ;;This may have worked at some point in the past. We need to res it.
         ; [user]
          [settings]]]
