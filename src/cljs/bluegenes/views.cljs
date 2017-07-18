@@ -42,7 +42,7 @@
       [:a {:href "https://intermineorg.wordpress.com/cite/"} "Cite"]
       [:a {:href "http://intermine.readthedocs.io/en/latest/about/contact-us/"} "Contact"]
       [:a {:href "https://intermineorg.wordpress.com/"} "Blog"]
-      [:li [:a {:on-click #(navigate! "/help")} [:i.fa.fa-question]]]]
+       [:a {:on-click #(navigate! "/help")} [:svg.icon.icon-question [:use {:xlinkHref "#icon-question"}]] " Help"]]
      [:div [:p "Funded by:"]
       [:a {:href "http://www.wellcome.ac.uk/" :target "_blank"} "Wellcome Trust"]
       [:a {:href "https://www.nih.gov/" :target "_blank"} "NIH"]
