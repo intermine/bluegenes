@@ -2,16 +2,24 @@
 
 .navbar,
 .navbar.navbar-default {
-  li{flex-grow:1;justify-content:center; text-align:center;}
+    li {
+        flex-grow: 1;
+        justify-content: center;
+        text-align: center;
+    }
     background-color: @navbar-color;
     margin-bottom: 0;
     border-width: 0;
     border-radius: 0;
 
-    .container-fluid, .navbar-header {
+    .container-fluid,
+    .navbar-header {
         margin-left: 0;
-      }
-      .navbar-header {margin-right:0}
+    }
+
+    .navbar-header {
+        margin-right: 0;
+    }
 
     .logo.icon {
         vertical-align: middle;
@@ -68,7 +76,7 @@
         &.mine-settings {
             .dropdown-menu {
                 padding: 0;
-                  text-align:left;
+                text-align: left;
             }
 
             li a {
@@ -84,7 +92,8 @@
             li a {
                 .transitions;
                 background: @body-background-color;
-                text-align:left;
+                text-align: left;
+
                 .icon {
                     fill: rgba(0,0,0,0.2);
                     margin-right: @spacer;
@@ -92,12 +101,13 @@
 
                 &:hover {
                     background: darken(@body-background-color, 3%);
-                    color:@highlight-color;
+                    color: @highlight-color;
                     .transitions;
                 }
 
-                &.active, &.active > a {
-                  background-color:@highlight-color;
+                &.active,
+                &.active > a {
+                    background-color: @highlight-color;
 
                     .icon {
                         fill: @body-background-color;
@@ -142,7 +152,10 @@
     .navbar-header {
         align-self: flex-start;
     }
-    .navbar-brand {margin-left:0}
+
+    .navbar-brand {
+        margin-left: 0;
+    }
 
     .navbar {
         .long-name {
@@ -232,4 +245,19 @@
             .transitions;
         }
     }
+}
+@media (max-width:@even-tinier-screen) {
+    .navbar.navbar-default {
+        li {
+          // a desperate attempt to make the search bar a bit narrower
+            font-family: "Roboto condensed","Helvetica Neue Condensed","PT Sans Narrow", "Open Sans Condensed", "Liberation Sans Narrow","Arial Narrow", "sans serif", sans-serif;
+        }
+
+        li a {
+            padding-left: 4px;
+            padding-right: 4px;
+            font-size:0.9em;
+        }
+    }
+    .navbar-right {margin-left:0.3em}
 }
