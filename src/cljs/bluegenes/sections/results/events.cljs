@@ -6,6 +6,7 @@
             [imcljsold.search :as search]
             [imcljs.fetch :as fetch]
             [imcljs.path :as path]
+            [imcljs.query :as q]
             [clojure.spec.alpha :as s]
             [clojure.set :refer [intersection]]
             [day8.re-frame.http-fx]
@@ -54,6 +55,7 @@
   :results/set-query
   (abort-spec bluegenes.specs/im-package)
   (fn [{db :db} [_ {:keys [source value type] :as package}]]
+    (println (prn-str value))
     (let [model (get-in db [:mines source :service :model :classes])]
       {:db         (update-in db [:results] assoc
                               :query value
