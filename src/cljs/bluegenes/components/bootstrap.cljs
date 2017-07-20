@@ -1,5 +1,6 @@
 (ns bluegenes.components.bootstrap
   (:require [reagent.core :as reagent]
+            [reagent.dom.server :refer [render-to-static-markup]]
             [oops.core :refer [ocall oapply oget oset!]]))
 
 
@@ -23,7 +24,7 @@
        [element (-> attributes
                     (assoc :data-html true)
                     (assoc :data-container "body")
-                    (update :data-content reagent/render-to-static-markup)) rest])}))
+                    (update :data-content render-to-static-markup)) rest])}))
 
 (defn tooltip
   "Reagent wrapper for bootstrap's tooltip component.

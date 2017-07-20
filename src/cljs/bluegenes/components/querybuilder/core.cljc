@@ -3,8 +3,7 @@
   (:require
     [clojure.string :as string]
     [clojure.tools.reader.edn :as edn]
-    #?(:cljs [cljs.spec :as s]
-       :clj [clojure.spec :as s])
+    [clojure.spec.alpha :as s]
     [clojure.tools.reader.edn :as edn]))
 
 ; TODO:

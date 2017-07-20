@@ -6,7 +6,7 @@
             [imcljsold.search :as search]
             [imcljs.fetch :as fetch]
             [imcljs.path :as path]
-            [clojure.spec :as s]
+            [clojure.spec.alpha :as s]
             [clojure.set :refer [intersection]]
             [day8.re-frame.http-fx]
             [ajax.core :as ajax]

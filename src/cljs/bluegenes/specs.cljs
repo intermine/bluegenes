@@ -1,5 +1,5 @@
 (ns bluegenes.specs
-  (:require [clojure.spec :as s]))
+  (:require [clojure.spec.alpha :as s]))
 
 (defn one-of? [haystack needle] (some? (some #{needle} haystack)))
 

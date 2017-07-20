@@ -1,6 +1,6 @@
 (ns bluegenes.interceptors
   (:require [re-frame.core :as re-frame :refer [dispatch]]
-            [clojure.spec :as s]
+            [clojure.spec.alpha :as s]
             [oops.core :refer [ocall oget]]))
 
 ; (defmacro qwe [f v] `(fn [~v] (~f v)))

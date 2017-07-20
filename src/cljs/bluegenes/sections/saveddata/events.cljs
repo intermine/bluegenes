@@ -8,7 +8,7 @@
             [cljs-time.core :as t]
             [imcljsold.operations :as operations]
             [imcljsold.search :as search]
-            [clojure.spec :as s]
+            [clojure.spec.alpha :as s]
             [accountant.core :refer [navigate!]]
             [bluegenes.interceptors :refer [abort-spec]]
             [clojure.set :refer [union intersection difference]]))

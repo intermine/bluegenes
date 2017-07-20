@@ -4,7 +4,7 @@
             [re-frame.core :as re-frame :refer [subscribe dispatch]]
             [json-html.core :as json]
             [com.rpl.specter :as s]
-            [clojure.spec :as spec]
+            [clojure.spec.alpha :as spec]
             [bluegenes.components.querybuilder.events]
             [bluegenes.components.querybuilder.subs]
             [bluegenes.components.loader :refer [loader]]
@@ -12,8 +12,7 @@
             [bluegenes.components.querybuilder.views.constraints :as constraints]
             [bluegenes.components.table :as table]
             [json-html.core :as json-html]
-            [clojure.string :as string]
-            [cljs.spec :as spec]))
+            [clojure.string :as string]))
 
 (defn attribute []
   (let [query (subscribe [:query-builder/query])]
