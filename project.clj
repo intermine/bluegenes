@@ -58,6 +58,8 @@
                  ; Database
                  [org.clojure/java.jdbc "0.7.0"]
                  [org.postgresql/postgresql "42.1.3"]
+                 [hikari-cp "1.7.5"]
+                 [migratus "0.9.5"]
 
                  ; Components
                  [mount "0.1.11"]
