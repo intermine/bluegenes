@@ -5,7 +5,7 @@
                  [org.clojure/clojurescript "1.9.671"]
                  [re-frame "0.9.4"]
                  [intermine/imcljs "0.1.26"]
-                 [intermine/im-tables "0.2.0-SNAPSHOT"]
+                 [intermine/im-tables "0.3.2-SNAPSHOT"]
                  [figwheel-sidecar "0.5.11"]
                  [clj-http "3.6.1"]
                  [reagent "0.7.0"]
