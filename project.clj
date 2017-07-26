@@ -95,7 +95,7 @@
                    :plugins [[lein-figwheel "0.5.11"]
                              [lein-doo "0.1.7"]]}
              :prod {:dependencies []
-                    :resource-paths ["config/dev"]
+                    :resource-paths ["config/prod"]
                     :plugins []}
              :uberjar {:prep-tasks ["clean" ["less" "once"] ["cljsbuild" "once" "min"] "compile"]}}
 
