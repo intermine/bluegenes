@@ -16,6 +16,7 @@
     (catch Exception e (do (println "ERROR") {:error :duplicate}))))
 
 (defn authenticate-user [email password]
+  (println "GOT" email password)
   (if-some [{:keys [hash] :as user} (queries/first-user-by-email email)]
     (when (hs/check password hash)
       (let [stripped (dissoc user :hash)]

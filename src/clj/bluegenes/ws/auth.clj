@@ -21,7 +21,7 @@
         (bad-request new-user)
         (ok new-user)))))
 
-(defn handle-authentication [{:keys [email password]}]
+(defn handle-authentication [{:keys [email password] :as x}]
   (if (not-every? valuable? [email password])
     (unauthorized {:user nil})
     (let [user (auth/authenticate-user email password)]

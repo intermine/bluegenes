@@ -2,7 +2,8 @@
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [re-frame.core :refer [dispatch reg-fx]]
             [accountant.core :as accountant]
-            [cljs.core.async :refer [<!]]))
+            [cljs.core.async :refer [<!]]
+            [cljs-http.client :as http]))
 
 (reg-fx
   :suggest
@@ -35,3 +36,17 @@
   (fn [v]
     (doall (map (fn [{:keys [on-success on-failure response-format op params]}]
                   (go (dispatch (conj on-success (<! (op)))))) v))))
+
+(def method-map {:get  http/get
+                 :post http/post})
+
+(reg-fx
+  :http
+  (fn [{:keys [uri on-success on-failure on-denied params method] :as o}]
+    (let [http-fn (method method-map)]
+      (go (let [{:keys [status body]} (<! (http-fn uri (when (not= method :get) {:form-params params})))]
+            (cond
+              (< status 400) (dispatch (conj on-success body))
+              (and (>= status 400) (< status 500)) (dispatch (conj on-denied body))
+              (>= status 500) (dispatch (conj on-failure body))
+              :else nil))))))
