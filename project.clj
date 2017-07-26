@@ -6,11 +6,6 @@
                  [org.clojure/clojurescript "1.9.671"]
                  [org.clojure/core.async "0.3.443"]
 
-                 ; Intermine Assets
-                 [intermine/imcljs "0.1.26"]
-                 [intermine/im-tables "0.3.2-SNAPSHOT"]
-                 [intermine/accountant-fragments "0.1.8"]
-
                  ; MVC
                  [re-frame "0.9.4"]
                  [day8.re-frame/http-fx "0.1.4"]
@@ -40,7 +35,6 @@
                  [re-frisk "0.4.5"]
 
                  ; Build tools
-                 [lein-cljsbuild "1.1.6"]
                  [yogthos/config "0.8"]
 
                  ; Utility libraries
@@ -70,19 +64,16 @@
                  ; Security
                  [buddy/buddy-auth "1.4.1"]
                  [buddy/buddy-sign "1.5.0"]
-                 [buddy/buddy-hashers "1.2.0"]]
+                 [buddy/buddy-hashers "1.2.0"]
 
-  :plugins [[lein-cljsbuild "1.1.4"]
+                 ; Intermine Assets
+                 [intermine/imcljs "0.1.26"]
+                 [intermine/im-tables "0.3.2-SNAPSHOT"]
+                 [intermine/accountant-fragments "0.1.8"]]
+
+  :plugins [[lein-cljsbuild "1.1.6"]
             [lein-less "1.7.5"]
-            [lein-shell "0.5.0"]
-            [lein-cljfmt "0.5.5"]
             [lein-ancient "0.6.10"]]
-
-
-  :aliases {"foreign" ["do"
-                       ["shell" "curl" "-o" "resources/public/vendor/imtables.js" "http://cdn.intermine.org/js/intermine/im-tables/2.0.0/imtables.min.js"]
-                       ["shell" "curl" "-o" "resources/public/vendor/im.min.js" "http://cdn.intermine.org/js/intermine/imjs/3.15.0/im.min.js"]]}
-
 
   :min-lein-version "2.5.3"
 
@@ -102,62 +93,39 @@
   :profiles {:dev {:dependencies [[binaryage/devtools "0.9.4"]]
                    :resource-paths ["config/dev"]
                    :plugins [[lein-figwheel "0.5.11"]
-                             [lein-doo "0.1.6"]]}
+                             [lein-doo "0.1.7"]]}
              :prod {:dependencies []
                     :resource-paths ["config/dev"]
-                    :plugins []}}
+                    :plugins []}
+             :uberjar {:prep-tasks ["clean" ["less" "once"] ["cljsbuild" "once" "min"] "compile"]}}
 
-  :cljsbuild {:builds
-              {:dev {:source-paths ["src/cljs"]
-                     :figwheel {:on-jsload "bluegenes.core/mount-root"}
-                     :compiler {:main bluegenes.core
-                                :optimizations :none
-                                :output-to "resources/public/js/compiled/app.js"
-                                :output-dir "resources/public/js/compiled"
-                                :asset-path "js/compiled"
-                                :source-map-timestamp true
-                                :pretty-print true
-                                ;:parallel-build true
-                                :preloads [devtools.preload]
-                                :external-config {:devtools/config {:features-to-install :all}}}}
+  :cljsbuild {:builds {:dev {:source-paths ["src/cljs"]
+                             :figwheel {:on-jsload "bluegenes.core/mount-root"}
+                             :compiler {:main bluegenes.core
+                                        :optimizations :none
+                                        :output-to "resources/public/js/compiled/app.js"
+                                        :output-dir "resources/public/js/compiled"
+                                        :asset-path "js/compiled"
+                                        :source-map-timestamp true
+                                        :pretty-print true
+                                        :parallel-build true
+                                        :preloads [devtools.preload]
+                                        :external-config {:devtools/config {:features-to-install :all}}}}
 
-               :modules {:source-paths ["src/cljs"]
-                         :compiler {:optimizations :simple
-                                    :output-dir "resources/public/js/modules"
-                                    :source-map "resources/public/js/modules"
-                                    :source-map-timestamp true
-                                    :pretty-print true
-                                    ;:parallel-build true
-                                    :modules {:app {
-                                                    :output-to "resources/public/js/modules/app.js"
-                                                    :entries #{"bluegenes.core"}}
-                                              :query-builder {:output-to "resources/public/js/modules/qb.js"
-                                                              :entries
-                                                              #{"bluegenes.components.querybuilder.views.main"}}
+                       :min {:source-paths ["src/cljs"]
+                             :jar true
+                             :compiler {:main bluegenes.core
+                                        :parallel-build true
+                                        :output-to "resources/public/js/compiled/app.js"
+                                        :optimizations :advanced
+                                        :closure-defines {goog.DEBUG false}
+                                        :pretty-print false}}
 
-
-                                              :main {:output-to "resources/public/js/modules/main.js"
-                                                     :entries #{"bluegenes.main" "bluegenes.modules"}}}}}
-
-               :min {:source-paths ["src/cljs"]
-                     :jar true
-                     :compiler {:main bluegenes.core
-                                :output-to "resources/public/js/compiled/app.js"
-                                :output-dir "resources/public/js/min/test"
-                                :externs ["externs/imjs.js"
-                                          "externs/imtables.js"]
-                                :optimizations :advanced
-                                :closure-defines {goog.DEBUG false
-                                                  bluegenes.core/version ~(:version props)}
-                                :pretty-print false}}
-
-
-               ;:test {:source-paths ["src/cljs" "test/cljs"]
-               ;       :compiler {:output-to "resources/public/js/test/test.js"
-               ;                  :output-dir "resources/public/js/test"
-               ;                  :main bluegenes.runner
-               ;                  :optimizations :none}}
-               }}
+                       :test {:source-paths ["src/cljs" "test/cljs"]
+                              :compiler {:output-to "resources/public/js/test/test.js"
+                                         :output-dir "resources/public/js/test"
+                                         :main bluegenes.runner
+                                         :optimizations :none}}}}
 
 
   :main bluegenes.server
@@ -165,8 +133,6 @@
   :uberjar-name "bluegenes.jar"
 
   ;:aot [bluegenes.server]
-
-  ;:prep-tasks [["cljsbuild" "once" "min"] "compile"]
 
   :repositories [
                  ["clojars"
