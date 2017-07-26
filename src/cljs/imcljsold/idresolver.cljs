@@ -34,7 +34,7 @@
                    (str (cleanse-url root) "/ids/" uid "/results")
                    {:with-credentials? false})))))
 
-(defn resolve
+(defn im-resolve
   "Polls intermine for resolved identifiers."
   [service params]
   (let [c (chan) job (create-job service params)]

@@ -1,7 +1,6 @@
 (ns bluegenes.core
   (:require [reagent.core :as reagent]
             [re-frame.core :as re-frame]
-            [devtools.core :as devtools]
             [re-frisk.core :refer [enable-re-frisk!]]
     ;[bluegenes.modules :as modules]
             [bluegenes.utils]
@@ -24,7 +23,6 @@
 
 (defn dev-setup []
   (when config/debug?
-    (devtools/install!)
     (enable-re-frisk!)
     (println "dev mode")))
 

@@ -47,7 +47,7 @@
     [com.rpl.specter :as s]
     [clojure.string :as string]
     [clojure.zip :as zip]
-    [cljs.spec.alpha :as spec]))
+    [clojure.spec.alpha :as spec]))
 
 #_(def im-zipper (zip/zipper
                    (fn branch? [node] true)

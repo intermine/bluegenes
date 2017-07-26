@@ -37,7 +37,6 @@
                  [metosin/ring-http-response "0.9.0"]
 
                  ; Dev tools
-                 [binaryage/devtools "0.9.4"]
                  [re-frisk "0.4.5"]
 
                  ; Build tools
@@ -58,8 +57,8 @@
                  ; Database
                  [org.clojure/java.jdbc "0.7.0"]
                  [org.postgresql/postgresql "42.1.3"]
-                 [hikari-cp "1.7.5"]
-                 [migratus "0.9.5"]
+                 [hikari-cp "1.7.6"]
+                 [migratus "0.9.8"]
 
                  ; Components
                  [mount "0.1.11"]
@@ -100,11 +99,13 @@
   :less {:source-paths ["less"]
          :target-path "resources/public/css"}
 
-  :profiles
-  {:dev {:dependencies []
-         :resource-paths ["config/dev"]
-         :plugins [[lein-figwheel "0.5.11"]
-                   [lein-doo "0.1.6"]]}}
+  :profiles {:dev {:dependencies [[binaryage/devtools "0.9.4"]]
+                   :resource-paths ["config/dev"]
+                   :plugins [[lein-figwheel "0.5.11"]
+                             [lein-doo "0.1.6"]]}
+             :prod {:dependencies []
+                    :resource-paths ["config/dev"]
+                    :plugins []}}
 
   :cljsbuild {:builds
               {:dev {:source-paths ["src/cljs"]
@@ -116,14 +117,17 @@
                                 :asset-path "js/compiled"
                                 :source-map-timestamp true
                                 :pretty-print true
-                                :parallel-build true}}
+                                ;:parallel-build true
+                                :preloads [devtools.preload]
+                                :external-config {:devtools/config {:features-to-install :all}}}}
+
                :modules {:source-paths ["src/cljs"]
                          :compiler {:optimizations :simple
                                     :output-dir "resources/public/js/modules"
                                     :source-map "resources/public/js/modules"
                                     :source-map-timestamp true
                                     :pretty-print true
-                                    :parallel-build true
+                                    ;:parallel-build true
                                     :modules {:app {
                                                     :output-to "resources/public/js/modules/app.js"
                                                     :entries #{"bluegenes.core"}}
@@ -148,11 +152,12 @@
                                 :pretty-print false}}
 
 
-               :test {:source-paths ["src/cljs" "test/cljs"]
-                      :compiler {:output-to "resources/public/js/test/test.js"
-                                 :output-dir "resources/public/js/test"
-                                 :main bluegenes.runner
-                                 :optimizations :none}}}}
+               ;:test {:source-paths ["src/cljs" "test/cljs"]
+               ;       :compiler {:output-to "resources/public/js/test/test.js"
+               ;                  :output-dir "resources/public/js/test"
+               ;                  :main bluegenes.runner
+               ;                  :optimizations :none}}
+               }}
 
 
   :main bluegenes.server
