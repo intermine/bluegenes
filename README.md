@@ -9,6 +9,38 @@ BlueGenes is designed to make searching and analysing genomic data easy. It's po
 
 **Feedback:** Please create an issue in this repo or email `info - at - intermine - dot - org`
 
+## Getting Started
+
+#### System Requirements
+* Java 1.8+
+* PostgreSQL 9.3+
+* [Leiningen](https://leiningen.org/)
+
+#### Initial Setup
+
+BlueGenes has two main components: a web application and a server that hosts it. The server requires a connection to a PostgreSQL server to persist user data. We recommend creating two databases, one for development/testing and one for production:
+
+```bash
+$ createdb bluegenes-dev
+$ createdb bluegenes-prod
+```
+
+You then need to configure BlueGenes to use those databases. Copy and edit the example in [config/dev/README.md](config/dev/README.md) and save it to `config/dev/config.edn` and `config/prod/config.edn`.
+
+#### Compile and Run (Production)
+
+To compile and package BlueGenes into an executable jar, run the following command in the project folder:
+```bash
+$ lein uberjar
+```
+Then, to start the application, execute the jar and pass in one of the `config.edn` files from above:
+
+```bash
+$ java -jar -Dconfig="config/prod/config.edn" target/bluegenes.jar
+```
+
+(When executing the jar the `config.edn` file can be located anywhere, including your home directory for security.)
+
 ## Configuration
 
 #### Adding a new mine
