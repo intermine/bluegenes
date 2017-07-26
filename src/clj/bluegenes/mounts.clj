@@ -3,7 +3,7 @@
             [hikari-cp.core :refer [make-datasource]]
             [config.core :refer [env]]))
 
-; See config/[env]/config.edn :database
+; See config/[env]/config.edn
 (defstate db :start (let [db-config (:database env)]
                       {:datasource (make-datasource (assoc (:hikari env)
                                                       :username (:user db-config)

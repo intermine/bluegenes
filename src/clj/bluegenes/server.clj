@@ -6,8 +6,7 @@
             [mount.core :as mount]
             [taoensso.timbre :as timbre :refer [infof]]
             [bluegenes.migrations :as migrations])
-  ;(:gen-class)
-  )
+  (:gen-class))
 
 (defn ->int
   "Force a value to a number (environment variables are read as strings)"
