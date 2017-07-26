@@ -8,8 +8,10 @@
 
 (def not-blank? (complement blank?))
 
+(def valuable? (fn [v] (and (some? v) (not-blank? v))))
+
 (defn handle-registration [{:keys [email password]}]
-  (if (not-every? some? [email password])
+  (if (not-every? valuable? [email password])
     (bad-request {:response nil})
     (let [new-user (auth/store-user!
                      {:email    email
@@ -20,7 +22,7 @@
         (ok new-user)))))
 
 (defn handle-authentication [{:keys [email password]}]
-  (if (not-every? not-blank? [email password])
+  (if (not-every? valuable? [email password])
     (unauthorized {:user nil})
     (let [user (auth/authenticate-user email password)]
       (if user
