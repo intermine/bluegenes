@@ -3,7 +3,6 @@
             [reagent.core :as r]
             [oops.core :refer [oget ocall]]))
 
-
 (defn main []
   (fn []
-    [:h1 "MyMine"]))
+    [:div.container [:h1 "MyMine"]]))

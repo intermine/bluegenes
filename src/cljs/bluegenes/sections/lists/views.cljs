@@ -168,9 +168,5 @@
   (let [filtered-lists (subscribe [:lists/filtered-lists])]
     (fn []
       [:div.list-section
-
        [operations/operations-bar]
-       [:button.btn {:on-click (fn []
-                                 (dispatch [:bluegenes.events.auth/login {:username "josh"
-                                                                          :password "bob"}]))} "TEST"]
        [list-table @filtered-lists]])))
