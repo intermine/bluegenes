@@ -1,7 +1,8 @@
 (ns bluegenes.sections.mymine.views.main
   (:require [re-frame.core :refer [subscribe dispatch]]
             [reagent.core :as r]
-            [oops.core :refer [oget ocall]]))
+            [oops.core :refer [oget ocall]]
+            [bluegenes.sections.mymine.views.mymine :as mymine]))
 
 (defn update-form [atom key evt]
   (swap! atom assoc key (oget evt :target :value)))
@@ -29,17 +30,19 @@
        [:button.btn.btn-default.btn-raised
         {:type "button"
          :on-click (fn [] (dispatch [:bluegenes.events.auth/register @credentials]))}
-        "Register"]
-       [:button.btn.btn-default.btn-raised
-        {:type "button"
-         :on-click (fn [] (dispatch [:bluegenes.events.auth/logout]))}
-        "Log Out"]])))
+        "Register"]])))
+
+(defn mymine []
+  (fn []
+    [:h1 "MYMINE"]))
 
 (defn main []
   (let [authed? (subscribe [:bluegenes.subs.auth/authenticated?])]
     (fn []
-      [:div.container
-       [:h1 "MyMine"]
-       [:div.panel
-        [:div.panel-body
-         [login-form]]]])))
+     [:div.container
+      [:h1 "MyMine"]
+      [:div.panel
+       [:div.panel-body
+        (if @authed?
+          [mymine/main]
+          [login-form])]]])))

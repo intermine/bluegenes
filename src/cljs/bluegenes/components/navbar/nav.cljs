@@ -9,44 +9,43 @@
 
 (defn mine-icon [mine]
   (let [icon (:icon mine)]
-  [:svg.icon.logo {:class icon}
-    [:use {:xlinkHref (str "#" icon) }]
-   ]))
+    [:svg.icon.logo {:class icon}
+     [:use {:xlinkHref (str "#" icon)}]
+     ]))
 
 
 (defn settings []
   (let [current-mine (subscribe [:current-mine])]
-  (fn []
-    [:li.dropdown.mine-settings
-     [:a.dropdown-toggle {:data-toggle "dropdown" :role "button"} [:i.fa.fa-cog]]
-      (conj (into [:ul.dropdown-menu]
-        (map (fn [[id details]]
-          [:li {:on-click (fn [e] (dispatch [:set-active-mine (keyword id)]))
-           :class (cond (= id (:id @current-mine)) "active")}
-            [:a [mine-icon details]
-                 (:name details)]]) @(subscribe [:mines])))
-        [:li.special [:a {:on-click #(navigate! "/debug")} [:i.fa.fa-terminal] " Developer"]])
-])))
+    (fn []
+      [:li.dropdown.mine-settings
+       [:a.dropdown-toggle {:data-toggle "dropdown" :role "button"} [:i.fa.fa-cog]]
+       (conj (into [:ul.dropdown-menu]
+                   (map (fn [[id details]]
+                          [:li {:on-click (fn [e] (dispatch [:set-active-mine (keyword id)]))
+                                :class (cond (= id (:id @current-mine)) "active")}
+                           [:a [mine-icon details]
+                            (:name details)]]) @(subscribe [:mines])))
+             [:li.special [:a {:on-click #(navigate! "/debug")} [:i.fa.fa-terminal] " Developer"]])
+       ])))
 
-(defn logged-in [user]
-  [:li.dropdown.active
-   [:a.dropdown-toggle {:data-toggle "dropdown" :role "button"} [:i.fa.fa-user]]
-   [:ul.dropdown-menu
-    [:div.logged-in
-     [:i.fa.fa-check-circle.fa-3x] (str (:username user))]
-    [:li [:a {:on-click #(dispatch [:log-out])} "Log Out"]]]])
+(defn logged-in []
+  (let [identity (subscribe [:bluegenes.subs.auth/identity])]
+    [:li.dropdown.active
+     [:a.dropdown-toggle {:data-toggle "dropdown" :role "button"}
+      [:i.fa.fa-user-circle-o.fa-fw] (str " " (:username @identity))]
+     [:ul.dropdown-menu
+      [:li [:a {:on-click #(dispatch [:bluegenes.events.auth/logout])} "Log Out"]]]]))
 
 (defn anonymous []
-  [:li.dropdown
-   [:a.dropdown-toggle {:data-toggle "dropdown" :role "button"} [:i.fa.fa-user-times]]
-   [:ul.dropdown-menu
-    [:li [:a {:on-click #(dispatch [:log-in])} "Log In"]]]])
+  [:li
+   [:a.dropdown-toggle {:on-click #(navigate! "/mymine")}
+    [:i.fa.fa-user-times]]])
 
 (defn user []
-  (let [who-am-i (subscribe [:who-am-i])]
+  (let [authed? (subscribe [:bluegenes.subs.auth/authenticated?])]
     (fn []
-      (if @who-am-i
-        [logged-in @who-am-i]
+      (if @authed?
+        [logged-in @authed?]
         [anonymous]))))
 
 (defn save-data-tooltip []
@@ -60,9 +59,9 @@
           {:content [:div.form-inline
                      [:label "Name: "
                       [:input.form-control
-                       {:autofocus   true
-                        :type        "text"
-                        :on-change   (fn [e] (reset! label (.. e -target -value)))
+                       {:autofocus true
+                        :type "text"
+                        :on-change (fn [e] (reset! label (.. e -target -value)))
                         :placeholder @label}]]
                      [:button.btn "Save"]]
            :on-blur (fn []
@@ -82,10 +81,10 @@
     (fn []
       [:nav.navbar.navbar-default.navbar-fixed-top
        [:div.container-fluid
-       [:div.navbar-header
+        [:div.navbar-header
          [:span.navbar-brand {:on-click #(navigate! "/")}
-           [active-mine-logo]
-           [:span.long-name (:name @current-mine)]]]
+          [active-mine-logo]
+          [:span.long-name (:name @current-mine)]]]
         [:ul.nav.navbar-nav.navbar-collapse.navigation
          [:li.homelink {:class (if (panel-is :home-panel) "active")} [:a {:on-click #(navigate! "/")} "Home"]]
          [:li {:class (if (panel-is :upload-panel) "active")} [:a {:on-click #(navigate! "/upload")} "Upload"]]
@@ -93,8 +92,8 @@
 
          ;;don't show region search for mines that have no example configured
          (cond (:regionsearch-example @current-mine)
-           [:li {:class (if (panel-is :regions-panel) "active")} [:a {:on-click #(navigate! "/regions")} "Regions"]]
-         )
+               [:li {:class (if (panel-is :regions-panel) "active")} [:a {:on-click #(navigate! "/regions")} "Regions"]]
+               )
          [:li {:class (if (panel-is :querybuilder-panel) "active")} [:a {:on-click #(navigate! "/querybuilder")} "Query\u00A0Builder"]]
          [:li {:class (if (panel-is :saved-data-panel) "active")} [:a {:on-click #(navigate! "/saved-data")} (str "Lists\u00A0(" (apply + (map count (vals @lists))) ")")]
           ;;example tooltip. Include as last child, probably with some conditional to display and an event handler for saving the name
@@ -105,6 +104,6 @@
          (cond (not (panel-is :search-panel)) [:li.search-mini [:a {:on-click #(navigate! "/search")} [:svg.icon.icon-search [:use {:xlinkHref "#icon-search"}]]]])
          [:li [:a {:on-click #(navigate! "/help")} [:i.fa.fa-question]]]
          ;;This may have worked at some point in the past. We need to res it.
-        ; [user]
+         [user]
          [settings]]]
        [progress-bar/main]])))
