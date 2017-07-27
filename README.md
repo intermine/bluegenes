@@ -12,9 +12,9 @@ BlueGenes is designed to make searching and analysing genomic data easy. It's po
 ## Getting Started
 
 #### System Requirements
-* Java 1.8+
+* Java 1.6+
 * PostgreSQL 9.3+
-* [Leiningen](https://leiningen.org/)
+* [Leiningen 2.5+](https://leiningen.org/)
 
 #### Initial Setup
 
@@ -77,7 +77,7 @@ A [node-js][nodejs] environment is also required, which handles the
 installation of the javascript dependencies using [npm][npm] and
 [Bower][bower].
 
-**Required:** The InterMine you point BlueGenes at *must* be running InterMine 
+**Required:** The InterMine you point BlueGenes at *must* be running InterMine
 
 ### Download dependencies.
 
@@ -97,15 +97,20 @@ Automatically recompile css file on change.
 lein less auto
 ```
 
-### Run application:
+### Start the process to reload code changes in the browser:
 
 ```
 lein figwheel dev
 ```
 
-Figwheel will automatically push cljs changes to the browser.
+### Start the web server:
 
-Wait a bit, then browse to [http://localhost:3449](http://localhost:3449).
+In another terminal, run the following
+```
+lein with-profile +dev run
+```
+
+Then visit http://localhost:5000/ (or whichever port you specific in config.edn)
 
 ### Run tests:
 
