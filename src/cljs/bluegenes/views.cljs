@@ -11,6 +11,7 @@
             [bluegenes.components.templates.views :as templates]
             [bluegenes.components.querybuilder.views.main :as querybuilder]
             [bluegenes.sections.querybuilder.views :as qb]
+            [bluegenes.sections.mymine.views.main :as mymine]
             [bluegenes.components.ui.alerts :as alerts]
             [bluegenes.components.idresolver.views :as idresolver]
             ;[bluegenes.components.databrowser.views :as explore]
@@ -59,6 +60,7 @@
 (defmethod panels :results-panel [] [results/main])
 (defmethod panels :regions-panel [] [regions/main])
 (defmethod panels :saved-data-panel [] [lists/main])
+(defmethod panels :mymine-panel [] [mymine/main])
 ;(defmethod panels :explore-panel [] [explore/main])
 (defmethod panels :help-panel [] [help/main])
 (defmethod panels :querybuilder-panel [] [qb/main])
@@ -80,7 +82,4 @@
        [nav/main]
        [:main [show-panel @active-panel]]
        [footer]
-       [alerts/invalid-token-alert]
-
-
-       ])))
+       [alerts/invalid-token-alert]])))
