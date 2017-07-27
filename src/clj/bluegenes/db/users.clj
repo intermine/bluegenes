@@ -8,13 +8,13 @@
 ;    (let [rows (jdbc/query conn "SELECT * FROM users")]
 ;      (println rows))))
 
-(defn first-user-by-email [email]
+(defn first-user-by-name [username]
   (jdbc/with-db-connection
     [conn db]
-    (let [rows (jdbc/query conn ["SELECT * FROM users WHERE email = ?" email])]
+    (let [rows (jdbc/query conn ["SELECT * FROM users WHERE username = ?" username])]
       (first rows))))
 
 (defn store-user! [user]
   (jdbc/with-db-connection
     [conn db]
-    (jdbc/insert! conn :users user)))
+    (first (jdbc/insert! conn :users user))))

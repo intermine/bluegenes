@@ -13,3 +13,13 @@
             :on-success [:bluegenes.auth/login-success]
             :on-denied [:bluegenes.auth/login-denied]
             :params credentials}}))
+
+(reg-event-fx
+  ::register
+  (fn [{db :db} [_ {:keys [email password] :as credentials}]]
+    {:db (assoc-in db [:auth :thinking?] true)
+     :http {:uri "/api/auth/register"
+            :method :post
+            :on-success [:bluegenes.auth/register-success]
+            :on-denied [:bluegenes.auth/register-denied]
+            :params credentials}}))

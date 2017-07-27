@@ -9,15 +9,15 @@
 
 (defn store-user! [{:keys [password] :as user}]
   (try
-    (-> user
-        (assoc :hash (encrypt password))
-        (dissoc :password)
-        queries/store-user!)
-    (catch Exception e (do (println "ERROR") {:error :duplicate}))))
+    (let [stored-user (-> user
+                          (assoc :password (encrypt password))
+                          queries/store-user!
+                          (dissoc :password))]
+      (assoc stored-user :token (jwt/sign stored-user (:signature env))))
+    (catch Exception e {:error :duplicate})))
 
-(defn authenticate-user [email password]
-  (println "GOT" email password)
-  (if-some [{:keys [hash] :as user} (queries/first-user-by-email email)]
-    (when (hs/check password hash)
-      (let [stripped (dissoc user :hash)]
+(defn authenticate-user [username password]
+  (if-some [{hashed-password :password :as user} (queries/first-user-by-name username)]
+    (when (hs/check password hashed-password)
+      (let [stripped (dissoc user :password)]
         (assoc stripped :token (jwt/sign stripped (:signature env)))))))
