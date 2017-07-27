@@ -14,9 +14,9 @@
   (if (not-every? valuable? [username password])
     (bad-request {:response nil})
     (let [new-user (auth/store-user!
-                     {:username    username
+                     {:username username
                       :password password
-                      :role     "user"})]
+                      :role "user"})]
       (if (contains? new-user :error)
         (bad-request new-user)
         (ok new-user)))))
@@ -29,6 +29,11 @@
         (ok user)
         (unauthorized {:user user})))))
 
+(defn logout []
+  (-> (ok {:success true})
+      (dissoc :session)))
+
 (defroutes routes
            (POST "/login" {params :params} (handle-authentication params))
+           (GET "/logout" session (logout))
            (POST "/register" {params :params} (handle-registration params)))

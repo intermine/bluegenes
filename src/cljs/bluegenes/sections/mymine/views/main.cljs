@@ -10,7 +10,6 @@
   (let [credentials (r/atom {:username nil :password nil})]
     (fn []
       [:form
-       [:pre (str @credentials)]
        [:div.form-group
         [:label "Email Address"]
         [:input.form-control
@@ -30,12 +29,17 @@
        [:button.btn.btn-default.btn-raised
         {:type "button"
          :on-click (fn [] (dispatch [:bluegenes.events.auth/register @credentials]))}
-        "Register"]])))
+        "Register"]
+       [:button.btn.btn-default.btn-raised
+        {:type "button"
+         :on-click (fn [] (dispatch [:bluegenes.events.auth/logout]))}
+        "Log Out"]])))
 
 (defn main []
-  (fn []
-    [:div.container
-     [:h1 "MyMine"]
-     [:div.panel
-      [:div.panel-body
-       [login-form]]]]))
+  (let [authed? (subscribe [:bluegenes.subs.auth/authenticated?])]
+    (fn []
+      [:div.container
+       [:h1 "MyMine"]
+       [:div.panel
+        [:div.panel-body
+         [login-form]]]])))

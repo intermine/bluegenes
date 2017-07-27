@@ -6,7 +6,8 @@
             [bluegenes.mines :as mines]
             [clojure.string :refer [split]]
             [bluegenes.sections.querybuilder.subs]
-            [bluegenes.components.search.subs]))
+            [bluegenes.components.search.subs]
+            [bluegenes.subs.auth]))
 
 (reg-sub
   :name

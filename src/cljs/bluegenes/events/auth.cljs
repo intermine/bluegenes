@@ -7,8 +7,22 @@
 (reg-event-db
   ::login-success
   (fn [db [_ response]]
-    (js/console.log response)
-    (assoc db :who-am-i response)))
+    (update db :auth assoc :thinking? false :identity response)))
+
+(reg-event-db
+  ::logout-success
+  (fn [db [_ response]]
+    (update db :auth assoc :thinking? false :identity {})))
+
+(reg-event-fx
+  ::register
+  (fn [{db :db} [_ {:keys [email password] :as credentials}]]
+    {:db (assoc-in db [:auth :thinking?] true)
+     :http {:uri "/api/auth/register"
+            :method :post
+            :on-success [::login-success]
+            :on-denied [::register-fail]
+            :params credentials}}))
 
 (reg-event-fx
   ::login
@@ -21,11 +35,11 @@
             :params credentials}}))
 
 (reg-event-fx
-  ::register
-  (fn [{db :db} [_ {:keys [email password] :as credentials}]]
+  ::logout
+  (fn [{db :db} [_]]
     {:db (assoc-in db [:auth :thinking?] true)
-     :http {:uri "/api/auth/register"
-            :method :post
-            :on-success [::login-success]
-            :on-denied [::register-fail]
-            :params credentials}}))
+     :http {:uri "/api/auth/logout"
+            :method :get
+            :on-success [::logout-success]
+            :on-denied [::logout-fail]}}))
+
