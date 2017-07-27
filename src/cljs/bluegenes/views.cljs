@@ -11,7 +11,6 @@
             [bluegenes.components.templates.views :as templates]
             [bluegenes.components.querybuilder.views.main :as querybuilder]
             [bluegenes.sections.querybuilder.views :as qb]
-            [bluegenes.components.toast :as toast]
             [bluegenes.components.ui.alerts :as alerts]
             [bluegenes.components.idresolver.views :as idresolver]
             ;[bluegenes.components.databrowser.views :as explore]
@@ -82,7 +81,6 @@
        [nav/main]
        [:main [show-panel @active-panel]]
        [footer]
-       [toast/main]
        [alerts/invalid-token-alert]
 
 

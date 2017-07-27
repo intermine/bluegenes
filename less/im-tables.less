@@ -8,7 +8,16 @@
 /// You may, if need be, paste the new im-tables styles in here, but leave   ///
 /// this warning intact. Kthxbye.                                            ///
 ////////////////////////////////////////////////////////////////////////////////
-
+////////////////////////////////////////////////////////////////////////////////
+/// DO NOT EDIT // DO NOT EDIT // DO NOT EDIT // DO NOT EDIT // DO NOT EDIT  ///
+/// This is a straight copy/paste from imtables and is pasted in manually    ///
+/// until we get something smarter set up. Edit anything here and it'll      ///
+/// disappear next time we copy/paste. If you want to override an imtables   ///
+/// style, go to im-tables-overrides instead.                                ///
+////////////////////////////////////////////////////////////////////////////////
+/// You may, if need be, paste the new im-tables styles in here, but leave   ///
+/// this warning intact. Kthxbye.                                            ///
+////////////////////////////////////////////////////////////////////////////////
 
 .table > thead > tr > th {
   vertical-align: top;
@@ -75,20 +84,103 @@
 .im-table .im-tooltip .table {
   margin-bottom: 0;
 }
+.force-wrap {
+  /* These are technically the same, but use both */
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  -ms-word-break: break-all;
+  /* This is the dangerous one in WebKit, as it breaks things wherever */
+  word-break: break-all;
+  /* Instead use this non-standard one: */
+  word-break: break-word;
+  /* Adds a hyphen where the word breaks, if supported (No Blink) */
+  -ms-hyphens: auto;
+  -moz-hyphens: auto;
+  -webkit-hyphens: auto;
+  hyphens: auto;
+}
+.truncate-text {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  max-width: 200px;
+}
 .im-table {
   min-height: 200px;
   padding-bottom: 40px;
+  /*
+    .table > thead > tr > th {
+        background-color: #337ab9;
+        color: white;
+    }
+
+    */
   /* This bridges the gap so you can mouse into the tooltip without it disappearing */
   /* CSS Triangles - see Trevor's post */
   /* IE can just show/hide with no transition */
 }
+.im-table .popover {
+  padding: 0;
+}
+.im-table .popover .table {
+  margin: 0;
+}
+.im-table .inset {
+  -webkit-box-shadow: inset 3px 3px 6px -4px rgba(0, 0, 0, 0.69);
+  -moz-box-shadow: inset 3px 3px 6px -4px rgba(0, 0, 0, 0.69);
+  box-shadow: inset 3px 3px 6px -4px rgba(0, 0, 0, 0.69);
+}
+.im-table .sub-table {
+  width: 100%;
+  font-size: 0.7em;
+  margin: 0;
+}
+.im-table .sub-table th,
+.im-table .sub-table td {
+  padding: 5px;
+}
+.im-table .sub-table th:not(:last-child),
+.im-table .sub-table td:not(:last-child) {
+  border-right: 1px solid #c4c4c4;
+}
+.im-table .sub-table th {
+  background-color: white;
+  color: black;
+}
+.im-table .sub-table tr {
+  border-bottom: 1px solid #c4c4c4;
+}
 .im-table .no-value {
-  font-weight: bold;
-  color: #666;
-  font-family: "Fira Mono", "DejaVu Sans Mono", Menlo, Consolas, "Liberation Mono", Monaco, "Lucida Console", monospace;
-  background-color: #ddd;
-  border-radius: 2px;
-  padding: 1px 2px;
+  font-family: monospace;
+  font-size: 0.8em;
+  color: grey;
+}
+.im-table .no-join-results {
+  color: grey;
+}
+.im-table .pad-free {
+  padding: 0;
+}
+.im-table .ani {
+  transition: all 100ms ease;
+}
+.im-table .upside-down {
+  -webkit-transform: rotate(180deg);
+  /* Chrome and other webkit browsers */
+  -moz-transform: rotate(180deg);
+  /* FF */
+  -o-transform: rotate(180deg);
+  /* Opera */
+  -ms-transform: rotate(180deg);
+  /* IE9 */
+  transform: rotate(180deg);
+  /* W3C compliant browsers */
+}
+.im-table .extra-padding {
+  padding-left: 23px;
+  background-color: #e8e8f0;
+}
+.im-table .indent {
+  padding-left: 20px;
 }
 .im-table .fade-enter {
   opacity: 0.01;

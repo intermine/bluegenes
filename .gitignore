@@ -5,6 +5,8 @@
 /resources/public/js/min
 /resources/public/vendor
 /resources/public/css
+config/**/*.edn
+.lein-failures
 out
 .idea
 *.iml
@@ -12,3 +14,4 @@ node_modules
 .lein-repl-history
 .nrepl-port
 .DS_Store
+

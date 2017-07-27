@@ -40,14 +40,14 @@
     [bluegenes.components.querybuilder.core :as c :refer
       [build-query next-code to-list]]
     #?(:cljs [re-frame.core :as re-frame :refer [dispatch subscribe]])
-    #?(:cljs [cljs.spec :as spec] :clj [clojure.spec :as spec])
     #?(:cljs [cljs.core.async :refer [put! chan <! >! timeout close!]])
     #?(:cljs [imcljsold.search :as search])
     #?(:cljs [imcljsold.filters :as filters])
     [bluegenes.utils :refer [register-all!]]
     [com.rpl.specter :as s]
     [clojure.string :as string]
-    [clojure.zip :as zip]))
+    [clojure.zip :as zip]
+    [cljs.spec.alpha :as spec]))
 
 #_(def im-zipper (zip/zipper
                    (fn branch? [node] true)
