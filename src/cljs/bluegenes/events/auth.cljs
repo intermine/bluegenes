@@ -4,14 +4,20 @@
             [cljs-http.client :refer [get post]]
             [cljs.core.async :refer [<!]]))
 
+(reg-event-db
+  ::login-success
+  (fn [db [_ response]]
+    (js/console.log response)
+    (assoc db :who-am-i response)))
+
 (reg-event-fx
   ::login
   (fn [{db :db} [_ {:keys [email password] :as credentials}]]
     {:db (assoc-in db [:auth :thinking?] true)
      :http {:uri "/api/auth/login"
             :method :post
-            :on-success [:bluegenes.auth/login-success]
-            :on-denied [:bluegenes.auth/login-denied]
+            :on-success [::login-success]
+            :on-denied [::login-fail]
             :params credentials}}))
 
 (reg-event-fx
@@ -20,6 +26,6 @@
     {:db (assoc-in db [:auth :thinking?] true)
      :http {:uri "/api/auth/register"
             :method :post
-            :on-success [:bluegenes.auth/register-success]
-            :on-denied [:bluegenes.auth/register-denied]
+            :on-success [::login-success]
+            :on-denied [::register-fail]
             :params credentials}}))
