@@ -26,7 +26,7 @@
 (reg-sub
   ::my-tree
   (fn [db]
-    (get-in db [:mymine])))
+    (get-in db [:mymine :tree])))
 
 ; Fill the [:root :public] folder with public lists
 (reg-sub

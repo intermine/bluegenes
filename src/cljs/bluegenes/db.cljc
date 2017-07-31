@@ -13,30 +13,31 @@
    :databrowser/node-locations {:Homologue {:x 120 :y 224 :radius 50} :Protein {:x 200 :y 300 :radius 17}}
    :results {:history []}
    :search {:selected-results #{}}
-   :mymine {:root {:type :folder
-                       :open true
-                       :children {:public {:type :folder
-                                           :open true
-                                           :label "Public"
-                                           :children {}}
-                                  "folderone" {:type :folder
-                                               :open true
-                                               :label "Folder One"}
-                                  "foldertwo" {:type :folder
-                                               :open true
-                                               :label "Folder Two"
-                                               :children {"folderthree" {:type :folder
-                                                                         :open true
-                                                                         :label "Folder Three"
-                                                                         :children {"somelistone" {:type :list
-                                                                                                   :label "Some List One"
-                                                                                                   :id 12345}
-                                                                                    "somelisttwo" {:type :list
-                                                                                                   :label "Some List Two"
-                                                                                                   :id 67890}}}}}
-                                  "folderfour" {:type :folder
-                                                :open true
-                                                :label "Folder FOUR"}}}}
+   :mymine {:tree {:root {:type :folder
+                          :open true
+                          :children {:public {:type :folder
+                                              :open true
+                                              :read-only? true
+                                              :label "Public"
+                                              :children {}}
+                                     "folderone" {:type :folder
+                                                  :open true
+                                                  :label "Folder One"}
+                                     "foldertwo" {:type :folder
+                                                  :open true
+                                                  :label "Folder Two"
+                                                  :children {"folderthree" {:type :folder
+                                                                            :open true
+                                                                            :label "Folder Three"
+                                                                            :children {"somelistone" {:type :list
+                                                                                                      :label "Some List One"
+                                                                                                      :id 12345}
+                                                                                       "somelisttwo" {:type :list
+                                                                                                      :label "Some List Two"
+                                                                                                      :id 67890}}}}}
+                                     "folderfour" {:type :folder
+                                                   :open true
+                                                   :label "Folder FOUR"}}}}}
    :lists {:controls {:filters {:text-filter nil
                                 :flags {:authorized nil
                                         :favourite nil}}
