@@ -20,17 +20,16 @@
         history-index (subscribe [:results/history-index])]
     (fn []
       [:div.breadcrumb-container
-       [:i.fa.fa-clock-o]
-       (into [:ul.breadcrumb.inline]
+       [:svg.icon.icon-history [:use {:xlinkHref "#icon-history"}]]
+       (into [:div.breadcrumb]
              (map-indexed
                (fn [idx {{title :title} :value}]
                  (let [adjusted-title (if (not= idx @history-index) (adjust-str-to-length 20 title) title)]
-                   [:li {:class (if (= @history-index idx) "active")}
+                   [:div {:class (if (= @history-index idx) "active")
+                         :on-click       (fn [x] (dispatch [:results/load-from-history idx]))}
                     [tooltip
-                     [:a
-                      {:data-placement "bottom"
-                       :title          title
-                       :on-click       (fn [x] (dispatch [:results/load-from-history idx]))} adjusted-title]]])) @history))])))
+                     { :title title}
+                     adjusted-title]])) @history))])))
 
 (defn no-results []
   [:div "Hmmm. There are no results. How did this happen? Whoopsie! "

@@ -1,9 +1,18 @@
 (ns bluegenes.components.icons)
 
+;;TO ADD AN SVG: i'd recommend icomoon. get the svg symbol
+;; definition of an icon from https://icomoon.io/app/
+;; then plug it into http://htmltohiccup.herokuapp.com/ to make
+;; it hiccup, THEN paste it in here. Top tip: if your icon
+;; doesn't work, check if it's viewBox or view-box (but not viewbox)
+;; lowercase b makes react grumpy.
+
 ;;TO USE AN SVG INLINE, do it like so:
 ;;[:svg.icon.icon-search [:use {:xlinkHref "#icon-search"}]]
 ;;The definitions of icons are below ) use the part after # in the symbol
 ;;tag as identifiers.
+;;OR just go the the developer section in the cog menu (top right)
+;; of bluegenes and copy/paste the code for your icon from there
 
 (defn icons []
   [:svg
@@ -393,5 +402,11 @@
    {:d
     "M10 4v-4h-7l-3 3v9h6v4h10v-12h-6zM3 1.414v1.586h-1.586l1.586-1.586zM1 11v-7h3v-3h5v3l-3 3v4h-5zM9 5.414v1.586h-1.586l1.586-1.586zM15 15h-8v-7h3v-3h5v10z"}]]]
 
+[:symbol#icon-history
+   {:viewBox "0 0 16 16"}
+   [:title "history"]
+   [:path
+    {:d
+     "M10.293 11.707l-3.293-3.293v-4.414h2v3.586l2.707 2.707zM8 0c-4.418 0-8 3.582-8 8s3.582 8 8 8 8-3.582 8-8-3.582-8-8-8zM8 14c-3.314 0-6-2.686-6-6s2.686-6 6-6c3.314 0 6 2.686 6 6s-2.686 6-6 6z"}]]
 
    ]])

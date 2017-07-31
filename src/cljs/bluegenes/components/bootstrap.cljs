@@ -56,7 +56,7 @@
      (reagent/create-class
        {:name "Tooltip"
         :reagent-render (fn [props & [remaining]]
-                          [:a.tooltip
+                          [:a
                            (merge {:data-trigger "hover"
                                    :data-html true
                                    :data-toggle "tooltip"
