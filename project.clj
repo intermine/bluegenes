@@ -108,15 +108,17 @@
                                         :asset-path "js/compiled"
                                         :source-map-timestamp true
                                         :pretty-print true
-                                        :parallel-build true
+                                        ;:parallel-build true
                                         :preloads [devtools.preload]
-                                        :external-config {:devtools/config {:features-to-install :all}}}}
+                                        :external-config {:devtools/config {:features-to-install :all}}
+                                        }}
 
                        :min {:source-paths ["src/cljs"]
                              :jar true
                              :compiler {:main bluegenes.core
                                         :parallel-build true
                                         :output-to "resources/public/js/compiled/app.js"
+                                        ;:output-dir "resources/public/js/compiled"
                                         :optimizations :advanced
                                         :closure-defines {goog.DEBUG false}
                                         :pretty-print false}}

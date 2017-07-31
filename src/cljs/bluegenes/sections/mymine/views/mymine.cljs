@@ -3,9 +3,11 @@
             [reagent.core :as r]
             [oops.core :refer [oget ocall]]))
 
+
+
 (defmulti tree (fn [item] (:type item)))
 
-(defmethod tree :folder [{:keys [type label children open trail]}]
+(defmethod tree :folder [{:keys [type label children open trail size]}]
   [:tr
    [:td
     [:span {:style {:padding-left (str (* (dec (count trail)) 40) "px")}
@@ -16,26 +18,26 @@
      (if open
        [:svg.icon.icon-folder-open [:use {:xlinkHref "#icon-folder-open"}]]
        [:svg.icon.icon-folder [:use {:xlinkHref "#icon-folder"}]])
-     label]]
+     [:span.title label]]]
    [:td [:span "Today"]]])
 
 (defmethod tree :list [{:keys [type label trail]}]
   [:tr
    [:td
-    [:span {:style {:padding-left (str (* (dec (count trail)) 40) "px")}}
+    [:span.title {:style {:padding-left (str (* (dec (count trail)) 40) "px")}}
      [:svg.icon.icon-list [:use {:xlinkHref "#icon-list"}]]
-     label]]
+     [:a.title label]]]
    [:td [:span "Today"]]])
 
+
 (defn main []
-  (let [drive (subscribe [:bluegenes.subs.mymine/tree])]
+  (let [as-list (subscribe [:bluegenes.subs.mymine/as-list])]
     (fn []
       [:div.container-fluid
-      [:div.mymine
-       [:table.table.table-striped
-        [:thead
-         [:tr
-          [:th "Name"]
-          [:th "Last Modified"]
-          ]]
-        (into [:tbody] (map (fn [x] [tree x]) @drive))]]])))
+       [:div.mymine.noselect
+        [:table.table.table-striped
+         [:thead
+          [:tr
+           [:th "Name"]
+           [:th "Last Modified"]]]
+         (into [:tbody] (map (fn [x] [tree x]) @as-list))]]])))

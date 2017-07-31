@@ -43,6 +43,8 @@
       [:h1 "MyMine"]
       [:div.panel
        [:div.panel-body
-        (if @authed?
+        [mymine/main]
+        ; TODO Always show mymine panel (just for development)
+        #_(if @authed?
           [mymine/main]
           [login-form])]]])))

@@ -18,6 +18,6 @@
             ; Interpose :children in between each item in the location trail
             ; so we can navigate to it in our MyMine tree. Also conj :children
             ; onto the front as we're starting from the root
-            update-in (conj (interpose :children location-trail) :children)
+            update-in (conj (interpose :children location-trail))
             ; Toggle the child's open state
             update :open not)))
