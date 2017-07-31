@@ -7,7 +7,8 @@
             [clojure.string :refer [split]]
             [bluegenes.sections.querybuilder.subs]
             [bluegenes.components.search.subs]
-            [bluegenes.subs.auth]))
+            [bluegenes.subs.auth]
+            [bluegenes.subs.mymine]))
 
 (reg-sub
   :name
