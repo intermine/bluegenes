@@ -33,7 +33,6 @@
 @import "im-tables-overrides";
 @import url(https:fonts.googleapis.com/css?family=Roboto:400,700,300);
 
-
 body {
     background: @body-background-color;
     color: @body-foreground-color;
@@ -64,8 +63,8 @@ html {
 html {
     margin-top: -@annoyingscrollbars;
     @media (max-width:@even-tinier-screen) {
-      //fix for the html body randomly not choosing to fill the screen on small phone browsers.
-      position:absolute;
+        //fix for the html body randomly not choosing to fill the screen on small phone browsers.
+        position: absolute;
     }
 }
 //this margin directly offsets the annoying scrollbars
@@ -160,12 +159,14 @@ div.header {
 }
 
 .icon {
+    @icon-size: 1em;
     vertical-align: top;
     margin-top: 1px;
     display: inline-block;
-    width: 1em;
-    height: 1em;
+    width: @icon-size;
+    height: @icon-size;
     fill: @link-color;
+    margin: 0 @icon-size/2;
 }
 
 footer {
@@ -285,13 +286,11 @@ td.skipped {
     color: black;
     pointer-events: none;
 }
-
 /** input.form-control {
     &:focus {
         .form-group.is-focused .form-control;
     }
 } **/
-
 .mine-choice {
     display: flex;
     justify-content: space-between;
@@ -390,17 +389,29 @@ label {
 
 .breadcrumb-container {
     padding: 10px;
-    ul { display:inline}
+
+    ul {
+        display: inline;
+    }
 }
 
 .extra-tiny-screen {
-  display:none;
-  @media (max-width:@even-tinier-screen) {
-    display:inline-block;
-  }
+    display: none;
+    @media (max-width:@even-tinier-screen) {
+        display: inline-block;
+    }
 }
-.larger-screen-only, .navbar.navbar-default li.larger-screen-only {
-  @media (max-width:@even-tinier-screen) {
-   display: none;
- }
+
+.larger-screen-only,
+.navbar.navbar-default li.larger-screen-only {
+    @media (max-width:@even-tinier-screen) {
+        display: none;
+    }
+}
+
+.inline-label {
+    display: flex;
+    a {
+        display: inline;
+    }
 }

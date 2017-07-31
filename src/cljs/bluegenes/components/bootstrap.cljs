@@ -26,7 +26,7 @@
                     (assoc :data-container "body")
                     (update :data-content render-to-static-markup)) rest])}))
 
-(defn tooltip
+(defn tooltip-oald
   "Reagent wrapper for bootstrap's tooltip component.
   Usage:
   [tooltip [:i.fa.fa-question {:data-trigger hover
@@ -38,7 +38,8 @@
      (fn [this]
        (let [node (reagent/dom-node this)] (ocall (-> node js/$) "tooltip")))
      :reagent-render
-     (fn [[element attributes & rest]] [element attributes rest])}))
+     (fn [[element attributes & rest]]
+       [element attributes rest])}))
 
 (defn tooltip-new
   "Reagent wrapper for bootstrap's tooltip component.
@@ -56,6 +57,26 @@
      (fn [props & [contents]]
        [:span props contents])}))
 
-
-
-
+ (defn tooltip
+   "Reagent wrapper for bootstrap's tooltip component.
+   Usage:
+   [tooltip {:title  \"Your fabulous tooltip content goes here, m'dear\"}
+    ;; svg below is the clickable content - e.g. an icon and/or words to go
+    ;; along with it. Implemented as the 'remaining' arg below.
+    [:svg.icon.icon-question
+     [:use {:xlinkHref \"#icon-question\"}]]]"
+   []
+   (let [dom (reagent/atom nil)]
+     (reagent/create-class
+       {:name "Tooltip"
+        :reagent-render (fn [props & [remaining]]
+                          [:a.tooltip
+                           (merge {:data-trigger "hover"
+                                   :data-html true
+                                   :data-toggle "tooltip"
+                                   :data-container "body"
+                                   :title nil
+                                   :data-placement "auto bottom"
+                                   :ref (fn [el] (some->> el js/$ (reset! dom)))}
+                                  props)
+                           remaining])})))
