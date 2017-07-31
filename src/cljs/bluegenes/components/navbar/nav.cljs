@@ -25,29 +25,8 @@
            :class (cond (= id (:id @current-mine)) "active")}
             [:a [mine-icon details]
                  (:name details)]]) @(subscribe [:mines])))
-        [:li.special [:a {:on-click #(navigate! "/debug")} [:i.fa.fa-terminal] " Developer"]])
+        [:li.special [:a {:on-click #(navigate! "/debug")} ">_ Developer"]])
 ])))
-
-(defn logged-in [user]
-  [:li.dropdown.active
-   [:a.dropdown-toggle {:data-toggle "dropdown" :role "button"} [:i.fa.fa-user]]
-   [:ul.dropdown-menu
-    [:div.logged-in
-     [:i.fa.fa-check-circle.fa-3x] (str (:username user))]
-    [:li [:a {:on-click #(dispatch [:log-out])} "Log Out"]]]])
-
-(defn anonymous []
-  [:li.dropdown
-   [:a.dropdown-toggle {:data-toggle "dropdown" :role "button"} [:i.fa.fa-user-times]]
-   [:ul.dropdown-menu
-    [:li [:a {:on-click #(dispatch [:log-in])} "Log In"]]]])
-
-(defn user []
-  (let [who-am-i (subscribe [:who-am-i])]
-    (fn []
-      (if @who-am-i
-        [logged-in @who-am-i]
-        [anonymous]))))
 
 (defn save-data-tooltip []
   (let [label (reagent/atom nil)]
