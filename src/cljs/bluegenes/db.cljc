@@ -18,31 +18,31 @@
             :selected #{}
             :sort-by {:key :label
                       :asc? true}
-            :tree {:root {:type :folder
+            :tree {:root {:file-type :folder
                           :open true
-                          :children {:public {:type :folder
+                          :children {:public {:file-type :folder
                                               :open true
                                               :read-only? true
                                               :label "Public"
                                               :children {}}
-                                     "folderone" {:type :folder
+                                     "folderone" {:file-type :folder
                                                   :open true
                                                   :label "Folder One"}
-                                     "foldertwo" {:type :folder
+                                     "foldertwo" {:file-type :folder
                                                   :open true
                                                   :label "Folder Two"
-                                                  :children {"folderthree" {:type :folder
+                                                  :children {"folderthree" {:file-type :folder
                                                                             :open true
                                                                             :label "Folder Three"
-                                                                            :children {"somelistone" {:type :list
+                                                                            :children {"somelistone" {:file-type :list
                                                                                                       :size 10
                                                                                                       :label "Some List One"
                                                                                                       :id 12345}
-                                                                                       "somelisttwo" {:type :list
+                                                                                       "somelisttwo" {:file-type :list
                                                                                                       :size 1
                                                                                                       :label "Some List Two"
                                                                                                       :id 67890}}}}}
-                                     "folderfour" {:type :folder
+                                     "folderfour" {:file-type :folder
                                                    :open true
                                                    :label "Folder FOUR"}}}}}
    :lists {:controls {:filters {:text-filter nil

@@ -35,7 +35,10 @@
                      (dispatch [:bluegenes.events.mymine/toggle-selected trail index])
                      (dispatch [:bluegenes.events.mymine/toggle-selected trail index {:reset? true}]))))})
 
-(defmulti tree (fn [item] (:type item)))
+(defmulti tree (fn [item] (:file-type item)))
+
+
+[:td.type-style {:class (str "type-" type)} type]
 
 (defmethod tree :folder []
   (let [selected-items (subscribe [:bluegenes.subs.mymine/selected])]
@@ -58,11 +61,13 @@
            [:svg.icon.icon-folder [:use {:xlinkHref "#icon-folder"}]])
          [:span.title label]
          (when read-only? [:span.label [:i.fa.fa-lock] " Read Only"])]]
+       [:td [:span]]
        [:td [:span]]])))
 
 (defmethod tree :list []
   (let [selected-items (subscribe [:bluegenes.subs.mymine/selected])]
-    (fn [{:keys [index type label trail read-only? size]}]
+    (fn [{:keys [index type label trail read-only? size type] :as x}]
+      (println type)
       [:tr
        (cond-> {}
                ; Item is selected
@@ -74,9 +79,11 @@
 
        [:td
         [:span.title {:style {:padding-left (str (* (dec (dec (dec (count trail)))) 20) "px")}}
-         [:svg.icon.icon-document-list [:use {:xlinkHref "#icon-document-list"}]]
+         [:svg.icon.icon-document-list.im-type
+          {:class type} [:use {:xlinkHref "#icon-document-list"}]]
          [:a.title label]]]
-       [:td [:span (nf size)]]])))
+       [:td [:span.sub type]]
+       [:td [:span.sub (nf size)]]])))
 
 
 (defn table-header []
@@ -99,6 +106,7 @@
          [:thead
           [:tr
            [table-header {:label "Name" :key :label :sort-by @sort-by}]
+           [table-header {:label "Type" :key :type :sort-by @sort-by}]
            [table-header {:label "Size" :key :size :sort-by @sort-by}]]]
          (into [:tbody] (map-indexed (fn [idx x]
                                        ^{:key (str (:trail x))} [tree (assoc x :index idx)]) @as-list))]]])))

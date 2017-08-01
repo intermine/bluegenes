@@ -63,12 +63,7 @@
     (assoc-in my-tree [:root :children :public :children]
               (into {} (map
                          (fn [l]
-                           {(:id l) {:type :list
-                                     :label (:title l)
-                                     :id (:id l)
-                                     :size (:size l)
-                                     :read-only? true
-                                     :trail [0]}})
+                           {(:id l) (assoc l :file-type :list :read-only? true :label (:title l))})
                          filtered-lists)))))
 
 ; MyMine data is a nested tree structure, however it's easier to display and sort when it's
