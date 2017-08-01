@@ -25,11 +25,10 @@
 (clojure.string/join "\n" example-text)))
 
 (def region-help-content-popover ;;help text
-  [:span "Genome regions in the following formats are accepted:"
-   [:ul
-    [:li [:span "chromosome:start..end, e.g. 2L:11334..12296"]]
-    [:li [:span "chromosome:start-end, e.g. 2R:5866746-5868284 or chrII:14646344-14667746"]]
-    [:li [:span "tab delimited"]]]])
+  (str "Genome regions in the following formats are accepted:"
+     "\n - chromosome:start..end, e.g. 2L:11334..12296"
+     "\n - chromosome:start-end, e.g. 2R:5866746-5868284 or chrII:14646344-14667746"
+     "\n - tab delimited"))
 
 (defn feature-branch
   "Recursively building a tree of user-selectable features as checkboxes"
@@ -105,11 +104,9 @@
 (defn region-input []
     [:div.region-input
       [:label "Regions to search "
-        [popover [:svg.icon.icon-question
-              {:data-content   region-help-content-popover
-               :data-trigger   "hover"
-               :data-placement "bottom"}
-                  [:use {:xlinkHref "#icon-question"}]]]]
+        [tooltip {:title region-help-content-popover}
+                  [:svg.icon.icon-question
+                   [:use {:xlinkHref "#icon-question"}]]]]
         [:div.region-text
          [clear-textbox]
          [region-input-box]]
