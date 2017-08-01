@@ -9,6 +9,12 @@
 @model-browser-class: #0090da;
 @swith: 300px;
 
+//this is the value by which we offset the borders of the
+//various QB trees to make it look like a tree ofrmat and not
+//just normal box borders
+
+@border-offset: 0.7em;
+
 .danger {
     @dangercolor: #9d5858;
     color: @dangercolor;
@@ -118,20 +124,6 @@ div.column-container {
         border-color: silver;
     }
 
-    li p {
-        margin: 0;
-        // font-size: 1.2em;
-        background: white;
-        position: relative;
-        top: 0.5em;
-
-        &.classy {
-            font-size: 1.5em;
-            font-style: italic;
-            font-weight: bold;
-        }
-    }
-
     li ul {
         border-top: 1px solid #d5d5d5;
         margin-left: -1em;
@@ -150,12 +142,6 @@ div.column-container {
         // font-size: 0.8em;
     }
 
-    .attributes {
-        // margin-top: 10px;
-        // padding: 10px;
-        // background-color: green;
-    }
-
     .hotlink {
         a {
             color: #039be5;
@@ -164,12 +150,6 @@ div.column-container {
             font-size: 0.8em;
             font-style: italic;
         }
-    }
-
-    .test123 {
-        display: flex;
-        flex-direction: row;
-        align-items: flex-start;
     }
 }
 
@@ -184,7 +164,7 @@ div.column-container {
 .flexmex {
     display: flex;
     position: relative;
-    top: 0.7em;
+    top: @border-offset;
     background: white;
 
     .con {
@@ -195,6 +175,15 @@ div.column-container {
 }
 
 .query-browser {
+    .icon, .icon-filter, .icon-edit {
+      fill: darken(silver,20%);
+      .arr;
+    }
+    .icon-filter {
+        width: @border-offset;
+        margin-left:0;
+    }
+    .logic-box pre {display:flex;align-items:center;}
     .noselect;
     font-size: 1.1em;
     cursor: pointer;
@@ -237,7 +226,7 @@ div.column-container {
         background: @query-browser-bg;
         position: relative;
         top: 0.5em;
-        top: 0.7em;
+        top: @border-offset;
 
         &.classy {
             font-size: 1.5em;
@@ -292,10 +281,9 @@ div.column-container {
 }
 
 .model-browser {
-  .icon {
-    fill:darken(silver,10%);
-  }
-
+    .icon {
+        fill: darken(silver,10%);
+    }
     .noselect;
     font-size: 0.9em;
     cursor: pointer;
@@ -376,7 +364,7 @@ div.column-container {
     li.haschildren > span {
         display: flex;
         background-color: @model-browser-bg;
-        align-items:center;
+        align-items: center;
     }
 
     li {
@@ -385,14 +373,14 @@ div.column-container {
 
     .expanded-group > .group-title {
         background-color: @model-browser-bg;
-        margin-bottom: -0.7em;
-        z-index:12;
+        margin-bottom: -@border-offset;
+        z-index: 12;
         position: relative;
     }
 
     .expanded-group ul {
-        padding-top: 0.7em;
-        z-index:11;
+        padding-top: @border-offset;
+        z-index: 11;
     }
 }
 
@@ -401,7 +389,7 @@ div.column-container {
 }
 
 .arrow-down {
-    //  transform: rotate(45deg);
+      transform: rotate(45deg);
 }
 
 .qb-label {
@@ -588,10 +576,10 @@ div.column-container {
     .icon {
         min-width: 1em;
     }
+}
 
-    .icon.icon-bin {
-        .danger;
-    }
+.icon.icon-bin {
+    .danger;
 }
 
 .constraint-input {

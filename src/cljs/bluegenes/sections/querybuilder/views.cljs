@@ -26,8 +26,7 @@
                                "organism.name"
                                "alleles.symbol"
                                "alleles.phenotypeAnnotations.annotationType"
-                               "alleles.phenotypeAnnotations.description"
-                               ]
+                               "alleles.phenotypeAnnotations.description"]
              :where           [{:path  "Gene.symbol"
                                 :op    "="
                                 :code  "A"
@@ -47,9 +46,6 @@
             (map (fn [[class-kw details]]
                    [:option {:value class-kw} (:displayName details)])
                  (sort-by (comp :displayName second) (get-in @current-mine [:service :model :classes])))))))
-
-
-
 
 (defn dotsplit [string] (split string "."))
 
@@ -76,17 +72,15 @@
       (let [path      (conj trail (name k))
             selected? (get-in @mappy path)]
         [:li.haschildren
-          [:span
-           {:on-click (fn []
-                        (if selected?
-                          (dispatch [:qb/mappy-remove-view path sub])
-                          (dispatch [:qb/mappy-add-view path sub])))}
-           (if (get-in @mappy path)
-             [:svg.icon.icon-checkbox-checked [:use {:xlinkHref "#icon-checkbox-checked"}]]
-             [:svg.icon.icon-checkbox-unchecked [:use {:xlinkHref "#icon-checkbox-unchecked"}]])
-           [:span.qb-label (str " " (uncamel (:name properties)))]]]))))
-
-
+         [:span
+          {:on-click (fn []
+                       (if selected?
+                         (dispatch [:qb/mappy-remove-view path sub])
+                         (dispatch [:qb/mappy-add-view path sub])))}
+          (if (get-in @mappy path)
+            [:svg.icon.icon-checkbox-checked [:use {:xlinkHref "#icon-checkbox-checked"}]]
+            [:svg.icon.icon-checkbox-unchecked [:use {:xlinkHref "#icon-checkbox-unchecked"}]])
+          [:span.qb-label (str " " (uncamel (:name properties)))]]]))))
 
 (defn node []
   (let [menu (subscribe [:qb/menu])]
@@ -95,39 +89,39 @@
             open?    (get-in @menu path)
             str-path (join "." path)
             sub      (get-in @menu (conj path :subclass))]
-
-
         [:li.haschildren.qb-group
          {:class (cond open? "expanded-group")}
-           [:div.group-title
-           {:on-click (fn []
-                        (if open?
-                          (dispatch [:qb/collapse-path path])
-                          (dispatch [:qb/expand-path path])))}
-           [:i.fa.fa-plus.fa-fw.arr.semilight {:class (when open? "arrow-down")}]
-           [:span.qb-class (uncamel (:name properties))]
-           [:span.label-button
-            {:on-click (fn [e]
-                         (ocall e :stopPropagation)
-                         (dispatch [:qb/mappy-add-summary-views path sub]))}
-            "Summary"]]
+         [:div.group-title
+          {:on-click (fn []
+                       (if open?
+                         (dispatch [:qb/collapse-path path])
+                         (dispatch [:qb/expand-path path])))}
+          [:svg.icon.icon-plus
+           {:class (when open? "arrow-down")}
+           [:use {:xlinkHref "#icon-plus"}]]
+          [:span.qb-class (uncamel (:name properties))]
+          [:span.label-button
+           {:on-click (fn [e]
+                        (ocall e :stopPropagation)
+                        (dispatch [:qb/mappy-add-summary-views path sub]))}
+           "Summary"]]
          (when open?
            (into [:ul]
                  (concat
-                   (when (im-path/class? model str-path)
-                     (when-let [subclasses (im-path/subclasses model str-path)]
-                       (list
-                         [:li  [:span
-                                (into
-                                  [:select.form-control
-                                   {:on-change (fn [e] (dispatch [:qb/mappy-choose-subclass path (oget e :target :value)]))}]
-                                  (map (fn [subclass] [:option {:value subclass} (uncamel (name subclass))]) (conj subclasses (:referencedType properties))))]])))
-                   (if sub
-                     (map (fn [i] [attribute model i path sub]) (sort (remove (comp (partial = :id) first) (im-path/attributes model sub))))
-                     (map (fn [i] [attribute model i path sub]) (sort (remove (comp (partial = :id) first) (im-path/attributes model (:referencedType properties))))))
-                   (if sub
-                     (map (fn [i] [node model i path false]) (sort (im-path/relationships model sub)))
-                     (map (fn [i] [node model i path false]) (sort (im-path/relationships model (:referencedType properties))))))))]))))
+                  (when (im-path/class? model str-path)
+                    (when-let [subclasses (im-path/subclasses model str-path)]
+                      (list
+                       [:li  [:span
+                              (into
+                               [:select.form-control
+                                {:on-change (fn [e] (dispatch [:qb/mappy-choose-subclass path (oget e :target :value)]))}]
+                               (map (fn [subclass] [:option {:value subclass} (uncamel (name subclass))]) (conj subclasses (:referencedType properties))))]])))
+                  (if sub
+                    (map (fn [i] [attribute model i path sub]) (sort (remove (comp (partial = :id) first) (im-path/attributes model sub))))
+                    (map (fn [i] [attribute model i path sub]) (sort (remove (comp (partial = :id) first) (im-path/attributes model (:referencedType properties))))))
+                  (if sub
+                    (map (fn [i] [node model i path false]) (sort (im-path/relationships model sub)))
+                    (map (fn [i] [node model i path false]) (sort (im-path/relationships model (:referencedType properties))))))))]))))
 
 (defn model-browser []
   (fn [model root-class]
@@ -147,9 +141,8 @@
                      {:on-click (fn [] (dispatch [:qb/collapse-all]))}
                      "Collapse All"]]]]
              (concat
-               (map (fn [i] [attribute model i path]) (sort (remove (comp (partial = :id) first) (im-path/attributes model root-class))))
-               (map (fn [i] [node model i path]) (sort (im-path/relationships model root-class))))))]))
-
+              (map (fn [i] [attribute model i path]) (sort (remove (comp (partial = :id) first) (im-path/attributes model root-class))))
+              (map (fn [i] [node model i path]) (sort (im-path/relationships model root-class))))))]))
 
 (defn dissoc-keywords [m]
   (apply dissoc m (filter keyword? (keys m))))
@@ -163,13 +156,13 @@
           [:span.lab {:class (if (im-path/class? model (join "." path)) "qb-class" "qb-attribute")}
            [:span.qb-label {:style {:margin-left 5}} [:a (uncamel k)]]
            (when-let [s (:subclass properties)] [:span.label.label-default (uncamel s)])
-           [:i.fa.fa-trash-o.fa-fw.danger
+           [:svg.icon.icon-bin
             {:on-click (if (> (count path) 1)
                          (fn [] (dispatch [:qb/mappy-remove-view path]))
-                         (fn [] (dispatch [:qb/mappy-clear-query path])))}]
-           [:span
-            {:on-click (fn [] (dispatch [:qb/mappy-add-constraint path]))}
-            [:span [:span [:i.fa.fa-filter.semilight]]]]
+                         (fn [] (dispatch [:qb/mappy-clear-query path])))}
+            [:use {:xlinkHref "#icon-bin"}]]
+
+           [:svg.icon.icon-filter {:on-click (fn [] (dispatch [:qb/mappy-add-constraint path]))} [:use {:xlinkHref "#icon-filter"}]]
            (when-let [c (:id-count properties)]
              [:span.label.label-soft
               {:class (when (= 0 c) "label-no-results")
@@ -178,38 +171,38 @@
            (into [:ul.tree.banana]
                  (map-indexed (fn [idx con]
                                 [:li
-                                   [:div.contract
-                                   {:class (when (empty? (:value con)) "empty")}
-                                   [constraint
-                                    :model model
-                                    :path (join "." path)
-                                    :lists @lists
-                                    :code (:code con)
-                                    :on-remove (fn [] (dispatch [:qb/mappy-remove-constraint path idx]))
+                                 [:div.contract
+                                  {:class (when (empty? (:value con)) "empty")}
+                                  [constraint
+                                   :model model
+                                   :path (join "." path)
+                                   :lists @lists
+                                   :code (:code con)
+                                   :on-remove (fn [] (dispatch [:qb/mappy-remove-constraint path idx]))
                                     ;:possible-values (when (some? (:possible-values properties)) (map :item (:possible-values properties)))
-                                    :value (:value con)
-                                    :op (:op con)
-                                    :on-select-list (fn [c]
-                                                      (dispatch [:qb/mappy-update-constraint path idx c])
-                                                      (dispatch [:qb/mappy-build-im-query true]))
-                                    :on-change-operator (fn [x]
-                                                          (dispatch [:qb/mappy-update-constraint path idx x])
-                                                          (dispatch [:qb/mappy-build-im-query true]))
-                                    :on-change (fn [c]
-                                                 (dispatch [:qb/mappy-update-constraint path idx c]))
-                                    :on-blur (fn [c]
-                                               (dispatch [:qb/mappy-update-constraint path idx c])
-                                               (dispatch [:qb/mappy-build-im-query true]))
+                                   :value (:value con)
+                                   :op (:op con)
+                                   :on-select-list (fn [c]
+                                                     (dispatch [:qb/mappy-update-constraint path idx c])
+                                                     (dispatch [:qb/mappy-build-im-query true]))
+                                   :on-change-operator (fn [x]
+                                                         (dispatch [:qb/mappy-update-constraint path idx x])
+                                                         (dispatch [:qb/mappy-build-im-query true]))
+                                   :on-change (fn [c]
+                                                (dispatch [:qb/mappy-update-constraint path idx c]))
+                                   :on-blur (fn [c]
+                                              (dispatch [:qb/mappy-update-constraint path idx c])
+                                              (dispatch [:qb/mappy-build-im-query true]))
                                     ;(dispatch [:qb/build-im-query])
 
-                                    :label? false]]]) constraints)))
+                                   :label? false]]]) constraints)))
          (when (not-empty (dissoc-keywords properties))
            (let [classes    (filter (fn [[k p]] (im-path/class? model (join "." (conj path k)))) (dissoc-keywords properties))
                  attributes (filter (fn [[k p]] ((complement im-path/class?) model (join "." (conj path k)))) (dissoc-keywords properties))]
              (into [:ul.tree.banana2]
                    (concat
-                     (map (fn [n] [queryview-node model n path]) (sort attributes))
-                     (map (fn [n] [queryview-node model n path]) (sort classes))))))]))))
+                    (map (fn [n] [queryview-node model n path]) (sort attributes))
+                    (map (fn [n] [queryview-node model n path]) (sort classes))))))]))))
 
 (defn queryview-browser []
   (let [mappy (subscribe [:qb/mappy])]
@@ -234,12 +227,9 @@
   (let [editing? (reagent/atom false)
         logic (subscribe [:qb/constraint-logic])]
     (fn []
-      [:div
+      [:div.logic-box
        {:ref (fn [x]
-               (some-> x (ocall :getElementsByTagName "input") array-seq first (ocall :focus))
-
-
-               )}
+               (some-> x (ocall :getElementsByTagName "input") array-seq first (ocall :focus)))}
        (if @editing?
          [:input.form-control.input-sm
           {:type        "text"
@@ -252,9 +242,8 @@
                           (dispatch [:qb/format-constraint-logic @logic]))
            :on-change   (fn [e] (dispatch [:qb/update-constraint-logic (oget e :target :value)]))}]
          [:pre
-          {:style {:display "flex" :align-items "center"}}
-          [:span.pull-left [:button.btn.btn-primary.btn-slim {:on-click (fn [] (reset! editing? true))} [:i.fa.fa-pencil]]]
-          [:span.pull-left @logic]])])))
+          [:svg.icon.icon-edit {:on-click (fn [] (reset! editing? true))} [:use {:xlinkHref "#icon-edit"}]]
+          [:span @logic]])])))
 
 (defn controls []
   (let [results-preview (subscribe [:qb/preview])]
@@ -291,29 +280,28 @@
       (into [:div.sort-order-container
              {:class (when (some? (:selected @state)) "dragtest")}]
             (map-indexed
-              (fn [idx i]
-                [:div {:class         (when (= idx (:selected @state)) "dragging")
-                       :draggable     true
-                       :on-drag-start (fn [e]
+             (fn [idx i]
+               [:div {:class         (when (= idx (:selected @state)) "dragging")
+                      :draggable     true
+                      :on-drag-start (fn [e]
                                         ;(.preventDefault e)
-                                        (ocall e :stopPropagation)
-                                        (ocall e "dataTransfer.setData" "banana" "cakes")
-                                        (swap! state assoc :selected idx))
-                       :on-drag-enter (fn [e]
-                                        (ocall e :preventDefault)
-                                        (ocall e :stopPropagation)
-                                        (let [selected-idx  (:selected @state)
-                                              items         @order
-                                              selected-item (get items selected-idx)
-                                              [before after] (split-at idx (drop-nth selected-idx items))]
-                                          #_(swap! state assoc
-                                                   :selected idx
-                                                   :items (vec (concat (vec before) (vec (list selected-item)) (vec after))))
-                                          (swap! state assoc :selected idx)
-                                          (dispatch [:qb/set-order (vec (concat (vec before) (vec (list selected-item)) (vec after)))])))
-                       :on-drag-end   (fn [] (swap! state assoc :selected nil))}
-                 (into [:div] (map (fn [part] [:span.part part]) (interpose ">" (map uncamel (split i ".")))))])) @order
-            ))))
+                                       (ocall e :stopPropagation)
+                                       (ocall e "dataTransfer.setData" "banana" "cakes")
+                                       (swap! state assoc :selected idx))
+                      :on-drag-enter (fn [e]
+                                       (ocall e :preventDefault)
+                                       (ocall e :stopPropagation)
+                                       (let [selected-idx  (:selected @state)
+                                             items         @order
+                                             selected-item (get items selected-idx)
+                                             [before after] (split-at idx (drop-nth selected-idx items))]
+                                         #_(swap! state assoc
+                                                  :selected idx
+                                                  :items (vec (concat (vec before) (vec (list selected-item)) (vec after))))
+                                         (swap! state assoc :selected idx)
+                                         (dispatch [:qb/set-order (vec (concat (vec before) (vec (list selected-item)) (vec after)))])))
+                      :on-drag-end   (fn [] (swap! state assoc :selected nil))}
+                (into [:div] (map (fn [part] [:span.part part]) (interpose ">" (map uncamel (split i ".")))))])) @order))))
 
 (defn xml-view []
   (let [query        (subscribe [:qb/im-query])
@@ -321,7 +309,6 @@
     (fn []
 
       [:pre (str (->xml (:model (:service @current-mine)) @query))])))
-
 
 (defn query-viewer []
   (let [mappy        (subscribe [:qb/mappy])
@@ -340,8 +327,7 @@
             (when (>= @constraint-value-count 2)
               [:div
                [:h4 "Constraint Logic"]
-               [logic-box]
-               ])]
+               [logic-box]])]
          1 [sortable-list])
        (when (not-empty @mappy) [controls])])))
 
@@ -357,8 +343,7 @@
         [:li {:class (when (= @tab-index 1) "active")} [:a {:on-click #(reset! tab-index 1)} "XML"]]]
        (case @tab-index
          0 [preview @prev]
-         1 [xml-view]
-         )])))
+         1 [xml-view])])))
 
 (defn main []
   (let [mappy        (subscribe [:qb/mappy])
@@ -367,35 +352,30 @@
         root-class   (subscribe [:qb/root-class])
         prev         (subscribe [:qb/preview])]
     (reagent/create-class
-      {:component-did-mount (fn [x]
-                              (when (empty? @query)
-                                (dispatch [:qb/set-root-class "Gene"])))
-       :reagent-render      (fn []
-                              [:div.column-container
-                               [:div.model-browser-column
-                                [:div.container-fluid
-                                 [:h4 "Model Browser"]
-                                 #_[:div.btn-toolbar
-                                    [:button.btn.btn-primary.btn-slim
-                                     {:on-click (fn [] (dispatch [:qb/expand-all]))}
-                                     "Expand to Query"]
-                                    [:button.btn.btn-primary.btn-slim
-                                     {:on-click (fn [] (dispatch [:qb/collapse-all]))}
-                                     "Collapse All"]]
-                                 [:div
-                                  [:span "Start with..."]
-                                  ]
-                                 (when @root-class
-                                   [root-class-dropdown])
-                                 (when @root-class
-                                   [model-browser (:model (:service @current-mine)) (name @root-class)])]]
-                               [:div.query-view-column
-
-
-
-                                [:div.container-fluid
-                                 [:div.row
-                                  [:div.col-md-5
-                                   [query-viewer]]
-                                  [:div.col-md-7
-                                   [column-order-preview]]]]]])})))
+     {:component-did-mount (fn [x]
+                             (when (empty? @query)
+                               (dispatch [:qb/set-root-class "Gene"])))
+      :reagent-render      (fn []
+                             [:div.column-container
+                              [:div.model-browser-column
+                               [:div.container-fluid
+                                [:h4 "Model Browser"]
+                                #_[:div.btn-toolbar
+                                   [:button.btn.btn-primary.btn-slim
+                                    {:on-click (fn [] (dispatch [:qb/expand-all]))}
+                                    "Expand to Query"]
+                                   [:button.btn.btn-primary.btn-slim
+                                    {:on-click (fn [] (dispatch [:qb/collapse-all]))}
+                                    "Collapse All"]]
+                                [:div
+                                 [:span "Start with..."]]
+                                (when @root-class
+                                  [root-class-dropdown])
+                                (when @root-class
+                                  [model-browser (:model (:service @current-mine)) (name @root-class)])]]
+                              [:div.query-view-column [:div.container-fluid
+                                                       [:div.row
+                                                        [:div.col-md-5
+                                                         [query-viewer]]
+                                                        [:div.col-md-7
+                                                         [column-order-preview]]]]]])})))
