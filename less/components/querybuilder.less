@@ -1,7 +1,5 @@
 @import "../variables";
 @import "../datatype-colors";
-@model-browser-bg: #616161;
-@model-browser-fg: white;
 @model-browser-bg: #f7f7f7;
 @model-browser-fg: black;
 @model-browser-class: #29b6ff;
@@ -24,7 +22,6 @@ div.column-container {
     right: 0;
     top: 60px;
     bottom: 54px;
-    background-color: green;
 
     .model-browser-column {
         width: 400px;
@@ -186,22 +183,15 @@ div.column-container {
 
 .flexmex {
     display: flex;
-
-    .lab {
-        // border: 1px solid hotpink;
-        // flex: 0 0;
-    }
+    position: relative;
+    top: 0.7em;
+    background: white;
 
     .con {
-        // border: 1px solid red;
         flex: 1 0;
         display: flex;
         flex-direction: column;
     }
-}
-
-.consrow {
-    // min-height: 75px;
 }
 
 .query-browser {
@@ -302,6 +292,10 @@ div.column-container {
 }
 
 .model-browser {
+  .icon {
+    fill:darken(silver,10%);
+  }
+
     .noselect;
     font-size: 0.9em;
     cursor: pointer;
@@ -326,37 +320,22 @@ div.column-container {
         // padding-left: 0.2em;
         border: 1px solid #d5d5d5;
         border-width: 0 0 1px 1px;
-    }
 
-    li.haschildren {
-        border-bottom: 0;
-    }
-
-    li.empty {
-        font-style: italic;
-        color: silver;
-        border-color: silver;
-    }
-
-    li p {
-        margin: 0;
-        // font-size: 1.2em;
-        background: @model-browser-bg;
-        position: relative;
-        top: 0.5em;
-        top: 0.7em;
-
-        &.classy {
-            font-size: 1.5em;
-            font-style: italic;
-            font-weight: bold;
+        &.haschildren {
+            border-bottom: 0;
         }
-    }
 
-    li ul {
-        border-top: 1px solid #d5d5d5;
-        margin-left: -1em;
-        padding-left: 2em;
+        &.empty {
+            font-style: italic;
+            color: silver;
+            border-color: silver;
+        }
+
+        ul {
+            border-top: 1px solid #d5d5d5;
+            margin-left: -1em;
+            padding-left: 2em;
+        }
     }
 
     ul li:last-child ul {
@@ -393,6 +372,28 @@ div.column-container {
     select {
         background-color: gainsboro;
     }
+
+    li.haschildren > span {
+        display: flex;
+        background-color: @model-browser-bg;
+        align-items:center;
+    }
+
+    li {
+        position: relative;
+    }
+
+    .expanded-group > .group-title {
+        background-color: @model-browser-bg;
+        margin-bottom: -0.7em;
+        z-index:12;
+        position: relative;
+    }
+
+    .expanded-group ul {
+        padding-top: 0.7em;
+        z-index:11;
+    }
 }
 
 .arr {
@@ -400,7 +401,7 @@ div.column-container {
 }
 
 .arrow-down {
-    transform: rotate(45deg);
+    //  transform: rotate(45deg);
 }
 
 .qb-label {
@@ -423,6 +424,7 @@ div.column-container {
             background-color: #f7f7f7;
         }
     }
+    margin-top: 0.3em;
     padding: 0.3em 0;
 
     .input-group {
@@ -591,16 +593,16 @@ div.column-container {
         .danger;
     }
 }
+
 .constraint-input {
-  .disabled {
-    color:grey;
-    fill:grey;
-  }
-
+    .disabled {
+        color: grey;
+        fill: grey;
+    }
 }
-
 //yes this is overly specific. Sorry, bootstrap is bad to
-//override. 
-.constraint-operator.input-group-btn button.btn, {
-  text-transform:none;
+//override.
+
+.constraint-operator.input-group-btn button.btn {
+    text-transform: none;
 }

@@ -76,16 +76,15 @@
       (let [path      (conj trail (name k))
             selected? (get-in @mappy path)]
         [:li.haschildren
-         [:p
           [:span
            {:on-click (fn []
                         (if selected?
                           (dispatch [:qb/mappy-remove-view path sub])
                           (dispatch [:qb/mappy-add-view path sub])))}
            (if (get-in @mappy path)
-             [:i.fa.fa-check-square-o.fa-fw]
-             [:i.fa.fa-square-o.fa-fw.light])
-           [:span.qb-label (str " " (uncamel (:name properties)))]]]]))))
+             [:svg.icon.icon-checkbox-checked [:use {:xlinkHref "#icon-checkbox-checked"}]]
+             [:svg.icon.icon-checkbox-unchecked [:use {:xlinkHref "#icon-checkbox-unchecked"}]])
+           [:span.qb-label (str " " (uncamel (:name properties)))]]]))))
 
 
 
@@ -98,11 +97,10 @@
             sub      (get-in @menu (conj path :subclass))]
 
 
-        [:li.haschildren
-         [:p
-          [:div
-           {:style    {:white-space "nowrap"}
-            :on-click (fn []
+        [:li.haschildren.qb-group
+         {:class (cond open? "expanded-group")}
+           [:div.group-title
+           {:on-click (fn []
                         (if open?
                           (dispatch [:qb/collapse-path path])
                           (dispatch [:qb/expand-path path])))}
@@ -112,19 +110,18 @@
             {:on-click (fn [e]
                          (ocall e :stopPropagation)
                          (dispatch [:qb/mappy-add-summary-views path sub]))}
-            "Summary"]]]
+            "Summary"]]
          (when open?
            (into [:ul]
                  (concat
                    (when (im-path/class? model str-path)
                      (when-let [subclasses (im-path/subclasses model str-path)]
                        (list
-                         [:li [:p
-                               [:span
+                         [:li  [:span
                                 (into
                                   [:select.form-control
                                    {:on-change (fn [e] (dispatch [:qb/mappy-choose-subclass path (oget e :target :value)]))}]
-                                  (map (fn [subclass] [:option {:value subclass} (uncamel (name subclass))]) (conj subclasses (:referencedType properties))))]]])))
+                                  (map (fn [subclass] [:option {:value subclass} (uncamel (name subclass))]) (conj subclasses (:referencedType properties))))]])))
                    (if sub
                      (map (fn [i] [attribute model i path sub]) (sort (remove (comp (partial = :id) first) (im-path/attributes model sub))))
                      (map (fn [i] [attribute model i path sub]) (sort (remove (comp (partial = :id) first) (im-path/attributes model (:referencedType properties))))))
@@ -162,7 +159,7 @@
     (fn [model [k properties] & [trail]]
       (let [path (vec (conj trail (name k)))]
         [:li.tree.haschildren
-         [:p.flexmex
+         [:div.flexmex
           [:span.lab {:class (if (im-path/class? model (join "." path)) "qb-class" "qb-attribute")}
            [:span.qb-label {:style {:margin-left 5}} [:a (uncamel k)]]
            (when-let [s (:subclass properties)] [:span.label.label-default (uncamel s)])
@@ -181,8 +178,7 @@
            (into [:ul.tree.banana]
                  (map-indexed (fn [idx con]
                                 [:li
-                                 [:p
-                                  [:div.contract
+                                   [:div.contract
                                    {:class (when (empty? (:value con)) "empty")}
                                    [constraint
                                     :model model
@@ -206,7 +202,7 @@
                                                (dispatch [:qb/mappy-build-im-query true]))
                                     ;(dispatch [:qb/build-im-query])
 
-                                    :label? false]]]]) constraints)))
+                                    :label? false]]]) constraints)))
          (when (not-empty (dissoc-keywords properties))
            (let [classes    (filter (fn [[k p]] (im-path/class? model (join "." (conj path k)))) (dissoc-keywords properties))
                  attributes (filter (fn [[k p]] ((complement im-path/class?) model (join "." (conj path k)))) (dissoc-keywords properties))]
@@ -403,4 +399,3 @@
                                    [query-viewer]]
                                   [:div.col-md-7
                                    [column-order-preview]]]]]])})))
-
