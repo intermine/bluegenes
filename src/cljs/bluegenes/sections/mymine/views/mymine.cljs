@@ -26,35 +26,45 @@
   [:tr
    (drag-events trail)
    [:td
-    [:span {:style {:padding-left (str (* (dec (count trail)) 40) "px")}
+    [:span {:style {:padding-left (str (* (dec (dec (count trail))) 20) "px")}
             :on-click (fn [evt]
                         (stop-prop evt)
                         (dispatch [:bluegenes.events.mymine/toggle-folder-open trail]))}
      (if open
        [:svg.icon.icon-folder-open [:use {:xlinkHref "#icon-folder-open"}]]
        [:svg.icon.icon-folder [:use {:xlinkHref "#icon-folder"}]])
-     [:span.title.bold
-      (str label)]
-     (when read-only? [:span.label "Read Only"])]]
+     [:span.title.bold label]
+     (when read-only? [:span.label [:i.fa.fa-lock] " Read Only"])]]
    [:td [:span "Today"]]])
 
 (defmethod tree :list [{:keys [type label trail]}]
   [:tr
    (drag-events trail)
    [:td
-    [:span.title {:style {:padding-left (str (* (dec (count trail)) 40) "px")}}
+    [:span.title {:style {:padding-left (str (* (dec (dec (count trail))) 20) "px")}}
      [:svg.icon.icon-list [:use {:xlinkHref "#icon-list"}]]
      [:a.title label]]]
    [:td [:span "Today"]]])
 
+(defn table-header []
+  (fn [{:keys [label key sort-by]}]
+    [:th
+     {:on-click (fn [] (dispatch [:bluegenes.events.mymine/toggle-sort key]))}
+     label
+     (when (= key (:key sort-by))
+       (if (:asc? sort-by)
+         [:i.fa.fa-fw.fa-chevron-down]
+         [:i.fa.fa-fw.fa-chevron-up]))]))
+
 (defn main []
-  (let [as-list (subscribe [:bluegenes.subs.mymine/as-list])]
+  (let [as-list (subscribe [:bluegenes.subs.mymine/as-list])
+        sort-by (subscribe [:bluegenes.subs.mymine/sort-by])]
     (fn []
       [:div.container-fluid
        [:div.mymine.noselect
         [:table.table
          [:thead
           [:tr
-           [:th "Name"]
+           [table-header {:label "Name" :key :label :sort-by @sort-by}]
            [:th "Last Modified"]]]
          (into [:tbody] (map (fn [x] [tree x]) @as-list))]]])))

@@ -4,16 +4,33 @@
             [cljs-http.client :refer [get post]]
             [cljs.core.async :refer [<!]]))
 
+(defn dissoc-in
+  "Dissociates an entry from a nested associative structure returning a new
+  nested structure. keys is a sequence of keys. Any empty maps that result
+  will not be present in the new structure."
+  [m [k & ks :as keys]]
+  (if ks
+    (if-let [nextmap (get m k)]
+      (let [newmap (dissoc-in nextmap ks)]
+        (if (seq newmap)
+          (assoc m k newmap)
+          (dissoc m k)))
+      m)
+    (dissoc m k)))
+
 (reg-event-db
   ::toggle-folder-open
   (fn [db [_ location-trail]]
-    (update-in db [:mymine :tree]
-               ; Interpose :children in between each item in the location trail
-               ; so we can navigate to it in our MyMine tree. Also conj :children
-               ; onto the front as we're starting from the root
-               update-in (conj (interpose :children location-trail))
-               ; Toggle the child's open state
-               update :open not)))
+    (update-in db [:mymine :tree] update-in location-trail update :open not)))
+
+(reg-event-db
+  ::toggle-sort
+  (fn [db [_ key]]
+    (if (= key (get-in db [:mymine :sort-by :key]))
+      ; If the key being toggled is the key being set then change the sort direction
+      (update-in db [:mymine :sort-by :asc?] not)
+      ; Otherwise it's a new column so set the key and a default sort direction
+      (assoc-in db [:mymine :sort-by] {:key key :asc? true}))))
 
 (reg-event-db
   ::drag-start
@@ -34,4 +51,10 @@
   ::drop
   (fn [db [_ trail]]
     (let [{:keys [dragging dragging-over]} (:mymine db)]
-      db)))
+      (let [full-drag-path (vec (concat [:mymine :tree] dragging))
+            full-drop-path (vec (concat [:mymine :tree] dragging-over))]
+        (-> db
+            (update-in (butlast full-drag-path) dissoc (last full-drag-path))
+            (assoc-in
+              (concat full-drop-path [:children (last full-drag-path)])
+              (get-in db full-drag-path)))))))

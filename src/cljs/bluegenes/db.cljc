@@ -13,7 +13,11 @@
    :databrowser/node-locations {:Homologue {:x 120 :y 224 :radius 50} :Protein {:x 200 :y 300 :radius 17}}
    :results {:history []}
    :search {:selected-results #{}}
-   :mymine {:tree {:root {:type :folder
+   :mymine {:dragging nil
+            :dragging-over nil
+            :sort-by {:key :label
+                      :asc? true}
+            :tree {:root {:type :folder
                           :open true
                           :children {:public {:type :folder
                                               :open true
