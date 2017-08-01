@@ -12,6 +12,7 @@
             [bluegenes.sections.saveddata.views.saveddataitem :as saved-data-item]
             [bluegenes.sections.saveddata.views.venn :as venn]))
 
+;;TODO : IS THIS FILE OBSOLETE? PLEASE DELETE IF SO
 
 (defn toggle-editor []
   (dispatch [:saved-data/toggle-edit-mode]))
@@ -29,10 +30,12 @@
   [:div.btn-toolbar
    [:div.btn.btn-primary.btn-raised
     {:on-click toggle-editor}
-    [:span [:i.fa.fa-pie-chart] " Combine Results"]]
+    [:span ;[:i.fa.fa-pie-chart]
+     " Combine Results"]]
    [:div.btn.btn-primary.btn-raised
     {:on-click count-all}
-    [:span [:i.fa.fa-pie-chart] " Count All"]]])
+    [:span ;[:i.fa.fa-pie-chart]
+     " Count All"]]])
 
 
 
