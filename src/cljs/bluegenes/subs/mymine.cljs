@@ -78,3 +78,13 @@
     (-> with-public :root (assoc :fid :root :trail [:root]) (flatten-tree sort-info) rest)))
 
 
+(reg-sub
+  ::unfilled
+  (fn [] [(subscribe [::as-list]) (subscribe [:lists/filtered-lists])])
+  (fn [[as-list filtered-lists]]
+    (let [my-lists (map :id (filter (comp true? :authorized) filtered-lists))
+          filled   (remove nil? (map :id as-list))]
+      ; TODO This is broken until https://github.com/intermine/intermine/pull/1633 is fixed
+      (clojure.set/difference my-lists filled))))
+
+

@@ -67,7 +67,6 @@
 (defmethod tree :list []
   (let [selected-items (subscribe [:bluegenes.subs.mymine/selected])]
     (fn [{:keys [index type label trail read-only? size type] :as x}]
-      (println type)
       (let [selected? (some? (some #{trail} @selected-items))]
         [:tr
          (cond-> {}
@@ -99,8 +98,10 @@
 
 (defn main []
   (let [as-list (subscribe [:bluegenes.subs.mymine/as-list])
-        sort-by (subscribe [:bluegenes.subs.mymine/sort-by])]
+        sort-by (subscribe [:bluegenes.subs.mymine/sort-by])
+        unfilled (subscribe [:bluegenes.subs.mymine/unfilled])]
     (fn []
+      (println "UN" @unfilled)
       [:div.container-fluid
        [:div.mymine.noselect
         [:table.table
