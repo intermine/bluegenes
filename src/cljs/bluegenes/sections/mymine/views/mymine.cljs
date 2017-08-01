@@ -68,22 +68,23 @@
   (let [selected-items (subscribe [:bluegenes.subs.mymine/selected])]
     (fn [{:keys [index type label trail read-only? size type] :as x}]
       (println type)
-      [:tr
-       (cond-> {}
-               ; Item is selected
-               true (merge (click-events trail index))
-               ; Item is allowed to be moved?
-               (not read-only?) (merge (drag-events trail index))
-               ; Selected?
-               (some? (some #{trail} @selected-items)) (assoc :class "selected"))
+      (let [selected? (some? (some #{trail} @selected-items))]
+        [:tr
+         (cond-> {}
+                 ; Item is selected
+                 true (merge (click-events trail index))
+                 ; Item is allowed to be moved?
+                 (not read-only?) (merge (drag-events trail index))
+                 ; Selected?
+                 selected? (assoc :class (str "im-type inverted " type)))
 
-       [:td
-        [:span.title {:style {:padding-left (str (* (dec (dec (dec (count trail)))) 20) "px")}}
-         [:svg.icon.icon-document-list.im-type
-          {:class type} [:use {:xlinkHref "#icon-document-list"}]]
-         [:a.title label]]]
-       [:td [:span.sub type]]
-       [:td [:span.sub (nf size)]]])))
+         [:td
+          [:span.title {:style {:padding-left (str (* (dec (dec (dec (count trail)))) 20) "px")}}
+           [:svg.icon.icon-document-list.im-type
+            {:class (str type (when selected? " inverted"))} [:use {:xlinkHref "#icon-document-list"}]]
+           [:a.title label]]]
+         [:td [:span.sub type]]
+         [:td [:span.sub (nf size)]]]))))
 
 
 (defn table-header []

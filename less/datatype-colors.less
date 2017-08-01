@@ -107,6 +107,7 @@
 
 ///// Possibly a simpler solution?
 
+@color-Default: #656565;
 @color-Gene: #8BC34A;
 @color-Protein: #FFC107;
 @color-Publication: #2196F3;
@@ -114,7 +115,7 @@
 @color-Interaction: #FF5722;
 @color-GOAnnotation: #9C27B0;
 
-@types: Gene, Protein, Publication, Organism, Interaction, GOAnnotation;
+@types: Default, Gene, Protein, Publication, Organism, Interaction, GOAnnotation;
 
 .type-variant(@variant) {
   @color: "color-@{variant}";
@@ -137,17 +138,28 @@
     .im-type.@{type} {
       .type-variant(@type);
     }
-
-  	.im-type.@{type}.inverted {
+  	.im-type.inverted.@{type} {
+  	   a {
+  	    .type-variant-inverted(@type);
+  	   }
       .type-variant-inverted(@type);
     }
 }
 
 // Default values
 .im-type {
- 	color: grey;
-  	fill: grey;
+ 	.type-variant(Default);
+}
+
+// Default values
+.im-type.inverted {
+    a {
+        .type-variant-inverted(Default);
+    }
+    .type-variant-inverted(Default);
 }
 
 .make-type-classes(); // run the mixin
+
+
 

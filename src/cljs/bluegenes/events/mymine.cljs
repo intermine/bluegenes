@@ -31,9 +31,10 @@
 (reg-event-db
   ::toggle-selected
   (fn [db [_ location-trail index options]]
-    (if (:reset? options)
+    #_(if (:reset? options)
       (assoc-in db [:mymine :selected] #{[location-trail]})
-      (update-in db [:mymine :selected] in-or-out location-trail))))
+      (update-in db [:mymine :selected] in-or-out location-trail))
+    (update-in db [:mymine :selected] in-or-out location-trail)))
 
 (reg-event-db
   ::toggle-sort

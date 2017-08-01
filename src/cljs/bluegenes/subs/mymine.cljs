@@ -64,7 +64,10 @@
               (into {} (map
                          (fn [l]
                            {(:id l) (assoc l :file-type :list :read-only? true :label (:title l))})
-                         filtered-lists)))))
+                         ; Assume that all unauthorized lists are public, but I bet this
+                         ; isn't true if someone shares a list with you...
+                         (filter (comp false? :authorized) filtered-lists))))))
+
 
 ; MyMine data is a nested tree structure, however it's easier to display and sort when it's
 ; flattened into a list. Applying 'rest' removes the root folder
