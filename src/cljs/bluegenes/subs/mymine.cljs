@@ -15,6 +15,9 @@
           (recur more)
           result)))))
 
+
+;;;;;;;;;; tree-seq components to convert the nested MyMine JSON document
+
 (defn branch?
   "Branch? fn for a tree-seq. True if this branch is open and has children."
   [m] (and (:open m) (contains? m :children)))
@@ -33,11 +36,12 @@
         (if (:asc? sort-info) asc desc))
       (:children m))))
 
-
 (defn flatten-tree
   "Flatten the nested tree structure of MyMine data into a list (depth first)"
   [m sort-info]
   (tree-seq branch? (partial children sort-info) m))
+
+;;;;;;;;;; end of tree-seq components
 
 (reg-sub
   ::sort-by
@@ -64,6 +68,7 @@
               (into {} (map
                          (fn [l]
                            {(:id l) (assoc l :file-type :list :read-only? true :label (:title l))})
+                         ; TODO - rethink authorized flag
                          ; Assume that all unauthorized lists are public, but I bet this
                          ; isn't true if someone shares a list with you...
                          (filter (comp false? :authorized) filtered-lists))))))
