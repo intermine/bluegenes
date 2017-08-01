@@ -87,16 +87,16 @@
            [:span (if results (str " (" (count results) ")"))]
            (if (< 0 (count results))
              [:span
-              ;;TODO: replace the i.fa below with the svg icon when enrichment is fixed.
+              ;;TODO: replace the < below with the svg icon when enrichment is fixed.
               ;;[:svg.icon.icon-circle-left [:use {:xlinkHref "#icon-circle-left"}]]
-              [:i.fa.fa-caret-left
+              [:span
                {:on-click (fn [] (swap! page-state update :page dec))
-                :title "View previous 5 enrichment results"}]
-                ;;TODO: replace the i.fa below with the svg icon when enrichment is fixed.
+                :title "View previous 5 enrichment results"} "<"]
+                ;;TODO: replace the > below with the svg icon when enrichment is fixed.
                 ;;[:svg.icon.icon-circle-right [:use {:xlinkHref "#icon-circle-right"}]]
-              [:i.fa.fa-caret-right
+              [:span
                {:on-click (fn [] (swap! page-state update :page inc))
-                :title "View next 5 enrichment results"}]])]
+                :title "View next 5 enrichment results"}">"]])]
           [:span [mini-loader "tiny"]])]
        (cond (seq (:results details)) enrichment-results-header)
        (into [:ul.enrichment-list]
