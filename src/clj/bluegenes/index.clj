@@ -24,16 +24,12 @@
     [:meta {:charset "utf-8"}]
     [:meta {:content "width=device-width, initial-scale=1", :name "viewport"}]
     [:link {:rel "shortcut icon" :href "https://cdn.rawgit.com/intermine/design-materials/f5f00be4/logos/intermine/fav32x32.png" :type "image/png"}]
-    #_[:script {:src
-      "http://cdn.intermine.org/js/intermine/im-tables/2.0.0/imtables.min.js"}]
     [:script {:src
       "http://cdn.intermine.org/js/intermine/imjs/3.15.0/im.min.js"}]
     [:script
      {:crossorigin "anonymous",
       :integrity "sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s=",
       :src "https://code.jquery.com/jquery-3.1.0.min.js"}]
-    ;[:script {:src "vendor/bootstrap-material-design/scripts/material.js"}]
-    ;[:script {:src "vendor/bootstrap-material-design/scripts/ripples.js"}]
     [:script {:src "vendor/bootstrap/dist/js/bootstrap.js"}]
     [:script {:src "vendor/bootstrap/js/tooltip.js"}]
     [:script {:src "vendor/bootstrap/js/popover.js"}]
