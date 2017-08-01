@@ -42,8 +42,8 @@
                         (.stopPropagation e)
                         (dispatch [:regions/toggle-feature-type n]))}
        (if (class-kw (:feature-types @settings))
-         [:i.fa.fa-fw.fa-check-square-o]
-         [:i.fa.fa-fw.fa-square-o])
+           [:svg.icon.icon-checkbox-checked [:use {:xlinkHref "#icon-checkbox-checked"}]]
+         [:svg.icon.icon-checkbox-unchecked [:use {:xlinkHref "#icon-checkbox-unchecked"}]])
        displayName
        (if-not (empty? descendants)
          (into [:ul.features-tree] (map (fn [d] [feature-branch d])) (sort-by (comp :displayName second) descendants)))])))
@@ -105,10 +105,11 @@
 (defn region-input []
     [:div.region-input
       [:label "Regions to search "
-        [popover [:i.fa.fa-question-circle
+        [popover [:svg.icon.icon-question
               {:data-content   region-help-content-popover
                :data-trigger   "hover"
-               :data-placement "bottom"}]]]
+               :data-placement "bottom"}
+                  [:use {:xlinkHref "#icon-question"}]]]]
         [:div.region-text
          [clear-textbox]
          [region-input-box]]
@@ -122,13 +123,16 @@
         results (subscribe [:regions/results])]
   [:div.checkboxes
    [:label
-    [:i.fa.fa-fw
-     {:class (if @all-selected? "fa-check-square-o" "fa-square-o")
-      :title (if @all-selected? "Deselect all" "Select all")
+    [:svg.icon
+     {:title (if @all-selected? "Deselect all" "Select all")
       :on-click (if @all-selected?
         #(dispatch [:regions/deselect-all-feature-types])
         #(dispatch [:regions/select-all-feature-types])
-        )}] "Features to include"]
+        )}
+     (if @all-selected?
+       [:svg.icon.icon-checkbox-checked [:use {:xlinkHref "#icon-checkbox-checked"}]]
+       [:svg.icon.icon-checkbox-unchecked [:use {:xlinkHref "#icon-checkbox-unchecked"}]])
+     ] "Features to include"]
    ;; having the container around the tree is important because the tree is recursive
    ;; and we know for sure that the container is the final parent! :)
    [:div.feature-tree-container
