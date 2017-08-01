@@ -15,6 +15,7 @@
    :search {:selected-results #{}}
    :mymine {:dragging nil
             :dragging-over nil
+            :selected #{}
             :sort-by {:key :label
                       :asc? true}
             :tree {:root {:type :folder
@@ -34,9 +35,11 @@
                                                                             :open true
                                                                             :label "Folder Three"
                                                                             :children {"somelistone" {:type :list
+                                                                                                      :size 10
                                                                                                       :label "Some List One"
                                                                                                       :id 12345}
                                                                                        "somelisttwo" {:type :list
+                                                                                                      :size 1
                                                                                                       :label "Some List Two"
                                                                                                       :id 67890}}}}}
                                      "folderfour" {:type :folder

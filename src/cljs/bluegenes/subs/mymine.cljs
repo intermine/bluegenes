@@ -26,7 +26,6 @@
   (map
     (fn [[key child]]
       (assoc child
-        :size (count (:children child))
         :trail (vec (conj (:trail m) :children key))))
     (sort
       (compare-by
@@ -50,6 +49,11 @@
   (fn [db]
     (get-in db [:mymine :tree])))
 
+(reg-sub
+  ::selected
+  (fn [db]
+    (get-in db [:mymine :selected])))
+
 ; Fill the [:root :public] folder with public lists
 (reg-sub
   ::with-public
@@ -62,6 +66,8 @@
                            {(:id l) {:type :list
                                      :label (:title l)
                                      :id (:id l)
+                                     :size (:size l)
+                                     :read-only? true
                                      :trail [0]}})
                          filtered-lists)))))
 

@@ -1,15 +1,18 @@
 .mymine {
 
     font-size: 1em;
+    font-weight: 500;
 
     .icon {
-        fill: #525252;
-        // fill: #0075b6;
+        fill: #0081f2;
+        font-size: 1.5em;
     }
 
-    a {
-        // color: #039be5;
+    .icon-folder-open, .icon-folder {
+        fill: #b4af71;
     }
+
+
     .title {
         padding-left: 10px;
         padding-right: 10px;
@@ -38,6 +41,15 @@
         &:not(:last-child) {
             border-bottom: 1px solid #e5e5e5;
         }
+    }
+
+
+
+    .selected {
+        background-color: #0081f2;
+        .icon {fill: white}
+        a {color: white};
+        color: white;
     }
 
 }

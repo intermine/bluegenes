@@ -18,10 +18,22 @@
       m)
     (dissoc m k)))
 
+(defn in-or-out [haystack needle]
+  (if (some? (some #{needle} haystack))
+    (remove #{needle} haystack)
+    (conj haystack needle)))
+
 (reg-event-db
   ::toggle-folder-open
   (fn [db [_ location-trail]]
     (update-in db [:mymine :tree] update-in location-trail update :open not)))
+
+(reg-event-db
+  ::toggle-selected
+  (fn [db [_ location-trail index options]]
+    (if (:reset? options)
+      (assoc-in db [:mymine :selected] #{[location-trail]})
+      (update-in db [:mymine :selected] in-or-out location-trail))))
 
 (reg-event-db
   ::toggle-sort
