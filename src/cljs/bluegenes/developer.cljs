@@ -29,30 +29,42 @@
                         :defaultChecked (= id (:id @current-mine))
                         :value          id}] (:common details)]) @(subscribe [:mines])))
         [:button.btn.btn-primary.btn-raised
-         {:on-click (fn [e] (.preventDefault e))} "Save"]]
-       ])))
+         {:on-click (fn [e] (.preventDefault e))} "Save"]]])))
 
 (defn version-number []
   [:div.panel.container
    [:h3 "Client Version: "]
-   [:pre (str bluegenes.core/version)]])
+   [:code (str bluegenes.core/version)]])
 
- (defn localstorage-destroyer []
-     (fn []
-       [:div.panel.container [:h3 "Delete local storage: "]
-        [:form
-         [:p "This will delete the local storage settings included preferred intermine instance, model, lists, and summaryfields. Model, lists, summaryfields should be loaded afresh every time anyway, but here's the easy pressable button to be REALLY SURE: "]
-         [:button.btn.btn-primary.btn-raised
-          {:on-click
-           (fn [e]
-             (.preventDefault e)
-             (persistence/destroy!)
-             (.reload js/document.location true)
-             )} "Delete bluegenes localstorage... for now."]]
-        ]))
+(defn localstorage-destroyer []
+  (fn []
+    [:div.panel.container [:h3 "Delete local storage: "]
+     [:form
+      [:p "This will delete the local storage settings included preferred intermine instance, model, lists, and summaryfields. Model, lists, summaryfields should be loaded afresh every time anyway, but here's the easy pressable button to be REALLY SURE: "]
+      [:button.btn.btn-primary.btn-raised
+       {:on-click
+        (fn [e]
+          (.preventDefault e)
+          (persistence/destroy!)
+          (.reload js/document.location true))} "Delete bluegenes localstorage... for now."]]]))
 
 (defn iconview []
   [:div.panel.container [:h3 "All icons defs in the icons file (components/icons.cljs.)"]
+   [:div.icon-size "Bonus classes for easy sizing: "
+    [:div.icon-sizing-example
+     [:div.demo
+      "default"
+      [:svg.icon.icon-intermine [:use {:xlinkHref "#icon-intermine"}]]]
+     [:div.demo
+      [:code ".icon-2x"]
+      [:svg.icon.icon-2x.icon-intermine [:use {:xlinkHref "#icon-intermine"}]]]
+     [:div.demo
+      [:code ".icon-3x"]
+      [:svg.icon.icon-3x.icon-intermine [:use {:xlinkHref "#icon-intermine"}]]]
+     [:div.demo
+      [:code ".icon-4x"]
+      [:svg.icon.icon-4x.icon-intermine [:use {:xlinkHref "#icon-intermine"}]]]]
+    [:div "example:" [:code "[:svg.icon-3x.icon-intermine [:use {:xlinkHref \"#icon-intermine\"}]]"]]]
    (let [icon-names (rest (last (icons/icons)))]
      [:table.icon-view [:tbody
                         (map (fn [[icon-symbol]]
@@ -60,15 +72,12 @@
                                  [:tr {:key icon-name}
                                   [:td [:svg.icon {:class icon-name} [:use {:xlinkHref (str "#" icon-name)}]]]
                                   [:td icon-name]
-                                  [:td [:div.code "[:svg.icon." icon-name " [:use {:xlinkHref \"#" icon-name "\"}]]"]]]
-                                 )) icon-names)
-                        ]])])
+                                  [:td [:div.code "[:svg.icon." icon-name " [:use {:xlinkHref \"#" icon-name "\"}]]"]]])) icon-names)]])])
 
 (defn debug-panel []
-    (fn []
-      [:div.developer
-       [mine-config]
-       [localstorage-destroyer]
-       [version-number]
-       [iconview]
-       ]))
+  (fn []
+    [:div.developer
+     [mine-config]
+     [localstorage-destroyer]
+     [version-number]
+     [iconview]]))
