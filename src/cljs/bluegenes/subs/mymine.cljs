@@ -27,9 +27,10 @@
   so we know the nested location of the child"
   [sort-info m]
   (map
-    (fn [[key child]]
+    (fn [[key {file-type :file-type :as child}]]
       (assoc child
-        :trail (vec (conj (:trail m) :children key))))
+        :trail (vec (conj (:trail m) :children key))
+        :level (cond-> (count (remove keyword? (:trail m))) (not= :folder file-type) inc )))
     (sort
       (compare-by
         (comp (:key sort-info) second)
@@ -101,6 +102,6 @@
   ::context-menu-target
   (fn [] [(subscribe [::with-public]) (subscribe [::context-menu-location])])
   (fn [[tree location]]
-    (get-in tree location)))
+    (assoc (get-in tree location) :trail location)))
 
 

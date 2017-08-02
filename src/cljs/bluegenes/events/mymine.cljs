@@ -31,6 +31,16 @@
     (update-in db [:mymine :tree] update-in location-trail update :open not)))
 
 (reg-event-db
+  ::toggle-edit-mode
+  (fn [db [_ location-trail]]
+    (update-in db [:mymine :tree] update-in location-trail update :editing? not)))
+
+(reg-event-db
+  ::update-value
+  (fn [db [_ location-trail key value]]
+    (update-in db [:mymine :tree] update-in location-trail assoc key value :editing? false)))
+
+(reg-event-db
   ::toggle-selected
   (fn [db [_ location-trail index options]]
     (cond
@@ -92,9 +102,6 @@
             drop-parent-folder (parent-folder tree dragging-over)
             drag-type          (:file-type (get-in tree dragging))
             drop-type          (:file-type (get-in tree dragging-over))]
-
-        (js/console.log "x" )
-
         ; Don't do anything if we're moving something into the same folder
         (cond
           (= dragging dragging-over) {:db db} ; File was moved onto itself. Ignore.

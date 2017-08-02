@@ -130,6 +130,19 @@
   fill: white;
 }
 
+.type-variant-box(@variant) {
+  @color: "color-@{variant}";
+  color: @@color;
+  outline: 1px solid @@color;
+  background-color: fade(@@color, 1%);
+  outline-offset: -1px;
+}
+
+.type-variant-foreground(@variant) {
+  @color: "color-@{variant}";
+  color: darken(@@color, 40%);
+}
+
 // mixin to iterate over colors and create CSS class for each one
 .make-type-classes(@i: length(@types)) when (@i > 0) {
     .make-type-classes(@i - 1);
@@ -144,6 +157,18 @@
   	   }
       .type-variant-inverted(@type);
     }
+
+    .im-type.box.@{type} {
+      	   a {
+      	    .type-variant-foreground(@type);
+      	   }
+
+      	   td {
+      	    border-top-color: transparent;
+      	   }
+          .type-variant-box(@type);
+        }
+
 }
 
 // Default values
@@ -159,7 +184,12 @@
     .type-variant-inverted(Default);
 }
 
+// Default values
+.im-type.box {
+    a {
+        .type-variant-foreground(Default);
+    }
+    .type-variant-box(Default);
+}
+
 .make-type-classes(); // run the mixin
-
-
-
