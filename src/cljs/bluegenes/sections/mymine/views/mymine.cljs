@@ -179,7 +179,7 @@
         [:div {:style {:padding-left (str (* (dec (dec (dec (count trail)))) 20) "px")}
                :on-click (fn [evt]
                            (stop-prop evt)
-                           (dispatch [:bluegenes.events.mymine/toggle-folder-open trail]))}
+                           (when-not editing? (dispatch [:bluegenes.events.mymine/toggle-folder-open trail])))}
          (if open
            [:svg.icon.icon-folder-open [:use {:xlinkHref "#icon-folder-open"}]]
            [:svg.icon.icon-folder [:use {:xlinkHref "#icon-folder"}]])
@@ -242,20 +242,20 @@
 (defn edit-cell [{:keys [trail on-submit initial-value]}]
   (let [value (r/atom initial-value)]
     (fn []
-      [:input.form-control.form-group-sm {:type "text"
-                                          :value @value
-                                          :ref (fn [v] (when v (ocall v :focus)))
-                                          :on-change (fn [evt] (reset! value (oget evt :target :value)))
-                                          :on-key-down (fn [evt]
-                                                         (case (oget evt :keyCode)
-                                                           27 (dispatch [:bluegenes.events.mymine/toggle-edit-mode trail])
-                                                           13 (on-submit @value)
-                                                           nil))}])))
+      [:input.form-control.form-group-sm.grow {:type "text"
+                                               :value @value
+                                               :ref (fn [v] (when v (ocall v :focus)))
+                                               :on-change (fn [evt] (reset! value (oget evt :target :value)))
+                                               :on-key-down (fn [evt]
+                                                              (case (oget evt :keyCode)
+                                                                27 (dispatch [:bluegenes.events.mymine/toggle-edit-mode trail])
+                                                                13 (on-submit @value)
+                                                                nil))}])))
 
 (defn folder-cell []
   (fn [{:keys [file-type trail index label open editing?] :as item}]
     [:div.mymine-row
-     {:on-click (fn [] (dispatch [:bluegenes.events.mymine/toggle-folder-open trail]))}
+     {:on-click (fn [] (when-not editing? (dispatch [:bluegenes.events.mymine/toggle-folder-open trail])))}
      [:span.shrink
       (if open
         [:svg.icon.icon-folder-open [:use {:xlinkHref "#icon-folder-open"}]]
@@ -274,7 +274,7 @@
 
 (defn table-row []
   (let [selected (subscribe [:bluegenes.subs.mymine/selected])]
-    (fn [{:keys [editing? level file-type type trail index read-only?] :as row}]
+    (fn [{:keys [editing? level file-type type trail index read-only? size type] :as row}]
 
       (let [selected? (some? (some #{trail} @selected))]
         [:tr (-> {:class (clojure.string/join " " [(when selected? (str "im-type box " type))])}
@@ -284,8 +284,8 @@
           (case file-type
             :folder [folder-cell row]
             :list [list-cell row])]
-         [:td "Type"]
-         [:td "Size"]]))))
+         [:td type]
+         [:td size]]))))
 
 
 (defn table-header []
