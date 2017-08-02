@@ -27,7 +27,11 @@
                                               :children {}}
                                      "folderone" {:file-type :folder
                                                   :open true
-                                                  :label "Folder One"}
+                                                  :label "Folder One"
+                                                  :children {"somelistthree" {:file-type :list
+                                                                              :size 10
+                                                                              :label "Some List Three"
+                                                                              :id 474747}}}
                                      "foldertwo" {:file-type :folder
                                                   :open true
                                                   :label "Folder Two"
