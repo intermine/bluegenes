@@ -192,7 +192,7 @@
     (let [widget-type      "enrichment"
           filtered-widgets (doall (filter (fn [widget]
                                             (= widget-type (:widgetType widget))
-                                            ) (:widgets widgets)))]
+                                            ) widgets))]
       (assoc-in db [:assets :widgets mine-kw] filtered-widgets))))
 
 (reg-event-fx
