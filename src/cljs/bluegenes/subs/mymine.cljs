@@ -92,4 +92,15 @@
       ; TODO This is broken until https://github.com/intermine/intermine/pull/1633 is fixed
       (clojure.set/difference my-lists filled))))
 
+(reg-sub
+  ::context-menu-location
+  (fn [db]
+    (get-in db [:mymine :context-target])))
+
+(reg-sub
+  ::context-menu-target
+  (fn [] [(subscribe [::with-public]) (subscribe [::context-menu-location])])
+  (fn [[tree location]]
+    (get-in tree location)))
+
 

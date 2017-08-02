@@ -55,7 +55,7 @@
 (reg-event-db
   ::drag-start
   (fn [db [_ trail]]
-    (assoc-in db [:mymine :dragging] trail)))
+    (update db :mymine assoc :dragging trail)))
 
 (reg-event-db
   ::drag-over
@@ -66,6 +66,11 @@
   ::drag-end
   (fn [db [_ trail]]
     db))
+
+(reg-event-db
+  ::set-context-menu-target
+  (fn [db [_ trail]]
+    (assoc-in db [:mymine :context-target] trail)))
 
 (defn parent-folder
   "Find the location of the parent folder for a given path"
@@ -79,24 +84,25 @@
      ; No more folders in path, return the trail through the tree with :children in between
      (interpose :children trail))))
 
-(reg-event-db
+(reg-event-fx
   ::drop
-  (fn [db [_ trail]]
+  (fn [{db :db} [_ trail]]
     (let [{:keys [dragging dragging-over]} (:mymine db)]
       (let [tree               (get-in db [:mymine :tree])
             drop-parent-folder (parent-folder tree dragging-over)
             drag-type          (:file-type (get-in tree dragging))
             drop-type          (:file-type (get-in tree dragging-over))]
 
+        (js/console.log "x" )
+
         ; Don't do anything if we're moving something into the same folder
         (cond
-          (= dragging dragging-over) db ; File was moved onto itself. Ignore.
+          (= dragging dragging-over) {:db db} ; File was moved onto itself. Ignore.
           ;(and (= :folder drag-type) (= :folder drag-type)) db
-          :else (update-in db [:mymine :tree]
-                           #(-> %
-                                ; Remove this node from the tree
-                                (update-in (butlast dragging) dissoc (last dragging))
-                                ; Re-associate to the new location
-                                (assoc-in
-                                  (concat drop-parent-folder [:children (last dragging)])
-                                  (get-in % dragging)))))))))
+          :else {:db (update-in db [:mymine :tree]
+                                #(-> %
+                                     ; Remove this node from the tree
+                                     (update-in (butlast dragging) dissoc (last dragging))
+                                     ; Re-associate to the new location
+                                     (update-in drop-parent-folder assoc-in [:children (last dragging)] (get-in % dragging))))
+                 :dispatch [::toggle-selected (concat drop-parent-folder [:children (last dragging)]) nil {:force? true} ]})))))
