@@ -31,11 +31,6 @@
     (update-in db [:mymine :tree] update-in location-trail update :open not)))
 
 (reg-event-db
-  ::toggle-edit-mode
-  (fn [db [_ location-trail]]
-    (update-in db [:mymine :tree] update-in location-trail update :editing? not)))
-
-(reg-event-db
   ::update-value
   (fn [db [_ location-trail key value]]
     (update-in db [:mymine :tree] update-in location-trail assoc key value :editing? false)))
@@ -112,4 +107,5 @@
                                      (update-in (butlast dragging) dissoc (last dragging))
                                      ; Re-associate to the new location
                                      (update-in drop-parent-folder assoc-in [:children (last dragging)] (get-in % dragging))))
+                 ; Reselect the item at its new location
                  :dispatch [::toggle-selected (concat drop-parent-folder [:children (last dragging)]) nil {:force? true} ]})))))

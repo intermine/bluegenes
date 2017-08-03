@@ -102,6 +102,12 @@
   ::context-menu-target
   (fn [] [(subscribe [::with-public]) (subscribe [::context-menu-location])])
   (fn [[tree location]]
+    (when location (assoc (get-in tree location) :trail location))))
+
+(reg-sub
+  ::edit-target
+  (fn [] [(subscribe [::with-public]) (subscribe [::context-menu-location])])
+  (fn [[tree location]]
     (assoc (get-in tree location) :trail location)))
 
 
