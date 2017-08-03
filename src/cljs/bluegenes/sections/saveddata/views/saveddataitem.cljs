@@ -1,8 +1,8 @@
 (ns bluegenes.sections.saveddata.views.saveddataitem
   (:require [re-frame.core :refer [subscribe dispatch]]
-            [bluegenes.sections.saveddata.events]
+            ;[bluegenes.sections.saveddata.events]
             [reagent.core :as reagent]
-            [bluegenes.sections.saveddata.subs]
+            ;[bluegenes.sections.saveddata.subs]
             [cljs-time.format :as tf]
             [cljs-time.core :as t]
             [json-html.core :as json-html]

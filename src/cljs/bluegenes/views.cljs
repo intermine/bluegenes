@@ -18,7 +18,7 @@
             [bluegenes.sections.results.views :as results]
             [bluegenes.sections.lists.views :as lists]
             [bluegenes.sections.regions.views :as regions]
-            [bluegenes.sections.saveddata.views :as saved-data]
+            ;[bluegenes.sections.saveddata.views :as saved-data]
             [bluegenes.sections.help.views :as help]
             [accountant.core :refer [navigate!]]
             [oops.core :refer [ocall oapply oget oset!]]

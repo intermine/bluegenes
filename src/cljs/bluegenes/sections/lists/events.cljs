@@ -7,7 +7,7 @@
             [bluegenes.interceptors :refer [clear-tooltips]]
             [bluegenes.effects]
             [dommy.core :refer-macros [sel sel1]]
-            [bluegenes.sections.saveddata.events]
+            ;[bluegenes.sections.saveddata.events]
             [imcljs.save :as save]
             [bluegenes.specs :as specs]))
 

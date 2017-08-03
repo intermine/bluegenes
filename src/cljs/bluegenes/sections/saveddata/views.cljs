@@ -1,16 +1,17 @@
 (ns bluegenes.sections.saveddata.views
   (:require [re-frame.core :refer [subscribe dispatch]]
-            [bluegenes.sections.saveddata.events]
+            ;[bluegenes.sections.saveddata.events]
             [reagent.core :as reagent]
-            [bluegenes.sections.saveddata.subs]
+            ;[bluegenes.sections.saveddata.subs]
             [cljs-time.format :as tf]
             [cljs-time.core :as t]
             [json-html.core :as json-html]
             [accountant.core :refer [navigate!]]
             [inflections.core :refer [plural]]
             [clojure.string :refer [join]]
-            [bluegenes.sections.saveddata.views.saveddataitem :as saved-data-item]
-            [bluegenes.sections.saveddata.views.venn :as venn]))
+            ;[bluegenes.sections.saveddata.views.saveddataitem :as saved-data-item]
+            ;[bluegenes.sections.saveddata.views.venn :as venn]
+            ))
 
 
 (defn toggle-editor []
