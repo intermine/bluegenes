@@ -41,9 +41,10 @@
     (fn []
      [:div.container
       [:h1 "MyMine"]
-      [:div.panel
+      [mymine/main]
+      #_[:div.panel
        [:div.panel-body
-        [mymine/main]
+
         ; TODO Always show mymine panel (just for development)
         #_(if @authed?
           [mymine/main]

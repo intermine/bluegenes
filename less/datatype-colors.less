@@ -107,7 +107,7 @@
 
 ///// Possibly a simpler solution?
 
-@color-Default: #a9a7a7;
+@color-Default: black;
 @color-Gene: #8BC34A;
 @color-Protein: #FFC107;
 @color-Publication: #2196F3;
@@ -132,7 +132,7 @@
 
 .type-variant-box(@variant) {
   @color: "color-@{variant}";
-  color: @@color;
+  color: darken(@@color, 30%);
   outline: 1px solid @@color;
   background-color: fade(@@color, 1%);
   outline-offset: -1px;
@@ -140,7 +140,7 @@
 
 .type-variant-foreground(@variant) {
   @color: "color-@{variant}";
-  color: darken(@@color, 40%);
+  color: darken(@@color, 30%);
 }
 
 // mixin to iterate over colors and create CSS class for each one

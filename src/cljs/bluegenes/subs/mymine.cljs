@@ -1,12 +1,33 @@
 (ns bluegenes.subs.mymine
   (:require [re-frame.core :refer [reg-sub subscribe]]
             [reagent.core :as r]
+            [cljs-time.format :as tf]
+            [cljs-time.core :as t]
             [clojure.string :refer [split]]))
 
 ; Thanks!
 ; https://groups.google.com/forum/#!topic/clojure/VVVa3TS15pU
 (def asc compare)
 (def desc #(compare %2 %1))
+
+(def desc-date (fn [x y]
+                 (when (and x y)
+                   (let [x-parsed (tf/parse x)
+                         y-parsed (tf/parse y)]
+                     (t/before? x-parsed y-parsed)))))
+
+(def asc-date (fn [y x]
+                (when (and x y)
+                  (let [x-parsed (tf/parse x)
+                        y-parsed (tf/parse y)]
+                    (t/before? x-parsed y-parsed)))))
+
+(def folders>files (fn [x y]
+                     (cond
+                       (= x y) 0
+                       (and (= :folder x) (not= :folder y)) 1
+                       (and (= :folder x) (= :folder y)) -1)))
+
 (defn compare-by [& key-cmp-pairs]
   (fn [x y]
     (loop [[k cmp & more] key-cmp-pairs]
@@ -14,7 +35,6 @@
         (if (and (zero? result) more)
           (recur more)
           result)))))
-
 
 ;;;;;;;;;; tree-seq components to convert the nested MyMine JSON document
 
@@ -30,11 +50,14 @@
     (fn [[key {file-type :file-type :as child}]]
       (assoc child
         :trail (vec (conj (:trail m) :children key))
-        :level (cond-> (count (remove keyword? (:trail m))) (not= :folder file-type) inc )))
+        :level (cond-> (count (remove keyword? (:trail m))) (not= :folder file-type) inc)))
     (sort
       (compare-by
-        (comp (:key sort-info) second)
-        (if (:asc? sort-info) asc desc))
+        (comp :file-type second) folders>files
+
+        (comp (:key sort-info) second) (case (:type sort-info)
+                                         :alphanum (if (:asc? sort-info) asc desc)
+                                         :date (if (:asc? sort-info) asc-date desc-date)))
       (:children m))))
 
 (defn flatten-tree
@@ -68,12 +91,29 @@
     (assoc-in my-tree [:root :children :public :children]
               (into {} (map
                          (fn [l]
-                           {(:id l) (assoc l :file-type :list :read-only? true :label (:title l))})
+                           {(:title l) (assoc l :file-type :list :read-only? true :label (:title l))})
                          ; TODO - rethink authorized flag
                          ; Assume that all unauthorized lists are public, but I bet this
                          ; isn't true if someone shares a list with you...
                          (filter (comp false? :authorized) filtered-lists))))))
 
+
+(defn parse-dates [coll]
+  (map
+    (fn [item]
+      (if-not (:dateCreated item)
+        item
+        (let [parsed (tf/parse (:dateCreated item))]
+          (assoc item :date-created-obj parsed
+                      :friendly-date-created (str
+                                               (tf/unparse
+                                                 (tf/formatter "MMM, dd")
+                                                 parsed)
+                                               " "
+                                               (tf/unparse
+                                                 (tf/formatter "YYYY")
+                                                 parsed))))))
+    coll))
 
 ; MyMine data is a nested tree structure, however it's easier to display and sort when it's
 ; flattened into a list. Applying 'rest' removes the root folder
@@ -81,8 +121,7 @@
   ::as-list
   (fn [] [(subscribe [::with-public]) (subscribe [::sort-by])])
   (fn [[with-public sort-info]]
-    (-> with-public :root (assoc :fid :root :trail [:root]) (flatten-tree sort-info) rest)))
-
+    (-> with-public :root (assoc :fid :root :trail [:root]) (flatten-tree sort-info) rest parse-dates)))
 
 (reg-sub
   ::unfilled

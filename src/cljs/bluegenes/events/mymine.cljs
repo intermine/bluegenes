@@ -50,12 +50,12 @@
 
 (reg-event-db
   ::toggle-sort
-  (fn [db [_ key]]
+  (fn [db [_ key type direction]]
     (if (= key (get-in db [:mymine :sort-by :key]))
       ; If the key being toggled is the key being set then change the sort direction
-      (update-in db [:mymine :sort-by :asc?] not)
+      (-> db (update-in [:mymine :sort-by :asc?] not) (assoc-in [:mymine :sort-by :type] type))
       ; Otherwise it's a new column so set the key and a default sort direction
-      (assoc-in db [:mymine :sort-by] {:key key :asc? true}))))
+      (assoc-in db [:mymine :sort-by] {:key key :type type :asc? true}))))
 
 (reg-event-db
   ::drag-start
@@ -108,4 +108,4 @@
                                      ; Re-associate to the new location
                                      (update-in drop-parent-folder assoc-in [:children (last dragging)] (get-in % dragging))))
                  ; Reselect the item at its new location
-                 :dispatch [::toggle-selected (concat drop-parent-folder [:children (last dragging)]) nil {:force? true} ]})))))
+                 :dispatch [::toggle-selected (concat drop-parent-folder [:children (last dragging)]) nil {:force? true}]})))))
