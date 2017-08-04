@@ -2,7 +2,6 @@
   (:require [reagent.core :as reagent]
             [re-frame.core :as re-frame]
             [re-frisk.core :refer [enable-re-frisk!]]
-    ;[bluegenes.modules :as modules]
             [bluegenes.utils]
             [im-tables.core]
             [bluegenes.events]
@@ -10,8 +9,6 @@
             [bluegenes.routes :as routes]
             [bluegenes.views :as views]
             [bluegenes.config :as config]
-    ;[bluegenes.workers :as workers]
-            [bluegenes.components.querybuilder.subs]
             [bluegenes.components.templates.core]
             [accountant.core :refer [navigate!]]
             [oops.core :refer [oget oset! ocall oapply ocall! oapply!

@@ -16,22 +16,24 @@
 
 (defn settings []
   (let [current-mine (subscribe [:current-mine])]
+
     (fn []
       [:li.dropdown.mine-settings
-       [:a.dropdown-toggle {:data-toggle "dropdown" :role "button"} [:i.fa.fa-cog]]
+       [:a.dropdown-toggle {:data-toggle "dropdown" :role "button"} [:svg.icon.icon-cog [:use {:xlinkHref "#icon-cog"}]]]
        (conj (into [:ul.dropdown-menu]
                    (map (fn [[id details]]
                           [:li {:on-click (fn [e] (dispatch [:set-active-mine (keyword id)]))
                                 :class (cond (= id (:id @current-mine)) "active")}
                            [:a [mine-icon details]
                             (:name details)]]) @(subscribe [:mines])))
-             [:li.special [:a {:on-click #(navigate! "/debug")} [:i.fa.fa-terminal] " Developer"]])
+             [:li.special [:a {:on-click #(navigate! "/debug")} ">_ Developer"]])
        ])))
 
 (defn logged-in []
   (let [identity (subscribe [:bluegenes.subs.auth/identity])]
     [:li.dropdown.active
      [:a.dropdown-toggle {:data-toggle "dropdown" :role "button"}
+      ; TODO - SVG
       [:i.fa.fa-user-circle-o.fa-fw] (str " " (:username @identity))]
      [:ul.dropdown-menu
       [:li [:a {:on-click #(dispatch [:bluegenes.events.auth/logout])} "Log Out"]]]]))
@@ -39,6 +41,7 @@
 (defn anonymous []
   [:li
    [:a.dropdown-toggle {:on-click #(navigate! "/mymine")}
+    ; TODO - SVG
     [:i.fa.fa-user-times]]])
 
 (defn user []
@@ -47,6 +50,7 @@
       (if @authed?
         [logged-in @authed?]
         [anonymous]))))
+
 
 (defn save-data-tooltip []
   (let [label (reagent/atom nil)]
@@ -81,13 +85,15 @@
     (fn []
       [:nav.navbar.navbar-default.navbar-fixed-top
        [:div.container-fluid
-        [:div.navbar-header
-         [:span.navbar-brand {:on-click #(navigate! "/")}
-          [active-mine-logo]
-          [:span.long-name (:name @current-mine)]]]
         [:ul.nav.navbar-nav.navbar-collapse.navigation
-         [:li.homelink {:class (if (panel-is :home-panel) "active")} [:a {:on-click #(navigate! "/")} "Home"]]
-         [:li {:class (if (panel-is :upload-panel) "active")} [:a {:on-click #(navigate! "/upload")} "Upload"]]
+         [:li [:span.navbar-brand {:on-click #(navigate! "/")}
+           [active-mine-logo]
+           [:span.long-name (:name @current-mine)]]]
+         [:li.homelink.larger-screen-only {:class (if (panel-is :home-panel) "active")} [:a {:on-click #(navigate! "/")} "Home"]]
+         [:li {:class (if (panel-is :upload-panel) "active")} [:a {:on-click #(navigate! "/upload")}
+          [:svg.icon.icon-upload.extra-tiny-screen [:use {:xlinkHref "#icon-upload"}]]
+          [:span.larger-screen-only "Upload"]]]
+
          [:li {:class (if (panel-is :templates-panel) "active")} [:a {:on-click #(navigate! "/templates")} "Templates"]]
 
          ;;don't show region search for mines that have no example configured
@@ -95,14 +101,14 @@
                [:li {:class (if (panel-is :regions-panel) "active")} [:a {:on-click #(navigate! "/regions")} "Regions"]]
                )
          [:li {:class (if (panel-is :querybuilder-panel) "active")} [:a {:on-click #(navigate! "/querybuilder")} "Query\u00A0Builder"]]
-         [:li {:class (if (panel-is :saved-data-panel) "active")} [:a {:on-click #(navigate! "/saved-data")} (str "Lists\u00A0(" (apply + (map count (vals @lists))) ")")]
+         [:li {:class (if (panel-is :saved-data-panel) "active")} [:a {:on-click #(navigate! "/saved-data")} "Lists"[:span.larger-screen-only "\u00A0(" (apply + (map count (vals @lists))) ")"]]
           ;;example tooltip. Include as last child, probably with some conditional to display and an event handler for saving the name
           (if @ttip [save-data-tooltip @ttip])]
          [:li {:class (if (panel-is :mymine-panel) "active")} [:a {:on-click #(navigate! "/mymine")} "MyMine"]]]
         [:ul.nav.navbar-nav.navbar-right.buttons
          [:li.search [search/main]]
          (cond (not (panel-is :search-panel)) [:li.search-mini [:a {:on-click #(navigate! "/search")} [:svg.icon.icon-search [:use {:xlinkHref "#icon-search"}]]]])
-         [:li [:a {:on-click #(navigate! "/help")} [:i.fa.fa-question]]]
+         [:li.larger-screen-only [:a {:on-click #(navigate! "/help")} [:svg.icon.icon-question [:use {:xlinkHref "#icon-question"}]]]]
          ;;This may have worked at some point in the past. We need to res it.
          [user]
          [settings]]]

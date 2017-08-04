@@ -506,6 +506,10 @@
   (fn [db [_ results]]
     (update db :qb assoc :preview results :fetching-preview? false)))
 
+(reg-event-db
+ :qb/make-tree
+  (fn [db]
+      (let [model (-> db :assets :model)] db)))
 
 (reg-event-fx
   :qb/fetch-preview

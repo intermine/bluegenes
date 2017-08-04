@@ -37,7 +37,7 @@
   (defroute "/querybuilder" []
             (re-frame/dispatch [:set-active-panel :querybuilder-panel
                                 nil
-                                [:query-builder/make-tree]]))
+                                [:qb/make-tree]]))
 
   (defroute "/results" []
             (re-frame/dispatch [:set-active-panel :results-panel]))

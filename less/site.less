@@ -1,11 +1,11 @@
 @import "../resources/public/vendor/bootstrap/less/bootstrap";
 @import "../resources/public/vendor/bootstrap-material-design/less/bootstrap-material-design";
 @import "../resources/public/vendor/bootstrap/less/navs";
-@import "../resources/public/vendor/font-awesome/less/font-awesome";
 @import "json-html";
 @import "components/icons";
 @import "components/progressbar";
 @import "components/report/summary";
+@import "components/results";
 @import "components/enrichment";
 @import "variables";
 @import "simple-sidebar";
@@ -14,7 +14,7 @@
 @import "components/home";
 @import "components/loader";
 @import "components/tooltip";
-@import "components/databrowser";
+@import "datatype-colors";
 @import "components/search";
 @import "components/templates";
 @import "components/alerts";
@@ -34,7 +34,6 @@
 @import "datatype-colors";
 
 @import url(https:fonts.googleapis.com/css?family=Roboto:400,700,300);
-
 
 body {
     background: @body-background-color;
@@ -65,6 +64,10 @@ html {
 
 html {
     margin-top: -@annoyingscrollbars;
+    @media (max-width:@even-tinier-screen) {
+        //fix for the html body randomly not choosing to fill the screen on small phone browsers.
+        position: absolute;
+    }
 }
 //this margin directly offsets the annoying scrollbars
 
@@ -156,6 +159,7 @@ div.header {
 .square {
     border-radius: 0;
 }
+
 
 footer {
     display: flex;
@@ -274,13 +278,11 @@ td.skipped {
     color: black;
     pointer-events: none;
 }
-
 /** input.form-control {
     &:focus {
         .form-group.is-focused .form-control;
     }
 } **/
-
 .mine-choice {
     display: flex;
     justify-content: space-between;
@@ -379,5 +381,35 @@ label {
 
 .breadcrumb-container {
     padding: 10px;
-    ul { display:inline}
+
+    ul {
+        display: inline;
+    }
+}
+
+.extra-tiny-screen {
+    display: none;
+    @media (max-width:@even-tinier-screen) {
+        display: inline-block;
+    }
+}
+
+.larger-screen-only,
+.navbar.navbar-default li.larger-screen-only {
+    @media (max-width:@even-tinier-screen) {
+        display: none;
+    }
+}
+
+.inline-label {
+    display: flex;
+
+    a {
+        display: inline;
+    }
+}
+
+.dropdown-menu .clear {
+    display: flex;
+    align-items: center;
 }

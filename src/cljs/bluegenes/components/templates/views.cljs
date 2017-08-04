@@ -127,7 +127,7 @@
   (fn [templates]
     (if (seq templates)
       ;;return the list of templates if there are some
-      (into [:div] (map (fn [t] [template t]) templates))
+      (into [:div.template-list] (map (fn [t] [template t]) templates))
       ;;if there are no templates, perhaps because of filters or perhaps not...
       [:div.no-results
        [:svg.icon.icon-wondering [:use {:xlinkHref "#icon-wondering"}]]

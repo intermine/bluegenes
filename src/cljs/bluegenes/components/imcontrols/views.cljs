@@ -25,8 +25,8 @@ Example usage:
         {:data-toggle "dropdown"}
         [:span (if selected-value (str selected-value " ") "All Organisms ") [:span.caret]]]
        (-> [:ul.dropdown-menu]
-           (into [[:li [:a {:on-click (partial on-change nil)}
-                        [:span [:i.fa.fa-times] " Clear"]]]
+           (into [[:li [:a.clear {:on-click (partial on-change nil)}
+                         [:svg.icon.icon-close [:use {:xlinkHref "#icon-close"}]] " Clear"]]
                   [:li.divider]])
            (into (map (fn [organism]
                         [:li [:a
@@ -92,7 +92,7 @@ Example usage:
            (if (empty? @filter-text)
              [:div.row
               [:div.col-sm-6
-               [:h4 [:i.fa.fa-clock-o] " Recently Created"]
+               [:h4 [:svg.icon.icon-history [:use {:xlinkHref "#icon-history"}]] " Recently Created"]
                (into [:ul] (map (fn [{:keys [name size]}]
                                   [:li
                                    {:on-click (partial on-change {:name name :source @current-mine-name})}
@@ -103,7 +103,7 @@ Example usage:
 
                [:div.sep {:style {:border-bottom "1px solid #dedede"}}]
 
-               [:h4 [:i.fa.fa-clock-o] " Recently Used"]
+               [:h4 [:svg.icon.icon-history [:use {:xlinkHref "#icon-history"}]] " Recently Used"]
                (into [:ul] (map (fn [{:keys [name size]}]
                                   [:li
                                    {:on-click (partial on-change {:name name :source @current-mine-name})}
@@ -112,7 +112,7 @@ Example usage:
                                 (take 5 lists)))]
               [:div.col-sm-6
 
-               [:h4 [:i.fa.fa-sort-alpha-asc] " All Lists"]
+               [:h4 [:svg.icon.icon-sort-alpha-asc [:use {:xlinkHref "#icon-sort-alpha-asc"}]] " All Lists"]
                (into [:ul.clip-400] (map (fn [{:keys [name size]}]
                                            [:li
                                             {:on-click (partial on-change {:name name :source @current-mine-name})}

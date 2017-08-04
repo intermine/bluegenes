@@ -1,4 +1,4 @@
-(def props {:version "0.4.5"})
+(def props {:version "0.4.6-bosc-mobile-navbar-fixes"})
 
 (defproject bluegenes (str (:version props) "-SNAPSHOT")
   :dependencies [; Clojure

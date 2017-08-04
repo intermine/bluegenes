@@ -122,7 +122,7 @@ lein doo phantom test once
 The above command assumes that you have [phantomjs](https://www.npmjs.com/package/phantomjs) installed. However, please note that [doo](https://github.com/bensu/doo) can be configured to run cljs.test in many other JS environments (chrome, ie, safari, opera, slimer, node, rhino, or nashorn).
 
 ## Production Build
-
+<!---
 ```
 lein clean
 lein uberjar
@@ -132,13 +132,17 @@ That should compile the clojurescript code first, and then create the standalone
 
 When you run the jar you can set the port the ring server will use by setting the environment variable PORT.
 If it's not set, it will run on port 3000 by default.
+-->
 
-If you only want to compile the clojurescript code:
+If you only want to compile the clojurescript code (this is a quick and easy way to deploy but less automated):
 
 ```
 lein clean
 lein cljsbuild once min
 ```
+
+Then you can copy the `/public/resources` folder to a static server such as apache or nginx.
+
 ### Minified deployment using dokku
 One of the easiest ways to deploy the prod minified version is to set up [Dokku](http://dokku.viewdocs.io/dokku/) on your intended server. Once dokku is configured on your remote host, all you need to do to deploy a minified build is add the server as a remote and push to it:
 
