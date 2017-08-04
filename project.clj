@@ -97,7 +97,8 @@
              :prod {:dependencies []
                     :resource-paths ["config/prod"]
                     :plugins []}
-             :uberjar {:prep-tasks ["clean" ["less" "once"] ["cljsbuild" "once" "min"] "compile"]}}
+             :uberjar {:resource-paths ["config/prod"]
+                       :prep-tasks ["clean" ["less" "once"] ["cljsbuild" "once" "min"] "compile"]}}
 
   :cljsbuild {:builds {:dev {:source-paths ["src/cljs"]
                              :figwheel {:on-jsload "bluegenes.core/mount-root"}
