@@ -10,13 +10,10 @@
 (defn mine-icon [mine]
   (let [icon (:icon mine)]
     [:svg.icon.logo {:class icon}
-     [:use {:xlinkHref (str "#" icon)}]
-     ]))
-
+     [:use {:xlinkHref (str "#" icon)}]]))
 
 (defn settings []
   (let [current-mine (subscribe [:current-mine])]
-
     (fn []
       [:li.dropdown.mine-settings
        [:a.dropdown-toggle {:data-toggle "dropdown" :role "button"} [:svg.icon.icon-cog [:use {:xlinkHref "#icon-cog"}]]]
@@ -26,23 +23,20 @@
                                 :class (cond (= id (:id @current-mine)) "active")}
                            [:a [mine-icon details]
                             (:name details)]]) @(subscribe [:mines])))
-             [:li.special [:a {:on-click #(navigate! "/debug")} ">_ Developer"]])
-       ])))
+             [:li.special [:a {:on-click #(navigate! "/debug")} ">_ Developer"]])])))
 
 (defn logged-in []
   (let [identity (subscribe [:bluegenes.subs.auth/identity])]
     [:li.dropdown.active
      [:a.dropdown-toggle {:data-toggle "dropdown" :role "button"}
-      ; TODO - SVG
-      [:i.fa.fa-user-circle-o.fa-fw] (str " " (:username @identity))]
+      [:svg.icon.icon-cog [:use {:xlinkHref "#icon-user-circle"}]] (str " " (:username @identity))]
      [:ul.dropdown-menu
       [:li [:a {:on-click #(dispatch [:bluegenes.events.auth/logout])} "Log Out"]]]]))
 
 (defn anonymous []
   [:li
    [:a.dropdown-toggle {:on-click #(navigate! "/mymine")}
-    ; TODO - SVG
-    [:i.fa.fa-user-times]]])
+    [:svg.icon.icon-cog [:use {:xlinkHref "#icon-user-times"}]]]])
 
 (defn user []
   (let [authed? (subscribe [:bluegenes.subs.auth/authenticated?])]
@@ -50,7 +44,6 @@
       (if @authed?
         [logged-in @authed?]
         [anonymous]))))
-
 
 (defn save-data-tooltip []
   (let [label (reagent/atom nil)]
