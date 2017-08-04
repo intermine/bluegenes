@@ -3,6 +3,7 @@
             [re-frame.core :refer [subscribe dispatch]]
             [oops.core :refer [oget ocall]]
             [clojure.string :refer [includes? split]]
+            [bluegenes.components.loader :refer [mini-loader]]
             [reagent.core :as reagent :refer [create-class]]
             [dommy.core :as dommy :refer-macros [sel sel1]]
             [bluegenes.components.ui.list_dropdown :refer [list-dropdown]]))
@@ -86,7 +87,7 @@
   (let [component (reagent/atom nil)
         focused?  (reagent/atom false)]
     (fn [& {:keys [model path value typeahead? on-change on-blur allow-possible-values possible-values]}]
-      [:div
+      [:div.constraint-text-input
        {:ref   (fn [e] (reset! component e))
         :class (when @focused? "open")}
        [:input.form-control.dropdown
@@ -102,12 +103,12 @@
        (when (and (not (false? typeahead?)) (not (im-path/class? model path)))
          (cond
            (false? possible-values) [:ul.dropdown-menu.scrollable-dropdown
-                                     [:li [:a {:style {:color "grey"}} "Too many values to show"]]]
+                                     [:li [:a.disabled "Too many values to show"]]]
            (<= (count possible-values) 100) (let [filtered   (not-empty (filter (partial has-text? value) (sort possible-values)))
                                                   unfiltered (not-empty (filter (partial (complement has-text?) value) (sort possible-values)))]
                                               (if (nil? possible-values)
                                                 [:ul.dropdown-menu.scrollable-dropdown
-                                                 [:li [:a {:style {:color "grey"}} [:i.fa.fa-cog.fa-spin.fa-fw]]]]
+                                                 [:li [:a.disabled [:span [mini-loader "tiny"]]]]]
                                                 (into [:ul.dropdown-menu.scrollable-dropdown]
                                                       (concat
                                                         (map (fn [v] [:li {:on-mouse-down (fn [] (set-text-value @component v))} [:a v]]) filtered)
@@ -116,10 +117,10 @@
            (> (count possible-values) 100) (let [filtered (not-empty (filter (partial has-three-matching-letters? value) (sort possible-values)))]
                                              (if (< (count value) 3)
                                                [:ul.dropdown-menu.scrollable-dropdown
-                                                [:li [:a {:style {:color "grey"}} "Type more to filter values..."]]]
+                                                [:li [:a.disabled "Type more to filter values..."]]]
                                                (if (empty? filtered)
                                                  [:ul.dropdown-menu.scrollable-dropdown
-                                                  [:li [:a {:style {:color "grey"}} "No results"]]]
+                                                  [:li [:a.disabled "No results"]]]
                                                  (into [:ul.dropdown-menu.scrollable-dropdown]
                                                        (map (fn [v] [:li {:on-mouse-down (fn [] (set-text-value @component v))} [:a v]])
                                                             filtered)))))))])))
@@ -134,11 +135,9 @@
   :lists      (Optional) if provided, automatically disable list constraints
               if there are no lists of that type"
   (fn [& {:keys [model path op on-change lists]}]
-    [:div.input-group-btn.dropdown
+    [:div.input-group-btn.dropdown.constraint-operator
      [:button.btn.btn-default.dropdown-toggle
-      ;:button.btn.btn-default.btn-raised.dropdown-toggle
-      {:style       {:text-transform "none"}
-       :data-toggle "dropdown"}
+      {:data-toggle "dropdown"}
       (str (constraint-label op) " ") [:span.caret]]
      (let [path-class            (im-path/class model path)
            any-lists-with-class? (some? (some (fn [list] (= path-class (keyword (:type list)))) lists))]
@@ -174,9 +173,7 @@
                               (let [class? (im-path/class? model path)
                                     op     (or op (if class? "LOOKUP" "="))]
                                 [:div.constraint-component
-                                 [:div
-                                  {:style {:display "table"}}
-                                  [:div.input-group
+                                   [:div.input-group
                                    [constraint-operator
                                     :model model
                                     :path path
@@ -204,14 +201,7 @@
                                             :on-change (fn [val] (on-change {:path path :value val :op op :code code}))
                                             :on-blur (fn [val] (when on-blur (on-blur {:path path :value val :op op :code code})))])
                                    (when code [:span.constraint-label code])]
-                                  (when on-remove [:i.fa.fa-trash-o.fa-fw.semilight.danger
-                                                   {:on-click (fn [op] (on-remove {:path path :value value :op op}))
-                                                    :style    {:display "table-cell" :vertical-align "middle"}}])]]))})))
-
-
-
-
-
-
-
-
+                                  (when on-remove [:svg.icon.icon-bin
+                                                   {:on-click (fn [op] (on-remove {:path path :value value :op op}))}
+                                                   [:use {:xlinkHref "#icon-bin"}]
+                                                   ])]))})))

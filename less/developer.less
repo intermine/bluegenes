@@ -1,26 +1,45 @@
-.developer { .icon-view {
-    border-collapse: collapse;
+.developer {
 
-    .icon {
-        font-size: 2em;
-        color: #666;
-        fill: #666;
-        margin: 4px;
-    }
+  .icon-size {margin:1em 0;}
 
-    .code {
-        background: #eee;
+    .icon-sizing-example {
+        display: flex;
+        background-color: #eee;
         border-radius: 2px;
-        border: solid 1px rgba(0,0,0,0.2);
-        font-family: mono;
+        border: solid 1px #ddd;
+        margin: 0 0.5em;
+
+        .demo {
+            margin: 0 0.5em;
+            display: flex;
+            flex-direction: column-reverse;
+            justify-content: flex-start;
+        }
     }
 
-    td {
-        padding: 2px;
-    }
+    .icon-view {
+        border-collapse: collapse;
 
-    tr:nth-child(even) {
-        background: rgba(0,0,0,0.1);
+        .icon {
+            font-size: 2em;
+            color: #666;
+            fill: #666;
+            margin: 4px;
+        }
+
+        .code {
+            background: #eee;
+            border-radius: 2px;
+            border: solid 1px rgba(0,0,0,0.2);
+            font-family: mono;
+        }
+
+        td {
+            padding: 2px;
+        }
+
+        tr:nth-child(even) {
+            background: rgba(0,0,0,0.1);
+        }
     }
-}
 }

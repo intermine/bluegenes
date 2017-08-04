@@ -110,6 +110,5 @@
                     "Today"
                     (tf/unparse date-formatter created))])
           [:span (str " " (tf/unparse time-formatter created))]]
-         ;[:span [:i.fa.fa-trash-o]]
          ]
         ]])))

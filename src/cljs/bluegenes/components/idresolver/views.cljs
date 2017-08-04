@@ -153,10 +153,10 @@
 
 (defn get-icon [icon-type]
   (case icon-type
-    :MATCH [:i.fa.fa-check.MATCH]
+    :MATCH [:svg.icon.icon-checkmark.MATCH [:use {:xlinkHref "#icon-checkmark"}]]
     :UNRESOLVED [:svg.icon.icon-sad.UNRESOLVED [:use {:xlinkHref "#icon-sad"}]]
-    :DUPLICATE [:i.fa.fa-clone.DUPLICATE]
-    :TYPE_CONVERTED [:i.fa.fa-random.TYPE_CONVERTED]
+    :DUPLICATE [:svg.icon.icon-duplicate.DUPLICATE [:use {:xlinkHref "#icon-duplicate"}]]
+    :TYPE_CONVERTED [:svg.icon.icon-converted.TYPE_CONVERTED [:use {:xlinkHref "#icon-converted"}]]
     :OTHER [:svg.icon.icon-arrow-right.OTHER [:use {:xlinkHref "#icon-arrow-right"}]]
     [mini-loader "tiny"]))
 

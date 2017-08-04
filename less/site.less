@@ -1,10 +1,10 @@
 @import "../resources/public/vendor/bootstrap/less/bootstrap";
 @import "../resources/public/vendor/bootstrap-material-design/less/bootstrap-material-design";
 @import "../resources/public/vendor/bootstrap/less/navs";
-@import "../resources/public/vendor/font-awesome/less/font-awesome";
 @import "json-html";
 @import "components/progressbar";
 @import "components/report/summary";
+@import "components/results";
 @import "components/enrichment";
 @import "variables";
 @import "simple-sidebar";
@@ -13,7 +13,6 @@
 @import "components/home";
 @import "components/loader";
 @import "components/tooltip";
-@import "components/databrowser";
 @import "datatype-colors";
 @import "components/search";
 @import "components/templates";
@@ -32,7 +31,6 @@
 @import "im-tables";
 @import "im-tables-overrides";
 @import url(https:fonts.googleapis.com/css?family=Roboto:400,700,300);
-
 
 body {
     background: @body-background-color;
@@ -64,8 +62,8 @@ html {
 html {
     margin-top: -@annoyingscrollbars;
     @media (max-width:@even-tinier-screen) {
-      //fix for the html body randomly not choosing to fill the screen on small phone browsers.
-      position:absolute;
+        //fix for the html body randomly not choosing to fill the screen on small phone browsers.
+        position: absolute;
     }
 }
 //this margin directly offsets the annoying scrollbars
@@ -159,14 +157,29 @@ div.header {
     border-radius: 0;
 }
 
-.icon {
+.icon(@icon-size) {
     vertical-align: top;
     margin-top: 1px;
     display: inline-block;
-    width: 1em;
-    height: 1em;
+    width: @icon-size;
+    height: @icon-size;
     fill: @link-color;
+    margin: 0 @icon-size/2;
 }
+.icon {.icon(1em);}
+
+.icon-2x {
+  .icon(2em)
+}
+
+.icon-3x {
+  .icon(3em)
+}
+
+.icon-4x {
+  .icon(4em)
+}
+
 
 footer {
     display: flex;
@@ -285,13 +298,11 @@ td.skipped {
     color: black;
     pointer-events: none;
 }
-
 /** input.form-control {
     &:focus {
         .form-group.is-focused .form-control;
     }
 } **/
-
 .mine-choice {
     display: flex;
     justify-content: space-between;
@@ -390,17 +401,35 @@ label {
 
 .breadcrumb-container {
     padding: 10px;
-    ul { display:inline}
+
+    ul {
+        display: inline;
+    }
 }
 
 .extra-tiny-screen {
-  display:none;
-  @media (max-width:@even-tinier-screen) {
-    display:inline-block;
-  }
+    display: none;
+    @media (max-width:@even-tinier-screen) {
+        display: inline-block;
+    }
 }
-.larger-screen-only, .navbar.navbar-default li.larger-screen-only {
-  @media (max-width:@even-tinier-screen) {
-   display: none;
- }
+
+.larger-screen-only,
+.navbar.navbar-default li.larger-screen-only {
+    @media (max-width:@even-tinier-screen) {
+        display: none;
+    }
+}
+
+.inline-label {
+    display: flex;
+
+    a {
+        display: inline;
+    }
+}
+
+.dropdown-menu .clear {
+    display: flex;
+    align-items: center;
 }

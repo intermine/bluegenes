@@ -1,0 +1,19 @@
+.breadcrumb-container {
+    display: flex;
+    align-items: center;
+}
+
+.breadcrumb {
+    display: flex;
+    flex-direction: row;
+    margin: 0;
+    padding-left: 0;
+
+    div {
+        margin: 0 0.2em;
+    }
+
+    div:nth-of-type(n+2)::before {
+        content: "/ ";
+    }
+}

@@ -57,12 +57,12 @@
             [:div.container-fluid
              [text-filter-form text-filter-atom]
              [:div.col-md-6
-              [:h4 [:i.fa.fa-clock-o] " Recently Created"]
+              [:h4 [:svg.icon.icon-history [:use {:xlinkHref "#icon-history"}]] " Recently Created"]
               [im-lists
                :lists (take 5 (sort-by :timestamp filtered-lists))
                :on-change on-change]]
              [:div.col-md-6
-              [:h4 [:i.fa.fa-sort-alpha-asc] " All Lists"]
+              [:h4 [:svg.icon.icon-sort-alpha-asc [:use {:xlinkHref "#icon-sort-alpha-asc"}]] " All Lists"]
               [:div.clip-400
                [im-lists
                 :lists (sort-by :name filtered-lists)
