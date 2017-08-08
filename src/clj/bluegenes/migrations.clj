@@ -13,7 +13,8 @@
                     :db-username :user
                     :db-password :password
                     :db-subprotocol :subprotocol})
-      (assoc :classname "org.postgresql.Driver")))
+      (assoc :classname "org.postgresql.ds.PGSimpleDataSource"
+             :ssl-mode "disable")))
 
 (defn migrate []
   (migratus/migrate
