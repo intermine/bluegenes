@@ -49,7 +49,7 @@
                     :db-password :password
                     :db-port :port-number})
       (assoc :adapter "postgresql"
-             :use-ssl false)))
+             :ssl-mode "disable")))
 
 
 ; See config/[env]/config.edn
