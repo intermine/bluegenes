@@ -1,6 +1,6 @@
 # Example Configuration
 
-All keys can be override with environment variables, such as `DATABASE_URL=http://...`
+All keys can be overridden with environment variables, such as `DATABASE_URL=http://...`
 
 ```clojure
 {
