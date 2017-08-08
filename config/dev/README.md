@@ -1,28 +1,19 @@
 # Example Configuration
 
+All keys can be override with environment variables, such as `DATABASE_URL=http://...`
+
 ```clojure
-{:server-port   5000
+{
+ :server-port 5000
  :logging-level :info
- :signature     "This is used to sign JSON Web Tokens"
- :database      {:dbtype   "postgresql"
-                 :dbname   "bluegenes-dev"
-                 :host     "localhost"
-                 :user     "postgres"
-                 :port     5432
-                 :password "something-other-than-postgres"}
- :migrations    {:store                :database
-                 :migration-dir        "migrations/"
-                 :migration-table-name "migrations"
-                 :db                   {:classname "org.postgresql.Driver"}}
- :hikari        {:auto-commit        true
-                 :read-only          false
-                 :connection-timeout 30000
-                 :validation-timeout 5000
-                 :idle-timeout       600000
-                 :max-lifetime       1800000
-                 :minimum-idle       10
-                 :maximum-pool-size  10
-                 :pool-name          "db-pool"
-                 :database-name      "bluegenes-dev"
-                 :register-mbeans    false}}
+ ; Keep this secret! It's used to digitally sign JSON Web Tokens
+ :jwt-secret "If two witches would watch two watches, which witch would watch which watch?"
+ ; Database
+ :database-url "postgres://username:password@localhost:5432/bluegenes-dev"
+ ; If URL isn't present then use:
+ :db-host "localhost"
+ :db-name "bluegenes-dev"
+ :db-username "username"
+ :db-password "password"
+ }
 ```
