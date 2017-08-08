@@ -48,7 +48,8 @@
                     :db-username :username
                     :db-password :password
                     :db-port :port-number})
-      (assoc :adapter "postgresql")))
+      (assoc :adapter "postgresql"
+             :use-ssl false)))
 
 
 ; See config/[env]/config.edn
