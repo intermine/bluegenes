@@ -2,7 +2,11 @@
   (:require [buddy.hashers :as hs]
             [bluegenes.db.users :as queries]
             [buddy.sign.jwt :as jwt]
-            [config.core :refer [env]]))
+            [config.core :refer [env]]
+            [imcljs.fetch :as fetch]
+            [imcljs.auth :as auth]
+            [clojure.string :refer [blank?]]
+            ))
 
 (defn store-user! [{:keys [password] :as user}]
   (try
@@ -24,3 +28,9 @@
     (when (hs/check password hashed-password)
       (let [stripped (dissoc user :password)]
         (assoc stripped :token (jwt/sign stripped (:signature env)))))))
+
+
+(defn fetch-token
+  [{:keys [username password token]}]
+  (let [resp (auth/basic-auth {:root "www.flymine.org/query"} username password)]
+    (when (not (blank? resp)) resp)))

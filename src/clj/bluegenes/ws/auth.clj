@@ -33,7 +33,17 @@
   (-> (ok {:success true})
       (dissoc :session)))
 
+(defn handle-auth [req]
+  (clojure.pprint/pprint req)
+  (if-let [token (auth/fetch-token {:username nil :password nil})]
+    (ok {:token token})
+    (unauthorized {:error "Invalid username or password"})))
+
+
+
+
 (defroutes routes
            (POST "/login" {params :params} (handle-authentication params))
            (GET "/logout" session (logout))
+           (GET "/test" session handle-auth)
            (POST "/register" {params :params} (handle-registration params)))
