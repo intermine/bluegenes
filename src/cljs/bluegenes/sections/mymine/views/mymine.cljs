@@ -70,7 +70,7 @@
      [:li {:data-toggle "modal"
            :data-keyboard true
            :data-target "#myMineRenameModal"}
-       [:a "Rename"]]
+      [:a "Rename"]]
      [:li.divider]
      [:li {:data-toggle "modal"
            :data-keyboard true
@@ -221,12 +221,35 @@
   (fn [{:keys [label type key sort-by]}]
     (let [{:keys [asc?]} sort-by]
       [:th
-      {:on-click (fn [] (dispatch [:bluegenes.events.mymine/toggle-sort key type (not asc?)]))}
-      label
-      (when (= key (:key sort-by))
-        (if asc?
+       {:on-click (fn [] (dispatch [:bluegenes.events.mymine/toggle-sort key type (not asc?)]))}
+       label
+       (when (= key (:key sort-by))
+         (if asc?
            [:i.fa.fa-fw.fa-chevron-down]
            [:i.fa.fa-fw.fa-chevron-up]))])))
+
+
+
+
+(defn b-folder []
+  (fn [[key {:keys [label children file-type open]}]]
+    (println "file-type" file-type)
+    [:li [:div {:style {:display "flex"}}
+          [:div {:style {:flex "0 1" }}
+           (if open
+             [:svg.icon.icon-folder [:use {:xlinkHref "#icon-folder-open"}]]
+             [:svg.icon.icon-folder [:use {:xlinkHref "#icon-folder"}]])]
+          [:div {:style {:flex "1 0"}}
+           label
+           (when (and children (= file-type :folder))
+             (into [:ul] (map (fn [x] [b-folder x])) children))]]
+
+     ]))
+
+(defn file-browser []
+  (let [files (subscribe [:bluegenes.subs.mymine/with-public])]
+    (fn []
+      (into [:ul] (map (fn [x] [b-folder x]) (:children (:root @files)))))))
 
 (defn main []
   (let [as-list             (subscribe [:bluegenes.subs.mymine/as-list])
@@ -234,30 +257,34 @@
         context-menu-target (subscribe [:bluegenes.subs.mymine/context-menu-target])]
     (r/create-class
       {:component-did-mount attach-hide-context-menu
-       :reagent-render (fn []
-                         [:div.mymine.noselect
-                          [:table.table.mymine-table
-                           [:thead
-                            [:tr
-                             [table-header {:label "Name"
-                                            :key :label
-                                            :type :alphanum
-                                            :sort-by @sort-by}]
-                             [table-header {:label "Type"
-                                            :key :type
-                                            :type :alphanum
-                                            :sort-by @sort-by}]
-                             [table-header {:label "Size"
-                                            :key :size
-                                            :type :alphanum
-                                            :sort-by @sort-by}]
-                             [table-header {:label "Last Modified"
-                                            :key :dateCreated
-                                            :type :date
-                                            :sort-by @sort-by}]]]
-                           (into [:tbody]
-                                 (map-indexed (fn [idx x]
-                                                ^{:key (str (:trail x))} [table-row (assoc x :index idx)]) @as-list))]
-                          [modal @context-menu-target]
-                          [modal-new-folder @context-menu-target]
-                          [context-menu-container @context-menu-target]])})))
+       :reagent-render
+       (fn []
+         [:div.mymine.noselect
+          [:div.file-browser [file-browser]]
+          [:div.files
+           [:table.table.mymine-table
+            [:thead
+             [:tr
+              [table-header {:label "Name"
+                             :key :label
+                             :type :alphanum
+                             :sort-by @sort-by}]
+              [table-header {:label "Type"
+                             :key :type
+                             :type :alphanum
+                             :sort-by @sort-by}]
+              [table-header {:label "Size"
+                             :key :size
+                             :type :alphanum
+                             :sort-by @sort-by}]
+              [table-header {:label "Last Modified"
+                             :key :dateCreated
+                             :type :date
+                             :sort-by @sort-by}]]]
+            (into [:tbody]
+                  (map-indexed (fn [idx x]
+                                 ^{:key (str (:trail x))} [table-row (assoc x :index idx)]) @as-list))]]
+          [:div.details "test"]
+          [modal @context-menu-target]
+          [modal-new-folder @context-menu-target]
+          [context-menu-container @context-menu-target]])})))

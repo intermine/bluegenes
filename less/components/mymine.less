@@ -1,9 +1,39 @@
 .mymine {
 
-    .details {
-        background-color: white;
-        height: 100vh;
+    display: flex;
+
+    .grow {
+        flex: 1;
     }
+
+    .shrink {
+        flex: 0 1;
+    }
+
+    .file-browser {
+        flex: 1;
+
+        ul {
+            padding: 0 20px;
+        }
+    }
+
+    .details {
+        flex: 1;
+        background-color: white;
+    }
+
+    .files {
+        flex: 5
+    }
+
+
+
+    width: 100%;
+    margin: 0;
+    padding: 0;
+
+
 
     #contextMenu {
         position: absolute;
