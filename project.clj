@@ -50,9 +50,16 @@
             [lein-ancient "0.6.10"]]
 
 
+<<<<<<< HEAD
   :aliases {"foreign" ["do"
                        ["shell" "curl" "-o" "resources/public/vendor/imtables.js" "http://cdn.intermine.org/js/intermine/im-tables/2.0.0/imtables.min.js"]
                        ["shell" "curl" "-o" "resources/public/vendor/im.min.js" "http://cdn.intermine.org/js/intermine/imjs/3.15.0/im.min.js"]]}
+=======
+                 ; Intermine Assets
+                 [intermine/imcljs "0.1.28"]
+                 [intermine/im-tables "0.3.2-SNAPSHOT"]
+                 [intermine/accountant-fragments "0.1.8"]]
+>>>>>>> f1e807c... Use remote/local mine's webservice for authenticating users
 
 
   :min-lein-version "2.5.3"
