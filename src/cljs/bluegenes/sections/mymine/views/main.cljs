@@ -9,10 +9,10 @@
 
 (defn login-form []
   (let [credentials (r/atom {:username nil :password nil})]
-    (fn []
+    (fn [thinking?]
       [:form
        [:div.form-group
-        [:label "Email Address"]
+        [:label "Username"]
         [:input.form-control
          {:type "text"
           :value (:username @credentials)
@@ -26,26 +26,22 @@
        [:button.btn.btn-primary.btn-raised
         {:type "button"
          :on-click (fn [] (dispatch [:bluegenes.events.auth/login @credentials]))}
-        "Sign In"]
-       [:button.btn.btn-default.btn-raised
-        {:type "button"
-         :on-click (fn [] (dispatch [:bluegenes.events.auth/register @credentials]))}
-        "Register"]])))
+        (when thinking? [:i.fa.fa-spinner.fa-spin.fa-fw])
+        [:i.fa.fa-spinner.fa-spin.fa-fw] "Sign In"]])))
 
 (defn mymine []
   (fn []
     [:h1 "MYMINE"]))
 
 (defn main []
-  (let [authed? (subscribe [:bluegenes.subs.auth/authenticated?])]
-    (fn []
-     [:div.container
-      [:h1 "MyMine"]
-      [mymine/main]
-      #_[:div.panel
-       [:div.panel-body
+  (fn []
+    (let [{:keys [thinking? identity error? message]} @(subscribe [:bluegenes.subs.auth/auth])]
+      [:div.container
+       [:h1 "MyMine"]
+       (if (not-empty identity)
+         [mymine/main]
+         [:div
+          [login-form thinking?]
+          (when message [:div.alert.alert-danger message])])])))
 
-        ; TODO Always show mymine panel (just for development)
-        #_(if @authed?
-          [mymine/main]
-          [login-form])]]])))
+

@@ -42,11 +42,9 @@
 
 (reg-fx
   :http
-  (fn [{:keys [uri on-success on-failure on-denied params method] :as o}]
+  (fn [{:keys [uri on-success on-failure params method] :as o}]
     (let [http-fn (method method-map)]
       (go (let [{:keys [status body]} (<! (http-fn uri (when (not= method :get) {:form-params params})))]
             (cond
-              (< status 400) (dispatch (conj on-success body))
-              (and (>= status 400) (< status 500)) (dispatch (conj on-denied body))
-              (>= status 500) (dispatch (conj on-failure body))
-              :else nil))))))
+              (<= 200 status 399) (dispatch (conj on-success body))
+              :else (dispatch (conj on-failure body))))))))

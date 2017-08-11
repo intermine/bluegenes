@@ -2,6 +2,11 @@
   (:require [re-frame.core :refer [reg-sub]]))
 
 (reg-sub
+  ::auth
+  (fn [db]
+    (get-in db [:auth])))
+
+(reg-sub
   ::identity
   (fn [db]
     (get-in db [:auth :identity])))

@@ -8,8 +8,13 @@
             [ring.util.http-response :as response]))
 
 (defn fetch-token
-  [{:keys [service-str username password token]}]
-  (im-auth/basic-auth {:root service-str} username password))
+  [{:keys [service username password token]}]
+  (println "S" service)
+  (im-auth/basic-auth service username password))
+
+(defn fetch-identity
+  [{:keys [service token]}]
+  (im-auth/who-am-i? service token))
 
 (defn logout
   "Log the user out by clearing the session"
@@ -27,7 +32,7 @@
     ; using the IM_SERVICE env/config variable as the remote host
     (let [token (fetch-token {:username username
                               :password password
-                              :service-str (:im-service env)})]
+                              :service {:root (:im-service env)}})]
       ; Store the token in the session and return it to the user
       (-> (response/ok {:token token}) (assoc :session {:token token})))
     (catch Exception e
@@ -41,5 +46,5 @@
 
 (defroutes routes
            (GET "/logout" session (logout))
-           (GET "/test" session handle-auth)
+           (POST "/login" session handle-auth)
            (GET "/session" session (response/ok (:session session))))
