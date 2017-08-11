@@ -5,7 +5,6 @@
             [ring.util.response :refer [response]]
             [bluegenes.ws.auth :as auth]))
 
-
 (defroutes routes
            (GET "/" [] (index/index))
            (resources "/")

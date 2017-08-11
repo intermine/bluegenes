@@ -1,11 +1,15 @@
 (ns bluegenes.ws.auth
   (:require [compojure.core :refer [GET POST defroutes]]
             [compojure.route :as route]
-            [bluegenes.auth :as auth]
+            [imcljs.auth :as im-auth]
             [clojure.string :refer [blank?]]
             [cheshire.core :as cheshire]
             [config.core :refer [env]]
             [ring.util.http-response :as response]))
+
+(defn fetch-token
+  [{:keys [service-str username password token]}]
+  (im-auth/basic-auth {:root service-str} username password))
 
 (defn logout
   "Log the user out by clearing the session"
@@ -21,9 +25,9 @@
   (try
     ; Try to fetch a token from the IM server web service
     ; using the IM_SERVICE env/config variable as the remote host
-    (let [token (auth/fetch-token {:username username
-                                   :password password
-                                   :service-str (:im-service env)})]
+    (let [token (fetch-token {:username username
+                              :password password
+                              :service-str (:im-service env)})]
       ; Store the token in the session and return it to the user
       (-> (response/ok {:token token}) (assoc :session {:token token})))
     (catch Exception e
