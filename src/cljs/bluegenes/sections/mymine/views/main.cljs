@@ -26,12 +26,9 @@
        [:button.btn.btn-primary.btn-raised
         {:type "button"
          :on-click (fn [] (dispatch [:bluegenes.events.auth/login @credentials]))}
-        (when thinking? [:i.fa.fa-spinner.fa-spin.fa-fw])
-        [:i.fa.fa-spinner.fa-spin.fa-fw] "Sign In"]])))
-
-(defn mymine []
-  (fn []
-    [:h1 "MYMINE"]))
+        "Sign In"]
+       ;[:svg.icon.icon-spinner.spin [:use {:xlinkHref "#icon-spinner"}]]
+       ])))
 
 (defn main []
   (fn []
