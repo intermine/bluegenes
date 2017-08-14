@@ -234,21 +234,22 @@
 
 (defn private-folder []
   (let [focus (subscribe [::subs/focus])]
-    (fn [[key {:keys [label file-type open index trail]}]]
-      [:li
-       {:on-click (fn [] (dispatch [::evts/set-focus trail]))
-        :class (when (= trail @focus) "active")}
-       [:div.icon-container {:style {:padding-left (str (* index 13) "px")}}
-        [:svg.icon.icon-caret-right
-         {:class (when open "open")
-          :on-click (fn [x]
-                      (ocall x :stopPropagation)
-                      (dispatch [::evts/toggle-folder-open trail]))}
-         [:use {:xlinkHref "#icon-caret-right"}]]
-        (if open
-          [:svg.icon.icon-folder [:use {:xlinkHref "#icon-folder-open"}]]
-          [:svg.icon.icon-folder [:use {:xlinkHref "#icon-folder"}]])]
-       [:div label]])))
+    (fn [[key {:keys [label file-type children open index trail]}]]
+      (let [has-child-folders? (> (count (filter #(= :folder (:file-type (second %))) children)) 0)]
+        [:li
+        {:on-click (fn [] (dispatch [::evts/set-focus trail]))
+         :class (when (= trail @focus) "active")}
+        [:div.icon-container {:style {:padding-left (str (* index 13) "px")}}
+         [:svg.icon.icon-caret-right
+          {:class (when open "open")
+           :on-click (fn [x]
+                       (ocall x :stopPropagation)
+                       (dispatch [::evts/toggle-folder-open trail]))}
+          (when has-child-folders? [:use {:xlinkHref "#icon-caret-right"}])]
+         (if open
+           [:svg.icon.icon-folder [:use {:xlinkHref "#icon-folder-open"}]]
+           [:svg.icon.icon-folder [:use {:xlinkHref "#icon-folder"}]])]
+        [:div label]]))))
 
 (defn public-folder []
   (let [focus (subscribe [::subs/focus])]
@@ -298,13 +299,12 @@
     (fn []
       [:div.details.open
        [:h2 "Details"]
-       [:p "Details, previews, etc."]
-       ;[:p (str @selected-details)]
-       ])))
+       [:p "Details, previews, etc."]])))
 
 (defn breadcrumb []
-  (let [focus (subscribe [::subs/focus])]
-    (fn [coll]
+  (let [bc (subscribe [::subs/breadcrumb])
+        focus (subscribe [::subs/focus])]
+    (fn []
       [:h4
        (if (= :public @focus)
          [:ol.breadcrumb [:li [:span "Home"]] [:li.active [:a "Public"]]]
@@ -315,15 +315,13 @@
                         [:li {:class (when focused? "active")
                               :on-click (fn [] (dispatch [::evts/set-focus trail]))}
                          [:a label]]))
-                    (filter #(= :folder (:file-type %)) coll))))])))
+                    (filter #(= :folder (:file-type %)) @bc))))])))
 
 (defn main []
   (let [as-list             (subscribe [::subs/as-list])
         sort-by             (subscribe [::subs/sort-by])
         context-menu-target (subscribe [::subs/context-menu-target])
         files               (subscribe [::subs/files])
-        bc                  (subscribe [::subs/breadcrumb])
-        unfilled            (subscribe [::subs/unfilled])
         ]
     (r/create-class
       {:component-did-mount attach-hide-context-menu
@@ -332,7 +330,7 @@
          [:div.mymine.noselect
           [:div.file-browser [file-browser]]
           [:div.files
-           [breadcrumb @bc]
+           [breadcrumb]
            [:table.table.mymine-table
             [:thead
              [:tr
