@@ -130,6 +130,20 @@
         (map (fn [[k v]]
                (assoc v :trail (vec (conj (first selected) :children k)))) files)))))
 
+(reg-sub
+  ::breadcrumb
+  (fn [] [(subscribe [::my-tree]) (subscribe [::selected])])
+  (fn [[tree selected]]
+    (when (seqable? (first selected))
+      (reduce (fn [total next]
+                (if (= next :children)
+                  (conj total {:trail (conj (:trail (last total)) next)})
+                  (-> total
+                      (conj (-> tree
+                                (get-in (conj (:trail (last total)) next))
+                                (assoc :trail (vec (conj (:trail (last total)) next))))))))
+              [] (first selected)))))
+
 ; Fill the [:root :public] folder with public lists
 (reg-sub
   ::with-public

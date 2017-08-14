@@ -280,11 +280,26 @@
              [public-folder]] (map (fn [[k v]] ^{:key (str (:trail v))} [item [k v]]) @folders)))))
 
 
+(defn breadcrumb []
+  (let [selected (subscribe [::subs/selected])]
+    (fn [coll]
+      [:h4
+       (if (= (first @selected) :public)
+         [:ol.breadcrumb [:li.active [:a "Public Files (Read Only)"]]]
+         (into [:ol.breadcrumb]
+               (map (fn [{:keys [trail label]}]
+                      (let [selected? (in? trail @selected)]
+                        [:li {:class (when selected? "active")
+                              :on-click (fn [] (dispatch [::evts/toggle-selected trail {:force? true}]))}
+                         [:a label]]))
+                    (filter #(= :folder (:file-type %)) coll))))])))
+
 (defn main []
   (let [as-list             (subscribe [::subs/as-list])
         sort-by             (subscribe [::subs/sort-by])
         context-menu-target (subscribe [::subs/context-menu-target])
-        files               (subscribe [::subs/files])]
+        files               (subscribe [::subs/files])
+        bc                  (subscribe [::subs/breadcrumb])]
     (r/create-class
       {:component-did-mount attach-hide-context-menu
        :reagent-render
@@ -292,6 +307,7 @@
          [:div.mymine.noselect
           [:div.file-browser [file-browser]]
           [:div.files
+           [breadcrumb @bc]
            [:table.table.mymine-table
             [:thead
              [:tr
@@ -317,4 +333,5 @@
           [:div.details "test"]
           [modal @context-menu-target]
           [modal-new-folder @context-menu-target]
-          [context-menu-container @context-menu-target]])})))
+          ;[context-menu-container @context-menu-target]
+          ])})))
