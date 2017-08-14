@@ -13,8 +13,35 @@
     .file-browser {
         flex: 1;
 
+        .open {
+              transform: rotate(90deg);
+        }
+
+        .icon {
+            transition: all 100ms ease;
+            margin: 0;
+        }
+
         ul {
-            padding: 0 20px;
+
+            padding: 0;
+            margin: 0;
+
+
+            li {
+                padding: 8px 0;
+                display: flex;
+                .icon-container {
+                    display: flex;
+                    flex: 0 1;
+                    padding-right: 5px;
+                }
+
+                &:hover {
+                    background-color: #eaeaea;
+                    border-radius: 5px;
+                }
+            }
         }
     }
 

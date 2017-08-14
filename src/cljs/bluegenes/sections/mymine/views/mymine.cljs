@@ -4,7 +4,10 @@
             [cljs-time.format :as tf]
             [cljs-time.core :as t]
             [oops.core :refer [oget ocall oset!]]
-            [goog.i18n.NumberFormat.Format])
+            [goog.i18n.NumberFormat.Format]
+            [bluegenes.events.mymine :as evts]
+            [bluegenes.subs.mymine :as subs]
+            )
   (:import
     (goog.i18n NumberFormat)
     (goog.i18n.NumberFormat Format)))
@@ -21,27 +24,27 @@
 (defn drag-events [trail index]
   {:draggable true
    :on-drag-start (fn [evt]
-                    (dispatch [:bluegenes.events.mymine/drag-start trail]))
+                    (dispatch [::evts/drag-start trail]))
    :on-drag-end (fn [evt]
-                  (dispatch [:bluegenes.events.mymine/drag-end trail]))
+                  (dispatch [::evts/drag-end trail]))
    :on-drag-over (fn [evt]
                    (ocall evt :preventDefault)
-                   (dispatch [:bluegenes.events.mymine/drag-over trail]))
+                   (dispatch [::evts/drag-over trail]))
    :on-drag-leave (fn [evt]
-                    (dispatch [:bluegenes.events.mymine/drag-over nil]))
+                    (dispatch [::evts/drag-over nil]))
    :on-drop (fn [evt]
-              (dispatch [:bluegenes.events.mymine/drop trail]))})
+              (dispatch [::evts/drop trail]))})
 
 (defn click-events [trail index]
   {:on-mouse-down (fn [evt]
                     (stop-prop evt)
                     (let [ctrl-key? (oget evt :nativeEvent :ctrlKey)]
-                      (dispatch [:bluegenes.events.mymine/toggle-selected trail index {:force? true}])
+                      (dispatch [::evts/toggle-selected trail index {:force? true}])
                       ; TODO re-enable multi selected
 
                       #_(if ctrl-key?
-                          (dispatch [:bluegenes.events.mymine/toggle-selected trail index])
-                          (dispatch [:bluegenes.events.mymine/toggle-selected trail index {:reset? true}]))))
+                          (dispatch [::evts/toggle-selected trail index])
+                          (dispatch [::evts/toggle-selected trail index {:reset? true}]))))
    :on-context-menu (fn [evt]
 
                       (if (oget evt :nativeEvent :ctrlKey)
@@ -50,9 +53,9 @@
                           ; Prevent the browser from showing its context menu
                           (ocall evt :preventDefault)
                           ; Force this item to be selected
-                          (dispatch [:bluegenes.events.mymine/toggle-selected trail index {:force? true}])
+                          (dispatch [::evts/toggle-selected trail index {:force? true}])
                           ; Set this item as the target of the context menu
-                          (dispatch [:bluegenes.events.mymine/set-context-menu-target trail])
+                          (dispatch [::evts/set-context-menu-target trail])
                           ; Show the context menu
                           (ocall (js/$ "#contextMenu") :css (clj->js {:display "block"
                                                                       :left (oget evt :pageX)
@@ -60,7 +63,7 @@
 
 
 (defn dispatch-edit [location key value]
-  (dispatch [:bluegenes.events.mymine/update-value location key value]))
+  (dispatch [::evts/update-value location key value]))
 
 (defmulti context-menu :file-type)
 
@@ -100,7 +103,7 @@
                               ; from retamaining prior state that was cancelled / dismissed
                               (ocall (js/$ (r/dom-node this))
                                      :on "hidden.bs.modal"
-                                     (fn [] (dispatch [:bluegenes.events.mymine/set-context-menu-target nil])))
+                                     (fn [] (dispatch [::evts/set-context-menu-target nil])))
                               (ocall (js/$ (r/dom-node this))
                                      :on "shown.bs.modal"
                                      (fn [] (ocall @input-dom-node :select))))
@@ -141,7 +144,7 @@
                               ; from retamaining prior state that was cancelled / dismissed
                               (ocall (js/$ (r/dom-node this))
                                      :on "hidden.bs.modal"
-                                     (fn [] (dispatch [:bluegenes.events.mymine/set-context-menu-target nil])))
+                                     (fn [] (dispatch [::evts/set-context-menu-target nil])))
                               (ocall (js/$ (r/dom-node this))
                                      :on "shown.bs.modal"
                                      (fn [] (ocall @input-dom-node :select))))
@@ -176,7 +179,7 @@
 (defn folder-cell []
   (fn [{:keys [file-type trail index label open editing?] :as item}]
     [:div.mymine-row
-     {:on-click (fn [] (when-not editing? (dispatch [:bluegenes.events.mymine/toggle-folder-open trail])))}
+     {:on-click (fn [] (when-not editing? (dispatch [::evts/toggle-folder-open trail])))}
      [:span.shrink
       (if open
         [:svg.icon.icon-folder-open [:use {:xlinkHref "#icon-folder-open"}]]
@@ -201,7 +204,7 @@
 (def clj-type type)
 
 (defn table-row []
-  (let [selected (subscribe [:bluegenes.subs.mymine/selected])]
+  (let [selected (subscribe [::subs/selected])]
     (fn [{:keys [editing? friendly-date-created level file-type type trail index read-only? size type] :as row}]
       (let [selected? (some? (some #{trail} @selected))]
         [:tr (-> {:class (clojure.string/join " " [(when selected? (str "im-type box " type))])}
@@ -221,7 +224,7 @@
   (fn [{:keys [label type key sort-by]}]
     (let [{:keys [asc?]} sort-by]
       [:th
-       {:on-click (fn [] (dispatch [:bluegenes.events.mymine/toggle-sort key type (not asc?)]))}
+       {:on-click (fn [] (dispatch [::evts/toggle-sort key type (not asc?)]))}
        label
        (when (= key (:key sort-by))
          (if asc?
@@ -233,28 +236,43 @@
 
 (defn b-folder []
   (fn [[key {:keys [label children file-type open]}]]
-    (println "file-type" file-type)
-    [:li [:div {:style {:display "flex"}}
-          [:div {:style {:flex "0 1" }}
-           (if open
-             [:svg.icon.icon-folder [:use {:xlinkHref "#icon-folder-open"}]]
-             [:svg.icon.icon-folder [:use {:xlinkHref "#icon-folder"}]])]
-          [:div {:style {:flex "1 0"}}
-           label
-           (when (and children (= file-type :folder))
-             (into [:ul] (map (fn [x] [b-folder x])) children))]]
+    [:li
+     [:div.icon-container
+      (if open
+        [:svg.icon.icon-folder {:style {:margin 0}} [:use {:xlinkHref "#icon-folder-open"}]]
+        [:svg.icon.icon-folder [:use {:xlinkHref "#icon-folder"}]])]
+     [:div
+      label
+      (when (and children (= file-type :folder))
+        (into [:ul] (map (fn [x] [b-folder x]))
+              (filter (fn [[_ c]]
+                        (= :folder (:file-type c))) children)))]
 
      ]))
 
+(defn item []
+  (fn [[key {:keys [label file-type open index trail]}]]
+    [:li
+     [:div.icon-container {:style {:padding-left (str (* index 20) "px")}}
+      [:svg.icon.icon-caret-right
+       {:class (when open "open")
+        :on-click (fn [x] (dispatch [::evts/toggle-folder-open trail]))}
+       [:use {:xlinkHref "#icon-caret-right"}]]
+      (if open
+        [:svg.icon.icon-folder [:use {:xlinkHref "#icon-folder-open"}]]
+        [:svg.icon.icon-folder [:use {:xlinkHref "#icon-folder"}]])]
+     [:div label]]))
+
 (defn file-browser []
-  (let [files (subscribe [:bluegenes.subs.mymine/with-public])]
+  (let [files   (subscribe [::subs/with-public])
+        folders (subscribe [::subs/folders])]
     (fn []
-      (into [:ul] (map (fn [x] [b-folder x]) (:children (:root @files)))))))
+      (into [:ul] (map (fn [i] [item i]) @folders)))))
 
 (defn main []
-  (let [as-list             (subscribe [:bluegenes.subs.mymine/as-list])
-        sort-by             (subscribe [:bluegenes.subs.mymine/sort-by])
-        context-menu-target (subscribe [:bluegenes.subs.mymine/context-menu-target])]
+  (let [as-list             (subscribe [::subs/as-list])
+        sort-by             (subscribe [::subs/sort-by])
+        context-menu-target (subscribe [::subs/context-menu-target])]
     (r/create-class
       {:component-did-mount attach-hide-context-menu
        :reagent-render

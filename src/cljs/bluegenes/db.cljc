@@ -19,40 +19,38 @@
             :sort-by {:key :label
                       :type :alphanum
                       :asc? true}
-            :tree {:root {:file-type :folder
-                          :open true
-                          :children {:public {:file-type :folder
-                                              :open true
-                                              :read-only? true
-                                              :label "Public"
-                                              :children {}}
-                                     "examplefoldera" {:file-type :folder
-                                                       :open true
-                                                       :label "Example Folder A"
-                                                       :children {"examplelist1" {:file-type :list
-                                                                                  :size 10
-                                                                                  :label "Example List 1"
-                                                                                  :id 474747}}}
-                                     "examplefolderb" {:file-type :folder
-                                                       :open true
-                                                       :label "Example Folder B"
-                                                       :children {"examplefolderc" {:file-type :folder
-                                                                                    :open true
-                                                                                    :label "Example Folder C"
-                                                                                    :children {"examplelist2" {:file-type :list
-                                                                                                               :size 10
-                                                                                                               :label "Example List 2"
-                                                                                                               :id 12345}
-                                                                                               "examplequerya" {:file-type :query
-                                                                                                                :label "Example Query A"
-                                                                                                                :id 90764}
-                                                                                               "examplelist3" {:file-type :list
-                                                                                                               :size 1
-                                                                                                               :label "Example List 3"
-                                                                                                               :id 67890}}}}}
-                                     "examplefolderd" {:file-type :folder
-                                                       :open true
-                                                       :label "Example Folder D"}}}}}
+            :tree {:public {:file-type :folder
+                            :open false
+                            :read-only? true
+                            :label "Public"
+                            :children {}}
+                   "examplefoldera" {:file-type :folder
+                                     :open false
+                                     :label "Example Folder A"
+                                     :children {"examplelist1" {:file-type :list
+                                                                :size 10
+                                                                :label "Example List 1"
+                                                                :id 474747}}}
+                   "examplefolderb" {:file-type :folder
+                                     :open false
+                                     :label "Example Folder B"
+                                     :children {"examplefolderc" {:file-type :folder
+                                                                  :open false
+                                                                  :label "Example Folder C"
+                                                                  :children {"examplelist2" {:file-type :list
+                                                                                             :size 10
+                                                                                             :label "Example List 2"
+                                                                                             :id 12345}
+                                                                             "examplequerya" {:file-type :query
+                                                                                              :label "Example Query A"
+                                                                                              :id 90764}
+                                                                             "examplelist3" {:file-type :list
+                                                                                             :size 1
+                                                                                             :label "Example List 3"
+                                                                                             :id 67890}}}}}
+                   "examplefolderd" {:file-type :folder
+                                     :open false
+                                     :label "Example Folder D"}}}
    :lists {:controls {:filters {:text-filter nil
                                 :flags {:authorized nil
                                         :favourite nil}}

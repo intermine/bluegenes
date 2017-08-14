@@ -34,10 +34,11 @@
   (fn []
     (let [{:keys [thinking? identity error? message]} @(subscribe [:bluegenes.subs.auth/auth])]
       [:div.container-fluid {:style {:width "100%" :margin 0 :padding 0}}
-       (if (not-empty identity)
+       #_(if (not-empty identity)
          [mymine/main]
          [:div
           [login-form thinking?]
-          (when message [:div.alert.alert-danger message])])])))
+          (when message [:div.alert.alert-danger message])])
+       [mymine/main]])))
 
 

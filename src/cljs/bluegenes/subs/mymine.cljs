@@ -65,6 +65,28 @@
   [m sort-info]
   (tree-seq branch? (partial children sort-info) m))
 
+
+;;;;;;;;;;;;;;;;;;;;;;;
+(defn folder-children
+  [[parent-k {:keys [file-type children index trail] :as c}]]
+  (->> children
+       ; Filter just the folders
+       (filter (fn [[k v]] (= :folder (:file-type v))))
+       ; Give the folder its index (indentation) and trail (location in mymine map)
+       (map (fn [[k v]] [k (assoc v
+                             :trail (vec (conj trail :children k))
+                             :index (inc (or index 1)))]))))
+
+(defn folder-branch?
+  [[k m]]
+  ; Only show open folders that have children
+  (and (:open m) (= :folder (:file-type m))))
+
+
+(defn flatten-folders
+  [m]
+  (tree-seq folder-branch? folder-children m))
+
 ;;;;;;;;;; end of tree-seq components
 
 (reg-sub
@@ -76,6 +98,13 @@
   ::my-tree
   (fn [db]
     (get-in db [:mymine :tree])))
+
+(reg-sub
+  ::folders
+  (fn [] (subscribe [::my-tree]))
+  (fn [tree]
+    (mapcat flatten-folders (map (fn [[k v]]
+                                   [k (assoc v :trail [k])]) tree))))
 
 (reg-sub
   ::selected
