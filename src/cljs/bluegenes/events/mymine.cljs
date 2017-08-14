@@ -31,6 +31,11 @@
     (update-in db [:mymine :tree] update-in location-trail update :open not)))
 
 (reg-event-db
+  ::set-focus
+  (fn [db [_ location-trail]]
+    (assoc-in db [:mymine :focus] location-trail)))
+
+(reg-event-db
   ::update-value
   (fn [db [_ location-trail key value]]
     (update-in db [:mymine :tree] update-in location-trail assoc key value :editing? false)))

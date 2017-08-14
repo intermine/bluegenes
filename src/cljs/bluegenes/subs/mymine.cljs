@@ -112,10 +112,15 @@
     (get-in db [:mymine :selected])))
 
 (reg-sub
+  ::focus
+  (fn [db]
+    (get-in db [:mymine :focus])))
+
+(reg-sub
   ::files
-  (fn [] [(subscribe [::my-tree]) (subscribe [::selected]) (subscribe [:lists/filtered-lists])])
-  (fn [[tree selected filtered-lists]]
-    (if (= :public (first selected))
+  (fn [] [(subscribe [::my-tree]) (subscribe [::focus]) (subscribe [:lists/filtered-lists])])
+  (fn [[tree focus filtered-lists]]
+    (if (= :public focus)
       (map
         (fn [l]
           (assoc l :file-type :list
@@ -126,15 +131,15 @@
         ; Assume that all unauthorized lists are public, but I bet this
         ; isn't true if someone shares a list with you...
         (filter (comp false? :authorized) filtered-lists))
-      (let [files (:children (get-in tree (first selected)))]
+      (let [files (:children (get-in tree focus))]
         (map (fn [[k v]]
-               (assoc v :trail (vec (conj (first selected) :children k)))) files)))))
+               (assoc v :trail (vec (conj focus :children k)))) files)))))
 
 (reg-sub
   ::breadcrumb
-  (fn [] [(subscribe [::my-tree]) (subscribe [::selected])])
-  (fn [[tree selected]]
-    (when (seqable? (first selected))
+  (fn [] [(subscribe [::my-tree]) (subscribe [::focus])])
+  (fn [[tree focus]]
+    (when (seqable? focus)
       (reduce (fn [total next]
                 (if (= next :children)
                   (conj total {:trail (conj (:trail (last total)) next)})
@@ -142,7 +147,7 @@
                       (conj (-> tree
                                 (get-in (conj (:trail (last total)) next))
                                 (assoc :trail (vec (conj (:trail (last total)) next))))))))
-              [] (first selected)))))
+              [] focus))))
 
 ; Fill the [:root :public] folder with public lists
 (reg-sub

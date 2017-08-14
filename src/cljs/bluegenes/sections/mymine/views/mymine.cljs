@@ -45,21 +45,21 @@
                       #_(if ctrl-key?
                           (dispatch [::evts/toggle-selected trail index])
                           (dispatch [::evts/toggle-selected trail index {:reset? true}]))))
-   :on-context-menu (fn [evt]
+   :on-context-menu3 (fn [evt]
 
-                      (if (oget evt :nativeEvent :ctrlKey)
-                        nil
-                        (do
-                          ; Prevent the browser from showing its context menu
-                          (ocall evt :preventDefault)
-                          ; Force this item to be selected
-                          (dispatch [::evts/toggle-selected trail index {:force? true}])
-                          ; Set this item as the target of the context menu
-                          (dispatch [::evts/set-context-menu-target trail])
-                          ; Show the context menu
-                          (ocall (js/$ "#contextMenu") :css (clj->js {:display "block"
-                                                                      :left (oget evt :pageX)
-                                                                      :top (oget evt :pageY)})))))})
+                       (if (oget evt :nativeEvent :ctrlKey)
+                         nil
+                         (do
+                           ; Prevent the browser from showing its context menu
+                           (ocall evt :preventDefault)
+                           ; Force this item to be selected
+                           (dispatch [::evts/toggle-selected trail index {:force? true}])
+                           ; Set this item as the target of the context menu
+                           (dispatch [::evts/set-context-menu-target trail])
+                           ; Show the context menu
+                           (ocall (js/$ "#contextMenu") :css (clj->js {:display "block"
+                                                                       :left (oget evt :pageX)
+                                                                       :top (oget evt :pageY)})))))})
 
 
 (defn dispatch-edit [location key value]
@@ -179,7 +179,7 @@
 (defn folder-cell []
   (fn [{:keys [file-type trail index label open editing?] :as item}]
     [:div.mymine-row
-     {:on-click (fn [] (when-not editing? (dispatch [::evts/toggle-folder-open trail])))}
+     {:on-double-click (fn [] (when-not editing? (dispatch [::evts/toggle-selected trail {:force? true}])))}
      [:span.shrink
       (if open
         [:svg.icon.icon-folder-open [:use {:xlinkHref "#icon-folder-open"}]]
@@ -208,7 +208,7 @@
     (fn [{:keys [editing? friendly-date-created level file-type type trail index read-only? size type] :as row}]
       (let [selected? (some? (some #{trail} @selected))]
         [:tr (-> {:class (clojure.string/join " " [(when selected? (str "im-type box " type))])}
-                 ;(merge (click-events trail index))
+                 (merge (click-events trail index))
                  (cond-> (not read-only?) (merge (drag-events trail index))))
          [:td {:style {:padding-left (str (* level 20) "px")}}
           (case file-type
@@ -238,59 +238,74 @@
 (defn in? [needle haystack]
   (some? (some #{needle} haystack)))
 
-(defn item []
-  (let [selected (subscribe [::subs/selected])]
+(defn private-folder []
+  (let [focus (subscribe [::subs/focus])]
     (fn [[key {:keys [label file-type open index trail]}]]
       [:li
-       {:class (when (in? trail @selected) "active")}
+       {:on-click (fn [] (dispatch [::evts/set-focus trail]))
+        :class (when (= trail @focus) "active")}
        [:div.icon-container {:style {:padding-left (str (* index 13) "px")}}
         [:svg.icon.icon-caret-right
          {:class (when open "open")
-          :on-click (fn [x] (dispatch [::evts/toggle-folder-open trail]))}
+          :on-click (fn [x]
+                      (ocall x :stopPropagation)
+                      (dispatch [::evts/toggle-folder-open trail]))}
          [:use {:xlinkHref "#icon-caret-right"}]]
         (if open
           [:svg.icon.icon-folder [:use {:xlinkHref "#icon-folder-open"}]]
           [:svg.icon.icon-folder [:use {:xlinkHref "#icon-folder"}]])]
-       [:div
-        {:on-click (fn [] (dispatch [::evts/toggle-selected trail {:force? true}]))} label]])))
+       [:div label]])))
 
 (defn public-folder []
-  (let [selected (subscribe [::subs/selected])]
+  (let [focus (subscribe [::subs/focus])]
     (fn [[key {:keys [label file-type open index trail]}]]
-      [:li
-       {:class (when (in? :public @selected) "active")}
+      [:li {:on-click (fn [x] (dispatch [::evts/set-focus :public]))
+            :class (when (= :public @focus) "active")}
        [:div.icon-container {:style {:padding-left (str (* index 13) "px")}}
         [:svg.icon.icon-caret-right
-         {:class (when open "open")
-          :on-click (fn [x] (dispatch [::evts/toggle-folder-open trail]))}
-         [:use {:xlinkHref "#icon-caret-right"}]]
-        (if open
-          [:svg.icon.icon-folder [:use {:xlinkHref "#icon-globe"}]]
-          [:svg.icon.icon-folder [:use {:xlinkHref "#icon-globe"}]])]
+         {:class (when open "open")}]
+        [:svg.icon.icon-folder [:use {:xlinkHref "#icon-globe"}]]]
        [:div
-        {:on-click (fn [] (dispatch [::evts/toggle-selected :public {:force? true}]))} "Public"]])))
+        {:on-click (fn [] (dispatch [::evts/set-focus :public]))} "Public"]])))
 
-
+(defn unsorted-folder []
+  (let [focus (subscribe [::subs/focus])]
+    (fn [[key {:keys [label file-type open index trail]}]]
+      [:li {:on-click (fn [x] (dispatch [::evts/set-focus :unsorted]))
+            :class (when (= :unsorted @focus) "active")}
+       [:div.icon-container {:style {:padding-left (str (* index 13) "px")}}
+        [:svg.icon.icon-caret-right
+         {:class (when open "open")}]
+        [:svg.icon.icon-drawer [:use {:xlinkHref "#icon-drawer"}]]]
+       [:div
+        {:on-click (fn [] (dispatch [::evts/set-focus :public]))} "Unsorted"]])))
 
 (defn file-browser []
   (let [files   (subscribe [::subs/with-public])
         folders (subscribe [::subs/folders])]
     (fn []
       (into [:ul
-             [public-folder]] (map (fn [[k v]] ^{:key (str (:trail v))} [item [k v]]) @folders)))))
+             [public-folder]
+             ;[unsorted-folder]
+             [:li.separator]
+             ]
+            (map
+              (fn [[k v]] ^{:key (str (:trail v))} [private-folder [k v]])
+              @folders)))))
 
 
 (defn breadcrumb []
-  (let [selected (subscribe [::subs/selected])]
+  (let [focus (subscribe [::subs/focus])]
     (fn [coll]
       [:h4
-       (if (= (first @selected) :public)
-         [:ol.breadcrumb [:li.active [:a "Public Files (Read Only)"]]]
-         (into [:ol.breadcrumb]
+       (if (= :public @focus)
+         [:ol.breadcrumb [:li [:span "Home"]] [:li.active [:a "Public Files (Read Only)"]]]
+         (into [:ol.breadcrumb
+                [:li [:span "Home"]]]
                (map (fn [{:keys [trail label]}]
-                      (let [selected? (in? trail @selected)]
-                        [:li {:class (when selected? "active")
-                              :on-click (fn [] (dispatch [::evts/toggle-selected trail {:force? true}]))}
+                      (let [focused? (= trail @focus)]
+                        [:li {:class (when focused? "active")
+                              :on-click (fn [] (dispatch [::evts/set-focus trail]))}
                          [:a label]]))
                     (filter #(= :folder (:file-type %)) coll))))])))
 

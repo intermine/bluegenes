@@ -1,8 +1,7 @@
 .mymine {
 
-    .icon {
-        fill: grey;
-    }
+    height: 100%;
+    align-item: stretch;
     display: flex;
 
     .grow {
@@ -34,6 +33,13 @@
             padding: 0;
             margin: 0;
 
+            li.separator {
+                border-top: 1px solid #dadada;
+                height: 1px;
+                margin: 5px 0;
+                padding: 0;
+            }
+
 
             li {
                 padding: 8px 0;
@@ -53,7 +59,7 @@
                         fill: #039be5;
                     }
                 }
-                &:hover {
+                &:hover:not(.separator) {
                     background-color: #eaeaea;
                     border-radius: 5px;
                 }
@@ -62,13 +68,13 @@
     }
 
     .details {
-        flex: 1;
+        flex: 1.5;
         background-color: white;
     }
 
     .files {
         padding-right: 10px;
-        flex: 5
+        flex: 4
     }
 
 

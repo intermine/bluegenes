@@ -16,6 +16,7 @@
    :mymine {:dragging nil
             :dragging-over nil
             :selected #{}
+            :focus :public
             :sort-by {:key :label
                       :type :alphanum
                       :asc? true}
