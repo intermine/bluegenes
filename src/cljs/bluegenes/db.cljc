@@ -19,12 +19,7 @@
             :sort-by {:key :label
                       :type :alphanum
                       :asc? true}
-            :tree {:public {:file-type :folder
-                            :open false
-                            :read-only? true
-                            :label "Public"
-                            :children {}}
-                   "examplefoldera" {:file-type :folder
+            :tree {"examplefoldera" {:file-type :folder
                                      :open false
                                      :label "Example Folder A"
                                      :children {"examplelist1" {:file-type :list

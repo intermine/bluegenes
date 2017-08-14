@@ -37,7 +37,7 @@
 
 (reg-event-db
   ::toggle-selected
-  (fn [db [_ location-trail index options]]
+  (fn [db [_ location-trail options]]
     (cond
       (:force? options) (assoc-in db [:mymine :selected] #{location-trail})
       (:single? options) (if (in? (get-in db [:mymine :selected]) location-trail)
@@ -108,4 +108,4 @@
                                      ; Re-associate to the new location
                                      (update-in drop-parent-folder assoc-in [:children (last dragging)] (get-in % dragging))))
                  ; Reselect the item at its new location
-                 :dispatch [::toggle-selected (concat drop-parent-folder [:children (last dragging)]) nil {:force? true}]})))))
+                 :dispatch [::toggle-selected (concat drop-parent-folder [:children (last dragging)]) {:force? true}]})))))

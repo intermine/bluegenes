@@ -39,7 +39,7 @@
   {:on-mouse-down (fn [evt]
                     (stop-prop evt)
                     (let [ctrl-key? (oget evt :nativeEvent :ctrlKey)]
-                      (dispatch [::evts/toggle-selected trail index {:force? true}])
+                      (dispatch [::evts/toggle-selected trail {:force? true}])
                       ; TODO re-enable multi selected
 
                       #_(if ctrl-key?
@@ -208,7 +208,7 @@
     (fn [{:keys [editing? friendly-date-created level file-type type trail index read-only? size type] :as row}]
       (let [selected? (some? (some #{trail} @selected))]
         [:tr (-> {:class (clojure.string/join " " [(when selected? (str "im-type box " type))])}
-                 (merge (click-events trail index))
+                 ;(merge (click-events trail index))
                  (cond-> (not read-only?) (merge (drag-events trail index))))
          [:td {:style {:padding-left (str (* level 20) "px")}}
           (case file-type
@@ -234,45 +234,57 @@
 
 
 
-(defn b-folder []
-  (fn [[key {:keys [label children file-type open]}]]
-    [:li
-     [:div.icon-container
-      (if open
-        [:svg.icon.icon-folder {:style {:margin 0}} [:use {:xlinkHref "#icon-folder-open"}]]
-        [:svg.icon.icon-folder [:use {:xlinkHref "#icon-folder"}]])]
-     [:div
-      label
-      (when (and children (= file-type :folder))
-        (into [:ul] (map (fn [x] [b-folder x]))
-              (filter (fn [[_ c]]
-                        (= :folder (:file-type c))) children)))]
 
-     ]))
+(defn in? [needle haystack]
+  (some? (some #{needle} haystack)))
 
 (defn item []
-  (fn [[key {:keys [label file-type open index trail]}]]
-    [:li
-     [:div.icon-container {:style {:padding-left (str (* index 20) "px")}}
-      [:svg.icon.icon-caret-right
-       {:class (when open "open")
-        :on-click (fn [x] (dispatch [::evts/toggle-folder-open trail]))}
-       [:use {:xlinkHref "#icon-caret-right"}]]
-      (if open
-        [:svg.icon.icon-folder [:use {:xlinkHref "#icon-folder-open"}]]
-        [:svg.icon.icon-folder [:use {:xlinkHref "#icon-folder"}]])]
-     [:div label]]))
+  (let [selected (subscribe [::subs/selected])]
+    (fn [[key {:keys [label file-type open index trail]}]]
+      [:li
+       {:class (when (in? trail @selected) "active")}
+       [:div.icon-container {:style {:padding-left (str (* index 13) "px")}}
+        [:svg.icon.icon-caret-right
+         {:class (when open "open")
+          :on-click (fn [x] (dispatch [::evts/toggle-folder-open trail]))}
+         [:use {:xlinkHref "#icon-caret-right"}]]
+        (if open
+          [:svg.icon.icon-folder [:use {:xlinkHref "#icon-folder-open"}]]
+          [:svg.icon.icon-folder [:use {:xlinkHref "#icon-folder"}]])]
+       [:div
+        {:on-click (fn [] (dispatch [::evts/toggle-selected trail {:force? true}]))} label]])))
+
+(defn public-folder []
+  (let [selected (subscribe [::subs/selected])]
+    (fn [[key {:keys [label file-type open index trail]}]]
+      [:li
+       {:class (when (in? :public @selected) "active")}
+       [:div.icon-container {:style {:padding-left (str (* index 13) "px")}}
+        [:svg.icon.icon-caret-right
+         {:class (when open "open")
+          :on-click (fn [x] (dispatch [::evts/toggle-folder-open trail]))}
+         [:use {:xlinkHref "#icon-caret-right"}]]
+        (if open
+          [:svg.icon.icon-folder [:use {:xlinkHref "#icon-globe"}]]
+          [:svg.icon.icon-folder [:use {:xlinkHref "#icon-globe"}]])]
+       [:div
+        {:on-click (fn [] (dispatch [::evts/toggle-selected :public {:force? true}]))} "Public"]])))
+
+
 
 (defn file-browser []
   (let [files   (subscribe [::subs/with-public])
         folders (subscribe [::subs/folders])]
     (fn []
-      (into [:ul] (map (fn [[k v]] ^{:key (str (:trail v))} [item [k v]]) @folders)))))
+      (into [:ul
+             [public-folder]] (map (fn [[k v]] ^{:key (str (:trail v))} [item [k v]]) @folders)))))
+
 
 (defn main []
   (let [as-list             (subscribe [::subs/as-list])
         sort-by             (subscribe [::subs/sort-by])
-        context-menu-target (subscribe [::subs/context-menu-target])]
+        context-menu-target (subscribe [::subs/context-menu-target])
+        files               (subscribe [::subs/files])]
     (r/create-class
       {:component-did-mount attach-hide-context-menu
        :reagent-render
@@ -301,7 +313,8 @@
                              :sort-by @sort-by}]]]
             (into [:tbody]
                   (map-indexed (fn [idx x]
-                                 ^{:key (str (:trail x))} [table-row (assoc x :index idx)]) @as-list))]]
+                                 (js/console.log "x" x)
+                                 ^{:key (str (:trail x))} [table-row (assoc x :index idx)]) @files))]]
           [:div.details "test"]
           [modal @context-menu-target]
           [modal-new-folder @context-menu-target]

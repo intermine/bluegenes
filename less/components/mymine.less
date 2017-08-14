@@ -1,5 +1,8 @@
 .mymine {
 
+    .icon {
+        fill: grey;
+    }
     display: flex;
 
     .grow {
@@ -12,6 +15,7 @@
 
     .file-browser {
         flex: 1;
+        padding-right: 10px;
 
         .open {
               transform: rotate(90deg);
@@ -20,6 +24,9 @@
         .icon {
             transition: all 100ms ease;
             margin: 0;
+            margin-right: 5px;
+            fill: grey;
+
         }
 
         ul {
@@ -37,6 +44,15 @@
                     padding-right: 5px;
                 }
 
+                &.active {
+                    background-color: #e6e6e6;
+                    &:hover {
+                        background-color: #e6e6e6;
+                    }
+                    .icon {
+                        fill: #6e6eff;
+                    }
+                }
                 &:hover {
                     background-color: #eaeaea;
                     border-radius: 5px;
@@ -51,6 +67,7 @@
     }
 
     .files {
+        padding-right: 10px;
         flex: 5
     }
 
@@ -80,9 +97,11 @@
         font-size: 1.5em;
     }
 
+    /*
     .icon-folder-open, .icon-folder {
         fill: #b4af71;
     }
+    */
 
     .mymine-table {
         thead {

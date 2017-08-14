@@ -111,6 +111,26 @@
   (fn [db]
     (get-in db [:mymine :selected])))
 
+(reg-sub
+  ::files
+  (fn [] [(subscribe [::my-tree]) (subscribe [::selected]) (subscribe [:lists/filtered-lists])])
+  (fn [[tree selected filtered-lists]]
+    (if (= :public (first selected))
+      (map
+        (fn [l]
+          (js/console.log "L" l)
+          (assoc l :file-type :list
+                   :read-only? true
+                   :label (:title l)
+                   :trail [:public (:title l)]))
+        ; TODO - rethink authorized flag
+        ; Assume that all unauthorized lists are public, but I bet this
+        ; isn't true if someone shares a list with you...
+        (filter (comp false? :authorized) filtered-lists))
+      (let [files (:children (get-in tree (first selected)))]
+        (map (fn [[k v]]
+               (assoc v :trail (vec (conj (first selected) :children k)))) files)))))
+
 ; Fill the [:root :public] folder with public lists
 (reg-sub
   ::with-public
