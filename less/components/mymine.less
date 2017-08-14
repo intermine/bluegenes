@@ -1,8 +1,14 @@
 .mymine {
 
     height: 100%;
-    align-item: stretch;
+    align-items: stretch;
     display: flex;
+
+    .breadcrumb {
+        background-color: transparent;
+    }
+
+
 
     .grow {
         flex: 1;
@@ -50,6 +56,14 @@
                     padding-right: 5px;
                 }
 
+                .label-name {
+                    flex: 1 0;
+                }
+
+                .extra {
+                    flex: 0 1;
+                }
+
                 &.active {
                     background-color: #e6e6e6;
                     &:hover {
@@ -68,15 +82,27 @@
     }
 
     .details {
-        flex: 1.5;
+        transition: all 1s ease;
+        flex: 0;
+        // background-color: white;
+        padding: 0;
+        border-left: 1px solid #e0e0e0;
+        overflow: hidden;
         background-color: white;
+
+        &.open {
+            flex: 1.5;
+            padding: 20px;
+        }
     }
 
     .files {
+        padding: 20px;
+        border-left: 1px solid #e0e0e0;
         padding-right: 10px;
-        flex: 4
+        flex: 4;
+        background-color: white;
     }
-
 
 
     width: 100%;

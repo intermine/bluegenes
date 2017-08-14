@@ -45,21 +45,22 @@
                       #_(if ctrl-key?
                           (dispatch [::evts/toggle-selected trail index])
                           (dispatch [::evts/toggle-selected trail index {:reset? true}]))))
-   :on-context-menu3 (fn [evt]
-
-                       (if (oget evt :nativeEvent :ctrlKey)
-                         nil
-                         (do
-                           ; Prevent the browser from showing its context menu
-                           (ocall evt :preventDefault)
-                           ; Force this item to be selected
-                           (dispatch [::evts/toggle-selected trail index {:force? true}])
-                           ; Set this item as the target of the context menu
-                           (dispatch [::evts/set-context-menu-target trail])
-                           ; Show the context menu
-                           (ocall (js/$ "#contextMenu") :css (clj->js {:display "block"
-                                                                       :left (oget evt :pageX)
-                                                                       :top (oget evt :pageY)})))))})
+   ;:on-context-menu (fn [evt]
+   ;
+   ;                    (if (oget evt :nativeEvent :ctrlKey)
+   ;                      nil
+   ;                      (do
+   ;                        ; Prevent the browser from showing its context menu
+   ;                        (ocall evt :preventDefault)
+   ;                        ; Force this item to be selected
+   ;                        (dispatch [::evts/toggle-selected trail index {:force? true}])
+   ;                        ; Set this item as the target of the context menu
+   ;                        (dispatch [::evts/set-context-menu-target trail])
+   ;                        ; Show the context menu
+   ;                        (ocall (js/$ "#contextMenu") :css (clj->js {:display "block"
+   ;                                                                    :left (oget evt :pageX)
+   ;                                                                    :top (oget evt :pageY)})))))
+   })
 
 
 (defn dispatch-edit [location key value]
@@ -231,13 +232,6 @@
            [:i.fa.fa-fw.fa-chevron-down]
            [:i.fa.fa-fw.fa-chevron-up]))])))
 
-
-
-
-
-(defn in? [needle haystack]
-  (some? (some #{needle} haystack)))
-
 (defn private-folder []
   (let [focus (subscribe [::subs/focus])]
     (fn [[key {:keys [label file-type open index trail]}]]
@@ -269,7 +263,8 @@
         {:on-click (fn [] (dispatch [::evts/set-focus :public]))} "Public"]])))
 
 (defn unsorted-folder []
-  (let [focus (subscribe [::subs/focus])]
+  (let [focus    (subscribe [::subs/focus])
+        unfilled (subscribe [::subs/unfilled])]
     (fn [[key {:keys [label file-type open index trail]}]]
       [:li {:on-click (fn [x] (dispatch [::evts/set-focus :unsorted]))
             :class (when (= :unsorted @focus) "active")}
@@ -277,8 +272,13 @@
         [:svg.icon.icon-caret-right
          {:class (when open "open")}]
         [:svg.icon.icon-drawer [:use {:xlinkHref "#icon-drawer"}]]]
-       [:div
-        {:on-click (fn [] (dispatch [::evts/set-focus :public]))} "Unsorted"]])))
+       [:div.label-name
+        {:on-click (fn [] (dispatch [::evts/set-focus :public]))}
+        "Unsorted "]
+       (when (> (count @unfilled) 0) [:div.extra
+         [:span.label.label-info (count @unfilled)]
+         [:svg.icon.icon-caret-right
+          {:class (when open "open")}]])])))
 
 (defn file-browser []
   (let [files   (subscribe [::subs/with-public])
@@ -286,20 +286,28 @@
     (fn []
       (into [:ul
              [public-folder]
-             ;[unsorted-folder]
+             [unsorted-folder]
              [:li.separator]
              ]
             (map
               (fn [[k v]] ^{:key (str (:trail v))} [private-folder [k v]])
               @folders)))))
 
+(defn details []
+  (let [selected-details (subscribe [::subs/selected-details])]
+    (fn []
+      [:div.details.open
+       [:h2 "Details"]
+       [:p "Details, previews, etc."]
+       ;[:p (str @selected-details)]
+       ])))
 
 (defn breadcrumb []
   (let [focus (subscribe [::subs/focus])]
     (fn [coll]
       [:h4
        (if (= :public @focus)
-         [:ol.breadcrumb [:li [:span "Home"]] [:li.active [:a "Public Files (Read Only)"]]]
+         [:ol.breadcrumb [:li [:span "Home"]] [:li.active [:a "Public"]]]
          (into [:ol.breadcrumb
                 [:li [:span "Home"]]]
                (map (fn [{:keys [trail label]}]
@@ -314,7 +322,9 @@
         sort-by             (subscribe [::subs/sort-by])
         context-menu-target (subscribe [::subs/context-menu-target])
         files               (subscribe [::subs/files])
-        bc                  (subscribe [::subs/breadcrumb])]
+        bc                  (subscribe [::subs/breadcrumb])
+        unfilled            (subscribe [::subs/unfilled])
+        ]
     (r/create-class
       {:component-did-mount attach-hide-context-menu
        :reagent-render
@@ -345,7 +355,7 @@
             (into [:tbody]
                   (map-indexed (fn [idx x]
                                  ^{:key (str (:trail x))} [table-row (assoc x :index idx)]) @files))]]
-          [:div.details "test"]
+          [details]
           [modal @context-menu-target]
           [modal-new-folder @context-menu-target]
           ;[context-menu-container @context-menu-target]

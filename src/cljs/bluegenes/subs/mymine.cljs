@@ -118,22 +118,32 @@
 
 (reg-sub
   ::files
-  (fn [] [(subscribe [::my-tree]) (subscribe [::focus]) (subscribe [:lists/filtered-lists])])
-  (fn [[tree focus filtered-lists]]
-    (if (= :public focus)
-      (map
-        (fn [l]
-          (assoc l :file-type :list
-                   :read-only? true
-                   :label (:title l)
-                   :trail [:public (:title l)]))
-        ; TODO - rethink authorized flag
-        ; Assume that all unauthorized lists are public, but I bet this
-        ; isn't true if someone shares a list with you...
-        (filter (comp false? :authorized) filtered-lists))
+  (fn [] [(subscribe [::my-tree])
+          (subscribe [::focus])
+          (subscribe [:lists/filtered-lists])
+          (subscribe [::unfilled])])
+  (fn [[tree focus filtered-lists unfilled]]
+    (case focus
+      :public (map (fn [l]
+                     (assoc l :file-type :list
+                              :read-only? true
+                              :label (:title l)
+                              :trail [:public (:title l)]))
+                   ; TODO - rethink authorized flag
+                   ; Assume that all unauthorized lists are public, but I bet this
+                   ; isn't true if someone shares a list with you...
+                   (filter (comp false? :authorized) filtered-lists))
+      :unsorted unfilled
       (let [files (:children (get-in tree focus))]
         (map (fn [[k v]]
                (assoc v :trail (vec (conj focus :children k)))) files)))))
+
+(reg-sub
+  ::selected-details
+  (fn [] [(subscribe [::my-tree]) (subscribe [::selected])])
+  (fn [[tree selected]]
+    (let [selected (first selected)]
+      selected)))
 
 (reg-sub
   ::breadcrumb
@@ -190,14 +200,68 @@
   (fn [[with-public sort-info]]
     (-> with-public :root (assoc :fid :root :trail [:root]) (flatten-tree sort-info) rest parse-dates)))
 
+
+
+(defn id-children
+  [[parent-k {:keys [file-type children index trail] :as c}]]
+  (->> children
+       ; Filter just the folders
+       ;(filter (fn [[k v]] (= :folder (:file-type v))))
+       ; Give the folder its index (indentation) and trail (location in mymine map)
+       (map (fn [[k v]] [k v]))))
+
+(defn id-branch?
+  [[k m]]
+  ; Only show open folders that have children
+  map?)
+
+
+(defn flatten-ids
+  [m]
+  (tree-seq id-branch? id-children m))
+
+
+(reg-sub
+  ::file-ids
+  (fn [] (subscribe [::my-tree]))
+  (fn [tree]
+    (->> tree
+         (mapcat flatten-ids)
+         (map (comp :id second))
+         (remove nil?))))
+
 (reg-sub
   ::unfilled
-  (fn [] [(subscribe [::as-list]) (subscribe [:lists/filtered-lists])])
-  (fn [[as-list filtered-lists]]
-    (let [my-lists (map :id (filter (comp true? :authorized) filtered-lists))
-          filled   (remove nil? (map :id as-list))]
-      ; TODO This is broken until https://github.com/intermine/intermine/pull/1633 is fixed
-      (clojure.set/difference my-lists filled))))
+  (fn [] [(subscribe [::file-ids])
+          (subscribe [:lists/filtered-lists])])
+  (fn [[file-ids lists]]
+    (let [my-list-ids  (set (map :id (filter (comp true? :authorized) lists)))
+          unfilled-ids (clojure.set/difference my-list-ids file-ids)]
+      (->> lists
+           (filter (fn [l] (some? (some #{(:id l)} unfilled-ids))))
+           (map (fn [l]
+                  (assoc l
+                    :file-type :list
+                    :read-only? true
+                    :label (:title l)
+                    :trail [:public (:title l)])))))))
+
+#_(reg-sub
+    ::unfilled
+    (fn [] [(subscribe [::as-list])
+            (subscribe [:lists/filtered-lists])
+            (subscribe [::my-tree])])
+    (fn [[as-list filtered-lists tree]]
+      (let [my-lists (map :id (filter (comp true? :authorized) filtered-lists))
+            filled   (remove nil? (map :id as-list))]
+        ; TODO This is broken until https://github.com/intermine/intermine/pull/1633 is fixed
+
+        (->> tree
+             (mapcat flatten-ids)
+             (map (comp :id second))
+             (remove nil?))
+        ;(.log js/console "filled" filled)
+        (clojure.set/difference my-lists filled))))
 
 (reg-sub
   ::context-menu-location
