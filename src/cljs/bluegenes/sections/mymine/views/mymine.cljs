@@ -267,7 +267,7 @@
   (let [files   (subscribe [::subs/with-public])
         folders (subscribe [::subs/folders])]
     (fn []
-      (into [:ul] (map (fn [i] [item i]) @folders)))))
+      (into [:ul] (map (fn [[k v]] ^{:key (str (:trail v))} [item [k v]]) @folders)))))
 
 (defn main []
   (let [as-list             (subscribe [::subs/as-list])
