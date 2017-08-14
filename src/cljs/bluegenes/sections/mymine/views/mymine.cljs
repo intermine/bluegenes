@@ -313,7 +313,6 @@
                              :sort-by @sort-by}]]]
             (into [:tbody]
                   (map-indexed (fn [idx x]
-                                 (js/console.log "x" x)
                                  ^{:key (str (:trail x))} [table-row (assoc x :index idx)]) @files))]]
           [:div.details "test"]
           [modal @context-menu-target]

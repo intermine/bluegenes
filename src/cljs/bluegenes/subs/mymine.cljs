@@ -118,7 +118,6 @@
     (if (= :public (first selected))
       (map
         (fn [l]
-          (js/console.log "L" l)
           (assoc l :file-type :list
                    :read-only? true
                    :label (:title l)
