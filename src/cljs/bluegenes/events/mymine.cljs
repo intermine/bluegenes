@@ -30,10 +30,28 @@
   (fn [db [_ location-trail]]
     (update-in db [:mymine :tree] update-in location-trail update :open not)))
 
+(defn snowball
+  "Makes a growing collection like the following:
+  (snowball [1 2 3 4 5])
+  => [[1] [1 2] [1 2 3] [1 2 3 4] [1 2 3 4 5]]"
+  [coll]
+  (reduce (fn [total next] (conj total (vec (conj (last total) next)))) [] coll))
+
 (reg-event-db
   ::set-focus
-  (fn [db [_ location-trail]]
-    (assoc-in db [:mymine :focus] location-trail)))
+  (fn [db [_ location-trail expand?]]
+    (cond-> db
+            ; Set the focus to the current location in the tree
+            true (assoc-in [:mymine :focus] location-trail)
+            ; If we're told to expand then make sure all parent folders are open
+            expand? (update-in [:mymine :tree]
+                               (fn [tree]
+                                 (reduce (fn [total next]
+                                           (if (not= (last next) :children)
+                                             (update-in total next assoc :open true)
+                                             total))
+                                         tree (butlast (snowball location-trail)))))
+            )))
 
 (reg-event-db
   ::update-value

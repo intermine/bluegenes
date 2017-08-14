@@ -43,7 +43,10 @@
                                                                              "examplelist3" {:file-type :list
                                                                                              :size 1
                                                                                              :label "Example List 3"
-                                                                                             :id 67890}}}}}
+                                                                                             :id 67890}
+                                                                             "examplefoldere" {:file-type :folder
+                                                                                               :open false
+                                                                                               :label "Example Folder E"}}}}}
                    "examplefolderd" {:file-type :folder
                                      :open false
                                      :label "Example Folder D"}}}

@@ -180,7 +180,7 @@
 (defn folder-cell []
   (fn [{:keys [file-type trail index label open editing?] :as item}]
     [:div.mymine-row
-     {:on-double-click (fn [] (when-not editing? (dispatch [::evts/toggle-selected trail {:force? true}])))}
+     {:on-double-click (fn [] (dispatch [::evts/set-focus trail true]))}
      [:span.shrink
       (if open
         [:svg.icon.icon-folder-open [:use {:xlinkHref "#icon-folder-open"}]]
@@ -237,19 +237,19 @@
     (fn [[key {:keys [label file-type children open index trail]}]]
       (let [has-child-folders? (> (count (filter #(= :folder (:file-type (second %))) children)) 0)]
         [:li
-        {:on-click (fn [] (dispatch [::evts/set-focus trail]))
-         :class (when (= trail @focus) "active")}
-        [:div.icon-container {:style {:padding-left (str (* index 13) "px")}}
-         [:svg.icon.icon-caret-right
-          {:class (when open "open")
-           :on-click (fn [x]
-                       (ocall x :stopPropagation)
-                       (dispatch [::evts/toggle-folder-open trail]))}
-          (when has-child-folders? [:use {:xlinkHref "#icon-caret-right"}])]
-         (if open
-           [:svg.icon.icon-folder [:use {:xlinkHref "#icon-folder-open"}]]
-           [:svg.icon.icon-folder [:use {:xlinkHref "#icon-folder"}]])]
-        [:div label]]))))
+         {:on-click (fn [] (dispatch [::evts/set-focus trail]))
+          :class (when (= trail @focus) "active")}
+         [:div.icon-container {:style {:padding-left (str (* index 13) "px")}}
+          [:svg.icon.icon-caret-right
+           {:class (when open "open")
+            :on-click (fn [x]
+                        (ocall x :stopPropagation)
+                        (dispatch [::evts/toggle-folder-open trail]))}
+           (when has-child-folders? [:use {:xlinkHref "#icon-caret-right"}])]
+          (if open
+            [:svg.icon.icon-folder [:use {:xlinkHref "#icon-folder-open"}]]
+            [:svg.icon.icon-folder [:use {:xlinkHref "#icon-folder"}]])]
+         [:div label]]))))
 
 (defn public-folder []
   (let [focus (subscribe [::subs/focus])]
@@ -277,9 +277,9 @@
         {:on-click (fn [] (dispatch [::evts/set-focus :public]))}
         "Unsorted "]
        (when (> (count @unfilled) 0) [:div.extra
-         [:span.label.label-info (count @unfilled)]
-         [:svg.icon.icon-caret-right
-          {:class (when open "open")}]])])))
+                                      [:span.label.label-info (count @unfilled)]
+                                      [:svg.icon.icon-caret-right
+                                       {:class (when open "open")}]])])))
 
 (defn file-browser []
   (let [files   (subscribe [::subs/with-public])
@@ -302,7 +302,7 @@
        [:p "Details, previews, etc."]])))
 
 (defn breadcrumb []
-  (let [bc (subscribe [::subs/breadcrumb])
+  (let [bc    (subscribe [::subs/breadcrumb])
         focus (subscribe [::subs/focus])]
     (fn []
       [:h4
