@@ -17,6 +17,18 @@
       m)
     (dissoc m k)))
 
+(defn parent-folder
+  "Find the location of the parent folder for a given path"
+  ([tree path]
+   (parent-folder tree path []))
+  ([tree [head children-key & remaining] trail]
+    ; If the root of the tree if a folder
+   (if (-> (get tree head) :file-type (= :folder))
+     ; Recur with subtree, remaining path, and keys to location
+     (recur (get-in tree [head children-key]) remaining (vec (conj trail head)))
+     ; No more folders in path, return the trail through the tree with :children in between
+     (interpose :children trail))))
+
 (defn in-or-out [haystack needle]
   (if (some? (some #{needle} haystack))
     (remove #{needle} haystack)
@@ -60,6 +72,29 @@
     (update-in db [:mymine :tree] update-in location-trail assoc key value :editing? false)))
 
 (reg-event-db
+  ::new-folder
+  (fn [db [_ location-trail name]]
+    (-> db
+        ; Assocation the new folder into the tree
+        (update-in [:mymine :tree] update-in location-trail update :children assoc name {:label name :file-type :folder})
+        ; Open the parent
+        (update-in [:mymine :tree] update-in location-trail assoc :open true))))
+
+(defn parent-container [path]
+  (if (= (last (butlast path)) :children)
+    (recur (butlast path))
+    (butlast path)))
+
+
+(reg-event-db
+  ::delete-folder
+  (fn [db [_ location-trail name]]
+    (-> db
+        ; Dissoc the folder
+        (update-in [:mymine :tree] dissoc-in location-trail)
+        (assoc-in [:mymine :focus] (parent-container location-trail)))))
+
+(reg-event-db
   ::toggle-selected
   (fn [db [_ location-trail options]]
     (cond
@@ -100,20 +135,10 @@
 
 (reg-event-db
   ::set-context-menu-target
-  (fn [db [_ trail]]
-    (assoc-in db [:mymine :context-target] trail)))
-
-(defn parent-folder
-  "Find the location of the parent folder for a given path"
-  ([tree path]
-   (parent-folder tree path []))
-  ([tree [head children-key & remaining] trail]
-    ; If the root of the tree if a folder
-   (if (-> (get tree head) :file-type (= :folder))
-     ; Recur with subtree, remaining path, and keys to location
-     (recur (get-in tree [head children-key]) remaining (vec (conj trail head)))
-     ; No more folders in path, return the trail through the tree with :children in between
-     (interpose :children trail))))
+  (fn [db [_ trail node]]
+    (update-in db [:mymine] assoc
+               :context-target trail
+               :context-node node)))
 
 (reg-event-fx
   ::drop

@@ -21,7 +21,7 @@
                       :type :alphanum
                       :asc? true}
             :tree {:root {:file-type :folder
-                          :open false
+                          :open true
                           :label "My InterMine"
                           :children {"examplefoldera" {:file-type :folder
                                                        :open false

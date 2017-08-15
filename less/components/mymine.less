@@ -8,6 +8,18 @@
         background-color: transparent;
     }
 
+    .draggingover {
+        background-color: #039be5;
+        color: white;
+        fill: white;
+        .icon {
+            fill: white;
+        }
+        a, a:hover, a:focus {
+            color: white;
+        }
+    }
+
 
 
     .grow {
@@ -113,6 +125,11 @@
         flex: 4;
         background-color: white;
 
+        .selected {
+            outline: 2px solid #3caee5;
+            outline-offset: -2px;
+        }
+
     }
 
 
@@ -124,6 +141,7 @@
 
     #contextMenu {
         position: absolute;
+        display: none;
         .dropdown-menu {
             display: block;
             position: static;
@@ -224,7 +242,7 @@
 
 
 
-
+/*
 
     .selected {
         background-color: #0081f2;
@@ -232,5 +250,7 @@
         a {color: white};
         color: white;
     }
+
+    */
 
 }

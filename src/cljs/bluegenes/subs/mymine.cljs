@@ -285,11 +285,16 @@
   (fn [db]
     (get-in db [:mymine :dragging-over])))
 
+;(reg-sub
+;  ::context-menu-target
+;  (fn [] [(subscribe [::with-public]) (subscribe [::context-menu-location])])
+;  (fn [[tree location]]
+;    (when location (assoc (get-in tree location) :trail location))))
+
 (reg-sub
   ::context-menu-target
-  (fn [] [(subscribe [::with-public]) (subscribe [::context-menu-location])])
-  (fn [[tree location]]
-    (when location (assoc (get-in tree location) :trail location))))
+  (fn [db]
+    (get-in db [:mymine :context-node])))
 
 (reg-sub
   ::edit-target

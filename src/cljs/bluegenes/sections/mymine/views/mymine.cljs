@@ -7,6 +7,7 @@
             [goog.i18n.NumberFormat.Format]
             [bluegenes.events.mymine :as evts]
             [bluegenes.subs.mymine :as subs]
+            [bluegenes.sections.mymine.views.modals :as modals]
             )
   (:import
     (goog.i18n NumberFormat)
@@ -37,7 +38,7 @@
    :on-drop (fn [evt]
               (dispatch [::evts/drop trail]))})
 
-(defn click-events [trail index]
+(defn click-events [trail index row]
   {:on-mouse-down (fn [evt]
                     (stop-prop evt)
                     (let [ctrl-key? (oget evt :nativeEvent :ctrlKey)]
@@ -47,26 +48,29 @@
                       #_(if ctrl-key?
                           (dispatch [::evts/toggle-selected trail index])
                           (dispatch [::evts/toggle-selected trail index {:reset? true}]))))
-   ;:on-context-menu (fn [evt]
-   ;
-   ;                    (if (oget evt :nativeEvent :ctrlKey)
-   ;                      nil
-   ;                      (do
-   ;                        ; Prevent the browser from showing its context menu
-   ;                        (ocall evt :preventDefault)
-   ;                        ; Force this item to be selected
-   ;                        (dispatch [::evts/toggle-selected trail index {:force? true}])
-   ;                        ; Set this item as the target of the context menu
-   ;                        (dispatch [::evts/set-context-menu-target trail])
-   ;                        ; Show the context menu
-   ;                        (ocall (js/$ "#contextMenu") :css (clj->js {:display "block"
-   ;                                                                    :left (oget evt :pageX)
-   ;                                                                    :top (oget evt :pageY)})))))
+   :on-context-menu (fn [evt]
+
+                      (when-not (oget evt :nativeEvent :ctrlKey)
+
+
+                        (do
+                          ; Prevent the browser from showing its context menu
+                          (ocall evt :preventDefault)
+                          ; Force this item to be selected
+                          (dispatch [::evts/toggle-selected trail {:force? true}])
+                          ; Set this item as the target of the context menu
+                          (dispatch [::evts/set-context-menu-target trail row])
+                          ; Show the context menu
+                          (ocall (js/$ "#contextMenu") :css (clj->js {:display "block"
+                                                                      :left (oget evt :pageX)
+                                                                      :top (oget evt :pageY)})))))
    })
 
 
-(defn dispatch-edit [location key value]
-  (dispatch [::evts/update-value location key value]))
+
+
+;(defn dispatch-edit [location key value]
+;  (dispatch [::evts/new-folder location key value]))
 
 (defmulti context-menu :file-type)
 
@@ -75,13 +79,17 @@
     [:ul.dropdown-menu
      [:li {:data-toggle "modal"
            :data-keyboard true
-           :data-target "#myMineRenameModal"}
-      [:a "Rename"]]
+           :data-target "#myMineNewFolderModal"}
+      [:a "New Folder"]]
      [:li.divider]
      [:li {:data-toggle "modal"
            :data-keyboard true
-           :data-target "#myMineNewFolderModal"}
-      [:a "New Folder..."]]]))
+           :data-target "#myMineRenameModal"}
+      [:a "Rename"]]
+     [:li {:data-toggle "modal"
+           :data-keyboard true
+           :data-target "#myMineDeleteFolderModal"}
+      [:a "Remove"]]]))
 
 (defmethod context-menu :list []
   (fn [target]
@@ -97,92 +105,11 @@
   (fn [{:keys [file-type label trail] :as target}]
     [:div#contextMenu.dropdown.clearfix ^{:key (str "context-menu" trail)} [context-menu target]]))
 
-(defn modal-new-folder []
-  (let [input-dom-node (r/atom nil)
-        modal-dom-node (r/atom nil)]
-    (r/create-class
-      {:component-did-mount (fn [this]
-                              ; When modal is closed, clear the context menu target. This prevents the modal
-                              ; from retamaining prior state that was cancelled / dismissed
-                              (ocall (js/$ (r/dom-node this))
-                                     :on "hidden.bs.modal"
-                                     (fn [] (dispatch [::evts/set-context-menu-target nil])))
-                              (ocall (js/$ (r/dom-node this))
-                                     :on "shown.bs.modal"
-                                     (fn [] (ocall @input-dom-node :select))))
-       :reagent-render (fn [{:keys [file-type label trail]}]
-                         [:div#myMineNewFolderModal.modal.fade
-                          {:tab-index "-1" ; Allows "escape" key to work.... for some reason
-                           :role "dialog"
-                           :ref (fn [e] (when e (reset! modal-dom-node (js/$ e))))} ; Get a handle on our
-                          [:div.modal-dialog
-                           [:div.modal-content
-                            [:div.modal-header [:h2 "New Folder"]]
-                            [:div.modal-body [:p "Please enter a new name for the folder"]
-                             [:input.form-control
-                              {:ref (fn [e] (when e (do (oset! e :value label) (reset! input-dom-node (js/$ e)))))
-                               :type "text"
-                               :on-key-up (fn [evt]
-                                            (case (oget evt :keyCode)
-                                              13 (do ; Detect "Return
-                                                   (dispatch-edit trail :label (ocall @input-dom-node :val))
-                                                   (ocall @modal-dom-node :modal "hide"))
-                                              nil))}]]
-                            [:div.modal-footer
-                             [:div.btn-toolbar.pull-right
-                              [:button.btn.btn-default
-                               {:data-dismiss "modal"}
-                               "Cancel"]
-                              [:button.btn.btn-success.btn-raised
-                               {:data-dismiss "modal"
-                                :on-click (fn [] (dispatch-edit trail :label (ocall @input-dom-node :val)))}
-                               "OK"]]]]]])})))
-
-(defn modal []
-  (let [input-dom-node (r/atom nil)
-        modal-dom-node (r/atom nil)]
-    (r/create-class
-      {:component-did-mount (fn [this]
-                              ; When modal is closed, clear the context menu target. This prevents the modal
-                              ; from retamaining prior state that was cancelled / dismissed
-                              (ocall (js/$ (r/dom-node this))
-                                     :on "hidden.bs.modal"
-                                     (fn [] (dispatch [::evts/set-context-menu-target nil])))
-                              (ocall (js/$ (r/dom-node this))
-                                     :on "shown.bs.modal"
-                                     (fn [] (ocall @input-dom-node :select))))
-       :reagent-render (fn [{:keys [file-type label trail]}]
-                         [:div#myMineRenameModal.modal.fade
-                          {:tab-index "-1" ; Allows "escape" key to work.... for some reason
-                           :role "dialog"
-                           :ref (fn [e] (when e (reset! modal-dom-node (js/$ e))))} ; Get a handle on our
-                          [:div.modal-dialog
-                           [:div.modal-content
-                            [:div.modal-header [:h2 "Rename"]]
-                            [:div.modal-body [:p "Please enter a new name for the folder"]
-                             [:input.form-control
-                              {:ref (fn [e] (when e (do (oset! e :value label) (reset! input-dom-node (js/$ e)))))
-                               :type "text"
-                               :on-key-up (fn [evt]
-                                            (case (oget evt :keyCode)
-                                              13 (do ; Detect "Return
-                                                   (dispatch-edit trail :label (ocall @input-dom-node :val))
-                                                   (ocall @modal-dom-node :modal "hide"))
-                                              nil))}]]
-                            [:div.modal-footer
-                             [:div.btn-toolbar.pull-right
-                              [:button.btn.btn-default
-                               {:data-dismiss "modal"}
-                               "Cancel"]
-                              [:button.btn.btn-success.btn-raised
-                               {:data-dismiss "modal"
-                                :on-click (fn [] (dispatch-edit trail :label (ocall @input-dom-node :val)))}
-                               "OK"]]]]]])})))
-
 (defn folder-cell []
   (fn [{:keys [file-type trail index label open editing?] :as item}]
     [:div.mymine-row
-     {:on-double-click (fn [] (dispatch [::evts/set-focus trail true]))}
+     (merge {:on-double-click (fn [] (dispatch [::evts/set-focus trail true]))}
+            (drop-events trail index))
      [:span.shrink
       [:svg.icon.icon-folder [:use {:xlinkHref "#icon-folder"}]]
       #_(if open
@@ -208,11 +135,17 @@
 (def clj-type type)
 
 (defn table-row []
-  (let [selected (subscribe [::subs/selected])]
+  (let [over (subscribe [::subs/dragging-over])
+        selected (subscribe [::subs/selected])]
     (fn [{:keys [editing? friendly-date-created level file-type type trail index read-only? size type] :as row}]
       (let [selected? (some? (some #{trail} @selected))]
-        [:tr (-> {:class (clojure.string/join " " [(when selected? (str "im-type box " type))])}
-                 (merge (click-events trail index))
+        [:tr (-> {:class (clojure.string/join " " [
+                                                   ;(when selected? (str "im-type box " type))
+                                                   (when selected? (str "selected"))
+                                                   (cond
+                                                     (= trail @over) "draggingover"
+                                                     :else nil)])}
+                 (merge (click-events trail index row))
                  (cond-> (not read-only?) (merge (drag-events trail index row))))
          [:td {:style {:padding-left (str (* level 20) "px")}}
           (case file-type
@@ -238,10 +171,26 @@
 (defn private-folder []
   (let [over  (subscribe [::subs/dragging-over])
         focus (subscribe [::subs/focus])]
-    (fn [[key {:keys [label file-type children open index trail]}]]
+    (fn [[key {:keys [label file-type children open index trail] :as row}]]
       (let [has-child-folders? (> (count (filter #(= :folder (:file-type (second %))) children)) 0)]
         [:li
          (merge {:on-click (fn [] (dispatch [::evts/set-focus trail]))
+                 :on-context-menu (fn [evt]
+
+                                    (when-not (oget evt :nativeEvent :ctrlKey)
+
+
+                                      (do
+                                        ; Prevent the browser from showing its context menu
+                                        (ocall evt :preventDefault)
+                                        ; Force this item to be selected
+                                        (dispatch [::evts/toggle-selected trail {:force? true}])
+                                        ; Set this item as the target of the context menu
+                                        (dispatch [::evts/set-context-menu-target trail row])
+                                        ; Show the context menu
+                                        (ocall (js/$ "#contextMenu") :css (clj->js {:display "block"
+                                                                                    :left (oget evt :pageX)
+                                                                                    :top (oget evt :pageY)})))))
                  :class (cond
                           (= trail @over) "draggingover"
                           (= trail @focus) "active"
@@ -256,7 +205,8 @@
            (when has-child-folders? [:use {:xlinkHref "#icon-caret-right"}])]
           (case key
             :root [:svg.icon.icon-folder [:use {:xlinkHref "#icon-intermine"}]]
-            (if open
+            [:svg.icon.icon-folder [:use {:xlinkHref "#icon-folder"}]]
+            #_(if open
               [:svg.icon.icon-folder [:use {:xlinkHref "#icon-folder-open"}]]
               [:svg.icon.icon-folder [:use {:xlinkHref "#icon-folder"}]]))]
          [:div label]]))))
@@ -392,7 +342,9 @@
                                    ^{:key (str (:trail x))} [table-row (assoc x :index idx)]) @files))]
              [:h1 "Empty Folder"])]
           [details]
-          [modal @context-menu-target]
-          [modal-new-folder @context-menu-target]
-          ;[context-menu-container @context-menu-target]
+          [modals/modal @context-menu-target]
+          [modals/modal-new-folder @context-menu-target]
+          [modals/modal-delete-folder @context-menu-target]
+
+          [context-menu-container @context-menu-target]
           ])})))
