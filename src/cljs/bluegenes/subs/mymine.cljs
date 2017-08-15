@@ -28,6 +28,12 @@
                        (and (= :folder x) (not= :folder y)) 1
                        (and (= :folder x) (= :folder y)) -1)))
 
+(def files>folders (fn [x y]
+                     (cond
+                       (= x y) 0
+                       (and (= :folder x) (not= :folder y)) -1
+                       (and (= :folder x) (= :folder y)) 1)))
+
 (defn compare-by [& key-cmp-pairs]
   (fn [x y]
     (loop [[k cmp & more] key-cmp-pairs]
@@ -124,7 +130,7 @@
           (subscribe [::unfilled])])
   (fn [[tree focus filtered-lists unfilled]]
     (case focus
-      :public (map (fn [l]
+      [:public] (map (fn [l]
                      (assoc l :file-type :list
                               :read-only? true
                               :label (:title l)
@@ -133,10 +139,16 @@
                    ; Assume that all unauthorized lists are public, but I bet this
                    ; isn't true if someone shares a list with you...
                    (filter (comp false? :authorized) filtered-lists))
-      :unsorted unfilled
+      [:root] (let [files (:children (:root tree))]
+              (->> files
+                   (map (fn [[k v]] (assoc v :trail (vec (conj focus :children k)))))
+                   (concat unfilled)
+                   (sort-by :file-type folders>files)))
+      [:unsorted] unfilled
       (let [files (:children (get-in tree focus))]
-        (map (fn [[k v]]
-               (assoc v :trail (vec (conj focus :children k)))) files)))))
+        (->> files
+             (map (fn [[k v]] (assoc v :trail (vec (conj focus :children k)))))
+             (sort-by :file-type folders>files))))))
 
 (reg-sub
   ::selected-details

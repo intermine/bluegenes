@@ -35,7 +35,9 @@
   (snowball [1 2 3 4 5])
   => [[1] [1 2] [1 2 3] [1 2 3 4] [1 2 3 4 5]]"
   [coll]
-  (reduce (fn [total next] (conj total (vec (conj (last total) next)))) [] coll))
+  (if (seqable? coll)
+    (reduce (fn [total next] (conj total (vec (conj (last total) next)))) [] coll)
+    [coll]))
 
 (reg-event-db
   ::set-focus
@@ -50,8 +52,7 @@
                                            (if (not= (last next) :children)
                                              (update-in total next assoc :open true)
                                              total))
-                                         tree (butlast (snowball location-trail)))))
-            )))
+                                         tree (butlast (snowball location-trail))))))))
 
 (reg-event-db
   ::update-value

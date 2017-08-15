@@ -239,22 +239,24 @@
         [:li
          {:on-click (fn [] (dispatch [::evts/set-focus trail]))
           :class (when (= trail @focus) "active")}
-         [:div.icon-container {:style {:padding-left (str (* index 13) "px")}}
+         [:div.icon-container {:style {:padding-left (str (* (dec index) 26) "px")}}
           [:svg.icon.icon-caret-right
            {:class (when open "open")
             :on-click (fn [x]
                         (ocall x :stopPropagation)
                         (dispatch [::evts/toggle-folder-open trail]))}
            (when has-child-folders? [:use {:xlinkHref "#icon-caret-right"}])]
-          (if open
-            [:svg.icon.icon-folder [:use {:xlinkHref "#icon-folder-open"}]]
-            [:svg.icon.icon-folder [:use {:xlinkHref "#icon-folder"}]])]
+          (case key
+            :root [:svg.icon.icon-folder [:use {:xlinkHref "#icon-intermine"}]]
+            (if open
+              [:svg.icon.icon-folder [:use {:xlinkHref "#icon-folder-open"}]]
+              [:svg.icon.icon-folder [:use {:xlinkHref "#icon-folder"}]]))]
          [:div label]]))))
 
 (defn public-folder []
   (let [focus (subscribe [::subs/focus])]
     (fn [[key {:keys [label file-type open index trail]}]]
-      [:li {:on-click (fn [x] (dispatch [::evts/set-focus :public]))
+      [:li {:on-click (fn [x] (dispatch [::evts/set-focus [:public]]))
             :class (when (= :public @focus) "active")}
        [:div.icon-container {:style {:padding-left (str (* index 13) "px")}}
         [:svg.icon.icon-caret-right
@@ -267,8 +269,8 @@
   (let [focus    (subscribe [::subs/focus])
         unfilled (subscribe [::subs/unfilled])]
     (fn [[key {:keys [label file-type open index trail]}]]
-      [:li {:on-click (fn [x] (dispatch [::evts/set-focus :unsorted]))
-            :class (when (= :unsorted @focus) "active")}
+      [:li {:on-click (fn [x] (dispatch [::evts/set-focus [:unsorted]]))
+            :class (when (= [:unsorted] @focus) "active")}
        [:div.icon-container {:style {:padding-left (str (* index 13) "px")}}
         [:svg.icon.icon-caret-right
          {:class (when open "open")}]
@@ -281,6 +283,27 @@
                                       [:svg.icon.icon-caret-right
                                        {:class (when open "open")}]])])))
 
+(defn root-folder []
+  (let [focus (subscribe [::subs/focus])]
+    (fn [[key {:keys [label file-type children open index trail]}]]
+      (let [has-child-folders? (> (count (filter #(= :folder (:file-type (second %))) children)) 0)]
+        [:li
+         {:on-click (fn [] (dispatch [::evts/set-focus trail]))
+          :class (when (= [:root] @focus) "active")}
+         [:div.icon-container {:style {:padding-left (str (* index 13) "px")}}
+          [:svg.icon.icon-caret-right
+           {:class (when open "open")
+            :on-click (fn [x] (ocall x :stopPropagation) (dispatch [::evts/toggle-folder-open trail]))}
+           (when has-child-folders? [:use {:xlinkHref "#icon-caret-right"}])]
+          [:svg.icon.icon-folder [:use {:xlinkHref "#icon-intermine"}]]]
+         [:div.label-name label]]))))
+
+(defn folder []
+  (fn [[key properties :as f]]
+    (case key
+      :root [root-folder f]
+      [private-folder f])))
+
 (defn file-browser []
   (let [files   (subscribe [::subs/with-public])
         folders (subscribe [::subs/folders])]
@@ -288,10 +311,9 @@
       (into [:ul
              [public-folder]
              [unsorted-folder]
-             [:li.separator]
-             ]
+             [:li.separator]]
             (map
-              (fn [[k v]] ^{:key (str (:trail v))} [private-folder [k v]])
+              (fn [[k v]] ^{:key (str (:trail v))} [folder [k v]])
               @folders)))))
 
 (defn details []
@@ -306,10 +328,10 @@
         focus (subscribe [::subs/focus])]
     (fn []
       [:h4
-       (if (= :public @focus)
-         [:ol.breadcrumb [:li [:span "Home"]] [:li.active [:a "Public"]]]
-         (into [:ol.breadcrumb
-                [:li [:span "Home"]]]
+       (case @focus
+         [:public] [:ol.breadcrumb [:li.active [:a "Public"]]]
+         [:unsorted] [:ol.breadcrumb [:li.active [:a "Unsorted"]]]
+         (into [:ol.breadcrumb]
                (map (fn [{:keys [trail label]}]
                       (let [focused? (= trail @focus)]
                         [:li {:class (when focused? "active")
@@ -322,6 +344,7 @@
         sort-by             (subscribe [::subs/sort-by])
         context-menu-target (subscribe [::subs/context-menu-target])
         files               (subscribe [::subs/files])
+        focus               (subscribe [::subs/focus])
         ]
     (r/create-class
       {:component-did-mount attach-hide-context-menu
