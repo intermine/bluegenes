@@ -48,6 +48,7 @@
 
 
             li {
+                font-size: 0.9em;
                 padding: 8px 0;
                 display: flex;
                 .icon-container {
@@ -62,6 +63,15 @@
 
                 .extra {
                     flex: 0 1;
+                }
+
+                &.draggingover {
+                    background-color: #039be5;
+                    color: white;
+                    fill: white;
+                    .icon {
+                        fill: white;
+                    }
                 }
 
                 &.active {
@@ -102,6 +112,7 @@
         padding-right: 10px;
         flex: 4;
         background-color: white;
+
     }
 
 
@@ -129,11 +140,11 @@
         font-size: 1.5em;
     }
 
-    /*
+
     .icon-folder-open, .icon-folder {
-        fill: #b4af71;
+        fill: grey;
     }
-    */
+
 
     .mymine-table {
         thead {

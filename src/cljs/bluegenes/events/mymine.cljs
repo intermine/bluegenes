@@ -83,8 +83,10 @@
 
 (reg-event-db
   ::drag-start
-  (fn [db [_ trail]]
-    (update db :mymine assoc :dragging trail)))
+  (fn [db [_ trail node]]
+    (update db :mymine assoc
+            :dragging trail
+            :dragging-node node)))
 
 (reg-event-db
   ::drag-over
@@ -94,7 +96,7 @@
 (reg-event-db
   ::drag-end
   (fn [db [_ trail]]
-    db))
+    (assoc-in db [:mymine :dragging-over] nil)))
 
 (reg-event-db
   ::set-context-menu-target
@@ -116,20 +118,22 @@
 (reg-event-fx
   ::drop
   (fn [{db :db} [_ trail]]
-    (let [{:keys [dragging dragging-over]} (:mymine db)]
+    (let [{:keys [dragging dragging-over dragging-node]} (:mymine db)]
       (let [tree               (get-in db [:mymine :tree])
             drop-parent-folder (parent-folder tree dragging-over)
             drag-type          (:file-type (get-in tree dragging))
             drop-type          (:file-type (get-in tree dragging-over))]
         ; Don't do anything if we're moving something into the same folder
         (cond
-          (= dragging dragging-over) {:db db} ; File was moved onto itself. Ignore.
+          (= dragging dragging-over) {:db db :dispatch [::drag-end]} ; File was moved onto itself. Ignore.
           ;(and (= :folder drag-type) (= :folder drag-type)) db
           :else {:db (update-in db [:mymine :tree]
                                 #(-> %
                                      ; Remove this node from the tree
-                                     (update-in (butlast dragging) dissoc (last dragging))
+                                     (dissoc-in (:trail dragging-node))
                                      ; Re-associate to the new location
-                                     (update-in drop-parent-folder assoc-in [:children (last dragging)] (get-in % dragging))))
+                                     (update-in drop-parent-folder assoc-in [:children (last (:trail dragging-node))] dragging-node)))
                  ; Reselect the item at its new location
-                 :dispatch [::toggle-selected (concat drop-parent-folder [:children (last dragging)]) {:force? true}]})))))
+                 :dispatch-n [[::drag-end]
+                              ;[::toggle-selected (concat drop-parent-folder [:children (last dragging)]) {:force? true}]
+                              ]})))))

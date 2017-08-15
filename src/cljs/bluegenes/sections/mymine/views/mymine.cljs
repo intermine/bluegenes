@@ -21,11 +21,13 @@
 
 (defn attach-hide-context-menu [] (ocall (js/$ "body") :on "click" hide-context-menu))
 
-(defn drag-events [trail index]
+(defn drag-events [trail index whoami]
   {:draggable true
    :on-drag-start (fn [evt]
-                    (dispatch [::evts/drag-start trail]))
-   :on-drag-end (fn [evt]
+                    (dispatch [::evts/drag-start trail whoami]))})
+
+(defn drop-events [trail index]
+  {:on-drag-end (fn [evt]
                   (dispatch [::evts/drag-end trail]))
    :on-drag-over (fn [evt]
                    (ocall evt :preventDefault)
@@ -182,9 +184,10 @@
     [:div.mymine-row
      {:on-double-click (fn [] (dispatch [::evts/set-focus trail true]))}
      [:span.shrink
-      (if open
-        [:svg.icon.icon-folder-open [:use {:xlinkHref "#icon-folder-open"}]]
-        [:svg.icon.icon-folder [:use {:xlinkHref "#icon-folder"}]])]
+      [:svg.icon.icon-folder [:use {:xlinkHref "#icon-folder"}]]
+      #_(if open
+          [:svg.icon.icon-folder-open [:use {:xlinkHref "#icon-folder-open"}]]
+          [:svg.icon.icon-folder [:use {:xlinkHref "#icon-folder"}]])]
      [:span.grow
       [:a label]]]))
 
@@ -210,7 +213,7 @@
       (let [selected? (some? (some #{trail} @selected))]
         [:tr (-> {:class (clojure.string/join " " [(when selected? (str "im-type box " type))])}
                  (merge (click-events trail index))
-                 (cond-> (not read-only?) (merge (drag-events trail index))))
+                 (cond-> (not read-only?) (merge (drag-events trail index row))))
          [:td {:style {:padding-left (str (* level 20) "px")}}
           (case file-type
             :folder [folder-cell row]
@@ -233,12 +236,17 @@
            [:i.fa.fa-fw.fa-chevron-up]))])))
 
 (defn private-folder []
-  (let [focus (subscribe [::subs/focus])]
+  (let [over  (subscribe [::subs/dragging-over])
+        focus (subscribe [::subs/focus])]
     (fn [[key {:keys [label file-type children open index trail]}]]
       (let [has-child-folders? (> (count (filter #(= :folder (:file-type (second %))) children)) 0)]
         [:li
-         {:on-click (fn [] (dispatch [::evts/set-focus trail]))
-          :class (when (= trail @focus) "active")}
+         (merge {:on-click (fn [] (dispatch [::evts/set-focus trail]))
+                 :class (cond
+                          (= trail @over) "draggingover"
+                          (= trail @focus) "active"
+                          :else nil)}
+                (drop-events trail 0))
          [:div.icon-container {:style {:padding-left (str (* (dec index) 26) "px")}}
           [:svg.icon.icon-caret-right
            {:class (when open "open")
@@ -284,12 +292,17 @@
                                        {:class (when open "open")}]])])))
 
 (defn root-folder []
-  (let [focus (subscribe [::subs/focus])]
+  (let [over  (subscribe [::subs/dragging-over])
+        focus (subscribe [::subs/focus])]
     (fn [[key {:keys [label file-type children open index trail]}]]
       (let [has-child-folders? (> (count (filter #(= :folder (:file-type (second %))) children)) 0)]
         [:li
-         {:on-click (fn [] (dispatch [::evts/set-focus trail]))
-          :class (when (= [:root] @focus) "active")}
+         (merge {:on-click (fn [] (dispatch [::evts/set-focus trail]))
+                 :class (cond
+                          (= [:root] @over) "draggingover"
+                          (= [:root] @focus) "active"
+                          :else nil)}
+                (drop-events trail 0))
          [:div.icon-container {:style {:padding-left (str (* index 13) "px")}}
           [:svg.icon.icon-caret-right
            {:class (when open "open")
@@ -354,28 +367,30 @@
           [:div.file-browser [file-browser]]
           [:div.files
            [breadcrumb]
-           [:table.table.mymine-table
-            [:thead
-             [:tr
-              [table-header {:label "Name"
-                             :key :label
-                             :type :alphanum
-                             :sort-by @sort-by}]
-              [table-header {:label "Type"
-                             :key :type
-                             :type :alphanum
-                             :sort-by @sort-by}]
-              [table-header {:label "Size"
-                             :key :size
-                             :type :alphanum
-                             :sort-by @sort-by}]
-              [table-header {:label "Last Modified"
-                             :key :dateCreated
-                             :type :date
-                             :sort-by @sort-by}]]]
-            (into [:tbody]
-                  (map-indexed (fn [idx x]
-                                 ^{:key (str (:trail x))} [table-row (assoc x :index idx)]) @files))]]
+           (if (not-empty @files)
+             [:table.table.mymine-table
+              [:thead
+               [:tr
+                [table-header {:label "Name"
+                               :key :label
+                               :type :alphanum
+                               :sort-by @sort-by}]
+                [table-header {:label "Type"
+                               :key :type
+                               :type :alphanum
+                               :sort-by @sort-by}]
+                [table-header {:label "Size"
+                               :key :size
+                               :type :alphanum
+                               :sort-by @sort-by}]
+                [table-header {:label "Last Modified"
+                               :key :dateCreated
+                               :type :date
+                               :sort-by @sort-by}]]]
+              (into [:tbody]
+                    (map-indexed (fn [idx x]
+                                   ^{:key (str (:trail x))} [table-row (assoc x :index idx)]) @files))]
+             [:h1 "Empty Folder"])]
           [details]
           [modal @context-menu-target]
           [modal-new-folder @context-menu-target]

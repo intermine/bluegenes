@@ -25,8 +25,8 @@
 (def folders>files (fn [x y]
                      (cond
                        (= x y) 0
-                       (and (= :folder x) (not= :folder y)) 1
-                       (and (= :folder x) (= :folder y)) -1)))
+                       (and (= :folder x) (not= :folder y)) -1
+                       (and (= :folder y) (not= :folder x)) 1)))
 
 (def files>folders (fn [x y]
                      (cond
@@ -240,21 +240,21 @@
     (->> tree
          (mapcat flatten-ids)
          (map (comp :id second))
-         (remove nil?))))
+         (remove nil?)
+         set)))
 
 (reg-sub
   ::unfilled
   (fn [] [(subscribe [::file-ids])
           (subscribe [:lists/filtered-lists])])
-  (fn [[file-ids lists]]
+  (fn [[filed-ids lists]]
     (let [my-list-ids  (set (map :id (filter (comp true? :authorized) lists)))
-          unfilled-ids (clojure.set/difference my-list-ids file-ids)]
+          unfilled-ids (clojure.set/difference my-list-ids filed-ids)]
       (->> lists
            (filter (fn [l] (some? (some #{(:id l)} unfilled-ids))))
            (map (fn [l]
                   (assoc l
                     :file-type :list
-                    :read-only? true
                     :label (:title l)
                     :trail [:public (:title l)])))))))
 
@@ -279,6 +279,11 @@
   ::context-menu-location
   (fn [db]
     (get-in db [:mymine :context-target])))
+
+(reg-sub
+  ::dragging-over
+  (fn [db]
+    (get-in db [:mymine :dragging-over])))
 
 (reg-sub
   ::context-menu-target
