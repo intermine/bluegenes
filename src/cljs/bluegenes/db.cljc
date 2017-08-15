@@ -23,36 +23,7 @@
             :tree {:root {:file-type :folder
                           :open true
                           :label "My InterMine"
-                          :children {"examplefoldera" {:file-type :folder
-                                                       :open false
-                                                       :label "Example Folder A"
-                                                       :children {"examplelist1" {:file-type :list
-                                                                                  :size 10
-                                                                                  :label "Example List 1"
-                                                                                  :id 474747}}}
-                                     "examplefolderb" {:file-type :folder
-                                                       :open false
-                                                       :label "Example Folder B"
-                                                       :children {"examplefolderc" {:file-type :folder
-                                                                                    :open false
-                                                                                    :label "Example Folder C"
-                                                                                    :children {"examplelist2" {:file-type :list
-                                                                                                               :size 10
-                                                                                                               :label "Example List 2"
-                                                                                                               :id 12345}
-                                                                                               "examplequerya" {:file-type :query
-                                                                                                                :label "Example Query A"
-                                                                                                                :id 90764}
-                                                                                               "examplelist3" {:file-type :list
-                                                                                                               :size 1
-                                                                                                               :label "Example List 3"
-                                                                                                               :id 67890}
-                                                                                               "examplefoldere" {:file-type :folder
-                                                                                                                 :open false
-                                                                                                                 :label "Example Folder E"}}}}}
-                                     "examplefolderd" {:file-type :folder
-                                                       :open false
-                                                       :label "Example Folder D"}}}}}
+                          :children {}}}}
    :lists {:controls {:filters {:text-filter nil
                                 :flags {:authorized nil
                                         :favourite nil}}

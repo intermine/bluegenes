@@ -3,7 +3,8 @@
             [reagent.core :as r]
             [cljs-time.format :as tf]
             [cljs-time.core :as t]
-            [clojure.string :refer [split]]))
+            [clojure.string :refer [split]]
+            [clojure.walk :refer [postwalk]]))
 
 ; Thanks!
 ; https://groups.google.com/forum/#!topic/clojure/VVVa3TS15pU
@@ -93,6 +94,33 @@
   [m]
   (tree-seq folder-branch? folder-children m))
 
+;;;;;;;;;;;;;;;;;;;;;;;
+(defn my-tree-children
+  [[parent-k {:keys [file-type children index trail] :as c}]]
+  (->> children
+       ; Filter just the folders
+       (filter (fn [[k v]] (= :folder (:file-type v))))
+       ; Give the folder its index (indentation) and trail (location in mymine map)
+       (map (fn [[k v]] [k (assoc v
+                             :trail (vec (conj trail :children k))
+                             :index (inc (or index 1)))]))))
+
+(defn my-tree-branch?
+  [[k m]]
+  ; Only show open folders that have children
+  (and (:open m) (= :folder (:file-type m))))
+
+
+(defn flatten-my-tree
+  [m]
+  (tree-seq my-tree-branch? my-tree-children m))
+
+(defn add-ids-to-folders
+  [m]
+  (let [f (fn [[k v]] (if (= :folder (:file-type v)) [k (assoc v :id k)] [k v]))]
+    ;; only apply to maps
+    (postwalk (fn [x] (if (map? x) (into {} (map f x)) x)) m)))
+
 ;;;;;;;;;; end of tree-seq components
 
 (reg-sub
@@ -103,14 +131,14 @@
 (reg-sub
   ::my-tree
   (fn [db]
-    (get-in db [:mymine :tree])))
+    (let [tree (get-in db [:mymine :tree])]
+      (add-ids-to-folders tree))))
 
 (reg-sub
   ::folders
   (fn [] (subscribe [::my-tree]))
   (fn [tree]
-    (mapcat flatten-folders (map (fn [[k v]]
-                                   [k (assoc v :trail [k])]) tree))))
+    (mapcat flatten-folders (map (fn [[k v]] [k (assoc v :trail [k])]) tree))))
 
 (reg-sub
   ::selected

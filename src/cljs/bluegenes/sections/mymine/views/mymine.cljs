@@ -42,7 +42,7 @@
   {:on-mouse-down (fn [evt]
                     (stop-prop evt)
                     (let [ctrl-key? (oget evt :nativeEvent :ctrlKey)]
-                      (dispatch [::evts/toggle-selected trail {:force? true}])
+                      (dispatch [::evts/toggle-selected trail {:force? true} row])
                       ; TODO re-enable multi selected
 
                       #_(if ctrl-key?
@@ -135,7 +135,7 @@
 (def clj-type type)
 
 (defn table-row []
-  (let [over (subscribe [::subs/dragging-over])
+  (let [over     (subscribe [::subs/dragging-over])
         selected (subscribe [::subs/selected])]
     (fn [{:keys [editing? friendly-date-created level file-type type trail index read-only? size type] :as row}]
       (let [selected? (some? (some #{trail} @selected))]
@@ -207,21 +207,24 @@
             :root [:svg.icon.icon-folder [:use {:xlinkHref "#icon-intermine"}]]
             [:svg.icon.icon-folder [:use {:xlinkHref "#icon-folder"}]]
             #_(if open
-              [:svg.icon.icon-folder [:use {:xlinkHref "#icon-folder-open"}]]
-              [:svg.icon.icon-folder [:use {:xlinkHref "#icon-folder"}]]))]
+                [:svg.icon.icon-folder [:use {:xlinkHref "#icon-folder-open"}]]
+                [:svg.icon.icon-folder [:use {:xlinkHref "#icon-folder"}]]))]
          [:div label]]))))
 
 (defn public-folder []
-  (let [focus (subscribe [::subs/focus])]
-    (fn [[key {:keys [label file-type open index trail]}]]
+  (let [lists (subscribe [:lists/filtered-lists])
+        focus (subscribe [::subs/focus])]
+    (fn [[key {:keys [label file-type open index trail children]}]]
       [:li {:on-click (fn [x] (dispatch [::evts/set-focus [:public]]))
             :class (when (= :public @focus) "active")}
        [:div.icon-container {:style {:padding-left (str (* index 13) "px")}}
         [:svg.icon.icon-caret-right
          {:class (when open "open")}]
         [:svg.icon.icon-folder [:use {:xlinkHref "#icon-globe"}]]]
-       [:div
-        {:on-click (fn [] (dispatch [::evts/set-focus :public]))} "Public"]])))
+       [:div.label-name {:on-click (fn [] (dispatch [::evts/set-focus :public]))} "Public"]
+       [:div.extra
+        [:span.label.label-info (count @lists)]
+        [:svg.icon.icon-caret-right]]])))
 
 (defn unsorted-folder []
   (let [focus    (subscribe [::subs/focus])
@@ -244,10 +247,25 @@
 (defn root-folder []
   (let [over  (subscribe [::subs/dragging-over])
         focus (subscribe [::subs/focus])]
-    (fn [[key {:keys [label file-type children open index trail]}]]
+    (fn [[key {:keys [label file-type children open index trail] :as row}]]
       (let [has-child-folders? (> (count (filter #(= :folder (:file-type (second %))) children)) 0)]
         [:li
          (merge {:on-click (fn [] (dispatch [::evts/set-focus trail]))
+                 :on-context-menu (fn [evt]
+
+                                    (when-not (oget evt :nativeEvent :ctrlKey)
+
+                                      (do
+                                        ; Prevent the browser from showing its context menu
+                                        (ocall evt :preventDefault)
+                                        ; Force this item to be selected
+                                        (dispatch [::evts/toggle-selected trail {:force? true}])
+                                        ; Set this item as the target of the context menu
+                                        (dispatch [::evts/set-context-menu-target trail row])
+                                        ; Show the context menu
+                                        (ocall (js/$ "#contextMenu") :css (clj->js {:display "block"
+                                                                                    :left (oget evt :pageX)
+                                                                                    :top (oget evt :pageY)})))))
                  :class (cond
                           (= [:root] @over) "draggingover"
                           (= [:root] @focus) "active"
@@ -280,11 +298,13 @@
               @folders)))))
 
 (defn details []
-  (let [selected-details (subscribe [::subs/selected-details])]
+  (let [selected         (subscribe [::subs/selected])
+        selected-details (subscribe [::subs/selected-details])]
     (fn []
       [:div.details.open
        [:h2 "Details"]
-       [:p "Details, previews, etc."]])))
+       [:p "Details, previews, etc."]
+       [:pre (str @selected)]])))
 
 (defn breadcrumb []
   (let [bc    (subscribe [::subs/breadcrumb])

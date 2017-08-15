@@ -1,7 +1,8 @@
 (ns bluegenes.events.mymine
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [re-frame.core :refer [reg-event-db reg-event-db reg-event-fx]]
-            [cljs.core.async :refer [<!]]))
+            [cljs.core.async :refer [<!]]
+            [cljs-uuid-utils.core :refer [make-random-uuid]]))
 
 (defn dissoc-in
   "Dissociates an entry from a nested associative structure returning a new
@@ -76,7 +77,7 @@
   (fn [db [_ location-trail name]]
     (-> db
         ; Assocation the new folder into the tree
-        (update-in [:mymine :tree] update-in location-trail update :children assoc name {:label name :file-type :folder})
+        (update-in [:mymine :tree] update-in location-trail update :children assoc (make-random-uuid) {:label name :file-type :folder})
         ; Open the parent
         (update-in [:mymine :tree] update-in location-trail assoc :open true))))
 
@@ -96,7 +97,8 @@
 
 (reg-event-db
   ::toggle-selected
-  (fn [db [_ location-trail options]]
+  (fn [db [_ location-trail options {:keys [id file-type]}]]
+    (println "id" id file-type)
     (cond
       (:force? options) (assoc-in db [:mymine :selected] #{location-trail})
       (:single? options) (if (in? (get-in db [:mymine :selected]) location-trail)
