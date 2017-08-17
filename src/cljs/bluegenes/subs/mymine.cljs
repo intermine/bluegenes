@@ -151,6 +151,11 @@
     (get-in db [:mymine :focus])))
 
 (reg-sub
+  ::public-lists
+  (fn [] [(subscribe [:lists/filtered-lists])])
+  (fn [[lists]] (filter (complement :authorized) lists)))
+
+(reg-sub
   ::files
   (fn [] [(subscribe [::my-tree])
           (subscribe [::focus])
@@ -184,6 +189,17 @@
   (fn [[tree selected]]
     (let [selected (first selected)]
       selected)))
+
+
+(reg-sub
+  ::details-keys
+  (fn [db] (get-in db [:mymine :details])))
+
+(reg-sub
+  ::details
+  (fn [] [(subscribe [::details-keys]) (subscribe [:lists/filtered-lists])])
+  (fn [[{:keys [id file-type]} lists]]
+    (first (filter (comp (partial = id) :id) lists))))
 
 (reg-sub
   ::breadcrumb

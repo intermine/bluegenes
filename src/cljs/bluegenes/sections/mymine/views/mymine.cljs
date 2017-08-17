@@ -7,6 +7,7 @@
             [goog.i18n.NumberFormat.Format]
             [bluegenes.events.mymine :as evts]
             [bluegenes.subs.mymine :as subs]
+            [inflections.core :as inf]
             [bluegenes.sections.mymine.views.modals :as modals]
             )
   (:import
@@ -57,7 +58,7 @@
                           ; Prevent the browser from showing its context menu
                           (ocall evt :preventDefault)
                           ; Force this item to be selected
-                          (dispatch [::evts/toggle-selected trail {:force? true}])
+                          (dispatch [::evts/toggle-selected trail {:force? true} row])
                           ; Set this item as the target of the context menu
                           (dispatch [::evts/set-context-menu-target trail row])
                           ; Show the context menu
@@ -94,7 +95,10 @@
 (defmethod context-menu :list []
   (fn [target]
     [:ul.dropdown-menu
-     [:li [:a "List"]]]))
+     [:li {:data-toggle "modal"
+           :data-keyboard true
+           :data-target "#myMineCopyModal"}
+      [:a "Copy"]]]))
 
 (defmethod context-menu :default []
   (fn [target]
@@ -212,7 +216,7 @@
          [:div label]]))))
 
 (defn public-folder []
-  (let [lists (subscribe [:lists/filtered-lists])
+  (let [lists (subscribe [::subs/public-lists])
         focus (subscribe [::subs/focus])]
     (fn [[key {:keys [label file-type open index trail children]}]]
       [:li {:on-click (fn [x] (dispatch [::evts/set-focus [:public]]))
@@ -297,14 +301,19 @@
               (fn [[k v]] ^{:key (str (:trail v))} [folder [k v]])
               @folders)))))
 
+(defn details-list []
+  (fn [{:keys [description tags authorized name type source size title status id timestamp dateCreated]}]
+    [:div
+     [:div [:h2 name]]
+     [:h3 (str (nf size) " " (inf/plural type))]]))
+
 (defn details []
   (let [selected         (subscribe [::subs/selected])
-        selected-details (subscribe [::subs/selected-details])]
+        selected-details (subscribe [::subs/selected-details])
+        dets (subscribe [::subs/details])]
     (fn []
       [:div.details.open
-       [:h2 "Details"]
-       [:p "Details, previews, etc."]
-       [:pre (str @selected)]])))
+       [details-list @dets]])))
 
 (defn breadcrumb []
   (let [bc    (subscribe [::subs/breadcrumb])
@@ -328,6 +337,7 @@
         context-menu-target (subscribe [::subs/context-menu-target])
         files               (subscribe [::subs/files])
         focus               (subscribe [::subs/focus])
+
         ]
     (r/create-class
       {:component-did-mount attach-hide-context-menu
@@ -363,6 +373,7 @@
              [:h1 "Empty Folder"])]
           [details]
           [modals/modal @context-menu-target]
+          [modals/modal-copy @context-menu-target]
           [modals/modal-new-folder @context-menu-target]
           [modals/modal-delete-folder @context-menu-target]
 

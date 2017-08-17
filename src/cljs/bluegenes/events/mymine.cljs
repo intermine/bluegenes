@@ -2,6 +2,9 @@
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [re-frame.core :refer [reg-event-db reg-event-db reg-event-fx]]
             [cljs.core.async :refer [<!]]
+            [imcljs.send :as send]
+            [imcljs.fetch :as fetch]
+            [bluegenes.effects :as fx]
             [cljs-uuid-utils.core :refer [make-random-uuid]]))
 
 (defn dissoc-in
@@ -97,13 +100,13 @@
 
 (reg-event-db
   ::toggle-selected
-  (fn [db [_ location-trail options {:keys [id file-type]}]]
-    (println "id" id file-type)
-    (cond
-      (:force? options) (assoc-in db [:mymine :selected] #{location-trail})
-      (:single? options) (if (in? (get-in db [:mymine :selected]) location-trail)
-                           (assoc-in db [:mymine :selected] #{})
-                           (assoc-in db [:mymine :selected] #{location-trail})))
+  (fn [db [_ location-trail options {:keys [id file-type] :as selected}]]
+    (let [db (assoc-in db [:mymine :details] (select-keys selected [:id :file-type]))]
+      (cond
+        (:force? options) (assoc-in db [:mymine :selected] #{location-trail})
+        (:single? options) (if (in? (get-in db [:mymine :selected]) location-trail)
+                             (assoc-in db [:mymine :selected] #{})
+                             (assoc-in db [:mymine :selected] #{location-trail}))))
     #_(if (:reset? options)
         (assoc-in db [:mymine :selected] #{[location-trail]})
         (update-in db [:mymine :selected] in-or-out location-trail))
@@ -124,6 +127,42 @@
     (update db :mymine assoc
             :dragging trail
             :dragging-node node)))
+
+; TODO
+; We're freshing everything because currently the send/copy-list end point doesn't return a list ID
+; This can be greatly reduced in the future
+(reg-event-fx
+  ::fetch-one-list-success
+  (fn [{db :db} [_ trail {:keys [id name] :as list-details}]]
+    (cond-> {:dispatch [:assets/fetch-lists]}
+            (not= :public (first trail)) (assoc :db (update-in db [:mymine :tree]
+                                                               update-in (parent-container trail)
+                                                               update :children assoc
+                                                               id (assoc list-details
+                                                                    :file-type :list
+                                                                    :label name))))))
+
+(reg-event-fx
+  ::fetch-one-list
+  (fn [{db :db} [_ trail {list-name :listName}]]
+    (let [service (get-in db [:mines (get db :current-mine) :service])]
+      {:im-chan {:chan (fetch/one-list service list-name)
+                 :on-success [::fetch-one-list-success trail]
+                 :on-failure [::copy-failure]}})))
+
+(reg-event-fx
+  ::copy-success
+  (fn [{db :db} [_ trail response]]
+    {:dispatch [::fetch-one-list trail response]}))
+
+(reg-event-fx
+  ::copy
+  (fn [{db :db} [_ trail old-list-name new-list-name]]
+    ;[on-success on-failure response-format chan params]
+    (let [service (get-in db [:mines (get db :current-mine) :service])]
+      {:im-chan {:chan (send/copy-list service old-list-name new-list-name)
+                 :on-success [::copy-success trail]
+                 :on-failure [::copy-failure]}})))
 
 (reg-event-db
   ::drag-over
