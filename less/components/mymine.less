@@ -1,3 +1,35 @@
+.mymine-browser {
+    ul {
+        padding: 0;
+        margin: 0;
+    }
+
+    li {
+        .icon {
+            margin: 0 5px 0 0;
+        }
+
+    }
+    .hoverable {
+
+        padding: 5px 0;
+
+        &::before {
+             content: "_";
+             display: block;
+             width: 1px;
+             height: 100%;
+             position: absolute;
+             border-left: 1px dashed black;
+        }
+
+        &:hover {
+            background-color: #e2e2e2;
+            border-radius: 5px;
+        }
+    }
+}
+
 .mymine {
 
     height: 100%;

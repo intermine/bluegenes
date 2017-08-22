@@ -8,6 +8,7 @@
             [bluegenes.events.mymine :as evts]
             [bluegenes.subs.mymine :as subs]
             [inflections.core :as inf]
+            [bluegenes.sections.mymine.views.browser :as browser]
             [bluegenes.sections.mymine.views.modals :as modals]
             )
   (:import
@@ -98,7 +99,11 @@
      [:li {:data-toggle "modal"
            :data-keyboard true
            :data-target "#myMineCopyModal"}
-      [:a "Copy"]]]))
+      [:a "Copy"]]
+     [:li {:data-toggle "modal"
+           :data-keyboard true
+           :data-target "#myMineDeleteModal"}
+      [:a "Delete"]]]))
 
 (defmethod context-menu :default []
   (fn [target]
@@ -213,7 +218,10 @@
             #_(if open
                 [:svg.icon.icon-folder [:use {:xlinkHref "#icon-folder-open"}]]
                 [:svg.icon.icon-folder [:use {:xlinkHref "#icon-folder"}]]))]
-         [:div label]]))))
+         [:div.label-name label]
+         [:div.extra
+          [:span.label (count children)]
+          [:svg.icon.icon-caret-right]]]))))
 
 (defn public-folder []
   (let [lists (subscribe [::subs/public-lists])
@@ -227,7 +235,7 @@
         [:svg.icon.icon-folder [:use {:xlinkHref "#icon-globe"}]]]
        [:div.label-name {:on-click (fn [] (dispatch [::evts/set-focus :public]))} "Public"]
        [:div.extra
-        [:span.label.label-info (count @lists)]
+        [:span.label (count @lists)]
         [:svg.icon.icon-caret-right]]])))
 
 (defn unsorted-folder []
@@ -244,7 +252,7 @@
         {:on-click (fn [] (dispatch [::evts/set-focus :public]))}
         "Unsorted "]
        (when (> (count @unfilled) 0) [:div.extra
-                                      [:span.label.label-info (count @unfilled)]
+                                      [:span.label (count @unfilled)]
                                       [:svg.icon.icon-caret-right
                                        {:class (when open "open")}]])])))
 
@@ -336,9 +344,7 @@
         sort-by             (subscribe [::subs/sort-by])
         context-menu-target (subscribe [::subs/context-menu-target])
         files               (subscribe [::subs/files])
-        focus               (subscribe [::subs/focus])
-
-        ]
+        focus               (subscribe [::subs/focus])]
     (r/create-class
       {:component-did-mount attach-hide-context-menu
        :reagent-render
@@ -346,6 +352,7 @@
          [:div.mymine.noselect
           [:div.file-browser [file-browser]]
           [:div.files
+           [browser/main]
            [breadcrumb]
            (if (not-empty @files)
              [:table.table.mymine-table
@@ -374,6 +381,7 @@
           [details]
           [modals/modal @context-menu-target]
           [modals/modal-copy @context-menu-target]
+          [modals/modal-delete-item @context-menu-target]
           [modals/modal-new-folder @context-menu-target]
           [modals/modal-delete-folder @context-menu-target]
 

@@ -130,7 +130,7 @@
 
 ; TODO
 ; We're freshing everything because currently the send/copy-list end point doesn't return a list ID
-; This can be greatly reduced in the future
+; This can be greatly reduced in the future (see to ;; END TODO below)
 (reg-event-fx
   ::fetch-one-list-success
   (fn [{db :db} [_ trail {:keys [id name] :as list-details}]]
@@ -163,6 +163,23 @@
       {:im-chan {:chan (send/copy-list service old-list-name new-list-name)
                  :on-success [::copy-success trail]
                  :on-failure [::copy-failure]}})))
+
+;;;; END TODO
+
+(reg-event-fx
+  ::delete-success
+  (fn [{db :db} [_ trail response]]
+    {:dispatch [:assets/fetch-lists trail response]}))
+
+
+(reg-event-fx
+  ::delete
+  (fn [{db :db} [_ trail list-name]]
+    ;[on-success on-failure response-format chan params]
+    (let [service (get-in db [:mines (get db :current-mine) :service])]
+      {:im-chan {:chan (send/delete-list service list-name)
+                 :on-success [::delete-success trail]
+                 :on-failure [::delete-failure]}})))
 
 (reg-event-db
   ::drag-over

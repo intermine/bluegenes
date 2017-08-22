@@ -23,7 +23,9 @@
             :tree {:root {:file-type :folder
                           :open true
                           :label "My InterMine"
-                          :children {}}}}
+                          :children {:public {:file-type :folder
+                                              :open true
+                                              :label "Public"}}}}}
    :lists {:controls {:filters {:text-filter nil
                                 :flags {:authorized nil
                                         :favourite nil}}
