@@ -35,9 +35,9 @@
   (fn []
     [:footer.footer
      [:div
-      [:p "Powered by: "
-       [:a {:href "nope"}
-        [:img {:width "120px" :src "https://cdn.rawgit.com/intermine/design-materials/master/logos/intermine/intermine.png"}]]]
+      [:p "BlueGenes (alpha) powered by: "
+       [:a {:href "http://www.intermine.org"}
+        [:img {:width "120px" :src "https://cdn.rawgit.com/intermine/design-materials/c4716412/logos/intermine/intermine.png" :alt "InterMine"}]]]
       [:a {:href "https://intermineorg.wordpress.com/cite/"} "Cite"]
       [:a {:href "http://intermine.readthedocs.io/en/latest/about/contact-us/"} "Contact"]
       [:a {:href "https://intermineorg.wordpress.com/"} "Blog"]
