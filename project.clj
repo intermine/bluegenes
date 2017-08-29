@@ -114,6 +114,7 @@
                                         :parallel-build true
                                         :output-to "resources/public/js/compiled/app.js"
                                         ;:output-dir "resources/public/js/compiled"
+                                        :externs ["externs/imjs.js"]
                                         :optimizations :advanced
                                         :closure-defines {goog.DEBUG false}
                                         :pretty-print false}}
