@@ -31,9 +31,6 @@
                  [ring/ring-json "0.4.0"]
                  [metosin/ring-http-response "0.9.0"]
 
-                 ; Dev tools
-                 [re-frisk "0.4.5"]
-
                  ; Build tools
                  [yogthos/config "0.8"]
 
@@ -90,8 +87,7 @@
   :less {:source-paths ["less"]
          :target-path "resources/public/css"}
 
-  :profiles {:dev {:dependencies [[binaryage/devtools "0.9.4"]]
-                   :resource-paths ["config/dev"]
+  :profiles {:dev {:resource-paths ["config/dev"]
                    :plugins [[lein-figwheel "0.5.11"]
                              [lein-doo "0.1.7"]]}
              :prod {:dependencies []
@@ -110,8 +106,6 @@
                                         :source-map-timestamp true
                                         :pretty-print true
                                         ;:parallel-build true
-                                        :preloads [devtools.preload]
-                                        :external-config {:devtools/config {:features-to-install :all}}
                                         }}
 
                        :min {:source-paths ["src/cljs"]

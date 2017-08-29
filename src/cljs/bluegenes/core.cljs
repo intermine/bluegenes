@@ -1,7 +1,6 @@
 (ns bluegenes.core
   (:require [reagent.core :as reagent]
             [re-frame.core :as re-frame]
-            [devtools.core :as devtools]
             [re-frisk.core :refer [enable-re-frisk!]]
             [bluegenes.utils]
             [im-tables.core]
@@ -19,11 +18,11 @@
 ; with (:version props) in project.clj
 (goog-define version "dev")
 
-(defn dev-setup []
-  (when config/debug?
-    (devtools/install!)
-    (enable-re-frisk!)
-    (println "dev mode")))
+;(defn dev-setup []
+;  (when config/debug?
+;    (devtools/install!)
+;    (enable-re-frisk!)
+;    (println "dev mode")))
 
 (defn mount-root []
   (reagent/render [views/main-panel]
@@ -42,7 +41,7 @@
   (routes/app-routes)
   (re-frame/dispatch-sync [:boot])
   (navigate-to-deep-links)
-  (dev-setup)
+  ;(dev-setup)
   ; Initialize our bootstrap dropdowns
   (ocall (js/$ ".dropdown-toggle") :dropdown)
   (mount-root))
