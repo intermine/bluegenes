@@ -347,3 +347,7 @@
     (assoc (get-in tree location) :trail location)))
 
 
+(reg-sub
+  ::op-selected-items
+  (fn [db]
+    (get-in db [:mymine :list-operations :selected])))

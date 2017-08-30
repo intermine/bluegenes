@@ -352,7 +352,7 @@
          [:div.mymine.noselect
           [:div.file-browser [file-browser]]
           [:div.files
-           [browser/main]
+
            [breadcrumb]
            (if (not-empty @files)
              [:table.table.mymine-table
@@ -377,7 +377,8 @@
               (into [:tbody]
                     (map-indexed (fn [idx x]
                                    ^{:key (str (:trail x))} [table-row (assoc x :index idx)]) @files))]
-             [:h1 "Empty Folder"])]
+             [:h1 "Empty Folder"])
+           [browser/main]]
           [details]
           [modals/modal @context-menu-target]
           [modals/modal-copy @context-menu-target]

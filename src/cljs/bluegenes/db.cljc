@@ -25,7 +25,8 @@
                           :label "My InterMine"
                           :children {:public {:file-type :folder
                                               :open true
-                                              :label "Public"}}}}}
+                                              :label "Public"}}}}
+            :list-operations {:selected #{}}}
    :lists {:controls {:filters {:text-filter nil
                                 :flags {:authorized nil
                                         :favourite nil}}

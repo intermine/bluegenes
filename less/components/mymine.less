@@ -10,10 +10,13 @@
         }
 
     }
+
+
     .hoverable {
 
         padding: 5px 0;
-
+        border-radius: 5px;
+/*
         &::before {
              content: "_";
              display: block;
@@ -21,6 +24,11 @@
              height: 100%;
              position: absolute;
              border-left: 1px dashed black;
+        }
+        */
+
+        &.highlighted {
+            border: 1px solid red;
         }
 
         &:hover {
