@@ -10,6 +10,7 @@
 (defn leaf []
   (let [hovering? (r/atom false)]
     (fn [x]
+      (println "Xc" x)
       [:li [node x]])))
 
 (defn pad [depth] (str (* depth 20) "px"))
@@ -35,7 +36,6 @@
   (let [selected-items (subscribe [::subs/op-selected-items])]
     (fn [[key {:keys [label file-type children depth id] :as x}]]
       (let [selected? (some? (some #{id} @selected-items))]
-        (println "S" selected?)
         [:div
          [:div.hoverable
           {:class (when selected? "highlighted")}
@@ -58,11 +58,14 @@
 
 (defn main []
   (let [wp       (subscribe [::subs/with-public])
-        selected (subscribe [::subs/op-selected-items])]
+        selected (subscribe [::subs/op-selected-items])
+        my-tree (subscribe [::subs/my-tree])]
     (fn []
       [:div.row
        [:pre (str @selected)]
        [:div.col-sm-6
-        [:ul.mymine-browser [leaf [:root (:root @wp)]]]]])))
+        (into
+          [:ul.mymine-browser]
+          (map (fn [x] [leaf x]) @my-tree))]])))
 
 

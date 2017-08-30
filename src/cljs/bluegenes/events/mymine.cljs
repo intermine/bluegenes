@@ -78,11 +78,15 @@
 (reg-event-db
   ::new-folder
   (fn [db [_ location-trail name]]
-    (-> db
-        ; Assocation the new folder into the tree
-        (update-in [:mymine :tree] update-in location-trail update :children assoc (make-random-uuid) {:label name :file-type :folder})
-        ; Open the parent
-        (update-in [:mymine :tree] update-in location-trail assoc :open true))))
+    (println "LOCATION TRAIL" location-trail name)
+    (if-not location-trail
+      (-> db (assoc-in [:mymine :tree (make-random-uuid)] {:label name :file-type :folder}))
+      (-> db
+          ; Assocation the new folder into the tree
+          (update-in [:mymine :tree] update-in (or location-trail []) update :children assoc (make-random-uuid) {:label name :file-type :folder})
+          ; Open the parent
+          (update-in [:mymine :tree] update-in (or location-trail []) assoc :open true)
+          ))))
 
 (defn parent-container [path]
   (if (= (last (butlast path)) :children)

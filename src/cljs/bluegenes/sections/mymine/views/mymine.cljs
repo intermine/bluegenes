@@ -177,6 +177,9 @@
            [:i.fa.fa-fw.fa-chevron-down]
            [:i.fa.fa-fw.fa-chevron-up]))])))
 
+(defn count-nested-children [m]
+  (count (mapcat (fn [y] (tree-seq (comp map? second) (comp :children second) y)) m)))
+
 (defn private-folder []
   (let [over  (subscribe [::subs/dragging-over])
         focus (subscribe [::subs/focus])]
@@ -220,7 +223,7 @@
                 [:svg.icon.icon-folder [:use {:xlinkHref "#icon-folder"}]]))]
          [:div.label-name label]
          [:div.extra
-          [:span.label (count children)]
+          [:span.label (count-nested-children children)]
           [:svg.icon.icon-caret-right]]]))))
 
 (defn public-folder []
@@ -228,33 +231,48 @@
         focus (subscribe [::subs/focus])]
     (fn [[key {:keys [label file-type open index trail children]}]]
       [:li {:on-click (fn [x] (dispatch [::evts/set-focus [:public]]))
-            :class (when (= :public @focus) "active")}
+            :class (when (= [:public] @focus) "active")}
        [:div.icon-container {:style {:padding-left (str (* index 13) "px")}}
         [:svg.icon.icon-caret-right
          {:class (when open "open")}]
         [:svg.icon.icon-folder [:use {:xlinkHref "#icon-globe"}]]]
-       [:div.label-name {:on-click (fn [] (dispatch [::evts/set-focus :public]))} "Public"]
+       [:div.label-name {:on-click (fn [] (dispatch [::evts/set-focus :public]))} "Public Items"]
        [:div.extra
         [:span.label (count @lists)]
         [:svg.icon.icon-caret-right]]])))
 
 (defn unsorted-folder []
   (let [focus    (subscribe [::subs/focus])
-        unfilled (subscribe [::subs/unfilled])]
+        my-items (subscribe [::subs/my-items])]
     (fn [[key {:keys [label file-type open index trail]}]]
       [:li {:on-click (fn [x] (dispatch [::evts/set-focus [:unsorted]]))
             :class (when (= [:unsorted] @focus) "active")}
        [:div.icon-container {:style {:padding-left (str (* index 13) "px")}}
         [:svg.icon.icon-caret-right
          {:class (when open "open")}]
-        [:svg.icon.icon-drawer [:use {:xlinkHref "#icon-drawer"}]]]
+        [:svg.icon.icon-drawer [:use {:xlinkHref "#icon-user"}]]]
        [:div.label-name
         {:on-click (fn [] (dispatch [::evts/set-focus :public]))}
-        "Unsorted "]
-       (when (> (count @unfilled) 0) [:div.extra
-                                      [:span.label (count @unfilled)]
-                                      [:svg.icon.icon-caret-right
-                                       {:class (when open "open")}]])])))
+        "All My Items "]
+       [:div.extra
+        [:span.label (count @my-items)]
+        [:svg.icon.icon-caret-right]]])))
+
+(defn add-folder []
+  (let [focus    (subscribe [::subs/focus])
+        unfilled (subscribe [::subs/unfilled])]
+    (fn [[key {:keys [label file-type open index trail]}]]
+      [:li {:data-toggle "modal"
+            :data-keyboard true
+            :data-target "#myMineNewFolderModal"}
+       [:div.icon-container {:style {:padding-left (str (* index 13) "px")}}
+        [:svg.icon.icon-caret-right
+         {:class (when open "open")}]
+        [:svg.icon.icon-drawer [:use {:xlinkHref "#icon-plus"}]]]
+       [:div.label-name
+
+        "Add Folder "]])))
+
 
 (defn root-folder []
   (let [over  (subscribe [::subs/dragging-over])
@@ -305,9 +323,14 @@
              [public-folder]
              [unsorted-folder]
              [:li.separator]]
-            (map
-              (fn [[k v]] ^{:key (str (:trail v))} [folder [k v]])
-              @folders)))))
+            (conj
+              (mapv
+               (fn [[k v]] ^{:key (str (:trail v))} [folder [k v]])
+               @folders)
+
+              [:li.separator]
+              [add-folder]
+              )))))
 
 (defn details-list []
   (fn [{:keys [description tags authorized name type source size title status id timestamp dateCreated]}]
@@ -318,7 +341,7 @@
 (defn details []
   (let [selected         (subscribe [::subs/selected])
         selected-details (subscribe [::subs/selected-details])
-        dets (subscribe [::subs/details])]
+        dets             (subscribe [::subs/details])]
     (fn []
       [:div.details.open
        [details-list @dets]])))
@@ -329,8 +352,8 @@
     (fn []
       [:h4
        (case @focus
-         [:public] [:ol.breadcrumb [:li.active [:a "Public"]]]
-         [:unsorted] [:ol.breadcrumb [:li.active [:a "Unsorted"]]]
+         [:public] [:ol.breadcrumb [:li.active [:a "Public Items"]]]
+         [:unsorted] [:ol.breadcrumb [:li.active [:a "All My Items"]]]
          (into [:ol.breadcrumb]
                (map (fn [{:keys [trail label]}]
                       (let [focused? (= trail @focus)]
@@ -344,7 +367,9 @@
         sort-by             (subscribe [::subs/sort-by])
         context-menu-target (subscribe [::subs/context-menu-target])
         files               (subscribe [::subs/files])
-        focus               (subscribe [::subs/focus])]
+        focus               (subscribe [::subs/focus])
+        my-items               (subscribe [::subs/my-items])
+        ]
     (r/create-class
       {:component-did-mount attach-hide-context-menu
        :reagent-render
@@ -378,13 +403,13 @@
                     (map-indexed (fn [idx x]
                                    ^{:key (str (:trail x))} [table-row (assoc x :index idx)]) @files))]
              [:h1 "Empty Folder"])
-           [browser/main]]
-          [details]
+           [browser/main]
+           ]
+          ;[details]
           [modals/modal @context-menu-target]
           [modals/modal-copy @context-menu-target]
           [modals/modal-delete-item @context-menu-target]
           [modals/modal-new-folder @context-menu-target]
           [modals/modal-delete-folder @context-menu-target]
-
           [context-menu-container @context-menu-target]
           ])})))

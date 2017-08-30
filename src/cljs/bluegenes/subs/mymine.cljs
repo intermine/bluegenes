@@ -156,12 +156,26 @@
   (fn [[lists]] (filter (complement :authorized) lists)))
 
 (reg-sub
+  ::my-items
+  (fn [] (subscribe [:lists/filtered-lists]))
+  (fn [lists]
+    (->> lists
+         (filter (comp true? :authorized))
+         (map (fn [l]
+                (assoc l
+                  :file-type :list
+                  :label (:title l)
+                  :trail [:public (:title l)]))))))
+
+(reg-sub
   ::files
   (fn [] [(subscribe [::my-tree])
           (subscribe [::focus])
           (subscribe [:lists/filtered-lists])
-          (subscribe [::unfilled])])
-  (fn [[tree focus filtered-lists unfilled]]
+          (subscribe [::unfilled])
+          (subscribe [::my-items])
+          ])
+  (fn [[tree focus filtered-lists unfilled my-items]]
     (case focus
       [:public] (map (fn [l]
                      (assoc l :file-type :list
@@ -177,11 +191,14 @@
                    (map (fn [[k v]] (assoc v :trail (vec (conj focus :children k)))))
                    (concat unfilled)
                    (sort-by :file-type folders>files)))
-      [:unsorted] unfilled
+      ;[:unsorted] unfilled
+      [:unsorted] my-items
       (let [files (:children (get-in tree focus))]
         (->> files
              (map (fn [[k v]] (assoc v :trail (vec (conj focus :children k)))))
              (sort-by :file-type folders>files))))))
+
+
 
 (reg-sub
   ::selected-details
