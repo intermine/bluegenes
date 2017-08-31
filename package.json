@@ -1,0 +1,26 @@
+{
+  "name": "bluegenes",
+  "version": "1.0.0",
+  "description": "A [re-frame](https://github.com/Day8/re-frame) application designed to ... well, that part is up to you.",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "postinstall": "npm install bower -g && bower cache clean && bower install"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/intermine/bluegenes.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/intermine/bluegenes/issues"
+  },
+  "homepage": "https://github.com/intermine/bluegenes#README",
+  "dependencies": {
+    "bower": "^1.8.0"
+  }
+}
