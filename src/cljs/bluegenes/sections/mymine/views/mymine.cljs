@@ -223,7 +223,7 @@
                 [:svg.icon.icon-folder [:use {:xlinkHref "#icon-folder"}]]))]
          [:div.label-name label]
          [:div.extra
-          [:span.label (count-nested-children children)]
+          [:span.count (count-nested-children children)]
           [:svg.icon.icon-caret-right]]]))))
 
 (defn public-folder []
@@ -238,7 +238,7 @@
         [:svg.icon.icon-folder [:use {:xlinkHref "#icon-globe"}]]]
        [:div.label-name {:on-click (fn [] (dispatch [::evts/set-focus :public]))} "Public Items"]
        [:div.extra
-        [:span.label (count @lists)]
+        [:span.count (count @lists)]
         [:svg.icon.icon-caret-right]]])))
 
 (defn unsorted-folder []
@@ -255,7 +255,7 @@
         {:on-click (fn [] (dispatch [::evts/set-focus :public]))}
         "All My Items "]
        [:div.extra
-        [:span.label (count @my-items)]
+        [:span.count (count @my-items)]
         [:svg.icon.icon-caret-right]]])))
 
 (defn add-folder []
@@ -328,7 +328,7 @@
                (fn [[k v]] ^{:key (str (:trail v))} [folder [k v]])
                @folders)
 
-              [:li.separator]
+              ;[:li.separator]
               [add-folder]
               )))))
 
