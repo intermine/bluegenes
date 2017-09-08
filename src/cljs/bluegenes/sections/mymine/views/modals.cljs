@@ -177,6 +177,95 @@
                                 :on-click (fn [] (dispatch [::evts/copy trail (:name @dets) (ocall @input-dom-node :val)]))}
                                "OK"]]]]]])})))
 
+
+(defn modal-lo []
+  (let [input-dom-node (r/atom nil)
+        modal-dom-node (r/atom nil)
+        dets           (subscribe [::subs/details])]
+    (r/create-class
+      {:component-did-mount (fn [this]
+                              ; When modal is closed, clear the context menu target. This prevents the modal
+                              ; from retamaining prior state that was cancelled / dismissed
+                              (ocall (js/$ (r/dom-node this))
+                                     :on "hidden.bs.modal"
+                                     (fn [] (dispatch [::evts/set-context-menu-target nil])))
+                              (ocall (js/$ (r/dom-node this))
+                                     :on "shown.bs.modal"
+                                     (fn [] (ocall @input-dom-node :select))))
+       :reagent-render (fn [{:keys [file-type label trail]}]
+                         [:div#myMineLoModal.modal.fade
+                          {:tab-index "-1" ; Allows "escape" key to work.... for some reason
+                           :role "dialog"
+                           :ref (fn [e] (when e (reset! modal-dom-node (js/$ e))))} ; Get a handle on our
+                          [:div.modal-dialog
+                           [:div.modal-content
+                            [:div.modal-header [:h2 "Combine Lists"]]
+                            [:div.modal-body [:p "Please enter a name for the new list"]
+                             [:input.form-control
+                              {:ref (fn [e] (when e (do (oset! e :value "") (reset! input-dom-node (js/$ e)))))
+                               :type "text"
+                               :on-key-up (fn [evt]
+                                            (case (oget evt :keyCode)
+                                              13 (do ; Detect "Return
+                                                   (dispatch [::evts/lo-combine (ocall @input-dom-node :val)])
+                                                   (ocall @modal-dom-node :modal "hide"))
+                                              nil))}]]
+                            [:div.modal-footer
+                             [:div.btn-toolbar.pull-right
+                              [:button.btn.btn-default
+                               {:data-dismiss "modal"}
+                               "Cancel"]
+                              [:button.btn.btn-success.btn-raised
+                               {:data-dismiss "modal"
+                                :on-click (fn [] (dispatch [::evts/lo-combine (ocall @input-dom-node :val)]) )}
+                               "OK"]]]]]])})))
+
+(defn modal-lo-intersect []
+  (let [input-dom-node (r/atom nil)
+        modal-dom-node (r/atom nil)
+        dets           (subscribe [::subs/details])]
+    (r/create-class
+      {:component-did-mount (fn [this]
+                              ; When modal is closed, clear the context menu target. This prevents the modal
+                              ; from retamaining prior state that was cancelled / dismissed
+                              (ocall (js/$ (r/dom-node this))
+                                     :on "hidden.bs.modal"
+                                     (fn [] (dispatch [::evts/set-context-menu-target nil])))
+                              (ocall (js/$ (r/dom-node this))
+                                     :on "shown.bs.modal"
+                                     (fn [] (ocall @input-dom-node :select))))
+       :reagent-render (fn [{:keys [file-type label trail]}]
+                         [:div#myMineLoIntersectModal.modal.fade
+                          {:tab-index "-1" ; Allows "escape" key to work.... for some reason
+                           :role "dialog"
+                           :ref (fn [e] (when e (reset! modal-dom-node (js/$ e))))} ; Get a handle on our
+                          [:div.modal-dialog
+                           [:div.modal-content
+                            [:div.modal-header [:h2 "Intersec Lists"]]
+                            [:div.modal-body [:p "Please enter a name for the new list"]
+                             [:input.form-control
+                              {:ref (fn [e] (when e (do (oset! e :value "") (reset! input-dom-node (js/$ e)))))
+                               :type "text"
+                               :on-key-up (fn [evt]
+                                            (case (oget evt :keyCode)
+                                              13 (do ; Detect "Return
+                                                   (dispatch [::evts/lo-intersect (ocall @input-dom-node :val)])
+                                                   (ocall @modal-dom-node :modal "hide"))
+                                              nil))}]]
+                            [:div.modal-footer
+                             [:div.btn-toolbar.pull-right
+                              [:button.btn.btn-default
+                               {:data-dismiss "modal"}
+                               "Cancel"]
+                              [:button.btn.btn-success.btn-raised
+                               {:data-dismiss "modal"
+                                :on-click (fn [] (dispatch [::evts/lo-intersect (ocall @input-dom-node :val)]) )}
+                               "OK"]]]]]])})))
+
+
+
+
+
 (defn modal []
   (let [input-dom-node (r/atom nil)
         modal-dom-node (r/atom nil)]

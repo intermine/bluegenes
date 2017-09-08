@@ -178,19 +178,19 @@
   (fn [[tree focus filtered-lists unfilled my-items]]
     (case focus
       [:public] (map (fn [l]
-                     (assoc l :file-type :list
-                              :read-only? true
-                              :label (:title l)
-                              :trail [:public (:title l)]))
-                   ; TODO - rethink authorized flag
-                   ; Assume that all unauthorized lists are public, but I bet this
-                   ; isn't true if someone shares a list with you...
-                   (filter (comp false? :authorized) filtered-lists))
+                       (assoc l :file-type :list
+                                :read-only? true
+                                :label (:title l)
+                                :trail [:public (:title l)]))
+                     ; TODO - rethink authorized flag
+                     ; Assume that all unauthorized lists are public, but I bet this
+                     ; isn't true if someone shares a list with you...
+                     (filter (comp false? :authorized) filtered-lists))
       [:root] (let [files (:children (:root tree))]
-              (->> files
-                   (map (fn [[k v]] (assoc v :trail (vec (conj focus :children k)))))
-                   (concat unfilled)
-                   (sort-by :file-type folders>files)))
+                (->> files
+                     (map (fn [[k v]] (assoc v :trail (vec (conj focus :children k)))))
+                     (concat unfilled)
+                     (sort-by :file-type folders>files)))
       ;[:unsorted] unfilled
       [:unsorted] my-items
       (let [files (:children (get-in tree focus))]
@@ -368,3 +368,14 @@
   ::op-selected-items
   (fn [db]
     (get-in db [:mymine :list-operations :selected])))
+
+(reg-sub
+  ::checked-ids
+  (fn [db] (get-in db [:mymine :checked])))
+
+(reg-sub
+  ::checked-details
+  (fn [] [(subscribe [:lists/filtered-lists])
+          (subscribe [::checked-ids])])
+  (fn [[lists checked-ids]]
+    (filter (fn [l] (some #{(:id l)} checked-ids)) lists)))

@@ -145,9 +145,11 @@
 
 (defn table-row []
   (let [over     (subscribe [::subs/dragging-over])
-        selected (subscribe [::subs/selected])]
-    (fn [{:keys [editing? friendly-date-created level file-type type trail index read-only? size type] :as row}]
-      (let [selected? (some? (some #{trail} @selected))]
+        selected (subscribe [::subs/selected])
+        checked  (subscribe [::subs/checked-ids])]
+    (fn [{:keys [editing? friendly-date-created level file-type type trail index read-only? size type id] :as row}]
+      (let [selected? (some? (some #{trail} @selected))
+            checked?  (some? (some #{id} @checked))]
         [:tr (-> {:class (clojure.string/join " " [
                                                    ;(when selected? (str "im-type box " type))
                                                    (when selected? (str "selected"))
@@ -156,6 +158,12 @@
                                                      :else nil)])}
                  (merge (click-events trail index row))
                  (cond-> (not read-only?) (merge (drag-events trail index row))))
+         [:td.shrinky (when (not= file-type :folder)
+                        [:input
+                         {:type "checkbox"
+                          :checked checked?
+                          :on-change (fn [e]
+                                       (dispatch [::evts/toggle-checked id]))}])]
          [:td {:style {:padding-left (str (* level 20) "px")}}
           (case file-type
             :folder [folder-cell row]
@@ -253,7 +261,7 @@
         [:svg.icon.icon-drawer [:use {:xlinkHref "#icon-user"}]]]
        [:div.label-name
         {:on-click (fn [] (dispatch [::evts/set-focus :public]))}
-        "All My Items "]
+        "My Items "]
        [:div.extra
         [:span.count (count @my-items)]
         [:svg.icon.icon-caret-right]]])))
@@ -271,7 +279,7 @@
         [:svg.icon.icon-drawer [:use {:xlinkHref "#icon-plus"}]]]
        [:div.label-name
 
-        "Add Folder "]])))
+        "New Folder"]])))
 
 
 (defn root-folder []
@@ -320,13 +328,13 @@
         folders (subscribe [::subs/folders])]
     (fn []
       (into [:ul
-             [public-folder]
              [unsorted-folder]
+             [public-folder]
              [:li.separator]]
             (conj
               (mapv
-               (fn [[k v]] ^{:key (str (:trail v))} [folder [k v]])
-               @folders)
+                (fn [[k v]] ^{:key (str (:trail v))} [folder [k v]])
+                @folders)
 
               ;[:li.separator]
               [add-folder]
@@ -346,6 +354,61 @@
       [:div.details.open
        [details-list @dets]])))
 
+
+
+(defn list-operations []
+  (fn []
+    [:div.btn-group
+     [:button.btn.btn-raised.btn-primary
+      {:disabled false
+       :data-toggle "modal"
+       :data-keyboard true
+       :data-target "#myMineLoModal"
+       ;:on-click (fn [] (dispatch [::evts/lo-combine]) )
+       }
+      [:div
+       [:svg.icon.icon-venn-combine [:use {:xlinkHref "#icon-venn-combine"}]]
+       [:div "Combine"]]]
+     [:button.btn.btn-raised.btn-primary
+      {:disabled false
+       :data-toggle "modal"
+       :data-keyboard true
+       :data-target "#myMineLoIntersectModal"
+       :on-click (fn [])}
+      [:div
+       [:svg.icon.icon-venn-intersection [:use {:xlinkHref "#icon-venn-intersection"}]]
+       [:div "Intersect"]]
+      ]
+     [:button.btn.btn-raised.btn-primary
+      {:disabled false
+       :data-toggle "modal"
+       :data-keyboard true
+       :data-target "#myMineLoIntersectModal"
+       :on-click (fn [])}
+      [:div
+       [:svg.icon.icon-venn-intersection [:use {:xlinkHref "#icon-venn-intersection"}]]
+       [:div "Intersect"]]
+      ]
+     [:button.btn.btn-raised.btn-primary
+      {:disabled false
+       :on-click (fn [])}
+      [:div
+       [:svg.icon.icon-venn-difference [:use {:xlinkHref "#icon-venn-difference"}]]
+       [:div "Substract"]]
+      ]
+     ]))
+
+(defn checked-card []
+  (fn [{:keys [name id type] :as details}]
+    [:div.mymine-card name]))
+
+(defn checked-panel []
+  (let [details (subscribe [::subs/checked-details])]
+    (fn []
+      [:div.details.open
+       [list-operations]
+       (into [:div] (map (fn [i] [checked-card i]) @details))])))
+
 (defn breadcrumb []
   (let [bc    (subscribe [::subs/breadcrumb])
         focus (subscribe [::subs/focus])]
@@ -353,7 +416,7 @@
       [:h4
        (case @focus
          [:public] [:ol.breadcrumb [:li.active [:a "Public Items"]]]
-         [:unsorted] [:ol.breadcrumb [:li.active [:a "All My Items"]]]
+         [:unsorted] [:ol.breadcrumb [:li.active [:a "My Items"]]]
          (into [:ol.breadcrumb]
                (map (fn [{:keys [trail label]}]
                       (let [focused? (= trail @focus)]
@@ -362,14 +425,16 @@
                          [:a label]]))
                     (filter #(= :folder (:file-type %)) @bc))))])))
 
+
+
 (defn main []
   (let [as-list             (subscribe [::subs/as-list])
         sort-by             (subscribe [::subs/sort-by])
         context-menu-target (subscribe [::subs/context-menu-target])
         files               (subscribe [::subs/files])
         focus               (subscribe [::subs/focus])
-        my-items               (subscribe [::subs/my-items])
-        ]
+        my-items            (subscribe [::subs/my-items])
+        checked             (subscribe [::subs/checked-ids])]
     (r/create-class
       {:component-did-mount attach-hide-context-menu
        :reagent-render
@@ -383,6 +448,7 @@
              [:table.table.mymine-table
               [:thead
                [:tr
+                [:th ""]
                 [table-header {:label "Name"
                                :key :label
                                :type :alphanum
@@ -403,13 +469,15 @@
                     (map-indexed (fn [idx x]
                                    ^{:key (str (:trail x))} [table-row (assoc x :index idx)]) @files))]
              [:h1 "Empty Folder"])
-           [browser/main]
+           ;[browser/main]
            ]
-          ;[details]
+          (when (not-empty @checked) [checked-panel])
           [modals/modal @context-menu-target]
           [modals/modal-copy @context-menu-target]
           [modals/modal-delete-item @context-menu-target]
           [modals/modal-new-folder @context-menu-target]
           [modals/modal-delete-folder @context-menu-target]
+          [modals/modal-lo @context-menu-target]
+          [modals/modal-lo-intersect @context-menu-target]
           [context-menu-container @context-menu-target]
           ])})))

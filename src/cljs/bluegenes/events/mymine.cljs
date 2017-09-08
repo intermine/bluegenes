@@ -4,6 +4,7 @@
             [cljs.core.async :refer [<!]]
             [imcljs.send :as send]
             [imcljs.fetch :as fetch]
+            [imcljs.save :as save]
             [bluegenes.effects :as fx]
             [cljs-uuid-utils.core :refer [make-random-uuid]]))
 
@@ -78,7 +79,6 @@
 (reg-event-db
   ::new-folder
   (fn [db [_ location-trail name]]
-    (println "LOCATION TRAIL" location-trail name)
     (if-not location-trail
       (-> db (assoc-in [:mymine :tree (make-random-uuid)] {:label name :file-type :folder}))
       (-> db
@@ -150,21 +150,23 @@
   ::fetch-one-list
   (fn [{db :db} [_ trail {list-name :listName}]]
     (let [service (get-in db [:mines (get db :current-mine) :service])]
-      {:im-chan {:chan       (fetch/one-list service list-name)
+      {:im-chan {:chan (fetch/one-list service list-name)
                  :on-success [::fetch-one-list-success trail]
                  :on-failure [::copy-failure]}})))
 
 (reg-event-fx
   ::copy-success
   (fn [{db :db} [_ trail response]]
-    {:dispatch [::fetch-one-list trail response]}))
+    {:dispatch-n [
+                  [::clear-checked]
+                  [::fetch-one-list trail response]]}))
 
 (reg-event-fx
   ::copy
   (fn [{db :db} [_ trail old-list-name new-list-name]]
     ;[on-success on-failure response-format chan params]
     (let [service (get-in db [:mines (get db :current-mine) :service])]
-      {:im-chan {:chan       (send/copy-list service old-list-name new-list-name)
+      {:im-chan {:chan (send/copy-list service old-list-name new-list-name)
                  :on-success [::copy-success trail]
                  :on-failure [::copy-failure]}})))
 
@@ -181,7 +183,7 @@
   (fn [{db :db} [_ trail list-name]]
     ;[on-success on-failure response-format chan params]
     (let [service (get-in db [:mines (get db :current-mine) :service])]
-      {:im-chan {:chan       (send/delete-list service list-name)
+      {:im-chan {:chan (send/delete-list service list-name)
                  :on-success [::delete-success trail]
                  :on-failure [::delete-failure]}})))
 
@@ -214,12 +216,12 @@
         (cond
           (= dragging dragging-over) {:db db :dispatch [::drag-end]} ; File was moved onto itself. Ignore.
           ;(and (= :folder drag-type) (= :folder drag-type)) db
-          :else {:db         (update-in db [:mymine :tree]
-                                        #(-> %
-                                             ; Remove this node from the tree
-                                             (dissoc-in (:trail dragging-node))
-                                             ; Re-associate to the new location
-                                             (update-in drop-parent-folder assoc-in [:children (last (:trail dragging-node))] dragging-node)))
+          :else {:db (update-in db [:mymine :tree]
+                                #(-> %
+                                     ; Remove this node from the tree
+                                     (dissoc-in (:trail dragging-node))
+                                     ; Re-associate to the new location
+                                     (update-in drop-parent-folder assoc-in [:children (last (:trail dragging-node))] dragging-node)))
                  ; Reselect the item at its new location
                  :dispatch-n [[::drag-end]
                               ;[::toggle-selected (concat drop-parent-folder [:children (last dragging)]) {:force? true}]
@@ -234,3 +236,47 @@
                  (if (some? (some #{id} s)) ; If the item id has already been selected...
                    (remove #{id} s) ; ... then remove it
                    (conj s id)))))) ; ... otherwise add it
+
+(defn toggle-set [coll k]
+  (let [s (set coll)]
+    (if (contains? s k)
+      (remove #{k} s)
+      (conj s k))))
+
+(reg-event-db
+  ::toggle-checked
+  (fn [db [_ id]]
+    (update-in db [:mymine :checked] toggle-set id)))
+
+(reg-event-fx
+  ::lo-combine
+  (fn [{db :db} [_ list-name]]
+    (let [lists          (get-in db [:assets :lists (get db :current-mine)])
+          checked        (get-in db [:mymine :checked])
+          selected-lists (map :name (filter (fn [l] (some #{(:id l)} checked)) lists))]
+      (let [service (get-in db [:mines (get db :current-mine) :service])]
+        {:im-chan {:chan (save/im-list-union service list-name selected-lists)
+                   :on-success [::lo-success]
+                   :on-failure [::lo-success]}}))))
+
+(reg-event-fx
+  ::lo-intersect
+  (fn [{db :db} [_ list-name]]
+    (let [lists          (get-in db [:assets :lists (get db :current-mine)])
+          checked        (get-in db [:mymine :checked])
+          selected-lists (map :name (filter (fn [l] (some #{(:id l)} checked)) lists))]
+      (let [service (get-in db [:mines (get db :current-mine) :service])]
+        {:im-chan {:chan (save/im-list-intersect service list-name selected-lists)
+                   :on-success [::lo-success]
+                   :on-failure [::lo-success]}}))))
+
+(reg-event-db
+  ::clear-checked
+  (fn [db]
+    (assoc-in db [:mymine :checked] #{})))
+
+(reg-event-fx
+  ::lo-success
+  (fn [{db :db} [_ m]]
+    {:dispatch-n [[::clear-checked]
+                  [:assets/fetch-lists]]}))
