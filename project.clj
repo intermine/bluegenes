@@ -32,7 +32,7 @@
                  [metosin/ring-http-response "0.9.0"]
 
                  ; Dev tools
-                 [re-frisk "0.4.5"]
+                 [re-frisk "0.5.0"]
 
                  ; Build tools
                  [yogthos/config "0.8"]

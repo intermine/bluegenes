@@ -139,7 +139,7 @@
   ::fetch-one-list-success
   (fn [{db :db} [_ trail {:keys [id name] :as list-details}]]
     (cond-> {:dispatch [:assets/fetch-lists]}
-            (not= :public (first trail)) (assoc :db (update-in db [:mymine :tree]
+            (not (keyword? (first trail))) (assoc :db (update-in db [:mymine :tree]
                                                                update-in (parent-container trail)
                                                                update :children assoc
                                                                id (assoc list-details
@@ -157,6 +157,7 @@
 (reg-event-fx
   ::copy-success
   (fn [{db :db} [_ trail response]]
+    (js/console.log "COPY: trail response" trail response)
     {:dispatch-n [
                   [::clear-checked]
                   [::fetch-one-list trail response]]}))
@@ -165,9 +166,13 @@
   ::copy
   (fn [{db :db} [_ trail old-list-name new-list-name]]
     ;[on-success on-failure response-format chan params]
-    (let [service (get-in db [:mines (get db :current-mine) :service])]
+    (let [service      (get-in db [:mines (get db :current-mine) :service])
+          target-file (get-in db [:mymine :menu-file-details])
+          lists (get-in db [:assets :lists (get db :current-mine) ])
+          target-list-name  (->> lists (filter (fn [l] (= (:id target-file) (:id l)))) first :name)
+          location (butlast (:trail target-file))]
       {:im-chan {:chan (send/copy-list service old-list-name new-list-name)
-                 :on-success [::copy-success trail]
+                 :on-success [::copy-success location]
                  :on-failure [::copy-failure]}})))
 
 ;;;; END TODO
@@ -212,6 +217,7 @@
             drop-parent-folder (parent-folder tree dragging-over)
             drag-type          (:file-type (get-in tree dragging))
             drop-type          (:file-type (get-in tree dragging-over))]
+        (js/console.log "dragging-node" dragging-node)
         ; Don't do anything if we're moving something into the same folder
         (cond
           (= dragging dragging-over) {:db db :dispatch [::drag-end]} ; File was moved onto itself. Ignore.
@@ -221,7 +227,7 @@
                                      ; Remove this node from the tree
                                      (dissoc-in (:trail dragging-node))
                                      ; Re-associate to the new location
-                                     (update-in drop-parent-folder assoc-in [:children (last (:trail dragging-node))] dragging-node)))
+                                     (update-in drop-parent-folder assoc-in [:children (or (:id dragging-node) (last (:trail dragging-node)))] (:file-type dragging-node))))
                  ; Reselect the item at its new location
                  :dispatch-n [[::drag-end]
                               ;[::toggle-selected (concat drop-parent-folder [:children (last dragging)]) {:force? true}]
@@ -275,8 +281,16 @@
   (fn [db]
     (assoc-in db [:mymine :checked] #{})))
 
+(reg-event-db
+  ::set-menu-target
+  (fn [db [_ file-details]]
+    (update-in db [:mymine] assoc
+               :menu-file-details file-details)))
+
 (reg-event-fx
   ::lo-success
   (fn [{db :db} [_ m]]
-    {:dispatch-n [[::clear-checked]
-                  [:assets/fetch-lists]]}))
+    (let [focus (get-in db [:mymine :focus])]
+      (js/console.log "focus" focus)
+      {:dispatch-n [[::clear-checked]
+                    [:assets/fetch-lists]]})))

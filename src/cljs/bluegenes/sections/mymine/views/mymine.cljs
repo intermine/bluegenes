@@ -3,6 +3,7 @@
             [reagent.core :as r]
             [cljs-time.format :as tf]
             [cljs-time.core :as t]
+            [cljs-time.coerce :as c]
             [oops.core :refer [oget ocall oset!]]
             [goog.i18n.NumberFormat.Format]
             [bluegenes.events.mymine :as evts]
@@ -10,6 +11,7 @@
             [inflections.core :as inf]
             [bluegenes.sections.mymine.views.browser :as browser]
             [bluegenes.sections.mymine.views.modals :as modals]
+            [bluegenes.sections.mymine.views.contextmenu :as m]
             )
   (:import
     (goog.i18n NumberFormat)
@@ -74,45 +76,7 @@
 ;(defn dispatch-edit [location key value]
 ;  (dispatch [::evts/new-folder location key value]))
 
-(defmulti context-menu :file-type)
 
-(defmethod context-menu :folder []
-  (fn [{:keys [trail type]}]
-    [:ul.dropdown-menu
-     [:li {:data-toggle "modal"
-           :data-keyboard true
-           :data-target "#myMineNewFolderModal"}
-      [:a "New Folder"]]
-     [:li.divider]
-     [:li {:data-toggle "modal"
-           :data-keyboard true
-           :data-target "#myMineRenameModal"}
-      [:a "Rename"]]
-     [:li {:data-toggle "modal"
-           :data-keyboard true
-           :data-target "#myMineDeleteFolderModal"}
-      [:a "Remove"]]]))
-
-(defmethod context-menu :list []
-  (fn [target]
-    [:ul.dropdown-menu
-     [:li {:data-toggle "modal"
-           :data-keyboard true
-           :data-target "#myMineCopyModal"}
-      [:a "Copy"]]
-     [:li {:data-toggle "modal"
-           :data-keyboard true
-           :data-target "#myMineDeleteModal"}
-      [:a "Delete"]]]))
-
-(defmethod context-menu :default []
-  (fn [target]
-    [:ul.dropdown-menu
-     [:li [:a "Default"]]]))
-
-(defn context-menu-container []
-  (fn [{:keys [file-type label trail] :as target}]
-    [:div#contextMenu.dropdown.clearfix ^{:key (str "context-menu" trail)} [context-menu target]]))
 
 (defn folder-cell []
   (fn [{:keys [file-type trail index label open editing?] :as item}]
@@ -128,7 +92,7 @@
       [:a label]]]))
 
 (defn list-cell []
-  (fn [{:keys [file-type trail index label open type] :as item}]
+  (fn [{:keys [file-type trail index label open] :as item} {:keys [title type] :as details}]
     [:div.mymine-row
      [:svg.icon.icon-document-list.im-type
       {:class (str type)} [:use {:xlinkHref "#icon-document-list"}]]
@@ -143,11 +107,13 @@
 
 (def clj-type type)
 
-(defn table-row []
-  (let [over     (subscribe [::subs/dragging-over])
-        selected (subscribe [::subs/selected])
-        checked  (subscribe [::subs/checked-ids])]
+(defn table-row [{:keys [id]}]
+  (let [over          (subscribe [::subs/dragging-over])
+        selected      (subscribe [::subs/selected])
+        checked       (subscribe [::subs/checked-ids])
+        asset-details (subscribe [::subs/one-list id])]
     (fn [{:keys [editing? friendly-date-created level file-type type trail index read-only? size type id] :as row}]
+      (js/console.log "id" id)
       (let [selected? (some? (some #{trail} @selected))
             checked?  (some? (some #{id} @checked))]
         [:tr (-> {:class (clojure.string/join " " [
@@ -167,7 +133,7 @@
          [:td {:style {:padding-left (str (* level 20) "px")}}
           (case file-type
             :folder [folder-cell row]
-            :list [list-cell row]
+            :list [list-cell row @asset-details]
             :query [query-cell row])]
          [:td type]
          [:td size]
@@ -188,13 +154,29 @@
 (defn count-nested-children [m]
   (count (mapcat (fn [y] (tree-seq (comp map? second) (comp :children second) y)) m)))
 
+(defn clickable [{:keys [id file-type trail]}]
+  {:on-click (fn [e] (js/console.log "clicked" id))})
+
+(defn menuable [file-details]
+  {:on-context-menu (fn [evt]
+                      ; Prevent the default right menu
+                      (ocall evt :preventDefault)
+                      ; Tell re-frame what we're right clicking on
+                      (dispatch [::evts/set-menu-target file-details])
+                      ; Show the context menu
+                      (ocall (js/$ "#contextMenu") :css (clj->js {:display "block"
+                                                                  :left (oget evt :pageX)
+                                                                  :top (oget evt :pageY)})))})
+
 (defn private-folder []
   (let [over  (subscribe [::subs/dragging-over])
         focus (subscribe [::subs/focus])]
     (fn [[key {:keys [label file-type children open index trail] :as row}]]
       (let [has-child-folders? (> (count (filter #(= :folder (:file-type (second %))) children)) 0)]
+        (js/console.log "ROWwwwwww" row)
         [:li
-         (merge {:on-click (fn [] (dispatch [::evts/set-focus trail]))
+         (merge {:on-click (fn [] (dispatch [::evts/set-focus trail]))} (menuable row))
+         #_(merge {:on-click (fn [] (dispatch [::evts/set-focus trail]))
                  :on-context-menu (fn [evt]
 
                                     (when-not (oget evt :nativeEvent :ctrlKey)
@@ -244,7 +226,7 @@
         [:svg.icon.icon-caret-right
          {:class (when open "open")}]
         [:svg.icon.icon-folder [:use {:xlinkHref "#icon-globe"}]]]
-       [:div.label-name {:on-click (fn [] (dispatch [::evts/set-focus :public]))} "Public Items"]
+       [:div.label-name {:on-click (fn [] (dispatch [::evts/set-focus [:public]]))} "Public Items"]
        [:div.extra
         [:span.count (count @lists)]
         [:svg.icon.icon-caret-right]]])))
@@ -260,7 +242,7 @@
          {:class (when open "open")}]
         [:svg.icon.icon-drawer [:use {:xlinkHref "#icon-user"}]]]
        [:div.label-name
-        {:on-click (fn [] (dispatch [::evts/set-focus :public]))}
+        #_{:on-click (fn [] (dispatch [::evts/set-focus [:public]]))}
         "My Items "]
        [:div.extra
         [:span.count (count @my-items)]
@@ -319,6 +301,7 @@
 
 (defn folder []
   (fn [[key properties :as f]]
+    (js/console.log "F" f)
     (case key
       :root [root-folder f]
       [private-folder f])))
@@ -427,6 +410,61 @@
 
 
 
+
+
+(defn checkbox [id]
+  (let [checked-ids (subscribe [::subs/checked-ids])]
+    (fn [id]
+      (let [checked? (some? (some #{id} @checked-ids))]
+        [:input
+         {:type "checkbox"
+          :checked checked?
+          :on-click (fn [e]
+                      (ocall e :stopPropagation)
+                      (dispatch [::evts/toggle-checked id]))}]))))
+
+(defn ico []
+  (fn [file-type]
+    (case file-type
+      :list [:svg.icon.icon-folder [:use {:xlinkHref "#icon-document-list"}]]
+      :folder [:svg.icon.icon-folder [:use {:xlinkHref "#icon-folder"}]]
+      [:svg.icon.icon-folder [:use {:xlinkHref "#icon-spyglass"}]])))
+
+(defn row-folder []
+  (fn [{:keys [file-type label id] :as file}]
+    [:tr
+     (merge {} (clickable file) (menuable file))
+     [:td [checkbox id]]
+     [:td [:div [ico file-type] label]]
+     [:td] ; Type
+     [:td] ; Size
+     [:td] ; Last Modified
+     ]))
+
+(def built-in-formatter (tf/formatter "MMM d, y"))
+
+(defn row-list [{:keys [id trail file-type] :as file}]
+  (let [details (subscribe [::subs/one-list id])]
+    (js/console.log "row list" @details)
+
+    (fn []
+      (let [{:keys [description authorized name type size timestamp] :as dets} @details]
+        (js/console.log "date" (tf/unparse built-in-formatter (c/from-long timestamp)))
+        [:tr
+         (merge {} (clickable file) (menuable file))
+         [:td [checkbox id]]
+         [:td [:div [ico file-type] name]]
+         [:td type]
+         [:td size]
+         [:td (tf/unparse built-in-formatter (c/from-long timestamp))]]))))
+
+(defn row [{:keys [id file-type trail] :as item}]
+  (fn []
+    (case file-type
+      :list [row-list item]
+      :folder [row-folder item]
+      [:div])))
+
 (defn main []
   (let [as-list             (subscribe [::subs/as-list])
         sort-by             (subscribe [::subs/sort-by])
@@ -434,11 +472,14 @@
         files               (subscribe [::subs/files])
         focus               (subscribe [::subs/focus])
         my-items            (subscribe [::subs/my-items])
-        checked             (subscribe [::subs/checked-ids])]
+        checked             (subscribe [::subs/checked-ids])
+        my-files            (subscribe [::subs/visible-files])
+        ]
     (r/create-class
       {:component-did-mount attach-hide-context-menu
        :reagent-render
        (fn []
+         (js/console.log "files" @my-files)
          [:div.mymine.noselect
           [:div.file-browser [file-browser]]
           [:div.files
@@ -465,9 +506,15 @@
                                :key :dateCreated
                                :type :date
                                :sort-by @sort-by}]]]
+              #_(into [:tbody]
+                      (map-indexed (fn [idx x]
+                                     ^{:key (str (:trail x))} [table-row (assoc x :index idx)]) @files))
+
               (into [:tbody]
                     (map-indexed (fn [idx x]
-                                   ^{:key (str (:trail x))} [table-row (assoc x :index idx)]) @files))]
+                                   ^{:key (str (:trail x))} [row (assoc x :index idx)]) @my-files))
+
+              ]
              [:h1 "Empty Folder"])
            ;[browser/main]
            ]
@@ -479,5 +526,5 @@
           [modals/modal-delete-folder @context-menu-target]
           [modals/modal-lo @context-menu-target]
           [modals/modal-lo-intersect @context-menu-target]
-          [context-menu-container @context-menu-target]
+          [m/context-menu-container @context-menu-target]
           ])})))

@@ -199,6 +199,30 @@
              (sort-by :file-type folders>files))))))
 
 
+; Returns a subtree of the files tree (i.e. files in the current visible directory)
+(reg-sub
+  ::visible-files
+  (fn [] [(subscribe [::focus]) (subscribe [::my-tree]) (subscribe [:lists/filtered-lists])])
+  (fn [[focus tree all-lists]]
+    ; Get the children of the directory in focus
+    (let [files (-> tree (get-in focus) :children)]
+      ; Some "focuses" (directories) are special cases
+      (case focus
+        ; Show just the public items
+        [:public] (->> all-lists
+                       ; Get all public lists
+                       (map (fn [l] (assoc l :file-type :list :trail (conj focus (:id l))))))
+
+        [:unsorted] (->> all-lists
+                         ; Get lists that belong to the user
+                         (map (fn [l] (assoc l :file-type :list :trail (conj focus (:id l)))))
+
+                         (filter (comp true? :authorized)))
+        (->> files
+             ; Give each child a :trail attribute that represents its full path in the tree
+             (map (fn [[k v]] (assoc v :trail (vec (conj focus :children k)))))
+             ; Sort the children so that folders are first
+             (sort-by :file-type folders>files))))))
 
 (reg-sub
   ::selected-details
@@ -379,3 +403,42 @@
           (subscribe [::checked-ids])])
   (fn [[lists checked-ids]]
     (filter (fn [l] (some #{(:id l)} checked-ids)) lists)))
+
+(reg-sub
+  ::one-list
+  (fn [db [_ list-id]]
+    (let [current-lists (get-in db [:assets :lists (get db :current-mine)])]
+      (->> current-lists (filter #(= list-id (:id %))) first))))
+
+(reg-sub
+  ::menu-target
+  (fn [db]
+    (get-in db [:mymine :menu-target])))
+
+;(reg-sub
+;  ::menu-item
+;  :<- [::menu-target]
+;  :<- [::my-tree]
+;  (fn [[menu-target tree]]
+;    (-> tree (get-in menu-target) (assoc :trail menu-target))))
+
+(reg-sub
+  ::menu-item
+  :<- [::menu-target]
+  :<- [::my-tree]
+  (fn [[menu-target tree]]
+    (-> tree (get-in menu-target) (assoc :trail menu-target))))
+
+(reg-sub
+  ::menu-details
+  (fn [db]
+    (get-in db [:mymine :menu-file-details])))
+
+;(reg-sub
+;  ::a-list
+;  (fn [[_ specific-id]]
+;    (subscribe [:lists/filtered-lists]))
+;  (fn [filtered-lists [_ specific-id]]
+;    ; Need access to specific-id for something like:
+;    (filter #(= specific-id (:id %)) filtered-lists)
+;    ))
