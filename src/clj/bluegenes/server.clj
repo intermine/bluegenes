@@ -20,9 +20,10 @@
   (let [port (->int (or (:server-port env) 5000))]
     (timbre/set-level! :info)
     (try
-      (do
-        (mount/start)
-        (migrations/migrate))
+      (do)
+        ;(mount/start)
+        ;(migrations/migrate)
+
       (catch Exception e (errorf "Unable to connect to database: %s" (.getMessage e))))
     (run-jetty handler {:port port :join? false})
     (infof "Bluegenes server started on port: %s" port)))

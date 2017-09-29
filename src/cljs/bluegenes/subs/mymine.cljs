@@ -173,8 +173,8 @@
           (subscribe [::focus])
           (subscribe [:lists/filtered-lists])
           (subscribe [::unfilled])
-          (subscribe [::my-items])
-          ])
+          (subscribe [::my-items])])
+
   (fn [[tree focus filtered-lists unfilled my-items]]
     (case focus
       [:public] (map (fn [l]

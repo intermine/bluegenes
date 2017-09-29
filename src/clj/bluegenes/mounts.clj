@@ -57,4 +57,5 @@
                       (infof
                         "Starting DB connection pool to //%s:%s/%s"
                         (:db-host db-config) (:db-port db-config) (:db-name db-config))
-                      {:datasource (make-datasource (hikarify-db-spec db-config))}))
+                      #_{:datasource (make-datasource (hikarify-db-spec db-config))}
+                      {}))

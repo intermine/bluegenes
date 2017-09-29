@@ -85,8 +85,8 @@
           ; Assocation the new folder into the tree
           (update-in [:mymine :tree] update-in (or location-trail []) update :children assoc (make-random-uuid) {:label name :file-type :folder})
           ; Open the parent
-          (update-in [:mymine :tree] update-in (or location-trail []) assoc :open true)
-          ))))
+          (update-in [:mymine :tree] update-in (or location-trail []) assoc :open true)))))
+
 
 (defn parent-container [path]
   (if (= (last (butlast path)) :children)
@@ -168,7 +168,7 @@
     ;[on-success on-failure response-format chan params]
     (let [service      (get-in db [:mines (get db :current-mine) :service])
           target-file (get-in db [:mymine :menu-file-details])
-          lists (get-in db [:assets :lists (get db :current-mine) ])
+          lists (get-in db [:assets :lists (get db :current-mine)])
           target-list-name  (->> lists (filter (fn [l] (= (:id target-file) (:id l)))) first :name)
           location (butlast (:trail target-file))]
       {:im-chan {:chan (send/copy-list service old-list-name new-list-name)
@@ -229,9 +229,9 @@
                                      ; Re-associate to the new location
                                      (update-in drop-parent-folder assoc-in [:children (or (:id dragging-node) (last (:trail dragging-node)))] (:file-type dragging-node))))
                  ; Reselect the item at its new location
-                 :dispatch-n [[::drag-end]
+                 :dispatch-n [[::drag-end]]})))))
                               ;[::toggle-selected (concat drop-parent-folder [:children (last dragging)]) {:force? true}]
-                              ]})))))
+
 
 
 (reg-event-db

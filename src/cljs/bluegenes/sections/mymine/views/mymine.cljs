@@ -11,8 +11,8 @@
             [inflections.core :as inf]
             [bluegenes.sections.mymine.views.browser :as browser]
             [bluegenes.sections.mymine.views.modals :as modals]
-            [bluegenes.sections.mymine.views.contextmenu :as m]
-            )
+            [bluegenes.sections.mymine.views.contextmenu :as m])
+
   (:import
     (goog.i18n NumberFormat)
     (goog.i18n.NumberFormat Format)))
@@ -67,8 +67,8 @@
                           ; Show the context menu
                           (ocall (js/$ "#contextMenu") :css (clj->js {:display "block"
                                                                       :left (oget evt :pageX)
-                                                                      :top (oget evt :pageY)})))))
-   })
+                                                                      :top (oget evt :pageY)})))))})
+
 
 
 
@@ -177,26 +177,26 @@
         [:li
          (merge {:on-click (fn [] (dispatch [::evts/set-focus trail]))} (menuable row))
          #_(merge {:on-click (fn [] (dispatch [::evts/set-focus trail]))
-                 :on-context-menu (fn [evt]
+                   :on-context-menu (fn [evt]
 
-                                    (when-not (oget evt :nativeEvent :ctrlKey)
+                                      (when-not (oget evt :nativeEvent :ctrlKey)
 
 
-                                      (do
+                                        (do
                                         ; Prevent the browser from showing its context menu
-                                        (ocall evt :preventDefault)
+                                          (ocall evt :preventDefault)
                                         ; Force this item to be selected
-                                        (dispatch [::evts/toggle-selected trail {:force? true}])
+                                          (dispatch [::evts/toggle-selected trail {:force? true}])
                                         ; Set this item as the target of the context menu
-                                        (dispatch [::evts/set-context-menu-target trail row])
+                                          (dispatch [::evts/set-context-menu-target trail row])
                                         ; Show the context menu
-                                        (ocall (js/$ "#contextMenu") :css (clj->js {:display "block"
-                                                                                    :left (oget evt :pageX)
-                                                                                    :top (oget evt :pageY)})))))
-                 :class (cond
-                          (= trail @over) "draggingover"
-                          (= trail @focus) "active"
-                          :else nil)}
+                                          (ocall (js/$ "#contextMenu") :css (clj->js {:display "block"
+                                                                                      :left (oget evt :pageX)
+                                                                                      :top (oget evt :pageY)})))))
+                   :class (cond
+                            (= trail @over) "draggingover"
+                            (= trail @focus) "active"
+                            :else nil)}
                 (drop-events trail 0))
          [:div.icon-container {:style {:padding-left (str (* (dec index) 26) "px")}}
           [:svg.icon.icon-caret-right
@@ -320,8 +320,8 @@
                 @folders)
 
               ;[:li.separator]
-              [add-folder]
-              )))))
+              [add-folder])))))
+
 
 (defn details-list []
   (fn [{:keys [description tags authorized name type source size title status id timestamp dateCreated]}]
@@ -346,9 +346,9 @@
       {:disabled false
        :data-toggle "modal"
        :data-keyboard true
-       :data-target "#myMineLoModal"
+       :data-target "#myMineLoModal"}
        ;:on-click (fn [] (dispatch [::evts/lo-combine]) )
-       }
+
       [:div
        [:svg.icon.icon-venn-combine [:use {:xlinkHref "#icon-venn-combine"}]]
        [:div "Combine"]]]
@@ -360,8 +360,8 @@
        :on-click (fn [])}
       [:div
        [:svg.icon.icon-venn-intersection [:use {:xlinkHref "#icon-venn-intersection"}]]
-       [:div "Intersect"]]
-      ]
+       [:div "Intersect"]]]
+
      [:button.btn.btn-raised.btn-primary
       {:disabled false
        :data-toggle "modal"
@@ -370,16 +370,16 @@
        :on-click (fn [])}
       [:div
        [:svg.icon.icon-venn-intersection [:use {:xlinkHref "#icon-venn-intersection"}]]
-       [:div "Intersect"]]
-      ]
+       [:div "Intersect"]]]
+
      [:button.btn.btn-raised.btn-primary
       {:disabled false
        :on-click (fn [])}
       [:div
        [:svg.icon.icon-venn-difference [:use {:xlinkHref "#icon-venn-difference"}]]
-       [:div "Substract"]]
-      ]
-     ]))
+       [:div "Substract"]]]]))
+
+
 
 (defn checked-card []
   (fn [{:keys [name id type] :as details}]
@@ -438,8 +438,8 @@
      [:td [:div [ico file-type] label]]
      [:td] ; Type
      [:td] ; Size
-     [:td] ; Last Modified
-     ]))
+     [:td]])) ; Last Modified
+
 
 (def built-in-formatter (tf/formatter "MMM d, y"))
 
@@ -473,8 +473,8 @@
         focus               (subscribe [::subs/focus])
         my-items            (subscribe [::subs/my-items])
         checked             (subscribe [::subs/checked-ids])
-        my-files            (subscribe [::subs/visible-files])
-        ]
+        my-files            (subscribe [::subs/visible-files])]
+
     (r/create-class
       {:component-did-mount attach-hide-context-menu
        :reagent-render
@@ -512,13 +512,13 @@
 
               (into [:tbody]
                     (map-indexed (fn [idx x]
-                                   ^{:key (str (:trail x))} [row (assoc x :index idx)]) @my-files))
+                                   ^{:key (str (:trail x))} [row (assoc x :index idx)]) @my-files))]
 
-              ]
-             [:h1 "Empty Folder"])
+
+             [:h1 "Empty Folder"])]
            ;[browser/main]
-           ]
-          (when (not-empty @checked) [checked-panel])
+
+          (when true #_(not-empty @checked) [checked-panel])
           [modals/modal @context-menu-target]
           [modals/modal-copy @context-menu-target]
           [modals/modal-delete-item @context-menu-target]
@@ -526,5 +526,5 @@
           [modals/modal-delete-folder @context-menu-target]
           [modals/modal-lo @context-menu-target]
           [modals/modal-lo-intersect @context-menu-target]
-          [m/context-menu-container @context-menu-target]
-          ])})))
+          [m/context-menu-container @context-menu-target]])})))
+
