@@ -15,6 +15,7 @@
 (defn create-job
   "Create an ID resolution job"
   [{root :root token :token} params]
+  (js/console.log "RESOLVING" params)
   (go (:body (<! (http/post
                    (str (cleanse-url root) "/ids")
                    {:json-params       params

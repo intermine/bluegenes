@@ -113,7 +113,6 @@
         checked       (subscribe [::subs/checked-ids])
         asset-details (subscribe [::subs/one-list id])]
     (fn [{:keys [editing? friendly-date-created level file-type type trail index read-only? size type id] :as row}]
-      (js/console.log "id" id)
       (let [selected? (some? (some #{trail} @selected))
             checked?  (some? (some #{id} @checked))]
         [:tr (-> {:class (clojure.string/join " " [
@@ -173,7 +172,6 @@
         focus (subscribe [::subs/focus])]
     (fn [[key {:keys [label file-type children open index trail] :as row}]]
       (let [has-child-folders? (> (count (filter #(= :folder (:file-type (second %))) children)) 0)]
-        (js/console.log "ROWwwwwww" row)
         [:li
          (merge {:on-click (fn [] (dispatch [::evts/set-focus trail]))} (menuable row))
          #_(merge {:on-click (fn [] (dispatch [::evts/set-focus trail]))
@@ -301,7 +299,6 @@
 
 (defn folder []
   (fn [[key properties :as f]]
-    (js/console.log "F" f)
     (case key
       :root [root-folder f]
       [private-folder f])))
@@ -383,14 +380,18 @@
 
 (defn checked-card []
   (fn [{:keys [name id type] :as details}]
-    [:div.mymine-card name]))
+    (js/console.log "details" details)
+    ;(dispatch [::evts/toggle-checked id])
+    [:div.mymine-card name [:span.pull-right [:span {:on-click (fn [] (dispatch [::evts/toggle-checked id]))} [:svg.icon.icon-close [:use {:xlinkHref "#icon-close"}]]]]]))
 
 (defn checked-panel []
   (let [details (subscribe [::subs/checked-details])]
     (fn []
       [:div.details.open
        [list-operations]
-       (into [:div] (map (fn [i] [checked-card i]) @details))])))
+       (if-not (empty? @details)
+         (into [:div [:h3 "Selected Lists"]] (map (fn [i] [checked-card i]) @details))
+         [:div [:h3 "Select one or more lists to perform an operation"]])])))
 
 (defn breadcrumb []
   (let [bc    (subscribe [::subs/breadcrumb])
@@ -445,11 +446,9 @@
 
 (defn row-list [{:keys [id trail file-type] :as file}]
   (let [details (subscribe [::subs/one-list id])]
-    (js/console.log "row list" @details)
 
     (fn []
       (let [{:keys [description authorized name type size timestamp] :as dets} @details]
-        (js/console.log "date" (tf/unparse built-in-formatter (c/from-long timestamp)))
         [:tr
          (merge {} (clickable file) (menuable file))
          [:td [checkbox id]]
@@ -479,7 +478,6 @@
       {:component-did-mount attach-hide-context-menu
        :reagent-render
        (fn []
-         (js/console.log "files" @my-files)
          [:div.mymine.noselect
           [:div.file-browser [file-browser]]
           [:div.files

@@ -153,7 +153,8 @@
 (reg-sub
   ::public-lists
   (fn [] [(subscribe [:lists/filtered-lists])])
-  (fn [[lists]] (filter (complement :authorized) lists)))
+  (fn [[lists]]
+    (filter (fn [l] (= (:authorized l) false)) lists)))
 
 (reg-sub
   ::my-items
@@ -211,6 +212,7 @@
         ; Show just the public items
         [:public] (->> all-lists
                        ; Get all public lists
+                       (filter (comp false? :authorized))
                        (map (fn [l] (assoc l :file-type :list :trail (conj focus (:id l))))))
 
         [:unsorted] (->> all-lists
