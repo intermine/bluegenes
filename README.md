@@ -85,13 +85,13 @@ installation of the javascript dependencies using [npm][npm] and
 bower install
 ```
 
-Compile css file once.
+### Compile css file once.
 
 ```
 lein less once
 ```
 
-Automatically recompile css file on change.
+### Automatically recompile css file on change.
 
 ```
 lein less auto
