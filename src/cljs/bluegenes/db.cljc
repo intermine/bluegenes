@@ -22,7 +22,8 @@
             :sort-by {:key :label
                       :type :alphanum
                       :asc? true}
-            :tree {"test-folder" {:file-type :folder
+            :tree {}
+            :tree-old {"test-folder" {:file-type :folder
                                   :open true
                                   :label "My Project"
                                   :children {67000011 {:file-type :list

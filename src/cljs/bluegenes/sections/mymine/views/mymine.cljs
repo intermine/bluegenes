@@ -54,6 +54,8 @@
                           (dispatch [::evts/toggle-selected trail index {:reset? true}]))))
    :on-context-menu (fn [evt]
 
+                      (println "TRAIL IS" trail)
+
                       (when-not (oget evt :nativeEvent :ctrlKey)
 
 
@@ -107,7 +109,7 @@
 
 (def clj-type type)
 
-(defn table-row [{:keys [id]}]
+(defn table-row [{:keys [id] :as me}]
   (let [over          (subscribe [::subs/dragging-over])
         selected      (subscribe [::subs/selected])
         checked       (subscribe [::subs/checked-ids])
@@ -123,6 +125,7 @@
                                                      :else nil)])}
                  (merge (click-events trail index row))
                  (cond-> (not read-only?) (merge (drag-events trail index row))))
+         (js/console.log "me" me)
          [:td.shrinky (when (not= file-type :folder)
                         [:input
                          {:type "checkbox"
@@ -156,16 +159,31 @@
 (defn clickable [{:keys [id file-type trail]}]
   {:on-click (fn [e] (js/console.log "clicked" id))})
 
+(defn draggable [{:keys [id file-type trail whoami] :as file-details}]
+  {:draggable true
+   :on-drag-start (fn [evt]
+                    (dispatch [::evts/drag-start trail whoami]))})
+
 (defn menuable [file-details]
   {:on-context-menu (fn [evt]
+                      (js/console.log "TESTING" file-details (:trail file-details))
                       ; Prevent the default right menu
                       (ocall evt :preventDefault)
                       ; Tell re-frame what we're right clicking on
                       (dispatch [::evts/set-menu-target file-details])
+                      ; TODO
+                      (dispatch [::evts/set-action-target (:trail file-details)])
                       ; Show the context menu
                       (ocall (js/$ "#contextMenu") :css (clj->js {:display "block"
                                                                   :left (oget evt :pageX)
                                                                   :top (oget evt :pageY)})))})
+
+
+(defn droppable [trail]
+  {:on-drag-end (fn [evt] (dispatch [::evts/drag-end trail]))
+   :on-drag-over (fn [evt] (ocall evt :preventDefault) (dispatch [::evts/drag-over trail]))
+   :on-drag-leave (fn [evt] (dispatch [::evts/drag-over nil]))
+   :on-drop (fn [evt] (dispatch [::evts/drop trail]))})
 
 (defn private-folder []
   (let [over  (subscribe [::subs/dragging-over])
@@ -173,7 +191,14 @@
     (fn [[key {:keys [label file-type children open index trail] :as row}]]
       (let [has-child-folders? (> (count (filter #(= :folder (:file-type (second %))) children)) 0)]
         [:li
-         (merge {:on-click (fn [] (dispatch [::evts/set-focus trail]))} (menuable row))
+         (merge
+           {:on-click (fn [] (dispatch [::evts/set-focus trail]))
+            :class (cond
+                     (= trail @over) "draggingover"
+                     (= trail @focus) "active"
+                     :else nil)}
+           (menuable row)
+           (droppable trail))
          #_(merge {:on-click (fn [] (dispatch [::evts/set-focus trail]))
                    :on-context-menu (fn [evt]
 
@@ -181,13 +206,13 @@
 
 
                                         (do
-                                        ; Prevent the browser from showing its context menu
+                                          ; Prevent the browser from showing its context menu
                                           (ocall evt :preventDefault)
-                                        ; Force this item to be selected
+                                          ; Force this item to be selected
                                           (dispatch [::evts/toggle-selected trail {:force? true}])
-                                        ; Set this item as the target of the context menu
+                                          ; Set this item as the target of the context menu
                                           (dispatch [::evts/set-context-menu-target trail row])
-                                        ; Show the context menu
+                                          ; Show the context menu
                                           (ocall (js/$ "#contextMenu") :css (clj->js {:display "block"
                                                                                       :left (oget evt :pageX)
                                                                                       :top (oget evt :pageY)})))))
@@ -195,7 +220,7 @@
                             (= trail @over) "draggingover"
                             (= trail @focus) "active"
                             :else nil)}
-                (drop-events trail 0))
+                  (drop-events trail 0))
          [:div.icon-container {:style {:padding-left (str (* (dec index) 26) "px")}}
           [:svg.icon.icon-caret-right
            {:class (when open "open")
@@ -258,8 +283,9 @@
          {:class (when open "open")}]
         [:svg.icon.icon-drawer [:use {:xlinkHref "#icon-plus"}]]]
        [:div.label-name
-
-        "New Folder"]])))
+        {:on-click (fn [] (dispatch [::evts/set-action-target []]))}
+        "New Folder"]
+       [:div.extra]])))
 
 
 (defn root-folder []
@@ -310,6 +336,8 @@
       (into [:ul
              [unsorted-folder]
              [public-folder]
+             [:li.separator]
+             [add-folder]
              [:li.separator]]
             (conj
               (mapv
@@ -317,7 +345,7 @@
                 @folders)
 
               ;[:li.separator]
-              [add-folder])))))
+              )))))
 
 
 (defn details-list []
@@ -339,12 +367,20 @@
 (defn list-operations []
   (fn []
     [:div.btn-group
+
+     [:button.btn.btn-raised.btn-primary
+      {:disabled false
+       :on-click (fn [] (dispatch [::evts/copy-n]))}
+      [:div
+       [:svg.icon.copy [:use {:xlinkHref "#copy"}]]
+       [:div "Copy"]]]
+
      [:button.btn.btn-raised.btn-primary
       {:disabled false
        :data-toggle "modal"
        :data-keyboard true
        :data-target "#myMineLoModal"}
-       ;:on-click (fn [] (dispatch [::evts/lo-combine]) )
+      ;:on-click (fn [] (dispatch [::evts/lo-combine]) )
 
       [:div
        [:svg.icon.icon-venn-combine [:use {:xlinkHref "#icon-venn-combine"}]]
@@ -374,7 +410,9 @@
        :on-click (fn [])}
       [:div
        [:svg.icon.icon-venn-difference [:use {:xlinkHref "#icon-venn-difference"}]]
-       [:div "Substract"]]]]))
+       [:div "Substract"]]]
+
+     ]))
 
 
 
@@ -449,10 +487,11 @@
 
     (fn []
       (let [{:keys [description authorized name type size timestamp] :as dets} @details]
+        (js/console.log "details" dets)
         [:tr
          (merge {} (clickable file) (menuable file))
          [:td [checkbox id]]
-         [:td [:div [ico file-type] name]]
+         [:td (merge {} (draggable file)) [:div [ico file-type] name]]
          [:td type]
          [:td size]
          [:td (tf/unparse built-in-formatter (c/from-long timestamp))]]))))
@@ -514,7 +553,7 @@
 
 
              [:h1 "Empty Folder"])]
-           ;[browser/main]
+          ;[browser/main]
 
           (when true #_(not-empty @checked) [checked-panel])
           [modals/modal @context-menu-target]

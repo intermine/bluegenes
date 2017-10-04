@@ -6,6 +6,7 @@
             [imcljs.fetch :as fetch]
             [imcljs.save :as save]
             [bluegenes.effects :as fx]
+            [clojure.string :as s]
             [cljs-uuid-utils.core :refer [make-random-uuid]]))
 
 (defn dissoc-in
@@ -56,6 +57,12 @@
     (reduce (fn [total next] (conj total (vec (conj (last total) next)))) [] coll)
     [coll]))
 
+
+(reg-event-db
+  ::set-action-target
+  (fn [db [_ path-vec]]
+    (assoc-in db [:mymine :action-target] path-vec)))
+
 (reg-event-db
   ::set-focus
   (fn [db [_ location-trail expand?]]
@@ -79,13 +86,22 @@
 (reg-event-db
   ::new-folder
   (fn [db [_ location-trail name]]
-    (if-not location-trail
-      (-> db (assoc-in [:mymine :tree (make-random-uuid)] {:label name :file-type :folder}))
-      (-> db
-          ; Assocation the new folder into the tree
-          (update-in [:mymine :tree] update-in (or location-trail []) update :children assoc (make-random-uuid) {:label name :file-type :folder})
-          ; Open the parent
-          (update-in [:mymine :tree] update-in (or location-trail []) assoc :open true)))))
+    (js/console.log "creating nwer golder")
+    (js/console.log "loc" location-trail name)
+    (let [action-target (not-empty  (get-in db [:mymine :action-target]))
+          uuid (make-random-uuid)]
+      (println "getting action target" action-target)
+      (println "setting focus" (if (nil? action-target) [uuid] (conj (vec location-trail) :children uuid)))
+      (if-not action-target
+        (-> db (assoc-in [:mymine :tree uuid] {:label name :file-type :folder}))
+        (-> db
+            ; Assocation the new folder into the tree
+            (update-in [:mymine :tree] update-in (or location-trail []) update :children assoc uuid {:label name :file-type :folder})
+            ; Open the parent
+            (update-in [:mymine :tree] update-in (or location-trail []) assoc :open true)
+            ;
+            (assoc-in [:mymine :focus] (if (nil? location-trail) [uuid] (conj (vec location-trail) :children uuid)))
+            )))))
 
 
 (defn parent-container [path]
@@ -138,13 +154,14 @@
 (reg-event-fx
   ::fetch-one-list-success
   (fn [{db :db} [_ trail {:keys [id name] :as list-details}]]
+    (js/console.log "fetching one succcess" trail list-details)
     (cond-> {:dispatch [:assets/fetch-lists]}
-            (not (keyword? (first trail))) (assoc :db (update-in db [:mymine :tree]
-                                                               update-in (parent-container trail)
-                                                               update :children assoc
-                                                               id (assoc list-details
-                                                                    :file-type :list
-                                                                    :label name))))))
+            (and trail (not (keyword? (first trail)))) (assoc :db (update-in db [:mymine :tree]
+                                                                 update-in (parent-container trail)
+                                                                 update :children assoc
+                                                                 id (assoc list-details
+                                                                      :file-type :list
+                                                                      :label name))))))
 
 (reg-event-fx
   ::fetch-one-list
@@ -157,20 +174,57 @@
 (reg-event-fx
   ::copy-success
   (fn [{db :db} [_ trail response]]
-    (js/console.log "COPY: trail response" trail response)
+    (js/console.log "COPY2: trail response:" trail response)
     {:dispatch-n [
                   [::clear-checked]
                   [::fetch-one-list trail response]]}))
 
 (reg-event-fx
+  ::copy-n
+  (fn [{db :db}]
+    (let [ids           (get-in db [:mymine :checked])
+          lists         (get-in db [:assets :lists (get db :current-mine)])
+          names-to-copy (map :name (filter (comp ids :id) lists))
+          focus         (or (get-in db [:mymine :focus]) [:unsorted])]
+      ; Now automatically increment the names of the list (since we're copying many)
+      (let [evts (reduce (fn [total next]
+                           (js/console.log "sanity" (filter #(s/starts-with? % (str next "_")) (map :name lists)))
+                           (if-let [previous (first (not-empty (filter #(s/starts-with? % (str next "_")) (map :name lists))))]
+                             (do
+                               (println "found previous" previous)
+                               (println "inceindvined" (-> previous last))
+                               (conj total [::copy-focus focus next (str previous "_" (-> previous last (js/parseInt) inc))]))
+                             (do
+                               (println "DID NOT find previous")
+                               (conj total [::copy-focus focus next (str next "_1")])))) [] names-to-copy)]
+        {:db db
+         :dispatch-n evts}))))
+
+(reg-event-fx
+  ::copy-focus
+  (fn [{db :db} [_ trail old-list-name new-list-name]]
+    ;[on-success on-failure response-format chan params]
+    (let [service          (get-in db [:mines (get db :current-mine) :service])
+          target-file      (get-in db [:mymine :menu-file-details])
+          lists            (get-in db [:assets :lists (get db :current-mine)])
+          target-list-name (->> lists (filter (fn [l] (= (:id target-file) (:id l)))) first :name)
+          location         (butlast (:trail target-file))]
+      (js/console.log "TRAIL" trail)
+      {:im-chan {:chan (send/copy-list service old-list-name new-list-name)
+                 :on-success [::copy-success location]
+                 :on-failure [::copy-failure]}})))
+
+(reg-event-fx
   ::copy
   (fn [{db :db} [_ trail old-list-name new-list-name]]
     ;[on-success on-failure response-format chan params]
-    (let [service      (get-in db [:mines (get db :current-mine) :service])
-          target-file (get-in db [:mymine :menu-file-details])
-          lists (get-in db [:assets :lists (get db :current-mine)])
-          target-list-name  (->> lists (filter (fn [l] (= (:id target-file) (:id l)))) first :name)
-          location (butlast (:trail target-file))]
+    (let [service          (get-in db [:mines (get db :current-mine) :service])
+          target-file      (get-in db [:mymine :menu-file-details])
+          lists            (get-in db [:assets :lists (get db :current-mine)])
+          target-list-name (->> lists (filter (fn [l] (= (:id target-file) (:id l)))) first :name)
+          location         (let [t (butlast (:trail target-file))]
+                             (if (= t '(:public)) nil t))]
+      (js/console.log "LOCATION" location)
       {:im-chan {:chan (send/copy-list service old-list-name new-list-name)
                  :on-success [::copy-success location]
                  :on-failure [::copy-failure]}})))
@@ -200,6 +254,7 @@
 (reg-event-db
   ::drag-end
   (fn [db [_ trail]]
+    (js/console.log "dragging end" trail)
     (assoc-in db [:mymine :dragging-over] nil)))
 
 (reg-event-db
@@ -213,11 +268,14 @@
   ::drop
   (fn [{db :db} [_ trail]]
     (let [{:keys [dragging dragging-over dragging-node]} (:mymine db)]
+      (js/console.log "TRAIL" trail dragging dragging-over dragging-node)
       (let [tree               (get-in db [:mymine :tree])
             drop-parent-folder (parent-folder tree dragging-over)
             drag-type          (:file-type (get-in tree dragging))
             drop-type          (:file-type (get-in tree dragging-over))]
-        (js/console.log "dragging-node" dragging-node)
+        (js/console.log "drag-parent-folder"   drop-parent-folder)
+        (js/console.log "drag-type" drag-type)
+        (js/console.log "drop-type" drop-type )
         ; Don't do anything if we're moving something into the same folder
         (cond
           (= dragging dragging-over) {:db db :dispatch [::drag-end]} ; File was moved onto itself. Ignore.
@@ -230,7 +288,7 @@
                                      (update-in drop-parent-folder assoc-in [:children (or (:id dragging-node) (last (:trail dragging-node)))] (:file-type dragging-node))))
                  ; Reselect the item at its new location
                  :dispatch-n [[::drag-end]]})))))
-                              ;[::toggle-selected (concat drop-parent-folder [:children (last dragging)]) {:force? true}]
+;[::toggle-selected (concat drop-parent-folder [:children (last dragging)]) {:force? true}]
 
 
 
