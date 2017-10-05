@@ -81,17 +81,15 @@
 (reg-event-db
   ::update-value
   (fn [db [_ location-trail key value]]
-    (update-in db [:mymine :tree] update-in location-trail assoc key value :editing? false)))
+
+    (let [action-target (get-in db [:mymine :action-target])]
+      (update-in db [:mymine :tree] update-in action-target assoc key value :editing? false))))
 
 (reg-event-db
   ::new-folder
   (fn [db [_ location-trail name]]
-    (js/console.log "creating nwer golder")
-    (js/console.log "loc" location-trail name)
-    (let [action-target (not-empty  (get-in db [:mymine :action-target]))
-          uuid (make-random-uuid)]
-      (println "getting action target" action-target)
-      (println "setting focus" (if (nil? action-target) [uuid] (conj (vec location-trail) :children uuid)))
+    (let [action-target (not-empty (get-in db [:mymine :action-target]))
+          uuid          (make-random-uuid)]
       (if-not action-target
         (-> db (assoc-in [:mymine :tree uuid] {:label name :file-type :folder}))
         (-> db
@@ -113,10 +111,11 @@
 (reg-event-db
   ::delete-folder
   (fn [db [_ location-trail name]]
-    (-> db
-        ; Dissoc the folder
-        (update-in [:mymine :tree] dissoc-in location-trail)
-        (assoc-in [:mymine :focus] (parent-container location-trail)))))
+    (let [action-target (not-empty (get-in db [:mymine :action-target]))]
+      (-> db
+         ; Dissoc the folder
+         (update-in [:mymine :tree] dissoc-in action-target)
+         (assoc-in [:mymine :focus] (parent-container action-target))))))
 
 (reg-event-db
   ::toggle-selected
@@ -143,10 +142,10 @@
 
 (reg-event-db
   ::drag-start
-  (fn [db [_ trail node]]
+  (fn [db [_ file-details]]
     (update db :mymine assoc
-            :dragging trail
-            :dragging-node node)))
+            :dragging file-details
+            :dragging-node file-details)))
 
 ; TODO
 ; We're freshing everything because currently the send/copy-list end point doesn't return a list ID
@@ -154,14 +153,13 @@
 (reg-event-fx
   ::fetch-one-list-success
   (fn [{db :db} [_ trail {:keys [id name] :as list-details}]]
-    (js/console.log "fetching one succcess" trail list-details)
     (cond-> {:dispatch [:assets/fetch-lists]}
             (and trail (not (keyword? (first trail)))) (assoc :db (update-in db [:mymine :tree]
-                                                                 update-in (parent-container trail)
-                                                                 update :children assoc
-                                                                 id (assoc list-details
-                                                                      :file-type :list
-                                                                      :label name))))))
+                                                                             update-in (parent-container trail)
+                                                                             update :children assoc
+                                                                             id (assoc list-details
+                                                                                  :file-type :list
+                                                                                  :label name))))))
 
 (reg-event-fx
   ::fetch-one-list
@@ -174,7 +172,6 @@
 (reg-event-fx
   ::copy-success
   (fn [{db :db} [_ trail response]]
-    (js/console.log "COPY2: trail response:" trail response)
     {:dispatch-n [
                   [::clear-checked]
                   [::fetch-one-list trail response]]}))
@@ -188,14 +185,10 @@
           focus         (or (get-in db [:mymine :focus]) [:unsorted])]
       ; Now automatically increment the names of the list (since we're copying many)
       (let [evts (reduce (fn [total next]
-                           (js/console.log "sanity" (filter #(s/starts-with? % (str next "_")) (map :name lists)))
                            (if-let [previous (first (not-empty (filter #(s/starts-with? % (str next "_")) (map :name lists))))]
                              (do
-                               (println "found previous" previous)
-                               (println "inceindvined" (-> previous last))
                                (conj total [::copy-focus focus next (str previous "_" (-> previous last (js/parseInt) inc))]))
                              (do
-                               (println "DID NOT find previous")
                                (conj total [::copy-focus focus next (str next "_1")])))) [] names-to-copy)]
         {:db db
          :dispatch-n evts}))))
@@ -209,8 +202,7 @@
           lists            (get-in db [:assets :lists (get db :current-mine)])
           target-list-name (->> lists (filter (fn [l] (= (:id target-file) (:id l)))) first :name)
           location         (butlast (:trail target-file))]
-      (js/console.log "TRAIL" trail)
-      {:im-chan {:chan (send/copy-list service old-list-name new-list-name)
+      {:im-chan {:chan (save/im-list-copy service old-list-name new-list-name)
                  :on-success [::copy-success location]
                  :on-failure [::copy-failure]}})))
 
@@ -224,8 +216,7 @@
           target-list-name (->> lists (filter (fn [l] (= (:id target-file) (:id l)))) first :name)
           location         (let [t (butlast (:trail target-file))]
                              (if (= t '(:public)) nil t))]
-      (js/console.log "LOCATION" location)
-      {:im-chan {:chan (send/copy-list service old-list-name new-list-name)
+      {:im-chan {:chan (save/im-list-copy service old-list-name new-list-name)
                  :on-success [::copy-success location]
                  :on-failure [::copy-failure]}})))
 
@@ -254,7 +245,6 @@
 (reg-event-db
   ::drag-end
   (fn [db [_ trail]]
-    (js/console.log "dragging end" trail)
     (assoc-in db [:mymine :dragging-over] nil)))
 
 (reg-event-db
@@ -268,26 +258,23 @@
   ::drop
   (fn [{db :db} [_ trail]]
     (let [{:keys [dragging dragging-over dragging-node]} (:mymine db)]
-      (js/console.log "TRAIL" trail dragging dragging-over dragging-node)
       (let [tree               (get-in db [:mymine :tree])
             drop-parent-folder (parent-folder tree dragging-over)
             drag-type          (:file-type (get-in tree dragging))
             drop-type          (:file-type (get-in tree dragging-over))]
-        (js/console.log "drag-parent-folder"   drop-parent-folder)
-        (js/console.log "drag-type" drag-type)
-        (js/console.log "drop-type" drop-type )
         ; Don't do anything if we're moving something into the same folder
         (cond
           (= dragging dragging-over) {:db db :dispatch [::drag-end]} ; File was moved onto itself. Ignore.
           ;(and (= :folder drag-type) (= :folder drag-type)) db
-          :else {:db (update-in db [:mymine :tree]
-                                #(-> %
-                                     ; Remove this node from the tree
-                                     (dissoc-in (:trail dragging-node))
-                                     ; Re-associate to the new location
-                                     (update-in drop-parent-folder assoc-in [:children (or (:id dragging-node) (last (:trail dragging-node)))] (:file-type dragging-node))))
-                 ; Reselect the item at its new location
-                 :dispatch-n [[::drag-end]]})))))
+          :else (do
+                  {:db (update-in db [:mymine :tree]
+                                  #(-> %
+                                       ; Remove this node from the tree
+                                       (dissoc-in (:trail dragging-node))
+                                       ; Re-associate to the new location
+                                       (update-in drop-parent-folder assoc-in [:children (or (:id dragging-node) (last (:trail dragging-node)))] (select-keys dragging-node [:file-type :id]))))
+                   ; Reselect the item at its new location
+                   :dispatch-n [[::drag-end]]}))))))
 ;[::toggle-selected (concat drop-parent-folder [:children (last dragging)]) {:force? true}]
 
 
@@ -349,6 +336,5 @@
   ::lo-success
   (fn [{db :db} [_ m]]
     (let [focus (get-in db [:mymine :focus])]
-      (js/console.log "focus" focus)
       {:dispatch-n [[::clear-checked]
                     [:assets/fetch-lists]]})))

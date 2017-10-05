@@ -217,7 +217,7 @@
 
         [:unsorted] (->> all-lists
                          ; Get lists that belong to the user
-                         (map (fn [l] (assoc l :file-type :list :trail (conj focus (:id l)))))
+                         (map (fn [l] (assoc l :file-type :list :trail [])))
 
                          (filter (comp true? :authorized)))
         (->> files

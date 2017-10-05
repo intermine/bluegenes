@@ -125,7 +125,6 @@
                                                      :else nil)])}
                  (merge (click-events trail index row))
                  (cond-> (not read-only?) (merge (drag-events trail index row))))
-         (js/console.log "me" me)
          [:td.shrinky (when (not= file-type :folder)
                         [:input
                          {:type "checkbox"
@@ -162,11 +161,10 @@
 (defn draggable [{:keys [id file-type trail whoami] :as file-details}]
   {:draggable true
    :on-drag-start (fn [evt]
-                    (dispatch [::evts/drag-start trail whoami]))})
+                    (dispatch [::evts/drag-start file-details]))})
 
 (defn menuable [file-details]
   {:on-context-menu (fn [evt]
-                      (js/console.log "TESTING" file-details (:trail file-details))
                       ; Prevent the default right menu
                       (ocall evt :preventDefault)
                       ; Tell re-frame what we're right clicking on
@@ -418,7 +416,6 @@
 
 (defn checked-card []
   (fn [{:keys [name id type] :as details}]
-    (js/console.log "details" details)
     ;(dispatch [::evts/toggle-checked id])
     [:div.mymine-card name [:span.pull-right [:span {:on-click (fn [] (dispatch [::evts/toggle-checked id]))} [:svg.icon.icon-close [:use {:xlinkHref "#icon-close"}]]]]]))
 
@@ -435,7 +432,7 @@
   (let [bc    (subscribe [::subs/breadcrumb])
         focus (subscribe [::subs/focus])]
     (fn []
-      [:h4
+      [:h2
        (case @focus
          [:public] [:ol.breadcrumb [:li.active [:a "Public Items"]]]
          [:unsorted] [:ol.breadcrumb [:li.active [:a "My Items"]]]
@@ -483,15 +480,19 @@
 (def built-in-formatter (tf/formatter "MMM d, y"))
 
 (defn row-list [{:keys [id trail file-type] :as file}]
-  (let [details (subscribe [::subs/one-list id])]
+  (let [details (subscribe [::subs/one-list id])
+        source  (subscribe [:current-mine-name])]
 
     (fn []
       (let [{:keys [description authorized name type size timestamp] :as dets} @details]
-        (js/console.log "details" dets)
         [:tr
          (merge {} (clickable file) (menuable file))
          [:td [checkbox id]]
-         [:td (merge {} (draggable file)) [:div [ico file-type] name]]
+         [:td (merge {} (draggable file))
+          [:div [ico file-type]
+           [:a {:on-click (fn [e]
+                            (.stopPropagation e)
+                            (dispatch [:lists/view-results (assoc dets :source @source)]))} name]]]
          [:td type]
          [:td size]
          [:td (tf/unparse built-in-formatter (c/from-long timestamp))]]))))
@@ -517,51 +518,53 @@
       {:component-did-mount attach-hide-context-menu
        :reagent-render
        (fn []
-         [:div.mymine.noselect
-          [:div.file-browser [file-browser]]
-          [:div.files
 
-           [breadcrumb]
-           (if (not-empty @files)
-             [:table.table.mymine-table
-              [:thead
-               [:tr
-                [:th ""]
-                [table-header {:label "Name"
-                               :key :label
-                               :type :alphanum
-                               :sort-by @sort-by}]
-                [table-header {:label "Type"
-                               :key :type
-                               :type :alphanum
-                               :sort-by @sort-by}]
-                [table-header {:label "Size"
-                               :key :size
-                               :type :alphanum
-                               :sort-by @sort-by}]
-                [table-header {:label "Last Modified"
-                               :key :dateCreated
-                               :type :date
-                               :sort-by @sort-by}]]]
-              #_(into [:tbody]
+         (let [filtered-files (not-empty (filter (comp #{:list} :file-type) @my-files))]
+           [:div.mymine.noselect
+            [:div.file-browser [file-browser]]
+            [:div.files
+
+             [breadcrumb]
+             (if filtered-files
+               [:table.table.mymine-table
+                [:thead
+                 [:tr
+                  [:th ""]
+                  [table-header {:label "Name"
+                                 :key :label
+                                 :type :alphanum
+                                 :sort-by @sort-by}]
+                  [table-header {:label "Type"
+                                 :key :type
+                                 :type :alphanum
+                                 :sort-by @sort-by}]
+                  [table-header {:label "Size"
+                                 :key :size
+                                 :type :alphanum
+                                 :sort-by @sort-by}]
+                  [table-header {:label "Last Modified"
+                                 :key :dateCreated
+                                 :type :date
+                                 :sort-by @sort-by}]]]
+                #_(into [:tbody]
+                        (map-indexed (fn [idx x]
+                                       ^{:key (str (:trail x))} [table-row (assoc x :index idx)]) @files))
+
+                (into [:tbody]
                       (map-indexed (fn [idx x]
-                                     ^{:key (str (:trail x))} [table-row (assoc x :index idx)]) @files))
-
-              (into [:tbody]
-                    (map-indexed (fn [idx x]
-                                   ^{:key (str (:trail x))} [row (assoc x :index idx)]) @my-files))]
+                                     ^{:key (str (:id x))} [row (assoc x :index idx)]) filtered-files))]
 
 
-             [:h1 "Empty Folder"])]
-          ;[browser/main]
+               [:h4 "Empty Folder"])]
+            ;[browser/main]
 
-          (when true #_(not-empty @checked) [checked-panel])
-          [modals/modal @context-menu-target]
-          [modals/modal-copy @context-menu-target]
-          [modals/modal-delete-item @context-menu-target]
-          [modals/modal-new-folder @context-menu-target]
-          [modals/modal-delete-folder @context-menu-target]
-          [modals/modal-lo @context-menu-target]
-          [modals/modal-lo-intersect @context-menu-target]
-          [m/context-menu-container @context-menu-target]])})))
+            (when true #_(not-empty @checked) [checked-panel])
+            [modals/modal @context-menu-target]
+            [modals/modal-copy @context-menu-target]
+            [modals/modal-delete-item @context-menu-target]
+            [modals/modal-new-folder @context-menu-target]
+            [modals/modal-delete-folder @context-menu-target]
+            [modals/modal-lo @context-menu-target]
+            [modals/modal-lo-intersect @context-menu-target]
+            [m/context-menu-container @context-menu-target]]))})))
 
