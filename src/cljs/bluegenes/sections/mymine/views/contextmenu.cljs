@@ -26,7 +26,10 @@
 (defmethod context-menu :list []
   (fn [target]
     [:ul.dropdown-menu
-     [:li [:a (:name target)]]
+     #_[:li {:data-toggle "modal"
+           :data-keyboard true
+           :data-target "#myMineRenameList"}
+      [:a "Rename"]]
      [:li {:data-toggle "modal"
            :data-keyboard true
            :data-target "#myMineCopyModal"}

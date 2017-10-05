@@ -1,12 +1,13 @@
 (ns bluegenes.events.mymine
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
-  (:require [re-frame.core :refer [reg-event-db reg-event-db reg-event-fx]]
+  (:require [re-frame.core :refer [reg-event-db reg-event-db reg-event-fx subscribe]]
             [cljs.core.async :refer [<!]]
             [imcljs.send :as send]
             [imcljs.fetch :as fetch]
             [imcljs.save :as save]
             [bluegenes.effects :as fx]
             [clojure.string :as s]
+            [bluegenes.subs.mymine :as subs]
             [cljs-uuid-utils.core :refer [make-random-uuid]]))
 
 (defn dissoc-in
@@ -227,6 +228,18 @@
   (fn [{db :db} [_ trail response]]
     {:dispatch [:assets/fetch-lists trail response]}))
 
+
+(reg-event-fx
+  ::rename-list
+  (fn [{db :db} [_ new-list-name]]
+    (let [service (get-in db [:mines (get db :current-mine) :service])
+          id (last (get-in db [:mymine :action-target]))
+          _ (js/console.log "ID" id)
+          {old-list-name :name} @(subscribe [::subs/one-list id])]
+      (js/console.log "RENAMING" old-list-name new-list-name)
+      {:im-chan {:chan (save/im-list-rename service old-list-name new-list-name)
+                 :on-success [:assets/fetch-lists]
+                 :on-failure [::copy-failure]}})))
 
 (reg-event-fx
   ::delete

@@ -364,53 +364,48 @@
 
 (defn list-operations []
   (fn []
-    [:div.btn-group
+    [:div
+     [:div.btn-group
 
-     [:button.btn.btn-raised.btn-primary
-      {:disabled false
-       :on-click (fn [] (dispatch [::evts/copy-n]))}
-      [:div
-       [:svg.icon.copy [:use {:xlinkHref "#copy"}]]
-       [:div "Copy"]]]
+      [:button.btn.btn-raised.btn-primary
+       {:disabled false
+        :on-click (fn [] (dispatch [::evts/copy-n]))}
+       [:div
+        [:svg.icon.copy [:use {:xlinkHref "#copy"}]]
+        [:div "Copy"]]]
 
-     [:button.btn.btn-raised.btn-primary
-      {:disabled false
-       :data-toggle "modal"
-       :data-keyboard true
-       :data-target "#myMineLoModal"}
-      ;:on-click (fn [] (dispatch [::evts/lo-combine]) )
 
-      [:div
-       [:svg.icon.icon-venn-combine [:use {:xlinkHref "#icon-venn-combine"}]]
-       [:div "Combine"]]]
-     [:button.btn.btn-raised.btn-primary
-      {:disabled false
-       :data-toggle "modal"
-       :data-keyboard true
-       :data-target "#myMineLoIntersectModal"
-       :on-click (fn [])}
-      [:div
-       [:svg.icon.icon-venn-intersection [:use {:xlinkHref "#icon-venn-intersection"}]]
-       [:div "Intersect"]]]
+      ]
+     [:div.btn-group
 
-     [:button.btn.btn-raised.btn-primary
-      {:disabled false
-       :data-toggle "modal"
-       :data-keyboard true
-       :data-target "#myMineLoIntersectModal"
-       :on-click (fn [])}
-      [:div
-       [:svg.icon.icon-venn-intersection [:use {:xlinkHref "#icon-venn-intersection"}]]
-       [:div "Intersect"]]]
+      [:button.btn.btn-raised.btn-primary
+       {:disabled false
+        :data-toggle "modal"
+        :data-keyboard true
+        :data-target "#myMineLoModal"}
+       ;:on-click (fn [] (dispatch [::evts/lo-combine]) )
 
-     [:button.btn.btn-raised.btn-primary
-      {:disabled false
-       :on-click (fn [])}
-      [:div
-       [:svg.icon.icon-venn-difference [:use {:xlinkHref "#icon-venn-difference"}]]
-       [:div "Substract"]]]
+       [:div
+        [:svg.icon.icon-venn-combine [:use {:xlinkHref "#icon-venn-combine"}]]
+        [:div "Combine"]]]
+      [:button.btn.btn-raised.btn-primary
+       {:disabled false
+        :data-toggle "modal"
+        :data-keyboard true
+        :data-target "#myMineLoIntersectModal"
+        :on-click (fn [])}
+       [:div
+        [:svg.icon.icon-venn-intersection [:use {:xlinkHref "#icon-venn-intersection"}]]
+        [:div "Intersect"]]]
 
-     ]))
+      [:button.btn.btn-raised.btn-primary
+       {:disabled true
+        :on-click (fn [])}
+       [:div
+        [:svg.icon.icon-venn-difference [:use {:xlinkHref "#icon-venn-difference"}]]
+        [:div "Subtract"]]]
+
+      ]]))
 
 
 
@@ -566,5 +561,6 @@
             [modals/modal-delete-folder @context-menu-target]
             [modals/modal-lo @context-menu-target]
             [modals/modal-lo-intersect @context-menu-target]
+            [modals/modal-rename-list @context-menu-target]
             [m/context-menu-container @context-menu-target]]))})))
 
