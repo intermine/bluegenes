@@ -8,12 +8,12 @@
 
 (def operations
   {:combine {:title "Combine Lists"
-             :on-success (fn [list-name] (dispatch [::evts/lo-combine list-name]))
+             :on-success (fn [list-name] (dispatch [::evts/lo-combine (s/trim list-name)]))
              :success-label "Save"
              :icon [:svg.icon.icon-venn-combine [:use {:xlinkHref "#icon-venn-combine"}]]
              :body "The new list will contain all items from all selected lists."}
    :intersect {:title "Intersect Lists"
-               :on-success (fn [list-name] (dispatch [::evts/lo-intersect list-name]))
+               :on-success (fn [list-name] (dispatch [::evts/lo-intersect (s/trim list-name)]))
                :success-label "Save"
                :icon [:svg.icon.icon-venn-combine [:use {:xlinkHref "#icon-venn-combine"}]]
                :body "The new list will contain only items that exist in all selected lists."}
@@ -42,7 +42,7 @@
       {:component-did-mount (fn [this] (reset! dom-node (js/$ (r/dom-node this))))
        :reagent-render (let [checked-items (subscribe [::subs/checked-details])
                              new-list-name (r/atom nil)]
-                         (fn [{:keys [body on-success state]}]
+                         (fn [{:keys [errors body on-success state]}]
                            [:div
                             [:p body]
                             [item-list @checked-items]
@@ -54,32 +54,41 @@
                                :on-change (fn [evt] (reset! state (oget evt :target :value)))
                                :on-key-up (fn [evt]
                                             (case (oget evt :keyCode)
-                                              13 (do
-                                                   ; Call the succeess function with the value of the target
-                                                   (on-success @state)
-                                                   ; Clear the state for re-use
-                                                   (reset! state nil)
-                                                   ; Find the modal parent and manually close it
-                                                   (-> @dom-node (ocall :closest ".modal") (ocall :modal "hide")))
-                                              nil))}]]]))})))
+                                              13 (when
+                                                   (not (s/blank? @state))
+                                                   (do
+                                                     ; Call the succeess function with the value of the target
+                                                     (on-success @state)
+                                                     ; Clear the state for re-use
+                                                     (reset! state "")
+                                                     ; Find the modal parent and manually close it
+                                                     (-> @dom-node (ocall :closest ".modal") (ocall :modal "hide"))))
+                                              nil))}]
+                             (when (true? (:name-taken? errors))
+                               [:div.alert.alert-warning "A list with this name already exists"])]]))})))
 
 (defn modal-list-operations []
-  (let [state (r/atom nil)]
+  (let [state     (r/atom "")
+        all-lists (subscribe [:lists/filtered-lists])
+        disabled  (r/atom false)]
     (r/create-class
-      {:component-did-mount (fn [this]
+      {:component-did-update (fn [])
+       :component-did-mount (fn [this]
                               ; When the modal is dismissed then clear the state
                               (ocall (js/$ (r/dom-node this)) :on "hidden.bs.modal" (fn [] (reset! state nil))))
        :reagent-render (fn [operation]
-                         (let [{:keys [title icon body action on-success success-label] :as details} (get operations operation)]
+                         (let [{:keys [title icon body action on-success success-label] :as details} (get operations operation)
+                               errors {:name-taken? (some? (not-empty (filter (comp #{(s/trim @state)} :name) @all-lists)))
+                                       :name-blank? (s/blank? @state)}]
                            [:div#myTestModal.modal.fade
                             [:div.modal-dialog
                              [:div.modal-content
                               [:div.modal-header [:h2 title]]
                               [:div.modal-body
                                (case operation
-                                 :combine [modal-body-list-operations-commutative (assoc details :state state)]
-                                 :intersect [modal-body-list-operations-commutative (assoc details :state state)]
-                                 :subtract [modal-body-list-operations-commutative (assoc details :state state)]
+                                 :combine [modal-body-list-operations-commutative (assoc details :state state :errors errors)]
+                                 :intersect [modal-body-list-operations-commutative (assoc details :state state :errors errors)]
+                                 :subtract [modal-body-list-operations-commutative (assoc details :state state :errors errors)]
                                  nil)]
                               [:div.modal-footer
                                [:div.btn-toolbar.pull-right
@@ -87,13 +96,14 @@
                                  {:data-dismiss "modal"}
                                  "Cancel"]
                                 [:button.btn.btn-success.btn-raised
-                                 {:data-dismiss "modal"
+                                 {:disabled (some true? (vals errors))
+                                  :data-dismiss "modal"
                                   :on-click (fn [evt]
                                               (do
                                                 ; Call the succeess function with the value of the target
                                                 (on-success @state)
                                                 ; Clear the state for next re-use
-                                                (reset! state nil)))}
+                                                (reset! state "")))}
                                  success-label]]]]]]))})))
 
 

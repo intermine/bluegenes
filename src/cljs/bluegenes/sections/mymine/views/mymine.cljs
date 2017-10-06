@@ -594,9 +594,9 @@
                   :body "The new list will contain items from all selected lists"}]
                 ;[checked-panel]
                 )
-            
 
-            (js/console.log "MODALKW" @modal-kw)
+
+
             [modals/modal-list-operations @modal-kw]
 
             [modals/modal @context-menu-target]
