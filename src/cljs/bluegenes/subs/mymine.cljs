@@ -417,6 +417,11 @@
   (fn [db]
     (get-in db [:mymine :menu-target])))
 
+(reg-sub
+  ::modal
+  (fn [db]
+    (get-in db [:mymine :modal])))
+
 ;(reg-sub
 ;  ::menu-item
 ;  :<- [::menu-target]

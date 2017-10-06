@@ -228,7 +228,7 @@
            (when has-child-folders? [:use {:xlinkHref "#icon-caret-right"}])]
           (case key
             :root [:svg.icon.icon-folder [:use {:xlinkHref "#icon-intermine"}]]
-            [:svg.icon.icon-folder [:use {:xlinkHref "#icon-folder"}]]
+            [:svg.icon.icon-price-tag [:use {:xlinkHref "#icon-price-tag"}]]
             #_(if open
                 [:svg.icon.icon-folder [:use {:xlinkHref "#icon-folder-open"}]]
                 [:svg.icon.icon-folder [:use {:xlinkHref "#icon-folder"}]]))]
@@ -282,7 +282,7 @@
         [:svg.icon.icon-drawer [:use {:xlinkHref "#icon-plus"}]]]
        [:div.label-name
         {:on-click (fn [] (dispatch [::evts/set-action-target []]))}
-        "New Folder"]
+        "New Tag"]
        [:div.extra]])))
 
 
@@ -365,47 +365,81 @@
 (defn list-operations []
   (fn []
     [:div
-     [:div.btn-group
+     [:nav.nav-list-operations {:style {:font-size "0.9em"}
+                                :background "none"
+                                :color "black"
+                                :fill "black"
+                                :class "navbar navbar-inverse"}
+      [:div {:class "container-fluid"}
+       [:ul {:class "nav navbar-nav"}
+        [:li {:class "active"}
+         [:a {:on-click (fn [] (dispatch [::evts/copy-n]))} [:span "Duplicate " [:svg.icon.copy [:use {:xlinkHref "#copy"}]]]]]
+        [:li {:class "active"}
+         [:a {:on-click (fn [] (dispatch [::evts/copy-n]))} [:span "Delete " [:svg.icon.icon-bin [:use {:xlinkHref "#icon-bin"}]]]]]
+        [:li
+         [:a {
+              :on-click (fn [] (dispatch [::evts/set-modal :combine]))
+              :data-toggle "modal"
+              :data-keyboard true
+              :data-target "#myTestModal"
+              }
+          [:span "Combine " [:svg.icon.icon-venn-combine [:use {:xlinkHref "#icon-venn-combine"}]]]]]
+        [:li
+         [:a {:on-click (fn [] (dispatch [::evts/set-modal :intersect]))
+              :data-toggle "modal"
+              :data-keyboard true
+              :data-target "#myTestModal"
+              }
+          [:span "Intersect " [:svg.icon.icon-venn-intersection [:use {:xlinkHref "#icon-venn-intersection"}]]]]]
+        [:li
+         [:a {:on-click (fn [] (dispatch [::evts/set-modal :subtract]))
+              :data-toggle "modal"
+              :data-keyboard true
+              :data-target "#myTestModal"
+              }
+          [:span "Subtract " [:svg.icon.icon-venn-subtract [:use {:xlinkHref "#icon-venn-subtract"}]]]]]]]]
+     ]
+    #_[:div
+       [:div.btn-group
 
-      [:button.btn.btn-raised.btn-primary
-       {:disabled false
-        :on-click (fn [] (dispatch [::evts/copy-n]))}
-       [:div
-        [:svg.icon.copy [:use {:xlinkHref "#copy"}]]
-        [:div "Copy"]]]
+        [:button.btn.btn-raised.btn-primary
+         {:disabled false
+          :on-click (fn [] (dispatch [::evts/copy-n]))}
+         [:div
+          [:svg.icon.copy [:use {:xlinkHref "#copy"}]]
+          [:div "Copy"]]]
 
+        ]
+       [:div.btn-group
 
-      ]
-     [:div.btn-group
+        [:button.btn.btn-raised.btn-primary
+         {:disabled false
+          :data-toggle "modal"
+          :data-keyboard true
+          :data-target "#myMineLoModal"}
+         ;:on-click (fn [] (dispatch [::evts/lo-combine]) )
 
-      [:button.btn.btn-raised.btn-primary
-       {:disabled false
-        :data-toggle "modal"
-        :data-keyboard true
-        :data-target "#myMineLoModal"}
-       ;:on-click (fn [] (dispatch [::evts/lo-combine]) )
+         [:div
+          [:svg.icon.icon-venn-combine [:use {:xlinkHref "#icon-venn-combine"}]]
+          [:div "Combine"]]]
+        [:button.btn.btn-raised.btn-primary
+         {:disabled false
+          :data-toggle "modal"
+          :data-keyboard true
+          :data-target "#myMineLoIntersectModal"
+          :on-click (fn [])}
+         [:div
+          [:svg.icon.icon-venn-intersection [:use {:xlinkHref "#icon-venn-intersection"}]]
+          [:div "Intersect"]]]
 
-       [:div
-        [:svg.icon.icon-venn-combine [:use {:xlinkHref "#icon-venn-combine"}]]
-        [:div "Combine"]]]
-      [:button.btn.btn-raised.btn-primary
-       {:disabled false
-        :data-toggle "modal"
-        :data-keyboard true
-        :data-target "#myMineLoIntersectModal"
-        :on-click (fn [])}
-       [:div
-        [:svg.icon.icon-venn-intersection [:use {:xlinkHref "#icon-venn-intersection"}]]
-        [:div "Intersect"]]]
+        [:button.btn.btn-raised.btn-primary
+         {:disabled true
+          :on-click (fn [])}
+         [:div
+          [:svg.icon.icon-venn-difference [:use {:xlinkHref "#icon-venn-difference"}]]
+          [:div "Subtract"]]]
 
-      [:button.btn.btn-raised.btn-primary
-       {:disabled true
-        :on-click (fn [])}
-       [:div
-        [:svg.icon.icon-venn-difference [:use {:xlinkHref "#icon-venn-difference"}]]
-        [:div "Subtract"]]]
-
-      ]]))
+        ]]))
 
 
 
@@ -418,7 +452,6 @@
   (let [details (subscribe [::subs/checked-details])]
     (fn []
       [:div.details.open
-       [list-operations]
        (if-not (empty? @details)
          (into [:div [:h3 "Selected Lists"]] (map (fn [i] [checked-card i]) @details))
          [:div [:h3 "Select one or more lists to perform an operation"]])])))
@@ -507,7 +540,8 @@
         focus               (subscribe [::subs/focus])
         my-items            (subscribe [::subs/my-items])
         checked             (subscribe [::subs/checked-ids])
-        my-files            (subscribe [::subs/visible-files])]
+        my-files            (subscribe [::subs/visible-files])
+        modal-kw            (subscribe [::subs/modal])]
 
     (r/create-class
       {:component-did-mount attach-hide-context-menu
@@ -518,6 +552,7 @@
            [:div.mymine.noselect
             [:div.file-browser [file-browser]]
             [:div.files
+             [list-operations]
 
              [breadcrumb]
              (if filtered-files
@@ -553,7 +588,17 @@
                [:h4 "Empty Folder"])]
             ;[browser/main]
 
-            (when true #_(not-empty @checked) [checked-panel])
+            #_(when true #_(not-empty @checked)
+                [modals/list-operations-commutative
+                 {:title "Combine Lists"
+                  :body "The new list will contain items from all selected lists"}]
+                ;[checked-panel]
+                )
+            
+
+            (js/console.log "MODALKW" @modal-kw)
+            [modals/modal-list-operations @modal-kw]
+
             [modals/modal @context-menu-target]
             [modals/modal-copy @context-menu-target]
             [modals/modal-delete-item @context-menu-target]

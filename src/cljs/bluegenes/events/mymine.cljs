@@ -312,12 +312,19 @@
   (fn [db [_ id]]
     (update-in db [:mymine :checked] toggle-set id)))
 
+(reg-event-db
+  ::set-modal
+  (fn [db [_ modal-kw]]
+    (println "FIRING" modal-kw)
+    (assoc-in db [:mymine :modal] modal-kw)))
+
 (reg-event-fx
   ::lo-combine
   (fn [{db :db} [_ list-name]]
     (let [lists          (get-in db [:assets :lists (get db :current-mine)])
           checked        (get-in db [:mymine :checked])
           selected-lists (map :name (filter (fn [l] (some #{(:id l)} checked)) lists))]
+      (js/console.log "CHECKING" checked)
       (let [service (get-in db [:mines (get db :current-mine) :service])]
         {:im-chan {:chan (save/im-list-union service list-name selected-lists)
                    :on-success [::lo-success]

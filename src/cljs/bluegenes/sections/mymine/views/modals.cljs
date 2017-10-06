@@ -6,6 +6,96 @@
             [bluegenes.subs.mymine :as subs]
             [clojure.string :as s]))
 
+(def operations
+  {:combine {:title "Combine Lists"
+             :on-success (fn [list-name] (dispatch [::evts/lo-combine list-name]))
+             :success-label "Save"
+             :icon [:svg.icon.icon-venn-combine [:use {:xlinkHref "#icon-venn-combine"}]]
+             :body "The new list will contain all items from all selected lists."}
+   :intersect {:title "Intersect Lists"
+               :on-success (fn [list-name] (dispatch [::evts/lo-intersect list-name]))
+               :success-label "Save"
+               :icon [:svg.icon.icon-venn-combine [:use {:xlinkHref "#icon-venn-combine"}]]
+               :body "The new list will contain only items that exist in all selected lists."}
+   :subtract {:title "Subtract Lists"
+              :on-success (fn [list-name] (println "TODO - THIS"))
+              :success-label "Save"
+              :icon [:svg.icon.icon-venn-combine [:use {:xlinkHref "#icon-venn-combine"}]]
+              :body "The new list will contain only items that are unique to each selected list."}})
+
+
+(defn item []
+  (fn [{:keys [name id type size] :as details}]
+    [:div.mymine-card
+     [:span (:name details)]
+     [:span.label.label-default.pull-right size]]))
+
+(defn item-list []
+  (fn [items]
+    (into [:div] (map (fn [i] ^{:key (:id i)} [item i]) items))))
+
+(defn modal-body-list-operations-commutative
+  "This form covers list operations where the order does not matter (combine, intersect)"
+  []
+  (let [dom-node (atom nil)]
+    (r/create-class
+      {:component-did-mount (fn [this] (reset! dom-node (js/$ (r/dom-node this))))
+       :reagent-render (let [checked-items (subscribe [::subs/checked-details])
+                             new-list-name (r/atom nil)]
+                         (fn [{:keys [body on-success state]}]
+                           [:div
+                            [:p body]
+                            [item-list @checked-items]
+                            [:div.form-group
+                             [:label "New List Name"]
+                             [:input.form-control
+                              {:type "text"
+                               :value @state
+                               :on-change (fn [evt] (reset! state (oget evt :target :value)))
+                               :on-key-up (fn [evt]
+                                            (case (oget evt :keyCode)
+                                              13 (do
+                                                   ; Call the succeess function with the value of the target
+                                                   (on-success @state)
+                                                   ; Clear the state for re-use
+                                                   (reset! state nil)
+                                                   ; Find the modal parent and manually close it
+                                                   (-> @dom-node (ocall :closest ".modal") (ocall :modal "hide")))
+                                              nil))}]]]))})))
+
+(defn modal-list-operations []
+  (let [state (r/atom nil)]
+    (r/create-class
+      {:component-did-mount (fn [this]
+                              ; When the modal is dismissed then clear the state
+                              (ocall (js/$ (r/dom-node this)) :on "hidden.bs.modal" (fn [] (reset! state nil))))
+       :reagent-render (fn [operation]
+                         (let [{:keys [title icon body action on-success success-label] :as details} (get operations operation)]
+                           [:div#myTestModal.modal.fade
+                            [:div.modal-dialog
+                             [:div.modal-content
+                              [:div.modal-header [:h2 title]]
+                              [:div.modal-body
+                               (case operation
+                                 :combine [modal-body-list-operations-commutative (assoc details :state state)]
+                                 :intersect [modal-body-list-operations-commutative (assoc details :state state)]
+                                 :subtract [modal-body-list-operations-commutative (assoc details :state state)]
+                                 nil)]
+                              [:div.modal-footer
+                               [:div.btn-toolbar.pull-right
+                                [:button.btn.btn-default
+                                 {:data-dismiss "modal"}
+                                 "Cancel"]
+                                [:button.btn.btn-success.btn-raised
+                                 {:data-dismiss "modal"
+                                  :on-click (fn [evt]
+                                              (do
+                                                ; Call the succeess function with the value of the target
+                                                (on-success @state)
+                                                ; Clear the state for next re-use
+                                                (reset! state nil)))}
+                                 success-label]]]]]]))})))
+
 
 (defn dispatch-edit [location key value]
   (dispatch [::evts/update-value location key value]))
@@ -32,8 +122,8 @@
                            :ref (fn [e] (when e (reset! modal-dom-node (js/$ e))))} ; Get a handle on our
                           [:div.modal-dialog
                            [:div.modal-content
-                            [:div.modal-header [:h2 "Are you sure you want to remove this folder?"]]
-                            [:div.modal-body [:p "Contents of the folder will be moved to the 'unsorted' folder."]
+                            [:div.modal-header [:h2 "Are you sure you want to remove this tag from all associated items?"]]
+                            [:div.modal-body [:p "Items will not be deleted"]
                              #_[:input.form-control
                                 {:ref (fn [e] (when e (do (oset! e :value "") (reset! input-dom-node (js/$ e)))))
                                  :type "text"

@@ -86,6 +86,10 @@
          [:li {:class (if (panel-is :upload-panel) "active")} [:a {:on-click #(navigate! "/upload")}
           [:svg.icon.icon-upload.extra-tiny-screen [:use {:xlinkHref "#icon-upload"}]]
           [:span.larger-screen-only "Upload"]]]
+         [:li {:class (if (panel-is :mymine-panel) "active")}
+          [:a {:on-click #(navigate! "/mymine")}
+           [:svg.icon.icon-cog [:use {:xlinkHref "#icon-user-circle"}]]
+           [:span "My Data"]]]
 
          [:li {:class (if (panel-is :templates-panel) "active")} [:a {:on-click #(navigate! "/templates")} "Templates"]]
 
@@ -94,10 +98,10 @@
                [:li {:class (if (panel-is :regions-panel) "active")} [:a {:on-click #(navigate! "/regions")} "Regions"]]
                )
          [:li {:class (if (panel-is :querybuilder-panel) "active")} [:a {:on-click #(navigate! "/querybuilder")} "Query\u00A0Builder"]]
-         [:li {:class (if (panel-is :saved-data-panel) "active")} [:a {:on-click #(navigate! "/saved-data")} "Lists"[:span.larger-screen-only "\u00A0(" (apply + (map count (vals @lists))) ")"]]
+         #_[:li {:class (if (panel-is :saved-data-panel) "active")} [:a {:on-click #(navigate! "/saved-data")} "Lists"[:span.larger-screen-only "\u00A0(" (apply + (map count (vals @lists))) ")"]]
           ;;example tooltip. Include as last child, probably with some conditional to display and an event handler for saving the name
           (if @ttip [save-data-tooltip @ttip])]
-         [:li {:class (if (panel-is :mymine-panel) "active")} [:a {:on-click #(navigate! "/mymine")} "MyMine"]]]
+         ]
         [:ul.nav.navbar-nav.navbar-right.buttons
          [:li.search [search/main]]
          (cond (not (panel-is :search-panel)) [:li.search-mini [:a {:on-click #(navigate! "/search")} [:svg.icon.icon-search [:use {:xlinkHref "#icon-search"}]]]])
