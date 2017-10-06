@@ -3,6 +3,7 @@
             [bluegenes.db :as db]
             [bluegenes.mines :as default-mines]
             [imcljs.fetch :as fetch]
+            [oops.core :refer [oget+]]
             [bluegenes.persistence :as persistence]))
 
 (defn boot-flow [db]
@@ -25,7 +26,7 @@
                                   :assets/success-fetch-summary-fields
                                   :assets/success-fetch-widgets
                                   :assets/success-fetch-intermine-version]
-                     :dispatch-n (list [:finished-loading-assets] [:save-state])
+                     :dispatch-n (list [:finished-loading-assets] [:save-state] [:start-analytics])
                      :halt?      true}]})
 
 (defn im-tables-events-forwarder []
@@ -105,6 +106,14 @@
      :dispatch-n [[:cache/fetch-organisms]
                   [:saved-data/load-lists]
                   [:regions/select-all-feature-types]]}))
+
+(reg-event-fx
+  :start-analytics
+  (fn [{db :db}]
+    (js/ga "create" (:googleAnalytics (js->clj js/serverVars)) "auto")
+    (js/ga "send" "pageview")
+;    (.log js/console "hi" (:googleAnalytics (js->clj js/serverVars :keywordize-keys true)))
+    ))
 
 ; Store an authentication token for a given mine
 (reg-event-db
