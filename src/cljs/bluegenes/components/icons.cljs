@@ -36,14 +36,25 @@
                                                                                     [:path.path1
                                                                                      {:d
                                                                                       "M10 14v8h-4v-8h4zM16 6v16h-4v-16h4zM32 24v2h-32v-24h2v22h30zM22 10v12h-4v-12h4zM28 4v18h-4v-18h4z"}]]
-    [:symbol#icon-venn-combine
-     {:viewBox "-5 0 160 100"}
-     [:title "Combine these lists"]
-
-     [:circle.venn-full
-      {:r 50 :cx 50 :cy 50 :stroke-width 5 :fill "rgb(170,170,170)" :stroke "black"}]
-     [:circle.venn-full
-      {:r 50 :cx 100 :cy 50 :stroke-width 5 :fill "rgb(170,170,170)" :stroke "black"}]]
+   [:symbol#icon-venn-combine
+    {:viewBox "-5 0 160 100"}
+    {:fill-rule "evenodd",
+     :fill "none",
+     :stroke-width "1",
+     :stroke "none"}
+    [:g#icon-venn-combine-g
+     {:transform "translate(1.000000, 1.000000)"}
+     [:path.path1
+      {:fill-rule "nonzero",
+       :fill "#AAAAAA",
+       :d
+       "M12,14.9297396 C10.8233059,15.6104216 9.4571477,16 8,16 C3.581728,16 0,12.418272 0,8 C0,3.581728 3.581728,0 8,0 C9.4571477,0 10.8233059,0.389578385 12,1.07026042 C13.1766941,0.389578385 14.5428523,0 16,0 C20.41824,0 24,3.581728 24,8 C24,12.418272 20.41824,16 16,16 C14.5428523,16 13.1766941,15.6104216 12,14.9297396 Z"}]
+     [:path.path2
+      {:stroke-width "0.8",
+       :stroke "#000000",
+       :d
+       "M12,14.9297396 C10.8233059,15.6104216 9.4571477,16 8,16 C3.581728,16 0,12.418272 0,8 C0,3.581728 3.581728,0 8,0 C9.4571477,0 10.8233059,0.389578385 12,1.07026042 C13.1766941,0.389578385 14.5428523,0 16,0 C20.41824,0 24,3.581728 24,8 C24,12.418272 20.41824,16 16,16 C14.5428523,16 13.1766941,15.6104216 12,14.9297396 Z"}]]]])
+    
     [:symbol#icon-venn-difference
      {:viewBox "-5 0 160 100"}
      [:title "Subtract one list from another"]
