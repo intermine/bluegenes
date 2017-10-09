@@ -114,9 +114,9 @@
   (fn [db [_ location-trail name]]
     (let [action-target (not-empty (get-in db [:mymine :action-target]))]
       (-> db
-         ; Dissoc the folder
-         (update-in [:mymine :tree] dissoc-in action-target)
-         (assoc-in [:mymine :focus] (parent-container action-target))))))
+          ; Dissoc the folder
+          (update-in [:mymine :tree] dissoc-in action-target)
+          (assoc-in [:mymine :focus] (parent-container action-target))))))
 
 (reg-event-db
   ::toggle-selected
@@ -233,8 +233,8 @@
   ::rename-list
   (fn [{db :db} [_ new-list-name]]
     (let [service (get-in db [:mines (get db :current-mine) :service])
-          id (last (get-in db [:mymine :action-target]))
-          _ (js/console.log "ID" id)
+          id      (last (get-in db [:mymine :action-target]))
+          _       (js/console.log "ID" id)
           {old-list-name :name} @(subscribe [::subs/one-list id])]
       (js/console.log "RENAMING" old-list-name new-list-name)
       {:im-chan {:chan (save/im-list-rename service old-list-name new-list-name)
@@ -315,8 +315,10 @@
 (reg-event-db
   ::set-modal
   (fn [db [_ modal-kw]]
-    (println "FIRING" modal-kw)
-    (assoc-in db [:mymine :modal] modal-kw)))
+    (let [a (get-in db [:mymine :checked])]
+      (update-in db [:mymine] assoc
+                 :modal modal-kw
+                 :suggested-state [a #{}]))))
 
 (reg-event-fx
   ::lo-combine
@@ -324,7 +326,6 @@
     (let [lists          (get-in db [:assets :lists (get db :current-mine)])
           checked        (get-in db [:mymine :checked])
           selected-lists (map :name (filter (fn [l] (some #{(:id l)} checked)) lists))]
-      (js/console.log "CHECKING" checked)
       (let [service (get-in db [:mines (get db :current-mine) :service])]
         {:im-chan {:chan (save/im-list-union service list-name selected-lists)
                    :on-success [::lo-success]
@@ -340,6 +341,43 @@
         {:im-chan {:chan (save/im-list-intersect service list-name selected-lists)
                    :on-success [::lo-success]
                    :on-failure [::lo-success]}}))))
+
+(reg-event-fx
+  ::lo-difference
+  (fn [{db :db} [_ list-name]]
+    (let [lists          (get-in db [:assets :lists (get db :current-mine)])
+          checked        (get-in db [:mymine :checked])
+          selected-lists (map :name (filter (fn [l] (some #{(:id l)} checked)) lists))]
+      (let [service (get-in db [:mines (get db :current-mine) :service])]
+        {:im-chan {:chan (save/im-list-difference service list-name selected-lists)
+                   :on-success [::lo-success]
+                   :on-failure [::lo-success]}}))))
+
+(reg-event-fx
+  ::lo-subtract
+  (fn [{db :db} [_ list-name]]
+    (let [lists            (get-in db [:assets :lists (get db :current-mine)])
+          [ids-a ids-b] (get-in db [:mymine :suggested-state])
+          selected-lists-a (map :name (filter (fn [l] (some #{(:id l)} ids-a)) lists))
+          selected-lists-b (map :name (filter (fn [l] (some #{(:id l)} ids-b)) lists))
+          ]
+      (let [service (get-in db [:mines (get db :current-mine) :service])]
+        {:im-chan {:chan (save/im-list-subtraction service list-name selected-lists-a selected-lists-b)
+                   :on-success [::lo-success]
+                   :on-failure [::lo-success]}}))))
+
+(reg-event-db
+  ::lo-reverse-order
+  (fn [db [_]]
+    (update-in db [:mymine :suggested-state] reverse)))
+
+(reg-event-db
+  ::lo-move-bucket
+  (fn [db [_ from-pos id]]
+    (js/console.log "from" from-pos (if (= from-pos 0) 1 0))
+    (-> db
+        (update-in [:mymine :suggested-state from-pos] #(set (remove #{id} %)))
+        (update-in [:mymine :suggested-state (if (= from-pos 0) 1 0)] #(set (conj % id))))))
 
 (reg-event-db
   ::clear-checked

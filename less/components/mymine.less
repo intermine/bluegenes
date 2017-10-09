@@ -40,6 +40,20 @@
 
 .mymine {
 
+    .list-operations {
+        .disabled {
+            opacity: 0.5;
+        }
+    }
+
+    .backdrop {
+        background-color: #fbfbfb;
+        padding: 8px;
+        border-radius: 12px;
+        border: 1px solid #e2e2e2;
+    }
+
+
     .nav-list-operations {
         background: none;
         color: black;
@@ -323,12 +337,25 @@
 }
 
 .mymine-card {
-    -webkit-box-shadow: 0 2px 5px -1px rgba(0,0,0,0.1);
-    -moz-box-shadow: 0 2px 5px -1px rgba(0,0,0,0.1);
-    box-shadow: 0 2px 5px -1px rgba(0,0,0,0.1);
-    background-color: white;
-    border: 1px solid #e6e6e6;
-    padding: 15px;
-    margin: 5px;
+
+
     width: 100%;
+    display: flex;
+    align-items: center;
+
+    .ico {
+        flex: 0 1;
+    }
+
+    .content {
+        flex: 1 0;
+        -webkit-box-shadow: 0 2px 5px -1px rgba(0,0,0,0.1);
+        -moz-box-shadow: 0 2px 5px -1px rgba(0,0,0,0.1);
+        box-shadow: 0 2px 5px -1px rgba(0,0,0,0.1);
+        background-color: white;
+        border: 1px solid #e6e6e6;
+        padding: 5px 10px;
+        margin: 5px 0;
+    }
+
 }

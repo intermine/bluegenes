@@ -7,32 +7,105 @@
             [clojure.string :as s]))
 
 (def operations
-  {:combine {:title "Combine Lists"
+  {:combine {:title "Combine"
              :on-success (fn [list-name] (dispatch [::evts/lo-combine (s/trim list-name)]))
              :success-label "Save"
              :icon [:svg.icon.icon-venn-combine [:use {:xlinkHref "#icon-venn-combine"}]]
              :body "The new list will contain all items from all selected lists."}
-   :intersect {:title "Intersect Lists"
+   :intersect {:title "Intersect"
                :on-success (fn [list-name] (dispatch [::evts/lo-intersect (s/trim list-name)]))
                :success-label "Save"
-               :icon [:svg.icon.icon-venn-combine [:use {:xlinkHref "#icon-venn-combine"}]]
+               :icon [:svg.icon.icon-venn-combine [:use {:xlinkHref "#icon-venn-intersect"}]]
                :body "The new list will contain only items that exist in all selected lists."}
-   :subtract {:title "Subtract Lists"
-              :on-success (fn [list-name] (println "TODO - THIS"))
+   :difference {:title "Difference"
+                :on-success (fn [list-name] (dispatch [::evts/lo-difference (s/trim list-name)]))
+                :success-label "Save"
+                :icon [:svg.icon.icon-venn-combine [:use {:xlinkHref "#icon-venn-subtract"}]]
+                :body "The new list will contain only items that are unique to each selected list."}
+   :subtract {:title "Subtract"
+              :on-success (fn [list-name] (dispatch [::evts/lo-subtract (s/trim list-name)]))
               :success-label "Save"
-              :icon [:svg.icon.icon-venn-combine [:use {:xlinkHref "#icon-venn-combine"}]]
-              :body "The new list will contain only items that are unique to each selected list."}})
+              :icon [:svg.icon.icon-venn-combine [:use {:xlinkHref "#icon-venn-difference"}]]
+              :body "The new list will contain only items from the first list that are not in the second list."}})
 
+(defn empty-set []
+  [:div.backdrop
+   [:h4 "Empty"]])
 
 (defn item []
   (fn [{:keys [name id type size] :as details}]
     [:div.mymine-card
-     [:span (:name details)]
-     [:span.label.label-default.pull-right size]]))
+     [:div.content
+      [:span (:name details)]
+      [:span.label.label-default.pull-right size]]]))
 
 (defn item-list []
   (fn [items]
-    (into [:div] (map (fn [i] ^{:key (:id i)} [item i]) items))))
+    (into [:div.backdrop] (map (fn [i] ^{:key (:id i)} [item i]) items))))
+
+(defn swappable-item []
+  (fn [{:keys [name id type size] :as details} bucket-index]
+    [:div.mymine-card
+     [:span.ico
+      [:button.btn.btn-primary.btn-slim
+       [:svg.icon.icon
+        {:class (if (zero? bucket-index) "icon-circle-down" "icon-circle-up")
+         :on-click (fn [] (dispatch [::evts/lo-move-bucket bucket-index id]))}
+        [:use {:xlinkHref (if (zero? bucket-index) "#icon-circle-down" "#icon-circle-up")}]]]]
+     [:span.content
+      [:span (:name details)]
+      [:span.label.label-default.pull-right size]]]))
+
+
+(defn swappable-item-list []
+  (fn [items bucket-index]
+    (if (some? (not-empty items))
+      (into [:div.backdrop] (map (fn [i] ^{:key (:id i)} [swappable-item i bucket-index]) items))
+      [empty-set])
+    ))
+
+(defn modal-body-list-operations-ordered
+  "This form covers list operations where the order does not matter (combine, intersect)"
+  []
+  (let [dom-node (atom nil)]
+    (r/create-class
+      {:component-did-mount (fn [this] (reset! dom-node (js/$ (r/dom-node this))))
+       :reagent-render (let [sg              (subscribe [::subs/suggested-modal-state])
+                             suggested-state (subscribe [::subs/suggested-modal-state-details])
+                             checked-items   (subscribe [::subs/checked-details])
+                             new-list-name   (r/atom nil)]
+                         (fn [{:keys [errors body on-success state]}]
+                           [:div
+                            ;[:p body]
+                            [:h4 "Keep items from these lists"]
+                            [swappable-item-list (first @suggested-state) 0]
+                            [:div.pull-right.clearfix
+                             [:button.btn.btn-primary
+                              {:on-click (fn [] (dispatch [::evts/lo-reverse-order]))}
+                              "Reverse Direction "
+                              [:svg.icon.icon-swap-vertical.icon-2x [:use {:xlinkHref "#icon-swap-vertical"}]]]]
+                            [:h4 "... that are not in these lists"]
+                            [swappable-item-list (second @suggested-state) 1]
+                            [:div.form-group
+                             [:label "New List Name"]
+                             [:input.form-control
+                              {:type "text"
+                               :value @state
+                               :on-change (fn [evt] (reset! state (oget evt :target :value)))
+                               :on-key-up (fn [evt]
+                                            (case (oget evt :keyCode)
+                                              13 (when
+                                                   (not (s/blank? @state))
+                                                   (do
+                                                     ; Call the succeess function with the value of the target
+                                                     (on-success @state)
+                                                     ; Clear the state for re-use
+                                                     (reset! state "")
+                                                     ; Find the modal parent and manually close it
+                                                     (-> @dom-node (ocall :closest ".modal") (ocall :modal "hide"))))
+                                              nil))}]
+                             (when (true? (:name-taken? errors))
+                               [:div.alert.alert-warning "A list with this name already exists"])]]))})))
 
 (defn modal-body-list-operations-commutative
   "This form covers list operations where the order does not matter (combine, intersect)"
@@ -78,7 +151,7 @@
                               (ocall (js/$ (r/dom-node this)) :on "hidden.bs.modal" (fn [] (reset! state nil))))
        :reagent-render (fn [operation]
                          (let [{:keys [title icon body action on-success success-label] :as details} (get operations operation)
-                               errors {:name-taken? (some? (not-empty (filter (comp #{(s/trim @state)} :name) @all-lists)))
+                               errors {:name-taken? (some? (not-empty (filter (comp #{(s/trim (or @state ""))} :name) @all-lists)))
                                        :name-blank? (s/blank? @state)}]
                            [:div#myTestModal.modal.fade
                             [:div.modal-dialog
@@ -88,7 +161,8 @@
                                (case operation
                                  :combine [modal-body-list-operations-commutative (assoc details :state state :errors errors)]
                                  :intersect [modal-body-list-operations-commutative (assoc details :state state :errors errors)]
-                                 :subtract [modal-body-list-operations-commutative (assoc details :state state :errors errors)]
+                                 :difference [modal-body-list-operations-commutative (assoc details :state state :errors errors)]
+                                 :subtract [modal-body-list-operations-ordered (assoc details :state state :errors errors)]
                                  nil)]
                               [:div.modal-footer
                                [:div.btn-toolbar.pull-right
@@ -399,7 +473,6 @@
                                :on-key-up (fn [evt]
                                             (case (oget evt :keyCode)
                                               13 (do ; Detect "Return
-                                                   (js/console.log "IT" it)
                                                    (dispatch [::evts/rename-list (ocall @input-dom-node :val)])
                                                    (ocall @modal-dom-node :modal "hide"))
                                               nil))}]]

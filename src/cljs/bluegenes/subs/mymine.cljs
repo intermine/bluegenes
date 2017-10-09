@@ -407,6 +407,20 @@
     (filter (fn [l] (some #{(:id l)} checked-ids)) lists)))
 
 (reg-sub
+  ::suggested-modal-state
+  (fn [db] (get-in db [:mymine :suggested-state])))
+
+(reg-sub
+  ::suggested-modal-state-details
+  (fn [] [(subscribe [:lists/filtered-lists])
+          (subscribe [::suggested-modal-state])])
+  (fn [[lists [a b]]]
+    [(filter (fn [l] (some #{(:id l)} a)) lists)
+     (filter (fn [l] (some #{(:id l)} b)) lists)]))
+
+
+
+(reg-sub
   ::one-list
   (fn [db [_ list-id]]
     (let [current-lists (get-in db [:assets :lists (get db :current-mine)])]
@@ -421,6 +435,11 @@
   ::modal
   (fn [db]
     (get-in db [:mymine :modal])))
+
+(reg-sub
+  ::modal-suggested-state
+  (fn [db]
+    (get-in db [:mymine :suggested-state])))
 
 ;(reg-sub
 ;  ::menu-item
