@@ -399,7 +399,7 @@
              [:a (merge
                    operation-properties
                    {:on-click (fn [] (when (not cant-operate?) (dispatch [::evts/set-modal :difference])))})
-              [:span "Difference " [:svg.icon.icon-venn-subtract [:use {:xlinkHref "#icon-venn-subtract"}]]]]]
+              [:span "Difference " [:svg.icon.icon-venn-disjunction [:use {:xlinkHref "#icon-venn-disjunction"}]]]]]
             [:li {:class (when (empty? operation-properties) "disabled")}
              [:a (merge
                    operation-properties
