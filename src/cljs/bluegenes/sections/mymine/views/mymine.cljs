@@ -261,7 +261,8 @@
        [:div.icon-container {:style {:padding-left (str (* index 13) "px")}}
         [:svg.icon.icon-caret-right
          {:class (when open "open")}]
-        [:svg.icon.icon-drawer [:use {:xlinkHref "#icon-user"}]]]
+
+        [:svg.icon.icon-user-circle [:use {:xlinkHref "#icon-user-circle"}]]]
        [:div.label-name
         #_{:on-click (fn [] (dispatch [::evts/set-focus [:public]]))}
         "My Items "]
@@ -385,7 +386,12 @@
                                                                                              {:style {:fill "black"}}
                                                                                              [:use {:xlinkHref "#icon-duplicate"}]]]]]
             [:li {:class (when cant-perform? "disabled")}
-             [:a {:on-click (fn [] (when (not cant-perform?) (dispatch [::evts/copy-n])))} [:span "Delete " [:svg.icon.icon-bin [:use {:xlinkHref "#icon-bin"}]]]]]
+             [:a {:on-click (fn [] (println "dink") (when (not cant-perform?)
+
+                                                      (do
+                                                        (println "donkj")
+                                                        (dispatch [::evts/delete-lists]))))}
+              [:span "Delete " [:svg.icon.icon-bin [:use {:xlinkHref "#icon-bin"}]]]]]
 
             [:li {:class (when (empty? operation-properties) "disabled")}
              [:a (merge

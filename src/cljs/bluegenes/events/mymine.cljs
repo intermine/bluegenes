@@ -208,6 +208,24 @@
                  :on-failure [::copy-failure]}})))
 
 (reg-event-fx
+  ::delete-lists-success
+  (fn [{db :db} [_ returned]]
+    (js/console.log "returned" returned)
+    {:dispatch [::lo-success]}))
+
+
+(reg-event-fx
+  ::delete-lists
+  (fn [{db :db} [_]]
+    (let [lists          (get-in db [:assets :lists (get db :current-mine)])
+          checked        (get-in db [:mymine :checked])
+          selected-lists (map :name (filter (fn [l] (some #{(:id l)} checked)) lists))]
+      (let [service (get-in db [:mines (get db :current-mine) :service])]
+        {:im-chan {:chan (save/im-list-delete service selected-lists)
+                   :on-success [::delete-lists-success]
+                   :on-failure [::delete-lists-success]}}))))
+
+(reg-event-fx
   ::copy
   (fn [{db :db} [_ trail old-list-name new-list-name]]
     ;[on-success on-failure response-format chan params]
@@ -369,7 +387,7 @@
 (reg-event-db
   ::lo-reverse-order
   (fn [db [_]]
-    (update-in db [:mymine :suggested-state] reverse)))
+    (update-in db [:mymine :suggested-state] (comp vec reverse))))
 
 (reg-event-db
   ::lo-move-bucket

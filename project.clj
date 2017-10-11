@@ -67,7 +67,7 @@
                  [buddy/buddy-hashers "1.2.0"]
 
                  ; Intermine Assets
-                 [intermine/imcljs "0.1.30"]
+                 [intermine/imcljs "0.1.31"]
                  [intermine/im-tables "0.3.3"]
                  [intermine/accountant-fragments "0.1.8"]]
 
