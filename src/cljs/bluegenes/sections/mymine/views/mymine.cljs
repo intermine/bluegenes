@@ -380,7 +380,10 @@
           [:div {:class "container-fluid"}
            [:ul {:class "nav navbar-nav"}
             [:li {:class (when cant-perform? "disabled")}
-             [:a {:on-click (fn [] (when (not cant-perform?) (dispatch [::evts/copy-n])))} [:span "Duplicate " [:svg.icon.copy [:use {:xlinkHref "#copy"}]]]]]
+             [:a {:on-click (fn [] (when (not cant-perform?) (dispatch [::evts/copy-n])))} [:span "Duplicate "
+                                                                                            [:svg.icon.icon-duplicate
+                                                                                             {:style {:fill "black"}}
+                                                                                             [:use {:xlinkHref "#icon-duplicate"}]]]]]
             [:li {:class (when cant-perform? "disabled")}
              [:a {:on-click (fn [] (when (not cant-perform?) (dispatch [::evts/copy-n])))} [:span "Delete " [:svg.icon.icon-bin [:use {:xlinkHref "#icon-bin"}]]]]]
 
@@ -388,7 +391,9 @@
              [:a (merge
                    operation-properties
                    {:on-click (fn [] (when (not cant-operate?) (dispatch [::evts/set-modal :combine])))})
-              [:span "Combine " [:svg.icon.icon-venn-combine [:use {:xlinkHref "#icon-venn-combine"}]]]]]
+              [:span "Combine " [:svg.icon.icon-venn-combine
+                                 {:style {:fill "rgba(0,0,0,0)"}}
+                                 [:use {:xlinkHref "#icon-venn-combine"}]]]]]
 
             [:li {:class (when (empty? operation-properties) "disabled")}
              [:a (merge
@@ -399,7 +404,9 @@
              [:a (merge
                    operation-properties
                    {:on-click (fn [] (when (not cant-operate?) (dispatch [::evts/set-modal :difference])))})
-              [:span "Difference " [:svg.icon.icon-venn-disjunction [:use {:xlinkHref "#icon-venn-disjunction"}]]]]]
+              [:span "Difference " [:svg.icon.icon-venn-disjunction
+                                    {:style {:fill "rgba(0,0,0,0)"}}
+                                    [:use {:xlinkHref "#icon-venn-disjunction"}]]]]]
             [:li {:class (when (empty? operation-properties) "disabled")}
              [:a (merge
                    operation-properties
