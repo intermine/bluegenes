@@ -27,14 +27,15 @@
               :error? true
               :message msg))))
 
-(reg-event-db
+(reg-event-fx
   ::logout-success
-  (fn [db [_ response]]
-    (update db :auth assoc
-            :thinking? false
-            :identity nil
-            :error? false
-            :message nil)))
+  (fn [{db :db} [_ response]]
+    {:db (update db :auth assoc
+                 :thinking? false
+                 :identity nil
+                 :error? false
+                 :message nil)
+     :dispatch [:assets/fetch-lists]}))
 
 ; TODO
 ; @(subscribe) is too stateful. Revisit.

@@ -4,8 +4,34 @@
             [bluegenes.components.search.typeahead :as search]
             [bluegenes.components.tooltip.views :as tooltip]
             [accountant.core :refer [navigate!]]
-            [oops.core :refer [ocall]]
+            [oops.core :refer [ocall oget]]
             [bluegenes.components.progress_bar :as progress-bar]))
+
+(defn update-form [atom key evt]
+  (swap! atom assoc key (oget evt :target :value)))
+
+(defn login-form []
+  (let [credentials (reagent/atom {:username nil :password nil})]
+    (fn [thinking?]
+      [:form.login-form
+       [:div.form-group
+        [:label "Username"]
+        [:input.form-control
+         {:type "text"
+          :value (:username @credentials)
+          :on-change (partial update-form credentials :username)}]]
+       [:div.form-group
+        [:label "Password"]
+        [:input.form-control
+         {:type "password"
+          :value (:password @credentials)
+          :on-change (partial update-form credentials :password)}]]
+       [:button.btn.btn-primary.btn-raised
+        {:type "button"
+         :on-click (fn [] (dispatch [:bluegenes.events.auth/login @credentials]))}
+        "Sign In"]
+       ;[:svg.icon.icon-spinner.spin [:use {:xlinkHref "#icon-spinner"}]]
+       ])))
 
 (defn mine-icon [mine]
   (let [icon (:icon mine)]
@@ -34,9 +60,11 @@
       [:li [:a {:on-click #(dispatch [:bluegenes.events.auth/logout])} "Log Out"]]]]))
 
 (defn anonymous []
-  [:li.warning
-   [:a.dropdown-toggle {:on-click #(navigate! "/mymine")}
-    [:svg.icon.icon-cog [:use {:xlinkHref "#icon-user-times"}]] " Log In"]])
+  [:li..dropdown.warning
+   [:a.dropdown-toggle {:data-toggle "dropdown" :role "button"}
+    [:svg.icon.icon-cog [:use {:xlinkHref "#icon-user-times"}]] " Log In"]
+   [:div.dropdown-menu.login-form-dropdown
+    [login-form]]])
 
 (defn user []
   (let [authed? (subscribe [:bluegenes.subs.auth/authenticated?])]
