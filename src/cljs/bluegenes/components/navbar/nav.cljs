@@ -27,16 +27,16 @@
 
 (defn logged-in []
   (let [identity (subscribe [:bluegenes.subs.auth/identity])]
-    [:li.dropdown.active
+    [:li.dropdown.success
      [:a.dropdown-toggle {:data-toggle "dropdown" :role "button"}
       [:svg.icon.icon-cog [:use {:xlinkHref "#icon-user-circle"}]] (str " " (:username @identity))]
      [:ul.dropdown-menu
       [:li [:a {:on-click #(dispatch [:bluegenes.events.auth/logout])} "Log Out"]]]]))
 
 (defn anonymous []
-  [:li
+  [:li.warning
    [:a.dropdown-toggle {:on-click #(navigate! "/mymine")}
-    [:svg.icon.icon-cog [:use {:xlinkHref "#icon-user-times"}]]]])
+    [:svg.icon.icon-cog [:use {:xlinkHref "#icon-user-times"}]] " Log In"]])
 
 (defn user []
   (let [authed? (subscribe [:bluegenes.subs.auth/authenticated?])]
@@ -107,6 +107,6 @@
          (cond (not (panel-is :search-panel)) [:li.search-mini [:a {:on-click #(navigate! "/search")} [:svg.icon.icon-search [:use {:xlinkHref "#icon-search"}]]]])
          [:li.larger-screen-only [:a {:on-click #(navigate! "/help")} [:svg.icon.icon-question [:use {:xlinkHref "#icon-question"}]]]]
          ;;This may have worked at some point in the past. We need to res it.
-         [user]
-         [settings]]]
+         [settings]
+         [user]]]
        [progress-bar/main]])))
