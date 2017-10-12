@@ -7,14 +7,15 @@
 (def error-messages {401 "Invalid username or password"
                      404 "Remote server not found"})
 
-(reg-event-db
+(reg-event-fx
   ::login-success
-  (fn [db [_ who-am-i-response]]
-    (update db :auth assoc
-            :thinking? false
-            :identity who-am-i-response
-            :message nil
-            :error? false)))
+  (fn [{db :db} [_ who-am-i-response]]
+    {:db (update db :auth assoc
+                 :thinking? false
+                 :identity who-am-i-response
+                 :message nil
+                 :error? false)
+     :dispatch [:assets/fetch-lists]}))
 
 (reg-event-db
   ::login-failure
