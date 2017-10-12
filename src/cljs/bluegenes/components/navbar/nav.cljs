@@ -15,7 +15,7 @@
     (fn [thinking?]
       [:form.login-form
        [:div.form-group
-        [:label "Username"]
+        [:label "Email Address"]
         [:input.form-control
          {:type "text"
           :value (:username @credentials)
@@ -25,7 +25,10 @@
         [:input.form-control
          {:type "password"
           :value (:password @credentials)
-          :on-change (partial update-form credentials :password)}]]
+          :on-change (partial update-form credentials :password)
+          :on-key-up (fn [k]
+                       (when (= 13 (oget k :keyCode))
+                         (dispatch [:bluegenes.events.auth/login @credentials])))}]]
        [:button.btn.btn-primary.btn-raised
         {:type "button"
          :on-click (fn [] (dispatch [:bluegenes.events.auth/login @credentials]))}

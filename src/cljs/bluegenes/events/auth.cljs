@@ -35,7 +35,7 @@
                  :identity nil
                  :error? false
                  :message nil)
-     :dispatch [:assets/fetch-lists]}))
+     :dispatch [:boot]}))
 
 ; TODO
 ; @(subscribe) is too stateful. Revisit.
