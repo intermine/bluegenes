@@ -42,7 +42,6 @@
 (reg-event-fx
   ::fetch-who-am-i
   (fn [{db :db} [_ {token :token}]]
-    (println token)
     {:db (assoc-in db [:auth :thinking?] true)
      ; Store the token
      :dispatch [:authentication/store-token (:id @(subscribe [:current-mine])) token]
