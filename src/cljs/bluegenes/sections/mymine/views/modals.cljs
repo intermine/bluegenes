@@ -294,8 +294,8 @@
                              :ref (fn [e] (when e (reset! modal-dom-node (js/$ e))))} ; Get a handle on our
                             [:div.modal-dialog
                              [:div.modal-content
-                              [:div.modal-header [:h2 "New Folder"]]
-                              [:div.modal-body [:p "Please enter a new name for the folder"]
+                              [:div.modal-header [:h2 "New Tag"]]
+                              [:div.modal-body [:p "Please enter a new name for the tag"]
                                [:input.form-control
                                 {:ref (fn [e] (when e (do (oset! e :value "") (reset! input-dom-node (js/$ e)))))
                                  :type "text"

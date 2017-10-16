@@ -30,12 +30,23 @@
      [:rect.intermine-logo.highlight {:x 0 :y 11 :width 7 :height 4}]
      [:rect.intermine-logo.highlight {:x 8 :y 1 :width 7 :height 4}]
      [:rect.intermine-logo.lowlight {:x 8 :y 6 :width 7 :height 4 :fill "#bbb"}]
-     [:rect.intermine-logo.lowlight {:x 8 :y 11 :width 7 :height 4 :fill "#bbb"}]] [:symbol#icon-bar-chart
-                                                                                    {:viewBox "0 0 32 28"}
-                                                                                    [:title "bar-chart"]
-                                                                                    [:path.path1
-                                                                                     {:d
-                                                                                      "M10 14v8h-4v-8h4zM16 6v16h-4v-16h4zM32 24v2h-32v-24h2v22h30zM22 10v12h-4v-12h4zM28 4v18h-4v-18h4z"}]]
+     [:rect.intermine-logo.lowlight {:x 8 :y 11 :width 7 :height 4 :fill "#bbb"}]]
+
+    [:symbol#icon-price-tag {:view-box "0 0 32 32"}
+     [:title "price-tag"]
+     [:path {:d "M30.5 0h-12c-0.825 0-1.977 0.477-2.561 1.061l-14.879 14.879c-0.583 0.583-0.583 1.538 0 2.121l12.879 12.879c0.583 0.583 1.538 0.583 2.121 0l14.879-14.879c0.583-0.583 1.061-1.736 1.061-2.561v-12c0-0.825-0.675-1.5-1.5-1.5zM23 12c-1.657 0-3-1.343-3-3s1.343-3 3-3 3 1.343 3 3-1.343 3-3 3z"}]]
+
+    [:symbol#icon-caret-right {:view-box "0 0 9 28"}
+     [:title "caret-right"]
+     [:path {:d "M9 14c0 0.266-0.109 0.516-0.297 0.703l-7 7c-0.187 0.187-0.438 0.297-0.703 0.297-0.547 0-1-0.453-1-1v-14c0-0.547 0.453-1 1-1 0.266 0 0.516 0.109 0.703 0.297l7 7c0.187 0.187 0.297 0.438 0.297 0.703z"}]]
+
+
+    [:symbol#icon-bar-chart
+     {:viewBox "0 0 32 28"}
+     [:title "bar-chart"]
+     [:path.path1
+      {:d
+       "M10 14v8h-4v-8h4zM16 6v16h-4v-16h4zM32 24v2h-32v-24h2v22h30zM22 10v12h-4v-12h4zM28 4v18h-4v-18h4z"}]]
     [:symbol#icon-venn-disjunction
      {:viewBox "0 -4 26 26"}
      {:fill-rule "evenodd",
