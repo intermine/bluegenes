@@ -9,7 +9,6 @@
 
 (defn fetch-token
   [{:keys [service username password token]}]
-  (println "S" service)
   (im-auth/basic-auth service username password))
 
 (defn fetch-identity
@@ -26,7 +25,6 @@
   IM server (via web services) by fetching a token. If successful, return
   the token and store it in the session."
   [{{username :username password :password} :params :as req}]
-  (println "Handling Authentication")
   ; clj-http throws exceptions for 'bad' responses:
   (try
     ; Try to fetch a token from the IM server web service
@@ -42,7 +40,6 @@
         (assoc :session whoami-with-token)))
     (catch Exception e
       (let [{status :status body :body :as error} (ex-data e)]
-        (println "ERROR" error)
         ; Parse the body of the bad request sent back from the IM server
         (let [json-response (cheshire/parse-string body)]
           (case status
