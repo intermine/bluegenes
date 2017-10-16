@@ -27,18 +27,19 @@
   the token and store it in the session."
   [{{username :username password :password} :params :as req}]
   (println "Handling Authentication")
-  (clojure.pprint/pprint req)
   ; clj-http throws exceptions for 'bad' responses:
   (try
     ; Try to fetch a token from the IM server web service
     ; using the IM_SERVICE env/config variable as the remote host
     (let [token (fetch-token {:username username
                               :password password
-                              :service {:root (:im-service env)}})]
-      (println "using token" token)
-      (println "whoami" (im-auth/who-am-i? {:root (:im-service env) :token token} token))
+                              :service {:root (:im-service env)}})
+          whoami (im-auth/who-am-i? {:root (:im-service env) :token token} token)
+          whoami-with-token (assoc whoami :token token)]
       ; Store the token in the session and return it to the user
-      (-> (response/ok {:token token}) (assoc :session {:token token})))
+      (->
+        (response/ok whoami-with-token)
+        (assoc :session whoami-with-token)))
     (catch Exception e
       (let [{status :status body :body :as error} (ex-data e)]
         (println "ERROR" error)
