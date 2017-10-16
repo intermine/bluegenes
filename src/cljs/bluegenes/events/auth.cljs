@@ -8,13 +8,37 @@
                      404 "Remote server not found"})
 
 (reg-event-fx
+  ::login
+  (fn [{db :db} [_ {:keys [username password] :as credentials}]]
+    {:db (assoc-in db [:auth :thinking?] true)
+     :http {:uri "/api/auth/login"
+            :method :post
+            :on-success [::login-success]
+            :on-failure [::login-failure]
+            :params credentials}}))
+
+(reg-event-fx
+  ::logout
+  (fn [{db :db} [_]]
+    {:db (assoc-in db [:auth :thinking?] true)
+     :http {:uri "/api/auth/logout"
+            :method :get
+            :on-success [::logout-success]
+            :on-denied [::logout-fail]}}))
+
+
+; TODO
+; @(subscribe) is too stateful. Revisit.
+(reg-event-fx
   ::login-success
-  (fn [{db :db} [_ who-am-i-response]]
-    {:db (update db :auth assoc
-                 :thinking? false
-                 :identity who-am-i-response
-                 :message nil
-                 :error? false)
+  (fn [{db :db} [_ {token :token :as identity}]]
+    {:db (-> db
+             (update :auth assoc
+                     :thinking? false
+                     :identity identity
+                     :message nil
+                     :error? false)
+             (assoc-in [:mines (:id @(subscribe [:current-mine])) :service :token] token))
      :dispatch [:assets/fetch-lists]}))
 
 (reg-event-db
@@ -37,35 +61,6 @@
                  :message nil)
      :dispatch [:boot]}))
 
-; TODO
-; @(subscribe) is too stateful. Revisit.
-(reg-event-fx
-  ::fetch-who-am-i
-  (fn [{db :db} [_ {token :token}]]
-    {:db (assoc-in db [:auth :thinking?] true)
-     ; Store the token
-     :dispatch [:authentication/store-token (:id @(subscribe [:current-mine])) token]
-     ; Get identity information
-     :im-chan {:on-success [::login-success]
-               :chan (im-auth/who-am-i? (:service @(subscribe [:current-mine])) token)}}))
 
 
-(reg-event-fx
-  ::login
-  (fn [{db :db} [_ {:keys [username password] :as credentials}]]
-    {:db (assoc-in db [:auth :thinking?] true)
-     :http {:uri "/api/auth/login"
-            :method :post
-            :on-success [::fetch-who-am-i]
-            :on-failure [::login-failure]
-            :params credentials}}))
-
-(reg-event-fx
-  ::logout
-  (fn [{db :db} [_]]
-    {:db (assoc-in db [:auth :thinking?] true)
-     :http {:uri "/api/auth/logout"
-            :method :get
-            :on-success [::logout-success]
-            :on-denied [::logout-fail]}}))
 
