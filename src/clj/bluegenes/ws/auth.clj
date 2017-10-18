@@ -40,12 +40,15 @@
         (assoc :session {:identity whoami-with-token})))
     (catch Exception e
       (let [{status :status body :body :as error} (ex-data e)]
+        (println "Authentication Error:")
+        (clojure.pprint/pprint (ex-data e))
         ; Parse the body of the bad request sent back from the IM server
         (let [json-response (cheshire/parse-string body)]
           (case status
             401 (response/unauthorized json-response)
             500 (response/internal-server-error json-response)
-            (response/not-found {:error "Unable to reach remote server"})))))))
+            (response/not-found {:stack-trace error
+                                 :error "Unable to reach remote server"})))))))
 
 (defroutes routes
            (GET "/logout" session (logout))
