@@ -39,7 +39,7 @@
 (defn ^:export init [identity-json]
   (let [identity-edn (js->clj identity-json :keywordize-keys true)]
     (routes/app-routes)
-    (re-frame/dispatch-sync [:boot])
+    (re-frame/dispatch-sync [:boot identity-edn])
     ;(re-frame/dispatch-sync [:bluegenes.events.auth/login-success identity-edn])
     (navigate-to-deep-links)
     (dev-setup)
