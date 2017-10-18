@@ -387,11 +387,8 @@
                                                                                              {:style {:fill "black"}}
                                                                                              [:use {:xlinkHref "#icon-duplicate"}]]]]]
             [:li {:class (when cant-perform? "disabled")}
-             [:a {:on-click (fn [] (println "dink") (when (not cant-perform?)
-
-                                                      (do
-                                                        (println "donkj")
-                                                        (dispatch [::evts/delete-lists]))))}
+             [:a {:on-click (fn [] (when (not cant-perform?)
+                                     (dispatch [::evts/delete-lists])))}
               [:span "Delete " [:svg.icon.icon-bin [:use {:xlinkHref "#icon-bin"}]]]]]
 
             [:li {:class (when (empty? operation-properties) "disabled")}
@@ -629,6 +626,6 @@
             [modals/modal-lo-intersect @context-menu-target]
             [modals/modal-rename-list @context-menu-target]
             [m/context-menu-container @context-menu-target]
-            [thinker/main]
+            ;[thinker/main]
             ]))})))
 

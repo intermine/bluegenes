@@ -28,21 +28,24 @@
                   (ocall js/document "getElementById" "app")))
 
 (defn navigate-to-deep-links []
-  (let [url (oget js/window "location" "hash")
+  (let [url           (oget js/window "location" "hash")
         hashless-path (last (clojure.string/split url #"#"))]
     (cond (> (count url) 2) ;; if there is more than #/ in the url, navigate there
-      (if (= (first hashless-path) "/")
-        (navigate! hashless-path)
-        (navigate! (str "/" hashless-path)
-    )))))
+          (if (= (first hashless-path) "/")
+            (navigate! hashless-path)
+            (navigate! (str "/" hashless-path)
+                       )))))
 
-(defn ^:export init []
-  (routes/app-routes)
-  (re-frame/dispatch-sync [:boot])
-  (navigate-to-deep-links)
-  (dev-setup)
-  ; Initialize our bootstrap dropdowns
-  (ocall (js/$ ".dropdown-toggle") :dropdown)
-  (mount-root))
+(defn ^:export init [identity-json]
+  (let [identity-edn (js->clj identity-json :keywordize-keys true)]
+    (routes/app-routes)
+    (re-frame/dispatch-sync [:boot])
+    ;(re-frame/dispatch-sync [:bluegenes.events.auth/login-success identity-edn])
+    (navigate-to-deep-links)
+    (dev-setup)
+    ; Initialize our bootstrap dropdowns
+    (ocall (js/$ ".dropdown-toggle") :dropdown)
+    (mount-root)
+    ))
 
 ;(modules/set-loaded! "app")
