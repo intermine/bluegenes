@@ -96,7 +96,7 @@
           all-mines        (merge default-mines/mines good-state-mines)
           ;;make sure the active mine wasn't removed. Will select a default if needed.
           current-mine     (get-active-mine all-mines (:current-mine state))]
-      
+
       ; Do not use data from local storage if the client version in local storage
       ; is not the same as the current client version
       (if (and has-state? (= bluegenes.core/version (:version state)))
