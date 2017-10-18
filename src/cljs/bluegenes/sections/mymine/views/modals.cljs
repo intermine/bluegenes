@@ -79,11 +79,11 @@
                             ;[:p body]
                             [:h4 "Keep items from these lists"]
                             [swappable-item-list (first @suggested-state) 0]
-                            [:div.pull-right.clearfix
+                            [:div.pull-right
                              [:button.btn.btn-primary
                               {:on-click (fn [] (dispatch [::evts/lo-reverse-order]))}
-                              "Reverse Direction "
                               [:svg.icon.icon-swap-vertical.icon-2x [:use {:xlinkHref "#icon-swap-vertical"}]]]]
+                            [:div.clearfix]
                             [:h4 "... that are not in these lists"]
                             [swappable-item-list (second @suggested-state) 1]
                             [:div.form-group
