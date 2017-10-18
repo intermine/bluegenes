@@ -37,7 +37,7 @@
       ; Store the token in the session and return it to the user
       (->
         (response/ok whoami-with-token)
-        (assoc :session whoami-with-token)))
+        (assoc :session {:identity whoami-with-token})))
     (catch Exception e
       (let [{status :status body :body :as error} (ex-data e)]
         ; Parse the body of the bad request sent back from the IM server

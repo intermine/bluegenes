@@ -6,7 +6,10 @@
             [bluegenes.ws.auth :as auth]))
 
 (defroutes routes
-           (GET "/" [] (index/index))
+           (GET "/" req
+             ; If the user has already logged in then pass their identity
+             ; into the constructor of the BlueGenes javascript
+             (index/index (:identity (:session req))))
            (resources "/")
            (GET "/version" [] (response {:version "0.1.0"}))
            (context "/api" []
