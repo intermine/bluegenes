@@ -392,7 +392,6 @@
 (reg-event-db
   ::lo-move-bucket
   (fn [db [_ from-pos id]]
-    (js/console.log "from" from-pos (if (= from-pos 0) 1 0))
     (-> db
         (update-in [:mymine :suggested-state from-pos] #(set (remove #{id} %)))
         (update-in [:mymine :suggested-state (if (= from-pos 0) 1 0)] #(set (conj % id))))))
