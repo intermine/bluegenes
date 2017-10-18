@@ -1,7 +1,7 @@
 (ns bluegenes.sections.regions.events
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [re-frame.core :refer [reg-event-db reg-event-fx reg-fx dispatch subscribe]]
-            [imcljsold.model :as m]
+            [imcljs.entity :as entity]
             [imcljs.fetch :as fetch]))
 
 
@@ -45,8 +45,8 @@
   :regions/toggle-feature-type
   (fn [db [_ class]]
     (let [class-kw    (keyword (:name class))
-          m           (get-in db [:mines (get db :current-mine) :service :model :classes])
-          descendants (keys (m/descendant-classes m class-kw))
+          m           (get-in db [:mines (get db :current-mine) :service :model])
+          descendants (keys (entity/extended-by m class-kw))
           status      (get-in db [:regions :settings :feature-types class-kw])]
       (update-in db [:regions :settings :feature-types]
                  merge
@@ -57,8 +57,8 @@
 (reg-event-db
   :regions/select-all-feature-types
   (fn [db]
-    (let [model         (get-in db [:mines (get db :current-mine) :service :model :classes])
-          feature-types (m/descendant-classes model :SequenceFeature)]
+    (let [model         (get-in db [:mines (get db :current-mine) :service :model])
+          feature-types (entity/extended-by model :SequenceFeature)]
       (assoc-in db [:regions :settings :feature-types]
                 (reduce (fn [total [name]]
                           (assoc total (keyword name) true)) {} feature-types)))))

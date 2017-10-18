@@ -1,14 +1,14 @@
 (ns bluegenes.sections.regions.subs
   (:require-macros [reagent.ratom :refer [reaction]])
   (:require [re-frame.core :refer [reg-sub]]
-            [imcljsold.model :as m]))
+            [imcljs.entity :as entity]))
 
 
 (reg-sub
   :regions/sequence-feature-types
   (fn [db]
-    (let [model (get-in db [:mines (get db :current-mine) :service :model :classes])]
-      (m/descendant-classes-as-tree model :SequenceFeature))))
+    (let [model (get-in db [:mines (get db :current-mine) :service :model])]
+      (entity/extended-by-tree model :SequenceFeature))))
 
 (reg-sub
   :regions/sequence-feature-type-all-selected?
