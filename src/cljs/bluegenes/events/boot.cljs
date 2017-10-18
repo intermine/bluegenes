@@ -139,7 +139,6 @@
 (reg-event-db
   :authentication/store-token
   (fn [db [_ mine-kw token]]
-    (println "STORING TOKEN" mine-kw token)
     (assoc-in db [:mines mine-kw :service :token] token)))
 
 ; Fetch an anonymous token for a given mine
@@ -175,7 +174,6 @@
 (reg-event-fx
   :assets/fetch-lists
   (fn [{db :db}]
-    (js/console.log "fetching with " (get-in db [:mines (:current-mine db) :service]))
     {:db db
      :im-operation {:op (partial fetch/lists (get-in db [:mines (:current-mine db) :service]))
                     :on-success [:assets/success-fetch-lists (:current-mine db)]}}))
