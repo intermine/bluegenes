@@ -59,7 +59,11 @@
 
   (accountant/configure-navigation!
    ;;We use a custom brew accountant version which navigates based on fragments. this prevents the annoying double back button problem where the homepage kept on popping up in the history when we pressed the back button even though we hadn't been to the homepage at that point in the navigation flow.
-    {:nav-handler  (fn [path] (secretary/dispatch! path))
+    {:nav-handler  (fn [path] 
+        (js/ga.send "pageview" path)
+        (.log js/console "path" path)
+
+    (secretary/dispatch! path))
      :path-exists? (fn [path] (secretary/locate-route path))})
 
 )

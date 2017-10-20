@@ -1,5 +1,6 @@
 (ns bluegenes.index
-  (:require [hiccup.page :refer [include-js include-css html5]]))
+  (:require [hiccup.page :refer [include-js include-css html5]]
+            [config.core :refer [env]]))
 
 ;;Hello dear maker of the internet. You want to edit *this* file for prod, NOT the index.html copy. Why did we configure it this way? It's not to drive you mad, I assure you. It's because figwheel likes to highjack routes at / and display a default page if there is no index.html in place. Naughty figwheel!
 
@@ -23,6 +24,7 @@
     (include-css "css/site.css")
     [:meta {:charset "utf-8"}]
     [:meta {:content "width=device-width, initial-scale=1", :name "viewport"}]
+    [:script "var serverVars={googleAnalytics :'" (:google-analytics env) "'}" ]
     [:link {:rel "shortcut icon" :href "https://cdn.rawgit.com/intermine/design-materials/f5f00be4/logos/intermine/fav32x32.png" :type "image/png"}]
     [:script {:src
       "http://cdn.intermine.org/js/intermine/imjs/3.15.0/im.min.js"}]
