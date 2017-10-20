@@ -27,6 +27,13 @@ $ createdb bluegenes-prod
 
 You then need to configure BlueGenes to use those databases. Copy and edit the example in [config/dev/README.md](config/dev/README.md) and save it to `config/dev/config.edn` and `config/prod/config.edn`.
 
+##### Google Analytics
+If you wish to track pages hits, set up [Google analytics](https://analytics.google.com/analytics/web/#embed/report-home/a76615855w155408876p157084577/) for your domain, then add your google analytics id to your config.edn files (mentioned above) or environment variables. This is completely optional. 
+
+```clojure
+  {:google-analytics "UA-12345678-9"}
+```
+
 #### Compile and Run (Production)
 
 To compile and package BlueGenes into an executable jar, run the following command in the project folder:
@@ -154,3 +161,5 @@ One of the easiest ways to deploy the prod minified version is to set up [Dokku]
 [bower]: http://bower.io/
 [npm]: https://www.npmjs.com/
 [nodejs]: https://nodejs.org/
+
+### Google Analytics
