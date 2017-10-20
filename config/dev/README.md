@@ -15,5 +15,6 @@ All keys can be overridden with environment variables, such as `DATABASE_URL=htt
  :db-name "bluegenes-dev"
  :db-username "username"
  :db-password "password"
+ :googleAnalytics "yourTrackingIdHere"
  }
 ```

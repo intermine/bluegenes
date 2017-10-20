@@ -26,7 +26,7 @@
                                   :assets/success-fetch-summary-fields
                                   :assets/success-fetch-widgets
                                   :assets/success-fetch-intermine-version]
-                     :dispatch-n (list [:finished-loading-assets] [:save-state] [:start-analytics])
+                     :dispatch-n (list [:start-analytics] [:finished-loading-assets] [:save-state])
                      :halt?      true}]})
 
 (defn im-tables-events-forwarder []
@@ -110,10 +110,18 @@
 (reg-event-fx
   :start-analytics
   (fn [{db :db}]
-    (js/ga "create" (:googleAnalytics (js->clj js/serverVars)) "auto")
-    (js/ga "send" "pageview")
-;    (.log js/console "hi" (:googleAnalytics (js->clj js/serverVars :keywordize-keys true)))
-    ))
+    (let [analytics-id (:googleAnalytics (js->clj js/serverVars :keywordize-keys true))
+          analytics-enabled? (not (clojure.string/blank? analytics-id))]
+          (if analytics-enabled? 
+            ;;set tracker up if we have a tracking id
+            (do
+              (js/ga "create" analytics-id "auto")
+              (js/ga "send" "pageview")
+              (.info js/console "Google Analytics enabled. Tracking ID:" analytics-id))
+            ;;inobtrusive console message if there's no id  
+            (.info js/console "Google Analytics disabled. No tracking ID."))
+    {:db (assoc db :google-analytics {:enabled? analytics-enabled? :analytics-id analytics-id})}
+    )))
 
 ; Store an authentication token for a given mine
 (reg-event-db
