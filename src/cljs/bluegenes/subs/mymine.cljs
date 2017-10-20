@@ -460,6 +460,11 @@
   (fn [db]
     (get-in db [:mymine :menu-file-details])))
 
+(reg-sub
+  ::pure-tree
+  (fn [db]
+    (get-in db [:mymine :tree])))
+
 ;(reg-sub
 ;  ::a-list
 ;  (fn [[_ specific-id]]

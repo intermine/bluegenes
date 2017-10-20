@@ -8,6 +8,7 @@
             [bluegenes.effects :as fx]
             [clojure.string :as s]
             [bluegenes.subs.mymine :as subs]
+            [clojure.walk :as walk]
             [cljs-uuid-utils.core :refer [make-random-uuid]]))
 
 (defn dissoc-in
@@ -413,3 +414,23 @@
     (let [focus (get-in db [:mymine :focus])]
       {:dispatch-n [[::clear-checked]
                     [:assets/fetch-lists]]})))
+
+
+
+
+
+;;;;;;;;;;  Tag tree operations
+
+(defn dissoc-nested-keys
+  "Recursively dissociate keys from a deep map
+  (dissoc-nested-keys
+      {:a {:x {:b {:c {}}}}, :d {:e {:x {:g {}}}, :h {}}}
+      #{:x :h})
+  => {:a {}, :d {:e {}}}"
+  [m key-col]
+  (walk/postwalk #(if (map? %) (apply dissoc % key-col) %) m))
+
+(reg-event-db
+  ::remove-ids-from-tree
+  (fn [db [_ list-ids]]
+    (update-in db [:mymine :tree] dissoc-nested-keys list-ids)))

@@ -9,7 +9,6 @@
             [bluegenes.events.mymine :as evts]
             [bluegenes.subs.mymine :as subs]
             [inflections.core :as inf]
-            [bluegenes.sections.mymine.views.browser :as browser]
             [bluegenes.sections.mymine.views.modals :as modals]
             [bluegenes.sections.mymine.views.contextmenu :as m]
             [bluegenes.components.thinker :as thinker])
@@ -565,13 +564,11 @@
       {:component-did-mount attach-hide-context-menu
        :reagent-render
        (fn []
-
          (let [filtered-files (not-empty (filter (comp #{:list} :file-type) @my-files))]
            [:div.mymine.noselect
             [:div.file-browser [file-browser]]
             [:div.files
              [list-operations]
-
              [breadcrumb]
              (if filtered-files
                [:table.table.mymine-table
@@ -604,7 +601,7 @@
 
 
                [:h4 "Empty Folder"])]
-            ;[browser/main]
+
 
             #_(when true #_(not-empty @checked)
                 [modals/list-operations-commutative
