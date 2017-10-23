@@ -458,7 +458,19 @@
                         :on-success [::echo-tree]
                         :uri "/api/mymine/tree"}}))
 
+{:one {:type :folder :children {:three {:type :file}}}
+ :two {:type :file}}
+
+(defn keywordize-value
+  "Recursively keywordize a value for a given key in a map
+  (keywordize-filetypes {:one {:type folder :children {:three {:type file}}}
+                         :two {:type file}}
+  => {:one {:type :folder :children {:three {:type :file}}
+      :two {:type :file}}"
+  [m kw]
+  (walk/postwalk #(if (and (map? %) (contains? % :file-type)) (update % kw keyword) %) m))
+
+
 (reg-event-db ::echo-tree
               (fn [db [_ response]]
-                (js/console.log "response" response)
-                db))
+                (assoc-in db [:mymine :tree] (keywordize-value response :file-type))))

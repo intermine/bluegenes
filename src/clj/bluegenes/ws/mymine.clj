@@ -21,6 +21,7 @@
                            :data (-> x :params)})
     (response/unauthorized {:error "Please log in"})))
 
+
 (defn fetch-tree [x]
   (if-let [user-id (-> x :session :identity :id)]
     {:body (cheshire/parse-string
