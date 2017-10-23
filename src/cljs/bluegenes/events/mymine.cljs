@@ -87,11 +87,12 @@
     (let [action-target (get-in db [:mymine :action-target])]
       (update-in db [:mymine :tree] update-in action-target assoc key value :editing? false))))
 
+
 (reg-event-db
   ::new-folder
   (fn [db [_ location-trail name]]
     (let [action-target (not-empty (get-in db [:mymine :action-target]))
-          uuid          (make-random-uuid)]
+          uuid          (keyword (str "tag-" (str (make-random-uuid))))]
       (if-not action-target
         (-> db (assoc-in [:mymine :tree uuid] {:label name :file-type :folder}))
         (-> db
@@ -293,7 +294,8 @@
       (let [tree               (get-in db [:mymine :tree])
             drop-parent-folder (parent-folder tree dragging-over)
             drag-type          (:file-type (get-in tree dragging))
-            drop-type          (:file-type (get-in tree dragging-over))]
+            drop-type          (:file-type (get-in tree dragging-over))
+            dragging-id        (keyword (str (name (:file-type dragging-node)) "-" (:id dragging-node)))]
         ; Don't do anything if we're moving something into the same folder
         (cond
           (= dragging dragging-over) {:db db :dispatch [::drag-end]} ; File was moved onto itself. Ignore.
@@ -304,7 +306,7 @@
                                        ; Remove this node from the tree
                                        (dissoc-in (:trail dragging-node))
                                        ; Re-associate to the new location
-                                       (update-in drop-parent-folder assoc-in [:children (or (:id dragging-node) (last (:trail dragging-node)))] (select-keys dragging-node [:file-type :id]))))
+                                       (update-in drop-parent-folder assoc-in [:children dragging-id] (select-keys dragging-node [:file-type :id]))))
                    ; Reselect the item at its new location
                    :dispatch-n [[::drag-end]]}))))))
 ;[::toggle-selected (concat drop-parent-folder [:children (last dragging)]) {:force? true}]

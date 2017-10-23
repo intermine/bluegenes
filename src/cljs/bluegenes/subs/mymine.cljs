@@ -4,7 +4,8 @@
             [cljs-time.format :as tf]
             [cljs-time.core :as t]
             [clojure.string :refer [split]]
-            [clojure.walk :refer [postwalk]]))
+            [clojure.walk :refer [postwalk]]
+            [oops.core :refer [ocall]]))
 
 ; Thanks!
 ; https://groups.google.com/forum/#!topic/clojure/VVVa3TS15pU
