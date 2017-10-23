@@ -8,6 +8,7 @@
             [bluegenes.effects :as fx]
             [clojure.string :as s]
             [bluegenes.subs.mymine :as subs]
+            [oops.core :refer [ocall]]
             [clojure.walk :as walk]
             [cljs-uuid-utils.core :refer [make-random-uuid]]))
 
@@ -436,3 +437,28 @@
   ::remove-ids-from-tree
   (fn [db [_ list-ids]]
     (update-in db [:mymine :tree] dissoc-nested-keys list-ids)))
+
+
+;;;;;;;;;;; IO Operations
+
+(reg-event-fx ::store-tree []
+              (fn [{db :db}]
+                (let [tree (get-in db [:mymine :tree])]
+                  (js/console.log "tree" tree)
+                  {:db db
+                   :http {:method :post
+                          :params tree
+                          :on-success [::echo-tree]
+                          :uri "/api/mymine/tree"}})))
+
+(reg-event-fx ::fetch-tree []
+              (fn [{db :db}]
+                {:db db
+                 :http {:method :get
+                        :on-success [::echo-tree]
+                        :uri "/api/mymine/tree"}}))
+
+(reg-event-db ::echo-tree
+              (fn [db [_ response]]
+                (js/console.log "response" response)
+                db))

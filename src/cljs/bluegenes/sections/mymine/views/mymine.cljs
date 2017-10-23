@@ -414,7 +414,13 @@
              [:a (merge
                    operation-properties
                    {:on-click (fn [] (when (not cant-operate?) (dispatch [::evts/set-modal :subtract])))})
-              [:span "Subtract " [:svg.icon.icon-venn-difference [:use {:xlinkHref "#icon-venn-difference"}]]]]]]]]
+              [:span "Subtract " [:svg.icon.icon-venn-difference [:use {:xlinkHref "#icon-venn-difference"}]]]]]
+            [:li {}
+             [:a {:on-click (fn [] (dispatch [::evts/store-tree]))}
+              [:span "Store " [:svg.icon.icon-venn-difference [:use {:xlinkHref "#icon-venn-difference"}]]]]]
+            [:li {}
+             [:a {:on-click (fn [] (dispatch [::evts/fetch-tree]))}
+              [:span "Fetch " [:svg.icon.icon-venn-difference [:use {:xlinkHref "#icon-venn-difference"}]]]]]]]]
          ])
       #_[:div
          [:div.btn-group

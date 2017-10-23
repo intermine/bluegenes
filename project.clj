@@ -30,6 +30,7 @@
                  [ring/ring-defaults "0.3.1"]
                  [ring/ring-json "0.4.0"]
                  [metosin/ring-http-response "0.9.0"]
+                 [ring-middleware-format "0.7.2"]
 
                  ; Dev tools
                  [re-frisk "0.5.0"]
@@ -53,6 +54,8 @@
                  [org.postgresql/postgresql "42.1.3"]
                  [hikari-cp "1.7.6"]
                  [migratus "0.9.8"]
+                 [com.layerware/hugsql "0.4.7"]
+                 [postgre-types "0.0.4"]
 
                  ; Components
                  [mount "0.1.11"]

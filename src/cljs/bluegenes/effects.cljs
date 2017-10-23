@@ -44,7 +44,7 @@
   :http
   (fn [{:keys [uri on-success on-failure params method] :as o}]
     (let [http-fn (method method-map)]
-      (go (let [{:keys [status body]} (<! (http-fn uri (when (not= method :get) {:form-params params})))]
+      (go (let [{:keys [status body]} (<! (http-fn uri (when (not= method :get) {:transit-params params})))]
             (cond
               (<= 200 status 399) (dispatch (conj on-success body))
               :else (dispatch (conj on-failure body))))))))

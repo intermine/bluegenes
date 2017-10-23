@@ -3,7 +3,9 @@
             [compojure.route :refer [resources]]
             [bluegenes.index :as index]
             [ring.util.response :refer [response]]
-            [bluegenes.ws.auth :as auth]))
+            [bluegenes.ws.auth :as auth]
+            [bluegenes.ws.mymine :as mymine]
+            ))
 
 (defroutes routes
            (GET "/" req
@@ -13,4 +15,5 @@
            (resources "/")
            (GET "/version" [] (response {:version "0.1.0"}))
            (context "/api" []
-             (context "/auth" [] auth/routes)))
+             (context "/auth" [] auth/routes)
+             (context "/mymine" [] mymine/routes)))

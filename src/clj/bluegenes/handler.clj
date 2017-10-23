@@ -7,7 +7,8 @@
             [ring.middleware.session :refer [wrap-session]]
             [ring.middleware.json :refer [wrap-json-params]]
             [ring.middleware.keyword-params :refer [wrap-keyword-params]]
-            [ring.middleware.reload :refer [wrap-reload]]))
+            [ring.middleware.reload :refer [wrap-reload]]
+            [ring.middleware.format :refer [wrap-restful-format]]))
 
 
 (def dev-handler (-> #'routes/routes
@@ -20,6 +21,8 @@
 (def handler (-> #'routes/routes
                  wrap-reload
                  wrap-session
-                 wrap-json-response
-                 wrap-keyword-params
-                 wrap-params))
+                 wrap-restful-format
+                 ;wrap-json-response
+                 ;wrap-keyword-params
+                 ;wrap-params
+                 ))
