@@ -73,7 +73,7 @@
   (fn [[ids service db]]
     (let [organism    (get-organism-type db)
           object-type (get-object-type db)
-          job (idresolver/resolve service
+          job (idresolver/im-resolve service
                                   (cond->
                                     {:identifiers (if (seq ids) ids [ids])
                                      :type object-type}

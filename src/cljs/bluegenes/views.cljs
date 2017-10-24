@@ -10,12 +10,13 @@
             [bluegenes.sections.reportpage.views :as reportpage]
             [bluegenes.components.templates.views :as templates]
             [bluegenes.sections.querybuilder.views :as qb]
+            [bluegenes.sections.mymine.views.main :as mymine]
             [bluegenes.components.ui.alerts :as alerts]
             [bluegenes.components.idresolver.views :as idresolver]
             [bluegenes.sections.results.views :as results]
             [bluegenes.sections.lists.views :as lists]
             [bluegenes.sections.regions.views :as regions]
-            [bluegenes.sections.saveddata.views :as saved-data]
+            ;[bluegenes.sections.saveddata.views :as saved-data]
             [bluegenes.sections.help.views :as help]
             [accountant.core :refer [navigate!]]
             [oops.core :refer [ocall oapply oget oset!]]
@@ -58,6 +59,7 @@
 (defmethod panels :results-panel [] [results/main])
 (defmethod panels :regions-panel [] [regions/main])
 (defmethod panels :saved-data-panel [] [lists/main])
+(defmethod panels :mymine-panel [] [mymine/main])
 ;(defmethod panels :explore-panel [] [explore/main])
 (defmethod panels :help-panel [] [help/main])
 (defmethod panels :querybuilder-panel [] [qb/main])
@@ -79,7 +81,4 @@
        [nav/main]
        [:main [show-panel @active-panel]]
        [footer]
-       [alerts/invalid-token-alert]
-
-
-       ])))
+       [alerts/invalid-token-alert]])))

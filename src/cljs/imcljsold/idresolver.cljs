@@ -15,6 +15,7 @@
 (defn create-job
   "Create an ID resolution job"
   [{root :root token :token} params]
+  (js/console.log "RESOLVING" params)
   (go (:body (<! (http/post
                    (str (cleanse-url root) "/ids")
                    {:json-params       params
@@ -34,7 +35,7 @@
                    (str (cleanse-url root) "/ids/" uid "/results")
                    {:with-credentials? false})))))
 
-(defn resolve
+(defn im-resolve
   "Polls intermine for resolved identifiers."
   [service params]
   (let [c (chan) job (create-job service params)]
