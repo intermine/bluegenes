@@ -328,7 +328,7 @@
       :root [root-folder f]
       [private-folder f])))
 
-(defn file-browser []
+(defn file-browser-old []
   (let [files   (subscribe [::subs/with-public])
         folders (subscribe [::subs/folders])]
     (fn []
@@ -342,6 +342,36 @@
               (mapv
                 (fn [[k v]] ^{:key (str (:trail v))} [folder [k v]])
                 @folders)
+
+              ;[:li.separator]
+              )))))
+
+(defn tag []
+  (let [over  (subscribe [::subs/dragging-over])
+        focus (subscribe [::subs/focus])]
+    (fn [{:keys [entry-id im-obj-type label] :as row}]
+      [:li
+       [:div.icon-container
+        [:svg.icon.icon-caret-right]
+        [:svg.icon.icon-price-tag [:use {:xlinkHref "#icon-price-tag"}]]]
+       [:div.label-name label]
+       [:div.extra
+        [:span.count 9]
+        [:svg.icon.icon-caret-right]]])))
+
+(defn tag-browser []
+  (let [tags  (subscribe [::subs/sub-tags nil])]
+    (fn []
+      (into [:ul
+             [unsorted-folder]
+             [public-folder]
+             [:li.separator]
+             [add-folder]
+             [:li.separator]]
+            (conj
+              (mapv
+                (fn [t] ^{:key (str "tag-" (:entry-id t))} [tag t])
+                @tags)
 
               ;[:li.separator]
               )))))
@@ -555,6 +585,18 @@
       :folder [row-folder item]
       [:div])))
 
+(def some-data [
+                {:id "A"}
+                {:id "B" :parent "A"}
+                {:id "C" :parent "B"}
+                {:id "Q"}
+                {:id "R" :parent "Q"}
+                {:id "S" :parent "Q"}
+                ])
+
+(defn treeify [col primary-key parent-key]
+  )
+
 (defn main []
   (let [as-list             (subscribe [::subs/as-list])
         sort-by             (subscribe [::subs/sort-by])
@@ -564,15 +606,20 @@
         my-items            (subscribe [::subs/my-items])
         checked             (subscribe [::subs/checked-ids])
         my-files            (subscribe [::subs/visible-files])
-        modal-kw            (subscribe [::subs/modal])]
+        modal-kw            (subscribe [::subs/modal])
+        entries             (subscribe [::subs/entries])
+        root-tags             (subscribe [::subs/root-tags])
+        sub-tags             (subscribe [::subs/sub-tags nil])
+        ]
 
     (r/create-class
       {:component-did-mount attach-hide-context-menu
        :reagent-render
        (fn []
+         (js/console.log "subtags" @sub-tags)
          (let [filtered-files (not-empty (filter (comp #{:list} :file-type) @my-files))]
            [:div.mymine.noselect
-            [:div.file-browser [file-browser]]
+            [:div.file-browser [tag-browser]]
             [:div.files
              [list-operations]
              [breadcrumb]

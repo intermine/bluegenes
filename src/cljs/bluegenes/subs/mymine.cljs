@@ -1,5 +1,5 @@
 (ns bluegenes.subs.mymine
-  (:require [re-frame.core :refer [reg-sub subscribe]]
+  (:require [re-frame.core :as re-frame :refer [reg-sub subscribe]]
             [reagent.core :as r]
             [cljs-time.format :as tf]
             [cljs-time.core :as t]
@@ -139,7 +139,8 @@
   ::folders
   (fn [] (subscribe [::my-tree]))
   (fn [tree]
-    (mapcat flatten-folders (map (fn [[k v]] [k (assoc v :trail [k])]) tree))))
+    {}
+    #_(mapcat flatten-folders (map (fn [[k v]] [k (assoc v :trail [k])]) tree))))
 
 (reg-sub
   ::selected
@@ -474,3 +475,30 @@
 ;    ; Need access to specific-id for something like:
 ;    (filter #(= specific-id (:id %)) filtered-lists)
 ;    ))
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(reg-sub
+  ::entries
+  (fn [db]
+    (get-in db [:mymine :entries])))
+
+(reg-sub
+  ::tags
+  :<- [::entries]
+  (fn [entries]
+    (filter (comp (partial = "tag") :im-obj-type) entries)))
+
+(reg-sub
+  ::root-tags
+  :<- [::tags]
+  (fn [tags]
+    (filter (comp nil? :parent-id) tags)))
+
+(reg-sub
+  ::sub-tags
+  (fn [] (subscribe [::tags]))
+  (fn [tags [_ parent-id]]
+    (filter (comp (partial = parent-id) :parent-id) tags)))

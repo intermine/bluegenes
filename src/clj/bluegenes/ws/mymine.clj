@@ -7,28 +7,37 @@
             [config.core :refer [env]]
             [ring.util.http-response :as response]
             [hugsql.core :as hugsql]
+            [clojure.walk :as walk]
             [postgre-types.json :refer [add-json-type add-jsonb-type]]
-            [bluegenes.mounts :refer [db]]))
+            [bluegenes.mounts :refer [db]]
+            [clojure.string :as s]))
 
 (add-json-type generate-string parse-string)
 
 (hugsql/def-db-fns "bluegenes/db/sql/mymine.sql")
 
-(defn store-tree [x]
-  (if-let [user-id (-> x :session :identity :id)]
-    (store-mymine-tree db {:user-id (read-string user-id)
-                           :mine "testmine"
-                           :data (-> x :params)})
-    (response/unauthorized {:error "Please log in"})))
+(defn lodash-to-hyphen
+  "Recursively replace _ with - in a map's keywords"
+  [m]
+  (walk/postwalk #(if (keyword? %) (-> % name (s/replace #"_" "-") keyword) %) m))
 
+(defn add-entry [req]
+  (if-let [user-id (parse-string (-> req :session :identity :id))]
+    (let [{:keys [im-obj-type im-obj-id parent-id label]} (:params req)]
+      {:body (map lodash-to-hyphen (mymine-add-entry db {:user-id user-id
+                                                         :mine "cow"
+                                                         :im-obj-type im-obj-type
+                                                         :im-obj-id im-obj-id
+                                                         :parent-id parent-id
+                                                         :label label
+                                                         :open? true}))})
+    (response/unauthorized {:error "Unauthorized"})))
 
-(defn fetch-tree [x]
-  (if-let [user-id (-> x :session :identity :id)]
-    {:body (cheshire/parse-string
-             (:data (fetch-mymine-tree db {:user-id (read-string user-id)
-                                           :mine "testmine"})))}
-    (response/unauthorized {:error "Please log in"})))
+(defn get-entries [req]
+  (if-let [user-id (parse-string (-> req :session :identity :id))]
+    {:body (map lodash-to-hyphen (mymine-fetch-all-entries db {:user-id user-id :mine "cow"}))}
+    (response/unauthorized {:error "Unauthorized"})))
 
 (defroutes routes
-           (POST "/tree" req store-tree)
-           (GET "/tree" req fetch-tree))
+           (POST "/tree" req add-entry)
+           (GET "/tree" req get-entries))

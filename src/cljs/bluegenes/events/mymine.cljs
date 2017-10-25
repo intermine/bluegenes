@@ -447,7 +447,11 @@
                   (js/console.log "tree" tree)
                   {:db db
                    :http {:method :post
-                          :params tree
+                          :params {:im-obj-type "tag"
+                                   :im-obj-id 12223
+                                   :parent-id nil
+                                   :label "I am a tag"
+                                   :open? true}
                           :on-success [::echo-tree]
                           :uri "/api/mymine/tree"}})))
 
@@ -458,8 +462,6 @@
                         :on-success [::echo-tree]
                         :uri "/api/mymine/tree"}}))
 
-{:one {:type :folder :children {:three {:type :file}}}
- :two {:type :file}}
 
 (defn keywordize-value
   "Recursively keywordize a value for a given key in a map
@@ -473,4 +475,5 @@
 
 (reg-event-db ::echo-tree
               (fn [db [_ response]]
-                (assoc-in db [:mymine :tree] (keywordize-value response :file-type))))
+                (js/console.log "echo" response)
+                (assoc-in db [:mymine :entries] response)))
