@@ -283,10 +283,8 @@
 
 (reg-event-db
   ::set-context-menu-target
-  (fn [db [_ trail node]]
-    (update-in db [:mymine] assoc
-               :context-target trail
-               :context-node node)))
+  (fn [db [_ entity]]
+    (update-in db [:mymine] assoc :context-menu-target entity)))
 
 (reg-event-fx
   ::drop
@@ -441,26 +439,69 @@
 
 ;;;;;;;;;;; IO Operations
 
-(reg-event-fx ::store-tree []
-              (fn [{db :db}]
-                (let [tree (get-in db [:mymine :tree])]
-                  (js/console.log "tree" tree)
+(reg-event-fx ::store-tag []
+              (fn [{db :db} [_ label]]
+                (let [context-menu-target (get-in db [:mymine :context-menu-target])]
                   {:db db
                    :http {:method :post
                           :params {:im-obj-type "tag"
-                                   :im-obj-id 12223
-                                   :parent-id nil
-                                   :label "I am a tag"
+                                   :parent-id (:entry-id context-menu-target)
+                                   :label label
                                    :open? true}
-                          :on-success [::echo-tree]
-                          :uri "/api/mymine/tree"}})))
+                          :on-success [::success-store-tag]
+                          :uri "/api/mymine/entries"}})))
+
+(reg-event-db ::success-store-tag
+              (fn [db [_ new-tags]]
+                (update-in db [:mymine :entries] #(apply conj % new-tags))))
+
+(reg-event-fx ::delete-tag []
+              (fn [{db :db} [_ label]]
+                (let [context-menu-target (get-in db [:mymine :context-menu-target])]
+                  {:db db
+                   :http {:method :delete
+                          :on-success [::success-delete-tag]
+                          :uri (str "/api/mymine/entries/" (:entry-id context-menu-target))}})))
+
+
+(defn isa-filter [root-id entry]
+  (if-let [entry-id (:entry-id entry)]
+    (do
+      (isa? (keyword "tag" entry-id) (keyword "tag" root-id)))
+    false))
+
+(reg-event-db ::success-delete-tag
+              ; Postgres returns a collection consisting of one deleted id
+              ; hence the destructuring
+              (fn [db [_ [{entry-id :entry-id}]]]
+                ; Remove any mymine entries that were derived from this entry
+                (update-in db [:mymine :entries] #(remove (partial isa-filter entry-id) %))))
+
+
 
 (reg-event-fx ::fetch-tree []
               (fn [{db :db}]
                 {:db db
                  :http {:method :get
                         :on-success [::echo-tree]
-                        :uri "/api/mymine/tree"}}))
+                        :uri "/api/mymine/entries"}}))
+
+(defn toggle-open [entries entry-id status]
+  (map (fn [e] (if (= (:entry-id e) entry-id)
+                 (assoc e :open status)
+                 e)) entries))
+
+(reg-event-fx ::toggle-tag-open []
+              (fn [{db :db} [_ entry-id status]]
+                {:db (update-in db [:mymine :entries] toggle-open entry-id status)
+                 :http {:method :post
+                        :uri (str "/api/mymine/entries/" entry-id "/open/" status)}}))
+
+(reg-event-db ::set-cursor
+              (fn [db [_ entry]]
+                (assoc-in db [:mymine :cursor] entry)))
+
+
 
 
 (defn keywordize-value
@@ -475,5 +516,11 @@
 
 (reg-event-db ::echo-tree
               (fn [db [_ response]]
-                (js/console.log "echo" response)
+
+                (doseq [{:keys [entry-id parent-id]} response]
+                  (if (and entry-id parent-id)
+                    (derive
+                      (keyword "tag" entry-id)
+                      (keyword "tag" parent-id))))
+
                 (assoc-in db [:mymine :entries] response)))

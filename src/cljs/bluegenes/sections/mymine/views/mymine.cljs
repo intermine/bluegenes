@@ -22,9 +22,13 @@
 (def nff (NumberFormat. Format/DECIMAL))
 (defn- nf [num] (.format nff (str num)))
 
-(defn hide-context-menu [evt] (ocall (js/$ "#contextMenu") :hide))
+(defn hide-context-menu [evt]
+  (ocall (js/$ "#contextMenu") :hide)
+  ;(dispatch [::evts/set-context-menu-target])
+  )
 
-(defn attach-hide-context-menu [] (ocall (js/$ "body") :on "click" hide-context-menu))
+(defn attach-hide-context-menu []
+  (ocall (js/$ "body") :on "click" hide-context-menu))
 
 (defn drag-events [trail index whoami]
   {:draggable true
@@ -77,6 +81,23 @@
 
 ;(defn dispatch-edit [location key value]
 ;  (dispatch [::evts/new-folder location key value]))
+
+(defn trigger-context-menu [data]
+  {:on-context-menu (fn [evt]
+                      (when-not (oget evt :nativeEvent :ctrlKey)
+                        (do
+                          ; Prevent the browser from showing its context menu
+                          (ocall evt :preventDefault)
+                          ; Stop evt propogation
+                          (ocall evt :stopPropagation)
+                          ; Force this item to be selected
+                          ;(dispatch [::evts/toggle-selected trail {:force? true} row])
+                          ; Set this item as the target of the context menu
+                          (dispatch [::evts/set-context-menu-target data])
+                          ; Show the context menu
+                          (ocall (js/$ "#contextMenu") :css (clj->js {:display "block"
+                                                                      :left (oget evt :pageX)
+                                                                      :top (oget evt :pageY)})))))})
 
 
 
@@ -243,32 +264,34 @@
     (fn [[key {:keys [label file-type open index trail children]}]]
       [:li {:on-click (fn [x] (dispatch [::evts/set-focus [:public]]))
             :class (when (= [:public] @focus) "active")}
-       [:div.icon-container {:style {:padding-left (str (* index 13) "px")}}
-        [:svg.icon.icon-caret-right
-         {:class (when open "open")}]
-        [:svg.icon.icon-folder [:use {:xlinkHref "#icon-globe"}]]]
-       [:div.label-name {:on-click (fn [] (dispatch [::evts/set-focus [:public]]))} "Public Items"]
-       [:div.extra
-        [:span.count (count @lists)]
-        [:svg.icon.icon-caret-right]]])))
+       [:div.mymine-tag
+        [:div.icon-container {:style {:padding-left (str (* index 13) "px")}}
+         [:svg.icon.icon-caret-right
+          {:class (when open "open")}]
+         [:svg.icon.icon-folder [:use {:xlinkHref "#icon-globe"}]]]
+        [:div.label-name {:on-click (fn [] (dispatch [::evts/set-focus [:public]]))} "Public Items"]
+        [:div.extra
+         [:span.count (count @lists)]
+         [:svg.icon.icon-caret-right]]]])))
 
 (defn unsorted-folder []
   (let [focus    (subscribe [::subs/focus])
         my-items (subscribe [::subs/my-items])]
     (fn [[key {:keys [label file-type open index trail]}]]
-      [:li {:on-click (fn [x] (dispatch [::evts/set-focus [:unsorted]]))
+      [:li {:on-click (fn [x] (dispatch [::evts/set-cursor nil]))
             :class (when (= [:unsorted] @focus) "active")}
-       [:div.icon-container {:style {:padding-left (str (* index 13) "px")}}
-        [:svg.icon.icon-caret-right
-         {:class (when open "open")}]
+       [:div.mymine-tag
+        [:div.icon-container {:style {:padding-left (str (* index 13) "px")}}
+         [:svg.icon.icon-caret-right
+          {:class (when open "open")}]
 
-        [:svg.icon.icon-user-circle [:use {:xlinkHref "#icon-user-circle"}]]]
-       [:div.label-name
-        #_{:on-click (fn [] (dispatch [::evts/set-focus [:public]]))}
-        "My Items "]
-       [:div.extra
-        [:span.count (count @my-items)]
-        [:svg.icon.icon-caret-right]]])))
+         [:svg.icon.icon-user-circle [:use {:xlinkHref "#icon-user-circle"}]]]
+        [:div.label-name
+         #_{:on-click (fn [] (dispatch [::evts/set-focus [:public]]))}
+         "My Items "]
+        [:div.extra
+         [:span.count (count @my-items)]
+         [:svg.icon.icon-caret-right]]]])))
 
 (defn add-folder []
   (let [focus    (subscribe [::subs/focus])
@@ -277,14 +300,15 @@
       [:li {:data-toggle "modal"
             :data-keyboard true
             :data-target "#myMineNewFolderModal"}
-       [:div.icon-container {:style {:padding-left (str (* index 13) "px")}}
-        [:svg.icon.icon-caret-right
-         {:class (when open "open")}]
-        [:svg.icon.icon-drawer [:use {:xlinkHref "#icon-plus"}]]]
-       [:div.label-name
-        {:on-click (fn [] (dispatch [::evts/set-action-target []]))}
-        "New Tag"]
-       [:div.extra]])))
+       [:div.mymine-tag
+        [:div.icon-container {:style {:padding-left (str (* index 13) "px")}}
+         [:svg.icon.icon-caret-right
+          {:class (when open "open")}]
+         [:svg.icon.icon-drawer [:use {:xlinkHref "#icon-plus"}]]]
+        [:div.label-name
+         {:on-click (fn [] (dispatch [::evts/set-action-target []]))}
+         "New Tag"]
+        [:div.extra]]])))
 
 
 (defn root-folder []
@@ -346,21 +370,54 @@
               ;[:li.separator]
               )))))
 
-(defn tag []
-  (let [over  (subscribe [::subs/dragging-over])
-        focus (subscribe [::subs/focus])]
-    (fn [{:keys [entry-id im-obj-type label] :as row}]
+(defn toggle-open [entry-id status evt]
+  (ocall evt :stopPropagation)
+  (dispatch [::evts/toggle-tag-open entry-id (not status)]))
+
+(defn is-active? [entry-id context-menu-target-atom cursor-atom]
+  (or
+    (= entry-id (:entry-id @context-menu-target-atom))
+    (= entry-id (:entry-id @cursor-atom))
+    ))
+
+(defn show-caret? [sub-tags-atom]
+  (if @sub-tags-atom 1 0))
+
+(defn set-cursor-on-click [entity]
+  {:on-click (fn [evt]
+               (ocall evt :stopPropagation)
+               (dispatch [::evts/set-cursor entity]))})
+
+(defn tag [{entry-id :entry-id}]
+  (let [context-menu-target (subscribe [::subs/context-menu-target])
+        cursor              (subscribe [::subs/cursor])
+        sub-tags            (subscribe [::subs/sub-tags entry-id])]
+    (fn [{:keys [im-obj-type label open parent-id tag-trail] :as entry}]
       [:li
-       [:div.icon-container
-        [:svg.icon.icon-caret-right]
-        [:svg.icon.icon-price-tag [:use {:xlinkHref "#icon-price-tag"}]]]
-       [:div.label-name label]
-       [:div.extra
-        [:span.count 9]
-        [:svg.icon.icon-caret-right]]])))
+       (merge {}
+              (trigger-context-menu entry)
+              (set-cursor-on-click entry))
+       [:div.mymine-tag
+        {:class (when (is-active? entry-id context-menu-target cursor) "active")}
+        [:div.icon-container
+         [:svg.icon.icon-caret-right
+          {:class (when open "open")
+           :on-click (partial toggle-open entry-id open)
+           :style {:opacity (show-caret? sub-tags)}}
+          [:use {:xlinkHref "#icon-caret-right"}]]
+         [:svg.icon.icon-price-tag [:use {:xlinkHref "#icon-price-tag"}]]]
+        [:div.label-name label]
+        [:div.extra
+         [:span.count "TBD"]
+         [:svg.icon.icon-caret-right]]]
+       (when open
+         (into [:ul {:style {:padding-left "25px"}}]
+               (map (fn [t]
+                      ^{:key (str "tag-" (:entry-id t))}
+                      [tag t]) @sub-tags)))])))
 
 (defn tag-browser []
-  (let [tags  (subscribe [::subs/sub-tags nil])]
+  (let [tags (subscribe [::subs/sub-tags nil])]
     (fn []
       (into [:ul
              [unsorted-folder]
@@ -560,15 +617,14 @@
 
 (def built-in-formatter (tf/formatter "MMM d, y"))
 
-(defn row-list [{:keys [id trail file-type] :as file}]
-  (let [details (subscribe [::subs/one-list id])
+(defn row-list [{:keys [im-obj-id trail file-type] :as file}]
+  (let [details (subscribe [::subs/one-list im-obj-id])
         source  (subscribe [:current-mine-name])]
-
     (fn []
       (let [{:keys [description authorized name type size timestamp] :as dets} @details]
         [:tr
          (merge {} (clickable file) (menuable file))
-         [:td [checkbox id]]
+         [:td [checkbox im-obj-id]]
          [:td (merge {} (draggable file))
           [:div [ico file-type]
            [:a {:on-click (fn [e]
@@ -578,11 +634,11 @@
          [:td size]
          [:td (tf/unparse built-in-formatter (c/from-long timestamp))]]))))
 
-(defn row [{:keys [id file-type trail] :as item}]
+(defn row [{:keys [im-obj-type] :as item}]
   (fn []
-    (case file-type
-      :list [row-list item]
-      :folder [row-folder item]
+    (case im-obj-type
+      "list" [row-list item]
+      "folder" [row-folder item]
       [:div])))
 
 (def some-data [
@@ -608,15 +664,15 @@
         my-files            (subscribe [::subs/visible-files])
         modal-kw            (subscribe [::subs/modal])
         entries             (subscribe [::subs/entries])
-        root-tags             (subscribe [::subs/root-tags])
-        sub-tags             (subscribe [::subs/sub-tags nil])
+        root-tags           (subscribe [::subs/root-tags])
+        cursor-items        (subscribe [::subs/cursor-items])
+        unsorted-items      (subscribe [::subs/untagged-items])
         ]
 
     (r/create-class
       {:component-did-mount attach-hide-context-menu
        :reagent-render
        (fn []
-         (js/console.log "subtags" @sub-tags)
          (let [filtered-files (not-empty (filter (comp #{:list} :file-type) @my-files))]
            [:div.mymine.noselect
             [:div.file-browser [tag-browser]]
@@ -650,7 +706,7 @@
 
                 (into [:tbody]
                       (map-indexed (fn [idx x]
-                                     ^{:key (str (:id x))} [row (assoc x :index idx)]) filtered-files))]
+                                     ^{:key (str (or (:entry-id x) (str (:im-obj-type x) (:im-obj-id x))))} [row (assoc x :index idx)]) @cursor-items))]
 
 
                [:h4 "Empty Folder"])]

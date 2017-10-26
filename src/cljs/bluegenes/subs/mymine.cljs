@@ -383,7 +383,7 @@
 (reg-sub
   ::context-menu-target
   (fn [db]
-    (get-in db [:mymine :context-node])))
+    (get-in db [:mymine :context-menu-target])))
 
 (reg-sub
   ::edit-target
@@ -492,6 +492,12 @@
     (filter (comp (partial = "tag") :im-obj-type) entries)))
 
 (reg-sub
+  ::not-tags
+  :<- [::entries]
+  (fn [entries]
+    (filter (comp (partial not= "tag") :im-obj-type) entries)))
+
+(reg-sub
   ::root-tags
   :<- [::tags]
   (fn [tags]
@@ -501,4 +507,32 @@
   ::sub-tags
   (fn [] (subscribe [::tags]))
   (fn [tags [_ parent-id]]
-    (filter (comp (partial = parent-id) :parent-id) tags)))
+    (not-empty (filter (comp (partial = parent-id) :parent-id) tags))))
+
+(reg-sub
+  ::cursor
+  (fn [db]
+    (get-in db [:mymine :cursor])))
+
+
+(defn isa-filter [root-id entry]
+  (if-let [entry-id (:entry-id entry)]
+    (isa? (keyword "tag" entry-id) (keyword "tag" root-id))
+    false))
+
+(reg-sub
+  ::untagged-items
+  :<- [:lists/filtered-lists]
+  (fn [lists [evt]]
+    (map (fn [l] {:im-obj-type "list" :im-obj-id (:id l)}) lists)))
+
+
+(reg-sub
+  ::cursor-items
+  :<- [::cursor]
+  :<- [::not-tags]
+  :<- [::untagged-items]
+  (fn [[cursor entries untagged]]
+    (if (nil? cursor)
+      (concat entries untagged)
+      (filter (partial isa-filter (:entry-id cursor)) entries))))

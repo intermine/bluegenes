@@ -3,20 +3,15 @@
         padding: 0;
         margin: 0;
     }
-
     li {
         .icon {
             margin: 0 5px 0 0;
         }
-
     }
-
-
     .hoverable {
-
         padding: 5px 0;
         border-radius: 5px;
-/*
+        /*
         &::before {
              content: "_";
              display: block;
@@ -30,53 +25,42 @@
         &.highlighted {
             border: 1px solid red;
         }
-
         &:hover {
             background-color: #e2e2e2;
             border-radius: 5px;
         }
     }
 }
-
 .mymine {
-
     .list-operations {
         .disabled {
             opacity: 0.5;
         }
     }
-
     .backdrop {
         background-color: #fbfbfb;
         padding: 8px;
         border-radius: 12px;
         border: 1px solid #e2e2e2;
     }
-
-
     .nav-list-operations {
         background: none;
         color: black;
         font-size: 0.9em;
-
         .container-fluid {
             padding: 0;
         }
     }
-
     .count {
         color: #a5a5a5;
         font-weight: bold;
     }
-
     height: 100%;
     align-items: stretch;
     display: flex;
-
     .breadcrumb {
         background-color: transparent;
     }
-
     .draggingover {
         background-color: #039be5;
         color: white;
@@ -84,52 +68,42 @@
         .icon {
             fill: white;
         }
-        a, a:hover, a:focus {
+        a,
+        a:hover,
+        a:focus {
             color: white;
         }
     }
-
-
-
     .grow {
         flex: 1;
     }
-
     .shrink {
         flex: 0 1;
     }
-
     .file-browser {
         /* flex: 1; */
+
         width: 350px;
         padding-right: 10px;
-
         .open {
-              transform: rotate(90deg);
+            transform: rotate(90deg);
         }
-
         .icon {
             transition: all 100ms ease;
             margin: 0;
             margin-right: 5px;
             fill: grey;
-
         }
-
         ul {
-
             padding: 0;
             margin: 0;
-
             li.separator {
                 border-top: 1px solid #dadada;
                 height: 1px;
                 margin: 5px 0;
                 padding: 0;
             }
-
-
-            li {
+            .mymine-tag {
                 font-size: 0.9em;
                 padding: 8px 0;
                 display: flex;
@@ -138,15 +112,12 @@
                     flex: 0 1;
                     padding-right: 5px;
                 }
-
                 .label-name {
                     flex: 1 0;
                 }
-
                 .extra {
                     flex: 0 1;
                 }
-
                 &.draggingover {
                     background-color: #039be5;
                     color: white;
@@ -155,7 +126,6 @@
                         fill: white;
                     }
                 }
-
                 &.active {
                     background-color: #e6e6e6;
                     &:hover {
@@ -172,8 +142,6 @@
             }
         }
     }
-
-
     .details {
         transition: all 1s ease;
         flex: 0;
@@ -181,34 +149,25 @@
         padding: 0;
         border-left: 1px solid #e0e0e0;
         overflow: hidden;
-
         &.open {
             flex: 1.5;
             padding: 20px;
         }
     }
-
     .files {
         padding: 20px;
         border-left: 1px solid #e0e0e0;
         padding-right: 10px;
         flex: 4;
         background-color: white;
-
         .selected {
             outline: 2px solid #3caee5;
             outline-offset: -2px;
         }
-
     }
-
-
     width: 100%;
     margin: 0;
     padding: 0;
-
-
-
     #contextMenu {
         position: absolute;
         display: none;
@@ -219,21 +178,16 @@
             border: 1px solid #cccccc;
         }
     }
-
     font-size: 1em;
     font-weight: 500;
-
     .icon {
         // fill: #0081f2;
         font-size: 1.5em;
     }
-
-
-    .icon-folder-open, .icon-folder {
+    .icon-folder-open,
+    .icon-folder {
         fill: grey;
     }
-
-
     .mymine-table {
         thead {
             th {
@@ -251,79 +205,71 @@
             */
         }
     }
-
     .title {
         padding-left: 10px;
         padding-right: 10px;
     }
-
     .bold {
         font-weight: bold;
     }
-
     ul {
         list-style-type: none;
     }
-
     .type-style {
         background-color: transparent;
         color: black;
         border-width: 0 0 0 3px;
         border-top: 1px solid #dddddd;
     }
-
     .folder {
         margin: 6px 0px;
         padding: 0;
         list-style-type: none;
-        &:not(:last-child) {
+        &:not(: last-child) {
             border-bottom: 1px solid #e5e5e5;
         }
     }
-
     .item {
         margin: 6px 0px;
         list-style-type: none;
-        &:not(:last-child) {
+        &:not(: last-child) {
             border-bottom: 1px solid #e5e5e5;
         }
     }
-
     .sub {
         font-size: 0.9em;
         // color: grey;
     }
-
     .flexable {
         display: flex;
     }
-
     .mymine-row {
         display: flex;
-        .grow {flex: 1 0}
-        .shrink {flex: 0 1}
-        .icon {margin: 0 10px;}
+        .grow {
+            flex: 1 0
+        }
+        .shrink {
+            flex: 0 1
+        }
+        .icon {
+            margin: 0 10px;
+        }
     }
-
     .editing {
         background-color: blue;
         icon {
             fill: white;
         }
     }
-
     .table-details {
         td {
             border: none;
         }
-
     }
-
-.shrinky {
-    width: 1px;
-}
-
-/*
+    .shrinky {
+        width: 1px;
+    }
+    /*
 
     .selected {
         background-color: #0081f2;
@@ -333,29 +279,22 @@
     }
 
     */
-
 }
-
 .mymine-card {
-
-
     width: 100%;
     display: flex;
     align-items: center;
-
     .ico {
         flex: 0 1;
     }
-
     .content {
         flex: 1 0;
-        -webkit-box-shadow: 0 2px 5px -1px rgba(0,0,0,0.1);
-        -moz-box-shadow: 0 2px 5px -1px rgba(0,0,0,0.1);
-        box-shadow: 0 2px 5px -1px rgba(0,0,0,0.1);
+        -webkit-box-shadow: 0 2px 5px -1px rgba(0, 0, 0, 0.1);
+        -moz-box-shadow: 0 2px 5px -1px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 2px 5px -1px rgba(0, 0, 0, 0.1);
         background-color: white;
         border: 1px solid #e6e6e6;
         padding: 5px 10px;
         margin: 5px 0;
     }
-
 }

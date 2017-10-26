@@ -37,8 +37,9 @@
     (doall (map (fn [{:keys [on-success on-failure response-format op params]}]
                   (go (dispatch (conj on-success (<! (op)))))) v))))
 
-(def method-map {:get  http/get
-                 :post http/post})
+(def method-map {:get http/get
+                 :post http/post
+                 :delete http/delete})
 
 (reg-fx
   :http
@@ -46,5 +47,6 @@
     (let [http-fn (method method-map)]
       (go (let [{:keys [status body]} (<! (http-fn uri (when (not= method :get) {:transit-params params})))]
             (cond
-              (<= 200 status 399) (dispatch (conj on-success body))
-              :else (dispatch (conj on-failure body))))))))
+              (and on-success (<= 200 status 399)) (dispatch (conj on-success body))
+              (and on-failure (>= status 400)) (dispatch (conj on-failure body))
+              :else nil))))))

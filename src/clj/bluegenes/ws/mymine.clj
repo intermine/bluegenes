@@ -1,5 +1,5 @@
 (ns bluegenes.ws.mymine
-  (:require [compojure.core :refer [GET POST defroutes]]
+  (:require [compojure.core :refer [GET POST DELETE defroutes]]
             [compojure.route :as route]
             [imcljs.auth :as im-auth]
             [clojure.string :refer [blank?]]
@@ -10,7 +10,8 @@
             [clojure.walk :as walk]
             [postgre-types.json :refer [add-json-type add-jsonb-type]]
             [bluegenes.mounts :refer [db]]
-            [clojure.string :as s]))
+            [clojure.string :as s]
+            [hugsql.parameters :refer [identifier-param-quote]]))
 
 (add-json-type generate-string parse-string)
 
@@ -38,6 +39,19 @@
     {:body (map lodash-to-hyphen (mymine-fetch-all-entries db {:user-id user-id :mine "cow"}))}
     (response/unauthorized {:error "Unauthorized"})))
 
+(defn toggle-open [entry-id status req]
+  (if-let [user-id (parse-string (-> req :session :identity :id))]
+    {:body (mymine-entry-update-open db {:entry-id entry-id :open status})}
+    (response/unauthorized {:error "Unauthorized"})))
+
+(defn delete-tag [entry-id req]
+  (if-let [user-id (parse-string (-> req :session :identity :id))]
+    {:body (map lodash-to-hyphen (mymine-entry-delete-entry db {:entry-id entry-id}))}
+    (response/unauthorized {:error "Unauthorized"})))
+
 (defroutes routes
-           (POST "/tree" req add-entry)
-           (GET "/tree" req get-entries))
+           (POST "/entries" req add-entry)
+           (POST "/entries/:id/open/:status" [id status :as req] (toggle-open id status req))
+           (DELETE "/entries/:id" [id :as req] (delete-tag id req))
+           (GET "/entries" req get-entries))
+
