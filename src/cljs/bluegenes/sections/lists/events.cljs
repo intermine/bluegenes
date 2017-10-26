@@ -7,7 +7,7 @@
             [bluegenes.interceptors :refer [clear-tooltips]]
             [bluegenes.effects]
             [dommy.core :refer-macros [sel sel1]]
-            [bluegenes.sections.saveddata.events]
+            ;[bluegenes.sections.saveddata.events]
             [imcljs.save :as save]
             [bluegenes.specs :as specs]))
 
@@ -148,6 +148,7 @@
 (reg-event-fx
   :lists/view-results
   (fn [{db :db} [_ {:keys [type name title source]}]]
+    (js/console.log "SOURCE" source)
     (let [summary-fields (get-in db [:assets :summary-fields source (keyword type)])]
       {:db       db
        :dispatch [:results/set-query

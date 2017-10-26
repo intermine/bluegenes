@@ -3,6 +3,8 @@
   (:require [re-frame.core :as re-frame :refer [reg-event-db reg-fx reg-event-fx dispatch subscribe]]
             [im-tables.events]
             [bluegenes.events.boot]
+            [bluegenes.events.auth]
+            [bluegenes.events.mymine]
             [day8.re-frame.http-fx]
             [day8.re-frame.forward-events-fx]
             [day8.re-frame.async-flow-fx]

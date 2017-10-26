@@ -1,36 +1,19 @@
 (ns bluegenes.routes
-  (:require [compojure.core :refer [GET POST defroutes context ANY]]
+  (:require [compojure.core :refer [GET defroutes context]]
             [compojure.route :refer [resources]]
-             [hiccup.page :refer [include-js include-css html5]]
-            [bluegenes.api.modelcount :refer [modelcount modelcount-children cache cacheall]]
             [bluegenes.index :as index]
-            [ring.util.response :refer [response resource-response]]))
+            [ring.util.response :refer [response]]
+            [bluegenes.ws.auth :as auth]
+            [bluegenes.ws.mymine :as mymine]
+            ))
 
 (defroutes routes
-  (GET "/" []
-       (index/index))
-
-  (resources "/")
-
-  (GET "/worker" [worker]
-  (assoc
-      (response
-       (slurp "./resources/public/js/compiled/worker.js"))
-       :status 200
-       :headers {"content-type" "text/javascript"}))
-
-  (GET "/version" [] (response {:version "0.1.0"}))
-
-  (context "/api/model/count" [paths]
-    (GET "/cache" [mine] (cache mine)
-      (response {:loading (str "We're caching counts for " mine "! Well done.")}))
-    (GET "/cacheall" [] (cacheall)
-      (response {:loading "We're caching counts for all mines! Please wait."}))
-    (GET "/children" [path mine]
-         (response (modelcount-children path mine)))
-    (POST "/" [paths mine]
-      (response (modelcount paths mine)))
-    (GET "/" [paths mine]
-      (response (modelcount paths mine))
-    ))
-  )
+           (GET "/" req
+             ; If the user has already logged in then pass their identity
+             ; into the constructor of the BlueGenes javascript
+             (index/index (:identity (:session req))))
+           (resources "/")
+           (GET "/version" [] (response {:version "0.1.0"}))
+           (context "/api" []
+             (context "/auth" [] auth/routes)
+             (context "/mymine" [] mymine/routes)))
