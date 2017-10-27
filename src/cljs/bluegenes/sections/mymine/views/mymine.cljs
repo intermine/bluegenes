@@ -30,6 +30,15 @@
 (defn attach-hide-context-menu []
   (ocall (js/$ "body") :on "click" hide-context-menu))
 
+(defn tag-drag-events [entry]
+  {:draggable true
+   :on-drag-enter (fn [evt] (ocall evt :stopPropagation) (dispatch [::evts/dragging-over entry]))
+   :on-drag-over (fn [evt] (ocall evt :preventDefault) (ocall evt :stopPropagation))
+   ;:on-drag-leave (fn [evt] (dispatch [::evts/dragging-over nil]) )
+   :on-drag-start (fn [evt] (ocall evt :stopPropagation) (dispatch [::evts/dragging entry]))
+   :on-drag-end (fn [evt] (ocall evt :stopPropagation) (dispatch [::evts/dragging? false]))
+   :on-drop (fn [evt] (ocall evt :stopPropagation) (dispatch [::evts/dropping-on entry]))})
+
 (defn drag-events [trail index whoami]
   {:draggable true
    :on-drag-start (fn [evt]
@@ -352,32 +361,16 @@
       :root [root-folder f]
       [private-folder f])))
 
-(defn file-browser-old []
-  (let [files   (subscribe [::subs/with-public])
-        folders (subscribe [::subs/folders])]
-    (fn []
-      (into [:ul
-             [unsorted-folder]
-             [public-folder]
-             [:li.separator]
-             [add-folder]
-             [:li.separator]]
-            (conj
-              (mapv
-                (fn [[k v]] ^{:key (str (:trail v))} [folder [k v]])
-                @folders)
-
-              ;[:li.separator]
-              )))))
 
 (defn toggle-open [entry-id status evt]
   (ocall evt :stopPropagation)
   (dispatch [::evts/toggle-tag-open entry-id (not status)]))
 
-(defn is-active? [entry-id context-menu-target-atom cursor-atom]
+(defn is-active? [entry-id context-menu-target-atom cursor-atom dragging-over-atom]
   (or
     (= entry-id (:entry-id @context-menu-target-atom))
     (= entry-id (:entry-id @cursor-atom))
+    (= entry-id (:entry-id @dragging-over-atom))
     ))
 
 (defn show-caret? [sub-tags-atom]
@@ -388,17 +381,21 @@
                (ocall evt :stopPropagation)
                (dispatch [::evts/set-cursor entity]))})
 
+
+
 (defn tag [{entry-id :entry-id}]
   (let [context-menu-target (subscribe [::subs/context-menu-target])
         cursor              (subscribe [::subs/cursor])
-        sub-tags            (subscribe [::subs/sub-tags entry-id])]
+        sub-tags            (subscribe [::subs/sub-tags entry-id])
+        dragging-over (subscribe [::subs/dragging-over])]
     (fn [{:keys [im-obj-type label open parent-id tag-trail] :as entry}]
       [:li
        (merge {}
               (trigger-context-menu entry)
-              (set-cursor-on-click entry))
+              (set-cursor-on-click entry)
+              (tag-drag-events entry))
        [:div.mymine-tag
-        {:class (when (is-active? entry-id context-menu-target cursor) "active")}
+        {:class (when (is-active? entry-id context-menu-target cursor dragging-over) "active")}
         [:div.icon-container
          [:svg.icon.icon-caret-right
           {:class (when open "open")
@@ -416,15 +413,41 @@
                       ^{:key (str "tag-" (:entry-id t))}
                       [tag t]) @sub-tags)))])))
 
+(defn tag-drag-events2 [entry]
+  {:draggable true
+   :on-drag-enter (fn [evt] (ocall evt :stopPropagation) (dispatch [::evts/dragging-over entry]))
+   :on-drag-over (fn [evt] (ocall evt :preventDefault) (ocall evt :stopPropagation))
+   ;:on-drag-leave (fn [evt] (dispatch [::evts/dragging-over nil]) )
+   :on-drag-start (fn [evt] (ocall evt :stopPropagation) (dispatch [::evts/dragging entry]))
+   :on-drag-end (fn [evt] (ocall evt :stopPropagation) (dispatch [::evts/dragging? false]))
+   :on-drop (fn [evt] (ocall evt :stopPropagation) (dispatch [::evts/dropping-on entry]))})
+
+(defn sep-drag-events []
+  {:on-drag-enter (fn [evt]
+                    (ocall evt :preventDefault)
+                    (dispatch [::evts/dragging-over :bar]))
+   :on-drag-leave (fn [evt]
+                    (ocall evt :preventDefault)
+                    (dispatch [::evts/dragging-over nil]))
+   :on-drag-over (fn [evt]
+                   (ocall evt :preventDefault))
+   :on-drop (fn [evt]
+              (dispatch [::evts/dropping-on :bar])
+              )})
+
 (defn tag-browser []
-  (let [tags (subscribe [::subs/sub-tags nil])]
+  (let [tags          (subscribe [::subs/sub-tags nil])
+        dragging-over (subscribe [::subs/dragging-over])
+        dragging?     (subscribe [::subs/dragging?])]
     (fn []
       (into [:ul
              [unsorted-folder]
              [public-folder]
              [:li.separator]
              [add-folder]
-             [:li.separator]]
+             [:li.separator (merge {}
+                                   (sep-drag-events)
+                                   {:class (when (and @dragging? (= :bar @dragging-over)) "separator-highlighted")})]]
             (conj
               (mapv
                 (fn [t] ^{:key (str "tag-" (:entry-id t))} [tag t])
@@ -623,7 +646,7 @@
     (fn []
       (let [{:keys [description authorized name type size timestamp] :as dets} @details]
         [:tr
-         (merge {} (clickable file) (menuable file))
+         (merge {} (tag-drag-events file) (menuable file))
          [:td [checkbox im-obj-id]]
          [:td (merge {} (draggable file))
           [:div [ico file-type]

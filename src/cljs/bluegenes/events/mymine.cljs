@@ -1,6 +1,6 @@
 (ns bluegenes.events.mymine
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
-  (:require [re-frame.core :refer [reg-event-db reg-event-db reg-event-fx subscribe]]
+  (:require [re-frame.core :refer [reg-event-db reg-event-db reg-event-fx reg-fx subscribe]]
             [cljs.core.async :refer [<!]]
             [imcljs.send :as send]
             [imcljs.fetch :as fetch]
@@ -272,7 +272,7 @@
                  :on-failure [::delete-failure]}})))
 
 (reg-event-db
-  ::drag-over
+  ::drag-over-old
   (fn [db [_ trail]]
     (assoc-in db [:mymine :dragging-over] trail)))
 
@@ -451,9 +451,30 @@
                           :on-success [::success-store-tag]
                           :uri "/api/mymine/entries"}})))
 
-(reg-event-db ::success-store-tag
-              (fn [db [_ new-tags]]
-                (update-in db [:mymine :entries] #(apply conj % new-tags))))
+
+
+(reg-fx ::rederive-tags
+        (fn [tags]
+
+          (println "rederiving" (count tags))
+
+          ; Clear all known derivations
+          (doseq [{:keys [entry-id parent-id]} tags]
+            (doseq [ancestor (ancestors (keyword "tag" entry-id))]
+              (underive (keyword "tag" entry-id) ancestor)))
+
+          ; Rederive tags
+          (doseq [{:keys [entry-id parent-id]} tags]
+            (when (and entry-id parent-id)
+              (derive
+                (keyword "tag" entry-id)
+                (keyword "tag" parent-id))))))
+
+(reg-event-fx ::success-store-tag
+              (fn [{db :db} [_ new-tags]]
+                (let [new-db (update-in db [:mymine :entries] #(apply conj % new-tags))]
+                  {:db new-db
+                  ::rederive-tags (get-in new-db [:mymine :entries])})))
 
 (reg-event-fx ::delete-tag []
               (fn [{db :db} [_ label]]
@@ -476,6 +497,8 @@
               (fn [db [_ [{entry-id :entry-id}]]]
                 ; Remove any mymine entries that were derived from this entry
                 (update-in db [:mymine :entries] #(remove (partial isa-filter entry-id) %))))
+
+
 
 
 
@@ -524,3 +547,47 @@
                       (keyword "tag" parent-id))))
 
                 (assoc-in db [:mymine :entries] response)))
+
+(reg-event-db ::dragging
+              (fn [db [_ tag]]
+                (update-in db [:mymine :drag] assoc :dragging tag :dragging? true)))
+
+(reg-event-db ::dragging?
+              (fn [db [_ value]]
+                (assoc-in db [:mymine :drag :dragging?] value)))
+
+(reg-event-db ::dragging-over
+              (fn [db [_ tag]]
+                (assoc-in db [:mymine :drag :dragging-over] tag)))
+
+(reg-event-fx ::dropping-on
+              (fn [{db :db} [_ tag]]
+                (let [{dragging-id :entry-id :as dragging} (get-in db [:mymine :drag :dragging])
+                      {dropping-id :entry-id :as dropping} (get-in db [:mymine :drag :dragging-over])]
+                  (js/console.log dragging dropping)
+
+                  (let [new-db {:db (assoc-in db [:mymine :drag] nil)}]
+                    (cond
+                      (nil? dragging-id)
+                      (assoc new-db :http {:method :post
+                                           :params (assoc dragging :parent-id dropping-id)
+                                           :on-success [::success-store-tag]
+                                           :uri "/api/mymine/entries"})
+                      (and (not= dragging-id dropping-id))
+                      (assoc new-db :http {:method :post
+                                           :on-success [::success-move-entry]
+                                           :uri (str "/api/mymine/entries/"
+                                                     dragging-id
+                                                     "/move/"
+                                                     dropping-id)})
+                      :else new-db)))))
+
+(reg-event-fx ::success-move-entry
+              (fn [{db :db} [_ [{:keys [entry-id parent-id]}]]]
+                (let [new-entries (map (fn [e]
+                                         (if (= entry-id (:entry-id e))
+                                           (assoc e :parent-id parent-id)
+                                           e)) (get-in db [:mymine :entries]))]
+                  (js/console.log "new" new-entries)
+                  {:db (assoc-in db [:mymine :entries] new-entries)
+                   ::rederive-tags new-entries})))

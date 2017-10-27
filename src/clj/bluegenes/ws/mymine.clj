@@ -49,9 +49,32 @@
     {:body (map lodash-to-hyphen (mymine-entry-delete-entry db {:entry-id entry-id}))}
     (response/unauthorized {:error "Unauthorized"})))
 
+(defn move-tag [id pid req]
+  (println "TEST" id pid)
+  (if-let [user-id (parse-string (-> req :session :identity :id))]
+    {:body (map lodash-to-hyphen (mymine-move-entry db {:entry-id id :parent-id pid}))}
+    (response/unauthorized {:error "Unauthorized"})))
+
+(defn move-ta2g [id pid req]
+  (println "TEST" id pid)
+  (if-let [user-id (parse-string (-> req :session :identity :id))]
+    {:body (map lodash-to-hyphen (mymine-move-entry db {:entry-id id :parent-id pid}))}
+    (response/unauthorized {:error "Unauthorized"})))
+
+
 (defroutes routes
+           ; Create a new entry
            (POST "/entries" req add-entry)
+           ; Store whether or a tag is expanded or not
            (POST "/entries/:id/open/:status" [id status :as req] (toggle-open id status req))
+           ; Move entry to the root level
+           (POST "/entries/:id/move/" [id :as req] (move-tag id nil req))
+           ; Move entry under a new location
+           (POST "/entries/:id/move/:pid" [id pid :as req] (move-tag id pid req))
+           ; Move an untagged item to a new one
+           #_(POST "/entries//move/:pid" [pid :as req] (move-tag2 id pid req))
+           ; Delete an entry
            (DELETE "/entries/:id" [id :as req] (delete-tag id req))
+           ; Get all entries
            (GET "/entries" req get-entries))
 

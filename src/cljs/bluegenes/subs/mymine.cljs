@@ -370,7 +370,7 @@
     (get-in db [:mymine :context-target])))
 
 (reg-sub
-  ::dragging-over
+  ::dragging-over-old
   (fn [db]
     (get-in db [:mymine :dragging-over])))
 
@@ -526,7 +526,6 @@
   (fn [lists [evt]]
     (map (fn [l] {:im-obj-type "list" :im-obj-id (:id l)}) lists)))
 
-
 (reg-sub
   ::cursor-items
   :<- [::cursor]
@@ -536,3 +535,23 @@
     (if (nil? cursor)
       (concat entries untagged)
       (filter (partial isa-filter (:entry-id cursor)) entries))))
+
+(reg-sub
+  ::dragging
+  (fn [db]
+    (get-in db [:mymine :drag :dragging])))
+
+(reg-sub
+  ::dragging?
+  (fn [db]
+    (get-in db [:mymine :drag :dragging?])))
+
+(reg-sub
+  ::dragging-over
+  (fn [db]
+    (get-in db [:mymine :drag :dragging-over])))
+
+(reg-sub
+  ::dropping-on
+  (fn [db]
+    (get-in db [:mymine :drag :dropping-on])))

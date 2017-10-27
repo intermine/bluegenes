@@ -21,6 +21,12 @@ set label = :label::string
 where entry_id = :entry-id::uuid
 returning *
 
+ -- :name mymine-move-entry :<!
+update mymine
+set parent_id = :parent-id::uuid
+where entry_id = :entry-id::uuid
+returning *
+
  -- :name mymine-entry-delete-entry :<!
 delete from mymine where entry_id = :entry-id::uuid
 returning entry_id
