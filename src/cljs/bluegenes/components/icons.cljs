@@ -32,6 +32,15 @@
          [:rect.intermine-logo.lowlight {:x 8 :y 6 :width 7 :height 4 :fill "#bbb"}]
          [:rect.intermine-logo.lowlight {:x 8 :y 11 :width 7 :height 4 :fill "#bbb"}]]
 
+        [:symbol#icon-document-list {:view-box "0 0 32 32"}
+         [:title "document-list"]
+         [:path {:d "M19 3v6.002c0 1.111 0.898 1.998 2.006 1.998h4.994v17.003c0 1.107-0.894 1.997-1.997 1.997h-15.005c-1.107 0-1.997-0.899-1.997-2.007v-22.985c0-1.109 0.899-2.007 2.009-2.007h9.991zM20 3v5.997c0 0.554 0.451 1.003 0.991 1.003h5.009l-6-7zM15 14v1h8v-1h-8zM10 13v3h3v-3h-3zM11 14v1h1v-1h-1zM10 18v3h3v-3h-3zM11 19v1h1v-1h-1zM15 19v1h8v-1h-8zM10 23v3h3v-3h-3zM11 24v1h1v-1h-1zM15 24v1h8v-1h-8z"}]]
+
+        [:symbol#icon-list {:view-box "0 0 32 32"}
+         [:title "list"]
+         [:path {:d "M12 2h20v4h-20v-4zM12 14h20v4h-20v-4zM12 26h20v4h-20v-4zM0 4c0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.209-1.791 4-4 4s-4-1.791-4-4zM0 16c0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.209-1.791 4-4 4s-4-1.791-4-4zM0 28c0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.209-1.791 4-4 4s-4-1.791-4-4z"}]]
+
+
         [:symbol#icon-swap-vertical {:view-box "0 0 24 24"}
          [:title "swap-vertical"]
          [:path {:d "M9 3l3.984 3.984h-3v7.031h-1.969v-7.031h-3zM15.984 17.016h3l-3.984 3.984-3.984-3.984h3v-7.031h1.969v7.031z"}]]

@@ -527,12 +527,10 @@
                    operation-properties
                    {:on-click (fn [] (when (not cant-operate?) (dispatch [::evts/set-modal :subtract])))})
               [:span "Subtract " [:svg.icon.icon-venn-difference [:use {:xlinkHref "#icon-venn-difference"}]]]]]
-            [:li {}
-             [:a {:on-click (fn [] (dispatch [::evts/store-tree]))}
-              [:span "Store " [:svg.icon.icon-venn-difference [:use {:xlinkHref "#icon-venn-difference"}]]]]]
-            [:li {}
-             [:a {:on-click (fn [] (dispatch [::evts/fetch-tree]))}
-              [:span "Fetch " [:svg.icon.icon-venn-difference [:use {:xlinkHref "#icon-venn-difference"}]]]]]]]]
+
+            #_[:li {}
+               [:a {:on-click (fn [] (dispatch [::evts/fetch-tree]))}
+                [:span "Fetch " [:svg.icon.icon-venn-difference [:use {:xlinkHref "#icon-venn-difference"}]]]]]]]]
          ])
       #_[:div
          [:div.btn-group
@@ -592,23 +590,16 @@
          [:div [:h3 "Select one or more lists to perform an operation"]])])))
 
 (defn breadcrumb []
-  (let [bc    (subscribe [::subs/breadcrumb])
-        focus (subscribe [::subs/focus])]
-    (fn []
+  (let [bc (subscribe [::subs/breadcrumb])]
+    (fn [labels]
       [:h2
-       (case @focus
-         [:public] [:ol.breadcrumb [:li.active [:a "Public Items"]]]
-         [:unsorted] [:ol.breadcrumb [:li.active [:a "My Items"]]]
-         (into [:ol.breadcrumb]
-               (map (fn [{:keys [trail label]}]
-                      (let [focused? (= trail @focus)]
-                        [:li {:class (when focused? "active")
-                              :on-click (fn [] (dispatch [::evts/set-focus trail]))}
-                         [:a label]]))
-                    (filter #(= :folder (:file-type %)) @bc))))])))
-
-
-
+       (into [:ol.breadcrumb]
+             (map-indexed (fn [idx {:keys [label] :as entry}]
+                            (let [focused? (= idx (dec (count labels)))]
+                              [:li {:class (when focused? "active")
+                                    :on-click (fn [] (dispatch [::evts/set-cursor entry]))}
+                               [:a label]]))
+                          labels))])))
 
 
 (defn checkbox [id]
@@ -625,8 +616,9 @@
 (defn ico []
   (fn [file-type]
     (case file-type
-      :list [:svg.icon.icon-folder [:use {:xlinkHref "#icon-document-list"}]]
-      :folder [:svg.icon.icon-folder [:use {:xlinkHref "#icon-folder"}]]
+      "list" [:svg.icon.icon-document-list {:style {:margin-left 0}}
+              [:use {:xlinkHref "#icon-document-list"}]]
+      "tag" [:svg.icon.icon-folder [:use {:xlinkHref "#icon-folder"}]]
       [:svg.icon.icon-folder [:use {:xlinkHref "#icon-spyglass"}]])))
 
 (defn row-folder []
@@ -648,9 +640,9 @@
      {:style {:font-size "0.9em" :opacity 0.9}}
      (apply str (interpose " / " tag-col))]))
 
-(defn row-list [{:keys [im-obj-id trail file-type entry-id] :as file}]
-  (let [details (subscribe [::subs/one-list im-obj-id])
-        source  (subscribe [:current-mine-name])
+(defn row-list [{:keys [im-obj-id trail im-obj-type entry-id] :as file}]
+  (let [details         (subscribe [::subs/one-list im-obj-id])
+        source          (subscribe [:current-mine-name])
         hierarchy-trail (subscribe [::subs/hierarchy-trail entry-id])]
     (fn [{:keys []}]
       (let [{:keys [description authorized name type size timestamp] :as dets} @details]
@@ -658,14 +650,14 @@
          (merge {} (tag-drag-events file) (menuable file))
          [:td [checkbox im-obj-id]]
          [:td (merge {} (draggable file))
-          [:div [ico file-type]
+          [:div [ico im-obj-type]
            [:a {:on-click (fn [e]
                             (.stopPropagation e)
                             (dispatch [:lists/view-results (assoc dets :source @source)]))} name]]]
          [:td [tag-container @hierarchy-trail]]
          [:td type]
          [:td size]
-         [:td (tf/unparse built-in-formatter (c/from-long timestamp))]]))))
+         [:td #_(tf/unparse built-in-formatter (c/from-long timestamp))]]))))
 
 (defn row [{:keys [im-obj-type] :as item}]
   (fn []
@@ -700,6 +692,7 @@
         root-tags           (subscribe [::subs/root-tags])
         cursor-items        (subscribe [::subs/cursor-items])
         unsorted-items      (subscribe [::subs/untagged-items])
+        cursor-trail        (subscribe [::subs/cursor-trail "abc"])
         ]
 
     (r/create-class
@@ -711,7 +704,7 @@
             [:div.file-browser [tag-browser]]
             [:div.files
              [list-operations]
-             [breadcrumb]
+             [breadcrumb @cursor-trail]
              (if filtered-files
                [:table.table.mymine-table
                 [:thead
@@ -737,6 +730,7 @@
                 #_(into [:tbody]
                         (map-indexed (fn [idx x]
                                        ^{:key (str (:trail x))} [table-row (assoc x :index idx)]) @files))
+
 
                 (into [:tbody]
                       (map-indexed (fn [idx x]

@@ -191,9 +191,11 @@
       (let [evts (reduce (fn [total next]
                            (if-let [previous (first (not-empty (filter #(s/starts-with? % (str next "_")) (map :name lists))))]
                              (do
-                               (conj total [::copy-focus focus next (str previous "_" (-> previous last (js/parseInt) inc))]))
+                               (conj total
+                                     [::copy-focus focus next (str previous "_" (-> previous last (js/parseInt) inc))]))
                              (do
-                               (conj total [::copy-focus focus next (str next "_1")])))) [] names-to-copy)]
+                               (conj total
+                                     [::copy-focus focus next (str next "_1")])))) [] names-to-copy)]
         {:db db
          :dispatch-n evts}))))
 
@@ -345,10 +347,11 @@
   (fn [{db :db} [_ list-name]]
     (let [lists          (get-in db [:assets :lists (get db :current-mine)])
           checked        (get-in db [:mymine :checked])
-          selected-lists (map :name (filter (fn [l] (some #{(:id l)} checked)) lists))]
+          selected-lists (map :name (filter (fn [l] (some #{(:id l)} checked)) lists))
+          parent-id (get-in db [:mymine :cursor :entry-id])]
       (let [service (get-in db [:mines (get db :current-mine) :service])]
         {:im-chan {:chan (save/im-list-union service list-name selected-lists)
-                   :on-success [::lo-success]
+                   :on-success [::lo-success parent-id]
                    :on-failure [::lo-success]}}))))
 
 (reg-event-fx
@@ -356,10 +359,11 @@
   (fn [{db :db} [_ list-name]]
     (let [lists          (get-in db [:assets :lists (get db :current-mine)])
           checked        (get-in db [:mymine :checked])
-          selected-lists (map :name (filter (fn [l] (some #{(:id l)} checked)) lists))]
+          selected-lists (map :name (filter (fn [l] (some #{(:id l)} checked)) lists))
+          parent-id (get-in db [:mymine :cursor :entry-id])]
       (let [service (get-in db [:mines (get db :current-mine) :service])]
         {:im-chan {:chan (save/im-list-intersect service list-name selected-lists)
-                   :on-success [::lo-success]
+                   :on-success [::lo-success parent-id]
                    :on-failure [::lo-success]}}))))
 
 (reg-event-fx
@@ -367,10 +371,11 @@
   (fn [{db :db} [_ list-name]]
     (let [lists          (get-in db [:assets :lists (get db :current-mine)])
           checked        (get-in db [:mymine :checked])
-          selected-lists (map :name (filter (fn [l] (some #{(:id l)} checked)) lists))]
+          selected-lists (map :name (filter (fn [l] (some #{(:id l)} checked)) lists))
+          parent-id (get-in db [:mymine :cursor :entry-id])]
       (let [service (get-in db [:mines (get db :current-mine) :service])]
         {:im-chan {:chan (save/im-list-difference service list-name selected-lists)
-                   :on-success [::lo-success]
+                   :on-success [::lo-success parent-id]
                    :on-failure [::lo-success]}}))))
 
 (reg-event-fx
@@ -380,10 +385,11 @@
           [ids-a ids-b] (get-in db [:mymine :suggested-state])
           selected-lists-a (map :name (filter (fn [l] (some #{(:id l)} ids-a)) lists))
           selected-lists-b (map :name (filter (fn [l] (some #{(:id l)} ids-b)) lists))
+          parent-id (get-in db [:mymine :cursor :entry-id])
           ]
       (let [service (get-in db [:mines (get db :current-mine) :service])]
         {:im-chan {:chan (save/im-list-subtraction service list-name selected-lists-a selected-lists-b)
-                   :on-success [::lo-success]
+                   :on-success [::lo-success parent-id]
                    :on-failure [::lo-success]}}))))
 
 (reg-event-db
@@ -411,10 +417,16 @@
 
 (reg-event-fx
   ::lo-success
-  (fn [{db :db} [_ m]]
+  (fn [{db :db} [_ parent-id m]]
     (let [focus (get-in db [:mymine :focus])]
       {:dispatch-n [[::clear-checked]
-                    [:assets/fetch-lists]]})))
+                    [:assets/fetch-lists]]
+       :http {:method :post
+              :params {:im-obj-type "list"
+                       :im-obj-id (:listId m)
+                       :parent-id parent-id}
+              :on-success [::success-store-tag]
+              :uri "/api/mymine/entries"}})))
 
 
 
@@ -450,6 +462,7 @@
                                    :open? true}
                           :on-success [::success-store-tag]
                           :uri "/api/mymine/entries"}})))
+
 
 
 

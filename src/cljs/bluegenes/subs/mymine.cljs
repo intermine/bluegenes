@@ -520,11 +520,7 @@
     (isa? hierarchy (keyword "tag" entry-id) (keyword "tag" root-id))
     false))
 
-(reg-sub
-  ::untagged-items
-  :<- [:lists/filtered-lists]
-  (fn [lists [evt]]
-    (map (fn [l] {:im-obj-type "list" :im-obj-id (:id l)}) lists)))
+
 
 (reg-sub
   ::hierarchy
@@ -537,14 +533,41 @@
     (into {} (map (juxt :entry-id identity) (get-in db [:mymine :entries])))))
 
 (reg-sub
+  ::untagged-items
+  :<- [:lists/filtered-lists]
+  :<- [::entries]
+  (fn [[lists entries] [evt]]
+    (let [tagged-list-ids (set (map :im-obj-id (filter (comp (partial = "list") :im-obj-type) entries)))]
+      (->> lists
+           (filter (comp (complement tagged-list-ids) :id))
+           (map (fn [l] {:im-obj-type "list" :im-obj-id (:id l)}))))))
+
+(reg-sub
   ::hierarchy-trail
   :<- [::hierarchy]
   :<- [::entries-map]
   (fn [[hierarchy entries-map] [_ pid]]
-    (let [anc (ancestors hierarchy (keyword "tag" pid))]
-      (map
-        #(get-in entries-map [% :label])
-        (reverse (map name anc))))))
+    (if pid
+      (let [anc (ancestors hierarchy (keyword "tag" pid))]
+        (map
+          #(get-in entries-map [% :label])
+          (reverse (map name anc))))
+      nil)))
+
+(reg-sub
+  ::cursor-trail
+  :<- [::hierarchy]
+  :<- [::entries-map]
+  :<- [::cursor]
+  (fn [[hierarchy entries-map cursor]]
+    (if cursor
+      (let [anc (ancestors hierarchy (keyword "tag" (:entry-id cursor)))]
+        (->> anc
+             (map name)
+             (map #(get entries-map %))
+             (cons cursor)
+             reverse))
+      nil)))
 
 (reg-sub
   ::cursor-items
