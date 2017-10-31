@@ -470,11 +470,22 @@
                 (keyword "tag" entry-id)
                 (keyword "tag" parent-id))))))
 
+(reg-event-db ::rederive
+              (fn [db [_]]
+                (let [hierarchy (reduce (fn [h {:keys [entry-id parent-id]}]
+                                          (if (and entry-id parent-id)
+                                            (derive h
+                                                    (keyword "tag" entry-id)
+                                                    (keyword "tag" parent-id))
+                                            h))
+                                        (make-hierarchy) (get-in db [:mymine :entries]))]
+                  (update-in db [:mymine] assoc :hierarchy hierarchy))))
+
 (reg-event-fx ::success-store-tag
               (fn [{db :db} [_ new-tags]]
                 (let [new-db (update-in db [:mymine :entries] #(apply conj % new-tags))]
                   {:db new-db
-                  ::rederive-tags (get-in new-db [:mymine :entries])})))
+                   :dispatch [::rederive]})))
 
 (reg-event-fx ::delete-tag []
               (fn [{db :db} [_ label]]
@@ -499,7 +510,22 @@
                 (update-in db [:mymine :entries] #(remove (partial isa-filter entry-id) %))))
 
 
+(reg-event-fx ::rename-tag []
+              (fn [{db :db} [_ label]]
+                (let [context-menu-target (get-in db [:mymine :context-menu-target])]
+                  {:db db
+                   :http {:method :post
+                          :on-success [::success-rename-tag]
+                          :uri (str "/api/mymine/entries/"
+                                    (:entry-id context-menu-target)
+                                    "/rename/"
+                                    label)}})))
 
+(reg-event-db ::success-rename-tag
+              (fn [db [_ [{entry-id :entry-id :as response}]]]
+                ; Update the appropriate entry
+                (update-in db [:mymine :entries]
+                           #(map (fn [e] (if (= entry-id (:entry-id e)) response e)) %))))
 
 
 (reg-event-fx ::fetch-tree []
@@ -539,14 +565,14 @@
 
 (reg-event-db ::echo-tree
               (fn [db [_ response]]
-
-                (doseq [{:keys [entry-id parent-id]} response]
-                  (if (and entry-id parent-id)
-                    (derive
-                      (keyword "tag" entry-id)
-                      (keyword "tag" parent-id))))
-
-                (assoc-in db [:mymine :entries] response)))
+                (let [hierarchy (reduce (fn [h {:keys [entry-id parent-id]} response]
+                                          (if (and entry-id parent-id)
+                                            (derive h
+                                                    (keyword "tag" entry-id)
+                                                    (keyword "tag" parent-id))
+                                            h))
+                                        (make-hierarchy) response)]
+                  (update-in db [:mymine] assoc :entries response :hierarchy hierarchy))))
 
 (reg-event-db ::dragging
               (fn [db [_ tag]]
@@ -564,8 +590,6 @@
               (fn [{db :db} [_ tag]]
                 (let [{dragging-id :entry-id :as dragging} (get-in db [:mymine :drag :dragging])
                       {dropping-id :entry-id :as dropping} (get-in db [:mymine :drag :dragging-over])]
-                  (js/console.log dragging dropping)
-
                   (let [new-db {:db (assoc-in db [:mymine :drag] nil)}]
                     (cond
                       (nil? dragging-id)
@@ -583,11 +607,12 @@
                       :else new-db)))))
 
 (reg-event-fx ::success-move-entry
-              (fn [{db :db} [_ [{:keys [entry-id parent-id]}]]]
+              (fn [{db :db} [_ [{:keys [entry-id parent-id] :as item}]]]
                 (let [new-entries (map (fn [e]
                                          (if (= entry-id (:entry-id e))
                                            (assoc e :parent-id parent-id)
-                                           e)) (get-in db [:mymine :entries]))]
-                  (js/console.log "new" new-entries)
+                                           e)) (get-in db [:mymine :entries]))
+                      parent-tag  (first (filter (comp #{parent-id} :entry-id) new-entries))]
                   {:db (assoc-in db [:mymine :entries] new-entries)
-                   ::rederive-tags new-entries})))
+                   :dispatch-n [[::rederive]
+                                [::set-cursor parent-tag]]})))

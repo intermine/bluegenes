@@ -13,7 +13,7 @@
      [:li {:data-toggle "modal"
            :data-keyboard true
            :data-target "#myMineNewFolderModal"}
-      [:a "New Folder"]]
+      [:a "New Sub-Tag"]]
      [:li.divider]
      [:li {:data-toggle "modal"
            :data-keyboard true

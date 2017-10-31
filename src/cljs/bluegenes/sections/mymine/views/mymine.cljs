@@ -387,7 +387,9 @@
   (let [context-menu-target (subscribe [::subs/context-menu-target])
         cursor              (subscribe [::subs/cursor])
         sub-tags            (subscribe [::subs/sub-tags entry-id])
-        dragging-over (subscribe [::subs/dragging-over])]
+        sub-not-tags        (subscribe [::subs/sub-not-tags entry-id])
+        dragging-over       (subscribe [::subs/dragging-over])
+        hierarchy           (subscribe [::subs/hierarchy])]
     (fn [{:keys [im-obj-type label open parent-id tag-trail] :as entry}]
       [:li
        (merge {}
@@ -405,13 +407,13 @@
          [:svg.icon.icon-price-tag [:use {:xlinkHref "#icon-price-tag"}]]]
         [:div.label-name label]
         [:div.extra
-         [:span.count "TBD"]
+         [:span.count (count @sub-not-tags)]
          [:svg.icon.icon-caret-right]]]
        (when open
          (into [:ul {:style {:padding-left "25px"}}]
                (map (fn [t]
                       ^{:key (str "tag-" (:entry-id t))}
-                      [tag t]) @sub-tags)))])))
+                      [tag t]) (sort-by :label @sub-tags))))])))
 
 (defn tag-drag-events2 [entry]
   {:draggable true
@@ -451,7 +453,7 @@
             (conj
               (mapv
                 (fn [t] ^{:key (str "tag-" (:entry-id t))} [tag t])
-                @tags)
+                (sort-by :label @tags))
 
               ;[:li.separator]
               )))))
@@ -640,10 +642,17 @@
 
 (def built-in-formatter (tf/formatter "MMM d, y"))
 
-(defn row-list [{:keys [im-obj-id trail file-type] :as file}]
+(defn tag-container []
+  (fn [tag-col]
+    [:span.label.label-default
+     {:style {:font-size "0.9em" :opacity 0.9}}
+     (apply str (interpose " / " tag-col))]))
+
+(defn row-list [{:keys [im-obj-id trail file-type entry-id] :as file}]
   (let [details (subscribe [::subs/one-list im-obj-id])
-        source  (subscribe [:current-mine-name])]
-    (fn []
+        source  (subscribe [:current-mine-name])
+        hierarchy-trail (subscribe [::subs/hierarchy-trail entry-id])]
+    (fn [{:keys []}]
       (let [{:keys [description authorized name type size timestamp] :as dets} @details]
         [:tr
          (merge {} (tag-drag-events file) (menuable file))
@@ -653,6 +662,7 @@
            [:a {:on-click (fn [e]
                             (.stopPropagation e)
                             (dispatch [:lists/view-results (assoc dets :source @source)]))} name]]]
+         [:td [tag-container @hierarchy-trail]]
          [:td type]
          [:td size]
          [:td (tf/unparse built-in-formatter (c/from-long timestamp))]]))))
@@ -711,6 +721,7 @@
                                  :key :label
                                  :type :alphanum
                                  :sort-by @sort-by}]
+                  [:th ""]
                   [table-header {:label "Type"
                                  :key :type
                                  :type :alphanum

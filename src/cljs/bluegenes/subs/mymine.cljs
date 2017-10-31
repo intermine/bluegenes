@@ -515,9 +515,9 @@
     (get-in db [:mymine :cursor])))
 
 
-(defn isa-filter [root-id entry]
+(defn isa-filter [root-id hierarchy entry]
   (if-let [entry-id (:entry-id entry)]
-    (isa? (keyword "tag" entry-id) (keyword "tag" root-id))
+    (isa? hierarchy (keyword "tag" entry-id) (keyword "tag" root-id))
     false))
 
 (reg-sub
@@ -527,14 +527,50 @@
     (map (fn [l] {:im-obj-type "list" :im-obj-id (:id l)}) lists)))
 
 (reg-sub
+  ::hierarchy
+  (fn [db]
+    (get-in db [:mymine :hierarchy])))
+
+(reg-sub
+  ::entries-map
+  (fn [db]
+    (into {} (map (juxt :entry-id identity) (get-in db [:mymine :entries])))))
+
+(reg-sub
+  ::hierarchy-trail
+  :<- [::hierarchy]
+  :<- [::entries-map]
+  (fn [[hierarchy entries-map] [_ pid]]
+    (let [anc (ancestors hierarchy (keyword "tag" pid))]
+      (map
+        #(get-in entries-map [% :label])
+        (reverse (map name anc))))))
+
+(reg-sub
   ::cursor-items
   :<- [::cursor]
+  :<- [::hierarchy]
   :<- [::not-tags]
   :<- [::untagged-items]
-  (fn [[cursor entries untagged]]
+  :<- [::entries-map]
+  (fn [[cursor hierarchy entries untagged entries-map]]
     (if (nil? cursor)
       (concat entries untagged)
-      (filter (partial isa-filter (:entry-id cursor)) entries))))
+      (->> entries
+           (filter (partial isa-filter (:entry-id cursor) hierarchy))
+           (map (fn [e]
+                  (let [anc (ancestors hierarchy (keyword "tag" (:entry-id e)))]
+                    (assoc e :hierarchy (map
+                                          #(get-in entries-map [% :label])
+                                          (reverse (map name anc)))))))))))
+
+(reg-sub
+  ::sub-not-tags
+  :<- [::hierarchy]
+  :<- [::not-tags]
+  (fn [[hierarchy not-tags] [_ pid]]
+    (let [d (descendants hierarchy (keyword "tag" pid))]
+      (filter (fn [nt] (some? (some #{(keyword "tag" (:entry-id nt))} d))) not-tags))))
 
 (reg-sub
   ::dragging

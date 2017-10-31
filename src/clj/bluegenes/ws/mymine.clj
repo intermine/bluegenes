@@ -44,6 +44,13 @@
     {:body (mymine-entry-update-open db {:entry-id entry-id :open status})}
     (response/unauthorized {:error "Unauthorized"})))
 
+(defn update-label [entry-id label req]
+  (if-let [user-id (parse-string (-> req :session :identity :id))]
+    (do
+      (println "label2" label)
+      {:body (map lodash-to-hyphen (mymine-entry-update-label db {:entry-id entry-id :label label}))})
+    (response/unauthorized {:error "Unauthorized"})))
+
 (defn delete-tag [entry-id req]
   (if-let [user-id (parse-string (-> req :session :identity :id))]
     {:body (map lodash-to-hyphen (mymine-entry-delete-entry db {:entry-id entry-id}))}
@@ -55,18 +62,13 @@
     {:body (map lodash-to-hyphen (mymine-move-entry db {:entry-id id :parent-id pid}))}
     (response/unauthorized {:error "Unauthorized"})))
 
-(defn move-ta2g [id pid req]
-  (println "TEST" id pid)
-  (if-let [user-id (parse-string (-> req :session :identity :id))]
-    {:body (map lodash-to-hyphen (mymine-move-entry db {:entry-id id :parent-id pid}))}
-    (response/unauthorized {:error "Unauthorized"})))
-
-
 (defroutes routes
            ; Create a new entry
            (POST "/entries" req add-entry)
            ; Store whether or a tag is expanded or not
            (POST "/entries/:id/open/:status" [id status :as req] (toggle-open id status req))
+           ; ;;;;
+           (POST "/entries/:id/rename/:label" [id label :as req] (update-label id label req))
            ; Move entry to the root level
            (POST "/entries/:id/move/" [id :as req] (move-tag id nil req))
            ; Move entry under a new location

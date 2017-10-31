@@ -182,7 +182,7 @@
 
 
 (defn dispatch-edit [location key value]
-  (dispatch [::evts/update-value location key value]))
+  (dispatch [::evts/rename-tag value]))
 
 (def not-blank? (complement s/blank?))
 
@@ -509,7 +509,7 @@
                           [:div.modal-dialog
                            [:div.modal-content
                             [:div.modal-header [:h2 "Rename"]]
-                            [:div.modal-body [:p "Please enter a new name for the folder"]
+                            [:div.modal-body [:p "Please enter a new name for the tag"]
                              [:input.form-control
                               {:ref (fn [e] (when e (do (oset! e :value label) (reset! input-dom-node (js/$ e)))))
                                :type "text"

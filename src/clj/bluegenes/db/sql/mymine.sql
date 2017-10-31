@@ -17,7 +17,7 @@ returning *
 
  -- :name mymine-entry-update-label :<!
 update mymine
-set label = :label::string
+set label = :label::text
 where entry_id = :entry-id::uuid
 returning *
 
