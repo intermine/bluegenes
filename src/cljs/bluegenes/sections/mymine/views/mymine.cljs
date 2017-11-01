@@ -658,7 +658,6 @@
            [list-operations]
            [breadcrumb @cursor-trail]
            (let [just-files (not-empty (filter (comp (partial not= "tag") :im-obj-type) @cursor-items))]
-             (js/console.log "just files" just-files)
              (if just-files
                [:table.table.mymine-table
                 [:thead
@@ -681,12 +680,7 @@
                                  :key :dateCreated
                                  :type :date
                                  :sort-by @sort-by}]]]
-                #_(into [:tbody]
-                        (map-indexed (fn [idx x]
-                                       ^{:key (str (:trail x))} [table-row (assoc x :index idx)]) @files))
 
-
-                (js/console.log "here we are")
                 (into [:tbody]
                       (map-indexed (fn [idx x]
                                      ^{:key (str (or (:entry-id x) (str (:im-obj-type x) (:im-obj-id x))))} [row (assoc x :index idx)]) @cursor-items))]
