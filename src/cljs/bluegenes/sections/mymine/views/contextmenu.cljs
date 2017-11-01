@@ -24,10 +24,10 @@
            :data-target "#myMineDeleteFolderModal"}
       [:a "Remove"]]]))
 
-(defmethod context-menu :list []
+(defmethod context-menu "list" []
   (fn [target]
     [:ul.dropdown-menu
-     #_[:li {:data-toggle "modal"
+     [:li {:data-toggle "modal"
            :data-keyboard true
            :data-target "#myMineRenameList"}
       [:a "Rename"]]

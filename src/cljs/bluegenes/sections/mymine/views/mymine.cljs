@@ -103,6 +103,7 @@
                           ;(dispatch [::evts/toggle-selected trail {:force? true} row])
                           ; Set this item as the target of the context menu
                           (dispatch [::evts/set-context-menu-target data])
+                          (dispatch [::evts/set-action-target data])
                           ; Show the context menu
                           (ocall (js/$ "#contextMenu") :css (clj->js {:display "block"
                                                                       :left (oget evt :pageX)
@@ -607,11 +608,16 @@
 (defn row-list [{:keys [im-obj-id trail im-obj-type entry-id] :as file}]
   (let [details         (subscribe [::subs/one-list im-obj-id])
         source          (subscribe [:current-mine-name])
-        hierarchy-trail (subscribe [::subs/hierarchy-trail entry-id])]
+        hierarchy-trail (subscribe [::subs/hierarchy-trail entry-id])
+        context-menu-target (subscribe [::subs/context-menu-target])]
     (fn [{:keys []}]
       (let [{:keys [description authorized name type size timestamp] :as dets} @details]
         [:tr
-         (merge {} (tag-drag-events file) (menuable file))
+         (merge {:class (when (= @context-menu-target file) "highlighted")}
+                (tag-drag-events file)
+                (trigger-context-menu file)
+                {:on-click (fn []
+                             (dispatch [::evts/set-context-menu-target file]))})
          [:td [checkbox im-obj-id]]
          [:td (merge {} (draggable file))
           [:div [ico im-obj-type]

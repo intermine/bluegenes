@@ -181,7 +181,7 @@
 
 (reg-event-fx
   ::copy-success
-  (fn [{db :db} [_ trail parent-id response ]]
+  (fn [{db :db} [_ trail parent-id response]]
     {:dispatch-n [
                   [::clear-checked]
                   [::fetch-one-list trail response parent-id]]}))
@@ -262,6 +262,7 @@
   ::rename-list
   (fn [{db :db} [_ new-list-name]]
     (let [service (get-in db [:mines (get db :current-mine) :service])
+          _       (js/console.log "DB" db)
           id      (last (get-in db [:mymine :action-target]))
           _       (js/console.log "ID" id)
           {old-list-name :name} @(subscribe [::subs/one-list id])]
@@ -610,21 +611,22 @@
               (fn [{db :db} [_ tag]]
                 (let [{dragging-id :entry-id :as dragging} (get-in db [:mymine :drag :dragging])
                       {dropping-id :entry-id :as dropping} (get-in db [:mymine :drag :dragging-over])]
-                  (let [new-db {:db (assoc-in db [:mymine :drag] nil)}]
+                  (let [noop {:db (assoc-in db [:mymine :drag] nil)}]
                     (cond
+                      (not= "tag" (:im-obj-type dropping)) noop
                       (nil? dragging-id)
-                      (assoc new-db :http {:method :post
+                      (assoc noop :http {:method :post
                                            :params (assoc dragging :parent-id dropping-id)
                                            :on-success [::success-store-tag]
                                            :uri "/api/mymine/entries"})
                       (and (not= dragging-id dropping-id))
-                      (assoc new-db :http {:method :post
+                      (assoc noop :http {:method :post
                                            :on-success [::success-move-entry]
                                            :uri (str "/api/mymine/entries/"
                                                      dragging-id
                                                      "/move/"
                                                      dropping-id)})
-                      :else new-db)))))
+                      :else noop)))))
 
 (reg-event-fx ::success-move-entry
               (fn [{db :db} [_ [{:keys [entry-id parent-id] :as item}]]]
