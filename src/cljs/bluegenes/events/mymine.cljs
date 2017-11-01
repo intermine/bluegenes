@@ -610,9 +610,14 @@
 (reg-event-fx ::dropping-on
               (fn [{db :db} [_ tag]]
                 (let [{dragging-id :entry-id :as dragging} (get-in db [:mymine :drag :dragging])
-                      {dropping-id :entry-id :as dropping} (get-in db [:mymine :drag :dragging-over])]
+                      {dropping-id :entry-id :as dropping} (get-in db [:mymine :drag :dragging-over])
+                      hierarchy (get-in db [:mymine :hierarchy])]
                   (let [noop {:db (assoc-in db [:mymine :drag] nil)}]
+
                     (cond
+                      (isa? hierarchy
+                            (keyword "tag" (:entry-id dropping))
+                            (keyword "tag" (:entry-id dragging))) noop
                       (not= "tag" (:im-obj-type dropping)) noop
                       (nil? dragging-id)
                       (assoc noop :http {:method :post
