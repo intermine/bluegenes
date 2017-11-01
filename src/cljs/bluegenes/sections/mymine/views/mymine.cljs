@@ -325,6 +325,8 @@
         [:div.extra]]])))
 
 
+
+
 (defn root-folder []
   (let [over  (subscribe [::subs/dragging-over])
         focus (subscribe [::subs/focus])]
@@ -445,20 +447,26 @@
 (defn tag-browser []
   (let [tags          (subscribe [::subs/sub-tags nil])
         dragging-over (subscribe [::subs/dragging-over])
-        dragging?     (subscribe [::subs/dragging?])]
+        dragging?     (subscribe [::subs/dragging?])
+
+        authed?    (subscribe [:bluegenes.subs.auth/authenticated?])]
     (fn []
       (into [:ul
              [unsorted-folder]
              #_[public-folder]
              [:li.separator]
-             [add-folder]
+             (when @authed? [add-folder])
              [:li.separator (merge {}
                                    (sep-drag-events)
                                    {:class (when (and @dragging? (= :bar @dragging-over)) "separator-highlighted")})]]
             (conj
-              (mapv
-                (fn [t] ^{:key (str "tag-" (:entry-id t))} [tag t])
-                (sort-by :label @tags))
+              (if @authed?
+                (mapv
+                 (fn [t] ^{:key (str "tag-" (:entry-id t))} [tag t])
+                 (sort-by :label @tags))
+                [
+                 [:span "Debug message: "]
+                 [:span "Please log in to use tags"]])
 
               ;[:li.separator]
               )))))
@@ -606,9 +614,9 @@
      (apply str (interpose " / " tag-col))]))
 
 (defn row-list [{:keys [im-obj-id trail im-obj-type entry-id] :as file}]
-  (let [details         (subscribe [::subs/one-list im-obj-id])
-        source          (subscribe [:current-mine-name])
-        hierarchy-trail (subscribe [::subs/hierarchy-trail entry-id])
+  (let [details             (subscribe [::subs/one-list im-obj-id])
+        source              (subscribe [:current-mine-name])
+        hierarchy-trail     (subscribe [::subs/hierarchy-trail entry-id])
         context-menu-target (subscribe [::subs/context-menu-target])]
     (fn [{:keys []}]
       (let [{:keys [description authorized name type size timestamp] :as dets} @details]

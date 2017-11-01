@@ -572,8 +572,6 @@
                 (assoc-in db [:mymine :cursor] entry)))
 
 
-
-
 (defn keywordize-value
   "Recursively keywordize a value for a given key in a map
   (keywordize-filetypes {:one {:type folder :children {:three {:type file}}}
