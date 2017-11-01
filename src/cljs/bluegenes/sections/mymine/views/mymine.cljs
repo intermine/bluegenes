@@ -284,9 +284,9 @@
          [:svg.icon.icon-caret-right]]]])))
 
 (defn unsorted-folder []
-  (let [focus    (subscribe [::subs/focus])
-        my-items (subscribe [::subs/my-items])
-        cursor   (subscribe [::subs/cursor])
+  (let [focus     (subscribe [::subs/focus])
+        my-items  (subscribe [::subs/my-items])
+        cursor    (subscribe [::subs/cursor])
         all-items (subscribe [::subs/cursor-items-at nil])]
     (fn [[key {:keys [label file-type open index trail]}]]
       [:li {:on-click (fn [x]
@@ -652,13 +652,14 @@
       {:component-did-mount attach-hide-context-menu
        :reagent-render
        (fn []
-         (let [filtered-files (not-empty (filter (comp #{:list} :file-type) @my-files))]
-           [:div.mymine.noselect
-            [:div.file-browser [tag-browser]]
-            [:div.files
-             [list-operations]
-             [breadcrumb @cursor-trail]
-             (if filtered-files
+         [:div.mymine.noselect
+          [:div.file-browser [tag-browser]]
+          [:div.files
+           [list-operations]
+           [breadcrumb @cursor-trail]
+           (let [just-files (not-empty (filter (comp (partial not= "tag") :im-obj-type) @cursor-items))]
+             (js/console.log "just files" just-files)
+             (if just-files
                [:table.table.mymine-table
                 [:thead
                  [:tr
@@ -685,34 +686,35 @@
                                        ^{:key (str (:trail x))} [table-row (assoc x :index idx)]) @files))
 
 
+                (js/console.log "here we are")
                 (into [:tbody]
                       (map-indexed (fn [idx x]
                                      ^{:key (str (or (:entry-id x) (str (:im-obj-type x) (:im-obj-id x))))} [row (assoc x :index idx)]) @cursor-items))]
 
 
-               [:h4 "Empty Folder"])]
+               [:h4 "Empty Folder"]))]
 
 
-            #_(when true #_(not-empty @checked)
-                [modals/list-operations-commutative
-                 {:title "Combine Lists"
-                  :body "The new list will contain items from all selected lists"}]
-                ;[checked-panel]
-                )
+          #_(when true #_(not-empty @checked)
+              [modals/list-operations-commutative
+               {:title "Combine Lists"
+                :body "The new list will contain items from all selected lists"}]
+              ;[checked-panel]
+              )
 
 
 
-            [modals/modal-list-operations @modal-kw]
+          [modals/modal-list-operations @modal-kw]
 
-            [modals/modal @context-menu-target]
-            [modals/modal-copy @context-menu-target]
-            [modals/modal-delete-item @context-menu-target]
-            [modals/modal-new-folder @context-menu-target]
-            [modals/modal-delete-folder @context-menu-target]
-            [modals/modal-lo @context-menu-target]
-            [modals/modal-lo-intersect @context-menu-target]
-            [modals/modal-rename-list @context-menu-target]
-            [m/context-menu-container @context-menu-target]
-            ;[thinker/main]
-            ]))})))
+          [modals/modal @context-menu-target]
+          [modals/modal-copy @context-menu-target]
+          [modals/modal-delete-item @context-menu-target]
+          [modals/modal-new-folder @context-menu-target]
+          [modals/modal-delete-folder @context-menu-target]
+          [modals/modal-lo @context-menu-target]
+          [modals/modal-lo-intersect @context-menu-target]
+          [modals/modal-rename-list @context-menu-target]
+          [m/context-menu-container @context-menu-target]
+          ;[thinker/main]
+          ])})))
 
