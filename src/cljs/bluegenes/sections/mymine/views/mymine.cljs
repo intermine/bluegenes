@@ -285,11 +285,15 @@
 
 (defn unsorted-folder []
   (let [focus    (subscribe [::subs/focus])
-        my-items (subscribe [::subs/my-items])]
+        my-items (subscribe [::subs/my-items])
+        cursor   (subscribe [::subs/cursor])
+        all-items (subscribe [::subs/cursor-items-at nil])]
     (fn [[key {:keys [label file-type open index trail]}]]
-      [:li {:on-click (fn [x] (dispatch [::evts/set-cursor nil]))
-            :class (when (= [:unsorted] @focus) "active")}
+      [:li {:on-click (fn [x]
+                        (dispatch [::evts/set-context-menu-target])
+                        (dispatch [::evts/set-cursor nil]))}
        [:div.mymine-tag
+        {:class (when (= nil @cursor) "active")}
         [:div.icon-container {:style {:padding-left (str (* index 13) "px")}}
          [:svg.icon.icon-caret-right
           {:class (when open "open")}]
@@ -297,9 +301,9 @@
          [:svg.icon.icon-user-circle [:use {:xlinkHref "#icon-user-circle"}]]]
         [:div.label-name
          #_{:on-click (fn [] (dispatch [::evts/set-focus [:public]]))}
-         "My Items "]
+         "All Items "]
         [:div.extra
-         [:span.count (count @my-items)]
+         [:span.count (count @all-items)]
          [:svg.icon.icon-caret-right]]]])))
 
 (defn add-folder []
@@ -370,8 +374,7 @@
   (or
     (= entry-id (:entry-id @context-menu-target-atom))
     (= entry-id (:entry-id @cursor-atom))
-    (= entry-id (:entry-id @dragging-over-atom))
-    ))
+    (= entry-id (:entry-id @dragging-over-atom))))
 
 (defn show-caret? [sub-tags-atom]
   (if @sub-tags-atom 1 0))
@@ -379,6 +382,7 @@
 (defn set-cursor-on-click [entity]
   {:on-click (fn [evt]
                (ocall evt :stopPropagation)
+               (dispatch [::evts/set-context-menu-target])
                (dispatch [::evts/set-cursor entity]))})
 
 
@@ -444,7 +448,7 @@
     (fn []
       (into [:ul
              [unsorted-folder]
-             [public-folder]
+             #_[public-folder]
              [:li.separator]
              [add-folder]
              [:li.separator (merge {}
@@ -531,48 +535,7 @@
             #_[:li {}
                [:a {:on-click (fn [] (dispatch [::evts/fetch-tree]))}
                 [:span "Fetch " [:svg.icon.icon-venn-difference [:use {:xlinkHref "#icon-venn-difference"}]]]]]]]]
-         ])
-      #_[:div
-         [:div.btn-group
-
-          [:button.btn.btn-raised.btn-primary
-           {:disabled false
-            :on-click (fn [] (dispatch [::evts/copy-n]))}
-           [:div
-            [:svg.icon.copy [:use {:xlinkHref "#copy"}]]
-            [:div "Copy"]]]
-
-          ]
-         [:div.btn-group
-
-          [:button.btn.btn-raised.btn-primary
-           {:disabled false
-            :data-toggle "modal"
-            :data-keyboard true
-            :data-target "#myMineLoModal"}
-           ;:on-click (fn [] (dispatch [::evts/lo-combine]) )
-
-           [:div
-            [:svg.icon.icon-venn-combine [:use {:xlinkHref "#icon-venn-combine"}]]
-            [:div "Combine"]]]
-          [:button.btn.btn-raised.btn-primary
-           {:disabled false
-            :data-toggle "modal"
-            :data-keyboard true
-            :data-target "#myMineLoIntersectModal"
-            :on-click (fn [])}
-           [:div
-            [:svg.icon.icon-venn-intersection [:use {:xlinkHref "#icon-venn-intersection"}]]
-            [:div "Intersect"]]]
-
-          [:button.btn.btn-raised.btn-primary
-           {:disabled true
-            :on-click (fn [])}
-           [:div
-            [:svg.icon.icon-venn-difference [:use {:xlinkHref "#icon-venn-difference"}]]
-            [:div "Subtract"]]]
-
-          ]])))
+         ]))))
 
 
 
@@ -590,8 +553,8 @@
          [:div [:h3 "Select one or more lists to perform an operation"]])])))
 
 (defn breadcrumb []
-  (let [bc (subscribe [::subs/breadcrumb])]
-    (fn [labels]
+  (fn [labels]
+    (if labels
       [:h2
        (into [:ol.breadcrumb]
              (map-indexed (fn [idx {:keys [label] :as entry}]
@@ -599,7 +562,8 @@
                               [:li {:class (when focused? "active")
                                     :on-click (fn [] (dispatch [::evts/set-cursor entry]))}
                                [:a label]]))
-                          labels))])))
+                          labels))]
+      [:h2 [:ol.breadcrumb [:li.active [:a "All Items"]]]])))
 
 
 (defn checkbox [id]
@@ -654,7 +618,8 @@
            [:a {:on-click (fn [e]
                             (.stopPropagation e)
                             (dispatch [:lists/view-results (assoc dets :source @source)]))} name]]]
-         [:td [tag-container @hierarchy-trail]]
+         [:td (when-not authorized
+                [:svg.icon.icon-lock [:use {:xlinkHref "#icon-lock"}]]) [tag-container @hierarchy-trail]]
          [:td type]
          [:td size]
          [:td #_(tf/unparse built-in-formatter (c/from-long timestamp))]]))))
@@ -665,18 +630,6 @@
       "list" [row-list item]
       "folder" [row-folder item]
       [:div])))
-
-(def some-data [
-                {:id "A"}
-                {:id "B" :parent "A"}
-                {:id "C" :parent "B"}
-                {:id "Q"}
-                {:id "R" :parent "Q"}
-                {:id "S" :parent "Q"}
-                ])
-
-(defn treeify [col primary-key parent-key]
-  )
 
 (defn main []
   (let [as-list             (subscribe [::subs/as-list])

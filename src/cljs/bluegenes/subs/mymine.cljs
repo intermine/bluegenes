@@ -588,6 +588,23 @@
                                           (reverse (map name anc)))))))))))
 
 (reg-sub
+  ::cursor-items-at
+  :<- [::hierarchy]
+  :<- [::not-tags]
+  :<- [::untagged-items]
+  :<- [::entries-map]
+  (fn [[hierarchy entries untagged entries-map] [_ entry-id]]
+    (if (nil? entry-id)
+      (concat entries untagged)
+      (->> entries
+           (filter (partial isa-filter (:entry-id entry-id) hierarchy))
+           (map (fn [e]
+                  (let [anc (ancestors hierarchy (keyword "tag" (:entry-id e)))]
+                    (assoc e :hierarchy (map
+                                          #(get-in entries-map [% :label])
+                                          (reverse (map name anc)))))))))))
+
+(reg-sub
   ::sub-not-tags
   :<- [::hierarchy]
   :<- [::not-tags]

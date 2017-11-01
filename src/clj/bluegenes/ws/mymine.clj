@@ -46,9 +46,7 @@
 
 (defn update-label [entry-id label req]
   (if-let [user-id (parse-string (-> req :session :identity :id))]
-    (do
-      (println "label2" label)
-      {:body (map lodash-to-hyphen (mymine-entry-update-label db {:entry-id entry-id :label label}))})
+    {:body (map lodash-to-hyphen (mymine-entry-update-label db {:entry-id entry-id :label label}))}
     (response/unauthorized {:error "Unauthorized"})))
 
 (defn delete-tag [entry-id req]
@@ -57,7 +55,6 @@
     (response/unauthorized {:error "Unauthorized"})))
 
 (defn move-tag [id pid req]
-  (println "TEST" id pid)
   (if-let [user-id (parse-string (-> req :session :identity :id))]
     {:body (map lodash-to-hyphen (mymine-move-entry db {:entry-id id :parent-id pid}))}
     (response/unauthorized {:error "Unauthorized"})))
