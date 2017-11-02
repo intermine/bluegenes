@@ -34,8 +34,7 @@
    [:script {:src "vendor/bootstrap/dist/js/bootstrap.js"}]
    [:script {:src "vendor/bootstrap/js/tooltip.js"}]
    [:script {:src "vendor/bootstrap/js/popover.js"}]
-   [:script {:src "https://apis.google.com/js/api.js"}]
-   ]
+   [:script {:src "https://apis.google.com/js/api.js"}]]
   )
 
 (defn loader []
