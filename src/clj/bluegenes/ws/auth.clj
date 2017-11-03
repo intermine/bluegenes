@@ -46,7 +46,6 @@
 
 (defn fetch-token
   [{:keys [service username password token] :as im}]
-  (println "im" im)
   (im-auth/basic-auth service username password))
 
 (defn fetch-identity
