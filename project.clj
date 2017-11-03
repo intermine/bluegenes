@@ -69,6 +69,11 @@
                  [buddy/buddy-sign "1.5.0"]
                  [buddy/buddy-hashers "1.2.0"]
 
+                 [com.cemerick/friend "0.2.3"]
+                 [clojusc/friend-oauth2 "0.2.0"]
+                 [com.cemerick/url "0.1.1"]
+
+
                  ; Intermine Assets
                  [intermine/imcljs "0.1.33"]
                  [intermine/im-tables "0.3.3"]

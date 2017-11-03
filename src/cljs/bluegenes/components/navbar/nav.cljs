@@ -33,10 +33,6 @@
         {:type "button"
          :on-click (fn [] (dispatch [:bluegenes.events.auth/login @credentials]))}
         "Sign In"]
-       [:button.btn.btn-primary.btn-raised
-        {:type "button"
-         :on-click (fn [] (dispatch [:bluegenes.events.auth/login @credentials]))}
-        "Google"]
        ;[:svg.icon.icon-spinner.spin [:use {:xlinkHref "#icon-spinner"}]]
        ])))
 
