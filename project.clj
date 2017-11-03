@@ -91,10 +91,7 @@
             "build" ["do" "clean"
                      ["cljsbuild" "once" "min"]
                      ["less" "once"]]
-            "prod" ["do" "clean"
-                    ["pdo" ["cljsbuild" "once" "min"]
-                     ["less" "once"]
-                     ["run"]]]}
+            "prod" ["do" "build" ["pdo" ["run"]]]}
 
   :min-lein-version "2.5.3"
 
