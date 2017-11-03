@@ -81,7 +81,20 @@
 
   :plugins [[lein-cljsbuild "1.1.6"]
             [lein-less "1.7.5"]
-            [lein-ancient "0.6.10"]]
+            [lein-ancient "0.6.10"]
+            [lein-pdo "0.1.1"]]
+
+  :aliases {"dev" ["do" "clean"
+                   ["pdo" ["figwheel" "dev"]
+                    ["less" "auto"]
+                    ["run"]]]
+            "build" ["do" "clean"
+                     ["cljsbuild" "once" "min"]
+                     ["less" "once"]]
+            "prod" ["do" "clean"
+                    ["pdo" ["cljsbuild" "once" "min"]
+                     ["less" "once"]
+                     ["run"]]]}
 
   :min-lein-version "2.5.3"
 
