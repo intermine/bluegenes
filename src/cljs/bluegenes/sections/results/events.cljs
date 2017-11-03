@@ -13,7 +13,7 @@
             [ajax.core :as ajax]
             [bluegenes.interceptors :refer [clear-tooltips]]
             [dommy.core :refer-macros [sel sel1]]
-            [bluegenes.sections.saveddata.events]
+            ;[bluegenes.sections.saveddata.events]
             [accountant.core :as accountant]
             [bluegenes.interceptors :refer [abort-spec]]))
 

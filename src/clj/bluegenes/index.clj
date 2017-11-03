@@ -1,6 +1,7 @@
 (ns bluegenes.index
   (:require [hiccup.page :refer [include-js include-css html5]]
             [config.core :refer [env]]))
+            [cheshire.core :as json]))
 
 ;;Hello dear maker of the internet. You want to edit *this* file for prod, NOT the index.html copy. Why did we configure it this way? It's not to drive you mad, I assure you. It's because figwheel likes to highjack routes at / and display a default page if there is no index.html in place. Naughty figwheel!
 
@@ -51,13 +52,14 @@
     [:div.fly.loader-organism]]])
 
 
-(defn index []
-  (html5
-    (head)
-    [:body
-    (loader)
-    [:div#app]
+(defn index [identity]
+  (let [json-identity (json/generate-string identity)]
+    (html5
+     (head)
+     [:body
+      (loader)
+      [:div#app]
       [:script {:src (str "js/compiled/app.js?v=" (version))}]
-      [:script "bluegenes.core.init();"]
-     ]
-))
+      [:script (str "bluegenes.core.init(" json-identity ");")]
+      ]
+     )))

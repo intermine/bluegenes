@@ -2,6 +2,7 @@
 @import "../resources/public/vendor/bootstrap-material-design/less/bootstrap-material-design";
 @import "../resources/public/vendor/bootstrap/less/navs";
 @import "json-html";
+@import "components/icons";
 @import "components/progressbar";
 @import "components/report/summary";
 @import "components/results";
@@ -13,13 +14,12 @@
 @import "components/home";
 @import "components/loader";
 @import "components/tooltip";
-@import "datatype-colors";
 @import "components/search";
 @import "components/templates";
 @import "components/alerts";
+@import "components/login";
 @import "saved-data";
 @import "developer";
-@import "../resources/public/vendor/bootstrap-material-design/less/bootstrap-material-design";
 @import "overrides";
 @import "components/navbar";
 @import "layouts/input-group";
@@ -30,6 +30,11 @@
 @import "components/toast";
 @import "im-tables";
 @import "im-tables-overrides";
+@import "components/mymine";
+@import "datatype-colors";
+@import "animations";
+
+
 @import url(https:fonts.googleapis.com/css?family=Roboto:400,700,300);
 
 body {
@@ -155,29 +160,6 @@ div.header {
 
 .square {
     border-radius: 0;
-}
-
-.icon(@icon-size) {
-    vertical-align: top;
-    margin-top: 1px;
-    display: inline-block;
-    width: @icon-size;
-    height: @icon-size;
-    fill: @link-color;
-    margin: 0 @icon-size/2;
-}
-.icon {.icon(1em);}
-
-.icon-2x {
-  .icon(2em)
-}
-
-.icon-3x {
-  .icon(3em)
-}
-
-.icon-4x {
-  .icon(4em)
 }
 
 
@@ -433,3 +415,42 @@ label {
     display: flex;
     align-items: center;
 }
+
+
+/** TODO: Move these somewhere better **/
+
+button.btn{
+  display:flex;
+  align-items:center;
+  svg {margin-right:0.5em;}
+
+  /** ignore below thi, just making button shiny **/
+
+    /*
+  color:#fff;
+  text-shadow:1px 1px 1px rgba(0,0,0,0.1);
+  background-color:#009688;
+  border:0;
+  padding:0.5em 1em;
+  border-radius:2px; box-shadow:1px 1px 1px rgba(0,0,0,0.2);
+  */
+}
+
+.icon {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    stroke-width: 0;
+    stroke: currentColor;
+    fill: currentColor;
+}
+
+
+ .navbar .navbar-nav > li,
+ .navbar .navbar-nav > li > a {
+    display: flex;
+    align-items: center;
+}
+
+
+

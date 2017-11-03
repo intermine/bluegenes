@@ -1,4 +1,4 @@
-(def props {:version "0.4.6-bosc-mobile-navbar-fixes"})
+(def props {:version "0.4.7-mymine-preview"})
 
 (defproject bluegenes (str (:version props) "-SNAPSHOT")
   :dependencies [; Clojure
@@ -30,6 +30,10 @@
                  [ring/ring-defaults "0.3.1"]
                  [ring/ring-json "0.4.0"]
                  [metosin/ring-http-response "0.9.0"]
+                 [ring-middleware-format "0.7.2"]
+
+                 ; Dev tools
+                 [re-frisk "0.5.0"]
 
                  ; Build tools
                  [yogthos/config "0.8"]
@@ -51,6 +55,8 @@
                  [org.postgresql/postgresql "42.1.3"]
                  [hikari-cp "1.7.6"]
                  [migratus "0.9.8"]
+                 [com.layerware/hugsql "0.4.7"]
+                 [postgre-types "0.0.4"]
 
                  ; Components
                  [mount "0.1.11"]
@@ -65,8 +71,8 @@
                  [buddy/buddy-hashers "1.2.0"]
 
                  ; Intermine Assets
-                 [intermine/imcljs "0.1.28"]
-                 [intermine/im-tables "0.3.2-SNAPSHOT"]
+                 [intermine/imcljs "0.1.33"]
+                 [intermine/im-tables "0.3.3"]
                  [intermine/accountant-fragments "0.1.8"]]
 
   :plugins [[lein-cljsbuild "1.1.6"]
@@ -88,7 +94,8 @@
   :less {:source-paths ["less"]
          :target-path "resources/public/css"}
 
-  :profiles {:dev {:resource-paths ["config/dev"]
+  :profiles {:dev {:dependencies [[binaryage/devtools "0.9.4"]]
+                   :resource-paths ["config/dev"]
                    :plugins [[lein-figwheel "0.5.11"]
                              [lein-doo "0.1.7"]]}
              :prod {:dependencies []
@@ -107,6 +114,8 @@
                                         :source-map-timestamp true
                                         :pretty-print true
                                         ;:parallel-build true
+                                        :preloads [devtools.preload]
+                                        :external-config {:devtools/config {:features-to-install :all}}
                                         }}
 
                        :min {:source-paths ["src/cljs"]
@@ -115,7 +124,6 @@
                                         :parallel-build true
                                         :output-to "resources/public/js/compiled/app.js"
                                         ;:output-dir "resources/public/js/compiled"
-                                        :externs ["externs/imjs.js"]
                                         :optimizations :advanced
                                         :closure-defines {goog.DEBUG false}
                                         :pretty-print false}}

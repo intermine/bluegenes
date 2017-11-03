@@ -84,7 +84,7 @@ A [node-js][nodejs] environment is also required, which handles the
 installation of the javascript dependencies using [npm][npm] and
 [Bower][bower].
 
-**Required:** The InterMine you point BlueGenes at *must* be running InterMine 1.7.2 or above.
+**Required:** The InterMine you point BlueGenes at *must* be running InterMine
 
 ### Download dependencies.
 
