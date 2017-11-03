@@ -60,14 +60,14 @@
       ;      [:td name]])]
        [:h5 "Categories"]
        [:table [:tbody
-      (for [[name value] (:category facets)]
-        ^{:key name}
+      (for [[facet-name value] (:category facets)]
+        ^{:key facet-name}
         [:tr {
-            :on-click (fn [e] (re-frame/dispatch [:search/set-active-filter name]))
-            :class (if (is-active name active) "active")}
-         [:td.count.result-type {:class (str "type-" name)} value]
-         [:td name (if (is-active name active)
-           [remove-filter name])]])]
+            :on-click (fn [e] (re-frame/dispatch [:search/set-active-filter facet-name]))
+            :class (if (is-active facet-name active) "active")}
+         [:td.count.result-type {:class (str "type-" (name facet-name))} value]
+         [:td facet-name (if (is-active facet-name active)
+           [remove-filter facet-name])]])]
        ]]
        [controls]
    ])))
