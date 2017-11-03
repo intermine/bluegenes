@@ -118,7 +118,8 @@
                                         :source-map-timestamp true
                                         :pretty-print true
                                         ;:parallel-build true
-                                        :preloads [devtools.preload]
+                                        :preloads [devtools.preload
+                                                   re-frisk.preload]
                                         :external-config {:devtools/config {:features-to-install :all}}
                                         }}
 
