@@ -10,6 +10,7 @@
             [bluegenes.views :as views]
             [bluegenes.config :as config]
             [bluegenes.components.templates.core]
+            [cljsjs.google-analytics]
             [accountant.core :refer [navigate!]]
             [oops.core :refer [oget oset! ocall oapply ocall! oapply!
                                oget+ oset!+ ocall+ oapply+ ocall!+ oapply!+]]))

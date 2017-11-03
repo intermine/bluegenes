@@ -3,7 +3,9 @@
             [bluegenes.db :as db]
             [bluegenes.mines :as default-mines]
             [imcljs.fetch :as fetch]
+            [oops.core :refer [oget+]]
             [bluegenes.persistence :as persistence]))
+
 
 (defn boot-flow [db ident]
   (if ident
@@ -47,8 +49,9 @@
                        :assets/success-fetch-summary-fields
                        :assets/success-fetch-widgets
                        :assets/success-fetch-intermine-version]
-              :dispatch-n (list [:finished-loading-assets] [:save-state])
+              :dispatch-n (list [:start-analytics] [:finished-loading-assets] [:save-state])
               :halt? true}]}))
+
 
 (defn im-tables-events-forwarder []
   {:register :im-tables-events ;;  <-- used
@@ -134,6 +137,22 @@
      :dispatch-n [[:cache/fetch-organisms]
                   [:saved-data/load-lists]
                   [:regions/select-all-feature-types]]}))
+
+(reg-event-fx
+  :start-analytics
+  (fn [{db :db}]
+    (let [analytics-id (:googleAnalytics (js->clj js/serverVars :keywordize-keys true))
+          analytics-enabled? (not (clojure.string/blank? analytics-id))]
+          (if analytics-enabled? 
+            ;;set tracker up if we have a tracking id
+            (do
+              (js/ga "create" analytics-id "auto")
+              (js/ga "send" "pageview")
+              (.info js/console "Google Analytics enabled. Tracking ID:" analytics-id))
+            ;;inobtrusive console message if there's no id  
+            (.info js/console "Google Analytics disabled. No tracking ID."))
+    {:db (assoc db :google-analytics {:enabled? analytics-enabled? :analytics-id analytics-id})}
+    )))
 
 ; Store an authentication token for a given mine
 (reg-event-db

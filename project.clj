@@ -48,6 +48,7 @@
                  [fipp "0.6.9"]
                  [binaryage/oops "0.5.5"]
                  [inflections "0.13.0"]
+                 [cljsjs/google-analytics "2015.04.13-0"]
 
                  ; Database
                  [org.clojure/java.jdbc "0.7.0"]
