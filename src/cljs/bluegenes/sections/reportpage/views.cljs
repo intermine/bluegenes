@@ -2,12 +2,10 @@
   (:require [re-frame.core :as re-frame :refer [subscribe dispatch]]
             [bluegenes.sections.reportpage.components.summary :as summary]
             [bluegenes.components.table :as table]
-            [bluegenes.components.collection :as collection]
             [bluegenes.components.lighttable :as lighttable]
             [bluegenes.components.loader :refer [loader]]
             [bluegenes.sections.reportpage.components.minelinks :as minelinks]
-            [accountant.core :refer [navigate!]]
-))
+            [accountant.core :refer [navigate!]]))
 
 (defn main []
   (let [params           (subscribe [:panel-params])
