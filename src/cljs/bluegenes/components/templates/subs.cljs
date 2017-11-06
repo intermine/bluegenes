@@ -1,8 +1,7 @@
 (ns bluegenes.components.templates.subs
   (:require-macros [reagent.ratom :refer [reaction]])
   (:require [re-frame.core :as re-frame :refer [reg-sub]]
-            [bluegenes.components.templates.helpers :as template-helpers]
-            [imcljsold.filters :as filters]))
+            [bluegenes.components.templates.helpers :as template-helpers]))
 
 (defn template-contains-string?
   "Return true if a template's description contains a string"
@@ -84,19 +83,6 @@
 (def ns->kw (comp keyword (fnil namespace :nil)))
 (def name->kw (comp keyword name))
 (def ns->vec (juxt ns->kw name->kw))
-
-(reg-sub
-  :template-chooser/selected-template-constraints
-  (fn [db]
-    (let [source      (ns->kw (get-in db [:components :template-chooser :selected-template-name]))
-          classes       (get-in db [:mines source :service :model :classes])
-          constraints (get-in db [:components :template-chooser :selected-template :where])]
-      (if (and source classes constraints)
-        (map (fn [constraint]
-               (assoc constraint
-                 :field-type (filters/path-type classes (:path constraint)
-                                                (first (filter (fn [x] (contains? x :type)) constraints))))) constraints)
-        nil))))
 
 (reg-sub
   :selected-template-category
