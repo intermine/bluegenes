@@ -18,7 +18,7 @@
             [bluegenes.sections.querybuilder.events]
             [bluegenes.effects]
             [bluegenes.persistence :as persistence]
-            [imcljsold.search :as search]
+            [imcljs.fetch :as fetch]
             [imcljs.path :as im-path]
             [clojure.string :refer [join split]]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
@@ -85,7 +85,7 @@
 (reg-event-db
   :handle-suggestions
   (fn [db [_ results]]
-    (assoc db :suggestion-results results)))
+    (assoc db :suggestion-results (:results results))))
 
 
 
@@ -93,7 +93,7 @@
   :bounce-search
   (fn [{db :db} [_ term]]
     (let [connection   (get-in db [:mines (get db :current-mine) :service])
-          suggest-chan (search/quicksearch connection term 5)]
+          suggest-chan (fetch/quicksearch connection term {:size 5})]
       (if-let [c (:search-term-channel db)] (close! c))
       {:db      (-> db
                     (assoc :search-term-channel suggest-chan)
@@ -128,7 +128,7 @@
                                    "genus"
                                    "commonName"]}]
       {:db           db
-       :im-operation {:op         (partial search/raw-query-rows
+       :im-operation {:op         (partial fetch/rows
                                            (get-in db [:mines (:current-mine db) :service])
                                            organism-query
                                            {:format "jsonobjects"})
