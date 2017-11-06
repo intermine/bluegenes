@@ -2,8 +2,6 @@
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [re-frame.core :refer [reg-event-db reg-event-fx reg-fx dispatch subscribe]]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
-            [imcljsold.filters :as filters]
-            [imcljsold.search :as search]
             [imcljs.fetch :as fetch]
             [imcljs.path :as path]
             [imcljs.query :as q]
@@ -13,14 +11,14 @@
             [ajax.core :as ajax]
             [bluegenes.interceptors :refer [clear-tooltips]]
             [dommy.core :refer-macros [sel sel1]]
-            ;[bluegenes.sections.saveddata.events]
+    ;[bluegenes.sections.saveddata.events]
             [accountant.core :as accountant]
             [bluegenes.interceptors :refer [abort-spec]]))
 
 (defn build-matches-query [query path-constraint identifier]
   (update-in (js->clj (.parse js/JSON query) :keywordize-keys true) [:where]
-             conj {:path   path-constraint
-                   :op     "ONE OF"
+             conj {:path path-constraint
+                   :op "ONE OF"
                    :values [identifier]}))
 
 (reg-event-db
@@ -36,44 +34,42 @@
 (reg-event-fx
   :results/get-item-details
   (fn [{db :db} [_ identifier path-constraint]]
-    (let [source (get-in db [:results :package :source])
+    (let [source         (get-in db [:results :package :source])
           model          (get-in db [:mines source :service :model])
-          classname          (keyword (path/class model path-constraint))
+          classname      (keyword (path/class model path-constraint))
           summary-fields (get-in db [:assets :summary-fields source classname])
-          service (get-in db [:mines source :service])
-          summary-chan   (search/raw-query-rows
+          service        (get-in db [:mines source :service])
+          summary-chan   (fetch/rows
                            service
-                           {:from   classname
+                           {:from classname
                             :select summary-fields
-                            :where  [{:path  (last (clojure.string/split path-constraint "."))
-                                      :op    "="
-                                      :value identifier}]})]
-      {:db                 (assoc-in db [:results :summary-chan] summary-chan)
+                            :where [{:path (last (clojure.string/split path-constraint "."))
+                                     :op "="
+                                     :value identifier}]})]
+      {:db (assoc-in db [:results :summary-chan] summary-chan)
        :get-summary-values summary-chan})))
 
 (reg-event-fx
   :results/set-query
   (abort-spec bluegenes.specs/im-package)
   (fn [{db :db} [_ {:keys [source value type] :as package}]]
-    (println (prn-str value))
-    (let [model (get-in db [:mines source :service :model :classes])]
-      {:db         (update-in db [:results] assoc
-                              :query value
-                              :package package
-                              ;:service (get-in db [:mines source :service])
-                              :history [package]
-                              :history-index 0
-                              :query-parts (filters/get-parts model value)
-                              :enrichment-results nil)
+    (let [model (get-in db [:mines source :service :model])]
+      {:db (update-in db [:results] assoc
+                      :query value
+                      :package package
+                      :history [package]
+                      :history-index 0
+                      :query-parts (q/group-views-by-class model (get package :value))
+                      :enrichment-results nil)
        ; TOOD ^:flush-dom
        :dispatch-n [
                     [:enrichment/enrich]
                     [:im-tables.main/replace-all-state
                      [:results :fortable]
-                     {:settings {:links {:vocab    {:mine (name source)}
+                     {:settings {:links {:vocab {:mine (name source)}
                                          :on-click (fn [val] (accountant/navigate! val))}}
-                      :query    value
-                      :service  (get-in db [:mines source :service])}]]})))
+                      :query value
+                      :service (get-in db [:mines source :service])}]]})))
 
 
 (reg-event-fx
@@ -81,7 +77,7 @@
   [(clear-tooltips)]
   (fn [{db :db} [_ {identifier :identifier} details]]
     (let [last-source (:source (last (get-in db [:results :history])))
-          model       (get-in db [:mines last-source :service :model :classes])
+          model       (get-in db [:mines last-source :service :model])
           previous    (get-in db [:results :query])
           query       (merge (build-matches-query
                                (:pathQuery details)
@@ -90,43 +86,43 @@
                              {:title (str
                                        (:title details))})
           new-package {:source last-source
-                       :type   :query
-                       :value  query}]
-      {:db         (-> db
-                       (update-in [:results :history] conj new-package)
-                       (update-in [:results] assoc
-                                  :query query
-                                  :package new-package
-                                  :history-index (inc (get-in db [:results :history-index]))
-                                  :query-parts (filters/get-parts model query)
-                                  :enrichment-results nil))
+                       :type :query
+                       :value query}]
+      {:db (-> db
+               (update-in [:results :history] conj new-package)
+               (update-in [:results] assoc
+                          :query query
+                          :package new-package
+                          :history-index (inc (get-in db [:results :history-index]))
+                          :query-parts (q/group-views-by-class model query)
+                          :enrichment-results nil))
        :dispatch-n [[:enrichment/enrich]
                     [:im-tables.main/replace-all-state
                      [:results :fortable]
-                     {:settings {:links {:vocab    {:mine "flymine"}
+                     {:settings {:links {:vocab {:mine "flymine"}
                                          :on-click (fn [val] (accountant/navigate! val))}}
-                      :query    query
-                      :service  (get-in db [:mines last-source :service])}]]})))
+                      :query query
+                      :service (get-in db [:mines last-source :service])}]]})))
 
 (reg-event-fx
   :results/load-from-history
   (fn [{db :db} [_ index]]
     (let [package (get-in db [:results :history index])
-          model   (get-in db [:mines (:source package) :service :model :classes])]
-      {:db         (-> db
-                       (update-in [:results] assoc
-                                  :query (get package :value)
-                                  :package package
-                                  :history-index index
-                                  :query-parts (filters/get-parts model (get package :value))
-                                  :enrichment-results nil))
+          model   (get-in db [:mines (:source package) :service :model])]
+      {:db (-> db
+               (update-in [:results] assoc
+                          :query (get package :value)
+                          :package package
+                          :history-index index
+                          :query-parts (q/group-views-by-class model (get package :value))
+                          :enrichment-results nil))
        :dispatch-n [[:enrichment/enrich]
                     [:im-tables.main/replace-all-state
                      [:results :fortable]
-                     {:settings {:links {:vocab    {:mine "flymine"}
+                     {:settings {:links {:vocab {:mine "flymine"}
                                          :on-click (fn [val] (accountant/navigate! val))}}
-                      :query    (get package :value)
-                      :service  (get-in db [:mines (:source package) :service])}]]})))
+                      :query (get package :value)
+                      :service (get-in db [:mines (:source package) :service])}]]})))
 
 
 (reg-event-fx
@@ -138,7 +134,7 @@
 (reg-event-fx
   :success-fetch-ids
   (fn [{db :db} [_ results]]
-    {:db       (assoc-in db [:results :ids-to-enrich] (flatten (:results results)))
+    {:db (assoc-in db [:results :ids-to-enrich] (flatten (:results results)))
      :dispatch [:enrichment/run-all-enrichment-queries]}))
 
 
@@ -149,8 +145,8 @@
 (reg-event-fx
   :results/run
   (fn [{db :db} [_ params]]
-    (let [enrichment-chan (search/enrichment (service db (get-in db [:results :package :source])) params)]
-      {:db                     (assoc-in db [:results
-                                             :enrichment-results
-                                             (keyword (:widget params))] nil)
+    (let [enrichment-chan (fetch/enrichment (service db (get-in db [:results :package :source])) params)]
+      {:db (assoc-in db [:results
+                         :enrichment-results
+                         (keyword (:widget params))] nil)
        :enrichment/get-enrichment [(:widget params) enrichment-chan]})))
