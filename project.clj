@@ -2,8 +2,8 @@
 
 (defproject bluegenes (str (:version props) "-SNAPSHOT")
   :dependencies [; Clojure
-                 [org.clojure/clojure "1.9.0-beta4"]
-                 [org.clojure/clojurescript "1.9.671"]
+                 [org.clojure/clojure "1.9.0-RC1"]
+                 [org.clojure/clojurescript "1.9.946"]
                  [org.clojure/core.async "0.3.443"]
 
                  ; MVC
