@@ -56,9 +56,7 @@
 
 
 (defn index [identity]
-  (let [
-        ;json-identity (json/generate-string identity)
-        ]
+  (let [json-identity (json/generate-string identity)]
     (html5
       (head)
       [:body
