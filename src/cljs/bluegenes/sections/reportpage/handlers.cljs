@@ -1,6 +1,5 @@
 (ns bluegenes.sections.reportpage.handlers
-  (:require-macros [cljs.core.async.macros :refer [go go-loop]]
-                   [com.rpl.specter :refer [traverse select transform]])
+  (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [re-frame.core :as re-frame :refer [reg-event-db reg-event-fx reg-fx dispatch subscribe]]
             [bluegenes.db :as db]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
