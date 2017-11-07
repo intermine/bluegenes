@@ -1,12 +1,12 @@
 (ns bluegenes.components.lighttable
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [reagent.core :as reagent]
-            [imcljsold.names :refer [find-name]]
             [re-frame.core :as re-frame :refer [subscribe dispatch]]
             [dommy.core :as dommy :refer-macros [sel sel1]]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
             [imcljsold.search :as search]
-            [imcljs.fetch :as fetch]))
+            [imcljs.fetch :as fetch]
+            [imcljs.path :as path]))
 
 
 (defn homogeneous-columns
@@ -21,31 +21,32 @@
 (defn table
   "a basic results table without imtables complexity. optional second arg options allows you to specify whether or not to show a title for the table, as {:title true}. "
   []
-  (fn
-    ([results]
-     (let [skip-columns nil #_(homogeneous-columns (:results results))]
-       [:table.table.small
-        [:thead
-         (into [:tr]
-               (map (fn [header]
-                      [:th (last (clojure.string/split header " > "))]) (:columnHeaders results)))]
-        (into [:tbody]
-              (map (fn [row]
-                     (into [:tr]
-                           (map-indexed (fn [idx value]
-                                          (if (nth skip-columns idx)
-                                            [:td.skipped "..."]
-                                            [:td (if (< 50 (count (str value)))
-                                                   (str (apply str (take 50 (str value))) "...")
-                                                   (str value))])) row))) (:results results)))]))
+  (let [current-model (subscribe [:current-model])]
+    (fn
+     ([results]
+      (let [skip-columns nil #_(homogeneous-columns (:results results))]
+        [:table.table.small
+         [:thead
+          (into [:tr]
+                (map (fn [header]
+                       [:th (last (clojure.string/split header " > "))]) (:columnHeaders results)))]
+         (into [:tbody]
+               (map (fn [row]
+                      (into [:tr]
+                            (map-indexed (fn [idx value]
+                                           (if (nth skip-columns idx)
+                                             [:td.skipped "..."]
+                                             [:td (if (< 50 (count (str value)))
+                                                    (str (apply str (take 50 (str value))) "...")
+                                                    (str value))])) row))) (:results results)))]))
 
-    ([results options]
-     (if (:title options) ;; we could tweak this further to make a nice passed-in title, too
-       [:div
-        [:h4 (find-name (:class results))]
-        [table results]]
-       [table results])
-      )))
+     ([results options]
+      (if (:title options) ;; we could tweak this further to make a nice passed-in title, too
+        [:div
+         [:h4 (:displayName (first (path/walk @current-model (:class results))))]
+         [table results]]
+        [table results])
+       ))))
 
 ;;;;;
 ;(find-name (:class query))

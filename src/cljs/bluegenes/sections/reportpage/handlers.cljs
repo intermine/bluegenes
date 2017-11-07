@@ -5,7 +5,6 @@
             [bluegenes.db :as db]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
             [imcljs.fetch :as fetch]
-            [imcljsold.filters :as filters]
             [imcljs.path :as path]))
 
 (reg-event-db
