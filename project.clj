@@ -18,6 +18,7 @@
                  [prismatic/dommy "1.1.0"]
                  [secretary "1.2.3"]
                  [servant "0.1.5"]
+                 [json-html "0.4.4"]
 
                  [figwheel-sidecar "0.5.11"]
 
