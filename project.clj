@@ -1,4 +1,4 @@
-(def props {:version "0.4.7-mymine-preview"})
+(def props {:version "0.5.0"})
 
 (defproject bluegenes (str (:version props) "-SNAPSHOT")
   :dependencies [; Clojure
