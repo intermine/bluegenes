@@ -1,5 +1,5 @@
 (ns bluegenes.subs.mymine
-  (:require [re-frame.core :refer [reg-sub subscribe]]
+  (:require [re-frame.core :as re-frame :refer [reg-sub subscribe]]
             [reagent.core :as r]
             [cljs-time.format :as tf]
             [cljs-time.core :as t]
@@ -139,7 +139,8 @@
   ::folders
   (fn [] (subscribe [::my-tree]))
   (fn [tree]
-    (mapcat flatten-folders (map (fn [[k v]] [k (assoc v :trail [k])]) tree))))
+    {}
+    #_(mapcat flatten-folders (map (fn [[k v]] [k (assoc v :trail [k])]) tree))))
 
 (reg-sub
   ::selected
@@ -369,7 +370,7 @@
     (get-in db [:mymine :context-target])))
 
 (reg-sub
-  ::dragging-over
+  ::dragging-over-old
   (fn [db]
     (get-in db [:mymine :dragging-over])))
 
@@ -382,7 +383,7 @@
 (reg-sub
   ::context-menu-target
   (fn [db]
-    (get-in db [:mymine :context-node])))
+    (get-in db [:mymine :context-menu-target])))
 
 (reg-sub
   ::edit-target
@@ -474,3 +475,159 @@
 ;    ; Need access to specific-id for something like:
 ;    (filter #(= specific-id (:id %)) filtered-lists)
 ;    ))
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(reg-sub
+  ::entries
+  (fn [db]
+    (get-in db [:mymine :entries])))
+
+(reg-sub
+  ::tags
+  :<- [::entries]
+  (fn [entries]
+    (filter (comp (partial = "tag") :im-obj-type) entries)))
+
+(reg-sub
+  ::not-tags
+  :<- [::entries]
+  (fn [entries]
+    (filter (comp (partial not= "tag") :im-obj-type) entries)))
+
+(reg-sub
+  ::root-tags
+  :<- [::tags]
+  (fn [tags]
+    (filter (comp nil? :parent-id) tags)))
+
+(reg-sub
+  ::sub-tags
+  (fn [] (subscribe [::tags]))
+  (fn [tags [_ parent-id]]
+    (not-empty (filter (comp (partial = parent-id) :parent-id) tags))))
+
+(reg-sub
+  ::cursor
+  (fn [db]
+    (get-in db [:mymine :cursor])))
+
+
+(defn isa-filter [root-id hierarchy entry]
+  (if-let [entry-id (:entry-id entry)]
+    (isa? hierarchy (keyword "tag" entry-id) (keyword "tag" root-id))
+    false))
+
+
+
+(reg-sub
+  ::hierarchy
+  (fn [db]
+    (get-in db [:mymine :hierarchy])))
+
+(reg-sub
+  ::entries-map
+  (fn [db]
+    (into {} (map (juxt :entry-id identity) (get-in db [:mymine :entries])))))
+
+(reg-sub
+  ::untagged-items
+  :<- [:lists/filtered-lists]
+  :<- [::entries]
+  (fn [[lists entries] [evt]]
+    (let [tagged-list-ids (set (map :im-obj-id (filter (comp (partial = "list") :im-obj-type) entries)))]
+      (->> lists
+           (filter (comp (complement tagged-list-ids) :id))
+           (map (fn [l] {:im-obj-type "list" :im-obj-id (:id l)}))))))
+
+(reg-sub
+  ::hierarchy-trail
+  :<- [::hierarchy]
+  :<- [::entries-map]
+  (fn [[hierarchy entries-map] [_ pid]]
+    (if pid
+      (let [anc (ancestors hierarchy (keyword "tag" pid))]
+        (map
+          #(get-in entries-map [% :label])
+          (reverse (map name anc))))
+      nil)))
+
+(reg-sub
+  ::cursor-trail
+  :<- [::hierarchy]
+  :<- [::entries-map]
+  :<- [::cursor]
+  (fn [[hierarchy entries-map cursor]]
+    (if cursor
+      (let [anc (ancestors hierarchy (keyword "tag" (:entry-id cursor)))]
+        (->> anc
+             (map name)
+             (map #(get entries-map %))
+             (cons cursor)
+             reverse))
+      nil)))
+
+(reg-sub
+  ::cursor-items
+  :<- [::cursor]
+  :<- [::hierarchy]
+  :<- [::not-tags]
+  :<- [::untagged-items]
+  :<- [::entries-map]
+  (fn [[cursor hierarchy entries untagged entries-map]]
+    (if (nil? cursor)
+      (concat entries untagged)
+      (->> entries
+           (filter (partial isa-filter (:entry-id cursor) hierarchy))
+           (map (fn [e]
+                  (let [anc (ancestors hierarchy (keyword "tag" (:entry-id e)))]
+                    (assoc e :hierarchy (map
+                                          #(get-in entries-map [% :label])
+                                          (reverse (map name anc)))))))))))
+
+(reg-sub
+  ::cursor-items-at
+  :<- [::hierarchy]
+  :<- [::not-tags]
+  :<- [::untagged-items]
+  :<- [::entries-map]
+  (fn [[hierarchy entries untagged entries-map] [_ entry-id]]
+    (if (nil? entry-id)
+      (concat entries untagged)
+      (->> entries
+           (filter (partial isa-filter (:entry-id entry-id) hierarchy))
+           (map (fn [e]
+                  (let [anc (ancestors hierarchy (keyword "tag" (:entry-id e)))]
+                    (assoc e :hierarchy (map
+                                          #(get-in entries-map [% :label])
+                                          (reverse (map name anc)))))))))))
+
+(reg-sub
+  ::sub-not-tags
+  :<- [::hierarchy]
+  :<- [::not-tags]
+  (fn [[hierarchy not-tags] [_ pid]]
+    (let [d (descendants hierarchy (keyword "tag" pid))]
+      (filter (fn [nt] (some? (some #{(keyword "tag" (:entry-id nt))} d))) not-tags))))
+
+(reg-sub
+  ::dragging
+  (fn [db]
+    (get-in db [:mymine :drag :dragging])))
+
+(reg-sub
+  ::dragging?
+  (fn [db]
+    (get-in db [:mymine :drag :dragging?])))
+
+(reg-sub
+  ::dragging-over
+  (fn [db]
+    (get-in db [:mymine :drag :dragging-over])))
+
+(reg-sub
+  ::dropping-on
+  (fn [db]
+    (get-in db [:mymine :drag :dropping-on])))

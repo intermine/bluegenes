@@ -13,9 +13,11 @@
 
 (defn is-active-result? [result]
   "returns true is the result should be considered 'active' - e.g. if there is no filter at all, or if the result matches the active filter type."
-  (or
-   (= (:active-filter @(subscribe [:search/full-results])) (oget result "type"))
-   (nil? (:active-filter @(subscribe [:search/full-results])))))
+  (if-let [af (:active-filter @(subscribe [:search/full-results]))]
+    (or
+      (= (name (:active-filter @(subscribe [:search/full-results]))) (:type result))
+      (nil? (:active-filter @(subscribe [:search/full-results]))))
+    true))
 
 (defn count-total-results [state]
   "returns total number of results by summing the number of results per category. This includes any results on the server beyond the number that were returned"
@@ -24,9 +26,9 @@
 (defn count-current-results []
   "returns number of results currently shown, taking into account result limits nd filters"
   (count
-   (remove
-    (fn [result]
-      (not (is-active-result? result))) (:results @(subscribe [:search/full-results])))))
+    (remove
+      (fn [result]
+        (not (is-active-result? result))) (:results @(subscribe [:search/full-results])))))
 
 (defn results-count []
   "Visual component: outputs the number of results shown."
@@ -34,27 +36,27 @@
 
 (defn results-display [search-term]
   "Iterate through results and output one row per result using result-row to format. Filtered results aren't output. "
-  (let [all-results (subscribe [:search/full-results])
+  (let [all-results    (subscribe [:search/full-results])
         active-filter? (subscribe [:search/active-filter])
         some-selected? (subscribe [:search/some-selected?])]
     [:div.results
      [:div.search-header
-      [:h4 "Results for '" @(subscribe [:search-term]) "'"  [results-count]]
+      [:h4 "Results for '" @(subscribe [:search-term]) "'" [results-count]]
 
-     (cond (and @active-filter? @some-selected?)
-       [:a.cta {:href "/#/results"
-          :on-click (fn [e]
-                      (ocall e :preventDefault)
-                      (dispatch [:search/to-results])
-                      (navigate! "/results"))} "View selected results in a table"])]
-   ;;TODO: Does this even make sense? Only implement if we figure out a good behaviour
-   ;; select all search results seems odd, as does the whole page.
-  ; [:div [:label "Select all" [:input {:type "checkbox"
-  ;                  :on-click (dispatch [:search/select-all])}]]]
+      (cond (and @active-filter? @some-selected?)
+            [:a.cta {:href "/#/results"
+                     :on-click (fn [e]
+                                 (ocall e :preventDefault)
+                                 (dispatch [:search/to-results])
+                                 (navigate! "/results"))} "View selected results in a table"])]
+     ;;TODO: Does this even make sense? Only implement if we figure out a good behaviour
+     ;; select all search results seems odd, as does the whole page.
+     ; [:div [:label "Select all" [:input {:type "checkbox"
+     ;                  :on-click (dispatch [:search/select-all])}]]]
      [:form
       (doall (let [active-results (filter (fn [result] (is-active-result? result)) (:results @all-results))]
                (for [result active-results]
-                 ^{:key (oget result "id")}
+                 ^{:key (:id result)}
                  [resulthandler/result-row {:result result :search-term @(subscribe [:search-term])}])))]]))
 
 (defn input-new-term []
@@ -78,7 +80,7 @@
 
 (defn search-form [search-term]
   "Visual form component which handles submit and change"
-  (let [results (subscribe [:search/full-results])
+  (let [results  (subscribe [:search/full-results])
         loading? (subscribe [:search/loading?])]
     [:div.search-fullscreen
      [input-new-term]
@@ -93,9 +95,9 @@
 (defn main []
   (let [global-search-term (re-frame/subscribe [:search-term])]
     (reagent/create-class
-     {:reagent-render
-      (fn render []
-        [search-form global-search-term])
-      :component-will-mount (fn [this]
-                              (cond (some? @global-search-term)
-                                    (dispatch [:search/full-search])))})))
+      {:reagent-render
+       (fn render []
+         [search-form global-search-term])
+       :component-will-mount (fn [this]
+                               (cond (some? @global-search-term)
+                                     (dispatch [:search/full-search])))})))

@@ -1,7 +1,7 @@
 (ns bluegenes.subs
   (:require-macros [reagent.ratom :refer [reaction]])
   (:require [re-frame.core :refer [reg-sub]]
-            ; [bluegenes.components.databrowser.subs]
+    ; [bluegenes.components.databrowser.subs]
             [bluegenes.components.enrichment.subs]
             [bluegenes.mines :as mines]
             [clojure.string :refer [split]]
@@ -34,8 +34,8 @@
              organism)))
 
 (reg-sub :mines
-  (fn [db]
-   (:mines db)))
+         (fn [db]
+           (:mines db)))
 
 (reg-sub
   :mine-name
@@ -84,9 +84,15 @@
 (reg-sub
   :model
   (fn [db _]
-    (let [current-mine (get-in db [:mines (get db :current-mine)])
+    (let [current-mine  (get-in db [:mines (get db :current-mine)])
           current-model (get-in current-mine [:service :model :classes])]
-    current-model)))
+      current-model)))
+
+(reg-sub
+  :current-model
+  (fn [db _]
+    (let [current-mine (get-in db [:mines (get db :current-mine)])]
+      (get-in current-mine [:service :model]))))
 
 (reg-sub
   :lists
@@ -146,7 +152,7 @@
 (reg-sub
   :version
   (fn [db [_ mine-keyword]]
-    (get-in db  [:assets :intermine-version mine-keyword])))
+    (get-in db [:assets :intermine-version mine-keyword])))
 
 (reg-sub
   :current-lists
@@ -159,7 +165,7 @@
 (reg-sub
   :current-possible-values
   :<- [:current-mine]
-  (fn [current-mine [_ path] ]
+  (fn [current-mine [_ path]]
     (get-in current-mine [:possible-values path])))
 
 (reg-sub

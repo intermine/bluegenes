@@ -1,13 +1,10 @@
 (ns bluegenes.sections.reportpage.handlers
-  (:require-macros [cljs.core.async.macros :refer [go go-loop]]
-                   [com.rpl.specter :refer [traverse select transform]])
+  (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [re-frame.core :as re-frame :refer [reg-event-db reg-event-fx reg-fx dispatch subscribe]]
             [bluegenes.db :as db]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
-            [imcljsold.search :as search]
             [imcljs.fetch :as fetch]
-            [imcljsold.filters :as filters]
-            [com.rpl.specter :as s]))
+            [imcljs.path :as path]))
 
 (reg-event-db
   :handle-report-summary
@@ -20,11 +17,11 @@
   :fetch-report
   (fn [{db :db} [_ mine type id]]
     (let [type-kw (keyword type)
-          q {:from type
-             :select (-> db :assets :summary-fields mine type-kw)
-             :where [{:path (str type ".id")
-                      :op "="
-                      :value id}]}]
+          q       {:from type
+                   :select (-> db :assets :summary-fields mine type-kw)
+                   :where [{:path (str type ".id")
+                            :op "="
+                            :value id}]}]
 
       {:im-chan {:chan (fetch/rows (get-in db [:mines mine :service]) q {:format "json"})
                  :on-success [:handle-report-summary]}})))
@@ -34,8 +31,8 @@
   :filter-report-collections
   (fn [db [_ mine type oid]]
     (let [summary-fields (-> db :assets :summary-fields mine)
-          type-key (keyword type)
-          collections (-> db :mines mine :service :model :classes type-key :collections)]
+          type-key       (keyword type)
+          collections    (-> db :mines mine :service :model :classes type-key :collections)]
       (assoc-in db [:report :collections]
                 (map (fn [[_ {:keys [name referencedType]}]]
                        (let [summary-paths (-> referencedType keyword summary-fields)]
@@ -51,19 +48,29 @@
                                            :path (str type ".id")
                                            :value oid}]}})) collections)))))
 
+(defn when-n
+  "Return a collection if its size is of n, otherwise nil"
+  [n coll]
+  (when (= n (count coll)) coll))
+
 (reg-event-fx
   :filter-report-templates
   (fn [{db :db} [_ mine type id]]
-    (let [model (-> db :mines mine :service :model :classes)
+    (let [model     (-> db :mines mine :service :model)
           templates (-> db :assets :templates mine)]
       {:db (assoc-in db [:report :templates]
-                     (into {} (traverse
-                                [s/ALL
-                                 (s/selected?
-                                   s/LAST
-                                   :where #(= 1 (count (filter (fn [c] (:editable c)) %)))
-                                   s/ALL
-                                   :path #(= type (filters/end-class model %)))] templates)))
+                     (filter (fn [[template-kw {:keys [editable where] :as details}]]
+                               (when-let [editable-constraint-path (->> where ; Get the query constraints
+                                                                        (filter (comp true? :editable)) ; Filter for editable ones
+                                                                        (when-n 1) ; Confirm there's only one
+                                                                        first ; Take the first and only value in the coll
+                                                                        :path)] ; And it's path
+                                 (->> editable-constraint-path
+                                      (path/trim-to-last-class model) ; Get the last class/property in the path "Gene.proteins.diseases.name => Diseases.name"
+                                      (path/class model) ; Get the last class: :Disease
+                                      name ; Get the string value Disease
+                                      (= type)))) ; Compare it to our filter
+                             templates))
        :dispatch [:filter-report-collections mine type id]})))
 
 (reg-event-fx

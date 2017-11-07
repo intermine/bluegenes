@@ -22,9 +22,22 @@
 (def nff (NumberFormat. Format/DECIMAL))
 (defn- nf [num] (.format nff (str num)))
 
-(defn hide-context-menu [evt] (ocall (js/$ "#contextMenu") :hide))
+(defn hide-context-menu [evt]
+  (ocall (js/$ "#contextMenu") :hide)
+  ;(dispatch [::evts/set-context-menu-target])
+  )
 
-(defn attach-hide-context-menu [] (ocall (js/$ "body") :on "click" hide-context-menu))
+(defn attach-hide-context-menu []
+  (ocall (js/$ "body") :on "click" hide-context-menu))
+
+(defn tag-drag-events [entry]
+  {:draggable true
+   :on-drag-enter (fn [evt] (ocall evt :stopPropagation) (dispatch [::evts/dragging-over entry]))
+   :on-drag-over (fn [evt] (ocall evt :preventDefault) (ocall evt :stopPropagation))
+   ;:on-drag-leave (fn [evt] (dispatch [::evts/dragging-over nil]) )
+   :on-drag-start (fn [evt] (ocall evt :stopPropagation) (dispatch [::evts/dragging entry]))
+   :on-drag-end (fn [evt] (ocall evt :stopPropagation) (dispatch [::evts/dragging? false]))
+   :on-drop (fn [evt] (ocall evt :stopPropagation) (dispatch [::evts/dropping-on entry]))})
 
 (defn drag-events [trail index whoami]
   {:draggable true
@@ -77,6 +90,24 @@
 
 ;(defn dispatch-edit [location key value]
 ;  (dispatch [::evts/new-folder location key value]))
+
+(defn trigger-context-menu [data]
+  {:on-context-menu (fn [evt]
+                      (when-not (oget evt :nativeEvent :ctrlKey)
+                        (do
+                          ; Prevent the browser from showing its context menu
+                          (ocall evt :preventDefault)
+                          ; Stop evt propogation
+                          (ocall evt :stopPropagation)
+                          ; Force this item to be selected
+                          ;(dispatch [::evts/toggle-selected trail {:force? true} row])
+                          ; Set this item as the target of the context menu
+                          (dispatch [::evts/set-context-menu-target data])
+                          (dispatch [::evts/set-action-target data])
+                          ; Show the context menu
+                          (ocall (js/$ "#contextMenu") :css (clj->js {:display "block"
+                                                                      :left (oget evt :pageX)
+                                                                      :top (oget evt :pageY)})))))})
 
 
 
@@ -243,32 +274,38 @@
     (fn [[key {:keys [label file-type open index trail children]}]]
       [:li {:on-click (fn [x] (dispatch [::evts/set-focus [:public]]))
             :class (when (= [:public] @focus) "active")}
-       [:div.icon-container {:style {:padding-left (str (* index 13) "px")}}
-        [:svg.icon.icon-caret-right
-         {:class (when open "open")}]
-        [:svg.icon.icon-folder [:use {:xlinkHref "#icon-globe"}]]]
-       [:div.label-name {:on-click (fn [] (dispatch [::evts/set-focus [:public]]))} "Public Items"]
-       [:div.extra
-        [:span.count (count @lists)]
-        [:svg.icon.icon-caret-right]]])))
+       [:div.mymine-tag
+        [:div.icon-container {:style {:padding-left (str (* index 13) "px")}}
+         [:svg.icon.icon-caret-right
+          {:class (when open "open")}]
+         [:svg.icon.icon-folder [:use {:xlinkHref "#icon-globe"}]]]
+        [:div.label-name {:on-click (fn [] (dispatch [::evts/set-focus [:public]]))} "Public Items"]
+        [:div.extra
+         [:span.count (count @lists)]
+         [:svg.icon.icon-caret-right]]]])))
 
 (defn unsorted-folder []
-  (let [focus    (subscribe [::subs/focus])
-        my-items (subscribe [::subs/my-items])]
+  (let [focus     (subscribe [::subs/focus])
+        my-items  (subscribe [::subs/my-items])
+        cursor    (subscribe [::subs/cursor])
+        all-items (subscribe [::subs/cursor-items-at nil])]
     (fn [[key {:keys [label file-type open index trail]}]]
-      [:li {:on-click (fn [x] (dispatch [::evts/set-focus [:unsorted]]))
-            :class (when (= [:unsorted] @focus) "active")}
-       [:div.icon-container {:style {:padding-left (str (* index 13) "px")}}
-        [:svg.icon.icon-caret-right
-         {:class (when open "open")}]
+      [:li {:on-click (fn [x]
+                        (dispatch [::evts/set-context-menu-target])
+                        (dispatch [::evts/set-cursor nil]))}
+       [:div.mymine-tag
+        {:class (when (= nil @cursor) "active")}
+        [:div.icon-container {:style {:padding-left (str (* index 13) "px")}}
+         [:svg.icon.icon-caret-right
+          {:class (when open "open")}]
 
-        [:svg.icon.icon-user-circle [:use {:xlinkHref "#icon-user-circle"}]]]
-       [:div.label-name
-        #_{:on-click (fn [] (dispatch [::evts/set-focus [:public]]))}
-        "My Items "]
-       [:div.extra
-        [:span.count (count @my-items)]
-        [:svg.icon.icon-caret-right]]])))
+         [:svg.icon.icon-user-circle [:use {:xlinkHref "#icon-user-circle"}]]]
+        [:div.label-name
+         #_{:on-click (fn [] (dispatch [::evts/set-focus [:public]]))}
+         "All Items "]
+        [:div.extra
+         [:span.count (count @all-items)]
+         [:svg.icon.icon-caret-right]]]])))
 
 (defn add-folder []
   (let [focus    (subscribe [::subs/focus])
@@ -277,14 +314,17 @@
       [:li {:data-toggle "modal"
             :data-keyboard true
             :data-target "#myMineNewFolderModal"}
-       [:div.icon-container {:style {:padding-left (str (* index 13) "px")}}
-        [:svg.icon.icon-caret-right
-         {:class (when open "open")}]
-        [:svg.icon.icon-drawer [:use {:xlinkHref "#icon-plus"}]]]
-       [:div.label-name
-        {:on-click (fn [] (dispatch [::evts/set-action-target []]))}
-        "New Tag"]
-       [:div.extra]])))
+       [:div.mymine-tag
+        [:div.icon-container {:style {:padding-left (str (* index 13) "px")}}
+         [:svg.icon.icon-caret-right
+          {:class (when open "open")}]
+         [:svg.icon.icon-drawer [:use {:xlinkHref "#icon-plus"}]]]
+        [:div.label-name
+         {:on-click (fn [] (dispatch [::evts/set-action-target []]))}
+         "New Tag"]
+        [:div.extra]]])))
+
+
 
 
 (defn root-folder []
@@ -328,20 +368,105 @@
       :root [root-folder f]
       [private-folder f])))
 
-(defn file-browser []
-  (let [files   (subscribe [::subs/with-public])
-        folders (subscribe [::subs/folders])]
+
+(defn toggle-open [entry-id status evt]
+  (ocall evt :stopPropagation)
+  (dispatch [::evts/toggle-tag-open entry-id (not status)]))
+
+(defn is-active? [entry-id context-menu-target-atom cursor-atom dragging-over-atom]
+  (or
+    (= entry-id (:entry-id @context-menu-target-atom))
+    (= entry-id (:entry-id @cursor-atom))
+    (= entry-id (:entry-id @dragging-over-atom))))
+
+(defn show-caret? [sub-tags-atom]
+  (if @sub-tags-atom 1 0))
+
+(defn set-cursor-on-click [entity]
+  {:on-click (fn [evt]
+               (ocall evt :stopPropagation)
+               (dispatch [::evts/set-context-menu-target])
+               (dispatch [::evts/set-cursor entity]))})
+
+
+
+(defn tag [{entry-id :entry-id}]
+  (let [context-menu-target (subscribe [::subs/context-menu-target])
+        cursor              (subscribe [::subs/cursor])
+        sub-tags            (subscribe [::subs/sub-tags entry-id])
+        sub-not-tags        (subscribe [::subs/sub-not-tags entry-id])
+        dragging-over       (subscribe [::subs/dragging-over])
+        hierarchy           (subscribe [::subs/hierarchy])]
+    (fn [{:keys [im-obj-type label open parent-id tag-trail] :as entry}]
+      [:li
+       (merge {}
+              (trigger-context-menu entry)
+              (set-cursor-on-click entry)
+              (tag-drag-events entry))
+       [:div.mymine-tag
+        {:class (when (is-active? entry-id context-menu-target cursor dragging-over) "active")}
+        [:div.icon-container
+         [:svg.icon.icon-caret-right
+          {:class (when open "open")
+           :on-click (partial toggle-open entry-id open)
+           :style {:opacity (show-caret? sub-tags)}}
+          [:use {:xlinkHref "#icon-caret-right"}]]
+         [:svg.icon.icon-price-tag [:use {:xlinkHref "#icon-price-tag"}]]]
+        [:div.label-name label]
+        [:div.extra
+         [:span.count (count @sub-not-tags)]
+         [:svg.icon.icon-caret-right]]]
+       (when open
+         (into [:ul {:style {:padding-left "25px"}}]
+               (map (fn [t]
+                      ^{:key (str "tag-" (:entry-id t))}
+                      [tag t]) (sort-by :label @sub-tags))))])))
+
+(defn tag-drag-events2 [entry]
+  {:draggable true
+   :on-drag-enter (fn [evt] (ocall evt :stopPropagation) (dispatch [::evts/dragging-over entry]))
+   :on-drag-over (fn [evt] (ocall evt :preventDefault) (ocall evt :stopPropagation))
+   ;:on-drag-leave (fn [evt] (dispatch [::evts/dragging-over nil]) )
+   :on-drag-start (fn [evt] (ocall evt :stopPropagation) (dispatch [::evts/dragging entry]))
+   :on-drag-end (fn [evt] (ocall evt :stopPropagation) (dispatch [::evts/dragging? false]))
+   :on-drop (fn [evt] (ocall evt :stopPropagation) (dispatch [::evts/dropping-on entry]))})
+
+(defn sep-drag-events []
+  {:on-drag-enter (fn [evt]
+                    (ocall evt :preventDefault)
+                    (dispatch [::evts/dragging-over :bar]))
+   :on-drag-leave (fn [evt]
+                    (ocall evt :preventDefault)
+                    (dispatch [::evts/dragging-over nil]))
+   :on-drag-over (fn [evt]
+                   (ocall evt :preventDefault))
+   :on-drop (fn [evt]
+              (dispatch [::evts/dropping-on :bar])
+              )})
+
+(defn tag-browser []
+  (let [tags          (subscribe [::subs/sub-tags nil])
+        dragging-over (subscribe [::subs/dragging-over])
+        dragging?     (subscribe [::subs/dragging?])
+
+        authed?    (subscribe [:bluegenes.subs.auth/authenticated?])]
     (fn []
       (into [:ul
              [unsorted-folder]
-             [public-folder]
+             #_[public-folder]
              [:li.separator]
-             [add-folder]
-             [:li.separator]]
+             (when @authed? [add-folder])
+             [:li.separator (merge {}
+                                   (sep-drag-events)
+                                   {:class (when (and @dragging? (= :bar @dragging-over)) "separator-highlighted")})]]
             (conj
-              (mapv
-                (fn [[k v]] ^{:key (str (:trail v))} [folder [k v]])
-                @folders)
+              (if @authed?
+                (mapv
+                 (fn [t] ^{:key (str "tag-" (:entry-id t))} [tag t])
+                 (sort-by :label @tags))
+                [
+                 [:span "Debug message: "]
+                 [:span "Please log in to use tags"]])
 
               ;[:li.separator]
               )))))
@@ -415,54 +540,11 @@
                    operation-properties
                    {:on-click (fn [] (when (not cant-operate?) (dispatch [::evts/set-modal :subtract])))})
               [:span "Subtract " [:svg.icon.icon-venn-difference [:use {:xlinkHref "#icon-venn-difference"}]]]]]
-            [:li {}
-             [:a {:on-click (fn [] (dispatch [::evts/store-tree]))}
-              [:span "Store " [:svg.icon.icon-venn-difference [:use {:xlinkHref "#icon-venn-difference"}]]]]]
-            [:li {}
-             [:a {:on-click (fn [] (dispatch [::evts/fetch-tree]))}
-              [:span "Fetch " [:svg.icon.icon-venn-difference [:use {:xlinkHref "#icon-venn-difference"}]]]]]]]]
-         ])
-      #_[:div
-         [:div.btn-group
 
-          [:button.btn.btn-raised.btn-primary
-           {:disabled false
-            :on-click (fn [] (dispatch [::evts/copy-n]))}
-           [:div
-            [:svg.icon.copy [:use {:xlinkHref "#copy"}]]
-            [:div "Copy"]]]
-
-          ]
-         [:div.btn-group
-
-          [:button.btn.btn-raised.btn-primary
-           {:disabled false
-            :data-toggle "modal"
-            :data-keyboard true
-            :data-target "#myMineLoModal"}
-           ;:on-click (fn [] (dispatch [::evts/lo-combine]) )
-
-           [:div
-            [:svg.icon.icon-venn-combine [:use {:xlinkHref "#icon-venn-combine"}]]
-            [:div "Combine"]]]
-          [:button.btn.btn-raised.btn-primary
-           {:disabled false
-            :data-toggle "modal"
-            :data-keyboard true
-            :data-target "#myMineLoIntersectModal"
-            :on-click (fn [])}
-           [:div
-            [:svg.icon.icon-venn-intersection [:use {:xlinkHref "#icon-venn-intersection"}]]
-            [:div "Intersect"]]]
-
-          [:button.btn.btn-raised.btn-primary
-           {:disabled true
-            :on-click (fn [])}
-           [:div
-            [:svg.icon.icon-venn-difference [:use {:xlinkHref "#icon-venn-difference"}]]
-            [:div "Subtract"]]]
-
-          ]])))
+            #_[:li {}
+               [:a {:on-click (fn [] (dispatch [::evts/fetch-tree]))}
+                [:span "Fetch " [:svg.icon.icon-venn-difference [:use {:xlinkHref "#icon-venn-difference"}]]]]]]]]
+         ]))))
 
 
 
@@ -480,23 +562,17 @@
          [:div [:h3 "Select one or more lists to perform an operation"]])])))
 
 (defn breadcrumb []
-  (let [bc    (subscribe [::subs/breadcrumb])
-        focus (subscribe [::subs/focus])]
-    (fn []
+  (fn [labels]
+    (if labels
       [:h2
-       (case @focus
-         [:public] [:ol.breadcrumb [:li.active [:a "Public Items"]]]
-         [:unsorted] [:ol.breadcrumb [:li.active [:a "My Items"]]]
-         (into [:ol.breadcrumb]
-               (map (fn [{:keys [trail label]}]
-                      (let [focused? (= trail @focus)]
-                        [:li {:class (when focused? "active")
-                              :on-click (fn [] (dispatch [::evts/set-focus trail]))}
-                         [:a label]]))
-                    (filter #(= :folder (:file-type %)) @bc))))])))
-
-
-
+       (into [:ol.breadcrumb]
+             (map-indexed (fn [idx {:keys [label] :as entry}]
+                            (let [focused? (= idx (dec (count labels)))]
+                              [:li {:class (when focused? "active")
+                                    :on-click (fn [] (dispatch [::evts/set-cursor entry]))}
+                               [:a label]]))
+                          labels))]
+      [:h2 [:ol.breadcrumb [:li.active [:a "All Items"]]]])))
 
 
 (defn checkbox [id]
@@ -513,8 +589,9 @@
 (defn ico []
   (fn [file-type]
     (case file-type
-      :list [:svg.icon.icon-folder [:use {:xlinkHref "#icon-document-list"}]]
-      :folder [:svg.icon.icon-folder [:use {:xlinkHref "#icon-folder"}]]
+      "list" [:svg.icon.icon-document-list {:style {:margin-left 0}}
+              [:use {:xlinkHref "#icon-document-list"}]]
+      "tag" [:svg.icon.icon-folder [:use {:xlinkHref "#icon-folder"}]]
       [:svg.icon.icon-folder [:use {:xlinkHref "#icon-spyglass"}]])))
 
 (defn row-folder []
@@ -530,29 +607,42 @@
 
 (def built-in-formatter (tf/formatter "MMM d, y"))
 
-(defn row-list [{:keys [id trail file-type] :as file}]
-  (let [details (subscribe [::subs/one-list id])
-        source  (subscribe [:current-mine-name])]
+(defn tag-container []
+  (fn [tag-col]
+    [:span.label.label-default
+     {:style {:font-size "0.9em" :opacity 0.9}}
+     (apply str (interpose " / " tag-col))]))
 
-    (fn []
+(defn row-list [{:keys [im-obj-id trail im-obj-type entry-id] :as file}]
+  (let [details             (subscribe [::subs/one-list im-obj-id])
+        source              (subscribe [:current-mine-name])
+        hierarchy-trail     (subscribe [::subs/hierarchy-trail entry-id])
+        context-menu-target (subscribe [::subs/context-menu-target])]
+    (fn [{:keys []}]
       (let [{:keys [description authorized name type size timestamp] :as dets} @details]
         [:tr
-         (merge {} (clickable file) (menuable file))
-         [:td [checkbox id]]
+         (merge {:class (when (= @context-menu-target file) "highlighted")}
+                (tag-drag-events file)
+                (trigger-context-menu file)
+                {:on-click (fn []
+                             (dispatch [::evts/set-context-menu-target file]))})
+         [:td [checkbox im-obj-id]]
          [:td (merge {} (draggable file))
-          [:div [ico file-type]
+          [:div [ico im-obj-type]
            [:a {:on-click (fn [e]
                             (.stopPropagation e)
                             (dispatch [:lists/view-results (assoc dets :source @source)]))} name]]]
+         [:td (when-not authorized
+                [:svg.icon.icon-lock [:use {:xlinkHref "#icon-lock"}]]) [tag-container @hierarchy-trail]]
          [:td type]
          [:td size]
-         [:td (tf/unparse built-in-formatter (c/from-long timestamp))]]))))
+         [:td #_(tf/unparse built-in-formatter (c/from-long timestamp))]]))))
 
-(defn row [{:keys [id file-type trail] :as item}]
+(defn row [{:keys [im-obj-type] :as item}]
   (fn []
-    (case file-type
-      :list [row-list item]
-      :folder [row-folder item]
+    (case im-obj-type
+      "list" [row-list item]
+      "folder" [row-folder item]
       [:div])))
 
 (defn main []
@@ -564,19 +654,25 @@
         my-items            (subscribe [::subs/my-items])
         checked             (subscribe [::subs/checked-ids])
         my-files            (subscribe [::subs/visible-files])
-        modal-kw            (subscribe [::subs/modal])]
+        modal-kw            (subscribe [::subs/modal])
+        entries             (subscribe [::subs/entries])
+        root-tags           (subscribe [::subs/root-tags])
+        cursor-items        (subscribe [::subs/cursor-items])
+        unsorted-items      (subscribe [::subs/untagged-items])
+        cursor-trail        (subscribe [::subs/cursor-trail "abc"])
+        ]
 
     (r/create-class
       {:component-did-mount attach-hide-context-menu
        :reagent-render
        (fn []
-         (let [filtered-files (not-empty (filter (comp #{:list} :file-type) @my-files))]
-           [:div.mymine.noselect
-            [:div.file-browser [file-browser]]
-            [:div.files
-             [list-operations]
-             [breadcrumb]
-             (if filtered-files
+         [:div.mymine.noselect
+          [:div.file-browser [tag-browser]]
+          [:div.files
+           [list-operations]
+           [breadcrumb @cursor-trail]
+           (let [just-files (not-empty (filter (comp (partial not= "tag") :im-obj-type) @cursor-items))]
+             (if just-files
                [:table.table.mymine-table
                 [:thead
                  [:tr
@@ -585,6 +681,7 @@
                                  :key :label
                                  :type :alphanum
                                  :sort-by @sort-by}]
+                  [:th ""]
                   [table-header {:label "Type"
                                  :key :type
                                  :type :alphanum
@@ -597,38 +694,35 @@
                                  :key :dateCreated
                                  :type :date
                                  :sort-by @sort-by}]]]
-                #_(into [:tbody]
-                        (map-indexed (fn [idx x]
-                                       ^{:key (str (:trail x))} [table-row (assoc x :index idx)]) @files))
 
                 (into [:tbody]
                       (map-indexed (fn [idx x]
-                                     ^{:key (str (:id x))} [row (assoc x :index idx)]) filtered-files))]
+                                     ^{:key (str (or (:entry-id x) (str (:im-obj-type x) (:im-obj-id x))))} [row (assoc x :index idx)]) @cursor-items))]
 
 
-               [:h4 "Empty Folder"])]
+               [:h4 "Empty Folder"]))]
 
 
-            #_(when true #_(not-empty @checked)
-                [modals/list-operations-commutative
-                 {:title "Combine Lists"
-                  :body "The new list will contain items from all selected lists"}]
-                ;[checked-panel]
-                )
+          #_(when true #_(not-empty @checked)
+              [modals/list-operations-commutative
+               {:title "Combine Lists"
+                :body "The new list will contain items from all selected lists"}]
+              ;[checked-panel]
+              )
 
 
 
-            [modals/modal-list-operations @modal-kw]
+          [modals/modal-list-operations @modal-kw]
 
-            [modals/modal @context-menu-target]
-            [modals/modal-copy @context-menu-target]
-            [modals/modal-delete-item @context-menu-target]
-            [modals/modal-new-folder @context-menu-target]
-            [modals/modal-delete-folder @context-menu-target]
-            [modals/modal-lo @context-menu-target]
-            [modals/modal-lo-intersect @context-menu-target]
-            [modals/modal-rename-list @context-menu-target]
-            [m/context-menu-container @context-menu-target]
-            ;[thinker/main]
-            ]))})))
+          [modals/modal @context-menu-target]
+          [modals/modal-copy @context-menu-target]
+          [modals/modal-delete-item @context-menu-target]
+          [modals/modal-new-folder @context-menu-target]
+          [modals/modal-delete-folder @context-menu-target]
+          [modals/modal-lo @context-menu-target]
+          [modals/modal-lo-intersect @context-menu-target]
+          [modals/modal-rename-list @context-menu-target]
+          [m/context-menu-container @context-menu-target]
+          ;[thinker/main]
+          ])})))
 

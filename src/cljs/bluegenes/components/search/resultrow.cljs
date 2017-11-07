@@ -12,33 +12,33 @@
   "UI control suggesting to the user that there is only one result selectable at any one time; there's no actual form functionality here."
   (let [selected? (subscribe [:search/am-i-selected? result])]
     [:input {:type "checkbox"
-           :on-click (fn [e] (ocall e :stopPropagation)
-            (if @selected?
-              (dispatch [:search/deselect-result result])
-              (dispatch [:search/select-result result])))
-           :name "keyword-search"}
-   ]))
+             :on-click (fn [e] (ocall e :stopPropagation)
+                         (if @selected?
+                           (dispatch [:search/deselect-result result])
+                           (dispatch [:search/select-result result])))
+             :name "keyword-search"}
+     ]))
 
 (defn set-selected! [row-data elem]
   "selects an item and navigates there. "
   (let [current-mine (subscribe [:current-mine])]
-    (navigate! (str "/reportpage/" (name (:id @current-mine)) "/" (oget (:result row-data) "type") "/" (oget (:result row-data) "id")))))
+    (navigate! (str "/reportpage/" (name (:id @current-mine)) "/" (:type (:result row-data)) "/" (:id (:result row-data))))))
 
 (defn row-structure [row-data contents]
   "This method abstracts away most of the common components for all the result-row baby methods."
   (fn [row-data contents]
-  (let [result (:result row-data)
-        active-filter (subscribe [:search/active-filter])
-        selected? (subscribe [:search/am-i-selected? (oget result :id)])]
-    ;;Todo: Add a conditional row highlight on selected rows.
-    [:div.result {:on-click
-                  (fn [this]
-                    (set-selected! row-data (oget this "target")))
-                  :class (if @selected? "selected")}
-     (cond (some? @active-filter)
-    [result-selection-control result])
-     [:span.result-type {:class (str "type-" (oget result "type"))} (oget result "type")]
-     (contents)])))
+    (let [result        (:result row-data)
+          active-filter (subscribe [:search/active-filter])
+          selected?     (subscribe [:search/am-i-selected? (:id result)])]
+      ;;Todo: Add a conditional row highlight on selected rows.
+      [:div.result {:on-click
+                    (fn [this]
+                      (set-selected! row-data (oget this "target")))
+                    :class (if @selected? "selected")}
+       (cond (some? @active-filter)
+             [result-selection-control result])
+       [:span.result-type {:class (str "type-" (:type result))} (:type result)]
+       (contents)])))
 
 (defn wrap-term [broken-string term]
   "Joins an array of terms which have already been broken on [term] adding a highlight class as we go.
@@ -46,28 +46,28 @@
   '[:span I love [:span.searchterm 'bob'] the builder]'.
   TODO: If we know ways to refactor this, let's do so. It's verrry slow."
   [:span
-    ;; iterate over the string arrays, and wrap span.searchterm around the terms.
-    ;; don't do it for the last string, otherwise we end up with random extra
-    ;; search terms appended where there should be none.
+   ;; iterate over the string arrays, and wrap span.searchterm around the terms.
+   ;; don't do it for the last string, otherwise we end up with random extra
+   ;; search terms appended where there should be none.
    (map (fn [string]
           ^{:key string}
           [:span string [:span.searchterm term]]) (butlast broken-string))
-   (cond   ;;special case: if both strings are empty, the entire string was the term in question
-     (and  ;;so we need to wrap it in searchterm and return the term
-      (clojure.string/blank? (last broken-string))
-      (clojure.string/blank? (first broken-string)))
+   (cond ;;special case: if both strings are empty, the entire string was the term in question
+     (and ;;so we need to wrap it in searchterm and return the term
+       (clojure.string/blank? (last broken-string))
+       (clojure.string/blank? (first broken-string)))
      [:span.searchterm term])
-      ;;finally, we need to output the last term, without appending anything to it.
+   ;;finally, we need to output the last term, without appending anything to it.
    [:span (last broken-string)]])
 
 (defn show [row-data selector]
   "Helper: fetch a result from the data model, adding a highlight if the setting is enabled."
-  (let [row (oget (:result row-data) "fields")
-        string (get (js->clj row) selector)
-        term (:search-term row-data)
+  (let [row        (:fields (:result row-data))
+        string     (get row (keyword selector))
+        term       (:search-term row-data)
         highlight? (re-frame/subscribe [:search/highlight?])]
     (if (and @highlight? string)
-      (let [pattern (re-pattern (str "(?i)([\\S\\s]*)" term "([\\S\\s]*)"))
+      (let [pattern       (re-pattern (str "(?i)([\\S\\s]*)" term "([\\S\\s]*)"))
             broken-string (re-seq pattern string)]
         (if broken-string
           (wrap-term (rest (first broken-string)) term)
@@ -75,8 +75,8 @@
       [:span string])))
 
 (defmulti result-row
-  "Result-row outputs nicely formatted type-specific results for common types and has a default that just outputs all non id, type, and relevance fields."
-  (fn [row-data] (oget (:result row-data) "type")))
+          "Result-row outputs nicely formatted type-specific results for common types and has a default that just outputs all non id, type, and relevance fields."
+          (fn [row-data] (:type (:result row-data))))
 
 (defmethod result-row "Gene" [row-data]
   [row-structure row-data
@@ -84,8 +84,8 @@
      [:div.details [:ul
                     [:li [:h6 "Organism"] [:span.organism (show row-data "organism.name")]]
                     [:li [:h6 " Symbol: "] (show row-data "symbol")]
-                    (let [fields (get-in (js->clj row-data :keywordize-keys true) [:result :fields])
-                          primary  (:primaryIdentifier fields)
+                    (let [fields    (get-in row-data [:result :fields])
+                          primary   (:primaryIdentifier fields)
                           secondary (:secondaryIdentifier fields)]
                       [:li.ids [:h6 " Identifiers: "]
                        (cond primary
@@ -120,7 +120,7 @@
 
 (defmethod result-row :default [row-data]
   "format a row in a readable way when no other templates apply. Adds 'name: description' default first rows if present."
-  (let [details (:fields (js->clj (:result row-data) :keywordize-keys true))]
+  (let [details (:fields (:result row-data))]
     [row-structure row-data
      (fn []
        [:div.details
@@ -129,7 +129,7 @@
         (if (contains? details "description")
           [:span.description (show row-data "description")])
 
-        (doall           (reduce (fn [my-list [k value]]
-                                   (if (and (not= k "name") (not= k "description"))
-                                     (conj my-list [:li [:h6.default-description k] [:div.default-value value]]))) [:ul] details))
-])]))
+        (doall (reduce (fn [my-list [k value]]
+                         (if (and (not= k "name") (not= k "description"))
+                           (conj my-list [:li [:h6.default-description k] [:div.default-value value]]))) [:ul] details))
+        ])]))

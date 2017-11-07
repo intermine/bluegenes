@@ -3,7 +3,6 @@
   (:require [re-frame.core :refer [reg-event-db reg-event-fx reg-fx dispatch subscribe]]
             [re-frame.events]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
-            [imcljsold.search :as search]
             [imcljs.fetch :as fetch]))
 
 
@@ -118,10 +117,9 @@
     (let [query         (get-in db [:components :template-chooser :selected-template])
           template-name (get-in db [:components :template-chooser :selected-template-name])
           service       (get-in db [:mines (ns->kw template-name) :service])
-          count-chan    (search/raw-query-rows
+          count-chan    (fetch/row-count
                           service
-                          query
-                          {:format "count"})
+                          query)
           new-db        (update-in db [:components :template-chooser] assoc
                                    :count-chan count-chan
                                    :counting? true)]

@@ -1,6 +1,6 @@
 (ns bluegenes.index
   (:require [hiccup.page :refer [include-js include-css html5]]
-            [config.core :refer [env]]))
+            [config.core :refer [env]]
             [cheshire.core :as json]))
 
 ;;Hello dear maker of the internet. You want to edit *this* file for prod, NOT the index.html copy. Why did we configure it this way? It's not to drive you mad, I assure you. It's because figwheel likes to highjack routes at / and display a default page if there is no index.html in place. Naughty figwheel!
@@ -17,6 +17,7 @@
 (defn head []
   [:head
    loader-style
+
     [:title "InterMine 2.0 bluegenes"]
     (include-css
       "https://cdnjs.cloudflare.com/ajax/libs/gridlex/2.2.0/gridlex.min.css")
@@ -36,8 +37,10 @@
     [:script {:src "vendor/bootstrap/dist/js/bootstrap.js"}]
     [:script {:src "vendor/bootstrap/js/tooltip.js"}]
     [:script {:src "vendor/bootstrap/js/popover.js"}]
+   [:script {:src "https://apis.google.com/js/api.js"}]
   ]
 )
+
 
 (defn loader []
   [:div#wrappy
@@ -53,13 +56,15 @@
 
 
 (defn index [identity]
-  (let [json-identity (json/generate-string identity)]
+  (let [
+        ;json-identity (json/generate-string identity)
+        ]
     (html5
-     (head)
-     [:body
-      (loader)
-      [:div#app]
-      [:script {:src (str "js/compiled/app.js?v=" (version))}]
-      [:script (str "bluegenes.core.init(" json-identity ");")]
-      ]
-     )))
+      (head)
+      [:body
+       (loader)
+       [:div#app]
+       [:script {:src (str "js/compiled/app.js?v=" (version))}]
+       [:script (str "bluegenes.core.init(" json-identity ");")]
+       ]
+      )))

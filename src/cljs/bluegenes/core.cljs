@@ -38,9 +38,9 @@
         (navigate! (str "/" hashless-path)
     )))))
 
-(defn ^:export init []
+(defn ^:export init [identity]
   (routes/app-routes)
-  (re-frame/dispatch-sync [:boot])
+  (re-frame/dispatch-sync [:boot (js->clj identity :keywordize-keys true)])
   (navigate-to-deep-links)
   ;(dev-setup)
   ; Initialize our bootstrap dropdowns

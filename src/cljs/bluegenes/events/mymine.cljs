@@ -1,6 +1,6 @@
 (ns bluegenes.events.mymine
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
-  (:require [re-frame.core :refer [reg-event-db reg-event-db reg-event-fx subscribe]]
+  (:require [re-frame.core :refer [reg-event-db reg-event-db reg-event-fx reg-fx subscribe]]
             [cljs.core.async :refer [<!]]
             [imcljs.send :as send]
             [imcljs.fetch :as fetch]
@@ -156,29 +156,35 @@
 ; This can be greatly reduced in the future (see to ;; END TODO below)
 (reg-event-fx
   ::fetch-one-list-success
-  (fn [{db :db} [_ trail {:keys [id name] :as list-details}]]
+  (fn [{db :db} [_ trail parent-id {:keys [id name] :as list-details}]]
     (cond-> {:dispatch [:assets/fetch-lists]}
             (and trail (not (keyword? (first trail)))) (assoc :db (update-in db [:mymine :tree]
                                                                              update-in (parent-container trail)
                                                                              update :children assoc
                                                                              id (assoc list-details
                                                                                   :file-type :list
-                                                                                  :label name))))))
+                                                                                  :label name)))
+            parent-id (assoc :http {:method :post
+                                    :params {:im-obj-type "list"
+                                             :im-obj-id id
+                                             :parent-id parent-id}
+                                    :on-success [::success-store-tag]
+                                    :uri "/api/mymine/entries"}))))
 
 (reg-event-fx
   ::fetch-one-list
-  (fn [{db :db} [_ trail {list-name :listName}]]
+  (fn [{db :db} [_ trail {list-name :listName} parent-id]]
     (let [service (get-in db [:mines (get db :current-mine) :service])]
       {:im-chan {:chan (fetch/one-list service list-name)
-                 :on-success [::fetch-one-list-success trail]
+                 :on-success [::fetch-one-list-success trail parent-id]
                  :on-failure [::copy-failure]}})))
 
 (reg-event-fx
   ::copy-success
-  (fn [{db :db} [_ trail response]]
+  (fn [{db :db} [_ trail parent-id response]]
     {:dispatch-n [
                   [::clear-checked]
-                  [::fetch-one-list trail response]]}))
+                  [::fetch-one-list trail response parent-id]]}))
 
 (reg-event-fx
   ::copy-n
@@ -186,20 +192,23 @@
     (let [ids           (get-in db [:mymine :checked])
           lists         (get-in db [:assets :lists (get db :current-mine)])
           names-to-copy (map :name (filter (comp ids :id) lists))
-          focus         (or (get-in db [:mymine :focus]) [:unsorted])]
+          focus         (or (get-in db [:mymine :focus]) [:unsorted])
+          parent-id     (get-in db [:mymine :cursor :entry-id])]
       ; Now automatically increment the names of the list (since we're copying many)
       (let [evts (reduce (fn [total next]
                            (if-let [previous (first (not-empty (filter #(s/starts-with? % (str next "_")) (map :name lists))))]
-                             (do
-                               (conj total [::copy-focus focus next (str previous "_" (-> previous last (js/parseInt) inc))]))
-                             (do
-                               (conj total [::copy-focus focus next (str next "_1")])))) [] names-to-copy)]
+                             (conj total
+                                   [::copy-focus focus next (str previous "_" (-> previous last (js/parseInt) inc)) parent-id])
+                             (conj total
+                                   [::copy-focus focus next (str next "_1") parent-id])))
+                         []
+                         names-to-copy)]
         {:db db
          :dispatch-n evts}))))
 
 (reg-event-fx
   ::copy-focus
-  (fn [{db :db} [_ trail old-list-name new-list-name]]
+  (fn [{db :db} [_ trail old-list-name new-list-name parent-id]]
     ;[on-success on-failure response-format chan params]
     (let [service          (get-in db [:mines (get db :current-mine) :service])
           target-file      (get-in db [:mymine :menu-file-details])
@@ -207,13 +216,12 @@
           target-list-name (->> lists (filter (fn [l] (= (:id target-file) (:id l)))) first :name)
           location         (butlast (:trail target-file))]
       {:im-chan {:chan (save/im-list-copy service old-list-name new-list-name)
-                 :on-success [::copy-success location]
+                 :on-success [::copy-success location parent-id]
                  :on-failure [::copy-failure]}})))
 
 (reg-event-fx
   ::delete-lists-success
   (fn [{db :db} [_ returned]]
-    (js/console.log "returned" returned)
     {:dispatch [::lo-success]}))
 
 
@@ -254,6 +262,7 @@
   ::rename-list
   (fn [{db :db} [_ new-list-name]]
     (let [service (get-in db [:mines (get db :current-mine) :service])
+          _       (js/console.log "DB" db)
           id      (last (get-in db [:mymine :action-target]))
           _       (js/console.log "ID" id)
           {old-list-name :name} @(subscribe [::subs/one-list id])]
@@ -272,7 +281,7 @@
                  :on-failure [::delete-failure]}})))
 
 (reg-event-db
-  ::drag-over
+  ::drag-over-old
   (fn [db [_ trail]]
     (assoc-in db [:mymine :dragging-over] trail)))
 
@@ -283,10 +292,8 @@
 
 (reg-event-db
   ::set-context-menu-target
-  (fn [db [_ trail node]]
-    (update-in db [:mymine] assoc
-               :context-target trail
-               :context-node node)))
+  (fn [db [_ entity]]
+    (update-in db [:mymine] assoc :context-menu-target entity)))
 
 (reg-event-fx
   ::drop
@@ -347,10 +354,11 @@
   (fn [{db :db} [_ list-name]]
     (let [lists          (get-in db [:assets :lists (get db :current-mine)])
           checked        (get-in db [:mymine :checked])
-          selected-lists (map :name (filter (fn [l] (some #{(:id l)} checked)) lists))]
+          selected-lists (map :name (filter (fn [l] (some #{(:id l)} checked)) lists))
+          parent-id      (get-in db [:mymine :cursor :entry-id])]
       (let [service (get-in db [:mines (get db :current-mine) :service])]
         {:im-chan {:chan (save/im-list-union service list-name selected-lists)
-                   :on-success [::lo-success]
+                   :on-success [::lo-success parent-id]
                    :on-failure [::lo-success]}}))))
 
 (reg-event-fx
@@ -358,10 +366,11 @@
   (fn [{db :db} [_ list-name]]
     (let [lists          (get-in db [:assets :lists (get db :current-mine)])
           checked        (get-in db [:mymine :checked])
-          selected-lists (map :name (filter (fn [l] (some #{(:id l)} checked)) lists))]
+          selected-lists (map :name (filter (fn [l] (some #{(:id l)} checked)) lists))
+          parent-id      (get-in db [:mymine :cursor :entry-id])]
       (let [service (get-in db [:mines (get db :current-mine) :service])]
         {:im-chan {:chan (save/im-list-intersect service list-name selected-lists)
-                   :on-success [::lo-success]
+                   :on-success [::lo-success parent-id]
                    :on-failure [::lo-success]}}))))
 
 (reg-event-fx
@@ -369,10 +378,11 @@
   (fn [{db :db} [_ list-name]]
     (let [lists          (get-in db [:assets :lists (get db :current-mine)])
           checked        (get-in db [:mymine :checked])
-          selected-lists (map :name (filter (fn [l] (some #{(:id l)} checked)) lists))]
+          selected-lists (map :name (filter (fn [l] (some #{(:id l)} checked)) lists))
+          parent-id      (get-in db [:mymine :cursor :entry-id])]
       (let [service (get-in db [:mines (get db :current-mine) :service])]
         {:im-chan {:chan (save/im-list-difference service list-name selected-lists)
-                   :on-success [::lo-success]
+                   :on-success [::lo-success parent-id]
                    :on-failure [::lo-success]}}))))
 
 (reg-event-fx
@@ -382,10 +392,11 @@
           [ids-a ids-b] (get-in db [:mymine :suggested-state])
           selected-lists-a (map :name (filter (fn [l] (some #{(:id l)} ids-a)) lists))
           selected-lists-b (map :name (filter (fn [l] (some #{(:id l)} ids-b)) lists))
+          parent-id        (get-in db [:mymine :cursor :entry-id])
           ]
       (let [service (get-in db [:mines (get db :current-mine) :service])]
         {:im-chan {:chan (save/im-list-subtraction service list-name selected-lists-a selected-lists-b)
-                   :on-success [::lo-success]
+                   :on-success [::lo-success parent-id]
                    :on-failure [::lo-success]}}))))
 
 (reg-event-db
@@ -413,10 +424,16 @@
 
 (reg-event-fx
   ::lo-success
-  (fn [{db :db} [_ m]]
+  (fn [{db :db} [_ parent-id m]]
     (let [focus (get-in db [:mymine :focus])]
       {:dispatch-n [[::clear-checked]
-                    [:assets/fetch-lists]]})))
+                    [:assets/fetch-lists]]
+       :http {:method :post
+              :params {:im-obj-type "list"
+                       :im-obj-id (:listId m)
+                       :parent-id parent-id}
+              :on-success [::success-store-tag]
+              :uri "/api/mymine/entries"}})))
 
 
 
@@ -441,25 +458,119 @@
 
 ;;;;;;;;;;; IO Operations
 
-(reg-event-fx ::store-tree []
-              (fn [{db :db}]
-                (let [tree (get-in db [:mymine :tree])]
-                  (js/console.log "tree" tree)
+(reg-event-fx ::store-tag []
+              (fn [{db :db} [_ label]]
+                (let [context-menu-target (get-in db [:mymine :context-menu-target])]
                   {:db db
                    :http {:method :post
-                          :params tree
-                          :on-success [::echo-tree]
-                          :uri "/api/mymine/tree"}})))
+                          :params {:im-obj-type "tag"
+                                   :parent-id (:entry-id context-menu-target)
+                                   :label label
+                                   :open? true}
+                          :on-success [::success-store-tag]
+                          :uri "/api/mymine/entries"}})))
+
+
+
+
+(reg-fx ::rederive-tags
+        (fn [tags]
+
+          (println "rederiving" (count tags))
+
+          ; Clear all known derivations
+          (doseq [{:keys [entry-id parent-id]} tags]
+            (doseq [ancestor (ancestors (keyword "tag" entry-id))]
+              (underive (keyword "tag" entry-id) ancestor)))
+
+          ; Rederive tags
+          (doseq [{:keys [entry-id parent-id]} tags]
+            (when (and entry-id parent-id)
+              (derive
+                (keyword "tag" entry-id)
+                (keyword "tag" parent-id))))))
+
+(reg-event-db ::rederive
+              (fn [db [_]]
+                (let [hierarchy (reduce (fn [h {:keys [entry-id parent-id]}]
+                                          (if (and entry-id parent-id)
+                                            (derive h
+                                                    (keyword "tag" entry-id)
+                                                    (keyword "tag" parent-id))
+                                            h))
+                                        (make-hierarchy) (get-in db [:mymine :entries]))]
+                  (update-in db [:mymine] assoc :hierarchy hierarchy))))
+
+(reg-event-fx ::success-store-tag
+              (fn [{db :db} [_ new-tags]]
+                (let [new-db (update-in db [:mymine :entries] #(apply conj % new-tags))]
+                  {:db new-db
+                   :dispatch [::rederive]})))
+
+(reg-event-fx ::delete-tag []
+              (fn [{db :db} [_ label]]
+                (let [context-menu-target (get-in db [:mymine :context-menu-target])]
+                  {:db db
+                   :http {:method :delete
+                          :on-success [::success-delete-tag]
+                          :uri (str "/api/mymine/entries/" (:entry-id context-menu-target))}})))
+
+
+(defn isa-filter [root-id entry]
+  (if-let [entry-id (:entry-id entry)]
+    (do
+      (isa? (keyword "tag" entry-id) (keyword "tag" root-id)))
+    false))
+
+(reg-event-fx ::success-delete-tag
+              ; Postgres returns a collection consisting of one deleted id
+              ; hence the destructuring
+              (fn [{db :db} [_ [{entry-id :entry-id}]]]
+                ; Remove any mymine entries that were derived from this entry
+                {:db (update-in db [:mymine :entries] #(remove (partial isa-filter entry-id) %))
+                 :dispatch [::rederive]}))
+
+
+(reg-event-fx ::rename-tag []
+              (fn [{db :db} [_ label]]
+                (let [context-menu-target (get-in db [:mymine :context-menu-target])]
+                  {:db db
+                   :http {:method :post
+                          :on-success [::success-rename-tag]
+                          :uri (str "/api/mymine/entries/"
+                                    (:entry-id context-menu-target)
+                                    "/rename/"
+                                    label)}})))
+
+(reg-event-db ::success-rename-tag
+              (fn [db [_ [{entry-id :entry-id :as response}]]]
+                ; Update the appropriate entry
+                (update-in db [:mymine :entries]
+                           #(map (fn [e] (if (= entry-id (:entry-id e)) response e)) %))))
+
 
 (reg-event-fx ::fetch-tree []
               (fn [{db :db}]
                 {:db db
                  :http {:method :get
                         :on-success [::echo-tree]
-                        :uri "/api/mymine/tree"}}))
+                        :uri "/api/mymine/entries"}}))
 
-{:one {:type :folder :children {:three {:type :file}}}
- :two {:type :file}}
+(defn toggle-open [entries entry-id status]
+  (map (fn [e] (if (= (:entry-id e) entry-id)
+                 (assoc e :open status)
+                 e)) entries))
+
+(reg-event-fx ::toggle-tag-open []
+              (fn [{db :db} [_ entry-id status]]
+                {:db (update-in db [:mymine :entries] toggle-open entry-id status)
+                 :http {:method :post
+                        :uri (str "/api/mymine/entries/" entry-id "/open/" status)}}))
+
+(reg-event-db ::set-cursor
+              (fn [db [_ entry]]
+                (assoc-in db [:mymine :cursor] entry)))
+
 
 (defn keywordize-value
   "Recursively keywordize a value for a given key in a map
@@ -473,4 +584,60 @@
 
 (reg-event-db ::echo-tree
               (fn [db [_ response]]
-                (assoc-in db [:mymine :tree] (keywordize-value response :file-type))))
+                (let [hierarchy (reduce (fn [h {:keys [entry-id parent-id]} response]
+                                          (if (and entry-id parent-id)
+                                            (derive h
+                                                    (keyword "tag" entry-id)
+                                                    (keyword "tag" parent-id))
+                                            h))
+                                        (make-hierarchy) response)]
+                  (update-in db [:mymine] assoc :entries response :hierarchy hierarchy))))
+
+(reg-event-db ::dragging
+              (fn [db [_ tag]]
+                (update-in db [:mymine :drag] assoc :dragging tag :dragging? true)))
+
+(reg-event-db ::dragging?
+              (fn [db [_ value]]
+                (assoc-in db [:mymine :drag :dragging?] value)))
+
+(reg-event-db ::dragging-over
+              (fn [db [_ tag]]
+                (assoc-in db [:mymine :drag :dragging-over] tag)))
+
+(reg-event-fx ::dropping-on
+              (fn [{db :db} [_ tag]]
+                (let [{dragging-id :entry-id :as dragging} (get-in db [:mymine :drag :dragging])
+                      {dropping-id :entry-id :as dropping} (get-in db [:mymine :drag :dragging-over])
+                      hierarchy (get-in db [:mymine :hierarchy])]
+                  (let [noop {:db (assoc-in db [:mymine :drag] nil)}]
+
+                    (cond
+                      (isa? hierarchy
+                            (keyword "tag" (:entry-id dropping))
+                            (keyword "tag" (:entry-id dragging))) noop
+                      (not= "tag" (:im-obj-type dropping)) noop
+                      (nil? dragging-id)
+                      (assoc noop :http {:method :post
+                                           :params (assoc dragging :parent-id dropping-id)
+                                           :on-success [::success-store-tag]
+                                           :uri "/api/mymine/entries"})
+                      (and (not= dragging-id dropping-id))
+                      (assoc noop :http {:method :post
+                                           :on-success [::success-move-entry]
+                                           :uri (str "/api/mymine/entries/"
+                                                     dragging-id
+                                                     "/move/"
+                                                     dropping-id)})
+                      :else noop)))))
+
+(reg-event-fx ::success-move-entry
+              (fn [{db :db} [_ [{:keys [entry-id parent-id] :as item}]]]
+                (let [new-entries (map (fn [e]
+                                         (if (= entry-id (:entry-id e))
+                                           (assoc e :parent-id parent-id)
+                                           e)) (get-in db [:mymine :entries]))
+                      parent-tag  (first (filter (comp #{parent-id} :entry-id) new-entries))]
+                  {:db (assoc-in db [:mymine :entries] new-entries)
+                   :dispatch-n [[::rederive]
+                                [::set-cursor parent-tag]]})))

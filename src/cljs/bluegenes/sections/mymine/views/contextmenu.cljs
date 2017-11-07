@@ -2,17 +2,18 @@
   (:require [re-frame.core :refer [subscribe dispatch]]
             [reagent.core :as r]
             [bluegenes.events.mymine :as evts]
-            [bluegenes.subs.mymine :as subs]))
+            [bluegenes.subs.mymine :as subs]
+            [oops.core :refer [ocall]]))
 
-(defmulti context-menu :file-type)
+(defmulti context-menu :im-obj-type)
 
-(defmethod context-menu :folder []
+(defmethod context-menu "tag" []
   (fn [{:keys [trail type]}]
     [:ul.dropdown-menu
      [:li {:data-toggle "modal"
            :data-keyboard true
            :data-target "#myMineNewFolderModal"}
-      [:a "New Folder"]]
+      [:a "New Sub-Tag"]]
      [:li.divider]
      [:li {:data-toggle "modal"
            :data-keyboard true
@@ -23,10 +24,10 @@
            :data-target "#myMineDeleteFolderModal"}
       [:a "Remove"]]]))
 
-(defmethod context-menu :list []
+(defmethod context-menu "list" []
   (fn [target]
     [:ul.dropdown-menu
-     #_[:li {:data-toggle "modal"
+     [:li {:data-toggle "modal"
            :data-keyboard true
            :data-target "#myMineRenameList"}
       [:a "Rename"]]
@@ -45,7 +46,8 @@
      [:li [:a "Default"]]]))
 
 (defn context-menu-container []
-  (let [menu-item (subscribe [::subs/menu-details])]
+  (let [context-menu-target (subscribe [::subs/context-menu-target])]
     (fn []
-      (let [{:keys [trail id file-type] :as item} @menu-item]
-        [:div#contextMenu.dropdown.clearfix ^{:key (str "context-menu" trail)} [context-menu item]]))))
+      (let [{:keys [entry-id] :as item} @context-menu-target]
+        [:div#contextMenu.dropdown.clearfix
+         ^{:key (str "context-menu" entry-id)} [context-menu item]]))))

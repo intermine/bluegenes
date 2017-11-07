@@ -182,7 +182,7 @@
 
 
 (defn dispatch-edit [location key value]
-  (dispatch [::evts/update-value location key value]))
+  (dispatch [::evts/rename-tag value]))
 
 (def not-blank? (complement s/blank?))
 
@@ -224,8 +224,8 @@
                                "Cancel"]
                               [:button.btn.btn-success.btn-raised
                                {:data-dismiss "modal"
-                                :on-click (fn [] (dispatch [::evts/delete-folder trail]))}
-                               "Remove Folder"]]]]]])})))
+                                :on-click (fn [] (dispatch [::evts/delete-tag trail]))}
+                               "Remove Tag"]]]]]])})))
 
 
 (defn modal-delete-item []
@@ -303,7 +303,7 @@
                                               (case (oget evt :keyCode)
                                                 13 (when (not-blank? (ocall @input-dom-node :val))
                                                      (do ; Detect "Return
-                                                       (dispatch [::evts/new-folder trail (ocall @input-dom-node :val)])
+                                                       (dispatch [::evts/store-tag (ocall @input-dom-node :val)])
                                                        (ocall @modal-dom-node :modal "hide")))
                                                 nil))}]]
                               [:div.modal-footer
@@ -314,7 +314,7 @@
                                 [:button.btn.btn-success.btn-raised
                                  {:data-dismiss "modal"
                                   :on-click (fn [] (when (not-blank? (ocall @input-dom-node :val))
-                                                     (dispatch [::evts/new-folder trail (ocall @input-dom-node :val)])))}
+                                                     (dispatch [::evts/store-tag (ocall @input-dom-node :val)])))}
                                  "OK"]]]]]]))})))
 
 (defn modal-copy []
@@ -509,7 +509,7 @@
                           [:div.modal-dialog
                            [:div.modal-content
                             [:div.modal-header [:h2 "Rename"]]
-                            [:div.modal-body [:p "Please enter a new name for the folder"]
+                            [:div.modal-body [:p "Please enter a new name for the tag"]
                              [:input.form-control
                               {:ref (fn [e] (when e (do (oset! e :value label) (reset! input-dom-node (js/$ e)))))
                                :type "text"

@@ -1,14 +1,9 @@
 (ns bluegenes.components.idresolver.events
-  (:require-macros [cljs.core.async.macros :refer [go go-loop]]
-                   [com.rpl.specter :refer [traverse]])
+  (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [re-frame.core :as re-frame :refer [reg-event-db reg-event-fx reg-fx dispatch subscribe]]
             [bluegenes.db :as db]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
-            [imcljsold.idresolver :as idresolver]
-            [imcljsold.filters :as filters]
-            [imcljsold.search :as search]
             [imcljs.fetch :as fetch]
-            [com.rpl.specter :as s]
             [accountant.core :refer [navigate!]]
             [clojure.zip :as zip]))
 
@@ -51,7 +46,7 @@
   (fn [{db :db} [_ id]]
     {:db (let [{{:keys [MATCH TYPE_CONVERTED OTHER WILDCARD DUPLICATE] :as resolved} :matches
                 unresolved :unresolved} id
-               tagged (remove empty? (mapcat (fn [[k v]] (map (fn [r] (assoc r :status k)) v)) resolved))
+               tagged    (remove empty? (mapcat (fn [[k v]] (map (fn [r] (assoc r :status k)) v)) resolved))
                tagged-un (reduce (fn [total next] (assoc total next {:input [next] :status :UNRESOLVED})) {} unresolved)]
 
            (-> db
@@ -73,11 +68,11 @@
   (fn [[ids service db]]
     (let [organism    (get-organism-type db)
           object-type (get-object-type db)
-          job (idresolver/im-resolve service
-                                  (cond->
-                                    {:identifiers (if (seq ids) ids [ids])
-                                     :type object-type}
-                                    (not= organism :any) (assoc :extra organism)))]
+          job         (fetch/resolve-identifiers service
+                                                 (cond->
+                                                   {:identifiers (if (seq ids) ids [ids])
+                                                    :type object-type}
+                                                   (not= organism :any) (assoc :extra organism)))]
       (go (dispatch [:handle-id (<! job)])))))
 
 (reg-event-fx
@@ -167,17 +162,17 @@
   (fn [{db :db} [_ organism]]
 
     (let [ids (pull-inputs-from-id-resolver db)]
-      {:db       (-> db
-                     (assoc-in [:idresolver :selected-organism] organism)
-                     (assoc-in [:idresolver :bank] nil)
-                     (assoc-in [:idresolver :results] nil))
+      {:db (-> db
+               (assoc-in [:idresolver :selected-organism] organism)
+               (assoc-in [:idresolver :bank] nil)
+               (assoc-in [:idresolver :results] nil))
        :dispatch [:idresolver/resolve ids]})))
 
 (reg-event-fx
   :idresolver/set-selected-object-type
   (fn [{db :db} [_ object-type]]
     (let [service (get-in db [:mines (:current-mine db) :service])
-          ids (pull-inputs-from-id-resolver db)]
+          ids     (pull-inputs-from-id-resolver db)]
       {:db (-> db
                (assoc-in [:idresolver :selected-object-type] object-type)
                (assoc-in [:idresolver :bank] nil))
@@ -188,7 +183,7 @@
   ;;         make sure it's generic and not gene-specific.
   :idresolver/save-results
   (fn [{db :db}]
-    (let [ids (remove nil? (map (fn [[_ {id :id}]] id) (-> db :idresolver :results)))
+    (let [ids     (remove nil? (map (fn [[_ {id :id}]] id) (-> db :idresolver :results)))
           results {:sd/type :query
                    :sd/service :flymine
                    :sd/label (str "Uploaded " (count ids) " Genes")
@@ -222,7 +217,7 @@
         plural?     (> (count ids) 1)
         ;this pluralisation works for proteins and genes. one day we can get fancy
         ; and worry about -ies and other pluralisations, but today is not that day.
-        label (str "Uploaded " (count ids) " " object-type (cond plural? "s"))]
+        label       (str "Uploaded " (count ids) " " object-type (cond plural? "s"))]
     {:type :query
      :label label
      :value {:title label
@@ -235,12 +230,12 @@
 (reg-event-fx
   :idresolver/analyse
   (fn [{db :db} [_ navigate?]]
-    (let [uid (str (gensym))
-          ids (pull-ids-from-idresolver (-> db :idresolver :results))
-          current-mine (:current-mine db)
-          object-type (get-object-type db)
+    (let [uid            (str (gensym))
+          ids            (pull-ids-from-idresolver (-> db :idresolver :results))
+          current-mine   (:current-mine db)
+          object-type    (get-object-type db)
           summary-fields (get-in db [:assets :summary-fields current-mine object-type])
-          results (build-query ids object-type summary-fields)]
+          results        (build-query ids object-type summary-fields)]
       (cond-> {}
               true (assoc :dispatch-n [[:results/set-query {:source (get db :current-mine)
                                                             :type :query
@@ -286,12 +281,12 @@
 (reg-event-fx
   :idresolver/fetch-preview
   (fn [{db :db} [_ query]]
-    (let [mine (:current-mine db)
-          service (get-in db [:mines mine :service])
+    (let [mine       (:current-mine db)
+          service    (get-in db [:mines mine :service])
           count-chan (fetch/table-rows service (:value query) {:size 5})
-          new-db (update-in db [:idresolver] assoc
-                            :preview-chan count-chan
-                            :fetching-preview? true)]
+          new-db     (update-in db [:idresolver] assoc
+                                :preview-chan count-chan
+                                :fetching-preview? true)]
       {:db new-db
        :im-chan {:chan count-chan
                  :on-success [:idresolver/store-results-preview]}})))
@@ -312,11 +307,11 @@
         any-example-text     (any-example-type examples)
         ;where we store the data
         example-keys         [:idresolver :selected-object-type]]
-    {:db   (cond->
-             ;sets example to any type configured as a fallback
-             (assoc-in db example-keys any-example-type)
-             ;if there's a default type, set the example to it instead.
-             use-default? (assoc-in example-keys object-type-default))
+    {:db (cond->
+           ;sets example to any type configured as a fallback
+           (assoc-in db example-keys any-example-type)
+           ;if there's a default type, set the example to it instead.
+           use-default? (assoc-in example-keys object-type-default))
      :text (if use-default? example-text-default any-example-text)}))
 
 (reg-event-fx
@@ -331,10 +326,10 @@
       ; attempt to show an example from the currently selected object type.
       ; If theres is no example configured, we'll try to fall back to a default.
       (if (some? example-text)
-        {:db       cleared-db
+        {:db cleared-db
          :dispatch [:idresolver/resolve (splitter example-text)]}
         (let [fallback-example (get-default-example cleared-db)]
-          {:db       (:db fallback-example)
+          {:db (:db fallback-example)
            :dispatch [:idresolver/resolve (splitter (:text fallback-example))]}
           ))
       )))

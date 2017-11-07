@@ -2,7 +2,7 @@
 
 (defproject bluegenes (str (:version props) "-SNAPSHOT")
   :dependencies [; Clojure
-                 [org.clojure/clojure "1.9.0-alpha17"]
+                 [org.clojure/clojure "1.9.0-beta4"]
                  [org.clojure/clojurescript "1.9.671"]
                  [org.clojure/core.async "0.3.443"]
 
@@ -15,7 +15,6 @@
                  [reagent "0.7.0" :exclusions [cljsjs/react]]
                  [cljsjs/react-with-addons "15.6.1-0"]
                  [hiccup "1.0.5"]
-                 [json-html "0.4.4"]
                  [prismatic/dommy "1.1.0"]
                  [secretary "1.2.3"]
                  [servant "0.1.5"]
@@ -28,7 +27,8 @@
                  [compojure "1.6.0"]
                  [ring "1.6.2"]
                  [ring/ring-defaults "0.3.1"]
-                 [ring/ring-json "0.4.0"]
+                 [ring/ring-json "0.4.0" :exclusions [cheshire.core]]
+                 [cheshire "5.8.0"]
                  [metosin/ring-http-response "0.9.0"]
                  [ring-middleware-format "0.7.2"]
 
@@ -39,7 +39,6 @@
                  [yogthos/config "0.8"]
 
                  ; Utility libraries
-                 [com.rpl/specter "1.0.2"]
                  [com.cognitect/transit-cljs "0.8.239"]
                  [com.lucasbradstreet/cljs-uuid-utils "1.0.2"]
                  [com.andrewmcveigh/cljs-time "0.5.1"]
@@ -70,14 +69,31 @@
                  [buddy/buddy-sign "1.5.0"]
                  [buddy/buddy-hashers "1.2.0"]
 
+                 [com.cemerick/friend "0.2.3"]
+                 [clojusc/friend-oauth2 "0.2.0"]
+                 [com.cemerick/url "0.1.1"]
+
+
                  ; Intermine Assets
-                 [intermine/imcljs "0.1.33"]
+                 [intermine/imcljs "0.1.36"]
                  [intermine/im-tables "0.3.3"]
-                 [intermine/accountant-fragments "0.1.8"]]
+                 [intermine/accountant-fragments "0.1.8"]
+
+                 ]
 
   :plugins [[lein-cljsbuild "1.1.6"]
             [lein-less "1.7.5"]
-            [lein-ancient "0.6.10"]]
+            [lein-ancient "0.6.10"]
+            [lein-pdo "0.1.1"]]
+
+  :aliases {"dev" ["do" "clean"
+                   ["pdo" ["figwheel" "dev"]
+                    ["less" "auto"]
+                    ["run"]]]
+            "build" ["do" "clean"
+                     ["cljsbuild" "once" "min"]
+                     ["less" "once"]]
+            "prod" ["do" "build" ["pdo" ["run"]]]}
 
   :min-lein-version "2.5.3"
 
@@ -114,7 +130,8 @@
                                         :source-map-timestamp true
                                         :pretty-print true
                                         ;:parallel-build true
-                                        :preloads [devtools.preload]
+                                        :preloads [devtools.preload
+                                                   re-frisk.preload]
                                         :external-config {:devtools/config {:features-to-install :all}}
                                         }}
 

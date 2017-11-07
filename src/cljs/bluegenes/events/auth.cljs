@@ -39,7 +39,8 @@
                      :message nil
                      :error? false)
              (assoc-in [:mines (:id @(subscribe [:current-mine])) :service :token] token))
-     :dispatch [:assets/fetch-lists]}))
+     :dispatch-n [[:assets/fetch-lists]
+                  [:bluegenes.events.mymine/fetch-tree]]}))
 
 (reg-event-db
   ::login-failure
