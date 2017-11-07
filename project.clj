@@ -39,7 +39,6 @@
                  [yogthos/config "0.8"]
 
                  ; Utility libraries
-                 [com.rpl/specter "1.0.2"]
                  [com.cognitect/transit-cljs "0.8.239"]
                  [com.lucasbradstreet/cljs-uuid-utils "1.0.2"]
                  [com.andrewmcveigh/cljs-time "0.5.1"]
