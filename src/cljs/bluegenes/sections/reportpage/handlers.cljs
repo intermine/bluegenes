@@ -4,11 +4,9 @@
   (:require [re-frame.core :as re-frame :refer [reg-event-db reg-event-fx reg-fx dispatch subscribe]]
             [bluegenes.db :as db]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
-            [imcljsold.search :as search]
             [imcljs.fetch :as fetch]
             [imcljsold.filters :as filters]
-            [imcljs.path :as path]
-            [com.rpl.specter :as s]))
+            [imcljs.path :as path]))
 
 (reg-event-db
   :handle-report-summary
