@@ -7,7 +7,7 @@
                  [org.clojure/core.async "0.3.443"]
 
                  ; MVC
-                 [re-frame "0.9.4"]
+                 [re-frame "0.10.2"]
                  [day8.re-frame/http-fx "0.1.4"]
                  [day8.re-frame/async-flow-fx "0.0.8"]
                  [day8.re-frame/forward-events-fx "0.0.5"]
@@ -20,13 +20,13 @@
                  [servant "0.1.5"]
                  [json-html "0.4.4"]
 
-                 [figwheel-sidecar "0.5.11"]
+                 [figwheel-sidecar "0.5.14"]
 
                  ; HTTP
-                 [clj-http "3.6.1"]
-                 [cljs-http "0.1.43"]
+                 [clj-http "3.7.0"]
+                 [cljs-http "0.1.44"]
                  [compojure "1.6.0"]
-                 [ring "1.6.2"]
+                 [ring "1.6.3"]
                  [ring/ring-defaults "0.3.1"]
                  [ring/ring-json "0.4.0" :exclusions [cheshire.core]]
                  [cheshire "5.8.0"]
@@ -37,25 +37,25 @@
                  [re-frisk "0.5.0"]
 
                  ; Build tools
-                 [yogthos/config "0.8"]
+                 [yogthos/config "0.9"]
 
                  ; Utility libraries
-                 [com.cognitect/transit-cljs "0.8.239"]
+                 [com.cognitect/transit-cljs "0.8.243"]
                  [com.lucasbradstreet/cljs-uuid-utils "1.0.2"]
                  [com.andrewmcveigh/cljs-time "0.5.1"]
                  [com.taoensso/carmine "2.16.0"]
                  [inflections "0.13.0"]
-                 [fipp "0.6.9"]
-                 [binaryage/oops "0.5.5"]
+                 [fipp "0.6.10"]
+                 [binaryage/oops "0.5.6"]
                  [inflections "0.13.0"]
                  [cljsjs/google-analytics "2015.04.13-0"]
 
                  ; Database
-                 [org.clojure/java.jdbc "0.7.0"]
-                 [org.postgresql/postgresql "42.1.3"]
-                 [hikari-cp "1.7.6"]
-                 [migratus "0.9.8"]
-                 [com.layerware/hugsql "0.4.7"]
+                 [org.clojure/java.jdbc "0.7.3"]
+                 [org.postgresql/postgresql "42.1.4"]
+                 [hikari-cp "1.8.1"]
+                 [migratus "1.0.0"]
+                 [com.layerware/hugsql "0.4.8"]
                  [postgre-types "0.0.4"]
 
                  ; Components
@@ -66,9 +66,9 @@
                  [com.fzakaria/slf4j-timbre "0.3.7"]
 
                  ; Security
-                 [buddy/buddy-auth "1.4.1"]
-                 [buddy/buddy-sign "1.5.0"]
-                 [buddy/buddy-hashers "1.2.0"]
+                 [buddy/buddy-auth "2.1.0"]
+                 [buddy/buddy-sign "2.2.0"]
+                 [buddy/buddy-hashers "1.3.0"]
 
                  [com.cemerick/friend "0.2.3"]
                  [clojusc/friend-oauth2 "0.2.0"]
@@ -82,9 +82,9 @@
 
                  ]
 
-  :plugins [[lein-cljsbuild "1.1.6"]
+  :plugins [[lein-cljsbuild "1.1.7"]
             [lein-less "1.7.5"]
-            [lein-ancient "0.6.10"]
+            [lein-ancient "0.6.14"]
             [lein-pdo "0.1.1"]]
 
   :aliases {"dev" ["do" "clean"
@@ -111,10 +111,10 @@
   :less {:source-paths ["less"]
          :target-path "resources/public/css"}
 
-  :profiles {:dev {:dependencies [[binaryage/devtools "0.9.4"]]
+  :profiles {:dev {:dependencies [[binaryage/devtools "0.9.7"]]
                    :resource-paths ["config/dev"]
-                   :plugins [[lein-figwheel "0.5.11"]
-                             [lein-doo "0.1.7"]]}
+                   :plugins [[lein-figwheel "0.5.14"]
+                             [lein-doo "0.1.8"]]}
              :prod {:dependencies []
                     :resource-paths ["config/prod"]
                     :plugins []}
