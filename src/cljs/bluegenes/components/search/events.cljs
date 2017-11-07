@@ -1,6 +1,5 @@
 (ns bluegenes.components.search.events
-  (:require-macros [cljs.core.async.macros :refer [go go-loop]]
-                   [com.rpl.specter :refer [traverse]])
+  (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [re-frame.core :as re-frame :refer [reg-event-db reg-event-fx reg-fx dispatch subscribe]]
             [oops.core :refer [ocall oget]]
             [bluegenes.db :as db]
