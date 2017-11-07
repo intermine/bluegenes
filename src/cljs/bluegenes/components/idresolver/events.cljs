@@ -3,11 +3,8 @@
   (:require [re-frame.core :as re-frame :refer [reg-event-db reg-event-fx reg-fx dispatch subscribe]]
             [bluegenes.db :as db]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
-            [imcljsold.idresolver :as idresolver]
-            [imcljsold.filters :as filters]
             [imcljsold.search :as search]
             [imcljs.fetch :as fetch]
-            [com.rpl.specter :as s]
             [accountant.core :refer [navigate!]]
             [clojure.zip :as zip]))
 
