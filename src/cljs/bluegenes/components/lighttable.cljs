@@ -4,7 +4,6 @@
             [re-frame.core :as re-frame :refer [subscribe dispatch]]
             [dommy.core :as dommy :refer-macros [sel sel1]]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
-            [imcljsold.search :as search]
             [imcljs.fetch :as fetch]
             [imcljs.path :as path]))
 
