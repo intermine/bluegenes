@@ -467,7 +467,7 @@
                           :params {:im-obj-type "tag"
                                    :parent-id (:entry-id context-menu-target)
                                    :label label
-                                   :mine mine-id
+                                   :mine (name mine-id)
                                    :open? true}
                           :on-success [::success-store-tag]
                           :uri "/api/mymine/entries"}})))
