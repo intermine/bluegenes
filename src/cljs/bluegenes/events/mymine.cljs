@@ -553,10 +553,11 @@
 
 (reg-event-fx ::fetch-tree []
               (fn [{db :db}]
-                {:db db
-                 :http {:method :get
-                        :on-success [::echo-tree]
-                        :uri "/api/mymine/entries"}}))
+                (let [current-mine (name (get-in db [:current-mine]))]
+                  {:db db
+                   :http {:method :get
+                          :on-success [::echo-tree]
+                          :uri (str "/api/mymine/entries/" current-mine)}})))
 
 (defn toggle-open [entries entry-id status]
   (map (fn [e] (if (= (:entry-id e) entry-id)
