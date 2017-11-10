@@ -460,12 +460,14 @@
 
 (reg-event-fx ::store-tag []
               (fn [{db :db} [_ label]]
-                (let [context-menu-target (get-in db [:mymine :context-menu-target])]
+                (let [context-menu-target (get-in db [:mymine :context-menu-target])
+                      mine-id             (get-in db [:current-mine])]
                   {:db db
                    :http {:method :post
                           :params {:im-obj-type "tag"
                                    :parent-id (:entry-id context-menu-target)
                                    :label label
+                                   :mine mine-id
                                    :open? true}
                           :on-success [::success-store-tag]
                           :uri "/api/mymine/entries"}})))
@@ -619,16 +621,16 @@
                       (not= "tag" (:im-obj-type dropping)) noop
                       (nil? dragging-id)
                       (assoc noop :http {:method :post
-                                           :params (assoc dragging :parent-id dropping-id)
-                                           :on-success [::success-store-tag]
-                                           :uri "/api/mymine/entries"})
+                                         :params (assoc dragging :parent-id dropping-id)
+                                         :on-success [::success-store-tag]
+                                         :uri "/api/mymine/entries"})
                       (and (not= dragging-id dropping-id))
                       (assoc noop :http {:method :post
-                                           :on-success [::success-move-entry]
-                                           :uri (str "/api/mymine/entries/"
-                                                     dragging-id
-                                                     "/move/"
-                                                     dropping-id)})
+                                         :on-success [::success-move-entry]
+                                         :uri (str "/api/mymine/entries/"
+                                                   dragging-id
+                                                   "/move/"
+                                                   dropping-id)})
                       :else noop)))))
 
 (reg-event-fx ::success-move-entry

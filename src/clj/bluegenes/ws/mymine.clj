@@ -24,9 +24,9 @@
 
 (defn add-entry [req]
   (if-let [user-id (parse-string (-> req :session :identity :id))]
-    (let [{:keys [im-obj-type im-obj-id parent-id label]} (:params req)]
+    (let [{:keys [im-obj-type im-obj-id parent-id label mine]} (:params req)]
       {:body (map lodash-to-hyphen (mymine-add-entry db {:user-id user-id
-                                                         :mine "cow"
+                                                         :mine (name mine)
                                                          :im-obj-type im-obj-type
                                                          :im-obj-id im-obj-id
                                                          :parent-id parent-id

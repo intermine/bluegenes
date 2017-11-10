@@ -14,7 +14,6 @@
   (let [credentials       (reagent/atom {:username nil :password nil})
         current-mine      (subscribe [:current-mine])]
     (fn [thinking?]
-      (js/console.log "cureres" @current-mine)
       [:form.login-form
        [:div.form-group
         [:label "Email Address"]
