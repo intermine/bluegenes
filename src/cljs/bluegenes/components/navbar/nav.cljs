@@ -11,8 +11,10 @@
   (swap! atom assoc key (oget evt :target :value)))
 
 (defn login-form []
-  (let [credentials (reagent/atom {:username nil :password nil})]
+  (let [credentials       (reagent/atom {:username nil :password nil})
+        current-mine      (subscribe [:current-mine])]
     (fn [thinking?]
+      (js/console.log "cureres" @current-mine)
       [:form.login-form
        [:div.form-group
         [:label "Email Address"]
@@ -28,10 +30,14 @@
           :on-change (partial update-form credentials :password)
           :on-key-up (fn [k]
                        (when (= 13 (oget k :keyCode))
-                         (dispatch [:bluegenes.events.auth/login @credentials])))}]]
+                         (dispatch [:bluegenes.events.auth/login (assoc @credentials
+                                                                   :service (:service @current-mine)
+                                                                   :mine-id (:id @current-mine))])))}]]
        [:button.btn.btn-primary.btn-raised
         {:type "button"
-         :on-click (fn [] (dispatch [:bluegenes.events.auth/login @credentials]))}
+         :on-click (fn [] (dispatch [:bluegenes.events.auth/login (assoc @credentials
+                                                                    :service (:service @current-mine)
+                                                                    :mine-id (:id @current-mine))]))}
         "Sign In"]
        ;[:svg.icon.icon-spinner.spin [:use {:xlinkHref "#icon-spinner"}]]
        ])))
@@ -111,12 +117,12 @@
        [:div.container-fluid
         [:ul.nav.navbar-nav.navbar-collapse.navigation
          [:li [:span.navbar-brand {:on-click #(navigate! "/")}
-           [active-mine-logo]
-           [:span.long-name (:name @current-mine)]]]
+               [active-mine-logo]
+               [:span.long-name (:name @current-mine)]]]
          [:li.homelink.larger-screen-only {:class (if (panel-is :home-panel) "active")} [:a {:on-click #(navigate! "/")} "Home"]]
          [:li {:class (if (panel-is :upload-panel) "active")} [:a {:on-click #(navigate! "/upload")}
-          [:svg.icon.icon-upload.extra-tiny-screen [:use {:xlinkHref "#icon-upload"}]]
-          [:span.larger-screen-only "Upload"]]]
+                                                               [:svg.icon.icon-upload.extra-tiny-screen [:use {:xlinkHref "#icon-upload"}]]
+                                                               [:span.larger-screen-only "Upload"]]]
          [:li {:class (if (panel-is :mymine-panel) "active")}
           [:a {:on-click #(navigate! "/mymine")}
            [:svg.icon.icon-cog [:use {:xlinkHref "#icon-user-circle"}]]
@@ -129,9 +135,9 @@
                [:li {:class (if (panel-is :regions-panel) "active")} [:a {:on-click #(navigate! "/regions")} "Regions"]]
                )
          [:li {:class (if (panel-is :querybuilder-panel) "active")} [:a {:on-click #(navigate! "/querybuilder")} "Query\u00A0Builder"]]
-         #_[:li {:class (if (panel-is :saved-data-panel) "active")} [:a {:on-click #(navigate! "/saved-data")} "Lists"[:span.larger-screen-only "\u00A0(" (apply + (map count (vals @lists))) ")"]]
-          ;;example tooltip. Include as last child, probably with some conditional to display and an event handler for saving the name
-          (if @ttip [save-data-tooltip @ttip])]
+         #_[:li {:class (if (panel-is :saved-data-panel) "active")} [:a {:on-click #(navigate! "/saved-data")} "Lists" [:span.larger-screen-only "\u00A0(" (apply + (map count (vals @lists))) ")"]]
+            ;;example tooltip. Include as last child, probably with some conditional to display and an event handler for saving the name
+            (if @ttip [save-data-tooltip @ttip])]
          ]
         [:ul.nav.navbar-nav.navbar-right.buttons
          [:li.search [search/main]]

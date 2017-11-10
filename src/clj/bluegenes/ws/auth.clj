@@ -17,8 +17,6 @@
             [friend-oauth2.workflow :as oauth2]
             [friend-oauth2.util :refer [format-config-uri]]
 
-
-
             ))
 
 (defn credential-fn
@@ -48,10 +46,6 @@
   [{:keys [service username password token] :as im}]
   (im-auth/basic-auth service username password))
 
-(defn fetch-identity
-  [{:keys [service token]}]
-  (im-auth/who-am-i? service token))
-
 (defn logout
   "Log the user out by clearing the session"
   []
@@ -61,16 +55,15 @@
   "Ring handler for handling authentication. Attempts to authenticate with the
   IM server (via web services) by fetching a token. If successful, return
   the token and store it in the session."
-  [{{username :username password :password} :params :as req}]
+  [{{username :username password :password service :service mine-id :mine-id} :params :as req}]
   ; clj-http throws exceptions for 'bad' responses:
   (try
-    ; Try to fetch a token from the IM server web service
-    ; using the IM_SERVICE env/config variable as the remote host
+    ; Try to fetch a token from the InterMine server web service
     (let [token             (fetch-token {:username username
                                           :password password
-                                          :service {:root (:im-service env)}})
-          whoami            (im-auth/who-am-i? {:root (:im-service env) :token token} token)
-          whoami-with-token (assoc whoami :token token)]
+                                          :service service})
+          whoami            (im-auth/who-am-i? (assoc service :token token) token)
+          whoami-with-token (assoc whoami :token token :mine-id (name mine-id))]
       ; Store the token in the session and return it to the user
       (->
         (response/ok whoami-with-token)
@@ -97,8 +90,8 @@
                                        (pprint req)
                                        (response/ok "done")))
            (GET "/oauth2/google-callback" req (do
-                                       (pprint req)
-                                       (response/ok "done"))))
+                                                (pprint req)
+                                                (response/ok "done"))))
 
 (def secured-routes
   (friend/authenticate
