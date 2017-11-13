@@ -23,9 +23,9 @@
 (defn- nf [num] (.format nff (str num)))
 
 (defn hide-context-menu [evt]
-  (ocall (js/$ "#contextMenu") :hide)
+  (ocall (js/$ "#contextMenu") :hide))
   ;(dispatch [::evts/set-context-menu-target])
-  )
+
 
 (defn attach-hide-context-menu []
   (ocall (js/$ "body") :on "click" hide-context-menu))
@@ -441,15 +441,15 @@
    :on-drag-over (fn [evt]
                    (ocall evt :preventDefault))
    :on-drop (fn [evt]
-              (dispatch [::evts/dropping-on :bar])
-              )})
+              (dispatch [::evts/dropping-on :bar]))})
+
 
 (defn tag-browser []
   (let [tags          (subscribe [::subs/sub-tags nil])
         dragging-over (subscribe [::subs/dragging-over])
         dragging?     (subscribe [::subs/dragging?])
 
-        authed?    (subscribe [:bluegenes.subs.auth/authenticated?])]
+        authed?       (subscribe [:bluegenes.subs.auth/authenticated?])]
     (fn []
       (into [:ul
              [unsorted-folder]
@@ -462,14 +462,14 @@
             (conj
               (if @authed?
                 (mapv
-                 (fn [t] ^{:key (str "tag-" (:entry-id t))} [tag t])
-                 (sort-by :label @tags))
+                  (fn [t] ^{:key (str "tag-" (:entry-id t))} [tag t])
+                  (sort-by :label @tags))
                 [
                  [:span "Debug message: "]
-                 [:span "Please log in to use tags"]])
+                 [:span "Please log in to use tags"]]))))))
 
               ;[:li.separator]
-              )))))
+
 
 
 (defn details-list []
@@ -543,8 +543,8 @@
 
             #_[:li {}
                [:a {:on-click (fn [] (dispatch [::evts/fetch-tree]))}
-                [:span "Fetch " [:svg.icon.icon-venn-difference [:use {:xlinkHref "#icon-venn-difference"}]]]]]]]]
-         ]))))
+                [:span "Fetch " [:svg.icon.icon-venn-difference [:use {:xlinkHref "#icon-venn-difference"}]]]]]]]]]))))
+
 
 
 
@@ -613,7 +613,7 @@
      {:style {:font-size "0.9em" :opacity 0.9}}
      (apply str (interpose " / " tag-col))]))
 
-(defn row-list [{:keys [im-obj-id trail im-obj-type entry-id] :as file}]
+(defn row-list-table [{:keys [im-obj-id trail im-obj-type entry-id] :as file}]
   (let [details             (subscribe [::subs/one-list im-obj-id])
         source              (subscribe [:current-mine-name])
         hierarchy-trail     (subscribe [::subs/hierarchy-trail entry-id])
@@ -638,6 +638,31 @@
          [:td size]
          [:td #_(tf/unparse built-in-formatter (c/from-long timestamp))]]))))
 
+(defn row-list [{:keys [im-obj-id trail im-obj-type entry-id] :as file}]
+  (let [details             (subscribe [::subs/one-list im-obj-id])
+        source              (subscribe [:current-mine-name])
+        hierarchy-trail     (subscribe [::subs/hierarchy-trail entry-id])
+        context-menu-target (subscribe [::subs/context-menu-target])]
+    (fn [{:keys []}]
+      (let [{:keys [description authorized name type size timestamp] :as dets} @details]
+        [:div.grid.grid-middle
+         (merge {:class (when (= @context-menu-target file) "highlighted")}
+                (tag-drag-events file)
+                (trigger-context-menu file)
+                {:on-click (fn []
+                             (dispatch [::evts/set-context-menu-target file]))})
+         [:div.col-1.shrink [checkbox im-obj-id]]
+         [:div.col-7 (merge {} (draggable file))
+          [:div [ico im-obj-type]
+           [:a {:on-click (fn [e]
+                            (.stopPropagation e)
+                            (dispatch [:lists/view-results (assoc dets :source @source)]))} name]]]
+         [:div.col-2 (when-not authorized
+                       [:svg.icon.icon-lock [:use {:xlinkHref "#icon-lock"}]]) [tag-container @hierarchy-trail]]
+         [:div.col-1 type]
+         [:div.col-1 size]
+         #_[:td #_(tf/unparse built-in-formatter (c/from-long timestamp))]]))))
+
 (defn row [{:keys [im-obj-type] :as item}]
   (fn []
     (case im-obj-type
@@ -645,6 +670,9 @@
       "folder" [row-folder item]
       [:div])))
 
+(defn selected-items []
+  (fn []
+    [:div.bottom]))
 (defn main []
   (let [as-list             (subscribe [::subs/as-list])
         sort-by             (subscribe [::subs/sort-by])
@@ -660,55 +688,97 @@
         cursor-items        (subscribe [::subs/cursor-items])
         unsorted-items      (subscribe [::subs/untagged-items])
         cursor-trail        (subscribe [::subs/cursor-trail "abc"])
-        ]
+        selected-items      (subscribe [::subs/selected-items])
+        show-selected-pane? (subscribe [::subs/show-selected-pane?])]
+
 
     (r/create-class
       {:component-did-mount attach-hide-context-menu
        :reagent-render
        (fn []
+         (js/console.log "selected items" @selected-items)
          [:div.mymine.noselect
           [:div.file-browser [tag-browser]]
           [:div.files
            [list-operations]
-           [breadcrumb @cursor-trail]
-           (let [just-files (not-empty (filter (comp (partial not= "tag") :im-obj-type) @cursor-items))]
-             (if just-files
-               [:table.table.mymine-table
-                [:thead
-                 [:tr
-                  [:th ""]
-                  [table-header {:label "Name"
-                                 :key :label
-                                 :type :alphanum
-                                 :sort-by @sort-by}]
-                  [:th ""]
-                  [table-header {:label "Type"
-                                 :key :type
-                                 :type :alphanum
-                                 :sort-by @sort-by}]
-                  [table-header {:label "Size"
-                                 :key :size
-                                 :type :alphanum
-                                 :sort-by @sort-by}]
-                  [table-header {:label "Last Modified"
-                                 :key :dateCreated
-                                 :type :date
-                                 :sort-by @sort-by}]]]
+           (when @show-selected-pane?
+             [:div.top.shrink
+              (into [:div [:h1 "Selected Items"]] (map-indexed (fn [idx x]
+                                                                 ^{:key (str "selected" (or (:entry-id x) (str (:im-obj-type x) (:im-obj-id x))))} [row (assoc x :index idx)]) @selected-items))])
+           [:div.bottom
+            [breadcrumb @cursor-trail]
+            (let [just-files (not-empty (filter (comp (partial not= "tag") :im-obj-type) @cursor-items))]
+              (if just-files
+                (into [:div] (map-indexed (fn [idx x]
+                                            ^{:key (str (or (:entry-id x) (str (:im-obj-type x) (:im-obj-id x))))} [row (assoc x :index idx)]) @cursor-items))
+                #_[:table.table.mymine-table
+                   [:thead
+                    [:tr
+                     [:th ""]
+                     [table-header {:label "Name"
+                                    :key :label
+                                    :type :alphanum
+                                    :sort-by @sort-by}]
+                     [:th ""]
+                     [table-header {:label "Type"
+                                    :key :type
+                                    :type :alphanum
+                                    :sort-by @sort-by}]
+                     [table-header {:label "Size"
+                                    :key :size
+                                    :type :alphanum
+                                    :sort-by @sort-by}]
+                     [table-header {:label "Last Modified"
+                                    :key :dateCreated
+                                    :type :date
+                                    :sort-by @sort-by}]]]
 
-                (into [:tbody]
-                      (map-indexed (fn [idx x]
-                                     ^{:key (str (or (:entry-id x) (str (:im-obj-type x) (:im-obj-id x))))} [row (assoc x :index idx)]) @cursor-items))]
+                   (into [:tbody]
+                         (map-indexed (fn [idx x]
+                                        ^{:key (str (or (:entry-id x) (str (:im-obj-type x) (:im-obj-id x))))} [row (assoc x :index idx)]) @cursor-items))]
 
 
-               [:h4 "Empty Folder"]))]
+                [:h4 "Empty Folder"]))
+
+
+            #_(let [just-files (not-empty (filter (comp (partial not= "tag") :im-obj-type) @cursor-items))]
+                (if just-files
+                  [:table.table.mymine-table
+                   [:thead
+                    [:tr
+                     [:th ""]
+                     [table-header {:label "Name"
+                                    :key :label
+                                    :type :alphanum
+                                    :sort-by @sort-by}]
+                     [:th ""]
+                     [table-header {:label "Type"
+                                    :key :type
+                                    :type :alphanum
+                                    :sort-by @sort-by}]
+                     [table-header {:label "Size"
+                                    :key :size
+                                    :type :alphanum
+                                    :sort-by @sort-by}]
+                     [table-header {:label "Last Modified"
+                                    :key :dateCreated
+                                    :type :date
+                                    :sort-by @sort-by}]]]
+
+                   (into [:tbody]
+                         (map-indexed (fn [idx x]
+                                        ^{:key (str (or (:entry-id x) (str (:im-obj-type x) (:im-obj-id x))))} [row (assoc x :index idx)]) @selected-items))]
+
+
+                  [:h4 "Empty Folder"]))]]
 
 
           #_(when true #_(not-empty @checked)
               [modals/list-operations-commutative
                {:title "Combine Lists"
-                :body "The new list will contain items from all selected lists"}]
+                :body "The new list will contain items from all selected lists"}])
               ;[checked-panel]
-              )
+
 
 
 
@@ -722,7 +792,7 @@
           [modals/modal-lo @context-menu-target]
           [modals/modal-lo-intersect @context-menu-target]
           [modals/modal-rename-list @context-menu-target]
-          [m/context-menu-container @context-menu-target]
+          [m/context-menu-container @context-menu-target]])})))
           ;[thinker/main]
-          ])})))
+
 

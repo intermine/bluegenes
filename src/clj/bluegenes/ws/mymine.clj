@@ -23,6 +23,7 @@
   (walk/postwalk #(if (keyword? %) (-> % name (s/replace #"_" "-") keyword) %) m))
 
 (defn add-entry [req]
+  (println "adding entry")
   (if-let [user-id (parse-string (-> req :session :identity :id))]
     (let [{:keys [im-obj-type im-obj-id parent-id label mine]} (:params req)]
       {:body (map lodash-to-hyphen (mymine-add-entry db {:user-id user-id
