@@ -599,6 +599,13 @@
       (filter (comp checked-ids :im-obj-id) (concat entries untagged)))))
 
 (reg-sub
+  ::selected-items-not-in-view
+  :<- [::selected-items]
+  :<- [::cursor-items]
+  (fn [[selected-items cursor-items]]
+    [selected-items cursor-items]))
+
+(reg-sub
   ::show-selected-pane?
   :<- [::selected-items]
   :<- [::cursor]

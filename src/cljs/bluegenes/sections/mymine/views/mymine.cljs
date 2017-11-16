@@ -24,7 +24,7 @@
 
 (defn hide-context-menu [evt]
   (ocall (js/$ "#contextMenu") :hide))
-  ;(dispatch [::evts/set-context-menu-target])
+;(dispatch [::evts/set-context-menu-target])
 
 
 (defn attach-hide-context-menu []
@@ -468,7 +468,7 @@
                  [:span "Debug message: "]
                  [:span "Please log in to use tags"]]))))))
 
-              ;[:li.separator]
+;[:li.separator]
 
 
 
@@ -674,22 +674,23 @@
   (fn []
     [:div.bottom]))
 (defn main []
-  (let [as-list             (subscribe [::subs/as-list])
-        sort-by             (subscribe [::subs/sort-by])
-        context-menu-target (subscribe [::subs/context-menu-target])
-        files               (subscribe [::subs/files])
-        focus               (subscribe [::subs/focus])
-        my-items            (subscribe [::subs/my-items])
-        checked             (subscribe [::subs/checked-ids])
-        my-files            (subscribe [::subs/visible-files])
-        modal-kw            (subscribe [::subs/modal])
-        entries             (subscribe [::subs/entries])
-        root-tags           (subscribe [::subs/root-tags])
-        cursor-items        (subscribe [::subs/cursor-items])
-        unsorted-items      (subscribe [::subs/untagged-items])
-        cursor-trail        (subscribe [::subs/cursor-trail "abc"])
-        selected-items      (subscribe [::subs/selected-items])
-        show-selected-pane? (subscribe [::subs/show-selected-pane?])]
+  (let [as-list                    (subscribe [::subs/as-list])
+        sort-by                    (subscribe [::subs/sort-by])
+        context-menu-target        (subscribe [::subs/context-menu-target])
+        files                      (subscribe [::subs/files])
+        focus                      (subscribe [::subs/focus])
+        my-items                   (subscribe [::subs/my-items])
+        checked                    (subscribe [::subs/checked-ids])
+        my-files                   (subscribe [::subs/visible-files])
+        modal-kw                   (subscribe [::subs/modal])
+        entries                    (subscribe [::subs/entries])
+        root-tags                  (subscribe [::subs/root-tags])
+        cursor-items               (subscribe [::subs/cursor-items])
+        unsorted-items             (subscribe [::subs/untagged-items])
+        cursor-trail               (subscribe [::subs/cursor-trail "abc"])
+        selected-items             (subscribe [::subs/selected-items])
+        selected-items-not-in-view (subscribe [::subs/selected-items-not-in-view])
+        show-selected-pane?        (subscribe [::subs/show-selected-pane?])]
 
 
     (r/create-class
@@ -697,6 +698,7 @@
        :reagent-render
        (fn []
          (js/console.log "selected items" @selected-items)
+         (js/console.log "selected items not in view" @selected-items-not-in-view)
          [:div.mymine.noselect
           [:div.file-browser [tag-browser]]
           [:div.files
@@ -777,7 +779,7 @@
               [modals/list-operations-commutative
                {:title "Combine Lists"
                 :body "The new list will contain items from all selected lists"}])
-              ;[checked-panel]
+          ;[checked-panel]
 
 
 
@@ -793,6 +795,6 @@
           [modals/modal-lo-intersect @context-menu-target]
           [modals/modal-rename-list @context-menu-target]
           [m/context-menu-container @context-menu-target]])})))
-          ;[thinker/main]
+;[thinker/main]
 
 
