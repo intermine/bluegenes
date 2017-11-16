@@ -74,6 +74,7 @@
                         :path (:path con)
                         :value (:value con)
                         :op (:op con)
+                        :code (:code con)
                         :label? true
                         :lists (second (first @lists))
                         :on-change (fn [new-constraint]
