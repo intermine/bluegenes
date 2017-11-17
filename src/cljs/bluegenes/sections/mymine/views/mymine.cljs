@@ -697,16 +697,15 @@
       {:component-did-mount attach-hide-context-menu
        :reagent-render
        (fn []
-         (js/console.log "selected items" @selected-items)
-         (js/console.log "selected items not in view" @selected-items-not-in-view)
+
          [:div.mymine.noselect
           [:div.file-browser [tag-browser]]
           [:div.files
            [list-operations]
            (when @show-selected-pane?
              [:div.top.shrink
-              (into [:div [:h1 "Selected Items"]] (map-indexed (fn [idx x]
-                                                                 ^{:key (str "selected" (or (:entry-id x) (str (:im-obj-type x) (:im-obj-id x))))} [row (assoc x :index idx)]) @selected-items))])
+              (into [:div [:h3 "Selected items with other tags"]] (map-indexed (fn [idx x]
+                                                                 ^{:key (str "selected" (or (:entry-id x) (str (:im-obj-type x) (:im-obj-id x))))} [row (assoc x :index idx)]) @selected-items-not-in-view))])
            [:div.bottom
             [breadcrumb @cursor-trail]
             (let [just-files (not-empty (filter (comp (partial not= "tag") :im-obj-type) @cursor-items))]

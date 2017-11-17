@@ -594,7 +594,6 @@
   :<- [::untagged-items]
   :<- [::cursor-items]
   (fn [[checked-ids entries untagged cursor-items]]
-    (js/console.log "cursor items" cursor-items)
     (let [items (concat entries untagged)]
       (filter (comp checked-ids :im-obj-id) (concat entries untagged)))))
 
@@ -603,7 +602,9 @@
   :<- [::selected-items]
   :<- [::cursor-items]
   (fn [[selected-items cursor-items]]
-    [selected-items cursor-items]))
+    (let [selected (into #{} selected-items)
+          visible  (into #{} (map #(dissoc % :hierarchy) cursor-items))]
+      (filter (fn [n] ((complement visible) n)) selected-items))))
 
 (reg-sub
   ::show-selected-pane?
