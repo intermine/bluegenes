@@ -12,7 +12,7 @@ The following endpoints exist:
 Because it can take several seconds to return results for a count depending on the mine and query depth.
 
 #### How?
-There is a script to automatically grab the correct url for known mines from `redgenes/src/cljc/mines.cljc`, go to the mine(s), and grab top level whitelisted model counts.  The whitelist at `redgenes/src/cljc/whitelist.cljc` exists for two reasons:
+There is a script to automatically grab the correct url for known mines from `bluegenes/src/cljc/mines.cljc`, go to the mine(s), and grab top level whitelisted model counts.  The whitelist at `bluegenes/src/cljc/whitelist.cljc` exists for two reasons:
 1. There is a need for a simplified model for the data browser
 2. The model is recursive. Simplifying things makes it harder to create endless loops and make the world explode.
 
@@ -26,7 +26,7 @@ One day this will be done via batch job, but right now we have to generate the c
  where mine-name might be fly, e.g.  
 ```GET http://www.whateverserver.com:3449/api/model/count/cache?mine=fly```
 
-There must be a valid `:fly` mine configuration under `redgenes/src/cljc/mines.cljc` for this to work.
+There must be a valid `:fly` mine configuration under `bluegenes/src/cljc/mines.cljc` for this to work.
 
 #### Caching all known mines in the mines.cljc file:
 

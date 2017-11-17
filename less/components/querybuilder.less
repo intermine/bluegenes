@@ -1,24 +1,25 @@
 @import "../variables";
 @import "../datatype-colors";
-
-
-@model-browser-bg: #616161;
-@model-browser-fg: white;
-
 @model-browser-bg: #f7f7f7;
 @model-browser-fg: black;
 @model-browser-class: #29b6ff;
-
 @query-browser-bg: white;
 @query-browser-fg: black;
-
 @query-browser-class: #29b6ff;
 @model-browser-class: #0090da;
-
-
-
-
 @swith: 300px;
+
+//this is the value by which we offset the borders of the
+//various QB trees to make it look like a tree ofrmat and not
+//just normal box borders
+
+@border-offset: 0.7em;
+
+.danger {
+    @dangercolor: #9d5858;
+    color: @dangercolor;
+    fill: @dangercolor;
+}
 
 div.column-container {
     display: flex;
@@ -27,7 +28,6 @@ div.column-container {
     right: 0;
     top: 60px;
     bottom: 54px;
-    background-color: green;
 
     .model-browser-column {
         width: 400px;
@@ -52,8 +52,6 @@ div.column-container {
     max-width: 400px;
 }
 
-
-
 .main-window {
     position: fixed;
     left: @swith;
@@ -66,76 +64,64 @@ div.column-container {
     background-color: white;
 }
 
-
 .addfilter {
     font-weight: normal;
     color: black;
     padding-left: 15px;
     font-size: 0.8em;
 }
+
 .noselect {
-  -webkit-touch-callout: none; /* iOS Safari */
-    -webkit-user-select: none; /* Safari */
-     -khtml-user-select: none; /* Konqueror HTML */
-       -moz-user-select: none; /* Firefox */
-        -ms-user-select: none; /* Internet Explorer/Edge */
-            user-select: none; /* Non-prefixed version, currently
+    -webkit-touch-callout: none;
+    /* iOS Safari */
+    -webkit-user-select: none;
+    /* Safari */
+    -khtml-user-select: none;
+    /* Konqueror HTML */
+    -moz-user-select: none;
+    /* Firefox */
+    -ms-user-select: none;
+    /* Internet Explorer/Edge */
+    user-select: none;
+    /* Non-prefixed version, currently
                                   supported by Chrome and Opera */
 }
 
-
 .playground {
-
     font-size: 0.8em;
     font-family: "monospace";
     max-height: 500px;
     overflow-y: scroll;
-
     .noselect;
-
     cursor: pointer;
-
-
-
-
-
     background-color: white;
     padding: 20px;
-    ul, li {
+
+    li,
+    ul {
         list-style: none;
         margin: 0;
         padding: 0;
     }
+
     ul {
         padding-left: 1em;
     }
+
     li {
         padding-left: 1em;
         border: 1px solid #d5d5d5;
         border-width: 0 0 1px 1px;
     }
+
     li.haschildren {
-        border-bottom: 0px;
+        border-bottom: 0;
     }
+
     li.empty {
         font-style: italic;
         color: silver;
         border-color: silver;
-    }
-    li p {
-        margin: 0;
-        // font-size: 1.2em;
-        background: white;
-        position: relative;
-        top: 0.5em;
-
-
-
-        &.classy {
-            font-size: 1.5em;
-            font-style: italic;
-            font-weight: bold;
-        }
     }
 
     li ul {
@@ -143,6 +129,7 @@ div.column-container {
         margin-left: -1em;
         padding-left: 2em;
     }
+
     ul li:last-child ul {
         border-left: 1px solid white;
         margin-left: -17px;
@@ -155,12 +142,6 @@ div.column-container {
         // font-size: 0.8em;
     }
 
-    .attributes {
-        // margin-top: 10px;
-        // padding: 10px;
-        // background-color: green;
-    }
-
     .hotlink {
         a {
             color: #039be5;
@@ -168,210 +149,238 @@ div.column-container {
             padding-right: 3px;
             font-size: 0.8em;
             font-style: italic;
-
         }
-    }
-
-    .test123 {
-        display: flex;
-        flex-direction: row;
-        align-items: flex-start;
     }
 }
 
 .qb-container {
     font-size: 0.8em;
     // font-family: "monospace";
-
     .qb-attribute {
         font-style: italic;
     }
 }
 
-
-
 .flexmex {
     display: flex;
-    .lab {
-        // border: 1px solid hotpink;
-        // flex: 0 0;
-    }
+    position: relative;
+    top: @border-offset;
+    background: white;
+
     .con {
-        // border: 1px solid red;
         flex: 1 0;
         display: flex;
         flex-direction: column;
     }
 }
 
-.consrow {
-   // min-height: 75px;
-}
-
-
 .query-browser {
+    .icon, .icon-filter, .icon-edit {
+      fill: darken(silver,20%);
+      .arr;
+    }
+    .icon-filter {
+        width: @border-offset;
+        margin-left:0;
+    }
+    .logic-box pre {display:flex;align-items:center;}
     .noselect;
     font-size: 1.1em;
     cursor: pointer;
     background-color: @query-browser-bg;
     color: @query-browser-fg;
-    padding: 0 20px 20px 20px;
-    ul.tree, li.tree {
+    padding: 0 20px 20px;
+
+    li.tree,
+    ul.tree {
         list-style: none;
         margin: 0;
         padding: 0;
     }
+
     ul.tree {
         padding-left: 1em;
-        padding-left: 0em;
+        padding-left: 0;
     }
+
     li.tree {
         padding-left: 1em;
         // padding-left: 0.2em;
         border: 1px solid #d5d5d5;
         border-width: 0 0 1px 1px;
     }
+
     li.tree.haschildren {
-        border-bottom: 0px;
+        border-bottom: 0;
     }
+
     li.tree.empty {
         font-style: italic;
         color: silver;
         border-color: silver;
     }
+
     li.tree p {
         margin: 0;
         // font-size: 1.2em;
         background: @query-browser-bg;
         position: relative;
         top: 0.5em;
-        top: 0.7em;
+        top: @border-offset;
+
         &.classy {
             font-size: 1.5em;
             font-style: italic;
             font-weight: bold;
         }
     }
+
     li.tree ul.tree {
         border-top: 1px solid #d5d5d5;
         margin-left: -1em;
         padding-left: 2em;
     }
+
     ul.tree li.tree:last-child ul.tree {
         border-left: 1px solid white;
         margin-left: -1em;
     }
+
     .il {
         margin: 2px;
         padding: 2px;
         text-transform: none;
         // font-size: 0.8em;
     }
+
     .qb-attribute {
         // font-style: italic;
         // padding-left: 19px;
         white-space: nowrap;
     }
+
     .qb-class {
         font-weight: 500;
         color: @query-browser-class;
         white-space: nowrap;
     }
+
     .light {
         color: #898989;
     }
+
     .semilight {
         color: #c1c1c1;
     }
 
-    .danger {
-        color: #9d5858;
-    }
     select {
         background-color: gainsboro;
     }
 
-    .subclass {
-
-    }
-
+    .subclass {}
 }
 
 .model-browser {
+    .icon {
+        fill: darken(silver,10%);
+    }
     .noselect;
     font-size: 0.9em;
     cursor: pointer;
     background-color: @model-browser-bg;
     color: @model-browser-fg;
-    padding: 0 20px 20px 20px;
-    ul, li {
+    padding: 0 20px 20px;
+
+    li,
+    ul {
         list-style: none;
         margin: 0;
         padding: 0;
     }
+
     ul {
         padding-left: 1em;
-        padding-left: 0em;
+        padding-left: 0;
     }
+
     li {
         padding-left: 1em;
         // padding-left: 0.2em;
         border: 1px solid #d5d5d5;
         border-width: 0 0 1px 1px;
-    }
-    li.haschildren {
-        border-bottom: 0px;
-    }
-    li.empty {
-        font-style: italic;
-        color: silver;
-        border-color: silver;
-    }
-    li p {
-        margin: 0;
-        // font-size: 1.2em;
-        background: @model-browser-bg;
-        position: relative;
-        top: 0.5em;
-        top: 0.7em;
-        &.classy {
-            font-size: 1.5em;
+
+        &.haschildren {
+            border-bottom: 0;
+        }
+
+        &.empty {
             font-style: italic;
-            font-weight: bold;
+            color: silver;
+            border-color: silver;
+        }
+
+        ul {
+            border-top: 1px solid #d5d5d5;
+            margin-left: -1em;
+            padding-left: 2em;
         }
     }
-    li ul {
-        border-top: 1px solid #d5d5d5;
-        margin-left: -1em;
-        padding-left: 2em;
-    }
+
     ul li:last-child ul {
         border-left: 1px solid white;
         margin-left: -1em;
     }
+
     .il {
         margin: 2px;
         padding: 2px;
         text-transform: none;
         // font-size: 0.8em;
     }
+
     .qb-attribute {
         // font-style: italic;
         // padding-left: 19px;
         white-space: nowrap;
     }
+
     .qb-class {
         font-weight: 500;
         color: @model-browser-class;
     }
+
     .light {
         color: #898989;
     }
+
     .semilight {
         color: #c1c1c1;
     }
+
     select {
         background-color: gainsboro;
+    }
+
+    li.haschildren > span {
+        display: flex;
+        background-color: @model-browser-bg;
+        align-items: center;
+    }
+
+    li {
+        position: relative;
+    }
+
+    .expanded-group > .group-title {
+        background-color: @model-browser-bg;
+        margin-bottom: -@border-offset;
+        z-index: 12;
+        position: relative;
+    }
+
+    .expanded-group ul {
+        padding-top: @border-offset;
+        z-index: 11;
     }
 }
 
@@ -380,68 +389,73 @@ div.column-container {
 }
 
 .arrow-down {
-    transform: rotate(45deg);
+      transform: rotate(45deg);
 }
 
 .qb-label {
-    padding-left: 0px;
+    padding-left: 0;
     white-space: nowrap;
 }
 
-.icon-spacer::before,
-.icon-blank::before {
-  width: 1.28571429em;
-  content: ' ';
+.icon-blank::before,
+.icon-spacer::before {
+    width: 1.28571429em;
+    content: ' ';
 }
 
-
 .contract {
-
     &.empty {
-        .input-group input[type=text]{
-            border:0;
-            border-left:solid 1px #ccc;
-            border-radius:0;
+        .input-group input[type=text] {
+            border: 0;
+            border-left: solid 1px #ccc;
+            border-radius: 0;
             background-color: #f7f7f7;
-            }
+        }
     }
-
-    padding:0.3em 0px;
+    margin-top: 0.3em;
+    padding: 0.3em 0;
 
     .input-group {
-        border:solid #ccc 1px;
+        border: solid #ccc 1px;
     }
 
-    .input-group input[type=text]{
-    border:0;
-    border-left:solid 1px #ccc;
-    border-radius:0;
+    .input-group input[type=text] {
+        border: 0;
+        border-left: solid 1px #ccc;
+        border-radius: 0;
     }
 
     .input-group-btn .btn {
-      margin-bottom:0;
-      padding: 6px 12px;
+        margin-bottom: 0;
+        padding: 6px 12px;
     }
 
-    .input-group .input-group-btn {padding:0;
-      background-color:#ddd;
+    .input-group .input-group-btn {
+        padding: 0;
+        background-color: #ddd;
     }
 
-    .constraint-label {border-left:solid 1px #ccc;
-        background-color:#ddd;
-        display:table-cell;
-        width:2.5em; text-align:center; vertical-align:middle;
+    .constraint-label {
+        border-left: solid 1px #ccc;
+        background-color: #ddd;
+        display: table-cell;
+        width: 2.5em;
+        text-align: center;
+        vertical-align: middle;
     }
 
-    .form-control {height:2em; }
-
+    .form-control {
+        height: 2em;
+    }
 }
 
 .sort-order {
     margin: 0;
     padding: 0;
+
     li {
         list-style-type: none;
+
         i {
             padding: 0 10px;
         }
@@ -455,6 +469,7 @@ div.column-container {
 .dragme {
     margin: 0;
     padding: 0;
+
     li {
         list-style-type: none;
         transition: all 100ms ease;
@@ -463,6 +478,7 @@ div.column-container {
         margin: 2px;
         border: 1px solid grey;
         display: inline;
+
         &.dragging {
             background-color: @model-browser-class;
             // background-color: white;
@@ -472,8 +488,6 @@ div.column-container {
             // padding-top: 15px;
         }
     }
-
-
 }
 
 .part {
@@ -488,6 +502,7 @@ div.column-container {
     border: 1px solid #c4c4c4;
     border-radius: 3px;
     background-color: white;
+
     &:hover {
         background-color: @model-browser-class;
         border: 1px solid @model-browser-class;
@@ -495,12 +510,11 @@ div.column-container {
     }
 }
 
-
 .sort-order-container {
     display: flex;
     flex-wrap: wrap;
     padding: 10px;
-     flex-direction: column;
+    flex-direction: column;
     transition: all 100ms ease;
 
     &.dragtest {
@@ -521,17 +535,14 @@ div.column-container {
         margin: 2px;
         border: 1px solid grey;
         display: inline;
+
         &.dragging {
             background-color: @model-browser-class;
-            // background-color: white;
             opacity: 0.8;
             color: white;
             margin-left: 15px;
-            // margin-top: 15px;
-            // padding-top: 15px;
         }
     }
-
 }
 
 .label-soft {
@@ -545,6 +556,7 @@ div.column-container {
     color: white;
     border-radius: 3px;
 }
+
 .btn-slim {
     margin: 1px;
     padding: 3px;
@@ -552,8 +564,33 @@ div.column-container {
     // background-color: white !important;
 }
 
-
 .scrollable-dropdown {
     overflow-y: auto;
     max-height: 300px;
+}
+
+.constraint-component {
+    display: flex;
+    align-items: center;
+
+    .icon {
+        min-width: 1em;
+    }
+}
+
+.icon.icon-bin {
+    .danger;
+}
+
+.constraint-input {
+    .disabled {
+        color: grey;
+        fill: grey;
+    }
+}
+//yes this is overly specific. Sorry, bootstrap is bad to
+//override.
+
+.constraint-operator.input-group-btn button.btn {
+    text-transform: none;
 }

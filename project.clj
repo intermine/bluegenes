@@ -1,58 +1,100 @@
-(def props {:version "0.4.1-alpha"})
+(def props {:version "0.5.1"})
 
+(defproject bluegenes (str (:version props) "-SNAPSHOT")
+  :dependencies [; Clojure
+                 [org.clojure/clojure "1.9.0-RC1"]
+                 [org.clojure/clojurescript "1.9.946"]
+                 [org.clojure/core.async "0.3.443"]
 
-(defproject redgenes (:version props)
-  :dependencies [[org.clojure/clojure "1.9.0-alpha14"]
-                 [figwheel-sidecar "0.5.8"]
-                 [clj-http "3.3.0"]
-                 [org.clojure/clojurescript "1.9.456"]
-                 [reagent "0.6.0"]
-                 [binaryage/devtools "0.8.2"]
-                 [reagent "0.6.0" :exclusions [cljsjs/react]]
-                 [cljsjs/react-with-addons "15.3.1-0"]
-                 [binaryage/devtools "0.9.0"]
-                 [re-frame "0.8.0"]
-                 [secretary "1.2.3"]
-                 [lein-cljsbuild "1.1.5"]
-                 [compojure "1.5.1"]
-                 [yogthos/config "0.8"]
-                 [ring/ring-defaults "0.2.1"]
-                 [ring/ring-json "0.4.0"]
-                 [ring "1.5.0"]
-                 [hiccup "1.0.5"]
-                 [json-html "0.4.0"]
-                 [prismatic/dommy "1.1.0"]
-                 [day8.re-frame/http-fx "0.1.2"]
-                 [org.clojure/core.async "0.2.395"]
-                 [cljs-http "0.1.42"]
-                 [intermine/accountant-fragments "0.1.8"]
-                 [day8.re-frame/async-flow-fx "0.0.6"]
+                 ; MVC
+                 [re-frame "0.10.2"]
+                 [day8.re-frame/http-fx "0.1.4"]
+                 [day8.re-frame/async-flow-fx "0.0.8"]
                  [day8.re-frame/forward-events-fx "0.0.5"]
                  [day8.re-frame/undo "0.3.2"]
-                 [com.rpl/specter "0.13.0"]
-                 [com.cognitect/transit-cljs "0.8.239"]
+                 [reagent "0.7.0" :exclusions [cljsjs/react]]
+                 [cljsjs/react-with-addons "15.6.1-0"]
+                 [hiccup "1.0.5"]
+                 [prismatic/dommy "1.1.0"]
+                 [secretary "1.2.3"]
                  [servant "0.1.5"]
+                 [json-html "0.4.4"]
+
+                 [figwheel-sidecar "0.5.14"]
+
+                 ; HTTP
+                 [clj-http "3.7.0"]
+                 [cljs-http "0.1.44"]
+                 [compojure "1.6.0"]
+                 [ring "1.6.3"]
+                 [ring/ring-defaults "0.3.1"]
+                 [ring/ring-json "0.4.0" :exclusions [cheshire.core]]
+                 [cheshire "5.8.0"]
+                 [metosin/ring-http-response "0.9.0"]
+                 [ring-middleware-format "0.7.2"]
+
+                 ; Dev tools
+                 [re-frisk "0.5.0"]
+
+                 ; Build tools
+                 [yogthos/config "0.9"]
+
+                 ; Utility libraries
+                 [com.cognitect/transit-cljs "0.8.243"]
                  [com.lucasbradstreet/cljs-uuid-utils "1.0.2"]
-                 [com.andrewmcveigh/cljs-time "0.4.0"]
-                 [com.taoensso/carmine "2.15.0"]
-                 [inflections "0.12.2"]
-                 [fipp "0.6.6"]
-                 [binaryage/oops "0.5.2"]
-                 [inflections "0.12.2"]
-                 [intermine/imcljs "0.1.14-SNAPSHOT"]
-                 [intermine/im-tables "0.1.13-SNAPSHOT"]
-                 [re-frisk "0.3.1"]]
+                 [com.andrewmcveigh/cljs-time "0.5.1"]
+                 [com.taoensso/carmine "2.16.0"]
+                 [inflections "0.13.0"]
+                 [fipp "0.6.10"]
+                 [binaryage/oops "0.5.6"]
+                 [inflections "0.13.0"]
+                 [cljsjs/google-analytics "2015.04.13-0"]
 
-  :plugins [[lein-cljsbuild "1.1.4"]
+                 ; Database
+                 [org.clojure/java.jdbc "0.7.3"]
+                 [org.postgresql/postgresql "42.1.4"]
+                 [hikari-cp "1.8.1"]
+                 [migratus "1.0.0"]
+                 [com.layerware/hugsql "0.4.8"]
+                 [postgre-types "0.0.4"]
+
+                 ; Components
+                 [mount "0.1.11"]
+
+                 ; Logging
+                 [com.taoensso/timbre "4.10.0"]
+                 [com.fzakaria/slf4j-timbre "0.3.7"]
+
+                 ; Security
+                 [buddy/buddy-auth "2.1.0"]
+                 [buddy/buddy-sign "2.2.0"]
+                 [buddy/buddy-hashers "1.3.0"]
+
+                 [com.cemerick/friend "0.2.3"]
+                 [clojusc/friend-oauth2 "0.2.0"]
+                 [com.cemerick/url "0.1.1"]
+
+
+                 ; Intermine Assets
+                 [intermine/imcljs "0.1.36"]
+                 [intermine/im-tables "0.3.3"]
+                 [intermine/accountant-fragments "0.1.8"]
+
+                 ]
+
+  :plugins [[lein-cljsbuild "1.1.7"]
             [lein-less "1.7.5"]
-            [lein-shell "0.5.0"]
-            [lein-cljfmt "0.5.5"]]
+            [lein-ancient "0.6.14"]
+            [lein-pdo "0.1.1"]]
 
-
-  :aliases {"foreign" ["do"
-                       ["shell" "curl" "-o" "resources/public/vendor/imtables.js" "http://cdn.intermine.org/js/intermine/im-tables/2.0.0/imtables.min.js"]
-                       ["shell" "curl" "-o" "resources/public/vendor/im.min.js" "http://cdn.intermine.org/js/intermine/imjs/3.15.0/im.min.js"]]}
-
+  :aliases {"dev" ["do" "clean"
+                   ["pdo" ["figwheel" "dev"]
+                    ["less" "auto"]
+                    ["run"]]]
+            "build" ["do" "clean"
+                     ["cljsbuild" "once" "min"]
+                     ["less" "once"]]
+            "prod" ["do" "build" ["pdo" ["run"]]]}
 
   :min-lein-version "2.5.3"
 
@@ -62,118 +104,65 @@
                                     "resources/public/css"
                                     "test/js"]
 
-  :figwheel {:css-dirs         ["resources/public/css"]
-             :ring-handler     redgenes.handler/dev-handler
+  :figwheel {:css-dirs ["resources/public/css"]
+             :ring-handler bluegenes.handler/dev-handler
              :reload-clj-files {:cljc true}}
 
   :less {:source-paths ["less"]
-         :target-path  "resources/public/css"}
+         :target-path "resources/public/css"}
 
-  :profiles
-  {:dev
-   {:dependencies []
+  :profiles {:dev {:dependencies [[binaryage/devtools "0.9.7"]]
+                   :resource-paths ["config/dev"]
+                   :plugins [[lein-figwheel "0.5.14"]
+                             [lein-doo "0.1.8"]]}
+             :prod {:dependencies []
+                    :resource-paths ["config/prod"]
+                    :plugins []}
+             :uberjar {:resource-paths ["config/prod"]
+                       :prep-tasks ["clean" ["less" "once"] ["cljsbuild" "once" "min"] "compile"]}}
 
-    :plugins      [[lein-figwheel "0.5.8"]
-                   [lein-doo "0.1.6"]]}}
+  :cljsbuild {:builds {:dev {:source-paths ["src/cljs"]
+                             :figwheel {:on-jsload "bluegenes.core/mount-root"}
+                             :compiler {:main bluegenes.core
+                                        :optimizations :none
+                                        :output-to "resources/public/js/compiled/app.js"
+                                        :output-dir "resources/public/js/compiled"
+                                        :asset-path "js/compiled"
+                                        :source-map-timestamp true
+                                        :pretty-print true
+                                        ;:parallel-build true
+                                        :preloads [devtools.preload
+                                                   re-frisk.preload]
+                                        :external-config {:devtools/config {:features-to-install :all}}
+                                        }}
 
+                       :min {:source-paths ["src/cljs"]
+                             :jar true
+                             :compiler {:main bluegenes.core
+                                        :parallel-build true
+                                        :output-to "resources/public/js/compiled/app.js"
+                                        ;:output-dir "resources/public/js/compiled"
+                                        :optimizations :advanced
+                                        :closure-defines {goog.DEBUG false}
+                                        :pretty-print false}}
 
-  :cljsbuild
-  {
-   :builds
-   {
-    :dev
-    {
-     :source-paths ["src/cljs"]
-     :figwheel     {:on-jsload "redgenes.core/mount-root"}
-     :compiler     {
-                    :main                 redgenes.core
-                    :optimizations        :none
-                    :output-to            "resources/public/js/compiled/app.js"
-                    :output-dir           "resources/public/js/compiled"
-                    :asset-path           "js/compiled"
-                    :source-map-timestamp true
-                    :pretty-print         true
-                    :parallel-build       true}}
-    ;:foreign-libs [{:file "resources/public/vendor/im.min.js"
-    ;                :provides ["intermine.imjs"]}
-    ;               {:file "resources/public/vendor/imtables.js"
-    ;                :provides ["intermine.imtables"]}]
-
-    :modules
-    {
-     :source-paths ["src/cljs"]
-     ;:figwheel     {:on-jsload "redgenes.core/mount-root"}
-     :compiler     {
-
-                    :optimizations        :simple
-                    :output-dir           "resources/public/js/modules"
-                    :source-map           "resources/public/js/modules"
-                    :source-map-timestamp true
-                    :pretty-print         true
-                    :parallel-build       true
-                    ;;:preamble             ["preamble.js"]
-                    :modules
-                                          {
-                                           :app
-                                           {
-                                            :output-to "resources/public/js/modules/app.js"
-                                            :entries   #{"redgenes.core"}}
-                                           ;;:preamble             ["preamble.js"]
-
-                                           :query-builder
-                                           {
-                                            :output-to "resources/public/js/modules/qb.js"
-                                            ;;:preamble             ["preamble.js"]
-                                            :entries
-                                                       #{
-                                                         "redgenes.components.querybuilder.views.main"}}
+                       :test {:source-paths ["src/cljs" "test/cljs"]
+                              :compiler {:output-to "resources/public/js/test/test.js"
+                                         :output-dir "resources/public/js/test"
+                                         :main bluegenes.runner
+                                         :optimizations :none}}}}
 
 
-                                           :main
-                                           {
-                                            :output-to "resources/public/js/modules/main.js"
-                                            ;;:preamble             ["preamble.js"]
-                                            :entries   #{"redgenes.main" "redgenes.modules"}}}}}
+  :main bluegenes.server
 
-    :min
-    {
-     :source-paths ["src/cljs"]
-     :jar          true
-     :compiler     {:main            redgenes.core
+  :uberjar-name "bluegenes.jar"
 
-
-
-                    :output-to       "resources/public/js/compiled/app.js"
-                    :output-dir      "resources/public/js/min/test"
-                    :externs         ["externs/imjs.js"
-                                      "externs/imtables.js"]
-                    :optimizations   :advanced
-                    :closure-defines {goog.DEBUG false
-                                      redgenes.core/version ~(:version props)}
-                    :pretty-print    false}}
-    ;:foreign-libs [{:file "resources/public/vendor/im.min.js"
-    ;                :provides ["intermine.imjs"]}
-    ;               {:file "resources/public/vendor/imtables.min.js"
-    ;                :provides ["intermine.imtables"]}]
-
-    :test
-    {
-     :source-paths ["src/cljs" "test/cljs"]
-     :compiler     {:output-to     "resources/public/js/test/test.js"
-                    :output-dir    "resources/public/js/test"
-                    :main          redgenes.runner
-                    :optimizations :none}}}}
-
-
-  :main redgenes.server
-
-  ;:aot [redgenes.server]
-
-  ;:prep-tasks [["cljsbuild" "once" "min"] "compile"]
+  ;:aot [bluegenes.server]
 
   :repositories [
                  ["clojars"
-                  {:url    "https://clojars.org/repo"
+                  {:url "https://clojars.org/repo"
                    ;; How often should this repository be checked for
                    ;; snapshot updates? (:daily, :always, or :never)
-                   :update :always}]])
+                   ;:update :always
+                   }]])

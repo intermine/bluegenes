@@ -1,6 +1,6 @@
 {
-  "name": "redgenes",
-  "homepage": "https://github.com/joshkh/redgenes",
+  "name": "bluegenes",
+  "homepage": "https://github.com/joshkh/bluegenes",
   "authors": [
     "Joshua Heimbach <joshkh@gmail.com>"
   ],
@@ -16,8 +16,8 @@
     "tests"
   ],
   "dependencies": {
-    "font-awesome": "4.6.3",
-    "bootstrap": "^3.3.7"
+    "bootstrap": "^3.3.7",
+    "font-awesome": "^4.7.0"
   },
   "devDependencies": {
     "bootstrap-material-design": "https://github.com/intermine/bootstrap-material-design.git#im-0.0.2"
