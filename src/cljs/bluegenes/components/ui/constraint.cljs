@@ -138,7 +138,7 @@
     [:div.input-group-btn.dropdown.constraint-operator
      [:button.btn.btn-default.dropdown-toggle
       {:data-toggle "dropdown"}
-      (str (constraint-label op) " ") [:span.caret]]
+      (str (constraint-label op) " ") [:span.caret {:style {:margin-left "5px"}}]]
      (let [path-class            (im-path/class model path)
            any-lists-with-class? (some? (some (fn [list] (= path-class (keyword (:type list)))) lists))
            disable-lists?        (and lists (not any-lists-with-class?))]
@@ -170,7 +170,9 @@
   :op   The operator of the constraint
   :on-change  A function to call with the new constraint
   :on-remove A function to call with the constraint is removed
-  :label?     If true then include the path as a label"
+  :label?     If true then include the path as a label
+  :hide-code?     If true then do not show the code letter
+  "
   (let [pv (subscribe [:current-possible-values path])]
     (create-class
       {:component-did-mount (fn []
@@ -178,7 +180,7 @@
                                 (dispatch [:cache/fetch-possible-values path])))
        :reagent-render (fn [& {:keys [lists model path value op code on-change
                                       on-select-list on-change-operator on-remove
-                                      on-blur label? possible-values typeahead?]}]
+                                      on-blur label? possible-values typeahead? hide-code?]}]
                          (let [class? (im-path/class? model path)
                                op     (or op (if class? "LOOKUP" "="))]
                            [:div.constraint-component
@@ -209,7 +211,7 @@
                                       :possible-values @pv
                                       :on-change (fn [val] (on-change {:path path :value val :op op :code code}))
                                       :on-blur (fn [val] (when on-blur (on-blur {:path path :value val :op op :code code})))])
-                             (when code [:span.constraint-label code])]
+                             (when (and code (not hide-code?)) [:span.constraint-label code])]
                             (when on-remove [:svg.icon.icon-bin
                                              {:on-click (fn [op] (on-remove {:path path :value value :op op}))}
                                              [:use {:xlinkHref "#icon-bin"}]
