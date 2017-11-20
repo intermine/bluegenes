@@ -624,16 +624,16 @@
          (merge {:class (when (= @context-menu-target file) "highlighted")}
                 (tag-drag-events file)
                 (trigger-context-menu file)
-                {:on-click (fn []
-                             (dispatch [::evts/set-context-menu-target file]))})
+                {:on-click (fn [] (dispatch [::evts/set-context-menu-target file]))})
          [:td [checkbox im-obj-id]]
          [:td (merge {} (draggable file))
           [:div [ico im-obj-type]
            [:a {:on-click (fn [e]
                             (.stopPropagation e)
-                            (dispatch [:lists/view-results (assoc dets :source @source)]))} name]]]
-         [:td (when-not authorized
-                [:svg.icon.icon-lock [:use {:xlinkHref "#icon-lock"}]]) [tag-container @hierarchy-trail]]
+                            (dispatch [:lists/view-results (assoc dets :source @source)]))}
+            name (when-not authorized
+                   [:svg.icon.icon-lock [:use {:xlinkHref "#icon-lock"}]])]]]
+         [:td  [tag-container @hierarchy-trail]]
          [:td type]
          [:td size]
          [:td #_(tf/unparse built-in-formatter (c/from-long timestamp))]]))))
@@ -656,9 +656,11 @@
           [:div [ico im-obj-type]
            [:a {:on-click (fn [e]
                             (.stopPropagation e)
-                            (dispatch [:lists/view-results (assoc dets :source @source)]))} name]]]
-         [:div.col-2 (when-not authorized
-                       [:svg.icon.icon-lock [:use {:xlinkHref "#icon-lock"}]]) [tag-container @hierarchy-trail]]
+                            (dispatch [:lists/view-results (assoc dets :source @source)]))} name]
+           (when-not authorized
+             [:svg.icon.icon-globe {:style {:fill "#939393"}} [:use {:xlinkHref "#icon-globe"}]])
+           ]]
+         [:div.col-2 [tag-container @hierarchy-trail]]
          [:div.col-1 type]
          [:div.col-1 size]
          #_[:td #_(tf/unparse built-in-formatter (c/from-long timestamp))]]))))
