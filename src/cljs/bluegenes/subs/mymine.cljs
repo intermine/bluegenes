@@ -588,6 +588,37 @@
                                           (reverse (map name anc)))))))))))
 
 (reg-sub
+  ::selected-items
+  :<- [::checked-ids]
+  :<- [::not-tags]
+  :<- [::untagged-items]
+  :<- [::cursor-items]
+  (fn [[checked-ids entries untagged cursor-items]]
+    (let [items (concat entries untagged)]
+      (filter (comp checked-ids :im-obj-id) (concat entries untagged)))))
+
+(reg-sub
+  ::selected-items-not-in-view
+  :<- [::selected-items]
+  :<- [::cursor-items]
+  (fn [[selected-items cursor-items]]
+    (let [selected (into #{} selected-items)
+          visible  (into #{} (map #(dissoc % :hierarchy) cursor-items))]
+      (filter (fn [n] ((complement visible) n)) selected-items))))
+
+(reg-sub
+  ::show-selected-pane?
+  :<- [::selected-items]
+  :<- [::cursor]
+  (fn [[selected-items cursor]]
+    (let [selected-parent-ids (into #{} (map :parent-id selected-items))]
+      (or
+        ; Show if we're viewing a tag and selected items have at least 2 different tags. Add lots of CHEESE!!!!!!
+        (and cursor (> (count selected-parent-ids) 1))
+        ; Show if any of the tag ids of selected items are not the current view
+        (and cursor (not-empty selected-items) (nil? (some #{(:entry-id cursor)} selected-parent-ids)))))))
+
+(reg-sub
   ::cursor-items-at
   :<- [::hierarchy]
   :<- [::not-tags]

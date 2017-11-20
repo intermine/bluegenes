@@ -23,10 +23,11 @@
   (walk/postwalk #(if (keyword? %) (-> % name (s/replace #"_" "-") keyword) %) m))
 
 (defn add-entry [req]
+  (println "adding entry")
   (if-let [user-id (parse-string (-> req :session :identity :id))]
-    (let [{:keys [im-obj-type im-obj-id parent-id label]} (:params req)]
+    (let [{:keys [im-obj-type im-obj-id parent-id label mine]} (:params req)]
       {:body (map lodash-to-hyphen (mymine-add-entry db {:user-id user-id
-                                                         :mine "cow"
+                                                         :mine (name mine)
                                                          :im-obj-type im-obj-type
                                                          :im-obj-id im-obj-id
                                                          :parent-id parent-id
@@ -34,9 +35,9 @@
                                                          :open? true}))})
     (response/unauthorized {:error "Unauthorized"})))
 
-(defn get-entries [req]
+(defn get-entries [mine-name req]
   (if-let [user-id (parse-string (-> req :session :identity :id))]
-    {:body (map lodash-to-hyphen (mymine-fetch-all-entries db {:user-id user-id :mine "cow"}))}
+    {:body (map lodash-to-hyphen (mymine-fetch-all-entries db {:user-id user-id :mine mine-name}))}
     (response/unauthorized {:error "Unauthorized"})))
 
 (defn toggle-open [entry-id status req]
@@ -75,5 +76,6 @@
            ; Delete an entry
            (DELETE "/entries/:id" [id :as req] (delete-tag id req))
            ; Get all entries
-           (GET "/entries" req get-entries))
+           ;(GET "/entries" req get-entries)
+           (GET "/entries/:mine-name" [mine-name :as req] (get-entries mine-name req)))
 
