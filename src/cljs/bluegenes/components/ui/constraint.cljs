@@ -152,11 +152,14 @@
                           ; and there are no lists of the Class of this path, then disabled the operator.
                           [:li
                            {:on-click (if-not disable-lists? (partial on-change op))}
-                           [:a (str label)]]) $)
+                           [:a (case op
+                                 "IN" (str "In a " (:displayName (first (im-path/walk model (name path-class)))) " list")
+                                 "NOT IN" (str "Not in a " (:displayName (first (im-path/walk model (name path-class)))) " list")
+                                 (str label))]]) $)
                    (cond-> $
-                           disable-lists? (concat [[:li
-                                                    {:class "disabled"}
-                                                    [:a (str "(No " (:displayName (first (im-path/walk model (name path-class)))) " lists)")]]])))))]))
+                           (and disable-lists? (nil? (im-path/data-type model path))) (concat [[:li
+                                                                                                {:class "disabled"}
+                                                                                                [:a (str "(No " (:displayName (first (im-path/walk model (name path-class)))) " lists)")]]])))))]))
 
 (defn constraint [& {:keys [model path]}]
   "Creates a button group that represents a query constraint.
