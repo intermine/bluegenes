@@ -123,7 +123,7 @@
                                                                [:span..long-name.larger-screen-only "Upload"]]]
          [:li.primary-nav {:class (if (panel-is :mymine-panel) "active")}
           [:a {:on-click #(navigate! "/mymine")}
-           [:svg.icon.icon-cog [:use {:xlinkHref "#icon-user-circle"}]]
+           [:svg.icon.icon-cog [:use {:xlinkHref "#icon-my-data"}]]
            [:span "My\u00A0Data"]]]
 
          [:li.primary-nav {:class (if (panel-is :templates-panel) "active")} [:a {:on-click #(navigate! "/templates")} "Templates"]]
