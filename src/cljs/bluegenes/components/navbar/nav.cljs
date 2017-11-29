@@ -38,7 +38,6 @@
                                                                     :service (:service @current-mine)
                                                                     :mine-id (:id @current-mine))]))}
         "Sign In"]
-       ;[:svg.icon.icon-spinner.spin [:use {:xlinkHref "#icon-spinner"}]]
        ])))
 
 (defn mine-icon [mine]
@@ -49,7 +48,7 @@
 (defn settings []
   (let [current-mine (subscribe [:current-mine])]
     (fn []
-      [:li.dropdown.mine-settings
+      [:li.dropdown.mine-settings.secondary-nav
        [:a.dropdown-toggle {:data-toggle "dropdown" :role "button"} [:svg.icon.icon-cog [:use {:xlinkHref "#icon-cog"}]]]
        (conj (into [:ul.dropdown-menu]
                    (map (fn [[id details]]
@@ -61,14 +60,15 @@
 
 (defn logged-in []
   (let [identity (subscribe [:bluegenes.subs.auth/identity])]
-    [:li.dropdown.success
+    [:li.logon.dropdown.success.secondary-nav
      [:a.dropdown-toggle {:data-toggle "dropdown" :role "button"}
-      [:svg.icon.icon-cog [:use {:xlinkHref "#icon-user-circle"}]] (str " " (:username @identity))]
+      [:svg.icon.icon-cog [:use {:xlinkHref "#icon-user-circle"}]] 
+      [:span.long-name (str " " (:username @identity))]]
      [:ul.dropdown-menu
       [:li [:a {:on-click #(dispatch [:bluegenes.events.auth/logout])} "Log Out"]]]]))
 
 (defn anonymous []
-  [:li..dropdown.warning
+  [:li.logon.secondary-nav.dropdown.warning
    [:a.dropdown-toggle {:data-toggle "dropdown" :role "button"}
     [:svg.icon.icon-cog [:use {:xlinkHref "#icon-user-times"}]] " Log In"]
    [:div.dropdown-menu.login-form-dropdown
@@ -112,37 +112,31 @@
         current-mine (subscribe [:current-mine])
         panel-is     (fn [panel-key] (= @active-panel panel-key))]
     (fn []
-      [:nav.navbar.navbar-default.navbar-fixed-top
-       [:div.container-fluid
-        [:ul.nav.navbar-nav.navbar-collapse.navigation
-         [:li [:span.navbar-brand {:on-click #(navigate! "/")}
+      [:nav
+        [:ul
+         [:li.minename.primary-nav  {:on-click #(navigate! "/")}
                [active-mine-logo]
-               [:span.long-name (:name @current-mine)]]]
-         [:li.homelink.larger-screen-only {:class (if (panel-is :home-panel) "active")} [:a {:on-click #(navigate! "/")} "Home"]]
-         [:li {:class (if (panel-is :upload-panel) "active")} [:a {:on-click #(navigate! "/upload")}
+               [:span.long-name (:name @current-mine)]]
+         [:li.homelink.primary-nav.larger-screen-only {:class (if (panel-is :home-panel) "active")} [:a {:on-click #(navigate! "/")} "Home"]]
+         [:li.primary-nav {:class (if (panel-is :upload-panel) "active")} [:a {:on-click #(navigate! "/upload")}
                                                                [:svg.icon.icon-upload.extra-tiny-screen [:use {:xlinkHref "#icon-upload"}]]
-                                                               [:span.larger-screen-only "Upload"]]]
-         [:li {:class (if (panel-is :mymine-panel) "active")}
+                                                               [:span..long-name.larger-screen-only "Upload"]]]
+         [:li.primary-nav {:class (if (panel-is :mymine-panel) "active")}
           [:a {:on-click #(navigate! "/mymine")}
            [:svg.icon.icon-cog [:use {:xlinkHref "#icon-user-circle"}]]
-           [:span "My Data"]]]
+           [:span "My\u00A0Data"]]]
 
-         [:li {:class (if (panel-is :templates-panel) "active")} [:a {:on-click #(navigate! "/templates")} "Templates"]]
+         [:li.primary-nav {:class (if (panel-is :templates-panel) "active")} [:a {:on-click #(navigate! "/templates")} "Templates"]]
 
          ;;don't show region search for mines that have no example configured
          (cond (:regionsearch-example @current-mine)
                [:li {:class (if (panel-is :regions-panel) "active")} [:a {:on-click #(navigate! "/regions")} "Regions"]]
                )
-         [:li {:class (if (panel-is :querybuilder-panel) "active")} [:a {:on-click #(navigate! "/querybuilder")} "Query\u00A0Builder"]]
-         #_[:li {:class (if (panel-is :saved-data-panel) "active")} [:a {:on-click #(navigate! "/saved-data")} "Lists" [:span.larger-screen-only "\u00A0(" (apply + (map count (vals @lists))) ")"]]
-            ;;example tooltip. Include as last child, probably with some conditional to display and an event handler for saving the name
-            (if @ttip [save-data-tooltip @ttip])]
-         ]
-        [:ul.nav.navbar-nav.navbar-right.buttons
-         [:li.search [search/main]]
-         (cond (not (panel-is :search-panel)) [:li.search-mini [:a {:on-click #(navigate! "/search")} [:svg.icon.icon-search [:use {:xlinkHref "#icon-search"}]]]])
-         [:li.larger-screen-only [:a {:on-click #(navigate! "/help")} [:svg.icon.icon-question [:use {:xlinkHref "#icon-question"}]]]]
+         [:li.primary-nav {:class (if (panel-is :querybuilder-panel) "active")} [:a {:on-click #(navigate! "/querybuilder")} "Query\u00A0Builder"]]
+         [:li.secondary-nav.search [search/main]]
+         (cond (not (panel-is :search-panel)) [:li.secondary-nav.search-mini [:a {:on-click #(navigate! "/search")} [:svg.icon.icon-search [:use {:xlinkHref "#icon-search"}]]]])
+         [:li.secondary-nav.larger-screen-only [:a {:on-click #(navigate! "/help")} [:svg.icon.icon-question [:use {:xlinkHref "#icon-question"}]]]]
          ;;This may have worked at some point in the past. We need to res it.
          [settings]
-         [user]]]
+         [user]]
        [progress-bar/main]])))
