@@ -7,7 +7,7 @@
         margin-bottom: 0;
         border-width: 0;
         border-radius: 0;
-        z-index:43;
+        z-index: 43;
         ul {
             display: flex;
             padding: 0;
@@ -113,21 +113,20 @@
                 transition-timing-function: ease;
             }
             @keyframes slidein {
-                from {
-                    margin-right: 100%;
-                    width: 500%;
-                    margin-left:1em;
-                }
-                to {
+                0% {
+                    margin-left: 100%;
+                    min-width: 5em;
+                    flex-grow: 5;
                     background: @highlight-color;
-                    //margin-left: -35px;
-                    width: calc(100% + 15px);
-                    height: 100%;
+                }
+                70% {
+                    background: @highlight-color;
+                }
+                100% {
+                    background: @navbar-color;
+                    width: auto;
                 }
             }
-        }
-        .navbar-nav>li>a:focus {
-            background-color: red;
         }
         .short-name {
             display: none;
