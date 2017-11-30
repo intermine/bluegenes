@@ -252,14 +252,17 @@
        [:span.grow (:name f)]
        [:span.shrink
         [:button.btn.btn-default.btn-xs
-                      {:on-click (fn [] (dispatch [::evts/unstage-file js-File]))} [:i.fa.fa-times]]]])))
+         {:on-click (fn [] (dispatch [::evts/unstage-file js-File]))}
+         [:i.fa.fa-times]]]])))
 
 (defn file-manager []
   (let [files (subscribe [::subs/staged-files])]
     (fn []
-      (if (not-empty @files)
-        (into [:div.files] (map (fn [js-File] [file js-File]) @files))
-        [:div.files [:span "No files selected"]]))))
+      [:div
+       [:button.btn.btn-primary
+        {:on-click (fn [] (dispatch [::evts/parse-staged-files @files]))} "Parse"]
+       (when (not-empty @files)
+         (into [:div.files] (map (fn [js-File] [file js-File]) @files)))])))
 
 (defn drag-and-drop-prompt []
   (fn []
