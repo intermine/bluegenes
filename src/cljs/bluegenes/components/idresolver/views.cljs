@@ -245,12 +245,20 @@
   [obj]
   (reduce (fn [m k] (assoc m (keyword k) (oget+ obj k))) {} (js-keys obj)))
 
+(defn bytes->size [bytes]
+  (let [sizes ["Bytes" "KB" "MB" "GB" "TB"]]
+    (if (= bytes 0)
+      "0 bytes"
+      (let [idx (js/parseInt (js/Math.floor (/ (js/Math.log bytes) (js/Math.log 1000))))]
+        (str (js/Math.round (/ bytes (js/Math.pow 1000 idx)) 2) " " (nth sizes idx))))))
+
 (defn file []
   (fn [js-File]
     (let [f (obj->clj js-File)]
       [:div.file
        [:span.grow (:name f)]
        [:span.shrink
+        [:span.file-size (bytes->size (:size f))]
         [:button.btn.btn-default.btn-xs
          {:on-click (fn [] (dispatch [::evts/unstage-file js-File]))}
          [:i.fa.fa-times]]]])))
@@ -258,9 +266,10 @@
 (defn file-manager []
   (let [files (subscribe [::subs/staged-files])]
     (fn []
-      [:div
+      [:div.file-manager
        [:button.btn.btn-primary
-        {:on-click (fn [] (dispatch [::evts/parse-staged-files @files]))} "Parse"]
+        {:on-click (fn [] (dispatch [::evts/parse-staged-files @files]))}
+        (str "Upload" (when (not-empty @files) (str " " (count @files) " files")))]
        (when (not-empty @files)
          (into [:div.files] (map (fn [js-File] [file js-File]) @files)))])))
 

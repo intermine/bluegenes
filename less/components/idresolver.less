@@ -5,26 +5,39 @@
 
 .idresolverupload {
 
-    .files {
-        padding: 10px;
+    .file-manager {
         width: 100%;
-        background-color: white;
-        border: 1px solid grey;
-        border-radius: 5px;
-        .file {
-            align-items: center;
-            display: flex;
-            background-color: #373737;
-            color: white;
-            padding: 6px;
-            &:not(:last-child) {
-                margin-bottom: 5px;
-            }
-            .grow {
-                flex: 1 0;
-            }
-            .shrink {
-                flex: 0 1;
+        .files {
+            padding: 10px;
+            width: 100%;
+            background-color: white;
+            border: 1px solid grey;
+            border-radius: 5px;
+            .file {
+                align-items: center;
+                display: flex;
+                background-color: #373737;
+                color: white;
+                padding: 6px;
+                &:not(:last-child) {
+                    margin-bottom: 5px;
+                }
+                .file-size {
+                    font-size: 0.7em;
+                }
+                .grow {
+                    flex: 1 0;
+                    display: flex;
+                }
+                .shrink {
+                    white-space: nowrap;
+                    flex: 0 1;
+                    display: flex;
+                    align-items: center;
+                    & > *:not(:first-child) {
+                        margin-left: 10px;
+                    }
+                }
             }
         }
     }
