@@ -4,6 +4,31 @@
 @import "../layouts/input-dashed-style";
 
 .idresolverupload {
+
+    .files {
+        padding: 10px;
+        width: 100%;
+        background-color: white;
+        border: 1px solid grey;
+        border-radius: 5px;
+        .file {
+            align-items: center;
+            display: flex;
+            background-color: #373737;
+            color: white;
+            padding: 6px;
+            &:not(:last-child) {
+                margin-bottom: 5px;
+            }
+            .grow {
+                flex: 1 0;
+            }
+            .shrink {
+                flex: 0 1;
+            }
+        }
+    }
+
     .noselect {
         -webkit-touch-callout: none;
         /* iOS Safari */

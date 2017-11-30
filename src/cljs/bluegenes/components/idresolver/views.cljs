@@ -249,14 +249,17 @@
   (fn [js-File]
     (let [f (obj->clj js-File)]
       [:div.file
-       (:name f)
-       [:button.btn.btn-default
-        {:on-click (fn [] (dispatch [::evts/unstage-file js-File]))} [:i.fa.fa-times]]])))
+       [:span.grow (:name f)]
+       [:span.shrink
+        [:button.btn.btn-default.btn-xs
+                      {:on-click (fn [] (dispatch [::evts/unstage-file js-File]))} [:i.fa.fa-times]]]])))
 
 (defn file-manager []
   (let [files (subscribe [::subs/staged-files])]
     (fn []
-      (into [:div.files] (map (fn [js-File] [file js-File]) @files)))))
+      (if (not-empty @files)
+        (into [:div.files] (map (fn [js-File] [file js-File]) @files))
+        [:div.files [:span "No files selected"]]))))
 
 (defn drag-and-drop-prompt []
   (fn []
