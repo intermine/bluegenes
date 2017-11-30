@@ -2,7 +2,8 @@
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [re-frame.core :refer [subscribe reg-event-db reg-event-db reg-event-fx]]
             [cljs.core.async :refer [<!]]
-            [imcljs.auth :as im-auth]))
+            [imcljs.auth :as im-auth]
+            [bluegenes.effects :as fx]))
 
 (def error-messages {401 "Invalid username or password"
                      404 "Remote server not found"})
@@ -11,20 +12,20 @@
   ::login
   (fn [{db :db} [_ {:keys [username password] :as credentials}]]
     {:db (assoc-in db [:auth :thinking?] true)
-     :http {:uri "/api/auth/login"
-            :method :post
-            :on-success [::login-success]
-            :on-failure [::login-failure]
-            :params credentials}}))
+     ::fx/http {:uri "/api/auth/login"
+                :method :post
+                :on-success [::login-success]
+                :on-failure [::login-failure]
+                :transit-params credentials}}))
 
 (reg-event-fx
   ::logout
   (fn [{db :db} [_]]
     {:db (assoc-in db [:auth :thinking?] true)
-     :http {:uri "/api/auth/logout"
-            :method :get
-            :on-success [::logout-success]
-            :on-denied [::logout-fail]}}))
+     ::fx/http {:uri "/api/auth/logout"
+                :method :get
+                :on-success [::logout-success]
+                :on-denied [::logout-fail]}}))
 
 
 ; TODO
