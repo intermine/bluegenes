@@ -3,4 +3,4 @@
 
 (reg-sub ::staged-files
          (fn [db]
-           (get-in db [:idresolver :files])))
+           (not-empty (get-in db [:idresolver :files]))))

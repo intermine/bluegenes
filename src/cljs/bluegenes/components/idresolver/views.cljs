@@ -269,9 +269,8 @@
       [:div.file-manager
        [:button.btn.btn-primary
         {:on-click (fn [] (dispatch [::evts/parse-staged-files @files]))}
-        (str "Upload" (when (not-empty @files) (str " " (count @files) " files")))]
-       (when (not-empty @files)
-         (into [:div.files] (map (fn [js-File] [file js-File]) @files)))])))
+        (str "Upload" (when @files (str " " (count @files) " file" (when (> (count @files) 1) "s"))))]
+       (when @files (into [:div.files] (map (fn [js-File] [file js-File]) @files)))])))
 
 (defn drag-and-drop-prompt []
   (fn []
