@@ -5,6 +5,7 @@
             [bluegenes.events.boot]
             [bluegenes.events.auth]
             [bluegenes.events.mymine]
+            [bluegenes.events.id-resolver]
             [day8.re-frame.http-fx]
             [day8.re-frame.forward-events-fx]
             [day8.re-frame.async-flow-fx]
