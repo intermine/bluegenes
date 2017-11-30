@@ -9,7 +9,9 @@
             [bluegenes.components.loader :refer [mini-loader]]
             [bluegenes.components.idresolver.subs]
             [bluegenes.components.imcontrols.views :as im-controls]
-            [bluegenes.components.lighttable :as lighttable]))
+            [bluegenes.components.lighttable :as lighttable]
+            [bluegenes.events.id-resolver :as evts]
+            [bluegenes.subs.id-resolver :as subs]))
 
 ;;; TODOS:
 
