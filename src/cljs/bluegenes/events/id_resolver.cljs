@@ -1,7 +1,7 @@
 (ns bluegenes.events.id-resolver
   (:require [re-frame.core :refer [reg-event-db reg-event-fx]]))
 
-(reg-event-db ::stage-file
+(reg-event-db ::stage-files
               (fn [db [_ js-FileList]]
                 (update-in db [:idresolver :files] concat (array-seq js-FileList))))
 

@@ -11,7 +11,8 @@
             [bluegenes.components.imcontrols.views :as im-controls]
             [bluegenes.components.lighttable :as lighttable]
             [bluegenes.events.id-resolver :as evts]
-            [bluegenes.subs.id-resolver :as subs]))
+            [bluegenes.subs.id-resolver :as subs]
+            [oops.core :refer [oget oget+ ocall]]))
 
 ;;; TODOS:
 
@@ -26,7 +27,7 @@
   []
   (let [selected-organism (subscribe [:idresolver/selected-organism])]
     [:div [:label "Organism"]
-      [im-controls/organism-dropdown
+     [im-controls/organism-dropdown
       {:selected-value (if (some? @selected-organism) @selected-organism "Any")
        :on-change (fn [organism]
                     (dispatch [:idresolver/set-selected-organism organism]))}]]))
@@ -35,9 +36,9 @@
   "UI component allowing user to choose which object type to search. Defaults to the first one configured for a mine."
   []
   (let [selected-object-type (subscribe [:idresolver/selected-object-type])
-        values (subscribe [:idresolver/object-types])]
+        values               (subscribe [:idresolver/object-types])]
     [:div [:label "Type"]
-      [im-controls/object-type-dropdown
+     [im-controls/object-type-dropdown
       {:values @values
        :selected-value @selected-object-type
        :on-change (fn [object-type]
@@ -61,11 +62,11 @@
     (fn []
       [:div.btn-toolbar.controls
        [:button.btn.btn-warning
-        {:class    (if (nil? @results) "disabled")
+        {:class (if (nil? @results) "disabled")
          :on-click (fn [] (dispatch [:idresolver/clear]))}
         "Clear all"]
        [:button.btn.btn-warning
-        {:class    (if (empty? @selected) "disabled")
+        {:class (if (empty? @selected) "disabled")
          :on-click (fn [] (dispatch [:idresolver/delete-selected]))}
         (str "Remove selected (" (count @selected) ")")]
        [:button.btn.btn-primary.btn-raised
@@ -75,44 +76,44 @@
 
 (defn submit-input
   ([input val]
-    (reset! val "")
-    (submit-input input))
+   (reset! val "")
+   (submit-input input))
   ([input]
-    (dispatch [:idresolver/resolve (splitter input)]))
-)
+   (dispatch [:idresolver/resolve (splitter input)]))
+  )
 
 (defn input-box []
   (reagent/create-class
-  (let [val (reagent/atom nil)
-        timer (reagent/atom nil)]
-    {:reagent-render (fn []
-      [:input#identifierinput.freeform
-       {:type         "text"
-        :placeholder  "Type or paste identifiers here..."
-        :value        @val
-        :on-key-press
-          (fn [e]
-            (let [keycode (.-charCode e)
-                  input   (.. e -target -value)]
-              (cond (= keycode 13)
-                  (submit-input input val))))
-        ;;not all keys are picked up by on key press or on-change so we need to do both.
-        :on-change
-        (fn [e]
-          (let [input (.. e -target -value)]
-            ;;we have a counter that automatically submits the typed entry if the user waits long enough (currently 1.5s).
-            ;stop old auto-submit counter.
-            (js/clearInterval @timer)
-            ;start new timer again
-            (reset! timer (js/setTimeout #(submit-input input val) timeout))
-            ;submit the stuff
-            (if (has-separator? input)
-              (do
-                (js/clearInterval @timer)
-                (submit-input input val))
-               (reset! val input))))}])
-     ;;autofocus on the entry field when the page loads
-     :component-did-mount (fn [this] (.focus (reagent/dom-node this)))})))
+    (let [val   (reagent/atom nil)
+          timer (reagent/atom nil)]
+      {:reagent-render (fn []
+                         [:input#identifierinput.freeform
+                          {:type "text"
+                           :placeholder "Type or paste identifiers here..."
+                           :value @val
+                           :on-key-press
+                           (fn [e]
+                             (let [keycode (.-charCode e)
+                                   input   (.. e -target -value)]
+                               (cond (= keycode 13)
+                                     (submit-input input val))))
+                           ;;not all keys are picked up by on key press or on-change so we need to do both.
+                           :on-change
+                           (fn [e]
+                             (let [input (.. e -target -value)]
+                               ;;we have a counter that automatically submits the typed entry if the user waits long enough (currently 1.5s).
+                               ;stop old auto-submit counter.
+                               (js/clearInterval @timer)
+                               ;start new timer again
+                               (reset! timer (js/setTimeout #(submit-input input val) timeout))
+                               ;submit the stuff
+                               (if (has-separator? input)
+                                 (do
+                                   (js/clearInterval @timer)
+                                   (submit-input input val))
+                                 (reset! val input))))}])
+       ;;autofocus on the entry field when the page loads
+       :component-did-mount (fn [this] (.focus (reagent/dom-node this)))})))
 
 (defn organism-identifier
   "Sometimes the ambiguity we're resolving with duplicate ids is the sme symbol from two similar organisms, so we'll need to ass organism name where known."
@@ -121,37 +122,37 @@
     (str " (" (:organism.name summary) ")")
     ""
     )
-)
+  )
 
 (defn build-duplicate-identifier
   "Different objects types have different summary fields. Try to select one intelligently or fall back to primary identifier if the others ain't there."
   [result]
-  (let [summary (:summary result)
-        symbol (:symbol summary)
+  (let [summary   (:summary result)
+        symbol    (:symbol summary)
         accession (:primaryAccession summary)
         primaryId (:primaryId summary)]
     (str
-     (first (remove nil? [symbol accession primaryId]))
-     (organism-identifier summary)
-)))
+      (first (remove nil? [symbol accession primaryId]))
+      (organism-identifier summary)
+      )))
 
 (defn input-item-duplicate []
   "Input control. allows user to resolve when an ID has matched more than one object."
   (fn [[oid data]]
     [:span.id-item [:span.dropdown
-     [:span.dropdown-toggle
-      {:type        "button"
-       :data-toggle "dropdown"}
-      (:input data)
-      [:span.caret]]
-     (into [:ul.dropdown-menu]
-       (map (fn [result]
-          [:li {:on-click
-            (fn [e]
-              (.preventDefault e)
-              (dispatch [:idresolver/resolve-duplicate
-                 (:input data) result]))}
-           [:a (build-duplicate-identifier result)]]) (:matches data)))]]))
+                    [:span.dropdown-toggle
+                     {:type "button"
+                      :data-toggle "dropdown"}
+                     (:input data)
+                     [:span.caret]]
+                    (into [:ul.dropdown-menu]
+                          (map (fn [result]
+                                 [:li {:on-click
+                                       (fn [e]
+                                         (.preventDefault e)
+                                         (dispatch [:idresolver/resolve-duplicate
+                                                    (:input data) result]))}
+                                  [:a (build-duplicate-identifier result)]]) (:matches data)))]]))
 
 (defn get-icon [icon-type]
   (case icon-type
@@ -167,11 +168,11 @@
    :OTHER " the synonym you input is out of date."})
 
 (defn input-item-converted [original results]
-  (let [new-primary-id (get-in results [:matches 0 :summary :primaryIdentifier])
+  (let [new-primary-id    (get-in results [:matches 0 :summary :primaryIdentifier])
         conversion-reason ((:status results) reasons)]
     [:span.id-item {:title (str "You input '" original "', but we converted it to '" new-primary-id "', because " conversion-reason)}
      original " -> " new-primary-id]
-))
+    ))
 
 (defn input-item [{:keys [input] :as i}]
   "visually displays items that have been input and have been resolved as known or unknown IDs (or currently are resolving)"
@@ -183,14 +184,14 @@
        :reagent-render
        (fn [i]
          (let [result-vals (second (first @result))
-               class (if (empty? @result)
-                       "inactive"
-                       (name (:status result-vals)))
-               class (if (some #{input} @selected) (str class " selected") class)]
+               class       (if (empty? @result)
+                             "inactive"
+                             (name (:status result-vals)))
+               class       (if (some #{input} @selected) (str class " selected") class)]
            [:div.id-resolver-item-container
             {:class (if (some #{input} @selected) "selected")}
             [:div.id-resolver-item
-             {:class    class
+             {:class class
               :on-click (fn [e]
                           (.preventDefault e)
                           (.stopPropagation e)
@@ -202,14 +203,14 @@
                :OTHER [input-item-converted (:input i) result-vals]
                :MATCH [:span.id-item (:input i)]
                [:span.id-item (:input i)])
-              ]]))})))
+             ]]))})))
 
 (defn input-items []
   (let [bank (subscribe [:idresolver/bank])]
     (fn []
       (into [:div.input-items]
-        (map (fn [i]
-           ^{:key (:input i)} [input-item i]) (reverse @bank))))))
+            (map (fn [i]
+                   ^{:key (:input i)} [input-item i]) (reverse @bank))))))
 
 (defn parse-files [files]
   (dotimes [i (.-length files)]
@@ -238,94 +239,114 @@
   (let [files (.-files (.-dataTransfer evt))]
     (parse-files files)))
 
+(defn obj->clj
+  "Convert the top level of a javascript object to clojurescript.
+  Unconditionally attempts on any js property, unlike js->clj"
+  [obj]
+  (reduce (fn [m k] (assoc m (keyword k) (oget+ obj k))) {} (js-keys obj)))
+
+(defn file []
+  (fn [js-File]
+    (let [f (obj->clj js-File)]
+      [:div.file
+       (:name f)
+       [:button.btn.btn-default
+        {:on-click (fn [] (dispatch [::evts/unstage-file js-File]))} [:i.fa.fa-times]]])))
+
+(defn file-manager []
+  (let [files (subscribe [::subs/staged-files])]
+    (fn []
+      (into [:div.files] (map (fn [js-File] [file js-File]) @files)))))
+
 (defn drag-and-drop-prompt []
-  [:div.upload-file
-   [:svg.icon.icon-file [:use {:xlinkHref "#icon-file"}]]
-    [:p "All your identifiers in a text file? Try dragging and dropping it here, or "
-      [:label.browseforfile {:on-click (fn [e] (.stopPropagation e))};;otherwise it focuses on the typeable input
+  (fn []
+    [:div.upload-file
+     [:svg.icon.icon-file [:use {:xlinkHref "#icon-file"}]]
+     [:p "All your identifiers in a text file? Try dragging and dropping it here, or "
+      [:label.browseforfile {:on-click (fn [e] (.stopPropagation e))} ;;otherwise it focuses on the typeable input
        [:input
         {:type "file"
          :multiple true
          :on-click (fn [e] (.stopPropagation e)) ;;otherwise we just end up focusing on the input on the left/top.
-         :on-change (fn [e] (parse-files (.-files (.-target e)))
-                      )}]
+         :on-change (fn [e] (dispatch [::evts/stage-files (oget e :target :files)]))}]
        ;;this input isn't visible, but don't worry, clicking on the label is still accessible. Even the MDN says it's ok. True story.
-       "browse for a file"]]])
+       "browse for a file"]]
+     [file-manager]]))
 
 (defn input-div []
   (let [drag-state (reagent/atom false)]
     (fn []
       [:div.resolvey
        [:div#dropzone1
-       {
-        :on-drop       (partial handle-drop-over drag-state)
-        :on-click      (fn [evt]
-                         (.preventDefault evt)
-                         (.stopPropagation evt)
-                         (dispatch [:idresolver/clear-selected])
-                         (.focus (sel1 :#identifierinput)))
-        :on-drag-over  (partial handle-drag-over drag-state)
-        :on-drag-leave (fn [] (reset! drag-state false))
-        :on-drag-end   (fn [] (reset! drag-state false))
-        :on-drag-exit  (fn [] (reset! drag-state false))}
-       [:div.eenput
-        {:class (if @drag-state "dragging")}
-        [:div.idresolver
+        {
+         :on-drop (partial handle-drop-over drag-state)
+         :on-click (fn [evt]
+                     (.preventDefault evt)
+                     (.stopPropagation evt)
+                     (dispatch [:idresolver/clear-selected])
+                     (.focus (sel1 :#identifierinput)))
+         :on-drag-over (partial handle-drag-over drag-state)
+         :on-drag-leave (fn [] (reset! drag-state false))
+         :on-drag-end (fn [] (reset! drag-state false))
+         :on-drag-exit (fn [] (reset! drag-state false))}
+        [:div.eenput
+         {:class (if @drag-state "dragging")}
+         [:div.idresolver
           [:div.type-and-organism
            [organism-selection]
            [object-type-selection]]
           [input-items]
           [input-box]
-         [controls]]
-        [drag-and-drop-prompt]
-        ]]
+          [controls]]
+         [drag-and-drop-prompt]
+         ]]
        ])))
 
 (defn stats []
-  (let [bank       (subscribe [:idresolver/bank])
-        no-matches (subscribe [:idresolver/results-no-matches])
-        matches    (subscribe [:idresolver/results-matches])
+  (let [bank           (subscribe [:idresolver/bank])
+        no-matches     (subscribe [:idresolver/results-no-matches])
+        matches        (subscribe [:idresolver/results-matches])
         type-converted (subscribe [:idresolver/results-type-converted])
-        duplicates (subscribe [:idresolver/results-duplicates])
-        other      (subscribe [:idresolver/results-other])]
+        duplicates     (subscribe [:idresolver/results-duplicates])
+        other          (subscribe [:idresolver/results-other])]
     (fn []
-        ;;goodness gracious this could use a refactor
-        [:div.legend
-         [:h3 "Legend & Stats:"]
-         [:div.results
-            [:div.MATCH {:tab-index -5}
-              [:div.type-head [get-icon :MATCH]
-                [:span.title "Matches"]
-                [:svg.icon.icon-question [:use {:xlinkHref "#icon-question"}]]]
-              [:div.details [:span.count (count @matches)]
-                [:p "The input you entered was successfully matched to a known ID"]
-               ]
-             ]
-            [:div.TYPE_CONVERTED {:tab-index -4}
-              [:div.type-head [get-icon :TYPE_CONVERTED]
-                [:span.title "Converted"]
-                [:svg.icon.icon-question [:use {:xlinkHref "#icon-question"}]]]
-              [:div.details [:span.count (count @type-converted)]
-                 [:p "Input protein IDs resolved to gene (or vice versa)"]]
-             ]
-           [:div.OTHER {:tab-index -2}
-             [:div.type-head [get-icon :OTHER]
-             [:span.title "Synonyms"]
-             [:svg.icon.icon-question [:use {:xlinkHref "#icon-question"}]]]
-             [:div.details [:span.count (count @other)]
-             [:p "The ID you input matches an old synonym of an ID. We've used the most up-to-date one instead."]]]
-          [:div.DUPLICATE {:tab-index -3}
-              [:div.type-head  [get-icon :DUPLICATE]
-                [:span.title "Partial\u00A0Match"]
-                [:svg.icon.icon-question [:use {:xlinkHref "#icon-question"}]]]
-              [:div.details [:span.count (count @duplicates)]
-                [:p "The ID you input matched more than one item. Click on the down arrow beside IDs with this icon to fix this."]]]
-            [:div.UNRESOLVED {:tab-index -1}
-              [:div.type-head [get-icon :UNRESOLVED]
-                [:span.title "Not\u00A0Found"]
-                [:svg.icon.icon-question [:use {:xlinkHref "#icon-question"}]]]
-              [:div.details [:span.count (count @no-matches)]
-              [:p "The ID provided isn't one that's known for your chosen organism"]]]
+      ;;goodness gracious this could use a refactor
+      [:div.legend
+       [:h3 "Legend & Stats:"]
+       [:div.results
+        [:div.MATCH {:tab-index -5}
+         [:div.type-head [get-icon :MATCH]
+          [:span.title "Matches"]
+          [:svg.icon.icon-question [:use {:xlinkHref "#icon-question"}]]]
+         [:div.details [:span.count (count @matches)]
+          [:p "The input you entered was successfully matched to a known ID"]
+          ]
+         ]
+        [:div.TYPE_CONVERTED {:tab-index -4}
+         [:div.type-head [get-icon :TYPE_CONVERTED]
+          [:span.title "Converted"]
+          [:svg.icon.icon-question [:use {:xlinkHref "#icon-question"}]]]
+         [:div.details [:span.count (count @type-converted)]
+          [:p "Input protein IDs resolved to gene (or vice versa)"]]
+         ]
+        [:div.OTHER {:tab-index -2}
+         [:div.type-head [get-icon :OTHER]
+          [:span.title "Synonyms"]
+          [:svg.icon.icon-question [:use {:xlinkHref "#icon-question"}]]]
+         [:div.details [:span.count (count @other)]
+          [:p "The ID you input matches an old synonym of an ID. We've used the most up-to-date one instead."]]]
+        [:div.DUPLICATE {:tab-index -3}
+         [:div.type-head [get-icon :DUPLICATE]
+          [:span.title "Partial\u00A0Match"]
+          [:svg.icon.icon-question [:use {:xlinkHref "#icon-question"}]]]
+         [:div.details [:span.count (count @duplicates)]
+          [:p "The ID you input matched more than one item. Click on the down arrow beside IDs with this icon to fix this."]]]
+        [:div.UNRESOLVED {:tab-index -1}
+         [:div.type-head [get-icon :UNRESOLVED]
+          [:span.title "Not\u00A0Found"]
+          [:svg.icon.icon-question [:use {:xlinkHref "#icon-question"}]]]
+         [:div.details [:span.count (count @no-matches)]
+          [:p "The ID provided isn't one that's known for your chosen organism"]]]
         ]]
 
       )))
@@ -370,39 +391,39 @@
   (dommy/listen! (sel1 :body) :keyup key-up-handler))
 
 (defn preview [result-count]
-  (let [results-preview (subscribe [:idresolver/results-preview])
+  (let [results-preview   (subscribe [:idresolver/results-preview])
         fetching-preview? (subscribe [:idresolver/fetching-preview?])]
     [:div
      [:h4.title "Results preview:"
       [:small.pull-right "Showing " [:span.count (min 5 result-count)] " of " [:span.count result-count] " Total Good Identifiers. "
-        (cond (> result-count 0)
-          [:a {:on-click
-            (fn [] (dispatch [:idresolver/analyse true]))}
-            "View all >>"])
+       (cond (> result-count 0)
+             [:a {:on-click
+                  (fn [] (dispatch [:idresolver/analyse true]))}
+              "View all >>"])
        ]]
-       [preview-table
-         :loading? @fetching-preview?
-         :query-results @results-preview]]
-))
+     [preview-table
+      :loading? @fetching-preview?
+      :query-results @results-preview]]
+    ))
 
 (defn main []
   (reagent/create-class
     {:component-did-mount attach-body-events
      :reagent-render
-       (fn []
-         (let [bank       (subscribe [:idresolver/bank])
-               no-matches (subscribe [:idresolver/results-no-matches])
-               result-count (- (count @bank) (count @no-matches))]
+     (fn []
+       (let [bank         (subscribe [:idresolver/bank])
+             no-matches   (subscribe [:idresolver/results-no-matches])
+             result-count (- (count @bank) (count @no-matches))]
          [:div.container.idresolverupload
           [:div.headerwithguidance
            [:h1 "List Upload"]
            [:a.guidance
             {:on-click
              (fn []
-              (dispatch [:idresolver/example splitter]))} "[Show me an example]"]]
-           [input-div]
-           [stats]
-           (cond (> result-count 0) [preview result-count])
-        ;[selected]
-        ;[debugger]
-        ]))}))
+               (dispatch [:idresolver/example splitter]))} "[Show me an example]"]]
+          [input-div]
+          [stats]
+          (cond (> result-count 0) [preview result-count])
+          ;[selected]
+          ;[debugger]
+          ]))}))
