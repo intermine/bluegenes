@@ -17,18 +17,16 @@
 (defn parse-file [[file-name {:keys [filename content-type tempfile size]}]]
   (parse-identifiers (slurp tempfile)))
 
-(defroutes routes
-           ; Expects one or more of the following:
-           ; * Raw body of type text/plain identifiers
-           ; * Mutlipart-params with files of identifiers
-           (wrap-multipart-params (POST "/parse" {:keys [body multipart-params] :as req}
-                                    (let [
-                                          ; Parse identifiers from file upload
-                                          from-upload (mapcat parse-file multipart-params)
-                                          ; Parsed identifiers from the raw body
-                                          from-body   (parse-identifiers (slurp body))]
-                                      ; Concat the results together and return unique values
-                                      (response/ok (let [total (distinct (concat from-upload from-body))]
-                                                     {:identifiers total
-                                                      :total (count total)}))))))
+(defn parse-request-for-ids [{:keys [body multipart-params] :as req}]
+  (let [
+        ; Parse identifiers from file upload
+        from-upload (mapcat parse-file multipart-params)
+        ; Parsed identifiers from the raw body
+        from-body   (parse-identifiers (slurp body))]
+    ; Concat the results together and return unique values
+    (let [total (distinct (concat from-upload from-body))]
+      {:identifiers total
+       :total (count total)})))
+
+(defroutes routes (wrap-multipart-params (POST "/parse" req (response/ok (parse-request-for-ids req)))))
 
