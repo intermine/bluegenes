@@ -265,9 +265,15 @@
 
 (defn file-manager []
   (let [files         (subscribe [::subs/staged-files])
-        stage-options (subscribe [::subs/stage-options])]
+        stage-options (subscribe [::subs/stage-options])
+        stage-status  (subscribe [::subs/stage-status])]
     (fn []
       [:div.file-manager
+       [:input
+        {:type "file"
+         :multiple true
+         :on-click (fn [e] (.stopPropagation e)) ;;otherwise we just end up focusing on the input on the left/top.
+         :on-change (fn [e] (dispatch [::evts/stage-files (oget e :target :files)]))}]
        [:div.checkbox
         [:label
          {:on-click (fn [e] (dispatch [::evts/toggle-case-sensitive]))}
@@ -282,6 +288,8 @@
                                      (:case-sensitive? @stage-options)]))}
         (str "Upload" (when @files (str " " (count @files) " file" (when (> (count @files) 1) "s"))))]
        (when @files (into [:div.files] (map (fn [js-File] [file js-File]) @files)))])))
+
+
 
 (defn drag-and-drop-prompt []
   (fn []
@@ -431,6 +439,33 @@
       :query-results @results-preview]]
     ))
 
+
+(defn upload-step []
+  (fn []
+    [:div
+     [:div.form-group
+      [:label "Type"]
+      [:select.form-control
+       [:option "Gene"]
+       [:option "Protein"]]]
+     [:div.upload-step-container
+      [:div.header "header"]
+      [:div.input-area
+       [:div.file-container [file-manager]]
+       [:div.freeform-container [:textarea.form-control {:rows 5}]]]
+      [:div.footer]]]))
+
+(defn wizard []
+  (fn []
+    [:div.wizard
+     [:ul.nav.nav-tabs
+      [:li.active [:a "Upload"]]
+      [:li.disabled [:a "Review"]]
+      [:li.disabled [:a "Complete"]]]
+     [:div.wizard-body
+      [upload-step]]]))
+
+
 (defn main []
   (reagent/create-class
     {:component-did-mount attach-body-events
@@ -446,8 +481,9 @@
             {:on-click
              (fn []
                (dispatch [:idresolver/example splitter]))} "[Show me an example]"]]
+          [wizard]
           [input-div]
-          [stats]
+          ;[stats]
           (cond (> result-count 0) [preview result-count])
           ;[selected]
           ;[debugger]

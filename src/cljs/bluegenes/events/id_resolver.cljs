@@ -13,10 +13,9 @@
 
 (reg-event-fx ::parse-staged-files
               (fn [{db :db} [_ js-Files case-sensitive?]]
-                {::fx/http {:uri "/api/ids/parse"
+                {:db (assoc-in db [:idresolver :stage :status] {:action :parsing})
+                 ::fx/http {:uri "/api/ids/parse"
                             :method :post
-                            ;:form-params {:caseSensitive true
-                            ;              :files js-Files}
                             :multipart-params (conj
                                                 (map (fn [f] [(oget f :name) f]) js-Files)
                                                 ["caseSensitive" case-sensitive?])
@@ -25,8 +24,9 @@
 
 (reg-event-db ::store-parsed-response
               (fn [db [_ response]]
-                (js/console.log "response" response)
-                db))
+                (update db :idresolver #(-> %
+                                            (assoc-in [:stage :status :action] nil)
+                                            (assoc :to-resolve response)))))
 
 (reg-event-db ::toggle-case-sensitive
               (fn [db [_ response]]

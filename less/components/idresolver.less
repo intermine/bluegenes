@@ -3,6 +3,42 @@
 @import "../datatype-colors";
 @import "../layouts/input-dashed-style";
 
+
+
+.wizard {
+    .wizard-body {
+        background-color: white;
+        padding: 15px;
+        border: 1px solid #dddddd;
+        border-top-color: transparent;
+    }
+    .upload-step-container {
+        display: flex;
+        flex-direction: column;
+
+        .header {
+            flex: 0 1;
+        }
+
+        .input-area {
+            flex: 1 0;
+            display: flex;
+            .freeform-container {
+                flex: 2 0;
+            }
+            .file-container {
+                flex: 1 0;
+            }
+        }
+
+        .footer {
+            flex: 0 1;
+        }
+
+
+    }
+}
+
 .idresolverupload {
 
     .file-manager {
