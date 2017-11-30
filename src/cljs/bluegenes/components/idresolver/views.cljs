@@ -264,11 +264,22 @@
          [:i.fa.fa-times]]]])))
 
 (defn file-manager []
-  (let [files (subscribe [::subs/staged-files])]
+  (let [files         (subscribe [::subs/staged-files])
+        stage-options (subscribe [::subs/stage-options])]
     (fn []
       [:div.file-manager
+       [:div.checkbox
+        [:label
+         {:on-click (fn [e] (dispatch [::evts/toggle-case-sensitive]))}
+         [:input
+          {:type "checkbox"
+           :read-only "readonly"
+           :checked (:case-sensitive? @stage-options)}]
+         "Case sensitive"]]
        [:button.btn.btn-primary
-        {:on-click (fn [] (dispatch [::evts/parse-staged-files @files]))}
+        {:on-click (fn [] (dispatch [::evts/parse-staged-files
+                                     @files
+                                     (:case-sensitive? @stage-options)]))}
         (str "Upload" (when @files (str " " (count @files) " file" (when (> (count @files) 1) "s"))))]
        (when @files (into [:div.files] (map (fn [js-File] [file js-File]) @files)))])))
 

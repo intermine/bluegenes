@@ -46,6 +46,7 @@
                  timeout
                  json-params
                  transit-params
+                 form-params
                  multipart-params
                  response-format
                  on-success
@@ -62,6 +63,7 @@
         (let [c (http-fn uri (cond-> {}
                                      json-params (assoc :json-params json-params)
                                      transit-params (assoc :transit-params transit-params)
+                                     form-params (assoc :form-params form-params)
                                      multipart-params (assoc :multipart-params multipart-params)
                                      headers (update :headers #(merge % headers))
                                      (and token @token) (update :headers assoc "X-Auth-Token" @token)
