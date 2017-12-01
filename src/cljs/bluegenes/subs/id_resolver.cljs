@@ -12,3 +12,11 @@
 (reg-sub ::stage-status
          (fn [db]
            (not-empty (get-in db [:idresolver :stage :status]))))
+
+(reg-sub ::stage-flags
+         (fn [db]
+           (not-empty (get-in db [:idresolver :stage :flags]))))
+
+(reg-sub ::resolution-response
+         (fn [db]
+           (not-empty (get-in db [:idresolver :response]))))

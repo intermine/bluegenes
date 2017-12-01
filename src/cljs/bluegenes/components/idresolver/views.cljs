@@ -471,7 +471,8 @@
 
 
 (defn upload-step []
-  (let [options (subscribe [::subs/stage-options])]
+  (let [files   (subscribe [::subs/staged-files])
+        options (subscribe [::subs/stage-options])]
     (fn []
       (let [{:keys [organism type case-sensitive]} @options]
         [:div
@@ -487,28 +488,67 @@
             [:div.form-group
              {:style {:height "100%"}}
              [:label "Enter identifiers"]
-             [:textarea.form-control {:style {:height "100%"} :rows 5}]]]]
-          [:div.footer]]]))))
+             [:textarea.form-control {:style {:height "100%"} :rows 5}]]]]]
+         [:button.btn.btn-primary.pull-right
+          {:on-click (fn [] (println "O" @options) (dispatch [::evts/parse-staged-files @files @options]))}
+          (str "Upload" (when @files (str " " (count @files) " file" (when (> (count @files) 1) "s"))))
+          [:i.fa.fa-chevron-right {:style {:padding-left "5px"}}]]]))))
+
+
+(defn review-table []
+  (fn [results]
+    [:table.table.table-striped
+     [:thead [:th "Input"]]
+     (into [:tbody]
+           (map (fn [{:keys [input reason matches] :as row}]
+                  [:tr
+                   [:td input]
+                   (into [:td] (map (fn [{{:keys [symbol]} :summary}] [:span.label.label-warning symbol]) matches))]) results))]))
+
+(defn review-step []
+  (let [resolution-response (subscribe [::subs/resolution-response])]
+    (fn []
+      (let [{{stats :identifiers} :stats} @resolution-response]
+        (js/console.log "R" (-> @resolution-response :matches :DUPLICATE count))
+        [:div
+         [:div.progress
+          [:div.progress-bar.progress-bar-success {:style {:width (str (* 100 (/ (:matches stats) (:all stats))) "%")}} (str (:matches stats) " Matches")]
+          [:div.progress-bar.progress-bar-warning {:style {:width (str (* 100 (/ (:issues stats) (:all stats))) "%")}} (str (:issues stats) " Issues")]
+          [:div.progress-bar.progress-bar-warning {:style {:width (str (* 100 (/ (:notFound stats) (:all stats))) "%")}} "Not Found"]]
+
+         [review-table (-> @resolution-response :matches :DUPLICATE)]
+
+
+         [:button.btn.btn-primary.pull-right
+          {:on-click (fn [])}
+          "Continue"
+          [:i.fa.fa-chevron-right {:style {:padding-left "5px"}}]]]))))
 
 (defn bread []
   (fn []
     [:ul.bread
-     [:li.active [:a [:i.fa.fa-upload.fa-2x] "Upload"]]
-     [:li [:a [:i.fa.fa-exclamation-triangle.fa-2x] "Review"]]
+     [:li [:a [:i.fa.fa-upload.fa-2x] "Upload"]]
+     [:li.active [:a [:i.fa.fa-exclamation-triangle.fa-2x] "Review"]]
      [:li [:a "Three"]]
      [:li [:a "Four"]]]))
 
+
+
 (defn wizard []
-  (fn []
-    [:div.wizard
-     [bread]
-     [:div.wizard-body.clearfix [upload-step]]
-     [:div.wizard-footer
-      [:div.grow]
-      [:div.shrink
-       [:button.btn.btn-primary.pull-right
-        "Continue "
-        [:i.fa.fa-chevron-right {:style {:padding-left "5px"}}]]]]]))
+  (let [options (subscribe [::subs/stage-options])
+        files   (subscribe [::subs/staged-files])
+        flags   (subscribe [::subs/stage-flags])]
+    (fn []
+      [:div.wizard
+       [bread]
+       [:div.wizard-body.clearfix
+        (let [{:keys [parsed]} @flags]
+          (cond
+            parsed [review-step]
+            :default [upload-step]))]
+       [:div.wizard-footer
+        [:div.grow]
+        [:div.shrink]]])))
 
 
 (defn main []
@@ -520,8 +560,7 @@
              no-matches   (subscribe [:idresolver/results-no-matches])
              result-count (- (count @bank) (count @no-matches))]
          [:div.container.idresolverupload
-          [:div.headerwithguidance
-           [:h1 "List Upload"]
+          #_[:div.headerwithguidance
            [:a.guidance
             {:on-click
              (fn []
