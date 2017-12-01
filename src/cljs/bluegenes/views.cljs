@@ -1,7 +1,7 @@
 (ns bluegenes.views
   (:require [re-frame.core :as re-frame :refer [subscribe dispatch]]
             [json-html.core :as json-html]
-            [bluegenes.developer :as dev]
+            [bluegenes.developer.main :as dev]
             [bluegenes.components.navbar.nav :as nav]
             [bluegenes.components.icons :as icons]
             [bluegenes.sections.home.views :as home]

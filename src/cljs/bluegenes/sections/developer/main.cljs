@@ -1,7 +1,6 @@
-(ns bluegenes.developer
+(ns bluegenes.developer.main
   (:require [re-frame.core :as re-frame :refer [subscribe dispatch]]
-            [json-html.core :as json-html]
-            [bluegenes.components.icons :as icons]
+            [bluegenes.developer.icons :as icons]
             [bluegenes.persistence :as persistence]
             [accountant.core :refer [navigate!]]))
 
@@ -48,31 +47,6 @@
           (persistence/destroy!)
           (.reload js/document.location true))} "Delete bluegenes localstorage... for now."]]]))
 
-(defn iconview []
-  [:div.panel.container [:h3 "All icons defs in the icons file (components/icons.cljs.)"]
-   [:div.icon-size "Bonus classes for easy sizing: "
-    [:div.icon-sizing-example
-     [:div.demo
-      "default"
-      [:svg.icon.icon-intermine [:use {:xlinkHref "#icon-intermine"}]]]
-     [:div.demo
-      [:code ".icon-2x"]
-      [:svg.icon.icon-2x.icon-intermine [:use {:xlinkHref "#icon-intermine"}]]]
-     [:div.demo
-      [:code ".icon-3x"]
-      [:svg.icon.icon-3x.icon-intermine [:use {:xlinkHref "#icon-intermine"}]]]
-     [:div.demo
-      [:code ".icon-4x"]
-      [:svg.icon.icon-4x.icon-intermine [:use {:xlinkHref "#icon-intermine"}]]]]
-    [:div "example:" [:code "[:svg.icon-3x.icon-intermine [:use {:xlinkHref \"#icon-intermine\"}]]"]]]
-   (let [icon-names (rest (last (icons/icons)))]
-     [:table.icon-view [:tbody
-                        (map (fn [[icon-symbol]]
-                               (let [icon-name (last (clojure.string/split icon-symbol "#"))]
-                                 [:tr {:key icon-name}
-                                  [:td [:svg.icon {:class icon-name} [:use {:xlinkHref (str "#" icon-name)}]]]
-                                  [:td icon-name]
-                                  [:td [:div.code "[:svg.icon." icon-name " [:use {:xlinkHref \"#" icon-name "\"}]]"]]])) icon-names)]])])
 
 (defn debug-panel []
   (fn []
@@ -80,4 +54,4 @@
      [mine-config]
      [localstorage-destroyer]
      [version-number]
-     [iconview]]))
+     [icons/iconview]]))
