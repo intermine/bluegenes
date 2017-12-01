@@ -438,14 +438,29 @@ button.btn{
   */
 }
 
-.icon {
+.icon(@icon-size) {
+    vertical-align: top;
+    margin-top: 1px;
     display: inline-block;
-    width: 1em;
-    height: 1em;
-    stroke-width: 0;
-    stroke: currentColor;
-    fill: currentColor;
+    width: @icon-size;
+    height: @icon-size;
+    fill: @link-color;
+    margin: 0 @icon-size/2;
 }
+.icon {.icon(1em);}
+
+.icon-2x {
+  .icon(2em)
+}
+
+.icon-3x {
+  .icon(3em)
+}
+
+.icon-4x {
+  .icon(4em)
+}
+
 
 
  .navbar .navbar-nav > li,
@@ -453,6 +468,3 @@ button.btn{
     display: flex;
     align-items: center;
 }
-
-
-
