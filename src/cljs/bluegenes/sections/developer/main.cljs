@@ -1,8 +1,21 @@
 (ns bluegenes.developer.main
   (:require [re-frame.core :as re-frame :refer [subscribe dispatch]]
+            [bluegenes.events.developer :as events]
+            [bluegenes.subs.developer :as subs]
             [bluegenes.developer.icons :as icons]
+            [bluegenes.developer.tools :as tools]
             [bluegenes.persistence :as persistence]
             [accountant.core :refer [navigate!]]))
+
+(defn nav []
+  [:ul.dev-navigation
+   [:li [:a {:on-click #(navigate! "/debug/main")}
+         [:svg.icon.icon-cog [:use {:xlinkHref "#icon-cog"}]] "Debug Console"]]
+   [:li
+    [:a {:on-click #(navigate! "/debug/tool-store")}
+     [:svg.icon.icon-star-full [:use {:xlinkHref "#icon-star-full"}]] "Tool 'App Store'"]]
+   [:li [:a {:on-click #(navigate! "/debug/icons")}
+         [:svg.icon.icon-intermine [:use {:xlinkHref "#icon-intermine"}]] "Icons"]]])
 
 (defn mine-config []
   (let [current-mine (subscribe [:current-mine])
@@ -47,11 +60,19 @@
           (persistence/destroy!)
           (.reload js/document.location true))} "Delete bluegenes localstorage... for now."]]]))
 
-
 (defn debug-panel []
   (fn []
-    [:div.developer
-     [mine-config]
-     [localstorage-destroyer]
-     [version-number]
-     [icons/iconview]]))
+    (let [panel (subscribe [::subs/panel])]
+      [:div.developer
+       [nav]
+       (cond
+         (= @panel "main")
+         [:div
+          [:h1 "Debug console"]
+          [mine-config]
+          [localstorage-destroyer]
+          [version-number]]
+         (= @panel "tool-store")
+         [tools/tool-store]
+         (= @panel "icons")
+              [icons/iconview])])))

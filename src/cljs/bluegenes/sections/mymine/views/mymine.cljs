@@ -797,5 +797,3 @@
           [modals/modal-rename-list @context-menu-target]
           [m/context-menu-container @context-menu-target]])})))
 ;[thinker/main]
-
-

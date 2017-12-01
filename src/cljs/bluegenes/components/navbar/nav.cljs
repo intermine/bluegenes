@@ -57,7 +57,7 @@
                                 :class (cond (= id (:id @current-mine)) "active")}
                            [:a [mine-icon details]
                             (:name details)]]) @(subscribe [:mines])))
-             [:li.special [:a {:on-click #(navigate! "/debug")} ">_ Developer"]])])))
+             [:li.special [:a {:on-click #(navigate! "/debug/main")} ">_ Developer"]])])))
 
 (defn logged-in []
   (let [identity (subscribe [:bluegenes.subs.auth/identity])]
