@@ -9,9 +9,13 @@
             [clojure.java.io :as io]))
 
 (defn get-tool-config [tool path]
-  (let [name (.getName (io/file tool))]
+  (let [name (.getName (io/file tool))
+        path (join "/" [path name])
+        bluegenes-config (str path "/config.json")
+        package (str path "/package.json")]
     {:name name
-     :config (cheshire/parse-string (slurp (join "/" [path name "config.json"])))
+      :config (cheshire/parse-string (slurp bluegenes-config))
+      :package (cheshire/parse-string (slurp package))
    }))
 
 (defn tools [session]
