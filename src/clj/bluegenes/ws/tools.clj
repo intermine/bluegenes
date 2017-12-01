@@ -6,23 +6,18 @@
             [config.core :refer [env]]
             [clojure.pprint :refer [pprint]]
             [ring.util.http-response :as response]
-            [clojure.java.io :as io]            ))
+            [clojure.java.io :as io]))
 
 (defn tools [session]
- (let [file "resources/public/tools"
-       res { 
-  ;;  :file (load-file file)
-    :tools (str (reduce 
-           (fn [coll newitem] 
-            (if (.isDirectory (io/file newitem))
-            (conj coll newitem)
-            coll
-            ))
-           (.listFiles (io/file file)))      )     
-      }]
-  (pr-str res
-  
-           )))
+  (let [file "resources/public/tools"
+        res {:tools
+             (reduce
+                   (fn [coll newitem]
+                     (if (.isDirectory (io/file newitem))
+                       (conj coll (.getName (io/file newitem)))
+                       coll))
+                   #{} (.listFiles (io/file file)))}]
+    (response/ok res)))
 
 (defroutes routes
            (GET "/all" session (tools session)))
