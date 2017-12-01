@@ -5,3 +5,8 @@
   ::panel
   (fn [db]
     (get-in db [:debug-panel])))
+
+(reg-sub
+  ::tools
+  (fn [db]
+    (get-in db [:developer :tools])))
