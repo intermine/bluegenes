@@ -6,15 +6,45 @@
 
 
 .wizard {
+
+    .checkbox {
+        > label {
+            display: flex;
+            align-items: center;
+            padding: 0;
+            & > *:not(:first-child) {
+                padding-left: 5px;
+            }
+            input[type="checkbox"] {
+                margin: 0;
+                position: inherit;
+            }
+        }
+    }
+
+
+
     .wizard-body {
         background-color: white;
         padding: 15px;
         border: 1px solid #dddddd;
-        border-top-color: transparent;
+    }
+
+    .wizard-footer {
+        margin-top: 10px;
+        display: flex;
+        .grow {
+            flex: 1 0;
+        }
+        .shrink {
+            flex: 0 1;
+        }
     }
     .upload-step-container {
         display: flex;
         flex-direction: column;
+        background-color: #e4e4e4;
+        padding: 20px;
 
         .header {
             flex: 0 1;
@@ -23,19 +53,15 @@
         .input-area {
             flex: 1 0;
             display: flex;
-            .freeform-container {
-                flex: 2 0;
-            }
             .file-container {
                 flex: 1 0;
+                padding: 10px;
+            }
+            .freeform-container {
+                flex: 1 0;
+                padding: 10px;
             }
         }
-
-        .footer {
-            flex: 0 1;
-        }
-
-
     }
 }
 
@@ -44,11 +70,8 @@
     .file-manager {
         width: 100%;
         .files {
-            padding: 10px;
             width: 100%;
-            background-color: white;
-            border: 1px solid grey;
-            border-radius: 5px;
+            margin-bottom: 10px;
             .file {
                 align-items: center;
                 display: flex;
@@ -412,5 +435,45 @@
 
     to {
         width: 100%;
+    }
+}
+
+@circle-diameter: 75px;
+
+.bread {
+    list-style-type: none;
+    padding: 0;
+    display: flex;
+    justify-content: space-between;
+    border-top: 1px solid #d2d2d2;
+    margin-top: @circle-diameter / 2;
+    margin-left: auto;
+    margin-right: auto;
+    width: 75%;
+    li {
+        height: @circle-diameter;
+        width: @circle-diameter;
+        background-color: white;
+        border-radius: 50%;
+        border: 1px solid #d2d2d2;
+        padding: 10px 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-top: -(@circle-diameter / 2);
+
+        a {
+            text-align: center;
+        }
+
+        &.active {
+            background-color: #373737;
+            background-color: #0892ff;
+            border-color: white;
+            color: white;
+            a {
+                color: white;
+            }
+        }
     }
 }

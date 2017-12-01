@@ -31,3 +31,7 @@
 (reg-event-db ::toggle-case-sensitive
               (fn [db [_ response]]
                 (update-in db [:idresolver :stage :options :case-sensitive?] not)))
+
+(reg-event-db ::update-option
+              (fn [db [_ option-kw value]]
+                (assoc-in db [:idresolver :stage :options option-kw] value)))

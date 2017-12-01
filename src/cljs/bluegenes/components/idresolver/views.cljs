@@ -266,28 +266,28 @@
 (defn file-manager []
   (let [files         (subscribe [::subs/staged-files])
         stage-options (subscribe [::subs/stage-options])
-        stage-status  (subscribe [::subs/stage-status])]
+        stage-status  (subscribe [::subs/stage-status])
+        upload-elem   (reagent/atom nil)]
     (fn []
       [:div.file-manager
+       #_[:button.btn.btn-default
+          {:on-click (fn [] (dispatch [::evts/parse-staged-files
+                                       @files
+                                       (:case-sensitive? @stage-options)]))}
+          (str "Upload" (when @files (str " " (count @files) " file" (when (> (count @files) 1) "s"))))]
        [:input
         {:type "file"
+         :ref (fn [e] (reset! upload-elem e))
          :multiple true
+         :style {:display "none"}
          :on-click (fn [e] (.stopPropagation e)) ;;otherwise we just end up focusing on the input on the left/top.
          :on-change (fn [e] (dispatch [::evts/stage-files (oget e :target :files)]))}]
-       [:div.checkbox
-        [:label
-         {:on-click (fn [e] (dispatch [::evts/toggle-case-sensitive]))}
-         [:input
-          {:type "checkbox"
-           :read-only "readonly"
-           :checked (:case-sensitive? @stage-options)}]
-         "Case sensitive"]]
-       [:button.btn.btn-primary
-        {:on-click (fn [] (dispatch [::evts/parse-staged-files
-                                     @files
-                                     (:case-sensitive? @stage-options)]))}
-        (str "Upload" (when @files (str " " (count @files) " file" (when (> (count @files) 1) "s"))))]
-       (when @files (into [:div.files] (map (fn [js-File] [file js-File]) @files)))])))
+       [:div.form-group
+        [:label "Upload from file(s)"]
+        (when @files (into [:div.files] (map (fn [js-File] [file js-File]) @files)))
+        [:button.btn.btn-default
+         {:on-click (fn [] (-> @upload-elem js/$ (ocall :click)))}
+         (if @files "Browse more" "Browse")]]])))
 
 
 
@@ -440,30 +440,75 @@
     ))
 
 
+(defn select-organism-option []
+  (fn [organism]
+    [:div.form-group
+     [:label "Organism"]
+     [im-controls/select-organism
+      {:value organism
+       :on-change (fn [organism] (dispatch [::evts/update-option :organism organism]))}]]))
+
+(defn select-type-option []
+  (fn [type]
+    [:div.form-group
+     [:label "Type"]
+     [im-controls/select-type
+      {:value type
+       :on-change (fn [type] (dispatch [::evts/update-option :type type]))}]]))
+
+(defn case-sensitive-option []
+  (fn [bool]
+    [:div.form-group
+     [:label ""]
+     [:div.checkbox
+      [:label
+       [:input
+        {:type "checkbox"
+         :checked bool
+         :on-change (fn [e]
+                      (dispatch [::evts/update-option :case-sensitive (oget e :target :checked)]))}]
+       [:div "Case sensitive"]]]]))
+
+
 (defn upload-step []
+  (let [options (subscribe [::subs/stage-options])]
+    (fn []
+      (let [{:keys [organism type case-sensitive]} @options]
+        [:div
+         [:div.row
+          [:div.col-sm-4 [select-type-option type]]
+          [:div.col-sm-4 [select-organism-option organism]]
+          [:div.col-sm-4 [case-sensitive-option case-sensitive]]]
+         [:div.upload-step-container
+          [:div.input-area
+           [:div.file-container [file-manager]]
+           [:div.vertical-divider]
+           [:div.freeform-container
+            [:div.form-group
+             {:style {:height "100%"}}
+             [:label "Enter identifiers"]
+             [:textarea.form-control {:style {:height "100%"} :rows 5}]]]]
+          [:div.footer]]]))))
+
+(defn bread []
   (fn []
-    [:div
-     [:div.form-group
-      [:label "Type"]
-      [:select.form-control
-       [:option "Gene"]
-       [:option "Protein"]]]
-     [:div.upload-step-container
-      [:div.header "header"]
-      [:div.input-area
-       [:div.file-container [file-manager]]
-       [:div.freeform-container [:textarea.form-control {:rows 5}]]]
-      [:div.footer]]]))
+    [:ul.bread
+     [:li.active [:a [:i.fa.fa-upload.fa-2x] "Upload"]]
+     [:li [:a [:i.fa.fa-exclamation-triangle.fa-2x] "Review"]]
+     [:li [:a "Three"]]
+     [:li [:a "Four"]]]))
 
 (defn wizard []
   (fn []
     [:div.wizard
-     [:ul.nav.nav-tabs
-      [:li.active [:a "Upload"]]
-      [:li.disabled [:a "Review"]]
-      [:li.disabled [:a "Complete"]]]
-     [:div.wizard-body
-      [upload-step]]]))
+     [bread]
+     [:div.wizard-body.clearfix [upload-step]]
+     [:div.wizard-footer
+      [:div.grow]
+      [:div.shrink
+       [:button.btn.btn-primary.pull-right
+        "Continue "
+        [:i.fa.fa-chevron-right {:style {:padding-left "5px"}}]]]]]))
 
 
 (defn main []
@@ -482,7 +527,7 @@
              (fn []
                (dispatch [:idresolver/example splitter]))} "[Show me an example]"]]
           [wizard]
-          [input-div]
+          #_[input-div]
           ;[stats]
           (cond (> result-count 0) [preview result-count])
           ;[selected]
