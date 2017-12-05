@@ -17,19 +17,27 @@
 (defn get-tool-types [tool]
   (into [:span]
         (map
-          (fn [tool-type]
-            (let [the-type (get tool-types tool-type)]
-            (get page-types the-type)))
-              (get-in tool [:config :accepts]))))
+         (fn [tool-type]
+           (let [the-type (get tool-types tool-type)]
+             (get page-types the-type)))
+         (get-in tool [:config :accepts]))))
+
+(defn output-tool-classes [classes]
+  (into [:div.tool-class [:h3 "Suitable for pages with these classes:"]]
+        (map (fn [the-class]
+               [:span {:class (str "type-" the-class)} the-class]) classes)))
 
 (defn tool-list []
   (let [tools (subscribe [::subs/tools])]
-    (.log js/console "%c@tools" "color:mediumorchid;font-weight:bold;" (clj->js @tools))
-    (into [:div] (map (fn [tool]
-                        [:div.tool
-                         [:h4 (get-in tool [:package :name])]
-                         [:h5 "Tool Type:"] [get-tool-types tool]
-                         [:h5 "Suitable for pages with these classes:"] [:span (clojure.string/join ", " (get-in tool [:config :classes]))]])  (:tools @tools)))))
+    (into
+     [:div.tool-list]
+     (map
+      (fn [tool]
+        [:div.tool
+         [:h2 (get-in tool [:package :name])]
+         [:span.tool-type [:h3 "Tool Type:"] [get-tool-types tool]]
+         [output-tool-classes (get-in tool [:config :classes])]])
+      (:tools @tools)))))
 
 (defn tool-store []
   [:div
