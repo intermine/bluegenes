@@ -16,6 +16,7 @@
     {:name name
       :config (cheshire/parse-string (slurp bluegenes-config))
       :package (cheshire/parse-string (slurp package))
+      :hasimage (.exists (io/file (str path "/preview.png")))
    }))
 
 (defn tools [session]
