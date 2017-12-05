@@ -34,9 +34,11 @@
      (map
       (fn [tool]
         [:div.tool
+         (cond (:hasimage tool) [:img {:src (:hasimage tool)}])
          [:h2 (get-in tool [:package :name])]
          [:span.tool-type [:h3 "Tool Type:"] [get-tool-types tool]]
-         [output-tool-classes (get-in tool [:config :classes])]])
+         [output-tool-classes (get-in tool [:config :classes])]
+         [:div.description (get-in tool [:package :description])]])
       (:tools @tools)))))
 
 (defn tool-store []

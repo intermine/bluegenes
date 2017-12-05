@@ -12,11 +12,15 @@
   (let [name (.getName (io/file tool))
         path (join "/" [path name])
         bluegenes-config (str path "/config.json")
-        package (str path "/package.json")]
+        package (str path "/package.json")
+        preview-image "/preview.png"
+        browser-path (str "/tools/" name preview-image)]
     {:name name
       :config (cheshire/parse-string (slurp bluegenes-config))
       :package (cheshire/parse-string (slurp package))
-      :hasimage (.exists (io/file (str path "/preview.png")))
+      :hasimage (if (.exists (io/file (str path preview-image)))
+                  browser-path
+                  false)
    }))
 
 (defn tools [session]
