@@ -32,6 +32,12 @@
     }
 }
 .mymine {
+    .grid {
+        border-bottom: 1px solid lightgrey;
+        > [class^="col"] {
+            padding: 8px 0;
+        }
+    }
     .list-operations {
         .disabled {
             opacity: 0.5;
@@ -162,6 +168,8 @@
         }
     }
     .files {
+        display: flex;
+        flex-direction: column;
         padding: 20px;
         border-left: 1px solid #e0e0e0;
         padding-right: 10px;
@@ -170,6 +178,12 @@
         .selected {
             outline: 2px solid #3caee5;
             outline-offset: -2px;
+        }
+        .top {
+            flex: 0 1;
+        }
+        .bottom {
+            flex: 1 0;
         }
     }
     width: 100%;
@@ -314,4 +328,11 @@
         padding: 5px 10px;
         margin: 5px 0;
     }
+}
+
+.flex-grid {
+  display: flex;
+}
+.col {
+  flex: 1;
 }

@@ -41,7 +41,7 @@
   :restrict-type  (Optional) a keyword to restrict the list to a type, like :Gene
   :on-change      A function to call with the name of the list"
   (let [text-filter-atom (reagent/atom nil)]
-    (fn [& {:keys [value lists restrict-type on-change]}]
+    (fn [& {:keys [value lists restrict-type on-change :as x]}]
       (let [text-filter    (partial has-text? @text-filter-atom)
             type-filter    (partial has-type? restrict-type)
             filter-fn      (apply every-pred [text-filter type-filter])

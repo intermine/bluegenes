@@ -10,7 +10,8 @@
             [imcljs.path :as im-path]
             [bluegenes.components.ui.constraint :refer [constraint]]
             [bluegenes.components.ui.results_preview :refer [preview-table]]
-            [oops.core :refer [oget]]))
+            [oops.core :refer [oget]]
+            [clojure.string :as s]))
 
 
 (defn categories []
@@ -19,14 +20,14 @@
     (fn []
       (into [:ul.nav.nav-pills.template-categories
              [:li {:on-click #(dispatch [:template-chooser/set-category-filter nil])
-                   :class    (if (nil? @selected-category) "active")}
+                   :class (if (nil? @selected-category) "active")}
               [:a.type-all "All"]]]
             (map (fn [category]
                    [:li {:on-click #(dispatch [:template-chooser/set-category-filter category])
                          :class
-             (if (= category @selected-category) " active")}
+                         (if (= category @selected-category) " active")}
                     [:a {:class (str
-                               "type-" category)} category]])
+                                  "type-" category)} category]])
                  @categories)))))
 
 (def css-transition-group
@@ -50,7 +51,7 @@
       :loading? @fetching-preview?
       :query-results @results-preview]
      [:button.btn.btn-primary.btn-raised.view-results
-      {:type     "button"
+      {:type "button"
        :disabled (< (:iTotalRecords @results-preview) 1)
        :on-click (fn [] (dispatch [:templates/send-off-query]))}
       (if @fetching-preview?
@@ -74,6 +75,8 @@
                         :path (:path con)
                         :value (:value con)
                         :op (:op con)
+                        :code (:code con)
+                        :hide-code? true
                         :label? true
                         :lists (second (first @lists))
                         :on-change (fn [new-constraint]
@@ -87,19 +90,19 @@
   ** Won't output any other tag types or formats"
   [tagvec]
   (into
-   [:div.template-tags "Template categories: "]
+    [:div.template-tags "Template categories: "]
     (if (> (count tagvec) 0)
-        (map (fn [tag]
-               (let [tag-parts (clojure.string/split tag #":")
-                     tag-name (peek tag-parts)
-                     is-aspect (and (= 3 (count tag-parts)) (= "aspect" (nth tag-parts 1)))]
+      (map (fn [tag]
+             (let [tag-parts (clojure.string/split tag #":")
+                   tag-name  (peek tag-parts)
+                   is-aspect (and (= 3 (count tag-parts)) (= "aspect" (nth tag-parts 1)))]
                (if is-aspect
                  [:span.tag-type {:class (str "type-" tag-name)} tag-name]
                  nil)
-                 )) tagvec)
+               )) tagvec)
       " none"
       )
-   ))
+    ))
 
 (defn template
   "UI element for a single template." []
@@ -110,8 +113,13 @@
         {:on-click (fn []
                      (if (not= (name id) (:name @selected-template))
                        (dispatch [:template-chooser/choose-template id])))
-         :class    (if (= (name id) (:name @selected-template)) "selected")}
-        [:div.title [:h4 (:title query)]]
+         :class (if (= (name id) (:name @selected-template)) "selected")}
+        (into [:h4] (->> (s/split (:title query) #"-{1,}>")
+                         (interpose [:svg.icon.icon-arrow-right [:use {:xlinkHref "#icon-arrow-right"}]])
+                         (map (fn [part]
+                                (if (string? part)
+                                  (interpose [:svg.icon.icon-arrow-left [:use {:xlinkHref "#icon-arrow-left"}]] (s/split part #"<-{1,}"))
+                                  part)))))
         [:div.description
          {:dangerouslySetInnerHTML {:__html (:description query)}}]
         (if (= (name id) (:name @selected-template))
@@ -157,11 +165,11 @@
   (let [text-filter (subscribe [:template-chooser/text-filter])]
     (fn []
       [:input.form-control.input-lg
-       {:type        "text"
-        :value       @text-filter
+       {:type "text"
+        :value @text-filter
         :placeholder "Filter text..."
-        :on-change   (fn [e]
-                       (dispatch [:template-chooser/set-text-filter (.. e -target -value)]))}])))
+        :on-change (fn [e]
+                     (dispatch [:template-chooser/set-text-filter (.. e -target -value)]))}])))
 
 
 (defn filters [categories template-filter filter-state]

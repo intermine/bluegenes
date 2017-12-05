@@ -102,8 +102,8 @@
             ; Open the parent
             (update-in [:mymine :tree] update-in (or location-trail []) assoc :open true)
             ;
-            (assoc-in [:mymine :focus] (if (nil? location-trail) [uuid] (conj (vec location-trail) :children uuid)))
-            )))))
+            (assoc-in [:mymine :focus] (if (nil? location-trail) [uuid] (conj (vec location-trail) :children uuid))))))))
+
 
 
 (defn parent-container [path]
@@ -333,8 +333,8 @@
 (defn toggle-set [coll k]
   (let [s (set coll)]
     (if (contains? s k)
-      (remove #{k} s)
-      (conj s k))))
+      (set (remove #{k} s))
+      (set (conj s k)))))
 
 (reg-event-db
   ::toggle-checked
@@ -392,8 +392,8 @@
           [ids-a ids-b] (get-in db [:mymine :suggested-state])
           selected-lists-a (map :name (filter (fn [l] (some #{(:id l)} ids-a)) lists))
           selected-lists-b (map :name (filter (fn [l] (some #{(:id l)} ids-b)) lists))
-          parent-id        (get-in db [:mymine :cursor :entry-id])
-          ]
+          parent-id        (get-in db [:mymine :cursor :entry-id])]
+
       (let [service (get-in db [:mines (get db :current-mine) :service])]
         {:im-chan {:chan (save/im-list-subtraction service list-name selected-lists-a selected-lists-b)
                    :on-success [::lo-success parent-id]
@@ -460,12 +460,14 @@
 
 (reg-event-fx ::store-tag []
               (fn [{db :db} [_ label]]
-                (let [context-menu-target (get-in db [:mymine :context-menu-target])]
+                (let [context-menu-target (get-in db [:mymine :context-menu-target])
+                      mine-id             (get-in db [:current-mine])]
                   {:db db
                    :http {:method :post
                           :params {:im-obj-type "tag"
                                    :parent-id (:entry-id context-menu-target)
                                    :label label
+                                   :mine (name mine-id)
                                    :open? true}
                           :on-success [::success-store-tag]
                           :uri "/api/mymine/entries"}})))
@@ -551,10 +553,11 @@
 
 (reg-event-fx ::fetch-tree []
               (fn [{db :db}]
-                {:db db
-                 :http {:method :get
-                        :on-success [::echo-tree]
-                        :uri "/api/mymine/entries"}}))
+                (let [current-mine (name (get-in db [:current-mine]))]
+                  {:db db
+                   :http {:method :get
+                          :on-success [::echo-tree]
+                          :uri (str "/api/mymine/entries/" current-mine)}})))
 
 (defn toggle-open [entries entry-id status]
   (map (fn [e] (if (= (:entry-id e) entry-id)
@@ -609,7 +612,8 @@
               (fn [{db :db} [_ tag]]
                 (let [{dragging-id :entry-id :as dragging} (get-in db [:mymine :drag :dragging])
                       {dropping-id :entry-id :as dropping} (get-in db [:mymine :drag :dragging-over])
-                      hierarchy (get-in db [:mymine :hierarchy])]
+                      hierarchy (get-in db [:mymine :hierarchy])
+                      current-mine (get-in db [:current-mine])]
                   (let [noop {:db (assoc-in db [:mymine :drag] nil)}]
 
                     (cond
@@ -619,16 +623,16 @@
                       (not= "tag" (:im-obj-type dropping)) noop
                       (nil? dragging-id)
                       (assoc noop :http {:method :post
-                                           :params (assoc dragging :parent-id dropping-id)
-                                           :on-success [::success-store-tag]
-                                           :uri "/api/mymine/entries"})
+                                         :params (assoc dragging :parent-id dropping-id :mine current-mine)
+                                         :on-success [::success-store-tag]
+                                         :uri "/api/mymine/entries"})
                       (and (not= dragging-id dropping-id))
                       (assoc noop :http {:method :post
-                                           :on-success [::success-move-entry]
-                                           :uri (str "/api/mymine/entries/"
-                                                     dragging-id
-                                                     "/move/"
-                                                     dropping-id)})
+                                         :on-success [::success-move-entry]
+                                         :uri (str "/api/mymine/entries/"
+                                                   dragging-id
+                                                   "/move/"
+                                                   dropping-id)})
                       :else noop)))))
 
 (reg-event-fx ::success-move-entry

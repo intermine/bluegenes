@@ -12,6 +12,7 @@ Checked the following pages load results successfully and allow you to proceed t
 
 - [ ] ID resolver + results preview
 - [ ] Templates execute and show results
+- [ ] Templates allow you to select lists AND type in identifiers
 - [ ] Search (dropdown preview version)
 - [ ] Search (full results page)
 - [ ] Report page loads, including homologues and tools

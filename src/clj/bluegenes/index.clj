@@ -17,29 +17,29 @@
 (defn head []
   [:head
    loader-style
-
-    [:title "InterMine 2.0 bluegenes"]
-    (include-css
-      "https://cdnjs.cloudflare.com/ajax/libs/gridlex/2.2.0/gridlex.min.css")
-    (include-css
-      "http://cdn.intermine.org/js/intermine/im-tables/2.0.0/main.sandboxed.css")
-    (include-css "css/site.css")
-    [:meta {:charset "utf-8"}]
-    [:meta {:content "width=device-width, initial-scale=1", :name "viewport"}]
-    [:script "var serverVars={googleAnalytics :'" (:google-analytics env) "'}" ]
-    [:link {:rel "shortcut icon" :href "https://cdn.rawgit.com/intermine/design-materials/f5f00be4/logos/intermine/fav32x32.png" :type "image/png"}]
-    [:script {:src
-      "http://cdn.intermine.org/js/intermine/imjs/3.15.0/im.min.js"}]
-    [:script
-     {:crossorigin "anonymous",
-      :integrity "sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s=",
-      :src "https://code.jquery.com/jquery-3.1.0.min.js"}]
-    [:script {:src "vendor/bootstrap/dist/js/bootstrap.js"}]
-    [:script {:src "vendor/bootstrap/js/tooltip.js"}]
-    [:script {:src "vendor/bootstrap/js/popover.js"}]
+   [:title "InterMine 2.0 bluegenes"]
+   (include-css
+     "https://cdnjs.cloudflare.com/ajax/libs/gridlex/2.2.0/gridlex.min.css")
+   (include-css
+     "http://cdn.intermine.org/js/intermine/im-tables/2.0.0/main.sandboxed.css")
+   (include-css "css/site.css")
+   (include-css "vendor/font-awesome/css/font-awesome.min.css")
+   [:meta {:charset "utf-8"}]
+   [:meta {:content "width=device-width, initial-scale=1", :name "viewport"}]
+   [:script "var serverVars={googleAnalytics :'" (:google-analytics env) "'}"]
+   [:link {:rel "shortcut icon" :href "https://cdn.rawgit.com/intermine/design-materials/f5f00be4/logos/intermine/fav32x32.png" :type "image/png"}]
+   [:script {:src
+             "http://cdn.intermine.org/js/intermine/imjs/3.15.0/im.min.js"}]
+   [:script
+    {:crossorigin "anonymous",
+     :integrity "sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s=",
+     :src "https://code.jquery.com/jquery-3.1.0.min.js"}]
+   [:script {:src "vendor/bootstrap/dist/js/bootstrap.js"}]
+   [:script {:src "vendor/bootstrap/js/tooltip.js"}]
+   [:script {:src "vendor/bootstrap/js/popover.js"}]
    [:script {:src "https://apis.google.com/js/api.js"}]
-  ]
-)
+   ]
+  )
 
 
 (defn loader []
@@ -56,9 +56,7 @@
 
 
 (defn index [identity]
-  (let [
-        ;json-identity (json/generate-string identity)
-        ]
+  (let [json-identity (json/generate-string identity)]
     (html5
       (head)
       [:body

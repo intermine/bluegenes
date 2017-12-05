@@ -40,7 +40,7 @@
     (fn []
       (if @are-there-results?
         ;;show results
-        [:div.container.results
+        [:div.container-fluid.results
          [breadcrumb]
          [:div.results-and-enrichment
           [:div.col-md-8.col-sm-12.panel

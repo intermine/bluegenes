@@ -7,7 +7,7 @@
   :visual-navbar-minechange
   (fn []
     ;;makes sure that the user notices the mine has changed.
-    (let [navbar (.querySelector js/document ".navbar-brand")
+    (let [navbar (.querySelector js/document ".minename")
           navbar-class (.-className navbar)]
       (oset! navbar ["className"] (str navbar-class " recently-changed"))
       (.setTimeout js/window #(oset! navbar ["className"] navbar-class) 3000)
