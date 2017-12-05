@@ -1,5 +1,5 @@
 @import "../variables";
-@crazy-padding: 40px;
+@crazy-padding: 60px;
 
 .lb-sm {
     font-size: 0.6em;
@@ -25,11 +25,11 @@
 
     .template-filters {
         background: darken(@body-background-color,3%);
-        //this padding stops content shwoing through at weird breakpoints;
+        //this padding stops content showing through at weird breakpoints;
         padding-top: @crazy-padding;
         position: fixed;
         z-index: 42; //a higher z-index than light tables is the answer. And 42 is always the answer.
-        margin-top: -20px - (@crazy-padding);
+        margin-top: -@crazy-padding;
         padding-bottom: 2px;
         box-shadow: 1px 1px 1px rgba(0,0,0,0.2);
         right: 0;

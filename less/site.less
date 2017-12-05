@@ -2,7 +2,6 @@
 @import "../resources/public/vendor/bootstrap-material-design/less/bootstrap-material-design";
 @import "../resources/public/vendor/bootstrap/less/navs";
 @import "../resources/public/vendor/gridlex/dist/gridlix.min.css";
-
 @import "json-html";
 @import "components/icons";
 @import "components/progressbar";
@@ -35,9 +34,7 @@
 @import "components/mymine";
 @import "datatype-colors";
 @import "animations";
-
 @import url(https:fonts.googleapis.com/css?family=Roboto:400,700,300);
-
 body {
     background: @body-background-color;
     color: @body-foreground-color;
@@ -63,31 +60,26 @@ html {
     margin: 0 1em;
     flex-grow: 1;
 }
-@annoyingscrollbars: 5em;
 
+@annoyingscrollbars: 5em;
 html {
+    //this margin directly offsets the annoying scrollbars
     margin-top: -@annoyingscrollbars;
-    @media (max-width:@even-tinier-screen) {
+    @media (max-width: @even-tinier-screen) {
         //fix for the html body randomly not choosing to fill the screen on small phone browsers.
         position: absolute;
     }
 }
-//this margin directly offsets the annoying scrollbars
 
 main {
     display: flex;
     flex-grow: 1;
     justify-content: center;
-    margin-top: @annoyingscrollbars; //this margin directly offsets the annoying scrollbars that we were getting with a 100% page height and sticky header
+    margin-top: @spacer; //this margin directly offsets the annoying scrollbars that we were getting with a 100% page height and sticky header
 }
+
 //smaller screens:
 @media (max-width:539px) {
-     @as: 8em;
-
-    main {
-        margin-top: @as;
-    }
-
     .approot {
         margin: 0;
     }
@@ -98,16 +90,15 @@ a.callout {
     border-bottom: 1px solid #c4c4c4;
     padding: 2px;
     text-decoration: none;
-
     &:hover {
         border-bottom: 1px solid @highlight-color;
     }
 }
 
 .down-shadow {
-    -webkit-box-shadow: 0 2px 5px -1px rgba(0,0,0,0.33);
-    -moz-box-shadow: 0 2px 5px -1px rgba(0,0,0,0.33);
-    box-shadow: 0 2px 5px -1px rgba(0,0,0,0.33);
+    -webkit-box-shadow: 0 2px 5px -1px rgba(0, 0, 0, 0.33);
+    -moz-box-shadow: 0 2px 5px -1px rgba(0, 0, 0, 0.33);
+    box-shadow: 0 2px 5px -1px rgba(0, 0, 0, 0.33);
 }
 
 a:hover {
@@ -115,7 +106,7 @@ a:hover {
 }
 
 .up-shadow {
-    box-shadow: 0 -2px 5px -1px rgba(0,0,0,0.33);
+    box-shadow: 0 -2px 5px -1px rgba(0, 0, 0, 0.33);
 }
 
 .panel {
@@ -163,27 +154,26 @@ div.header {
     border-radius: 0;
 }
 
-
 footer {
     display: flex;
     border-top: solid 1px #ccc;
     margin-bottom: 0;
-    box-shadow: -1px -1px 1px 1px rgba(0,0,0,0.1);
-
+    margin-left: -@spacer;
+    margin-right: -@spacer;
+    box-shadow: -1px -1px 1px 1px rgba(0, 0, 0, 0.1);
     div {
         display: flex;
         justify-content: center;
         flex-grow: 1;
-
-        > * {
+        >* {
             margin: 1em;
         }
     }
-
     a {
         text-decoration: underline;
     }
 }
+
 @media (max-width:800px) {
     footer {
         flex-wrap: wrap;
@@ -225,10 +215,6 @@ footer {
     background: rgba(0, 0, 0, 0.1);
 }
 
-.search {
-    margin-top: 2px;
-}
-
 .small {
     font-size: 0.7em;
     background: white;
@@ -259,17 +245,17 @@ td.skipped {
 .stressed {
     color: @highlight-color;
 }
-//this is the best class name in the world.
 
+//this is the best class name in the world.
 .LORD_FADER {
     /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#000000+0,000000+100&0+0,0.65+100 */
-    background: -moz-linear-gradient(top, rgba(0,0,0,0) 0%, rgba(0,0,0,0.33) 100%);
+    background: -moz-linear-gradient(top, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.33) 100%);
     /* FF3.6-15 */
-    background: -webkit-linear-gradient(top, rgba(0,0,0,0) 0%,rgba(0,0,0,0.33) 100%);
+    background: -webkit-linear-gradient(top, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.33) 100%);
     /* Chrome10-25,Safari5.1-6 */
-    background: linear-gradient(to bottom, rgba(0,0,0,0) 0%,rgba(0,0,0,0.33) 100%);
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.33) 100%);
     /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
-    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr=  '#00000000', endColorstr='#a6000000',GradientType=0 );
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#00000000', endColorstr='#a6000000', GradientType=0);
     /* IE6-9 */
     position: fixed;
     width: inherit;
@@ -281,27 +267,27 @@ td.skipped {
     color: black;
     pointer-events: none;
 }
+
+
 /** input.form-control {
     &:focus {
         .form-group.is-focused .form-control;
     }
 } **/
+
 .mine-choice {
     display: flex;
     justify-content: space-between;
-
     label {
         padding: 2px 4px 0 2px;
         color: @body-foreground-color;
-
         input {
             margin-right: 2px;
         }
-
         &.checked {
             border-bottom: solid 3px @highlight-color;
             border-radius: 2px;
-            background: rgba(0,0,0,0.07);
+            background: rgba(0, 0, 0, 0.07);
             color: @body-foreground-color;
         }
     }
@@ -324,18 +310,15 @@ input.form-control:focus {
 input[type="checkbox"] {
     @the-color: #999;
     margin-right: 0.8em;
-
     &:checked {
         &:before {
             content: '\2714';
             color: darken(@the-color, 20%);
         }
     }
-
     &:focus:before {
-        box-shadow: 0 0 2px 1px fadeout(@highlight-color,20%);
+        box-shadow: 0 0 2px 1px fadeout(@highlight-color, 20%);
     }
-
     &:before {
         .border-radius;
         background: #fff;
@@ -355,7 +338,6 @@ input[type="checkbox"] {
 label {
     line-height: 1.2em;
     margin-right: @spacer/2;
-
     &:hover,
     &:hover input[type=checkbox],
     &:hover input[type=checkbox]:before {
@@ -384,7 +366,6 @@ label {
 
 .breadcrumb-container {
     padding: 10px;
-
     ul {
         display: inline;
     }
@@ -392,21 +373,20 @@ label {
 
 .extra-tiny-screen {
     display: none;
-    @media (max-width:@even-tinier-screen) {
+    @media (max-width: @even-tinier-screen) {
         display: inline-block;
     }
 }
 
 .larger-screen-only,
 .navbar.navbar-default li.larger-screen-only {
-    @media (max-width:@even-tinier-screen) {
+    @media (max-width: @even-tinier-screen) {
         display: none;
     }
 }
 
 .inline-label {
     display: flex;
-
     a {
         display: inline;
     }
@@ -420,14 +400,14 @@ label {
 
 /** TODO: Move these somewhere better **/
 
-button.btn{
-  display:flex;
-  align-items:center;
-  justify-content: center;
-  svg {margin-right:0.5em;}
-
-  /** ignore below thi, just making button shiny **/
-
+button.btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    svg {
+        margin-right: 0.5em;
+    }
+    /** ignore below thi, just making button shiny **/
     /*
   color:#fff;
   text-shadow:1px 1px 1px rgba(0,0,0,0.1);
@@ -447,12 +427,8 @@ button.btn{
     fill: currentColor;
 }
 
-
- .navbar .navbar-nav > li,
- .navbar .navbar-nav > li > a {
+.navbar .navbar-nav>li,
+.navbar .navbar-nav>li>a {
     display: flex;
     align-items: center;
 }
-
-
-
