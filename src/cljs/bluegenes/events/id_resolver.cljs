@@ -34,12 +34,14 @@
 
 (reg-event-fx ::resolve-identifiers
               (fn [{db :db} [_ options identifiers]]
+                (js/console.log "OPTIONS" options)
                 {:im-chan {:chan (fetch/resolve-identifiers
                                    ;TODO - Just a placeholder, make this dynamic
                                    {:root "beta.flymine.org/beta"}
                                    {:identifiers identifiers
                                     :case-sensitive (:case-sensitive options)
-                                    :type "Gene"})
+                                    :type (:type options)
+                                    :extra (:organism options)})
                            :on-success [::store-identifiers]}}))
 
 (reg-event-db ::store-identifiers

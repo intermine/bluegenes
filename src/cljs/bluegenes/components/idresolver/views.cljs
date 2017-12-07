@@ -442,6 +442,7 @@
 
 (defn select-organism-option []
   (fn [organism]
+    (println "O" organism)
     [:div.form-group
      [:label "Organism"]
      [im-controls/select-organism
@@ -498,12 +499,16 @@
 (defn review-table []
   (fn [results]
     [:table.table.table-striped
-     [:thead [:th "Input"]]
+     [:thead [:tr [:th "Input"] [:th "Matches"]]]
      (into [:tbody]
            (map (fn [{:keys [input reason matches] :as row}]
                   [:tr
                    [:td input]
-                   (into [:td] (map (fn [{{:keys [symbol]} :summary}] [:span.label.label-warning symbol]) matches))]) results))]))
+                   (into [:td] (map (fn [{{:keys [symbol] :as duplicate} :summary}]
+                                      [:span.label.label-warning
+                                       {:on-click (fn [] (js/console.log duplicate))} symbol])
+                                    matches))])
+                results))]))
 
 (defn review-step []
   (let [resolution-response (subscribe [::subs/resolution-response])]
@@ -561,10 +566,10 @@
              result-count (- (count @bank) (count @no-matches))]
          [:div.container.idresolverupload
           #_[:div.headerwithguidance
-           [:a.guidance
-            {:on-click
-             (fn []
-               (dispatch [:idresolver/example splitter]))} "[Show me an example]"]]
+             [:a.guidance
+              {:on-click
+               (fn []
+                 (dispatch [:idresolver/example splitter]))} "[Show me an example]"]]
           [wizard]
           #_[input-div]
           ;[stats]
