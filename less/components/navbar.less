@@ -1,217 +1,189 @@
-@import "../variables";
-
-.navbar,
-.navbar.navbar-default {
-    li {
-        flex-grow: 1;
-        justify-content: center;
-        text-align: center;
-    }
-    background-color: @navbar-color;
-    margin-bottom: 0;
-    border-width: 0;
-    border-radius: 0;
-
-    .container-fluid,
-    .navbar-header {
-        margin-left: 0;
-    }
-
-    .navbar-header {
-        margin-right: 0;
-    }
-
-    .logo.icon {
-        vertical-align: middle;
-        width: 1.5em;
-        height: 1.5em;
-        margin-top: -4px;
-        margin-right: 2px;
-        margin-left: 0;
-    }
-
-    .navbar-brand {
-        color: #fff;
-        font-style: bold;
-        -webkit-clip-path: polygon(0 0, 100% 0, 93% 100%, 0 100%);
-        clip-path: polygon(0 0, 100% 0, 93% 100%, 0 100%);
-        .transitions;
-
-        &:hover {
-            .transitions;
-            text-shadow: 1px 1px 1px rgba(0,0,0,0.17);
-            background: lighten(@navbar-color,15%);
-            color: white;
+    @import "../variables";
+    nav {
+        margin-left: -15px;
+        margin-right: -15px;
+        color: @navbar-color-text;
+        background-color: @navbar-color;
+        margin-bottom: 0;
+        border-width: 0;
+        border-radius: 0;
+        z-index: 43;
+        ul {
+            display: flex;
+            padding: 0;
+            align-items: stretch;
+            justify-content: flex-start;
+            margin-bottom: 0;
         }
-        //this and the keyframes are for changing mines.
-        &.recently-changed {
-            animation-duration: 3s;
-            animation-name: slidein;
-            transition-timing-function: ease;
-        }
-        @keyframes slidein {
-            from {
-                margin-right: 100%;
-                width: 500%;
-            }
-
-            to {
-                background: @highlight-color;
-                margin-left: -15px;
-                width: calc(100% + 15px);
+        li {
+            min-height: 3*@spacer;
+            flex-grow: 1;
+            justify-content: center;
+            text-align: center;
+            list-style-type: none;
+            color: @navbar-color-text;
+            display: flex;
+            flex-direction: column;
+            a {
                 height: 100%;
-            }
-        }
-    }
-
-    li {
-        .transitions;
-
-        &:hover {
-            .transitions;
-            background: lighten(@navbar-color,10%);
-            color: #fff;
-        }
-        //this is the mine chooser dropdown
-        &.mine-settings {
-            .dropdown-menu {
-                padding: 0;
-                text-align: left;
-            }
-
-            li a {
-                //before we added this they were huge and ran off the bottom of small screens
-                height: 2.2* @spacer;
-                line-height: 1.2 * @spacer;
-                font-size: @spacer;
-                padding: 0.6 * @spacer @spacer;
-                box-sizing: border-box;
-            }
-
-            li,
-            li a {
-                .transitions;
-                background: @body-background-color;
-                text-align: left;
-
-                .icon {
-                    fill: rgba(0,0,0,0.2);
-                    margin-right: @spacer;
-                }
-
+                justify-content: center;
+                flex-grow: 1;
+                align-items: center;
+                display: flex;
+                color: @navbar-color-text;
                 &:hover {
-                    background: darken(@body-background-color, 3%);
-                    color: @highlight-color;
                     .transitions;
+                    text-decoration: none;
+                    background: lighten(@navbar-color, 10%);
+                    color: @navbar-color-text;
                 }
-
-                &.active,
-                &.active > a {
-                    background-color: @highlight-color;
-
+            }
+            .transitions; //this is the mine chooser dropdown
+            &.mine-settings {
+                .dropdown-menu {
+                    padding: 0;
+                    text-align: left;
+                }
+                li a {
+                    //before we added this they were huge and ran off the bottom of small screens
+                    height: 2.2* @spacer;
+                    line-height: 1.2 * @spacer;
+                    font-size: @spacer;
+                    padding: 0.6 * @spacer @spacer;
+                    box-sizing: border-box;
+                }
+                li,
+                li a {
+                    .transitions;
+                    background: @body-background-color;
+                    text-align: left;
                     .icon {
-                        fill: @body-background-color;
+                        fill: rgba(0, 0, 0, 0.2);
+                        margin-right: @spacer;
                     }
-
-                    & > a:hover,
                     &:hover {
-                        background: darken(@highlight-color, 3%);
+                        background: darken(@body-background-color, 3%);
+                        color: @highlight-color;
                         .transitions;
                     }
-                }
-
-                &.special {
-                    border-top: solid 1px @highlight-color;
+                    &.active,
+                    &.active>a {
+                        background-color: @highlight-color;
+                        .icon {
+                            fill: @body-background-color;
+                        }
+                        &>a:hover,
+                        &:hover {
+                            background: darken(@highlight-color, 3%);
+                            .transitions;
+                        }
+                    }
+                    &.special {
+                        border-top: solid 1px @highlight-color;
+                    }
                 }
             }
         }
-    }
-
-    .navbar-nav > li > a:focus {
-        background-color: white;
-    }
-
-    .short-name {
-        display: none;
-    }
-
-    svg {
-        fill: rgba(255,255,255,0.84);
-    }
-
-    .search,
-    .search:hover {
-        background: @navbar-color;
-
-        input {
-            margin-top: 8px;
+        .minename {
+            display: flex;
+            -webkit-clip-path: polygon(0 0, 100% 0, 93% 100%, 0 100%);
+            clip-path: polygon(0 0, 100% 0, 93% 100%, 0 100%);
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            .transitions;
+            .logo.icon {
+                vertical-align: middle;
+                width: @spacer*1.5;
+                height: @spacer*1.5;
+                margin-top: -4px;
+                margin-right: 2px;
+                margin-left: 0;
+            }
+            &:hover {
+                .transitions;
+                text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.17);
+                background: lighten(@navbar-color, 15%);
+                color: white;
+            } //this and the keyframes are for changing mines.
+            &.recently-changed {
+                animation-duration: 3s;
+                animation-name: slidein;
+                transition-timing-function: ease;
+            }
+            @keyframes slidein {
+                0% {
+                    margin-left: 100%;
+                    min-width: 5em;
+                    flex-grow: 5;
+                    background: @highlight-color;
+                }
+                70% {
+                    background: @highlight-color;
+                }
+                100% {
+                    background: @navbar-color;
+                    width: auto;
+                }
+            }
         }
-    }
-}
-@media (max-width:800px) {
-    .navbar-header {
-        align-self: flex-start;
-    }
-
-    .navbar-brand {
-        margin-left: 0;
-    }
-
-    .navbar {
-        .long-name {
+        .short-name {
             display: none;
         }
-
-        .short-name {
-            display: inline;
+        svg {
+            fill: rgba(255, 255, 255, 0.84);
         }
-
-        .navbar-nav {
-            margin-top: 0;
+        .search,
+        .search:hover {
+            background: @navbar-color;
+            input {
+                margin: @spacer/4;
+                margin-left: auto;
+            }
         }
-
-        .container-fluid {
-            margin-left: 0;
-            padding-left: 2px;
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: stretch;
-        }
-    }
-
-    .container > .navbar-collapse,
-    .container-fluid > .navbar-collapse {
-        &.navigation {
-            border-top: 0;
-            margin-bottom: 0;
-            //  margin-top: 5px;
-            flex-grow: 1;
-            justify-content: space-around;
-            display: flex;
+        .dropdown-menu {
+            left: auto;
+            right: 0;
         }
     }
 
-    .navbar.navbar-default {
+    @media (max-width:800px) {
+        nav {
+            .long-name {
+                display: none;
+            }
+            .short-name {
+                display: inline;
+            }
+            .navbar-nav {
+                margin-top: 0;
+            }
+            .container-fluid {
+                margin-left: 0;
+                padding-left: 2px;
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: stretch;
+            }
+        }
         li {
             .transitions;
             padding: 0;
-
             &.homelink {
                 display: none;
             }
-
             a {
                 .transitions;
                 padding-left: 7px;
                 padding-right: 7px;
             }
-
-            .navbar-brand {
+            .minename {
                 .transitions;
                 @cp: inset(4px 0px round 3px);
                 clip-path: @cp;
                 -webkit-clip-path: @cp;
-                min-width: 1.3em;
+                min-width: 1.3*@spacer;
                 text-overflow: clip;
                 font-family: "Courier New", monospace;
                 overflow: hidden;
@@ -220,56 +192,45 @@
             }
         }
     }
-}
-@media (max-width:970px) {
-    .navbar-nav.buttons {
-        .transitions;
-        margin-top: 0;
-        display: flex;
-        flex-grow: 1;
-        justify-content: space-around;
-        margin-bottom: 0;
 
+    @media (max-width:1400px) {
+        .search input,
+        .search input:hover {
+            .transitions;
+        }
         li {
             &.search {
                 display: none;
             }
         }
     }
-}
-@media (max-width:1200px) {
-    .navbar.navbar-default {
-        .search input,
-        .search input:hover {
-            margin-top: 4px;
-            .transitions;
+
+    @media(max-width:@tiny-screen) {
+        nav ul {
+            margin-left: @spacer*1.5;
+            margin-right: @spacer;
         }
     }
-}
-@media (max-width:@even-tinier-screen) {
-    .navbar.navbar-default {
-        li {
-          // a desperate attempt to make the search bar a bit narrower
-            font-family: "Roboto condensed","Helvetica Neue Condensed","PT Sans Narrow", "Open Sans Condensed", "Liberation Sans Narrow","Arial Narrow", "sans serif", sans-serif;
-        }
 
-        li a {
-            padding-left: 4px;
-            padding-right: 4px;
-            font-size:0.9em;
+    @media (max-width:@even-tinier-screen) {
+        nav {
+            li {
+                // a desperate attempt to make the search bar a bit narrower
+                font-family: "Roboto condensed", "Helvetica Neue Condensed", "PT Sans Narrow", "Open Sans Condensed", "Liberation Sans Narrow", "Arial Narrow", "sans serif", sans-serif;
+                a {
+                    padding-left: 4px;
+                    padding-right: 4px;
+                    font-size: @spacer*0.9;
+                }
+            }
         }
     }
-    .navbar-right {margin-left:0.3em}
-}
 
-.navbar .navbar-nav > .warning > a,
- navbar .navbar-nav > .warning > a:hover,
- .navbar .navbar-nav > .warning > a:focus {
-    background-color: #b39704;
- }
- 
- .navbar .navbar-nav > .success > a,
-  navbar .navbar-nav > .success > a:hover,
-  .navbar .navbar-nav > .success > a:focus {
-     background-color: #057305;
-  }
+    .logon {
+        &.warning {
+            background-color: @highlight-color;
+            &:hover {
+                background-color: lighten(@highlight-color, 10%)
+            }
+        }
+    }
