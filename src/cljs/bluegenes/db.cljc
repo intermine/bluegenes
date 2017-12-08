@@ -15,7 +15,7 @@
    :search {:selected-results #{}}
 
    :idresolver {:stage {:files nil
-                        :options {:case-sensitive true
+                        :options {:case-sensitive false
                                   :type "Gene"
                                   :organism "D. melanogaster"}
                         :status nil

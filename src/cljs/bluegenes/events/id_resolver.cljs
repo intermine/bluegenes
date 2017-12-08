@@ -55,3 +55,7 @@
 (reg-event-db ::update-option
               (fn [db [_ option-kw value]]
                 (assoc-in db [:idresolver :stage :options option-kw] value)))
+
+(reg-event-db ::toggle-keep-duplicate
+              (fn [db [_ duplicate-idx match-idx]]
+                (update-in db [:idresolver :response :matches :DUPLICATE duplicate-idx :matches match-idx :keep?] not)))

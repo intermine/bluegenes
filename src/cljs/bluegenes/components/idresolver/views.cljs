@@ -501,25 +501,35 @@
     [:table.table.table-striped
      [:thead [:tr [:th "Input"] [:th "Matches"]]]
      (into [:tbody]
-           (map (fn [{:keys [input reason matches] :as row}]
+           (map-indexed (fn [duplicate-idx {:keys [input reason matches] :as row}]
                   [:tr
                    [:td input]
-                   (into [:td] (map (fn [{{:keys [symbol] :as duplicate} :summary}]
-                                      [:span.label.label-warning
-                                       {:on-click (fn [] (js/console.log duplicate))} symbol])
-                                    matches))])
+                   [:td
+                    (into [:div.btn-toolbar]
+                          (map-indexed
+                            (fn [match-idx {{:keys [symbol] :as duplicate} :summary keep? :keep?}]
+                              [:button.btn.btn-default
+                               {:class (when keep? "btn-success")
+                                :on-click (fn []
+
+                                            (dispatch [::evts/toggle-keep-duplicate duplicate-idx match-idx]) )}
+                               [:span [:i.fa.fa-fw {:class (if keep? "fa-check" "does-not-exist")}]
+                                symbol ]])
+                            matches))]])
                 results))]))
 
 (defn review-step []
   (let [resolution-response (subscribe [::subs/resolution-response])]
     (fn []
-      (let [{{stats :identifiers} :stats} @resolution-response]
+      (let [{{stats :identifiers :as s} :stats} @resolution-response]
         (js/console.log "R" (-> @resolution-response :matches :DUPLICATE count))
+        (js/console.log "R" (-> @resolution-response))
+        (js/console.log "S" s)
         [:div
          [:div.progress
           [:div.progress-bar.progress-bar-success {:style {:width (str (* 100 (/ (:matches stats) (:all stats))) "%")}} (str (:matches stats) " Matches")]
           [:div.progress-bar.progress-bar-warning {:style {:width (str (* 100 (/ (:issues stats) (:all stats))) "%")}} (str (:issues stats) " Issues")]
-          [:div.progress-bar.progress-bar-warning {:style {:width (str (* 100 (/ (:notFound stats) (:all stats))) "%")}} "Not Found"]]
+          [:div.progress-bar.progress-bar-danger {:style {:width (str (* 100 (/ (:notFound stats) (:all stats))) "%")}} (str (:notFound stats) " Not Found")]]
 
          [review-table (-> @resolution-response :matches :DUPLICATE)]
 
