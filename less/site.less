@@ -414,15 +414,6 @@ button.btn {
   svg {
     margin-right: 0.5em;
   }
-  /** ignore below thi, just making button shiny **/
-  /*
-  color:#fff;
-  text-shadow:1px 1px 1px rgba(0,0,0,0.1);
-  background-color:#009688;
-  border:0;
-  padding:0.5em 1em;
-  border-radius:2px; box-shadow:1px 1px 1px rgba(0,0,0,0.2);
-  */
 }
 
 .icon(@icon-size) {
@@ -430,8 +421,7 @@ button.btn {
   margin-top: 1px;
   display: inline-block;
   width: @icon-size;
-  height: @icon-size;
-  fill: @link-color;
+  height: @icon-size; //  fill: @link-color;
   margin: 0 @icon-size/2;
 }
 
