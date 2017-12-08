@@ -1,15 +1,17 @@
 @import "../variables";
 
 .icon(@icon-size) {
-    vertical-align: top;
-    margin-top: 1px;
-    display: inline-block;
-    width: @icon-size;
-    height: @icon-size;
-    fill: @link-color;
-    margin: 0 @icon-size/2;
+  vertical-align: top;
+  margin-top: 1px;
+  display: inline-block;
+  width: @icon-size;
+  height: @icon-size; //    fill: @link-color;
+  margin: 0 @icon-size/2;
 }
-.icon {.icon(1em);}
+
+.icon {
+  .icon(1em);
+}
 
 .icon-2x {
   .icon(2em)
