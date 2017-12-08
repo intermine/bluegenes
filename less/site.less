@@ -2,7 +2,6 @@
 @import "../resources/public/vendor/bootstrap-material-design/less/bootstrap-material-design";
 @import "../resources/public/vendor/bootstrap/less/navs";
 @import "../resources/public/vendor/gridlex/dist/gridlix.min.css";
-
 @import "json-html";
 @import "components/icons";
 @import "components/progressbar";
@@ -35,251 +34,241 @@
 @import "components/mymine";
 @import "datatype-colors";
 @import "animations";
-
 @import url(https:fonts.googleapis.com/css?family=Roboto:400,700,300);
 
 body {
-    background: @body-background-color;
-    color: @body-foreground-color;
-    margin-top: 50px;
-    font-family: 'Roboto', sans-serif;
+  background: @body-background-color;
+  color: @body-foreground-color;
+  margin-top: 50px;
+  font-family: 'Roboto', sans-serif;
 }
 
 .ani {
-    transition: all 100ms ease;
+  transition: all 100ms ease;
 }
 
 #app,
 body,
 html {
-    height: 100%;
+  height: 100%;
 }
 
 .approot {
-    min-height: 100%;
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    margin: 0 1em;
-    flex-grow: 1;
+  min-height: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  margin: 0 1em;
+  flex-grow: 1;
 }
 @annoyingscrollbars: 5em;
 
 html {
-    margin-top: -@annoyingscrollbars;
-    @media (max-width:@even-tinier-screen) {
-        //fix for the html body randomly not choosing to fill the screen on small phone browsers.
-        position: absolute;
-    }
+  //this margin directly offsets the annoying scrollbars
+  margin-top: -@annoyingscrollbars;
+  @media (max-width: @even-tinier-screen) {
+    //fix for the html body randomly not choosing to fill the screen on small phone browsers.
+    position: absolute;
+  }
 }
-//this margin directly offsets the annoying scrollbars
 
 main {
-    display: flex;
-    flex-grow: 1;
-    justify-content: center;
-    margin-top: @annoyingscrollbars; //this margin directly offsets the annoying scrollbars that we were getting with a 100% page height and sticky header
+  display: flex;
+  flex-grow: 1;
+  justify-content: center;
+  margin-top: @spacer; //this margin directly offsets the annoying scrollbars that we were getting with a 100% page height and sticky header
 }
 //smaller screens:
 @media (max-width:539px) {
-     @as: 8em;
-
-    main {
-        margin-top: @as;
-    }
-
-    .approot {
-        margin: 0;
-    }
+  .approot {
+    margin: 0;
+  }
 }
 
 a.callout {
-    color: @link-color;
-    border-bottom: 1px solid #c4c4c4;
-    padding: 2px;
-    text-decoration: none;
+  color: @link-color;
+  border-bottom: 1px solid #c4c4c4;
+  padding: 2px;
+  text-decoration: none;
 
-    &:hover {
-        border-bottom: 1px solid @highlight-color;
-    }
+  &:hover {
+    border-bottom: 1px solid @highlight-color;
+  }
 }
 
 .down-shadow {
-    -webkit-box-shadow: 0 2px 5px -1px rgba(0,0,0,0.33);
-    -moz-box-shadow: 0 2px 5px -1px rgba(0,0,0,0.33);
-    box-shadow: 0 2px 5px -1px rgba(0,0,0,0.33);
+  -webkit-box-shadow: 0 2px 5px -1px rgba(0, 0, 0, 0.33);
+  -moz-box-shadow: 0 2px 5px -1px rgba(0, 0, 0, 0.33);
+  box-shadow: 0 2px 5px -1px rgba(0, 0, 0, 0.33);
 }
 
 a:hover {
-    cursor: pointer;
+  cursor: pointer;
 }
 
 .up-shadow {
-    box-shadow: 0 -2px 5px -1px rgba(0,0,0,0.33);
+  box-shadow: 0 -2px 5px -1px rgba(0, 0, 0, 0.33);
 }
 
 .panel {
-    // padding: 15px;
-    // .down-shadow;
+  // padding: 15px;
+  // .down-shadow;
 }
 
 div.logged-in {
-    background: @highlight-color;
-    color: white;
-    padding: 3px;
+  background: @highlight-color;
+  color: white;
+  padding: 3px;
 }
 
 div.welcome {
-    background: #3e3e3e;
-    margin-top: -20px;
-    padding: 30px;
-    color: white;
-    background: #e0e0e0;
-    color: black;
-    text-align: center;
+  background: #3e3e3e;
+  margin-top: -20px;
+  padding: 30px;
+  color: white;
+  background: #e0e0e0;
+  color: black;
+  text-align: center;
 }
 
 div.header {
-    background: #3e3e3e;
-    color: white;
-    background: #e0e0e0;
-    color: black;
-    text-align: center;
+  background: #3e3e3e;
+  color: white;
+  background: #e0e0e0;
+  color: black;
+  text-align: center;
 }
 
 .full-width {
-    width: 100%;
+  width: 100%;
 }
 
 .full-height {
-    height: 100%;
+  height: 100%;
 }
 
 .overflow-y {
-    overflow-y: auto;
+  overflow-y: auto;
 }
 
 .square {
-    border-radius: 0;
+  border-radius: 0;
 }
-
 
 footer {
+  display: flex;
+  border-top: solid 1px #ccc;
+  margin-bottom: 0;
+  margin-left: -@spacer;
+  margin-right: -@spacer;
+  box-shadow: -1px -1px 1px 1px rgba(0, 0, 0, 0.1);
+
+  div {
     display: flex;
-    border-top: solid 1px #ccc;
-    margin-bottom: 0;
-    box-shadow: -1px -1px 1px 1px rgba(0,0,0,0.1);
+    justify-content: center;
+    flex-grow: 1;
 
-    div {
-        display: flex;
-        justify-content: center;
-        flex-grow: 1;
-
-        > * {
-            margin: 1em;
-        }
+    > * {
+      margin: 1em;
     }
+  }
 
-    a {
-        text-decoration: underline;
-    }
+  a {
+    text-decoration: underline;
+  }
 }
 @media (max-width:800px) {
-    footer {
-        flex-wrap: wrap;
-    }
+  footer {
+    flex-wrap: wrap;
+  }
 }
 
 .highlight {
-    color: white;
-    background: @highlight-color;
-    padding: 0;
+  color: white;
+  background: @highlight-color;
+  padding: 0;
 }
 
 .fix-height-400 {
-    max-height: 400px;
-    overflow-y: scroll;
+  max-height: 400px;
+  overflow-y: scroll;
 }
 
 .ov {
-    width: 100%;
-    height: 100%;
-    background: black;
-    position: absolute;
-    opacity: 0.5;
+  width: 100%;
+  height: 100%;
+  background: black;
+  position: absolute;
+  opacity: 0.5;
 }
 
 .dimmed {
-    position: relative;
+  position: relative;
 }
 
 .dimmed:after {
-    content: " ";
-    z-index: 10;
-    display: block;
-    position: absolute;
-    height: 100%;
-    top: 0;
-    left: 0;
-    right: 0;
-    background: rgba(0, 0, 0, 0.1);
-}
-
-.search {
-    margin-top: 2px;
+  content: " ";
+  z-index: 10;
+  display: block;
+  position: absolute;
+  height: 100%;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.1);
 }
 
 .small {
-    font-size: 0.7em;
-    background: white;
+  font-size: 0.7em;
+  background: white;
 }
 
 td.skipped {
-    width: 20px;
-    background: #d0efff;
+  width: 20px;
+  background: #d0efff;
 }
 
 .pad-right-5 {
-    padding-right: 5px;
+  padding-right: 5px;
 }
 
 .pad-left-5 {
-    padding-left: 5px;
+  padding-left: 5px;
 }
 
 .btn-xxs {
-    padding: 2px;
-    font-size: 10px;
-    line-height: normal;
-    -webkit-border-radius: 2px;
-    -moz-border-radius: 2px;
-    border-radius: 2px;
+  padding: 2px;
+  font-size: 10px;
+  line-height: normal;
+  -webkit-border-radius: 2px;
+  -moz-border-radius: 2px;
+  border-radius: 2px;
 }
 
 .stressed {
-    color: @highlight-color;
+  color: @highlight-color;
 }
 //this is the best class name in the world.
 
 .LORD_FADER {
-    /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#000000+0,000000+100&0+0,0.65+100 */
-    background: -moz-linear-gradient(top, rgba(0,0,0,0) 0%, rgba(0,0,0,0.33) 100%);
-    /* FF3.6-15 */
-    background: -webkit-linear-gradient(top, rgba(0,0,0,0) 0%,rgba(0,0,0,0.33) 100%);
-    /* Chrome10-25,Safari5.1-6 */
-    background: linear-gradient(to bottom, rgba(0,0,0,0) 0%,rgba(0,0,0,0.33) 100%);
-    /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
-    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr=  '#00000000', endColorstr='#a6000000',GradientType=0 );
-    /* IE6-9 */
-    position: fixed;
-    width: inherit;
-    bottom: 0;
-    right: 0;
-    height: 75px;
-    opacity: 1;
-    text-align: center;
-    color: black;
-    pointer-events: none;
+  /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#000000+0,000000+100&0+0,0.65+100 */
+  background: -moz-linear-gradient(top, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.33) 100%);
+  /* FF3.6-15 */
+  background: -webkit-linear-gradient(top, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.33) 100%);
+  /* Chrome10-25,Safari5.1-6 */
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.33) 100%);
+  /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr=  '#00000000', endColorstr='#a6000000', GradientType=0);
+  /* IE6-9 */
+  position: fixed;
+  width: inherit;
+  bottom: 0;
+  right: 0;
+  height: 75px;
+  opacity: 1;
+  text-align: center;
+  color: black;
+  pointer-events: none;
 }
 /** input.form-control {
     &:focus {
@@ -287,148 +276,146 @@ td.skipped {
     }
 } **/
 .mine-choice {
-    display: flex;
-    justify-content: space-between;
+  display: flex;
+  justify-content: space-between;
 
-    label {
-        padding: 2px 4px 0 2px;
-        color: @body-foreground-color;
+  label {
+    padding: 2px 4px 0 2px;
+    color: @body-foreground-color;
 
-        input {
-            margin-right: 2px;
-        }
-
-        &.checked {
-            border-bottom: solid 3px @highlight-color;
-            border-radius: 2px;
-            background: rgba(0,0,0,0.07);
-            color: @body-foreground-color;
-        }
+    input {
+      margin-right: 2px;
     }
+
+    &.checked {
+      border-bottom: solid 3px @highlight-color;
+      border-radius: 2px;
+      background: rgba(0, 0, 0, 0.07);
+      color: @body-foreground-color;
+    }
+  }
 }
 
 .form-control,
 .form-group .form-control {
-    padding: 5px;
-    margin: 0;
-    background: white;
-    border-radius: 5px;
-    border: 1px solid #d6d6d6;
+  padding: 5px;
+  margin: 0;
+  background: white;
+  border-radius: 5px;
+  border: 1px solid #d6d6d6;
 }
 
 input.form-control:focus {
-    background-image: none;
-    background-color: white;
+  background-image: none;
+  background-color: white;
 }
 
 input[type="checkbox"] {
-    @the-color: #999;
-    margin-right: 0.8em;
+  @the-color: #999;
+  margin-right: 0.8em;
 
-    &:checked {
-        &:before {
-            content: '\2714';
-            color: darken(@the-color, 20%);
-        }
-    }
-
-    &:focus:before {
-        box-shadow: 0 0 2px 1px fadeout(@highlight-color,20%);
-    }
-
+  &:checked {
     &:before {
-        .border-radius;
-        background: #fff;
-        border: solid 2px @the-color;
-        height: 1.2em;
-        width: 1.2em;
-        font-size: 1em;
-        content: "";
-        line-height: 1em;
-        margin-right: 1em;
-        vertical-align: middle;
-        text-align: center;
-        display: block;
+      content: '\2714';
+      color: darken(@the-color, 20%);
     }
+  }
+
+  &:focus:before {
+    box-shadow: 0 0 2px 1px fadeout(@highlight-color, 20%);
+  }
+
+  &:before {
+    .border-radius;
+    background: #fff;
+    border: solid 2px @the-color;
+    height: 1.2em;
+    width: 1.2em;
+    font-size: 1em;
+    content: "";
+    line-height: 1em;
+    margin-right: 1em;
+    vertical-align: middle;
+    text-align: center;
+    display: block;
+  }
 }
 
 label {
-    line-height: 1.2em;
-    margin-right: @spacer/2;
+  line-height: 1.2em;
+  margin-right: @spacer/2;
 
-    &:hover,
-    &:hover input[type=checkbox],
-    &:hover input[type=checkbox]:before {
-        cursor: pointer;
-    }
+  &:hover,
+  &:hover input[type=checkbox],
+  &:hover input[type=checkbox]:before {
+    cursor: pointer;
+  }
 }
 
 .results .im-table {
-    overflow-x: auto;
-    margin-left: calc(100vw - 100%);
-    margin-right: 0;
+  overflow-x: auto;
+  margin-left: calc(100vw - 100%);
+  margin-right: 0;
 }
 
 .loading {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-    font-family: sans-serif;
-    font-size: 2em;
-    color: #999;
-    margin-left: 1em;
-    text-transform: uppercase;
-    margin-top: 1em;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  font-family: sans-serif;
+  font-size: 2em;
+  color: #999;
+  margin-left: 1em;
+  text-transform: uppercase;
+  margin-top: 1em;
 }
 
 .breadcrumb-container {
-    padding: 10px;
+  padding: 10px;
 
-    ul {
-        display: inline;
-    }
+  ul {
+    display: inline;
+  }
 }
 
 .extra-tiny-screen {
-    display: none;
-    @media (max-width:@even-tinier-screen) {
-        display: inline-block;
-    }
+  display: none;
+  @media (max-width: @even-tinier-screen) {
+    display: inline-block;
+  }
 }
 
 .larger-screen-only,
 .navbar.navbar-default li.larger-screen-only {
-    @media (max-width:@even-tinier-screen) {
-        display: none;
-    }
+  @media (max-width: @even-tinier-screen) {
+    display: none;
+  }
 }
 
 .inline-label {
-    display: flex;
+  display: flex;
 
-    a {
-        display: inline;
-    }
+  a {
+    display: inline;
+  }
 }
 
 .dropdown-menu .clear {
-    display: flex;
-    align-items: center;
+  display: flex;
+  align-items: center;
 }
-
-
 /** TODO: Move these somewhere better **/
-
-button.btn{
-  display:flex;
-  align-items:center;
+button.btn {
+  display: flex;
+  align-items: center;
   justify-content: center;
-  svg {margin-right:0.5em;}
 
+  svg {
+    margin-right: 0.5em;
+  }
   /** ignore below thi, just making button shiny **/
-
-    /*
+  /*
   color:#fff;
   text-shadow:1px 1px 1px rgba(0,0,0,0.1);
   background-color:#009688;
@@ -439,32 +426,27 @@ button.btn{
 }
 
 .icon(@icon-size) {
-    vertical-align: top;
-    margin-top: 1px;
-    display: inline-block;
-    width: @icon-size;
-    height: @icon-size;
-    fill: @link-color;
-    margin: 0 @icon-size/2;
+  vertical-align: top;
+  margin-top: 1px;
+  display: inline-block;
+  width: @icon-size;
+  height: @icon-size;
+  fill: @link-color;
+  margin: 0 @icon-size/2;
 }
-.icon {.icon(1em);}
+
+.icon {
+  .icon(1em);
+}
 
 .icon-2x {
-  .icon(2em)
+  .icon(2em);
 }
 
 .icon-3x {
-  .icon(3em)
+  .icon(3em);
 }
 
 .icon-4x {
-  .icon(4em)
-}
-
-
-
- .navbar .navbar-nav > li,
- .navbar .navbar-nav > li > a {
-    display: flex;
-    align-items: center;
+  .icon(4em);
 }
