@@ -41,8 +41,11 @@ Example usage:
        (into [:select.form-control
               {:value (or value "")
                :on-change (fn [e] (on-change (oget e :target :value)))}]
-             (map (fn [{short-name :shortName}]
-                    [:option {:value short-name} short-name]) @organisms))])))
+             (concat
+               [[:option {:value ""} "Any"]
+                [:option {:value "_"} ""]]
+               (map (fn [{short-name :shortName}]
+                     [:option {:value short-name} short-name]) @organisms)))])))
 
 (defn sort-classes [classes]
   (sort-by (comp :displayName second) < classes))

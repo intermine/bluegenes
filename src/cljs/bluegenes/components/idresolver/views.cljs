@@ -442,7 +442,6 @@
 
 (defn select-organism-option []
   (fn [organism]
-    (println "O" organism)
     [:div.form-group
      [:label "Organism"]
      [im-controls/select-organism
