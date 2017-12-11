@@ -28,3 +28,7 @@
 (reg-sub ::resolution-stats
          (fn [db]
            (get-in db [:idresolver :response :stats])))
+
+(reg-sub ::view
+         (fn [db]
+           (get-in db [:idresolver :stage :view])))

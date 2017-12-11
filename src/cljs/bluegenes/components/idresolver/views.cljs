@@ -453,7 +453,7 @@
 (defn select-type-option []
   (fn [type]
     [:div.form-group
-     [:label "Type"]
+     [:label "List type"]
      [im-controls/select-type
       {:value type
        :on-change (fn [type] (dispatch [::evts/update-option :type type]))}]]))
@@ -591,27 +591,37 @@
            [:i.fa.fa-chevron-right {:style {:padding-left "5px"}}]]]
          [review-table (:type @resolution-response) (-> @resolution-response :matches :DUPLICATE)]]))))
 
-(defn bread []
-  (fn [{:keys [parsed ready-to-save] :as flags}]
-    [:ul.bread
-     [:li {:class (when (nil? flags) "active")}
-      [:a [:i.fa.fa-upload.fa-1x] "Upload"]]
-     [:li {:class (when parsed "active")}
-      [:a [:i.fa.fa-exclamation-triangle.fa-1x] "Review"]]]))
+(defn bread-circles []
+  (let [response (subscribe [::resolution-response])]
+    (fn [view]
+      [:ul.bread
+       [:li {:class (when (or (= view nil) (= view :upload)) "active")
+             :on-click (fn [] (dispatch [::evts/set-view nil]))} [:a [:i.fa.fa-upload.fa-1x] "Upload"]]
+       [:li.disabled {:class (when (= view :review) "active")
+                      :on-click (fn [] (dispatch [::evts/set-view :review]))} [:a [:i.fa.fa-exclamation-triangle.fa-1x] "Review"]]])))
 
+(defn bread []
+  (let [response (subscribe [::subs/resolution-response])]
+    (fn [view]
+      [:h4 [:ol.breadcrumb {:style {:padding "8px 15px"}}
+            [:li {:class (when (or (= view nil) (= view :upload)) "active")
+                  :on-click (fn [] (dispatch [::evts/set-view nil]))}
+             [:a [:i.fa.fa-upload.fa-1x] " Upload"]]
+            [:li.disabled {:class (when (= view :review) "active")
+                           :on-click (fn [] (when @response (dispatch [::evts/set-view :review])))}
+             (if @response
+               [:a [:i.fa.fa-exclamation-triangle.fa-1x] " Review"]
+               [:span [:i.fa.fa-exclamation-triangle.fa-1x] " Review"])]]])))
 
 (defn wizard []
-  (let [options (subscribe [::subs/stage-options])
-        files   (subscribe [::subs/staged-files])
-        flags   (subscribe [::subs/stage-flags])]
+  (let [view (subscribe [::subs/view])]
     (fn []
       [:div.wizard
-       [bread @flags]
+       [bread @view]
        [:div.wizard-body.clearfix
-        (let [{:keys [parsed reviewed]} @flags]
-          (cond
-            parsed [review-step]
-            :default [upload-step]))]
+        (case @view
+          :review [review-step]
+          [upload-step])]
        [:div.wizard-footer
         [:div.grow]
         [:div.shrink]]])))

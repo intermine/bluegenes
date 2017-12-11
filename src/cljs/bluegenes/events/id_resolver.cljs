@@ -55,6 +55,7 @@
                 (let [{:keys [type organism]} (get-in db [:idresolver :stage :options])]
                   (-> db
                       (assoc-in [:idresolver :stage :flags] {:reviewed true})
+                      (assoc-in [:idresolver :stage :view] :review)
                       (assoc-in [:idresolver :save :list-name]
                                 (str type
                                      " list for "
@@ -67,12 +68,17 @@
                 (let [{:keys [type organism]} (get-in db [:idresolver :stage :options])]
                   (-> db
                       (assoc-in [:idresolver :response] response)
+                      (assoc-in [:idresolver :stage :view] :review)
                       (assoc-in [:idresolver :save :list-name]
                                 (str type
                                      " list for "
                                      (if (string/blank? organism) "all organisms" organism)
                                      " "
                                      (time-format/unparse time-formatter (time/now))))))))
+
+(reg-event-db ::set-view
+              (fn [db [_ view]]
+                (assoc-in db [:idresolver :stage :view] view)))
 
 (reg-event-db ::toggle-case-sensitive
               (fn [db [_ response]]
