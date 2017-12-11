@@ -563,90 +563,54 @@
                                            :on-change (fn [e]
                                                         (dispatch [::evts/toggle-keep-duplicate
                                                                    duplicate-idx match-idx]))}]]]])))))))
-                     (apply concat))
-                )
-          #_(into [:tbody]
-                  (map-indexed (fn [duplicate-idx {:keys [input reason matches] :as row}]
-                                 (into [:tr [:td input]]
-                                       (map-indexed
-                                         (fn [match-idx {{:keys [symbol] :as duplicate} :summary keep? :keep? :as match}]
-                                           [:td
-                                            [:div.col-11
-                                             (into [:span]
-                                                   (map (fn [f]
-                                                          (let [path (keyword (join "." (rest (split f "."))))]
-                                                            [:div.label.label-default (get duplicate path)])) type-summary-fields))
-                                             #_[:button.btn.btn-default
-                                                {:class (when keep? "btn-success")
-                                                 :on-click (fn []
-                                                             (js/console.log "M" match)
-                                                             (dispatch [::evts/toggle-keep-duplicate duplicate-idx match-idx]))}
-                                                [:span [:i.fa.fa-fw {:class (if keep? "fa-check" "does-not-exist")}]
-                                                 (into [:span]
-                                                       (map (fn [f]
-                                                              (let [path (keyword (join "." (rest (split f "."))))]
-                                                                [:div.label.label-default (get duplicate path)])) type-summary-fields))]]]])
-                                         matches)))
-                               rows-in-view))]
-
-         #_(into [:div.resolution-table]
-                 (map-indexed (fn [duplicate-idx {:keys [input reason matches] :as row}]
-                                [:div.grid
-                                 [:div.col-2 input]
-                                 [:div.col-10
-                                  (into [:div]
-                                        (map-indexed
-                                          (fn [match-idx {{:keys [symbol] :as duplicate} :summary keep? :keep? :as match}]
-                                            [:div.grid
-                                             [:div.col-1 "Keep?"]
-                                             [:div.col-11
-                                              (into [:span]
-                                                    (map (fn [f]
-                                                           (let [path (keyword (join "." (rest (split f "."))))]
-                                                             [:div.label.label-default (get duplicate path)])) type-summary-fields))
-                                              #_[:button.btn.btn-default
-                                                 {:class (when keep? "btn-success")
-                                                  :on-click (fn []
-                                                              (js/console.log "M" match)
-                                                              (dispatch [::evts/toggle-keep-duplicate duplicate-idx match-idx]))}
-                                                 [:span [:i.fa.fa-fw {:class (if keep? "fa-check" "does-not-exist")}]
-                                                  (into [:span]
-                                                        (map (fn [f]
-                                                               (let [path (keyword (join "." (rest (split f "."))))]
-                                                                 [:div.label.label-default (get duplicate path)])) type-summary-fields))]]]])
-                                          matches))]])
-                              rows-in-view))]))))
+                     (apply concat)))]]))))
 
 (defn review-step []
   (let [resolution-response (subscribe [::subs/resolution-response])]
     (fn []
-      (let [{{stats :identifiers :as s} :stats} @resolution-response]
-        (js/console.log "R" (-> @resolution-response :matches :DUPLICATE count))
-        (js/console.log "R" (-> @resolution-response))
-        (js/console.log "S" s)
+      (let [{{{:keys [matches issues notFound all]} :identifiers :as s} :stats} @resolution-response]
         [:div
-         [:div.progress
-          [:div.progress-bar.progress-bar-success {:style {:width (str (* 100 (/ (:matches stats) (:all stats))) "%")}} (str (:matches stats) " Matches")]
-          [:div.progress-bar.progress-bar-warning {:style {:width (str (* 100 (/ (:issues stats) (:all stats))) "%")}} (str (:issues stats) " Issues")]
-          [:div.progress-bar.progress-bar-danger {:style {:width (str (* 100 (/ (:notFound stats) (:all stats))) "%")}} (str (:notFound stats) " Not Found")]]
+         [:div.flex-progressbar
+          [:div.bar.success {:style {:flex (* 100 (/ matches all))}} (str matches " Matches")]
+          [:div.bar.warning {:style {:flex (* 100 (/ issues all))}} (str issues " Issues")]
+          [:div.bar.danger {:style {:flex (* 100 (/ notFound all))}} (str notFound " Not Found")]]
 
+         [:p ""]
+         [:div.alert.alert-warning
+           [:h3 [:i.fa.fa-exclamation-triangle] (str issues " identifiers returned duplicate results")]
+           [:p "Please select from the list of duplicates which ones you want to keep"]]
          [review-table (:type @resolution-response) (-> @resolution-response :matches :DUPLICATE)]
 
 
          [:button.btn.btn-primary.pull-right
-          {:on-click (fn [])}
-          "Continue"
+          {:on-click (fn [] (dispatch [::evts/finished-review]))} "Continue"
+          [:i.fa.fa-chevron-right {:style {:padding-left "5px"}}]]]))))
+
+(defn save-step []
+  (let [resolution-response (subscribe [::subs/resolution-response])
+        list-name           (subscribe [::subs/list-name])]
+    (fn []
+      (let [{{stats :identifiers :as s} :stats} @resolution-response]
+        [:div
+         [:div.form-group
+          [:label "List Name"]
+          [:input.form-control {:type "text"
+                                :value @list-name
+                                :on-change (fn [e] (dispatch [::evts/update-list-name (oget e :target :value)]))}]]
+         [:button.btn.btn-primary.pull-right
+          {:on-click (fn [] (dispatch [::evts/finished-review]))} "Continue"
           [:i.fa.fa-chevron-right {:style {:padding-left "5px"}}]]]))))
 
 (defn bread []
-  (fn [{:keys [parsed] :as flags}]
+  (fn [{:keys [parsed ready-to-save] :as flags}]
     [:ul.bread
      [:li {:class (when (nil? flags) "active")}
+
       [:a [:i.fa.fa-upload.fa-2x] "Upload"]]
      [:li {:class (when parsed "active")}
       [:a [:i.fa.fa-exclamation-triangle.fa-2x] "Review"]]
-     [:li [:a "Three"]]
-     [:li [:a "Four"]]]))
+     [:li {:class (when ready-to-save "active")}
+      [:a [:i.fa.fa-save.fa-2x] "Save"]]]))
 
 
 
@@ -658,9 +622,10 @@
       [:div.wizard
        [bread @flags]
        [:div.wizard-body.clearfix
-        (let [{:keys [parsed override]} @flags]
+        (let [{:keys [parsed reviewed]} @flags]
           (cond
             parsed [review-step]
+            reviewed [save-step]
             :default [upload-step]))]
        [:div.wizard-footer
         [:div.grow]

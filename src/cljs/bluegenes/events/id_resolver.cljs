@@ -44,6 +44,10 @@
                                     :extra (:organism options)})
                            :on-success [::store-identifiers]}}))
 
+(reg-event-db ::finished-review
+              (fn [db]
+                (assoc-in db [:idresolver :stage :flags] {:reviewed true})))
+
 (reg-event-db ::store-identifiers
               (fn [db [_ response]]
                 (assoc-in db [:idresolver :response] response)))
@@ -59,3 +63,7 @@
 (reg-event-db ::toggle-keep-duplicate
               (fn [db [_ duplicate-idx match-idx]]
                 (update-in db [:idresolver :response :matches :DUPLICATE duplicate-idx :matches match-idx :keep?] not)))
+
+(reg-event-db ::update-list-name
+              (fn [db [_ value]]
+                (assoc-in db [:idresolver :save :list-name] value)))
