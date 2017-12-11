@@ -16,6 +16,10 @@
               (fn [db [_ js-File]]
                 (update-in db [:idresolver :stage :files] #(remove (partial = js-File) %))))
 
+(reg-event-db ::update-textbox-identifiers
+              (fn [db [_ value]]
+                (assoc-in db [:idresolver :stage :textbox] value)))
+
 (reg-event-fx ::parse-staged-files
               (fn [{db :db} [_ js-Files options]]
                 (println "OPT" options)

@@ -266,10 +266,11 @@
          [:i.fa.fa-times]]]])))
 
 (defn file-manager []
-  (let [files         (subscribe [::subs/staged-files])
-        stage-options (subscribe [::subs/stage-options])
-        stage-status  (subscribe [::subs/stage-status])
-        upload-elem   (reagent/atom nil)]
+  (let [files               (subscribe [::subs/staged-files])
+        textbox-identifiers (subscribe [::subs/textbox-identifiers])
+        stage-options       (subscribe [::subs/stage-options])
+        stage-status        (subscribe [::subs/stage-status])
+        upload-elem         (reagent/atom nil)]
     (fn []
       [:div.file-manager
        #_[:button.btn.btn-default
@@ -285,10 +286,11 @@
          :on-click (fn [e] (.stopPropagation e)) ;;otherwise we just end up focusing on the input on the left/top.
          :on-change (fn [e] (dispatch [::evts/stage-files (oget e :target :files)]))}]
        [:div.form-group
-        [:label "Upload from file(s)"]
+        [:label "or Upload from file(s)"]
         (when @files (into [:div.files] (map (fn [js-File] [file js-File]) @files)))
         [:button.btn.btn-default
-         {:on-click (fn [] (-> @upload-elem js/$ (ocall :click)))}
+         {:on-click (fn [] (-> @upload-elem js/$ (ocall :click)))
+          :disabled @textbox-identifiers}
          (if @files "Browse more" "Browse")]]])))
 
 
@@ -473,8 +475,9 @@
 
 
 (defn upload-step []
-  (let [files   (subscribe [::subs/staged-files])
-        options (subscribe [::subs/stage-options])]
+  (let [files               (subscribe [::subs/staged-files])
+        textbox-identifiers (subscribe [::subs/textbox-identifiers])
+        options             (subscribe [::subs/stage-options])]
     (fn []
       (let [{:keys [organism type case-sensitive]} @options]
         [:div
@@ -492,7 +495,12 @@
             [:div.form-group
              {:style {:height "100%"}}
              [:label "Enter identifiers"]
-             [:textarea.form-control {:style {:height "100%"} :rows 5}]]]
+             [:textarea.form-control
+              {:on-change (fn [e] (dispatch [::evts/update-textbox-identifiers (oget e :target :value)]))
+               :value @textbox-identifiers
+               :class (when @files "disabled")
+               :disabled @files
+               :style {:height "100%"} :rows 5}]]]
            [:div.file-container [file-manager]]]]
          [:button.btn.btn-primary.pull-right
           {:on-click (fn [] (dispatch [::evts/parse-staged-files @files @options]))}

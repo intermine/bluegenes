@@ -5,6 +5,10 @@
          (fn [db]
            (not-empty (get-in db [:idresolver :stage :files]))))
 
+(reg-sub ::textbox-identifiers
+         (fn [db]
+           (get-in db [:idresolver :stage :textbox])))
+
 (reg-sub ::stage-options
          (fn [db]
            (not-empty (get-in db [:idresolver :stage :options]))))
