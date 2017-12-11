@@ -294,7 +294,6 @@
          (if @files "Browse more" "Browse")]]])))
 
 
-
 (defn drag-and-drop-prompt []
   (fn []
     [:div.upload-file
@@ -502,10 +501,13 @@
                :disabled @files
                :style {:height "100%"} :rows 5}]]]
            [:div.file-container [file-manager]]]]
-         [:button.btn.btn-primary.pull-right
-          {:on-click (fn [] (dispatch [::evts/parse-staged-files @files @options]))}
-          (str "Upload" (when @files (str " " (count @files) " file" (when (> (count @files) 1) "s"))))
-          [:i.fa.fa-chevron-right {:style {:padding-left "5px"}}]]]))))
+         [:div.btn-toolbar
+          {:style {:margin-top "10px"}}
+          [:button.btn.btn-primary.pull-right
+           {:on-click (fn [] (dispatch [::evts/parse-staged-files @files @options]))}
+           #_(str "Upload" (when @files (str " " (count @files) " file" (when (> (count @files) 1) "s"))))
+           "Create List"
+           [:i.fa.fa-chevron-right {:style {:padding-left "5px"}}]]]]))))
 
 
 (defn review-table []
@@ -579,9 +581,9 @@
       (let [{{{:keys [matches issues notFound all]} :identifiers :as s} :stats} @resolution-response]
         [:div
          [:div.flex-progressbar
-          [:div.bar.bar-success {:style {:flex (* 100 (/ matches all))}} (str matches " Matches")]
-          [:div.bar.bar-warning {:style {:flex (* 100 (/ issues all))}} (str issues " Issues")]
-          [:div.bar.bar-danger {:style {:flex (* 100 (/ notFound all))}} (str notFound " Not Found")]]
+          (when (not= matches 0) [:div.bar.bar-success {:style {:flex (* 100 (/ matches all))}} (str matches " Matches")])
+          (when (not= issues 0) [:div.bar.bar-warning {:style {:flex (* 100 (/ issues all))}} (str issues " Issues")])
+          (when (not= notFound 0) [:div.bar.bar-danger {:style {:flex (* 100 (/ notFound all))}} (str notFound " Not Found")])]
          [:div.alert.alert-warning.clearfix
           [:div.row
            [:div.col-sm-12
