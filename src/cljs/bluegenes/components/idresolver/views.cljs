@@ -509,6 +509,7 @@
             rows-in-view        (take (:show @pager) (drop (* (:show @pager) (:page @pager)) results))
             type-summary-fields (get @summary-fields (keyword type))]
         [:div.form-inline.clearfix
+
          [:div.form-group
           [:div.btn-toolbar
            [:button.btn.btn-default
@@ -517,6 +518,7 @@
            [:button.btn.btn-default
             {:on-click (fn [] (swap! pager update :page (comp (partial min pages) inc)))}
             [:i.fa.fa-chevron-right]]]]
+
          [:div.clearfix
           [:div.form-group.pull-right
            (into [:select.form-control
@@ -528,10 +530,7 @@
 
          [:table.table.table-condensed.table-striped
           {:style {:background-color "white"}}
-          [:thead
-           [:tr
-            [:th {:row-span 2} "Your Identifiers"]
-            [:th {:col-span 6} "Matches"]]
+          [:thead [:tr [:th {:row-span 2} "Your Identifier"] [:th {:col-span 6} "Matches"]]
            (into
              [:tr [:th "Keep?"]]
              (map
@@ -547,56 +546,50 @@
                                 (fn [match-idx {:keys [summary keep?] :as match}]
                                   (into
                                     (if (= match-idx 0)
-                                      [:tr
+                                      [:tr {:class (when keep? "success")}
                                        [:td {:row-span (count matches)} input]]
-                                      [:tr])
-                                    (conj
-                                      (map
-                                        (fn [field]
-                                          (let [without-prefix (keyword (join "." (rest (split field "."))))]
-                                            [:td (get summary without-prefix)])) type-summary-fields)
-                                      [:td
-                                       [:div.checkbox
-                                        [:label
-                                         [:input
-                                          {:type "checkbox"
-                                           :checked keep?
-                                           :on-change (fn [e]
-                                                        (dispatch [::evts/toggle-keep-duplicate
-                                                                   duplicate-idx match-idx]))}]]]])))))))
+                                      [:tr {:class (when keep? "success")}])
+                                    (conj (map
+                                            (fn [field]
+                                              (let [without-prefix (keyword (join "." (rest (split field "."))))]
+                                                [:td (get summary without-prefix)])) type-summary-fields)
+                                          [:td
+                                           [:div.checkbox
+                                            [:label
+                                             [:input
+                                              {:type "checkbox"
+                                               :checked keep?
+                                               :on-change (fn [e]
+                                                            (dispatch [::evts/toggle-keep-duplicate
+                                                                       duplicate-idx match-idx]))}]]]])))))))
                      (apply concat)))]]))))
 
 (defn review-step []
   (let [resolution-response (subscribe [::subs/resolution-response])
-        list-name (subscribe [::subs/list-name])]
+        list-name           (subscribe [::subs/list-name])]
     (fn []
       (let [{{{:keys [matches issues notFound all]} :identifiers :as s} :stats} @resolution-response]
         [:div
-
-
-
-         [:div
-          [:div.flex-progressbar
-           [:div.bar.success {:style {:flex (* 100 (/ matches all))}} (str matches " Matches")]
-           [:div.bar.warning {:style {:flex (* 100 (/ issues all))}} (str issues " Issues")]
-           [:div.bar.danger {:style {:flex (* 100 (/ notFound all))}} (str notFound " Not Found")]]
-          [:div.alert.alert-warning.clearfix
-
-
-           #_[:button.btn.btn-default.pull-right
-            {:on-click (fn [] (dispatch [::evts/finished-review]))} (str "Continue with " matches " results")
-            [:i.fa.fa-chevron-right {:style {:padding-left "5px"}}]]
-           [:div.form-group
-            [:label "List Name"]
-            [:input.form-control {:type "text"
-                                  :value @list-name
-                                  :on-change (fn [e] (dispatch [::evts/update-list-name (oget e :target :value)]))}]]
-           [:h3 [:i.fa.fa-exclamation-triangle] (str issues " identifiers returned duplicate results")]
-           [:p "Please select from the list of duplicates which ones you want to keep"]
-           [:button.btn.btn-success.pull-right
-            {:on-click (fn [] (dispatch [::evts/save-list]))} "Save List"
-            [:i.fa.fa-chevron-right {:style {:padding-left "5px"}}]]]
-          [review-table (:type @resolution-response) (-> @resolution-response :matches :DUPLICATE)]]]))))
+         [:div.flex-progressbar
+          [:div.bar.bar-success {:style {:flex (* 100 (/ matches all))}} (str matches " Matches")]
+          [:div.bar.bar-warning {:style {:flex (* 100 (/ issues all))}} (str issues " Issues")]
+          [:div.bar.bar-danger {:style {:flex (* 100 (/ notFound all))}} (str notFound " Not Found")]]
+         [:div.alert.alert-warning.clearfix
+          [:div.row
+           [:div.col-sm-12
+            [:h3 [:i.fa.fa-exclamation-triangle {:style {:margin-right "10px"}}] (str issues " identifiers returned duplicate results")]
+            [:p "Please select from the list of duplicates which ones you want to keep"]]]
+          [:div.row
+           [:div.col-sm-12
+            [:div.form-group
+             [:label "List Name"]
+             [:input.form-control {:type "text"
+                                   :value @list-name
+                                   :on-change (fn [e] (dispatch [::evts/update-list-name (oget e :target :value)]))}]]]]
+          [:button.btn.btn-success.pull-right
+           {:on-click (fn [] (dispatch [::evts/save-list]))} "Save List"
+           [:i.fa.fa-chevron-right {:style {:padding-left "5px"}}]]]
+         [review-table (:type @resolution-response) (-> @resolution-response :matches :DUPLICATE)]]))))
 
 (defn save-step []
   (let [resolution-response (subscribe [::subs/resolution-response])
@@ -617,13 +610,9 @@
   (fn [{:keys [parsed ready-to-save] :as flags}]
     [:ul.bread
      [:li {:class (when (nil? flags) "active")}
-
-      [:a [:i.fa.fa-upload.fa-2x] "Upload"]]
+      [:a [:i.fa.fa-upload.fa-1x] "Upload"]]
      [:li {:class (when parsed "active")}
-      [:a [:i.fa.fa-exclamation-triangle.fa-2x] "Review"]]
-     [:li {:class (when ready-to-save "active")}
-      [:a [:i.fa.fa-save.fa-2x] "Save"]]]))
-
+      [:a [:i.fa.fa-exclamation-triangle.fa-1x] "Review"]]]))
 
 
 (defn wizard []
