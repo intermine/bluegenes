@@ -442,9 +442,6 @@
     ))
 
 
-
-
-
 (defn select-organism-option []
   (fn [organism]
     [:div.form-group
@@ -472,7 +469,7 @@
          :checked bool
          :on-change (fn [e]
                       (dispatch [::evts/update-option :case-sensitive (oget e :target :checked)]))}]
-       [:div "Case sensitive"]]]]))
+       [:div "My identifiers are case sensitive"]]]]))
 
 
 (defn upload-step []
@@ -481,19 +478,22 @@
     (fn []
       (let [{:keys [organism type case-sensitive]} @options]
         [:div
+         [:h3 "Create a new list"]
+         [:div.alert.alert-info
+          [:p "Select the type of list to create and either enter in a list of identifiers or upload identifiers from a file. A search will be performed for all the identifiers in your list."]]
          [:div.row
           [:div.col-sm-4 [select-type-option type]]
           [:div.col-sm-4 [select-organism-option organism]]
           [:div.col-sm-4 [case-sensitive-option case-sensitive]]]
          [:div.upload-step-container
           [:div.input-area
-           [:div.file-container [file-manager]]
            [:div.vertical-divider]
            [:div.freeform-container
             [:div.form-group
              {:style {:height "100%"}}
              [:label "Enter identifiers"]
-             [:textarea.form-control {:style {:height "100%"} :rows 5}]]]]]
+             [:textarea.form-control {:style {:height "100%"} :rows 5}]]]
+           [:div.file-container [file-manager]]]]
          [:button.btn.btn-primary.pull-right
           {:on-click (fn [] (dispatch [::evts/parse-staged-files @files @options]))}
           (str "Upload" (when @files (str " " (count @files) " file" (when (> (count @files) 1) "s"))))
@@ -591,21 +591,6 @@
            [:i.fa.fa-chevron-right {:style {:padding-left "5px"}}]]]
          [review-table (:type @resolution-response) (-> @resolution-response :matches :DUPLICATE)]]))))
 
-(defn save-step []
-  (let [resolution-response (subscribe [::subs/resolution-response])
-        list-name           (subscribe [::subs/list-name])]
-    (fn []
-      (let [{{stats :identifiers :as s} :stats} @resolution-response]
-        [:div
-         [:div.form-group
-          [:label "List Name"]
-          [:input.form-control {:type "text"
-                                :value @list-name
-                                :on-change (fn [e] (dispatch [::evts/update-list-name (oget e :target :value)]))}]]
-         [:button.btn.btn-success.pull-right
-          {:on-click (fn [] (dispatch [::evts/finished-review]))} "Save List"
-          [:i.fa.fa-chevron-right {:style {:padding-left "5px"}}]]]))))
-
 (defn bread []
   (fn [{:keys [parsed ready-to-save] :as flags}]
     [:ul.bread
@@ -626,7 +611,6 @@
         (let [{:keys [parsed reviewed]} @flags]
           (cond
             parsed [review-step]
-            reviewed [save-step]
             :default [upload-step]))]
        [:div.wizard-footer
         [:div.grow]
