@@ -116,6 +116,11 @@
     (:summary-fields (:assets db))))
 
 (reg-sub
+  :current-summary-fields
+  (fn [db [_ class-kw]]
+    (get-in db [:assets :summary-fields (:current-mine db)])))
+
+(reg-sub
   :report
   (fn [db _]
     (:report db)))

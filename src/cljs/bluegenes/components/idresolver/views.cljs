@@ -3,6 +3,7 @@
             [re-frame.core :as re-frame :refer [subscribe dispatch]]
             [json-html.core :as json-html]
             [dommy.core :as dommy :refer-macros [sel sel1]]
+            [clojure.string :refer [join split]]
             [bluegenes.components.idresolver.events]
             [bluegenes.components.icons :as icons]
             [bluegenes.components.ui.results_preview :refer [preview-table]]
@@ -12,7 +13,8 @@
             [bluegenes.components.lighttable :as lighttable]
             [bluegenes.events.id-resolver :as evts]
             [bluegenes.subs.id-resolver :as subs]
-            [oops.core :refer [oget oget+ ocall]]))
+            [oops.core :refer [oget oget+ ocall]]
+            [imcljs.path :as path]))
 
 ;;; TODOS:
 
@@ -29,8 +31,8 @@
     [:div [:label "Organism"]
      [im-controls/organism-dropdown
       {:selected-value (if (some? @selected-organism) @selected-organism "Any")
-       :on-change (fn [organism]
-                    (dispatch [:idresolver/set-selected-organism organism]))}]]))
+       :on-change      (fn [organism]
+                         (dispatch [:idresolver/set-selected-organism organism]))}]]))
 
 (defn object-type-selection
   "UI component allowing user to choose which object type to search. Defaults to the first one configured for a mine."
@@ -39,10 +41,10 @@
         values               (subscribe [:idresolver/object-types])]
     [:div [:label "Type"]
      [im-controls/object-type-dropdown
-      {:values @values
+      {:values         @values
        :selected-value @selected-object-type
-       :on-change (fn [object-type]
-                    (dispatch [:idresolver/set-selected-object-type object-type]))}]]))
+       :on-change      (fn [object-type]
+                         (dispatch [:idresolver/set-selected-object-type object-type]))}]]))
 
 (defn splitter "Splits a string on any one of a set of strings."
   [string]
@@ -62,11 +64,11 @@
     (fn []
       [:div.btn-toolbar.controls
        [:button.btn.btn-warning
-        {:class (if (nil? @results) "disabled")
+        {:class    (if (nil? @results) "disabled")
          :on-click (fn [] (dispatch [:idresolver/clear]))}
         "Clear all"]
        [:button.btn.btn-warning
-        {:class (if (empty? @selected) "disabled")
+        {:class    (if (empty? @selected) "disabled")
          :on-click (fn [] (dispatch [:idresolver/delete-selected]))}
         (str "Remove selected (" (count @selected) ")")]
        [:button.btn.btn-primary.btn-raised
@@ -86,32 +88,32 @@
   (reagent/create-class
     (let [val   (reagent/atom nil)
           timer (reagent/atom nil)]
-      {:reagent-render (fn []
-                         [:input#identifierinput.freeform
-                          {:type "text"
-                           :placeholder "Type or paste identifiers here..."
-                           :value @val
-                           :on-key-press
-                           (fn [e]
-                             (let [keycode (.-charCode e)
-                                   input   (.. e -target -value)]
-                               (cond (= keycode 13)
-                                     (submit-input input val))))
-                           ;;not all keys are picked up by on key press or on-change so we need to do both.
-                           :on-change
-                           (fn [e]
-                             (let [input (.. e -target -value)]
-                               ;;we have a counter that automatically submits the typed entry if the user waits long enough (currently 1.5s).
-                               ;stop old auto-submit counter.
-                               (js/clearInterval @timer)
-                               ;start new timer again
-                               (reset! timer (js/setTimeout #(submit-input input val) timeout))
-                               ;submit the stuff
-                               (if (has-separator? input)
-                                 (do
-                                   (js/clearInterval @timer)
-                                   (submit-input input val))
-                                 (reset! val input))))}])
+      {:reagent-render      (fn []
+                              [:input#identifierinput.freeform
+                               {:type        "text"
+                                :placeholder "Type or paste identifiers here..."
+                                :value       @val
+                                :on-key-press
+                                             (fn [e]
+                                               (let [keycode (.-charCode e)
+                                                     input   (.. e -target -value)]
+                                                 (cond (= keycode 13)
+                                                       (submit-input input val))))
+                                ;;not all keys are picked up by on key press or on-change so we need to do both.
+                                :on-change
+                                             (fn [e]
+                                               (let [input (.. e -target -value)]
+                                                 ;;we have a counter that automatically submits the typed entry if the user waits long enough (currently 1.5s).
+                                                 ;stop old auto-submit counter.
+                                                 (js/clearInterval @timer)
+                                                 ;start new timer again
+                                                 (reset! timer (js/setTimeout #(submit-input input val) timeout))
+                                                 ;submit the stuff
+                                                 (if (has-separator? input)
+                                                   (do
+                                                     (js/clearInterval @timer)
+                                                     (submit-input input val))
+                                                   (reset! val input))))}])
        ;;autofocus on the entry field when the page loads
        :component-did-mount (fn [this] (.focus (reagent/dom-node this)))})))
 
@@ -141,7 +143,7 @@
   (fn [[oid data]]
     [:span.id-item [:span.dropdown
                     [:span.dropdown-toggle
-                     {:type "button"
+                     {:type        "button"
                       :data-toggle "dropdown"}
                      (:input data)
                      [:span.caret]]
@@ -165,7 +167,7 @@
 
 (def reasons
   {:TYPE_CONVERTED "we're searching for genes and you input a protein (or vice versa)."
-   :OTHER " the synonym you input is out of date."})
+   :OTHER          " the synonym you input is out of date."})
 
 (defn input-item-converted [original results]
   (let [new-primary-id    (get-in results [:matches 0 :summary :primaryIdentifier])
@@ -191,7 +193,7 @@
            [:div.id-resolver-item-container
             {:class (if (some #{input} @selected) "selected")}
             [:div.id-resolver-item
-             {:class class
+             {:class    class
               :on-click (fn [e]
                           (.preventDefault e)
                           (.stopPropagation e)
@@ -276,11 +278,11 @@
                                        (:case-sensitive? @stage-options)]))}
           (str "Upload" (when @files (str " " (count @files) " file" (when (> (count @files) 1) "s"))))]
        [:input
-        {:type "file"
-         :ref (fn [e] (reset! upload-elem e))
-         :multiple true
-         :style {:display "none"}
-         :on-click (fn [e] (.stopPropagation e)) ;;otherwise we just end up focusing on the input on the left/top.
+        {:type      "file"
+         :ref       (fn [e] (reset! upload-elem e))
+         :multiple  true
+         :style     {:display "none"}
+         :on-click  (fn [e] (.stopPropagation e)) ;;otherwise we just end up focusing on the input on the left/top.
          :on-change (fn [e] (dispatch [::evts/stage-files (oget e :target :files)]))}]
        [:div.form-group
         [:label "Upload from file(s)"]
@@ -298,9 +300,9 @@
      [:p "All your identifiers in a text file? Try dragging and dropping it here, or "
       [:label.browseforfile {:on-click (fn [e] (.stopPropagation e))} ;;otherwise it focuses on the typeable input
        [:input
-        {:type "file"
-         :multiple true
-         :on-click (fn [e] (.stopPropagation e)) ;;otherwise we just end up focusing on the input on the left/top.
+        {:type      "file"
+         :multiple  true
+         :on-click  (fn [e] (.stopPropagation e)) ;;otherwise we just end up focusing on the input on the left/top.
          :on-change (fn [e] (dispatch [::evts/stage-files (oget e :target :files)]))}]
        ;;this input isn't visible, but don't worry, clicking on the label is still accessible. Even the MDN says it's ok. True story.
        "browse for a file"]]
@@ -312,16 +314,16 @@
       [:div.resolvey
        [:div#dropzone1
         {
-         :on-drop (partial handle-drop-over drag-state)
-         :on-click (fn [evt]
-                     (.preventDefault evt)
-                     (.stopPropagation evt)
-                     (dispatch [:idresolver/clear-selected])
-                     (.focus (sel1 :#identifierinput)))
-         :on-drag-over (partial handle-drag-over drag-state)
+         :on-drop       (partial handle-drop-over drag-state)
+         :on-click      (fn [evt]
+                          (.preventDefault evt)
+                          (.stopPropagation evt)
+                          (dispatch [:idresolver/clear-selected])
+                          (.focus (sel1 :#identifierinput)))
+         :on-drag-over  (partial handle-drag-over drag-state)
          :on-drag-leave (fn [] (reset! drag-state false))
-         :on-drag-end (fn [] (reset! drag-state false))
-         :on-drag-exit (fn [] (reset! drag-state false))}
+         :on-drag-end   (fn [] (reset! drag-state false))
+         :on-drag-exit  (fn [] (reset! drag-state false))}
         [:div.eenput
          {:class (if @drag-state "dragging")}
          [:div.idresolver
@@ -440,12 +442,15 @@
     ))
 
 
+
+
+
 (defn select-organism-option []
   (fn [organism]
     [:div.form-group
      [:label "Organism"]
      [im-controls/select-organism
-      {:value organism
+      {:value     organism
        :on-change (fn [organism] (dispatch [::evts/update-option :organism organism]))}]]))
 
 (defn select-type-option []
@@ -453,7 +458,7 @@
     [:div.form-group
      [:label "Type"]
      [im-controls/select-type
-      {:value type
+      {:value     type
        :on-change (fn [type] (dispatch [::evts/update-option :type type]))}]]))
 
 (defn case-sensitive-option []
@@ -463,8 +468,8 @@
      [:div.checkbox
       [:label
        [:input
-        {:type "checkbox"
-         :checked bool
+        {:type      "checkbox"
+         :checked   bool
          :on-change (fn [e]
                       (dispatch [::evts/update-option :case-sensitive (oget e :target :checked)]))}]
        [:div "Case sensitive"]]]]))
@@ -495,27 +500,196 @@
           [:i.fa.fa-chevron-right {:style {:padding-left "5px"}}]]]))))
 
 
-(defn review-table []
+(defn review-table-old []
   (fn [results]
     [:table.table.table-striped
      [:thead [:tr [:th "Input"] [:th "Matches"]]]
      (into [:tbody]
            (map-indexed (fn [duplicate-idx {:keys [input reason matches] :as row}]
-                  [:tr
-                   [:td input]
-                   [:td
-                    (into [:div.btn-toolbar]
-                          (map-indexed
-                            (fn [match-idx {{:keys [symbol] :as duplicate} :summary keep? :keep?}]
-                              [:button.btn.btn-default
-                               {:class (when keep? "btn-success")
-                                :on-click (fn []
+                          [:tr
+                           [:td input]
+                           [:td
+                            (into [:div.btn-toolbar]
+                                  (map-indexed
+                                    (fn [match-idx {{:keys [symbol] :as duplicate} :summary keep? :keep?}]
+                                      [:button.btn.btn-default
+                                       {:class    (when keep? "btn-success")
+                                        :on-click (fn []
 
-                                            (dispatch [::evts/toggle-keep-duplicate duplicate-idx match-idx]) )}
-                               [:span [:i.fa.fa-fw {:class (if keep? "fa-check" "does-not-exist")}]
-                                symbol ]])
-                            matches))]])
-                results))]))
+                                                    (dispatch [::evts/toggle-keep-duplicate duplicate-idx match-idx]))}
+                                       [:span [:i.fa.fa-fw {:class (if keep? "fa-check" "does-not-exist")}]
+                                        symbol]])
+                                    matches))]])
+                        results))]))
+
+(defn review-table-2 []
+  (let [pager (reagent/atom {:show 10 :page 0})]
+    (fn [results]
+      (let [pages        (Math/floor (/ (count results) (:show @pager)))
+            rows-in-view (take (:show @pager) (drop (* (:show @pager) (:page @pager)) results))]
+        [:div.form-inline
+         [:div.form-group
+          [:div.btn-toolbar
+           [:button.btn.btn-default
+            {:on-click (fn [] (swap! pager update :page (comp (partial max 0) dec)))}
+            [:i.fa.fa-chevron-left]]
+           [:button.btn.btn-default
+            {:on-click (fn [] (swap! pager update :page (comp (partial min pages) inc)))}
+            [:i.fa.fa-chevron-right]]]]
+
+         [:div.form-group.pull-right
+          (into [:select.form-control
+                 {:on-change (fn [e] (swap! pager assoc :page (oget e :target :value)))
+                  :value     (:page @pager)}]
+                (map (fn [p]
+                       [:option {:value p} (str "Page " (inc p))]) (range pages)))
+          [:label {:style {:margin-left "5px"}} (str "of " pages)]]
+
+         [:table.table.table-striped
+          [:thead [:tr [:th "Input"] [:th "Matches"]]]
+          (into [:tbody]
+                (map-indexed (fn [duplicate-idx {:keys [input reason matches] :as row}]
+                               [:tr
+                                [:td input]
+                                [:td
+                                 (into [:div.btn-toolbar]
+                                       (map-indexed
+                                         (fn [match-idx {{:keys [symbol] :as duplicate} :summary keep? :keep?}]
+                                           [:button.btn.btn-default
+                                            {:class    (when keep? "btn-success")
+                                             :on-click (fn []
+
+                                                         (dispatch [::evts/toggle-keep-duplicate duplicate-idx match-idx]))}
+                                            [:span [:i.fa.fa-fw {:class (if keep? "fa-check" "does-not-exist")}]
+                                             symbol]])
+                                         matches))]])
+                             rows-in-view))]]))))
+
+
+(defn trs [input [head & tail]]
+  [
+   [:tr [:td {:row-span (+ 1 (count tail))} input]]
+   [:tr [:td {:row-span (+ 1 (count tail))} input]]
+   [:tr [:td {:row-span (+ 1 (count tail))} input]]
+
+   ])
+
+(defn review-table []
+  (let [pager          (reagent/atom {:show 5 :page 0})
+        summary-fields (subscribe [:current-summary-fields])
+        model          (subscribe [:current-model])]
+    (fn [type results]
+      (let [pages               (Math/floor (/ (count results) (:show @pager)))
+            rows-in-view        (take (:show @pager) (drop (* (:show @pager) (:page @pager)) results))
+            type-summary-fields (get @summary-fields (keyword type))]
+        [:div.form-inline.clearfix
+         [:div.form-group
+          [:div.btn-toolbar
+           [:button.btn.btn-default
+            {:on-click (fn [] (swap! pager update :page (comp (partial max 0) dec)))}
+            [:i.fa.fa-chevron-left]]
+           [:button.btn.btn-default
+            {:on-click (fn [] (swap! pager update :page (comp (partial min pages) inc)))}
+            [:i.fa.fa-chevron-right]]]]
+         [:div.clearfix
+          [:div.form-group.pull-right
+           (into [:select.form-control
+                  {:on-change (fn [e] (swap! pager assoc :page (oget e :target :value)))
+                   :value     (:page @pager)}]
+                 (map (fn [p]
+                        [:option {:value p} (str "Page " (inc p))]) (range pages)))
+           [:label {:style {:margin-left "5px"}} (str "of " pages)]]]
+
+         [:table.table.table-striped
+          [:thead
+           [:tr
+            [:th {:row-span 2} "Your Identifiers"]
+            [:th {:col-span 6} "Matches"]]
+           (into
+             [:tr [:th "Keep?"]]
+             (map
+               (fn [f]
+                 (let [path (path/friendly @model f)]
+                   [:th (join " > " (rest (split path " > ")))])) type-summary-fields))]
+          (into [:tbody]
+                (->> rows-in-view
+                     (map-indexed
+                       (fn [duplicate-idx {:keys [input reason matches] :as duplicate}]
+                         (->> matches
+                              (map-indexed
+                                (fn [match-idx {:keys [summary keep?] :as match}]
+                                  (into
+                                    (if (= match-idx 0)
+                                      [:tr
+                                       [:td {:row-span (count matches)} input]]
+                                      [:tr])
+                                    (conj
+                                      (map
+                                        (fn [field]
+                                          (let [without-prefix (keyword (join "." (rest (split field "."))))]
+                                            [:td (get summary without-prefix)])) type-summary-fields)
+                                      [:td
+                                       [:div.checkbox
+                                        [:label
+                                         [:input
+                                          {:type      "checkbox"
+                                           :checked   keep?
+                                           :on-change (fn [e]
+                                                        (dispatch [::evts/toggle-keep-duplicate
+                                                                   duplicate-idx match-idx]))}]]]])))))))
+                     (apply concat))
+                )
+          #_(into [:tbody]
+                  (map-indexed (fn [duplicate-idx {:keys [input reason matches] :as row}]
+                                 (into [:tr [:td input]]
+                                       (map-indexed
+                                         (fn [match-idx {{:keys [symbol] :as duplicate} :summary keep? :keep? :as match}]
+                                           [:td
+                                            [:div.col-11
+                                             (into [:span]
+                                                   (map (fn [f]
+                                                          (let [path (keyword (join "." (rest (split f "."))))]
+                                                            [:div.label.label-default (get duplicate path)])) type-summary-fields))
+                                             #_[:button.btn.btn-default
+                                                {:class    (when keep? "btn-success")
+                                                 :on-click (fn []
+                                                             (js/console.log "M" match)
+                                                             (dispatch [::evts/toggle-keep-duplicate duplicate-idx match-idx]))}
+                                                [:span [:i.fa.fa-fw {:class (if keep? "fa-check" "does-not-exist")}]
+                                                 (into [:span]
+                                                       (map (fn [f]
+                                                              (let [path (keyword (join "." (rest (split f "."))))]
+                                                                [:div.label.label-default (get duplicate path)])) type-summary-fields))]]]])
+                                         matches)))
+                               rows-in-view))]
+
+         #_(into [:div.resolution-table]
+                 (map-indexed (fn [duplicate-idx {:keys [input reason matches] :as row}]
+                                [:div.grid
+                                 [:div.col-2 input]
+                                 [:div.col-10
+                                  (into [:div]
+                                        (map-indexed
+                                          (fn [match-idx {{:keys [symbol] :as duplicate} :summary keep? :keep? :as match}]
+                                            [:div.grid
+                                             [:div.col-1 "Keep?"]
+                                             [:div.col-11
+                                              (into [:span]
+                                                    (map (fn [f]
+                                                           (let [path (keyword (join "." (rest (split f "."))))]
+                                                             [:div.label.label-default (get duplicate path)])) type-summary-fields))
+                                              #_[:button.btn.btn-default
+                                                 {:class    (when keep? "btn-success")
+                                                  :on-click (fn []
+                                                              (js/console.log "M" match)
+                                                              (dispatch [::evts/toggle-keep-duplicate duplicate-idx match-idx]))}
+                                                 [:span [:i.fa.fa-fw {:class (if keep? "fa-check" "does-not-exist")}]
+                                                  (into [:span]
+                                                        (map (fn [f]
+                                                               (let [path (keyword (join "." (rest (split f "."))))]
+                                                                 [:div.label.label-default (get duplicate path)])) type-summary-fields))]]]])
+                                          matches))]])
+                              rows-in-view))]))))
 
 (defn review-step []
   (let [resolution-response (subscribe [::subs/resolution-response])]
@@ -530,7 +704,7 @@
           [:div.progress-bar.progress-bar-warning {:style {:width (str (* 100 (/ (:issues stats) (:all stats))) "%")}} (str (:issues stats) " Issues")]
           [:div.progress-bar.progress-bar-danger {:style {:width (str (* 100 (/ (:notFound stats) (:all stats))) "%")}} (str (:notFound stats) " Not Found")]]
 
-         [review-table (-> @resolution-response :matches :DUPLICATE)]
+         [review-table (:type @resolution-response) (-> @resolution-response :matches :DUPLICATE)]
 
 
          [:button.btn.btn-primary.pull-right
@@ -569,20 +743,20 @@
   (reagent/create-class
     {:component-did-mount attach-body-events
      :reagent-render
-     (fn []
-       (let [bank         (subscribe [:idresolver/bank])
-             no-matches   (subscribe [:idresolver/results-no-matches])
-             result-count (- (count @bank) (count @no-matches))]
-         [:div.container.idresolverupload
-          #_[:div.headerwithguidance
-             [:a.guidance
-              {:on-click
-               (fn []
-                 (dispatch [:idresolver/example splitter]))} "[Show me an example]"]]
-          [wizard]
-          #_[input-div]
-          ;[stats]
-          (cond (> result-count 0) [preview result-count])
-          ;[selected]
-          ;[debugger]
-          ]))}))
+                          (fn []
+                            (let [bank         (subscribe [:idresolver/bank])
+                                  no-matches   (subscribe [:idresolver/results-no-matches])
+                                  result-count (- (count @bank) (count @no-matches))]
+                              [:div.container.idresolverupload
+                               #_[:div.headerwithguidance
+                                  [:a.guidance
+                                   {:on-click
+                                    (fn []
+                                      (dispatch [:idresolver/example splitter]))} "[Show me an example]"]]
+                               [wizard]
+                               #_[input-div]
+                               ;[stats]
+                               (cond (> result-count 0) [preview result-count])
+                               ;[selected]
+                               ;[debugger]
+                               ]))}))
