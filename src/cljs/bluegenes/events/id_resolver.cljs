@@ -2,7 +2,11 @@
   (:require [re-frame.core :refer [reg-event-db reg-event-fx]]
             [bluegenes.effects :as fx]
             [oops.core :refer [oget]]
-            [imcljs.fetch :as fetch]))
+            [imcljs.fetch :as fetch]
+            [imcljs.save :as save]
+            [cljs-time.core :as time]
+            [cljs-time.format :as time-format]
+            [clojure.string :as string]))
 
 (reg-event-db ::stage-files
               (fn [db [_ js-FileList]]
@@ -44,13 +48,31 @@
                                     :extra (:organism options)})
                            :on-success [::store-identifiers]}}))
 
+(def time-formatter (time-format/formatter "dd MMM yyyy HH:mm:ss"))
+
 (reg-event-db ::finished-review
               (fn [db]
-                (assoc-in db [:idresolver :stage :flags] {:reviewed true})))
+                (let [{:keys [type organism]} (get-in db [:idresolver :stage :options])]
+                  (-> db
+                      (assoc-in [:idresolver :stage :flags] {:reviewed true})
+                      (assoc-in [:idresolver :save :list-name]
+                                (str type
+                                     " list for "
+                                     (if (string/blank? organism) "all organisms" organism)
+                                     " "
+                                     (time-format/unparse time-formatter (time/now))))))))
 
 (reg-event-db ::store-identifiers
               (fn [db [_ response]]
-                (assoc-in db [:idresolver :response] response)))
+                (let [{:keys [type organism]} (get-in db [:idresolver :stage :options])]
+                  (-> db
+                      (assoc-in [:idresolver :response] response)
+                      (assoc-in [:idresolver :save :list-name]
+                                (str type
+                                     " list for "
+                                     (if (string/blank? organism) "all organisms" organism)
+                                     " "
+                                     (time-format/unparse time-formatter (time/now))))))))
 
 (reg-event-db ::toggle-case-sensitive
               (fn [db [_ response]]
@@ -67,3 +89,34 @@
 (reg-event-db ::update-list-name
               (fn [db [_ value]]
                 (assoc-in db [:idresolver :save :list-name] value)))
+
+(reg-event-fx ::save-list
+              (fn [{db :db} [_]]
+                (let [{:keys [OTHER WILDCARD DUPLICATE TYPE_CONVERTED MATCH]} (get-in db [:idresolver :response :matches])
+                      object-type (get-in db [:idresolver :stage :options :type])
+                      service     (get-in db [:mines (get db :current-mine) :service])
+                      list-name   (get-in db [:idresolver :save :list-name])]
+                  {:im-chan {:chan (save/im-list-from-query
+                                     service
+                                     list-name
+                                     {:from object-type
+                                      :select [(str object-type ".id")]
+                                      :where [{:path (str object-type ".id")
+                                               :op "ONE OF"
+                                               :values (->> (concat OTHER WILDCARD TYPE_CONVERTED MATCH)
+                                                            (concat (mapcat (fn [{matches :matches}] (filter :keep? matches)) DUPLICATE))
+                                                            (map :id))}]})
+                             :on-success [::save-list-success list-name object-type]}})))
+
+(reg-event-fx ::save-list-success
+              (fn [{db :db} [_ list-name object-type response]]
+                (let [summary-fields (get-in db [:assets :summary-fields (get db :current-mine) (keyword object-type)])]
+                  {:db db
+                   :navigate "results"
+                   :dispatch [:results/set-query {:source (get db :current-mine)
+                                                  :type :query
+                                                  :value {:from object-type
+                                                          :select summary-fields
+                                                          :where [{:path object-type
+                                                                   :op "IN"
+                                                                   :value list-name}]}}]})))

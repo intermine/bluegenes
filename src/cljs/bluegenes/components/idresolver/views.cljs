@@ -526,7 +526,8 @@
                         [:option {:value p} (str "Page " (inc p))]) (range pages)))
            [:label {:style {:margin-left "5px"}} (str "of " pages)]]]
 
-         [:table.table.table-striped
+         [:table.table.table-condensed.table-striped
+          {:style {:background-color "white"}}
           [:thead
            [:tr
             [:th {:row-span 2} "Your Identifiers"]
@@ -566,25 +567,36 @@
                      (apply concat)))]]))))
 
 (defn review-step []
-  (let [resolution-response (subscribe [::subs/resolution-response])]
+  (let [resolution-response (subscribe [::subs/resolution-response])
+        list-name (subscribe [::subs/list-name])]
     (fn []
       (let [{{{:keys [matches issues notFound all]} :identifiers :as s} :stats} @resolution-response]
         [:div
-         [:div.flex-progressbar
-          [:div.bar.success {:style {:flex (* 100 (/ matches all))}} (str matches " Matches")]
-          [:div.bar.warning {:style {:flex (* 100 (/ issues all))}} (str issues " Issues")]
-          [:div.bar.danger {:style {:flex (* 100 (/ notFound all))}} (str notFound " Not Found")]]
 
-         [:p ""]
-         [:div.alert.alert-warning
+
+
+         [:div
+          [:div.flex-progressbar
+           [:div.bar.success {:style {:flex (* 100 (/ matches all))}} (str matches " Matches")]
+           [:div.bar.warning {:style {:flex (* 100 (/ issues all))}} (str issues " Issues")]
+           [:div.bar.danger {:style {:flex (* 100 (/ notFound all))}} (str notFound " Not Found")]]
+          [:div.alert.alert-warning.clearfix
+
+
+           #_[:button.btn.btn-default.pull-right
+            {:on-click (fn [] (dispatch [::evts/finished-review]))} (str "Continue with " matches " results")
+            [:i.fa.fa-chevron-right {:style {:padding-left "5px"}}]]
+           [:div.form-group
+            [:label "List Name"]
+            [:input.form-control {:type "text"
+                                  :value @list-name
+                                  :on-change (fn [e] (dispatch [::evts/update-list-name (oget e :target :value)]))}]]
            [:h3 [:i.fa.fa-exclamation-triangle] (str issues " identifiers returned duplicate results")]
-           [:p "Please select from the list of duplicates which ones you want to keep"]]
-         [review-table (:type @resolution-response) (-> @resolution-response :matches :DUPLICATE)]
-
-
-         [:button.btn.btn-primary.pull-right
-          {:on-click (fn [] (dispatch [::evts/finished-review]))} "Continue"
-          [:i.fa.fa-chevron-right {:style {:padding-left "5px"}}]]]))))
+           [:p "Please select from the list of duplicates which ones you want to keep"]
+           [:button.btn.btn-success.pull-right
+            {:on-click (fn [] (dispatch [::evts/save-list]))} "Save List"
+            [:i.fa.fa-chevron-right {:style {:padding-left "5px"}}]]]
+          [review-table (:type @resolution-response) (-> @resolution-response :matches :DUPLICATE)]]]))))
 
 (defn save-step []
   (let [resolution-response (subscribe [::subs/resolution-response])
@@ -597,8 +609,8 @@
           [:input.form-control {:type "text"
                                 :value @list-name
                                 :on-change (fn [e] (dispatch [::evts/update-list-name (oget e :target :value)]))}]]
-         [:button.btn.btn-primary.pull-right
-          {:on-click (fn [] (dispatch [::evts/finished-review]))} "Continue"
+         [:button.btn.btn-success.pull-right
+          {:on-click (fn [] (dispatch [::evts/finished-review]))} "Save List"
           [:i.fa.fa-chevron-right {:style {:padding-left "5px"}}]]]))))
 
 (defn bread []
