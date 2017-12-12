@@ -15,9 +15,13 @@
    :search {:selected-results #{}}
 
    :idresolver {:stage {:files nil
+                        :textbox nil
                         :options {:case-sensitive false}
                         :status nil
                         :flags nil}
+                :to-resolve {:total nil
+                             :identifiers []}
+                :save {:list-name nil}
                 :response nil}
 
    :mymine {:dragging nil

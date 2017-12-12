@@ -501,9 +501,13 @@
                :disabled @files
                :style {:height "100%"} :rows 5}]]]
            [:div.file-container [file-manager]]]]
-         [:div.btn-toolbar
+         [:div.btn-toolbar.pull-right
           {:style {:margin-top "10px"}}
-          [:button.btn.btn-primary.pull-right
+          [:button.btn.btn-default
+           {:on-click (fn [] (dispatch [::evts/reset @options]))}
+           #_(str "Upload" (when @files (str " " (count @files) " file" (when (> (count @files) 1) "s"))))
+           "Reset"]
+          [:button.btn.btn-primary
            {:on-click (fn [] (dispatch [::evts/parse-staged-files @files @options]))}
            #_(str "Upload" (when @files (str " " (count @files) " file" (when (> (count @files) 1) "s"))))
            "Create List"
@@ -638,23 +642,27 @@
 
 
 (defn main []
-  (reagent/create-class
-    {:component-did-mount attach-body-events
-     :reagent-render
-     (fn []
-       (let [bank         (subscribe [:idresolver/bank])
-             no-matches   (subscribe [:idresolver/results-no-matches])
-             result-count (- (count @bank) (count @no-matches))]
-         [:div.container.idresolverupload
-          #_[:div.headerwithguidance
-             [:a.guidance
-              {:on-click
-               (fn []
-                 (dispatch [:idresolver/example splitter]))} "[Show me an example]"]]
-          [wizard]
-          #_[input-div]
-          ;[stats]
-          (cond (> result-count 0) [preview result-count])
-          ;[selected]
-          ;[debugger]
-          ]))}))
+  (let [options (subscribe [::subs/stage-options])]
+    (reagent/create-class
+      {:component-did-mount (fn [e]
+                              (attach-body-events)
+                              (when (nil? (:type @options))
+                                (dispatch [::evts/reset])))
+       :reagent-render
+       (fn []
+         (let [bank         (subscribe [:idresolver/bank])
+               no-matches   (subscribe [:idresolver/results-no-matches])
+               result-count (- (count @bank) (count @no-matches))]
+           [:div.container.idresolverupload
+            #_[:div.headerwithguidance
+               [:a.guidance
+                {:on-click
+                 (fn []
+                   (dispatch [:idresolver/example splitter]))} "[Show me an example]"]]
+            [wizard]
+            #_[input-div]
+            ;[stats]
+            (cond (> result-count 0) [preview result-count])
+            ;[selected]
+            ;[debugger]
+            ]))})))

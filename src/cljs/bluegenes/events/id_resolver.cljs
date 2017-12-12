@@ -42,7 +42,6 @@
 
 (reg-event-fx ::resolve-identifiers
               (fn [{db :db} [_ options identifiers]]
-                (js/console.log "OPTIONS" options)
                 {:im-chan {:chan (fetch/resolve-identifiers
                                    ;TODO - Just a placeholder, make this dynamic
                                    {:root "beta.flymine.org/beta"}
@@ -130,3 +129,16 @@
                                                           :where [{:path object-type
                                                                    :op "IN"
                                                                    :value list-name}]}}]})))
+
+(reg-event-db ::reset
+              (fn [db]
+                (let [mine-details (get-in db [:mines (get db :current-mine)])]
+                  (assoc db :idresolver
+                            {:stage {:files nil
+                                     :textbox nil
+                                     :options {:case-sensitive false
+                                               :type (-> mine-details :default-object-types first name)
+                                               :organism (-> mine-details :default-organism)}
+                                     :status nil
+                                     :flags nil}
+                             :response nil}))))

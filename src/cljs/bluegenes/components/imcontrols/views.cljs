@@ -58,7 +58,7 @@ Example usage:
       (let [default-types (get @current-mine :default-object-types)]
         [:div.form-group
          (into [:select.form-control
-                {:value (or value (-> default-types first name) "")
+                {:value (or value (-> default-types first name))
                  :on-change (fn [e] (on-change (oget e :target :value)))}]
                (concat
                  (map (fn [[class-kw {:keys [name displayName]}]]
