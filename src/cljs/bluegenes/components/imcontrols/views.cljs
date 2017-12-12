@@ -35,11 +35,12 @@ Example usage:
                       (sort-by :shortName @organisms))))])))
 
 (defn select-organism []
-  (let [organisms (subscribe [:cache/organisms])]
+  (let [organisms (subscribe [:cache/organisms])
+        default-organism (subscribe [:mine-default-organism])]
     (fn [{:keys [value on-change]}]
       [:div.form-group
        (into [:select.form-control
-              {:value (or value "")
+              {:value (or value @default-organism "")
                :on-change (fn [e] (on-change (oget e :target :value)))}]
              (concat
                [[:option {:value ""} "Any"]
@@ -57,7 +58,7 @@ Example usage:
       (let [default-types (get @current-mine :default-object-types)]
         [:div.form-group
          (into [:select.form-control
-                {:value (or value "")
+                {:value (or value (-> default-types first name) "")
                  :on-change (fn [e] (on-change (oget e :target :value)))}]
                (concat
                  (map (fn [[class-kw {:keys [name displayName]}]]
