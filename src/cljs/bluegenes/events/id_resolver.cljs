@@ -21,13 +21,14 @@
                 (assoc-in db [:idresolver :stage :textbox] value)))
 
 (reg-event-fx ::parse-staged-files
-              (fn [{db :db} [_ js-Files options]]
+              (fn [{db :db} [_ js-Files text options]]
                 {:db (assoc-in db [:idresolver :stage :status] {:action :parsing})
                  ::fx/http {:uri "/api/ids/parse"
                             :method :post
                             :multipart-params (conj
                                                 (map (fn [f] [(oget f :name) f]) js-Files)
-                                                ["caseSensitive" (:case-sensitive options)])
+                                                ["caseSensitive" (:case-sensitive options)]
+                                                ["text" text])
                             :body {:caseSensitive? true}
                             :on-success [::store-parsed-response options]}}))
 

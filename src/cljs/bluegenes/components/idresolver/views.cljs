@@ -508,7 +508,7 @@
            #_(str "Upload" (when @files (str " " (count @files) " file" (when (> (count @files) 1) "s"))))
            "Reset"]
           [:button.btn.btn-primary
-           {:on-click (fn [] (dispatch [::evts/parse-staged-files @files @options]))}
+           {:on-click (fn [] (dispatch [::evts/parse-staged-files @files @textbox-identifiers @options]))}
            #_(str "Upload" (when @files (str " " (count @files) " file" (when (> (count @files) 1) "s"))))
            "Create List"
            [:i.fa.fa-chevron-right {:style {:padding-left "5px"}}]]]]))))

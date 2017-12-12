@@ -19,17 +19,19 @@
   [[file-name {:keys [filename content-type tempfile size]}]]
   (parse-identifiers (slurp tempfile)))
 
-(def multipart-options ["caseSensitive"])
+(def multipart-options ["caseSensitive" "text"])
 
 (defn parse-request-for-ids [{:keys [body multipart-params] :as req}]
   (let [; Remove the multipart form fields that are options
         files          (apply dissoc multipart-params multipart-options)
+        ; Any text to be parsed from a string should be passed as the "text" multipart parameter
+        text           (get multipart-params "text")
         ; Build a map of the multipart form fields that are options
         options        (select-keys multipart-params multipart-options)
         ; Should the parsing be case sensitive?
         case-sensitive (= "true" (get options "caseSensitive"))]
     ; Parse the identifiers and remove duplicates (convert to lower case if case-insensitive)
-    (let [total (distinct (map (if case-sensitive lower-case identity) (mapcat parse-file files)))]
+    (let [total (distinct (map (if case-sensitive lower-case identity) (concat (mapcat parse-file files) (parse-identifiers text))))]
       ; Return the parsed identifiers and the total count
       {:identifiers total
        :total (count total)})))
