@@ -42,14 +42,14 @@
 
 (reg-event-fx ::resolve-identifiers
               (fn [{db :db} [_ options identifiers]]
-                {:im-chan {:chan (fetch/resolve-identifiers
-                                   ;TODO - Just a placeholder, make this dynamic
-                                   {:root "beta.flymine.org/beta"}
-                                   {:identifiers identifiers
-                                    :case-sensitive (:case-sensitive options)
-                                    :type (:type options)
-                                    :extra (:organism options)})
-                           :on-success [::store-identifiers]}}))
+                (let [service (get-in db [:mines (get db :current-mine) :service])]
+                  {:im-chan {:chan (fetch/resolve-identifiers
+                                     service
+                                     {:identifiers identifiers
+                                      :case-sensitive (:case-sensitive options)
+                                      :type (:type options)
+                                      :extra (:organism options)})
+                             :on-success [::store-identifiers]}})))
 
 (def time-formatter (time-format/formatter "dd MMM yyyy HH:mm:ss"))
 
