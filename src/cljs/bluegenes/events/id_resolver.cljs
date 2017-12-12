@@ -22,7 +22,6 @@
 
 (reg-event-fx ::parse-staged-files
               (fn [{db :db} [_ js-Files options]]
-                (println "OPT" options)
                 {:db (assoc-in db [:idresolver :stage :status] {:action :parsing})
                  ::fx/http {:uri "/api/ids/parse"
                             :method :post
