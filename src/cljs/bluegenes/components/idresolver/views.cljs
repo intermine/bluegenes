@@ -663,6 +663,27 @@
                                                                        duplicate-idx match-idx]))}]]]])))))))
                      (apply concat)))]]))))
 
+(defn success-message []
+  (fn [count total]
+    [:div.alert.alert-success.stat
+     [:span
+      [:div [:i.fa.fa-fw.fa-check] (str " " count  " matching objects were found")]]]))
+
+
+(defn issues-message []
+  (fn [count total]
+    [:div.alert.alert-warning.stat
+     [:span
+      [:div [:i.fa.fa-fw.fa-exclamation-triangle] (str " " count  " identifiers returned multiple objects")]
+      [:div "Please"]]]))
+
+(defn not-found-message []
+  (fn [count total]
+    [:div.alert.alert-danger.stat
+     [:span
+      [:i.fa.fa-fw.fa-times]
+      (str " " count  " identifiers were not found")]]))
+
 (defn review-step []
   (let [resolution-response (subscribe [::subs/resolution-response])
         list-name           (subscribe [::subs/list-name])
@@ -670,25 +691,35 @@
     (fn []
       (let [{{{:keys [matches issues notFound all]} :identifiers :as s} :stats} @resolution-response]
         [:div
-         [:div.flex-progressbar
-          (when (not= matches 0) [:div.bar.bar-success {:style {:flex (* 100 (/ matches all))}} (str matches " Matches")])
-          (when (not= issues 0) [:div.bar.bar-warning {:style {:flex (* 100 (/ issues all))}} (str issues " Issues")])
-          (when (not= notFound 0) [:div.bar.bar-danger {:style {:flex (* 100 (/ notFound all))}} (str notFound " Not Found")])]
-         [:div.alert.alert-warning.clearfix
+
+
+         [:div.clearfix
+          {:style {:margin-top "10px"}
+           ;:class (cond (and (= notFound 0) (= issues 0)) "alert-success" (or (not= notFound 0) (not= issues 0)) "alert-warning")
+           }
+          #_[:div.row
+             [:div.col-sm-12
+              [:h3 [:i.fa.fa-exclamation-triangle {:style {:margin-right "10px"}}] (str issues " identifiers returned duplicate results")]
+              [:p "Please select from the list of duplicates which ones you want to keep"]]]
+
+          #_(cond-> [:div.stats-table]
+                  (not= matches 0) (conj [success-message matches all])
+                  (not= issues 0) (conj [issues-message issues all])
+                  (not= notFound 0) (conj [not-found-message notFound all]))
+
           [:div.row
            [:div.col-sm-12
-            [:h3 [:i.fa.fa-exclamation-triangle {:style {:margin-right "10px"}}] (str issues " identifiers returned duplicate results")]
-            [:p "Please select from the list of duplicates which ones you want to keep"]]]
-          [:div.row
-           [:div.col-sm-12
-            [:div.form-group
-             [:label "List Name"]
-             [:input.form-control {:type "text"
-                                   :value @list-name
-                                   :on-change (fn [e] (dispatch [::evts/update-list-name (oget e :target :value)]))}]]]]
-          [:button.btn.btn-success.pull-right
-           {:on-click (fn [] (dispatch [::evts/save-list]))} "Save List"
-           [:i.fa.fa-chevron-right {:style {:padding-left "5px"}}]]]
+            [:div.flex-progressbar
+             [:div.title
+              [:h4 (str "You uploaded " all " identifiers")]]
+             [:div.bars
+              (when (not= matches 0) [:div.bar.bar-success {:style {:flex (* 100 (/ matches all))}} (str matches " Matches")])
+              (when (not= issues 0) [:div.bar.bar-warning {:style {:flex (* 100 (/ issues all))}} (str issues " Issues")])
+              (when (not= notFound 0) [:div.bar.bar-danger {:style {:flex (* 100 (/ notFound all))}} (str notFound " Not Found")])]
+             ]]]
+
+          ]
+
          [:ul.nav.nav-tabs
           (when (not= matches 0) [:li {:class (when (= @tab :matches) "active") :on-click (fn [] (reset! tab :matches))}
                                   [:a [:i.fa.fa-fw.fa-check]
@@ -699,11 +730,24 @@
           (when (not= notFound 0) [:li {:class (when (= @tab :notFound) "active") :on-click (fn [] (reset! tab :notFound))}
                                    [:a [:i.fa.fa-fw.fa-times]
                                     (str "Not Found (" notFound ")")]])]
-         (case @tab
+         [:div.table-container
+          (case @tab
+            :issues [review-table (:type @resolution-response) (-> @resolution-response :matches :DUPLICATE)]
+            :notFound [not-found-table (:type @resolution-response) (-> @resolution-response :unresolved)]
+            [matches-table (:type @resolution-response) (-> @resolution-response :matches :MATCH)])]
 
-           :issues [review-table (:type @resolution-response) (-> @resolution-response :matches :DUPLICATE)]
-           :notFound [not-found-table (:type @resolution-response) (-> @resolution-response :unresolved)]
-           [matches-table (:type @resolution-response) (-> @resolution-response :matches :MATCH)])
+         [:div.row
+          [:div.col-sm-12
+           [:div.form-group
+            [:label "List Name"]
+            [:input.form-control {:type "text"
+                                  :value @list-name
+                                  :on-change (fn [e] (dispatch [::evts/update-list-name (oget e :target :value)]))}]]]]
+
+         [:button.btn.btn-success.pull-right
+          {:on-click (fn [] (dispatch [::evts/save-list]))} "Save List"
+          [:i.fa.fa-chevron-right {:style {:padding-left "5px"}}]]
+
          ]))))
 
 (defn bread-circles []
