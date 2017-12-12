@@ -513,17 +513,15 @@
            "Create List"
            [:i.fa.fa-chevron-right {:style {:padding-left "5px"}}]]]]))))
 
-
-(defn review-table []
-  (let [pager          (reagent/atom {:show 5 :page 0})
+(defn matches-table []
+  (let [pager          (reagent/atom {:show 10 :page 0})
         summary-fields (subscribe [:current-summary-fields])
         model          (subscribe [:current-model])]
-    (fn [type results]
+    (fn [type results show-keep?]
       (let [pages               (Math/floor (/ (count results) (:show @pager)))
             rows-in-view        (take (:show @pager) (drop (* (:show @pager) (:page @pager)) results))
             type-summary-fields (get @summary-fields (keyword type))]
         [:div.form-inline.clearfix
-
          [:div.form-group
           [:div.btn-toolbar
            [:button.btn.btn-default
@@ -539,8 +537,95 @@
                   {:on-change (fn [e] (swap! pager assoc :page (oget e :target :value)))
                    :value (:page @pager)}]
                  (map (fn [p]
-                        [:option {:value p} (str "Page " (inc p))]) (range pages)))
-           [:label {:style {:margin-left "5px"}} (str "of " pages)]]]
+                        [:option {:value p} (str "Page " (inc p))]) (range (inc pages))))
+           [:label {:style {:margin-left "5px"}} (str "of " (inc pages))]]]
+
+         [:table.table.table-condensed.table-striped
+          {:style {:background-color "white"}}
+          [:thead [:tr [:th {:row-span 2} "Your Identifier"] [:th {:col-span 6} "Matches"]]
+           (into
+             [:tr]
+             (map
+               (fn [f]
+                 (let [path (path/friendly @model f)]
+                   [:th (join " > " (rest (split path " > ")))])) type-summary-fields))]
+          (into [:tbody]
+                (->> rows-in-view
+                     (map-indexed
+                       (fn [row-idx {:keys [summary input id]}]
+                         (into [:tr [:td (join ", " input)]]
+                               (map
+                                 (fn [field]
+                                   (let [without-prefix (keyword (join "." (rest (split field "."))))]
+                                     [:td (get summary without-prefix)])) type-summary-fields))))))]]))))
+
+
+(defn not-found-table []
+  (let [pager          (reagent/atom {:show 10 :page 0})
+        summary-fields (subscribe [:current-summary-fields])
+        model          (subscribe [:current-model])]
+    (fn [type results show-keep?]
+      (let [pages               (Math/floor (/ (count results) (:show @pager)))
+            rows-in-view        (take (:show @pager) (drop (* (:show @pager) (:page @pager)) results))
+            type-summary-fields (get @summary-fields (keyword type))]
+        [:div.form-inline.clearfix
+         [:div.form-group
+          [:div.btn-toolbar
+           [:button.btn.btn-default
+            {:on-click (fn [] (swap! pager update :page (comp (partial max 0) dec)))}
+            [:i.fa.fa-chevron-left]]
+           [:button.btn.btn-default
+            {:on-click (fn [] (swap! pager update :page (comp (partial min pages) inc)))}
+            [:i.fa.fa-chevron-right]]]]
+
+         [:div.clearfix
+          [:div.form-group.pull-right
+           (into [:select.form-control
+                  {:on-change (fn [e] (swap! pager assoc :page (oget e :target :value)))
+                   :value (:page @pager)}]
+                 (map (fn [p]
+                        [:option {:value p} (str "Page " (inc p))]) (range (inc pages))))
+           [:label {:style {:margin-left "5px"}} (str "of " (inc pages))]]]
+
+         [:table.table.table-condensed.table-striped
+          {:style {:background-color "white"}}
+          [:thead [:tr [:th "Your Identifier"]]]
+          (into [:tbody]
+                (->> rows-in-view
+                     (map-indexed
+                       (fn [row-idx value]
+                         [:tr [:td value]]))))]]))))
+
+
+
+
+
+(defn review-table []
+  (let [pager          (reagent/atom {:show 5 :page 0})
+        summary-fields (subscribe [:current-summary-fields])
+        model          (subscribe [:current-model])]
+    (fn [type results show-keep?]
+      (let [pages               (Math/floor (/ (count results) (:show @pager)))
+            rows-in-view        (take (:show @pager) (drop (* (:show @pager) (:page @pager)) results))
+            type-summary-fields (get @summary-fields (keyword type))]
+        [:div.form-inline.clearfix
+         [:div.form-group
+          [:div.btn-toolbar
+           [:button.btn.btn-default
+            {:on-click (fn [] (swap! pager update :page (comp (partial max 0) dec)))}
+            [:i.fa.fa-chevron-left]]
+           [:button.btn.btn-default
+            {:on-click (fn [] (swap! pager update :page (comp (partial min pages) inc)))}
+            [:i.fa.fa-chevron-right]]]]
+
+         [:div.clearfix
+          [:div.form-group.pull-right
+           (into [:select.form-control
+                  {:on-change (fn [e] (swap! pager assoc :page (oget e :target :value)))
+                   :value (:page @pager)}]
+                 (map (fn [p]
+                        [:option {:value p} (str "Page " (inc p))]) (range (inc pages))))
+           [:label {:style {:margin-left "5px"}} (str "of " (inc pages))]]]
 
          [:table.table.table-condensed.table-striped
           {:style {:background-color "white"}}
@@ -580,7 +665,8 @@
 
 (defn review-step []
   (let [resolution-response (subscribe [::subs/resolution-response])
-        list-name           (subscribe [::subs/list-name])]
+        list-name           (subscribe [::subs/list-name])
+        tab                 (reagent/atom :matches)]
     (fn []
       (let [{{{:keys [matches issues notFound all]} :identifiers :as s} :stats} @resolution-response]
         [:div
@@ -603,7 +689,22 @@
           [:button.btn.btn-success.pull-right
            {:on-click (fn [] (dispatch [::evts/save-list]))} "Save List"
            [:i.fa.fa-chevron-right {:style {:padding-left "5px"}}]]]
-         [review-table (:type @resolution-response) (-> @resolution-response :matches :DUPLICATE)]]))))
+         [:ul.nav.nav-tabs
+          (when (not= matches 0) [:li {:class (when (= @tab :matches) "active") :on-click (fn [] (reset! tab :matches))}
+                                  [:a [:i.fa.fa-fw.fa-check]
+                                   (str " Matches (" matches ")")]])
+          (when (not= issues 0) [:li {:class (when (= @tab :issues) "active") :on-click (fn [] (reset! tab :issues))}
+                                 [:a [:i.fa.fa-fw.fa-exclamation-triangle]
+                                  (str " Duplicates (" issues ")")]])
+          (when (not= notFound 0) [:li {:class (when (= @tab :notFound) "active") :on-click (fn [] (reset! tab :notFound))}
+                                   [:a [:i.fa.fa-fw.fa-times]
+                                    (str "Not Found (" notFound ")")]])]
+         (case @tab
+
+           :issues [review-table (:type @resolution-response) (-> @resolution-response :matches :DUPLICATE)]
+           :notFound [not-found-table (:type @resolution-response) (-> @resolution-response :unresolved)]
+           [matches-table (:type @resolution-response) (-> @resolution-response :matches :MATCH)])
+         ]))))
 
 (defn bread-circles []
   (let [response (subscribe [::resolution-response])]
