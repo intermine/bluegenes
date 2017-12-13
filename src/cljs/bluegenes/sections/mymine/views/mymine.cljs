@@ -695,6 +695,7 @@
          [:div.mymine.noselect
           [:div.file-browser [tag-browser]]
           [:div.files
+          [:div.headerwithguidance [:h1 "My Data"]]
            [list-operations]
            (when @show-selected-pane?
              [:div.top.shrink
