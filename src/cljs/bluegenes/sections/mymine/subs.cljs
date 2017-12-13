@@ -1,4 +1,4 @@
-(ns bluegenes.subs.mymine
+(ns bluegenes.sections.mymine.subs
   (:require [re-frame.core :as re-frame :refer [reg-sub subscribe]]
             [reagent.core :as r]
             [cljs-time.format :as tf]

@@ -6,8 +6,8 @@
             [cljs-time.coerce :as c]
             [oops.core :refer [oget ocall oset!]]
             [goog.i18n.NumberFormat.Format]
-            [bluegenes.events.mymine :as evts]
-            [bluegenes.subs.mymine :as subs]
+            [bluegenes.sections.mymine.events :as evts]
+            [bluegenes.sections.mymine.subs :as subs]
             [inflections.core :as inf]
             [bluegenes.sections.mymine.views.modals :as modals]
             [bluegenes.sections.mymine.views.contextmenu :as m]
@@ -797,5 +797,3 @@
           [modals/modal-rename-list @context-menu-target]
           [m/context-menu-container @context-menu-target]])})))
 ;[thinker/main]
-
-

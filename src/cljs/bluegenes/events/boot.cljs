@@ -20,7 +20,7 @@
                            [:assets/fetch-widgets]
                            [:assets/fetch-summary-fields]
                            [:assets/fetch-intermine-version]
-                           [:bluegenes.events.mymine/fetch-tree]]}
+                           [:bluegenes.sections.mymine.events/fetch-tree]]}
              ; When all assets are loaded let bluegenes know
              {:when :seen-all-of?
               :events [:assets/success-fetch-model

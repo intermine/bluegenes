@@ -8,7 +8,7 @@
             [bluegenes.sections.querybuilder.subs]
             [bluegenes.components.search.subs]
             [bluegenes.subs.auth]
-            [bluegenes.subs.mymine]))
+            [bluegenes.sections.mymine.subs]))
 
 (reg-sub
   :name

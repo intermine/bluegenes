@@ -1,4 +1,4 @@
-(ns bluegenes.events.mymine
+(ns bluegenes.sections.mymine.events
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [re-frame.core :refer [reg-event-db reg-event-db reg-event-fx reg-fx subscribe]]
             [cljs.core.async :refer [<!]]
@@ -7,7 +7,7 @@
             [imcljs.save :as save]
             [bluegenes.effects :as fx]
             [clojure.string :as s]
-            [bluegenes.subs.mymine :as subs]
+            [bluegenes.sections.mymine.subs :as subs]
             [oops.core :refer [ocall]]
             [clojure.walk :as walk]
             [cljs-uuid-utils.core :refer [make-random-uuid]]))
