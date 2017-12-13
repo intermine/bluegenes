@@ -1,4 +1,5 @@
     @import "../variables";
+    //most of these styles apply to all navs, but there's a class down the bottom for just the main (top) navbar.
     nav {
         margin-left: -15px;
         margin-right: -15px;
@@ -131,9 +132,6 @@
         .short-name {
             display: none;
         }
-        svg {
-            fill: rgba(255, 255, 255, 0.84);
-        }
         .search,
         .search:hover {
             background: @navbar-color;
@@ -234,3 +232,11 @@
             }
         }
     }
+
+//This is for *just* the top main navbar
+.main-nav {
+  svg {
+      fill: rgba(255, 255, 255, 0.84);
+  }
+  
+}

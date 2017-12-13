@@ -62,7 +62,7 @@
   (let [identity (subscribe [:bluegenes.subs.auth/identity])]
     [:li.logon.dropdown.success.secondary-nav
      [:a.dropdown-toggle {:data-toggle "dropdown" :role "button"}
-      [:svg.icon.icon-cog [:use {:xlinkHref "#icon-user-circle"}]] 
+      [:svg.icon.icon-cog [:use {:xlinkHref "#icon-user-circle"}]]
       [:span.long-name (str " " (:username @identity))]]
      [:ul.dropdown-menu
       [:li [:a {:on-click #(dispatch [:bluegenes.events.auth/logout])} "Log Out"]]]]))
@@ -112,7 +112,7 @@
         current-mine (subscribe [:current-mine])
         panel-is     (fn [panel-key] (= @active-panel panel-key))]
     (fn []
-      [:nav
+      [:nav.main-nav
         [:ul
          [:li.minename.primary-nav  {:on-click #(navigate! "/")}
                [active-mine-logo]

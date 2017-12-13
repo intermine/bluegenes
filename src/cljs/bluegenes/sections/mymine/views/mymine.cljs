@@ -498,52 +498,44 @@
                                     :data-keyboard true
                                     :data-target "#myTestModal"}
                                    {})]
-        [:div
-         [:nav.nav-list-operations.navbar.navbar-inverse.list-operations {:style {:font-size "0.9em"
-                                                                                  :background "none"
-                                                                                  :color "black"
-                                                                                  :fill "black"}}
-          [:div {:class "container-fluid"}
-           [:ul {:class "nav navbar-nav"}
+
+         [:nav.nav-list-operations
+           [:ul
             [:li {:class (when cant-perform? "disabled")}
-             [:a {:on-click (fn [] (when (not cant-perform?) (dispatch [::evts/copy-n])))} [:span "Duplicate "
-                                                                                            [:svg.icon.icon-duplicate
-                                                                                             {:style {:fill "black"}}
-                                                                                             [:use {:xlinkHref "#icon-duplicate"}]]]]]
+             [:a {:on-click (fn [] (when (not cant-perform?) (dispatch [::evts/copy-n])))}
+              "Duplicate " [:svg.icon.icon-duplicate [:use {:xlinkHref "#icon-duplicate"}]]]]
             [:li {:class (when cant-perform? "disabled")}
              [:a {:on-click (fn [] (when (not cant-perform?)
                                      (dispatch [::evts/delete-lists])))}
-              [:span "Delete " [:svg.icon.icon-bin [:use {:xlinkHref "#icon-bin"}]]]]]
+               "Delete " [:svg.icon.icon-bin [:use {:xlinkHref "#icon-bin"}]]]]
 
             [:li {:class (when (empty? operation-properties) "disabled")}
              [:a (merge
                    operation-properties
                    {:on-click (fn [] (when (not cant-operate?) (dispatch [::evts/set-modal :combine])))})
-              [:span "Combine " [:svg.icon.icon-venn-combine
-                                 {:style {:fill "rgba(0,0,0,0)"}}
-                                 [:use {:xlinkHref "#icon-venn-combine"}]]]]]
+              "Combine " [:svg.icon.icon-venn-combine.venn
+                                 [:use {:xlinkHref "#icon-venn-combine"}]]]]
 
             [:li {:class (when (empty? operation-properties) "disabled")}
              [:a (merge
                    operation-properties
                    {:on-click (fn [] (when (not cant-operate?) (dispatch [::evts/set-modal :intersect])))})
-              [:span "Intersect " [:svg.icon.icon-venn-intersection [:use {:xlinkHref "#icon-venn-intersection"}]]]]]
+               "Intersect " [:svg.icon.icon-venn-intersection.venn [:use {:xlinkHref "#icon-venn-intersection"}]]]]
             [:li {:class (when (empty? operation-properties) "disabled")}
              [:a (merge
                    operation-properties
                    {:on-click (fn [] (when (not cant-operate?) (dispatch [::evts/set-modal :difference])))})
-              [:span "Difference " [:svg.icon.icon-venn-disjunction
-                                    {:style {:fill "rgba(0,0,0,0)"}}
-                                    [:use {:xlinkHref "#icon-venn-disjunction"}]]]]]
+              "Difference " [:svg.icon.icon-venn-disjunction.venn
+                                    [:use {:xlinkHref "#icon-venn-disjunction"}]]]]
             [:li {:class (when (empty? operation-properties) "disabled")}
              [:a (merge
                    operation-properties
                    {:on-click (fn [] (when (not cant-operate?) (dispatch [::evts/set-modal :subtract])))})
-              [:span "Subtract " [:svg.icon.icon-venn-difference [:use {:xlinkHref "#icon-venn-difference"}]]]]]
+               "Subtract " [:svg.icon.icon-venn-difference.venn [:use {:xlinkHref "#icon-venn-difference"}]]]]
 
             #_[:li {}
                [:a {:on-click (fn [] (dispatch [::evts/fetch-tree]))}
-                [:span "Fetch " [:svg.icon.icon-venn-difference [:use {:xlinkHref "#icon-venn-difference"}]]]]]]]]]))))
+                [:span "Fetch " [:svg.icon.icon-venn-difference [:use {:xlinkHref "#icon-venn-difference"}]]]]]]]))))
 
 
 
