@@ -136,7 +136,6 @@
   (fn [{db :db}]
     {:db (assoc db :fetching-assets? false)
      :dispatch-n [[:cache/fetch-organisms]
-                  [:saved-data/load-lists]
                   [:regions/select-all-feature-types]]}))
 
 (reg-event-fx
@@ -144,13 +143,13 @@
   (fn [{db :db}]
     (let [analytics-id (:googleAnalytics (js->clj js/serverVars :keywordize-keys true))
           analytics-enabled? (not (clojure.string/blank? analytics-id))]
-          (if analytics-enabled? 
+          (if analytics-enabled?
             ;;set tracker up if we have a tracking id
             (do
               (js/ga "create" analytics-id "auto")
               (js/ga "send" "pageview")
               (.info js/console "Google Analytics enabled. Tracking ID:" analytics-id))
-            ;;inobtrusive console message if there's no id  
+            ;;inobtrusive console message if there's no id
             (.info js/console "Google Analytics disabled. No tracking ID."))
     {:db (assoc db :google-analytics {:enabled? analytics-enabled? :analytics-id analytics-id})}
     )))
