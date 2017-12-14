@@ -2,6 +2,10 @@
 
 .mymine {
     @icon-color: lighten(@body-foreground-color,20%);
+
+    .icon {
+        fill: @icon-color;
+    }
     //mixin
     .drag-style {
         background-color: @highlight-color;
@@ -28,6 +32,7 @@
         li {
             .icon {
                 margin: 0 5px 0 0;
+                fill: @icon-color;
             }
         }
 
@@ -51,6 +56,10 @@
 
         > [class^="col"] {
             padding: 8px 0;
+
+            &.list-size {
+                padding-left: @spacer/2
+            }
         }
     }
 
@@ -64,7 +73,7 @@
     .nav-list-operations {
         background-color: transparent;
         margin-top: 0;
-        margin-left:1em;
+        margin-left: 1em;
         @nav-text-color: rgba(0,0,0,1);
 
         .icon.icon-duplicate {
@@ -236,6 +245,15 @@
         .bottom {
             flex: 1 0;
         }
+
+        .tag-type {
+            background-color: lighten(@light-contrast,7%);
+            color: @body-foreground-color;
+            border-top: solid 1px #ddd;
+            border-left: 0;
+            border-right: 0;
+            text-align: center;
+        }
     }
     width: 100%;
     margin: 0;
@@ -395,7 +413,9 @@
         h1 {
             font-size: 2em;
         }
-        h2,h3 {
+
+        h2,
+        h3 {
             font-size: 1em;
         }
     }

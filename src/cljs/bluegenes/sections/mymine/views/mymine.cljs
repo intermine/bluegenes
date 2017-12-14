@@ -26,7 +26,6 @@
   (ocall (js/$ "#contextMenu") :hide))
 ;(dispatch [::evts/set-context-menu-target])
 
-
 (defn attach-hide-context-menu []
   (ocall (js/$ "body") :on "click" hide-context-menu))
 
@@ -84,13 +83,6 @@
                                                                       :left (oget evt :pageX)
                                                                       :top (oget evt :pageY)})))))})
 
-
-
-
-
-;(defn dispatch-edit [location key value]
-;  (dispatch [::evts/new-folder location key value]))
-
 (defn trigger-context-menu [data]
   {:on-context-menu (fn [evt]
                       (when-not (oget evt :nativeEvent :ctrlKey)
@@ -108,8 +100,6 @@
                           (ocall (js/$ "#contextMenu") :css (clj->js {:display "block"
                                                                       :left (oget evt :pageX)
                                                                       :top (oget evt :pageY)})))))})
-
-
 
 (defn folder-cell []
   (fn [{:keys [file-type trail index label open editing?] :as item}]
@@ -139,38 +129,6 @@
      [:span.grow [:a label]]]))
 
 (def clj-type type)
-
-(defn table-row [{:keys [id] :as me}]
-  (let [over          (subscribe [::subs/dragging-over])
-        selected      (subscribe [::subs/selected])
-        checked       (subscribe [::subs/checked-ids])
-        asset-details (subscribe [::subs/one-list id])]
-    (fn [{:keys [editing? friendly-date-created level file-type type trail index read-only? size type id] :as row}]
-      (let [selected? (some? (some #{trail} @selected))
-            checked?  (some? (some #{id} @checked))]
-        [:tr (-> {:class (clojure.string/join " " [
-                                                   ;(when selected? (str "im-type box " type))
-                                                   (when selected? (str "selected"))
-                                                   (cond
-                                                     (= trail @over) "draggingover"
-                                                     :else nil)])}
-                 (merge (click-events trail index row))
-                 (cond-> (not read-only?) (merge (drag-events trail index row))))
-         [:td.shrinky (when (not= file-type :folder)
-                        [:input
-                         {:type "checkbox"
-                          :checked checked?
-                          :on-change (fn [e]
-                                       (dispatch [::evts/toggle-checked id]))}])]
-         [:td {:style {:padding-left (str (* level 20) "px")}}
-          (case file-type
-            :folder [folder-cell row]
-            :list [list-cell row @asset-details]
-            :query [query-cell row])]
-         [:td type]
-         [:td size]
-         [:td friendly-date-created]]))))
-
 
 (defn table-header []
   (fn [{:keys [label type key sort-by]}]
@@ -653,9 +611,9 @@
              [:svg.icon.icon-globe {:style {:fill "#939393"}} [:use {:xlinkHref "#icon-globe"}]])
            ]]
          [:div.col-2 [tag-container @hierarchy-trail]]
-         [:div.col-1 type]
-         [:div.col-1 size]
-         #_[:td #_(tf/unparse built-in-formatter (c/from-long timestamp))]]))))
+         [:div.col-1 {:class (str "tag-type type-" type)} type]
+         [:div.col-1.list-size size]
+         ]))))
 
 (defn row [{:keys [im-obj-type] :as item}]
   (fn []
