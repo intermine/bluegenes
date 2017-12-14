@@ -5,7 +5,8 @@
             [cljs-time.core :as t]
             [clojure.string :refer [split]]
             [clojure.walk :refer [postwalk]]
-            [oops.core :refer [ocall]]))
+            [oops.core :refer [ocall]]
+            [bluegenes.sections.mymine.listsubs]))
 
 ; Thanks!
 ; https://groups.google.com/forum/#!topic/clojure/VVVa3TS15pU
