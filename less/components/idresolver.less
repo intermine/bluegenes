@@ -7,11 +7,10 @@
 .flex-progressbar {
     display: flex;
     flex-direction: column;
-    min-height: 30px;
+    min-height: 90px;
     width: 100%;
     background-color: white;
     font-size: 16px;
-    font-weight: bold;
     border-radius: 4px;
     overflow: hidden;
     .title {
@@ -19,10 +18,11 @@
     }
     .bars {
         display: flex;
+        flex: 1 0;
         .bar {
             flex: 1 0;
             display: flex;
-            justify-content: center;
+            justify-content: flex-start;
             padding: 4px;
             white-space: nowrap;
             -webkit-box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.15);
@@ -30,10 +30,19 @@
             &.bar-success {
                 background-color: #5cb85c;
                 color: white;
+                border-right: 1px solid #93d593;
+            }
+            &.bar-info {
+                background-color: #5bc0de;
+                color: white;
             }
             &.bar-warning {
                 background-color: #ef8c00;
-                color: white;
+                background-color: #fcf8e3;
+                border-top: 1px solid darken(#fcf8e3, 20%);
+                border-right: 1px solid darken(#fcf8e3, 20%);
+                color: darken(#fcf8e3, 70%);
+
             }
             &.bar-danger {
                 background-color: #b80000;

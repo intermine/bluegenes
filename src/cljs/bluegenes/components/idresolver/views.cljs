@@ -462,7 +462,6 @@
 (defn case-sensitive-option []
   (fn [bool]
     [:div.form-group
-     [:label ""]
      [:div.checkbox
       [:label
        [:input
@@ -470,7 +469,7 @@
          :checked bool
          :on-change (fn [e]
                       (dispatch [::evts/update-option :case-sensitive (oget e :target :checked)]))}]
-       [:div "My identifiers are case sensitive"]]]]))
+       [:span {:style {:margin-left "8px"}} " My identifiers are case sensitive"]]]]))
 
 
 (defn upload-step []
@@ -484,34 +483,39 @@
          [:div.alert.alert-info
           [:p "Select the type of list to create and then enter your identifiers or upload them from a file."]]
          [:div.row
-          [:div.col-sm-4 [select-type-option type]]
-          [:div.col-sm-4 [select-organism-option organism]]
-          [:div.col-sm-4 [case-sensitive-option case-sensitive]]]
-         [:div.upload-step-container
-          [:div.input-area
-           [:div.vertical-divider]
-           [:div.freeform-container
-            [:div.form-group
-             {:style {:height "100%"}}
-             [:label "Enter identifiers"]
-             [:textarea.form-control
-              {:on-change (fn [e] (dispatch [::evts/update-textbox-identifiers (oget e :target :value)]))
-               :value @textbox-identifiers
-               :class (when @files "disabled")
-               :disabled @files
-               :style {:height "100%"} :rows 5}]]]
-           [:div.file-container [file-manager]]]]
-         [:div.btn-toolbar.pull-right
-          {:style {:margin-top "10px"}}
-          [:button.btn.btn-default
-           {:on-click (fn [] (dispatch [::evts/reset @options]))}
-           #_(str "Upload" (when @files (str " " (count @files) " file" (when (> (count @files) 1) "s"))))
-           "Reset"]
-          [:button.btn.btn-primary
-           {:on-click (fn [] (dispatch [::evts/parse-staged-files @files @textbox-identifiers @options]))}
-           #_(str "Upload" (when @files (str " " (count @files) " file" (when (> (count @files) 1) "s"))))
-           "Create List"
-           [:i.fa.fa-chevron-right {:style {:padding-left "5px"}}]]]]))))
+          [:div.col-sm-6 [select-type-option type]]
+          [:div.col-sm-6 [select-organism-option organism]]]
+         [:div.row
+          [:div.col-sm-6 [case-sensitive-option case-sensitive]]]
+         [:div.row
+          [:div.col-sm-8 [:div.form-group
+                          {:style {:height "100%"}}
+                          [:label "Enter identifiers"]
+                          [:textarea.form-control
+                           {:on-change (fn [e] (dispatch [::evts/update-textbox-identifiers (oget e :target :value)]))
+                            :value @textbox-identifiers
+                            :class (when @files "disabled")
+                            :disabled @files
+                            :style {:height "100%"} :rows 5}]]
+           [:div.btn-toolbar
+            [:button.btn.btn-default {:on-click (fn [] (dispatch [::evts/load-example]))}
+             "Example"]
+            [:button.btn.btn-default {:on-click (fn [] (dispatch [::evts/update-textbox-identifiers nil]))}
+             "Clear"]]]
+          [:div.col-sm-4 [file-manager]]]
+
+         [:div.row
+          [:div.col-sm-12 [:div.btn-toolbar.pull-right
+                           {:style {:margin-top "10px"}}
+                           [:button.btn.btn-default
+                            {:on-click (fn [] (dispatch [::evts/reset @options]))}
+                            #_(str "Upload" (when @files (str " " (count @files) " file" (when (> (count @files) 1) "s"))))
+                            "Reset"]
+                           [:button.btn.btn-primary
+                            {:on-click (fn [] (dispatch [::evts/parse-staged-files @files @textbox-identifiers @options]))}
+                            #_(str "Upload" (when @files (str " " (count @files) " file" (when (> (count @files) 1) "s"))))
+                            "Continue"
+                            [:i.fa.fa-chevron-right {:style {:padding-left "5px"}}]]]]]]))))
 
 (defn matches-table []
   (let [pager          (reagent/atom {:show 10 :page 0})
@@ -543,12 +547,11 @@
          [:table.table.table-condensed.table-striped
           {:style {:background-color "white"}}
           [:thead [:tr [:th {:row-span 2} "Your Identifier"] [:th {:col-span 6} "Matches"]]
-           (into
-             [:tr]
-             (map
-               (fn [f]
-                 (let [path (path/friendly @model f)]
-                   [:th (join " > " (rest (split path " > ")))])) type-summary-fields))]
+           (into [:tr]
+                 (map
+                   (fn [f]
+                     (let [path (path/friendly @model f)]
+                       [:th (join " > " (rest (split path " > ")))])) type-summary-fields))]
           (into [:tbody]
                 (->> rows-in-view
                      (map-indexed
@@ -558,6 +561,60 @@
                                  (fn [field]
                                    (let [without-prefix (keyword (join "." (rest (split field "."))))]
                                      [:td (get summary without-prefix)])) type-summary-fields))))))]]))))
+
+(defn converted-table []
+  (let [pager          (reagent/atom {:show 10 :page 0})
+        summary-fields (subscribe [:current-summary-fields])
+        model          (subscribe [:current-model])]
+    (fn [type results show-keep?]
+      (let [pages               (Math/floor (/ (count results) (:show @pager)))
+            rows-in-view        (take (:show @pager) (drop (* (:show @pager) (:page @pager)) results))
+            type-summary-fields (get @summary-fields (keyword type))]
+        [:div.form-inline.clearfix
+         [:div.form-group
+          [:div.btn-toolbar
+           [:button.btn.btn-default
+            {:on-click (fn [] (swap! pager update :page (comp (partial max 0) dec)))}
+            [:i.fa.fa-chevron-left]]
+           [:button.btn.btn-default
+            {:on-click (fn [] (swap! pager update :page (comp (partial min pages) inc)))}
+            [:i.fa.fa-chevron-right]]]]
+
+         [:div.clearfix
+          [:div.form-group.pull-right
+           (into [:select.form-control
+                  {:on-change (fn [e] (swap! pager assoc :page (oget e :target :value)))
+                   :value (:page @pager)}]
+                 (map (fn [p]
+                        [:option {:value p} (str "Page " (inc p))]) (range (inc pages))))
+           [:label {:style {:margin-left "5px"}} (str "of " (inc pages))]]]
+
+         [:table.table.table-condensed.table-striped
+          {:style {:background-color "white"}}
+          [:thead [:tr [:th {:row-span 2} "Your Identifier"] [:th {:col-span 5} "Matches"]]
+           (into
+             [:tr]
+             (map
+               (fn [f]
+                 (let [path (path/friendly @model f)]
+                   [:th (join " > " (rest (split path " > ")))])) type-summary-fields))]
+          (into [:tbody]
+                (->> rows-in-view
+                     (map-indexed
+                       (fn [duplicate-idx {:keys [input reason matches] :as duplicate}]
+                         (->> matches
+                              (map-indexed
+                                (fn [match-idx {:keys [summary keep?] :as match}]
+                                  (into
+                                    (if (= match-idx 0)
+                                      [:tr {:class (when keep? "success")}
+                                       [:td {:row-span (count matches)} input]]
+                                      [:tr {:class (when keep? "success")}])
+                                    (map
+                                      (fn [field]
+                                        (let [without-prefix (keyword (join "." (rest (split field "."))))]
+                                          [:td (get summary without-prefix)])) type-summary-fields)))))))
+                     (apply concat)))]]))))
 
 
 (defn not-found-table []
@@ -687,9 +744,10 @@
 (defn review-step []
   (let [resolution-response (subscribe [::subs/resolution-response])
         list-name           (subscribe [::subs/list-name])
+        stats               (subscribe [::subs/stats])
         tab                 (reagent/atom :matches)]
     (fn []
-      (let [{{{:keys [matches issues notFound all]} :identifiers :as s} :stats} @resolution-response]
+      (let [{:keys [matches issues notFound converted duplicates all other]} @stats]
         [:div
 
          [:div.clearfix
@@ -710,33 +768,45 @@
            [:div.col-sm-12
             [:div.flex-progressbar
              [:div.title
-              [:h4 (str "You uploaded " all " identifiers")]]
+              [:h4 (str (+ matches other) " of your " all " identifiers matched a " (str (:type @resolution-response)))]]
              [:div.bars
-              (when (not= matches 0) [:div.bar.bar-success {:style {:flex (* 100 (/ matches all))}} (str matches " Matches")])
-              (when (not= issues 0) [:div.bar.bar-warning {:style {:flex (* 100 (/ issues all))}} (str issues " Issues")])
+              (when (> (- matches converted) 0)
+                [:div.bar.bar-success {:style {:flex (* 100 (/ (+ matches converted) all))}}
+                 (str (- matches converted) " Matches")])
+              (when (> converted 0)
+                [:div.bar.bar-success {:style {:flex (* 100 (/ (+ matches converted) all))}}
+                 (str converted " Converted")])
+              (when (not= other 0) [:div.bar.bar-success {:style {:flex (* 100 (/ other all))}} (str other " Other")])
+              (when (not= duplicates 0) [:div.bar.bar-warning {:style {:flex (* 100 (/ duplicates all))}} (str duplicates " Duplicates")])
               (when (not= notFound 0) [:div.bar.bar-danger {:style {:flex (* 100 (/ notFound all))}} (str notFound " Not Found")])]
              ]]]
 
           (when (not= issues 0)
             [:div.alert.alert-warning
-             [:h4 [:i.fa.fa-exclamation-triangle] (str " " issues " of your identifiers resolved to more than one object.")]
+             [:h4 [:i.fa.fa-exclamation-triangle] (str " " duplicates " of your identifiers resolved to more than one " (:type @resolution-response) )]
              [:p "Please select which objects you want to keep from the "
               [:span.label.label-warning
                {:on-click (fn [] (reset! tab :issues))}
-               [:i.fa.fa-fw.fa-exclamation-triangle] (str " Duplicates (" issues ")")]
+               [:i.fa.fa-fw.fa-exclamation-triangle] (str " Duplicates (" duplicates ")")]
               " tab"]])]
 
          [:ul.nav.nav-tabs.id-resolver-tabs
           (when (not= matches 0) [:li {:class (when (= @tab :matches) "active") :on-click (fn [] (reset! tab :matches))}
-                                  [:a [:span.label.label-success [:i.fa.fa-fw.fa-check] (str " Matches (" matches ")")]]])
-          (when (not= issues 0) [:li {:class (when (= @tab :issues) "active") :on-click (fn [] (reset! tab :issues))}
-                                 [:a [:span.label.label-warning [:i.fa.fa-fw.fa-exclamation-triangle] (str " Duplicates (" issues ")")]]])
+                                  [:a [:span.label.label-success [:i.fa.fa-fw.fa-check] (str " Matches (" (- matches converted) ")")]]])
+          (when (not= converted 0) [:li {:class (when (= @tab :converted) "active") :on-click (fn [] (reset! tab :converted))}
+                                    [:a [:span.label.label-success [:i.fa.fa-fw.fa-random] (str "Converted (" converted ")")]]])
+          (when (not= other 0) [:li {:class (when (= @tab :other) "active") :on-click (fn [] (reset! tab :other))}
+                                [:a [:span.label.label-success [:i.fa.fa-fw.fa-info] (str "Other (" other ")")]]])
           (when (not= notFound 0) [:li {:class (when (= @tab :notFound) "active") :on-click (fn [] (reset! tab :notFound))}
-                                   [:a [:span.label.label-danger [:i.fa.fa-fw.fa-times] (str "Not Found (" notFound ")")]]])]
+                                   [:a [:span.label.label-danger [:i.fa.fa-fw.fa-times] (str "Not Found (" notFound ")")]]])
+          (when (not= duplicates 0) [:li {:class (when (= @tab :issues) "active") :on-click (fn [] (reset! tab :issues))}
+                                     [:a [:span.label.label-warning [:i.fa.fa-fw.fa-exclamation-triangle] (str " Duplicates (" duplicates ")")]]])]
          [:div.table-container
           (case @tab
             :issues [review-table (:type @resolution-response) (-> @resolution-response :matches :DUPLICATE)]
             :notFound [not-found-table (:type @resolution-response) (-> @resolution-response :unresolved)]
+            :converted [converted-table (:type @resolution-response) (-> @resolution-response :matches :TYPE_CONVERTED)]
+            :other [converted-table (:type @resolution-response) (-> @resolution-response :matches :OTHER)]
             [matches-table (:type @resolution-response) (-> @resolution-response :matches :MATCH)])]
 
          [:div.row

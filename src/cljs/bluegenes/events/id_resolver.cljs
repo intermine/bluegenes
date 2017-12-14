@@ -105,6 +105,13 @@
                       object-type (get-in db [:idresolver :stage :options :type])
                       service     (get-in db [:mines (get db :current-mine) :service])
                       list-name   (get-in db [:idresolver :save :list-name])]
+                  (js/console.log "COUNTED" (->>
+                                              MATCH
+                                                 ;(concat (mapcat :matches OTHER))
+                                                 (concat (mapcat :matches TYPE_CONVERTED))
+                                                 ;(concat (mapcat (fn [{matches :matches}] (filter :keep? matches)) DUPLICATE))
+                                                 (map :id)
+                                                 count))
                   {:im-chan {:chan (save/im-list-from-query
                                      service
                                      list-name
@@ -112,7 +119,9 @@
                                       :select [(str object-type ".id")]
                                       :where [{:path (str object-type ".id")
                                                :op "ONE OF"
-                                               :values (->> (concat OTHER WILDCARD TYPE_CONVERTED MATCH)
+                                               :values (->> MATCH
+                                                            (concat (mapcat :matches OTHER))
+                                                            (concat (mapcat :matches TYPE_CONVERTED))
                                                             (concat (mapcat (fn [{matches :matches}] (filter :keep? matches)) DUPLICATE))
                                                             (map :id))}]})
                              :on-success [::save-list-success list-name object-type]}})))
@@ -131,14 +140,19 @@
                                                                    :value list-name}]}}]})))
 
 (reg-event-db ::reset
-              (fn [db]
+              (fn [db [_ example-type example-text]]
                 (let [mine-details (get-in db [:mines (get db :current-mine)])]
                   (assoc db :idresolver
                             {:stage {:files nil
-                                     :textbox nil
+                                     :textbox example-text
                                      :options {:case-sensitive false
-                                               :type (-> mine-details :default-object-types first name)
+                                               :type (or example-type (-> mine-details :default-object-types first name))
                                                :organism (-> mine-details :default-organism)}
                                      :status nil
                                      :flags nil}
                              :response nil}))))
+
+(reg-event-fx ::load-example
+              (fn [{db :db} [_]]
+                (let [[t e] (first (seq (get-in db [:mines (get db :current-mine) :idresolver-example])))]
+                  {:dispatch [::reset (name t) e]})))

@@ -36,3 +36,17 @@
 (reg-sub ::view
          (fn [db]
            (get-in db [:idresolver :stage :view])))
+
+(reg-sub ::stats
+         :<- [::resolution-response]
+         (fn [resolution-response]
+           (let [{{{:keys [matches issues notFound all]} :identifiers :as s} :stats} resolution-response
+                 {{:keys [OTHER WILDCARD DUPLICATE TYPE_CONVERTED MATCH]} :matches} resolution-response]
+             {:matches matches
+              :issues issues
+              :notFound notFound
+              :all all
+              :duplicates (count DUPLICATE)
+              :converted (count TYPE_CONVERTED)
+              :other (count OTHER)
+              })))
