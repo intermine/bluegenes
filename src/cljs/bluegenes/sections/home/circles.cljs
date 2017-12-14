@@ -14,7 +14,7 @@
   [:div.feature.lists
    [:h3 "Lists"]
    [:div.piccie [:a {:on-click #(navigate! "/upload")} [:svg.icon.icon-summary [:use {:xlinkHref "#icon-summary"}]]]]
-   [:div [:a {:on-click #(navigate! "/saved-data")} "View"]
+   [:div [:a {:on-click #(navigate! "/mymine")} "View"]
     [:a {:on-click #(navigate! "/upload")} "Upload"]]
    ])
 
