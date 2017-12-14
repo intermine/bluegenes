@@ -1,9 +1,7 @@
 @import "../variables";
 
-
 .mymine {
-
-  @icon-color: lighten(@body-foreground-color,20%);
+    @icon-color: lighten(@body-foreground-color,20%);
     //mixin
     .drag-style {
         background-color: @highlight-color;
@@ -66,9 +64,13 @@
     .nav-list-operations {
         background-color: transparent;
         margin-top: 0;
+        margin-left:1em;
         @nav-text-color: rgba(0,0,0,1);
 
-        .icon.icon-duplicate {fill:@icon-color;}
+        .icon.icon-duplicate {
+            fill: @icon-color;
+        }
+
         .icon.venn {
             fill: none;
         }
@@ -84,7 +86,10 @@
         .disabled a {
             color: fadeout(@nav-text-color,50%);
             fill: fadeout(@nav-text-color,50%);
-            &:hover {cursor:not-allowed;}
+
+            &:hover {
+                cursor: not-allowed;
+            }
         }
     }
 
@@ -98,6 +103,18 @@
 
     .breadcrumb {
         background-color: transparent;
+
+        a {
+            padding: 0;
+        }
+
+        h2 {
+            display: inline;
+        }
+
+        .active a {
+            color: @highlight-color;
+        }
     }
 
     .draggingover {
@@ -201,11 +218,11 @@
         display: flex;
         flex-direction: column;
         border-left: 1px solid @light-contrast;
-        padding:  @spacer;
+        padding: @spacer;
         flex: 4;
         background-color: #fff;
-        margin-top:-1em;
-        margin-right:-1em;
+        margin-top: -1em;
+        margin-right: -1em;
 
         .selected {
             outline: 2px solid @highlight-color;
@@ -366,5 +383,35 @@
 
     .col {
         flex: 1;
+    }
+    @media (max-width:@tiny-screen) {
+        //just wraps the navbar neatly. Decent support and well degrade nicely in IE
+        .nav-list-operations ul {
+            flex-wrap: wrap;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        h1 {
+            font-size: 2em;
+        }
+        h2,h3 {
+            font-size: 1em;
+        }
+    }
+    @media (max-width:@even-tinier-screen) {
+        //send the tags below the lists. This allows a mobile user to browse lists more easily
+        // than otherwise, but isn't an ideal solution because now it's harder to find tags
+        //TODO we should maybe make this menu js-collapsable/mobile-ready - this solution is really just a stopgap
+        flex-wrap: wrap;
+
+        .files {
+            order: 1;
+        }
+
+        .file-browser {
+            order: 2;
+            width: 100%;
+        }
     }
 }
