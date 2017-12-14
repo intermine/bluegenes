@@ -1,6 +1,9 @@
 @import "../variables";
 
+
 .mymine {
+
+  @icon-color: lighten(@body-foreground-color,20%);
     //mixin
     .drag-style {
         background-color: @highlight-color;
@@ -14,7 +17,7 @@
         a,
         a:focus,
         a:hover {
-            color: @highlight-color-text;
+            color: darken(@highlight-color-text,20%);
         }
     }
 
@@ -65,6 +68,7 @@
         margin-top: 0;
         @nav-text-color: rgba(0,0,0,1);
 
+        .icon.icon-duplicate {fill:@icon-color;}
         .icon.venn {
             fill: none;
         }
@@ -80,6 +84,7 @@
         .disabled a {
             color: fadeout(@nav-text-color,50%);
             fill: fadeout(@nav-text-color,50%);
+            &:hover {cursor:not-allowed;}
         }
     }
 
@@ -118,7 +123,7 @@
         .icon {
             transition: all 100ms ease;
             margin: 0 5px 0 0;
-            fill: @body-foreground-color;
+            fill: @icon-color;
         }
 
         ul {
@@ -164,7 +169,7 @@
 
                 &.active,
                 &.active:hover {
-                    background-color: #e6e6e6;
+                    background-color: darken(#e6e6e6,5%);
 
                     .icon {
                         fill: @highlight-color;
@@ -172,7 +177,7 @@
                 }
 
                 &:hover:not(.separator) {
-                    background-color: @stripe-color;
+                    background-color: darken(#e6e6e6,10%);
                     border-radius: 5px;
                 }
             }
