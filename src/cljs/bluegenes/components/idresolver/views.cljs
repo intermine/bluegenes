@@ -797,10 +797,10 @@
                                     [:a [:span.label.label-success [:i.fa.fa-fw.fa-random] (str "Converted (" converted ")")]]])
           (when (not= other 0) [:li {:class (when (= @tab :other) "active") :on-click (fn [] (reset! tab :other))}
                                 [:a [:span.label.label-success [:i.fa.fa-fw.fa-info] (str "Other (" other ")")]]])
-          (when (not= notFound 0) [:li {:class (when (= @tab :notFound) "active") :on-click (fn [] (reset! tab :notFound))}
-                                   [:a [:span.label.label-danger [:i.fa.fa-fw.fa-times] (str "Not Found (" notFound ")")]]])
           (when (not= duplicates 0) [:li {:class (when (= @tab :issues) "active") :on-click (fn [] (reset! tab :issues))}
-                                     [:a [:span.label.label-warning [:i.fa.fa-fw.fa-exclamation-triangle] (str " Duplicates (" duplicates ")")]]])]
+                                     [:a [:span.label.label-warning [:i.fa.fa-fw.fa-exclamation-triangle] (str " Duplicates (" duplicates ")")]]])
+          (when (not= notFound 0) [:li {:class (when (= @tab :notFound) "active") :on-click (fn [] (reset! tab :notFound))}
+                                   [:a [:span.label.label-danger [:i.fa.fa-fw.fa-times] (str "Not Found (" notFound ")")]]])]
          [:div.table-container
           (case @tab
             :issues [review-table (:type @resolution-response) (-> @resolution-response :matches :DUPLICATE)]
