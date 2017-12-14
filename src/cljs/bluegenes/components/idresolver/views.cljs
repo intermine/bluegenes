@@ -7,7 +7,7 @@
             [bluegenes.components.idresolver.events]
             [bluegenes.components.icons :as icons]
             [bluegenes.components.ui.results_preview :refer [preview-table]]
-            [bluegenes.components.loader :refer [mini-loader]]
+            [bluegenes.components.loader :refer [loader mini-loader]]
             [bluegenes.components.idresolver.subs]
             [bluegenes.components.imcontrols.views :as im-controls]
             [bluegenes.components.lighttable :as lighttable]
@@ -748,89 +748,67 @@
         tab                 (reagent/atom :matches)]
     (fn []
       (let [{:keys [matches issues notFound converted duplicates all other]} @stats]
-        [:div
-
-         [:div.clearfix
-          {:style {:margin-top "10px"}
-           ;:class (cond (and (= notFound 0) (= issues 0)) "alert-success" (or (not= notFound 0) (not= issues 0)) "alert-warning")
-           }
-          #_[:div.row
+        (if (= nil @resolution-response)
+          [:div [loader]]
+          [:div
+           [:div.clearfix
+            {:style {:margin-top "10px"}}
+            [:div.row
              [:div.col-sm-12
-              [:h3 [:i.fa.fa-exclamation-triangle {:style {:margin-right "10px"}}] (str issues " identifiers returned duplicate results")]
-              [:p "Please select from the list of duplicates which ones you want to keep"]]]
+              [:div.flex-progressbar
+               [:div.title
+                [:h4 (str (+ matches other) " of your " all " identifiers matched a " (str (:type @resolution-response)))]]
+               [:div.bars
+                (when (> (- matches converted) 0)
+                  [:div.bar.bar-success {:style {:flex (* 100 (/ (+ matches converted) all))}}
+                   (str (- matches converted) " Matches")])
+                (when (> converted 0)
+                  [:div.bar.bar-success {:style {:flex (* 100 (/ (+ matches converted) all))}}
+                   (str converted " Converted")])
+                (when (> other 0) [:div.bar.bar-success {:style {:flex (* 100 (/ other all))}} (str other " Other")])
+                (when (> duplicates 0) [:div.bar.bar-warning {:style {:flex (* 100 (/ duplicates all))}} (str duplicates " Duplicates")])
+                (when (> notFound 0) [:div.bar.bar-danger {:style {:flex (* 100 (/ notFound all))}} (str notFound " Not Found")])]
+               ]]]
 
-          #_(cond-> [:div.stats-table]
-                    (not= matches 0) (conj [success-message matches all])
-                    (not= issues 0) (conj [issues-message issues all])
-                    (not= notFound 0) (conj [not-found-message notFound all]))
+            (when (not= duplicates 0)
+              [:div.alert.alert-warning
+               [:h4 [:i.fa.fa-exclamation-triangle] (str " " duplicates " of your identifiers resolved to more than one " (:type @resolution-response))]
+               [:p "Please select which objects you want to keep from the "
+                [:span.label.label-warning
+                 {:on-click (fn [] (reset! tab :issues))}
+                 [:i.fa.fa-fw.fa-exclamation-triangle] (str " Duplicates (" duplicates ")")]
+                " tab"]])]
 
-          [:div.row
-           [:div.col-sm-12
-            [:div.flex-progressbar
-             [:div.title
-              [:h4 (str (+ matches other) " of your " all " identifiers matched a " (str (:type @resolution-response)))]]
-             [:div.bars
-              (when (> (- matches converted) 0)
-                [:div.bar.bar-success {:style {:flex (* 100 (/ (+ matches converted) all))}}
-                 (str (- matches converted) " Matches")])
-              (when (> converted 0)
-                [:div.bar.bar-success {:style {:flex (* 100 (/ (+ matches converted) all))}}
-                 (str converted " Converted")])
-              (when (not= other 0) [:div.bar.bar-success {:style {:flex (* 100 (/ other all))}} (str other " Other")])
-              (when (not= duplicates 0) [:div.bar.bar-warning {:style {:flex (* 100 (/ duplicates all))}} (str duplicates " Duplicates")])
-              (when (not= notFound 0) [:div.bar.bar-danger {:style {:flex (* 100 (/ notFound all))}} (str notFound " Not Found")])]
-             ]]]
+           [:ul.nav.nav-tabs.id-resolver-tabs
+            (when (> matches 0) [:li {:class (when (= @tab :matches) "active") :on-click (fn [] (reset! tab :matches))}
+                                    [:a [:span.label.label-success [:i.fa.fa-fw.fa-check] (str " Matches (" (- matches converted) ")")]]])
+            (when (> converted 0) [:li {:class (when (= @tab :converted) "active") :on-click (fn [] (reset! tab :converted))}
+                                      [:a [:span.label.label-success [:i.fa.fa-fw.fa-random] (str "Converted (" converted ")")]]])
+            (when (> other 0) [:li {:class (when (= @tab :other) "active") :on-click (fn [] (reset! tab :other))}
+                                  [:a [:span.label.label-success [:i.fa.fa-fw.fa-info] (str "Other (" other ")")]]])
+            (when (> duplicates 0) [:li {:class (when (= @tab :issues) "active") :on-click (fn [] (reset! tab :issues))}
+                                       [:a [:span.label.label-warning [:i.fa.fa-fw.fa-exclamation-triangle] (str " Duplicates (" duplicates ")")]]])
+            (when (> notFound 0) [:li {:class (when (= @tab :notFound) "active") :on-click (fn [] (reset! tab :notFound))}
+                                     [:a [:span.label.label-danger [:i.fa.fa-fw.fa-times] (str "Not Found (" notFound ")")]]])]
+           [:div.table-container
+            (case @tab
+              :issues [review-table (:type @resolution-response) (-> @resolution-response :matches :DUPLICATE)]
+              :notFound [not-found-table (:type @resolution-response) (-> @resolution-response :unresolved)]
+              :converted [converted-table (:type @resolution-response) (-> @resolution-response :matches :TYPE_CONVERTED)]
+              :other [converted-table (:type @resolution-response) (-> @resolution-response :matches :OTHER)]
+              [matches-table (:type @resolution-response) (-> @resolution-response :matches :MATCH)])]
 
-          (when (not= issues 0)
-            [:div.alert.alert-warning
-             [:h4 [:i.fa.fa-exclamation-triangle] (str " " duplicates " of your identifiers resolved to more than one " (:type @resolution-response) )]
-             [:p "Please select which objects you want to keep from the "
-              [:span.label.label-warning
-               {:on-click (fn [] (reset! tab :issues))}
-               [:i.fa.fa-fw.fa-exclamation-triangle] (str " Duplicates (" duplicates ")")]
-              " tab"]])]
+           [:div.row
+            [:div.col-sm-12
+             [:div.form-group
+              [:label "List Name"]
+              [:input.form-control.input-lg {:type "text"
+                                             :value @list-name
+                                             :on-change (fn [e] (dispatch [::evts/update-list-name (oget e :target :value)]))}]]]]
 
-         [:ul.nav.nav-tabs.id-resolver-tabs
-          (when (not= matches 0) [:li {:class (when (= @tab :matches) "active") :on-click (fn [] (reset! tab :matches))}
-                                  [:a [:span.label.label-success [:i.fa.fa-fw.fa-check] (str " Matches (" (- matches converted) ")")]]])
-          (when (not= converted 0) [:li {:class (when (= @tab :converted) "active") :on-click (fn [] (reset! tab :converted))}
-                                    [:a [:span.label.label-success [:i.fa.fa-fw.fa-random] (str "Converted (" converted ")")]]])
-          (when (not= other 0) [:li {:class (when (= @tab :other) "active") :on-click (fn [] (reset! tab :other))}
-                                [:a [:span.label.label-success [:i.fa.fa-fw.fa-info] (str "Other (" other ")")]]])
-          (when (not= duplicates 0) [:li {:class (when (= @tab :issues) "active") :on-click (fn [] (reset! tab :issues))}
-                                     [:a [:span.label.label-warning [:i.fa.fa-fw.fa-exclamation-triangle] (str " Duplicates (" duplicates ")")]]])
-          (when (not= notFound 0) [:li {:class (when (= @tab :notFound) "active") :on-click (fn [] (reset! tab :notFound))}
-                                   [:a [:span.label.label-danger [:i.fa.fa-fw.fa-times] (str "Not Found (" notFound ")")]]])]
-         [:div.table-container
-          (case @tab
-            :issues [review-table (:type @resolution-response) (-> @resolution-response :matches :DUPLICATE)]
-            :notFound [not-found-table (:type @resolution-response) (-> @resolution-response :unresolved)]
-            :converted [converted-table (:type @resolution-response) (-> @resolution-response :matches :TYPE_CONVERTED)]
-            :other [converted-table (:type @resolution-response) (-> @resolution-response :matches :OTHER)]
-            [matches-table (:type @resolution-response) (-> @resolution-response :matches :MATCH)])]
-
-         [:div.row
-          [:div.col-sm-12
-           [:div.form-group
-            [:label "List Name"]
-            [:input.form-control.input-lg {:type "text"
-                                           :value @list-name
-                                           :on-change (fn [e] (dispatch [::evts/update-list-name (oget e :target :value)]))}]]]]
-
-         [:button.btn.btn-success.pull-right.btn-lg
-          {:on-click (fn [] (dispatch [::evts/save-list]))} "Save List"
-          [:i.fa.fa-chevron-right {:style {:padding-left "5px"}}]]
-
-         ]))))
-
-(defn bread-circles []
-  (let [response (subscribe [::resolution-response])]
-    (fn [view]
-      [:ul.bread
-       [:li {:class (when (or (= view nil) (= view :upload)) "active")
-             :on-click (fn [] (dispatch [::evts/set-view nil]))} [:a [:i.fa.fa-upload.fa-1x] "Upload"]]
-       [:li.disabled {:class (when (= view :review) "active")
-                      :on-click (fn [] (dispatch [::evts/set-view :review]))} [:a [:i.fa.fa-exclamation-triangle.fa-1x] "Review"]]])))
+           [:button.btn.btn-success.pull-right.btn-lg
+            {:on-click (fn [] (dispatch [::evts/save-list]))} "Save List"
+            [:i.fa.fa-chevron-right {:style {:padding-left "5px"}}]]])))))
 
 (defn bread []
   (let [response (subscribe [::subs/resolution-response])]

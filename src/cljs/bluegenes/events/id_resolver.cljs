@@ -43,7 +43,8 @@
 (reg-event-fx ::resolve-identifiers
               (fn [{db :db} [_ options identifiers]]
                 (let [service (get-in db [:mines (get db :current-mine) :service])]
-                  {:im-chan {:chan (fetch/resolve-identifiers
+                  {:db (assoc-in db [:idresolver :stage :view] :review)
+                   :im-chan {:chan (fetch/resolve-identifiers
                                      service
                                      {:identifiers identifiers
                                       :case-sensitive (:case-sensitive options)
@@ -107,11 +108,11 @@
                       list-name   (get-in db [:idresolver :save :list-name])]
                   (js/console.log "COUNTED" (->>
                                               MATCH
-                                                 ;(concat (mapcat :matches OTHER))
-                                                 (concat (mapcat :matches TYPE_CONVERTED))
-                                                 ;(concat (mapcat (fn [{matches :matches}] (filter :keep? matches)) DUPLICATE))
-                                                 (map :id)
-                                                 count))
+                                              ;(concat (mapcat :matches OTHER))
+                                              (concat (mapcat :matches TYPE_CONVERTED))
+                                              ;(concat (mapcat (fn [{matches :matches}] (filter :keep? matches)) DUPLICATE))
+                                              (map :id)
+                                              count))
                   {:im-chan {:chan (save/im-list-from-query
                                      service
                                      list-name
