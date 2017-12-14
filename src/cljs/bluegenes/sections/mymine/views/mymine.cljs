@@ -556,15 +556,15 @@
 (defn breadcrumb []
   (fn [labels]
     (if labels
-      [:h2
+
        (into [:ol.breadcrumb]
              (map-indexed (fn [idx {:keys [label] :as entry}]
                             (let [focused? (= idx (dec (count labels)))]
                               [:li {:class (when focused? "active")
                                     :on-click (fn [] (dispatch [::evts/set-cursor entry]))}
-                               [:a label]]))
-                          labels))]
-      [:h2 [:ol.breadcrumb [:li.active [:a "All Items"]]]])))
+                               [:h2 [:a label]]]))
+                          labels))
+       [:ol.breadcrumb [:li.active [:h2 [:a "All Items"]]]])))
 
 
 (defn checkbox [id]
