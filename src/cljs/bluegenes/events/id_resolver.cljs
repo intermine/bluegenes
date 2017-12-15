@@ -22,14 +22,16 @@
 
 (reg-event-fx ::parse-staged-files
               (fn [{db :db} [_ js-Files text options]]
+                (js/console.log "TEXsT" (string/blank? text))
                 {:db (assoc-in db [:idresolver :stage :status] {:action :parsing})
                  ::fx/http {:uri "/api/ids/parse"
                             :method :post
-                            :multipart-params (conj
-                                                (map (fn [f] [(oget f :name) f]) js-Files)
-                                                ["caseSensitive" (:case-sensitive options)]
-                                                ["text" text])
-                            :body {:caseSensitive? true}
+                            :multipart-params (cond-> (map (fn [f] [(oget f :name) f]) js-Files)
+                                                      ; After creating multipart params for files, create one for text
+                                                      ; if there's a value
+                                                      (not (string/blank? text)) (conj ["text" text])
+                                                      ; And also a param for the case sensitive option
+                                                      true (conj ["caseSensitive" (:case-sensitive options)]))
                             :on-success [::store-parsed-response options]}}))
 
 (reg-event-fx ::store-parsed-response

@@ -508,7 +508,7 @@
           [:div.col-sm-12 [:div.btn-toolbar.pull-right
                            {:style {:margin-top "10px"}}
                            [:button.btn.btn-default
-                            {:on-click (fn [] (dispatch [::evts/reset @options]))}
+                            {:on-click (fn [] (dispatch [::evts/reset]))}
                             #_(str "Upload" (when @files (str " " (count @files) " file" (when (> (count @files) 1) "s"))))
                             "Reset"]
                            [:button.btn.btn-primary

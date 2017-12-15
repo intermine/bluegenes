@@ -8,12 +8,13 @@
 
 (defn parse-identifiers
   [s]
-  (let [matcher (re-matcher (re-pattern "[^(\\s|,;)\"']+|\"([^\"]*)\"|'([^']*)'") s)]
-    (->> matcher
-         (partial re-find)
-         repeatedly
-         (take-while some?)
-         (map (partial (comp last (partial take-while some?)))))))
+  (when (some? s)
+    (let [matcher (re-matcher (re-pattern "[^(\\s|,;)\"']+|\"([^\"]*)\"|'([^']*)'") s)]
+      (->> matcher
+           (partial re-find)
+           repeatedly
+           (take-while some?)
+           (map (partial (comp last (partial take-while some?))))))))
 
 (defn parse-file
   [[file-name {:keys [filename content-type tempfile size]}]]
@@ -31,7 +32,9 @@
         ; Should the parsing be case sensitive?
         case-sensitive (= "true" (get options "caseSensitive"))]
     ; Parse the identifiers and remove duplicates (convert to lower case if case-insensitive)
+
     (let [total (distinct (map (if case-sensitive lower-case identity) (concat (mapcat parse-file files) (parse-identifiers text))))]
+
       ; Return the parsed identifiers and the total count
       {:identifiers total
        :total (count total)})))
