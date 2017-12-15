@@ -411,17 +411,8 @@
 
 (reg-sub
   ::suggested-modal-state
-  (fn [db] (get-in db [:mymine :suggested-state])))
-
-(reg-sub
-  ::suggested-modal-state-details
-  (fn [] [(subscribe [:lists/filtered-lists])
-          (subscribe [::suggested-modal-state])])
-  (fn [[lists [a b]]]
-    [(filter (fn [l] (some #{(:id l)} a)) lists)
-     (filter (fn [l] (some #{(:id l)} b)) lists)]))
-
-
+  (fn [db]
+    (get-in db [:mymine :suggested-state])))
 
 (reg-sub
   ::one-list
@@ -438,18 +429,6 @@
   ::modal
   (fn [db]
     (get-in db [:mymine :modal])))
-
-(reg-sub
-  ::modal-suggested-state
-  (fn [db]
-    (get-in db [:mymine :suggested-state])))
-
-;(reg-sub
-;  ::menu-item
-;  :<- [::menu-target]
-;  :<- [::my-tree]
-;  (fn [[menu-target tree]]
-;    (-> tree (get-in menu-target) (assoc :trail menu-target))))
 
 (reg-sub
   ::menu-item

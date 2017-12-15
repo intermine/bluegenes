@@ -65,22 +65,20 @@
     ))
 
 (defn modal-body-list-operations-ordered
-  "This form covers list operations where the order does not matter (combine, intersect)"
+  "This form covers list operations where the order does matter (Subtract)"
   []
   (let [dom-node (atom nil)]
     (r/create-class
       {:component-did-mount (fn [this] (reset! dom-node (js/$ (r/dom-node this))))
-       :reagent-render (let [sg              (subscribe [::subs/suggested-modal-state])
-                             suggested-state (subscribe [::subs/suggested-modal-state-details])
+       :reagent-render (let [suggested-state (subscribe [::subs/suggested-modal-state])
                              checked-items   (subscribe [::subs/checked-details])
                              new-list-name   (r/atom nil)]
                          (fn [{:keys [errors body on-success state]}]
                            [:div
-                            ;[:p body]
                             [:h4 "Keep items from these lists"]
                             [swappable-item-list (first @suggested-state) 0]
                             [:div.pull-right
-                             [:button.btn.btn-primary
+                             [:button.btn
                               {:on-click (fn [] (dispatch [::evts/lo-reverse-order]))}
                               [:svg.icon.icon-swap-vertical.icon-2x [:use {:xlinkHref "#icon-swap-vertical"}]]]]
                             [:div.clearfix]
