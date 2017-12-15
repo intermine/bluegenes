@@ -765,7 +765,7 @@
                 (when (> converted 0)
                   [:div.bar.bar-success {:style {:flex (* 100 (/ (+ matches converted) all))}}
                    (str converted " Converted")])
-                (when (> other 0) [:div.bar.bar-success {:style {:flex (* 100 (/ other all))}} (str other " Other")])
+                (when (> other 0) [:div.bar.bar-success {:style {:flex (* 100 (/ other all))}} (str other " Synonyms")])
                 (when (> duplicates 0) [:div.bar.bar-warning {:style {:flex (* 100 (/ duplicates all))}} (str duplicates " Duplicates")])
                 (when (> notFound 0) [:div.bar.bar-danger {:style {:flex (* 100 (/ notFound all))}} (str notFound " Not Found")])]
                ]]]
@@ -785,7 +785,7 @@
             (when (> converted 0) [:li {:class (when (= @tab :converted) "active") :on-click (fn [] (reset! tab :converted))}
                                       [:a [:span.label.label-success [:i.fa.fa-fw.fa-random] (str "Converted (" converted ")")]]])
             (when (> other 0) [:li {:class (when (= @tab :other) "active") :on-click (fn [] (reset! tab :other))}
-                                  [:a [:span.label.label-success [:i.fa.fa-fw.fa-info] (str "Other (" other ")")]]])
+                                  [:a [:span.label.label-success [:i.fa.fa-fw.fa-info] (str "Synonyms (" other ")")]]])
             (when (> duplicates 0) [:li {:class (when (= @tab :issues) "active") :on-click (fn [] (reset! tab :issues))}
                                        [:a [:span.label.label-warning [:i.fa.fa-fw.fa-exclamation-triangle] (str " Duplicates (" duplicates ")")]]])
             (when (> notFound 0) [:li {:class (when (= @tab :notFound) "active") :on-click (fn [] (reset! tab :notFound))}
