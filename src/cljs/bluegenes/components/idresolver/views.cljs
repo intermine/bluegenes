@@ -526,25 +526,24 @@
       (let [pages               (Math/floor (/ (count results) (:show @pager)))
             rows-in-view        (take (:show @pager) (drop (* (:show @pager) (:page @pager)) results))
             type-summary-fields (get @summary-fields (keyword type))]
-        [:div.form-inline.clearfix
-         [:div.form-group
-          [:div.btn-toolbar
-           [:button.btn.btn-default
-            {:on-click (fn [] (swap! pager update :page (comp (partial max 0) dec)))}
-            [:i.fa.fa-chevron-left]]
-           [:button.btn.btn-default
-            {:on-click (fn [] (swap! pager update :page (comp (partial min pages) inc)))}
-            [:i.fa.fa-chevron-right]]]]
-
-         [:div.clearfix
-          [:div.form-group.pull-right
+        [:div
+         [:div.form-inline.paginator
+          [:div.form-group
+           [:div.btn-toolbar
+            [:button.btn.btn-default
+             {:on-click (fn [] (swap! pager update :page (comp (partial max 0) dec)))}
+             [:i.fa.fa-chevron-left]]
+            [:button.btn.btn-default
+             {:on-click (fn [] (swap! pager update :page (comp (partial min pages) inc)))}
+             [:i.fa.fa-chevron-right]]]]
+          [:div.form-group
+           {:style {:margin-left "15px"}}
            (into [:select.form-control
                   {:on-change (fn [e] (swap! pager assoc :page (oget e :target :value)))
                    :value (:page @pager)}]
                  (map (fn [p]
                         [:option {:value p} (str "Page " (inc p))]) (range (inc pages))))
            [:label {:style {:margin-left "5px"}} (str "of " (inc pages))]]]
-
          [:table.table.table-condensed.table-striped
           {:style {:background-color "white"}}
           [:thead [:tr [:th {:row-span 2} "Your Identifier"] [:th {:col-span 6} "Matches"]]
@@ -780,52 +779,51 @@
                  [:i.fa.fa-fw.fa-exclamation-triangle] (str " Duplicates (" duplicates ")")]
                 " tab"]])]
 
-           [:ul.nav.nav-tabs.id-resolver-tabs
-            (when (> matches 0) [:li {:class (when (= @tab :matches) "active") :on-click (fn [] (reset! tab :matches))}
-                                    [:a [:span.label.label-success [:i.fa.fa-fw.fa-check] (str " Matches (" (- matches converted) ")")]]])
-            (when (> converted 0) [:li {:class (when (= @tab :converted) "active") :on-click (fn [] (reset! tab :converted))}
-                                      [:a [:span.label.label-success [:i.fa.fa-fw.fa-random] (str "Converted (" converted ")")]]])
-            (when (> other 0) [:li {:class (when (= @tab :other) "active") :on-click (fn [] (reset! tab :other))}
-                                  [:a [:span.label.label-success [:i.fa.fa-fw.fa-info] (str "Synonyms (" other ")")]]])
-            (when (> duplicates 0) [:li {:class (when (= @tab :issues) "active") :on-click (fn [] (reset! tab :issues))}
-                                       [:a [:span.label.label-warning [:i.fa.fa-fw.fa-exclamation-triangle] (str " Duplicates (" duplicates ")")]]])
-            (when (> notFound 0) [:li {:class (when (= @tab :notFound) "active") :on-click (fn [] (reset! tab :notFound))}
-                                     [:a [:span.label.label-danger [:i.fa.fa-fw.fa-times] (str "Not Found (" notFound ")")]]])]
-           [:div.table-container
-            (case @tab
-              :issues [review-table (:type @resolution-response) (-> @resolution-response :matches :DUPLICATE)]
-              :notFound [not-found-table (:type @resolution-response) (-> @resolution-response :unresolved)]
-              :converted [converted-table (:type @resolution-response) (-> @resolution-response :matches :TYPE_CONVERTED)]
-              :other [converted-table (:type @resolution-response) (-> @resolution-response :matches :OTHER)]
-              [matches-table (:type @resolution-response) (-> @resolution-response :matches :MATCH)])]
-
            [:div.row
             [:div.col-sm-12
              [:div.form-group
               [:label "List Name"]
               [:input.form-control.input-lg {:type "text"
                                              :value @list-name
-                                             :on-change (fn [e] (dispatch [::evts/update-list-name (oget e :target :value)]))}]]]]
+                                             :on-change (fn [e] (dispatch [::evts/update-list-name (oget e :target :value)]))}]]
+             [:button.btn.btn-success.pull-right.btn-lg
+              {:on-click (fn [] (dispatch [::evts/save-list]))} "Save List"
+              [:i.fa.fa-chevron-right {:style {:padding-left "5px"}}]]]]
 
-           [:button.btn.btn-success.pull-right.btn-lg
-            {:on-click (fn [] (dispatch [::evts/save-list]))} "Save List"
-            [:i.fa.fa-chevron-right {:style {:padding-left "5px"}}]]])))))
+           [:ul.nav.nav-tabs.id-resolver-tabs
+            (when (> matches 0) [:li {:class (when (= @tab :matches) "active") :on-click (fn [] (reset! tab :matches))}
+                                 [:a [:span.label.label-success [:i.fa.fa-fw.fa-check] (str " Matches (" (- matches converted) ")")]]])
+            (when (> converted 0) [:li {:class (when (= @tab :converted) "active") :on-click (fn [] (reset! tab :converted))}
+                                   [:a [:span.label.label-success [:i.fa.fa-fw.fa-random] (str "Converted (" converted ")")]]])
+            (when (> other 0) [:li {:class (when (= @tab :other) "active") :on-click (fn [] (reset! tab :other))}
+                               [:a [:span.label.label-success [:i.fa.fa-fw.fa-info] (str "Synonyms (" other ")")]]])
+            (when (> duplicates 0) [:li {:class (when (= @tab :issues) "active") :on-click (fn [] (reset! tab :issues))}
+                                    [:a [:span.label.label-warning [:i.fa.fa-fw.fa-exclamation-triangle] (str " Duplicates (" duplicates ")")]]])
+            (when (> notFound 0) [:li {:class (when (= @tab :notFound) "active") :on-click (fn [] (reset! tab :notFound))}
+                                  [:a [:span.label.label-danger [:i.fa.fa-fw.fa-times] (str "Not Found (" notFound ")")]]])]
+           [:div.table-container
+            (case @tab
+              :issues [review-table (:type @resolution-response) (-> @resolution-response :matches :DUPLICATE)]
+              :notFound [not-found-table (:type @resolution-response) (-> @resolution-response :unresolved)]
+              :converted [converted-table (:type @resolution-response) (-> @resolution-response :matches :TYPE_CONVERTED)]
+              :other [converted-table (:type @resolution-response) (-> @resolution-response :matches :OTHER)]
+              [matches-table (:type @resolution-response) (-> @resolution-response :matches :MATCH)])]])))))
 
 (defn bread []
   (let [response (subscribe [::subs/resolution-response])]
     (fn [view]
       [:h4 [:ol.breadcrumb {:style {:padding "8px 15px"}}
-            [:li {:class (when (or (= view nil) (= view :upload)) "active")
+            [:li {:class (when (or (= view nil) (= view :input)) "active")
                   :on-click (fn [] (when @response (navigate! "/upload/input")))}
              [:a [:i.fa.fa-upload.fa-1x] " Upload"]]
-            [:li.disabled {:class (when (= view :review) "active")
+            [:li.disabled {:class (when (= view :save) "active")
                            :on-click (fn [] (when @response (navigate! "/upload/save")))}
              (if @response
                [:a [:i.fa.fa-exclamation-triangle.fa-1x] " Save"]
                [:span [:i.fa.fa-exclamation-triangle.fa-1x] " Save"])]]])))
 
 (defn wizard []
-  (let [view (subscribe [::subs/view])
+  (let [view         (subscribe [::subs/view])
         panel-params (subscribe [:panel-params])]
     (fn []
       [:div.wizard
