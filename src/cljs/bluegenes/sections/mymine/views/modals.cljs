@@ -50,7 +50,7 @@
       [:button.btn.btn-primary.btn-slim
        [:svg.icon.icon
         {:class (if (zero? bucket-index) "icon-circle-down" "icon-circle-up")
-         :on-click (fn [] (dispatch [::evts/lo-move-bucket bucket-index id]))}
+         :on-click (fn [] (dispatch [::evts/lo-move-bucket bucket-index details]))}
         [:use {:xlinkHref (if (zero? bucket-index) "#icon-circle-down" "#icon-circle-up")}]]]]
      [:span.content
       [:span (:name details)]
