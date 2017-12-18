@@ -37,10 +37,12 @@ Example usage:
 (defn select-organism []
   (let [organisms (subscribe [:cache/organisms])
         default-organism (subscribe [:mine-default-organism])]
-    (fn [{:keys [value on-change]}]
+    (fn [{:keys [value on-change disabled class]}]
       [:div.form-group
        (into [:select.form-control
-              {:value (or value @default-organism "")
+              {:value (if disabled "" (or value @default-organism ""))
+               :disabled disabled
+               :class class
                :on-change (fn [e] (on-change (oget e :target :value)))}]
              (concat
                [[:option {:value ""} "Any"]

@@ -4,6 +4,7 @@
             [oops.core :refer [oget]]
             [imcljs.fetch :as fetch]
             [imcljs.save :as save]
+            [imcljs.path :as path]
             [cljs-time.core :as time]
             [cljs-time.format :as time-format]
             [clojure.string :as string]))
@@ -92,6 +93,22 @@
 (reg-event-db ::toggle-case-sensitive
               (fn [db [_ response]]
                 (update-in db [:idresolver :stage :options :case-sensitive?] not)))
+
+
+
+(reg-event-db ::update-type
+              (fn [db [_ model value]]
+                (let [disable-organism? (when (not= value "_") (not (contains? (path/relationships model value) :organism)))
+                      mine-details      (get-in db [:mines (get db :current-mine)])]
+                  (if disable-organism?
+                    (update-in db [:idresolver :stage :options] assoc :type value :disable-organism? true :organism nil)
+                    (update-in db [:idresolver :stage :options] #(cond-> %
+                                                                         ; Assoc the new Type value to the options
+                                                                         value (assoc :type value)
+                                                                         ; Enabled organism dropdown
+                                                                         true (assoc :disable-organism? false)
+                                                                         ; Give the organism dropdown a value if nil
+                                                                         (nil? (:organism %)) (assoc :organism (-> mine-details :default-organism))))))))
 
 (reg-event-db ::update-option
               (fn [db [_ option-kw value]]

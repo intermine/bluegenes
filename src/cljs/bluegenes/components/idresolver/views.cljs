@@ -447,20 +447,23 @@
 
 
 (defn select-organism-option []
-  (fn [organism]
+  (fn [organism disable-organism?]
     [:div.form-group
      [:label "Organism"]
      [im-controls/select-organism
       {:value organism
+       :disabled disable-organism?
+       :class (when disable-organism? "disabled")
        :on-change (fn [organism] (dispatch [::evts/update-option :organism organism]))}]]))
 
 (defn select-type-option []
-  (fn [type]
-    [:div.form-group
-     [:label "List type"]
-     [im-controls/select-type
-      {:value type
-       :on-change (fn [type] (dispatch [::evts/update-option :type type]))}]]))
+  (let [model (subscribe [:current-model])]
+    (fn [type]
+      [:div.form-group
+       [:label "List type"]
+       [im-controls/select-type
+        {:value type
+         :on-change (fn [type] (dispatch [::evts/update-type @model type]))}]])))
 
 (defn case-sensitive-option []
   (fn [bool]
@@ -480,14 +483,14 @@
         textbox-identifiers (subscribe [::subs/textbox-identifiers])
         options             (subscribe [::subs/stage-options])]
     (fn []
-      (let [{:keys [organism type case-sensitive]} @options]
+      (let [{:keys [organism type case-sensitive disable-organism?]} @options]
         [:div
          [:h3 "Create a new list"]
          [:div.alert.alert-info
           [:p "Select the type of list to create and then enter your identifiers or upload them from a file."]]
          [:div.row
           [:div.col-sm-6 [select-type-option type]]
-          [:div.col-sm-6 [select-organism-option organism]]]
+          [:div.col-sm-6 [select-organism-option organism disable-organism?]]]
          [:div.row
           [:div.col-sm-6 [case-sensitive-option case-sensitive]]]
          [:div.row
