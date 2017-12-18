@@ -118,7 +118,7 @@
                [active-mine-logo]
                [:span.long-name (:name @current-mine)]]
          [:li.homelink.primary-nav.larger-screen-only {:class (if (panel-is :home-panel) "active")} [:a {:on-click #(navigate! "/")} "Home"]]
-         [:li.primary-nav {:class (if (panel-is :upload-panel) "active")} [:a {:on-click #(navigate! "/upload")}
+         [:li.primary-nav {:class (if (panel-is :upload-panel) "active")} [:a {:on-click #(navigate! "/upload/input")}
                                                                [:svg.icon.icon-upload.extra-tiny-screen [:use {:xlinkHref "#icon-upload"}]]
                                                                [:span..long-name.larger-screen-only "Upload"]]]
          [:li.primary-nav {:class (if (panel-is :mymine-panel) "active")}

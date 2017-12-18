@@ -816,13 +816,13 @@
     (fn [view]
       [:h4 [:ol.breadcrumb {:style {:padding "8px 15px"}}
             [:li {:class (when (or (= view nil) (= view :upload)) "active")
-                  :on-click (fn [] (when @response (navigate! "/upload")))}
+                  :on-click (fn [] (when @response (navigate! "/upload/input")))}
              [:a [:i.fa.fa-upload.fa-1x] " Upload"]]
             [:li.disabled {:class (when (= view :review) "active")
-                           :on-click (fn [] (when @response (navigate! "/upload/review")))}
+                           :on-click (fn [] (when @response (navigate! "/upload/save")))}
              (if @response
-               [:a [:i.fa.fa-exclamation-triangle.fa-1x] " Review"]
-               [:span [:i.fa.fa-exclamation-triangle.fa-1x] " Review"])]]])))
+               [:a [:i.fa.fa-exclamation-triangle.fa-1x] " Save"]
+               [:span [:i.fa.fa-exclamation-triangle.fa-1x] " Save"])]]])))
 
 (defn wizard []
   (let [view (subscribe [::subs/view])
@@ -832,7 +832,7 @@
        [bread (:step @panel-params)]
        [:div.wizard-body.clearfix
         (case (:step @panel-params)
-          :review [review-step]
+          :save [review-step]
           [upload-step])]
        [:div.wizard-footer
         [:div.grow]

@@ -52,7 +52,7 @@
                                       :type (:type options)
                                       :extra (:organism options)})
                              :on-success [::store-identifiers]}
-                   :navigate "/upload/review"})))
+                   :navigate "/upload/save"})))
 
 (def time-formatter (time-format/formatter "dd MMM yyyy HH:mm:ss"))
 
