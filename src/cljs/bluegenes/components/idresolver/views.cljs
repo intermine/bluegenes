@@ -487,7 +487,10 @@
         [:div
          [:h3 "Create a new list"]
          [:div.alert.alert-info
-          [:p "Select the type of list to create and then enter your identifiers or upload them from a file."]]
+          [:p "Select the type of list to create and then enter your identifiers or upload them from a file."]
+          [:ul
+           [:li "Separate identifiers by a comma, space, tab or new line."]
+           [:li "Qualify any identifiers that contain whitespace with double quotes like so: \"even skipped\"."]]]
          [:div.row
           [:div.col-sm-6 [select-type-option type]]
           [:div.col-sm-6 [select-organism-option organism disable-organism?]]]
