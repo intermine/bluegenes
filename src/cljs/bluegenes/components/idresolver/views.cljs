@@ -513,7 +513,8 @@
                             #_(str "Upload" (when @files (str " " (count @files) " file" (when (> (count @files) 1) "s"))))
                             "Reset"]
                            [:button.btn.btn-primary
-                            {:on-click (fn [] (dispatch [::evts/parse-staged-files @files @textbox-identifiers @options]))}
+                            {:on-click (fn [] (dispatch [::evts/parse-staged-files @files @textbox-identifiers @options]))
+                             :disabled (when (and (nil? @files) (nil? @textbox-identifiers)) true)}
                             #_(str "Upload" (when @files (str " " (count @files) " file" (when (> (count @files) 1) "s"))))
                             "Continue"
                             [:i.fa.fa-chevron-right {:style {:padding-left "5px"}}]]]]]]))))

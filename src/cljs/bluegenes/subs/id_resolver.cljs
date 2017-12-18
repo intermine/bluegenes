@@ -1,5 +1,9 @@
 (ns bluegenes.subs.id-resolver
-  (:require [re-frame.core :refer [reg-sub]]))
+  (:require [re-frame.core :refer [reg-sub]]
+            [clojure.string :refer [blank?]]))
+
+(defn not-blank [s]
+  (if-not (blank? s) s nil))
 
 (reg-sub ::staged-files
          (fn [db]
@@ -7,7 +11,7 @@
 
 (reg-sub ::textbox-identifiers
          (fn [db]
-           (get-in db [:idresolver :stage :textbox])))
+           (not-blank (get-in db [:idresolver :stage :textbox]))))
 
 (reg-sub ::stage-options
          (fn [db]
