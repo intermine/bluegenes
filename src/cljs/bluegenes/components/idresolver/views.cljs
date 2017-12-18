@@ -25,6 +25,8 @@
 
 (def timeout 1500)
 
+(def allowed-number-of-results [5 10 20 50 100 250 500])
+
 (defn organism-selection
   "UI component allowing user to choose which organisms to search. Defaults to all."
   []
@@ -519,36 +521,58 @@
                             "Continue"
                             [:i.fa.fa-chevron-right {:style {:padding-left "5px"}}]]]]]]))))
 
+
+(defn paginator []
+  (fn [pager results]
+    (let [pages        (Math/ceil (/ (count results) (:show @pager)))
+          rows-in-view (take (:show @pager) (drop (* (:show @pager) (:page @pager)) results))]
+      [:div.form-inline.paginator
+       [:div.form-group
+        [:div.btn-toolbar
+         [:button.btn.btn-default
+          {:on-click (fn [] (swap! pager update :page (comp (partial max 0) dec)))
+           :disabled (< (:page @pager) 1)}
+          [:i.fa.fa-chevron-left]]
+         [:button.btn.btn-default
+          {:on-click (fn [] (swap! pager update :page (comp (partial min (dec pages)) inc)))
+           :disabled (= (:page @pager) (dec pages))}
+          [:i.fa.fa-chevron-right]]]]
+       [:div.form-group
+        {:style {:margin-left "15px"}}
+        [:label "Show"]
+        (into [:select.form-control
+               {:on-change (fn [e] (swap! pager assoc :show (js/parseInt (oget e :target :value)) :page 0))
+                :value (:show @pager)}]
+              (map (fn [p]
+                     [:option {:value p} p])
+                   (let [to-show (inc (count (take-while (fn [v] (<= v (count results))) allowed-number-of-results)))]
+                     (take to-show allowed-number-of-results))))
+        [:label {:style {:margin-left "5px"}} "results on page "]]
+       [:div.form-group
+        {:style {:margin-left "5px"}}
+        (into [:select.form-control
+               {:on-change (fn [e] (swap! pager assoc :page (js/parseInt (oget e :target :value))))
+                :disabled (< pages 2)
+                :class (when (< pages 2) "disabled")
+                :value (:page @pager)}]
+              (map (fn [p]
+                     [:option {:value p} (str "Page " (inc p))]) (range pages)))
+        [:label {:style {:margin-left "5px"}} (str "of " pages)]]])))
+
+
+
+
+
 (defn matches-table []
   (let [pager          (reagent/atom {:show 10 :page 0})
         summary-fields (subscribe [:current-summary-fields])
         model          (subscribe [:current-model])]
     (fn [type results show-keep?]
-      (let [pages               (Math/floor (/ (count results) (:show @pager)))
+      (let [pages               (Math/ceil (/ (count results) (:show @pager)))
             rows-in-view        (take (:show @pager) (drop (* (:show @pager) (:page @pager)) results))
             type-summary-fields (get @summary-fields (keyword type))]
         [:div
-         [:div.form-inline.paginator
-          [:div.form-group
-           [:div.btn-toolbar
-            [:button.btn.btn-default
-             {:on-click (fn [] (swap! pager update :page (comp (partial max 0) dec)))
-              :disabled (< (:page @pager) 1)}
-             [:i.fa.fa-chevron-left]]
-            [:button.btn.btn-default
-             {:on-click (fn [] (swap! pager update :page (comp (partial min pages) inc)))
-              :disabled (= (:page @pager) pages)}
-             [:i.fa.fa-chevron-right]]]]
-          [:div.form-group
-           {:style {:margin-left "15px"}}
-           (into [:select.form-control
-                  {:on-change (fn [e] (swap! pager assoc :page (oget e :target :value)))
-                   :disabled (< pages 2)
-                   :class (when (< pages 2) "disabled")
-                   :value (:page @pager)}]
-                 (map (fn [p]
-                        [:option {:value p} (str "Page " (inc p))]) (range (inc pages))))
-           [:label {:style {:margin-left "5px"}} (str "of " (inc pages))]]]
+         [paginator pager results]
          [:table.table.table-condensed.table-striped
           {:style {:background-color "white"}}
           [:thead [:tr [:th {:row-span 2} "Your Identifier"] [:th {:col-span 6} "Matches"]]
@@ -576,27 +600,7 @@
             rows-in-view        (take (:show @pager) (drop (* (:show @pager) (:page @pager)) results))
             type-summary-fields (get @summary-fields (keyword type))]
         [:div
-         [:div.form-inline.paginator
-          [:div.form-group
-           [:div.btn-toolbar
-            [:button.btn.btn-default
-             {:on-click (fn [] (swap! pager update :page (comp (partial max 0) dec)))
-              :disabled (< (:page @pager) 1)}
-             [:i.fa.fa-chevron-left]]
-            [:button.btn.btn-default
-             {:on-click (fn [] (swap! pager update :page (comp (partial min pages) inc)))
-              :disabled (= (:page @pager) pages)}
-             [:i.fa.fa-chevron-right]]]]
-          [:div.form-group
-           {:style {:margin-left "15px"}}
-           (into [:select.form-control
-                  {:on-change (fn [e] (swap! pager assoc :page (oget e :target :value)))
-                   :class (when (< pages 2) "disabled")
-                   :disabled (< pages 2)
-                   :value (:page @pager)}]
-                 (map (fn [p]
-                        [:option {:value p} (str "Page " (inc p))]) (range (inc pages))))
-           [:label {:style {:margin-left "5px"}} (str "of " (inc pages))]]]
+         [paginator pager results]
          [:table.table.table-condensed.table-striped
           {:style {:background-color "white"}}
           [:thead [:tr [:th {:row-span 2} "Your Identifier"] [:th {:col-span 5} "Matches"]]
@@ -634,27 +638,7 @@
             rows-in-view        (take (:show @pager) (drop (* (:show @pager) (:page @pager)) results))
             type-summary-fields (get @summary-fields (keyword type))]
         [:div
-         [:div.form-inline.paginator
-          [:div.form-group
-           [:div.btn-toolbar
-            [:button.btn.btn-default
-             {:on-click (fn [] (swap! pager update :page (comp (partial max 0) dec)))
-              :disabled (< (:page @pager) 1)}
-             [:i.fa.fa-chevron-left]]
-            [:button.btn.btn-default
-             {:on-click (fn [] (swap! pager update :page (comp (partial min pages) inc)))
-              :disabled (= (:page @pager) pages)}
-             [:i.fa.fa-chevron-right]]]]
-          [:div.form-group
-           {:style {:margin-left "15px"}}
-           (into [:select.form-control
-                  {:on-change (fn [e] (swap! pager assoc :page (oget e :target :value)))
-                   :class (when (< pages 2) "disabled")
-                   :disabled (< pages 2)
-                   :value (:page @pager)}]
-                 (map (fn [p]
-                        [:option {:value p} (str "Page " (inc p))]) (range (inc pages))))
-           [:label {:style {:margin-left "5px"}} (str "of " (inc pages))]]]
+         [paginator pager results]
          [:table.table.table-condensed.table-striped
           {:style {:background-color "white"}}
           [:thead [:tr [:th "Your Identifier"]]]
@@ -673,28 +657,7 @@
             rows-in-view        (take (:show @pager) (drop (* (:show @pager) (:page @pager)) results))
             type-summary-fields (get @summary-fields (keyword type))]
         [:div.form
-         [:div.form-inline.paginator
-          [:div.form-group
-           [:div.btn-toolbar
-            [:button.btn.btn-default
-             {:on-click (fn [] (swap! pager update :page (comp (partial max 0) dec)))
-              :disabled (< (:page @pager) 1)}
-             [:i.fa.fa-chevron-left]]
-            [:button.btn.btn-default
-             {:on-click (fn [] (swap! pager update :page (comp (partial min pages) inc)))
-              :disabled (= (:page @pager) pages)}
-             [:i.fa.fa-chevron-right]]]]
-          [:div.form-group
-           {:style {:margin-left "15px"}}
-           (into [:select.form-control
-                  {:on-change (fn [e] (swap! pager assoc :page (oget e :target :value)))
-                   :class (when (< pages 2) "disabled")
-                   :disabled (< pages 2)
-                   :value (:page @pager)}]
-                 (map (fn [p]
-                        [:option {:value p} (str "Page " (inc p))]) (range (inc pages))))
-           [:label {:style {:margin-left "5px"}} (str "of " (inc pages))]]]
-
+         [paginator pager results]
          [:table.table.table-condensed.table-striped
           {:style {:background-color "white"}}
           [:thead [:tr [:th {:row-span 2} "Your Identifier"] [:th {:col-span 6} "Matches"]]
