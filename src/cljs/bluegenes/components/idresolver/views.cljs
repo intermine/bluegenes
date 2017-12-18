@@ -769,7 +769,7 @@
              [:button.btn.btn-success.pull-right.btn-lg
               {:on-click (fn [] (dispatch [::evts/save-list]))}
               [:i.fa.fa-cloud-upload {:style {:padding-right "5px"}}]
-              "Store List"]]]
+              "Save List"]]]
 
            [:ul.nav.nav-tabs.id-resolver-tabs
             (when (> matches 0) [:li {:class (when (= @tab :matches) "active") :on-click (fn [] (dispatch [::evts/update-option :review-tab :matches]))}
