@@ -33,6 +33,11 @@
          (fn [db]
            (get-in db [:idresolver :response :stats])))
 
+(reg-sub ::review-tab
+         (fn [db]
+           (get-in db [:idresolver :stage :options :review-tab])))
+
+
 (reg-sub ::view
          (fn [db]
            (get-in db [:idresolver :stage :view])))

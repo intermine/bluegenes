@@ -44,7 +44,10 @@
 (reg-event-fx ::resolve-identifiers
               (fn [{db :db} [_ options identifiers]]
                 (let [service (get-in db [:mines (get db :current-mine) :service])]
-                  {:db (assoc-in db [:idresolver :stage :view] :review)
+                  {:db (-> db
+                           (assoc-in [:idresolver :stage :view] :review)
+                           (assoc-in [:idresolver :stage :options :review-tab] :matches)
+                           (update :idresolver dissoc :response))
                    :im-chan {:chan (fetch/resolve-identifiers
                                      service
                                      {:identifiers identifiers
@@ -94,6 +97,7 @@
               (fn [db [_ option-kw value]]
                 (assoc-in db [:idresolver :stage :options option-kw] value)))
 
+
 (reg-event-db ::toggle-keep-duplicate
               (fn [db [_ duplicate-idx match-idx]]
                 (update-in db [:idresolver :response :matches :DUPLICATE duplicate-idx :matches match-idx :keep?] not)))
@@ -108,13 +112,6 @@
                       object-type (get-in db [:idresolver :stage :options :type])
                       service     (get-in db [:mines (get db :current-mine) :service])
                       list-name   (get-in db [:idresolver :save :list-name])]
-                  (js/console.log "COUNTED" (->>
-                                              MATCH
-                                              ;(concat (mapcat :matches OTHER))
-                                              (concat (mapcat :matches TYPE_CONVERTED))
-                                              ;(concat (mapcat (fn [{matches :matches}] (filter :keep? matches)) DUPLICATE))
-                                              (map :id)
-                                              count))
                   {:im-chan {:chan (save/im-list-from-query
                                      service
                                      list-name

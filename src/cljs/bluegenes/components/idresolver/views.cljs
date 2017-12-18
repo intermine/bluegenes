@@ -755,7 +755,7 @@
   (let [resolution-response (subscribe [::subs/resolution-response])
         list-name           (subscribe [::subs/list-name])
         stats               (subscribe [::subs/stats])
-        tab                 (reagent/atom :matches)]
+        tab                 (subscribe [::subs/review-tab])]
     (fn []
       (let [{:keys [matches issues notFound converted duplicates all other]} @stats]
         (if (= nil @resolution-response)
@@ -801,15 +801,15 @@
               [:i.fa.fa-chevron-right {:style {:padding-left "5px"}}]]]]
 
            [:ul.nav.nav-tabs.id-resolver-tabs
-            (when (> matches 0) [:li {:class (when (= @tab :matches) "active") :on-click (fn [] (reset! tab :matches))}
+            (when (> matches 0) [:li {:class (when (= @tab :matches) "active") :on-click (fn [] (dispatch [::evts/update-option :review-tab :matches]))}
                                  [:a [:span.label.label-success [:i.fa.fa-fw.fa-check] (str " Matches (" (- matches converted) ")")]]])
-            (when (> converted 0) [:li {:class (when (= @tab :converted) "active") :on-click (fn [] (reset! tab :converted))}
+            (when (> converted 0) [:li {:class (when (= @tab :converted) "active") :on-click (fn [] (dispatch [::evts/update-option :review-tab :converted]))}
                                    [:a [:span.label.label-success [:i.fa.fa-fw.fa-random] (str "Converted (" converted ")")]]])
-            (when (> other 0) [:li {:class (when (= @tab :other) "active") :on-click (fn [] (reset! tab :other))}
+            (when (> other 0) [:li {:class (when (= @tab :other) "active") :on-click (fn [] (dispatch [::evts/update-option :review-tab :other]))}
                                [:a [:span.label.label-success [:i.fa.fa-fw.fa-info] (str "Synonyms (" other ")")]]])
-            (when (> duplicates 0) [:li {:class (when (= @tab :issues) "active") :on-click (fn [] (reset! tab :issues))}
+            (when (> duplicates 0) [:li {:class (when (= @tab :issues) "active") :on-click (fn [] (dispatch [::evts/update-option :review-tab :issues]))}
                                     [:a [:span.label.label-warning [:i.fa.fa-fw.fa-exclamation-triangle] (str " Ambiguous (" duplicates ")")]]])
-            (when (> notFound 0) [:li {:class (when (= @tab :notFound) "active") :on-click (fn [] (reset! tab :notFound))}
+            (when (> notFound 0) [:li {:class (when (= @tab :notFound) "active") :on-click (fn [] (dispatch [::evts/update-option :review-tab :notFound]))}
                                   [:a [:span.label.label-danger [:i.fa.fa-fw.fa-times] (str "Not Found (" notFound ")")]]])]
            [:div.table-container
             (case @tab
