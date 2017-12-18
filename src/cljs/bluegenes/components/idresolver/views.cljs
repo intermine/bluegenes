@@ -741,11 +741,11 @@
                [:div.bars
                 (when (> (- matches converted) 0)
                   [:div.bar.bar-success {:style {:flex (* 100 (/ (+ matches converted) all))}}
-                   (str (- matches converted) " Matches")])
+                   (str (- matches converted) (str " Match" (when (> (- matches converted) 1) "es")))])
                 (when (> converted 0)
                   [:div.bar.bar-success {:style {:flex (* 100 (/ (+ matches converted) all))}}
                    (str converted " Converted")])
-                (when (> other 0) [:div.bar.bar-success {:style {:flex (* 100 (/ other all))}} (str other " Synonyms")])
+                (when (> other 0) [:div.bar.bar-success {:style {:flex (* 100 (/ other all))}} (str other " Synonym" (when (> other 1) "s"))])
                 (when (> duplicates 0) [:div.bar.bar-warning {:style {:flex (* 100 (/ duplicates all))}} (str duplicates " Ambiguous")])
                 (when (> notFound 0) [:div.bar.bar-danger {:style {:flex (* 100 (/ notFound all))}} (str notFound " Not Found")])]
                ]]]
@@ -767,8 +767,9 @@
                                              :value @list-name
                                              :on-change (fn [e] (dispatch [::evts/update-list-name (oget e :target :value)]))}]]
              [:button.btn.btn-success.pull-right.btn-lg
-              {:on-click (fn [] (dispatch [::evts/save-list]))} "Save List"
-              [:i.fa.fa-chevron-right {:style {:padding-left "5px"}}]]]]
+              {:on-click (fn [] (dispatch [::evts/save-list]))}
+              [:i.fa.fa-cloud-upload {:style {:padding-right "5px"}}]
+              "Store List"]]]
 
            [:ul.nav.nav-tabs.id-resolver-tabs
             (when (> matches 0) [:li {:class (when (= @tab :matches) "active") :on-click (fn [] (dispatch [::evts/update-option :review-tab :matches]))}
