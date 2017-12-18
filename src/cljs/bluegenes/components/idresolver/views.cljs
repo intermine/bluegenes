@@ -531,15 +531,19 @@
           [:div.form-group
            [:div.btn-toolbar
             [:button.btn.btn-default
-             {:on-click (fn [] (swap! pager update :page (comp (partial max 0) dec)))}
+             {:on-click (fn [] (swap! pager update :page (comp (partial max 0) dec)))
+              :disabled (< (:page @pager) 1)}
              [:i.fa.fa-chevron-left]]
             [:button.btn.btn-default
-             {:on-click (fn [] (swap! pager update :page (comp (partial min pages) inc)))}
+             {:on-click (fn [] (swap! pager update :page (comp (partial min pages) inc)))
+              :disabled (= (:page @pager) pages)}
              [:i.fa.fa-chevron-right]]]]
           [:div.form-group
            {:style {:margin-left "15px"}}
            (into [:select.form-control
                   {:on-change (fn [e] (swap! pager assoc :page (oget e :target :value)))
+                   :disabled (< pages 2)
+                   :class (when (< pages 2) "disabled")
                    :value (:page @pager)}]
                  (map (fn [p]
                         [:option {:value p} (str "Page " (inc p))]) (range (inc pages))))
@@ -570,25 +574,28 @@
       (let [pages               (Math/floor (/ (count results) (:show @pager)))
             rows-in-view        (take (:show @pager) (drop (* (:show @pager) (:page @pager)) results))
             type-summary-fields (get @summary-fields (keyword type))]
-        [:div.form-inline.clearfix
-         [:div.form-group
-          [:div.btn-toolbar
-           [:button.btn.btn-default
-            {:on-click (fn [] (swap! pager update :page (comp (partial max 0) dec)))}
-            [:i.fa.fa-chevron-left]]
-           [:button.btn.btn-default
-            {:on-click (fn [] (swap! pager update :page (comp (partial min pages) inc)))}
-            [:i.fa.fa-chevron-right]]]]
-
-         [:div.clearfix
-          [:div.form-group.pull-right
+        [:div
+         [:div.form-inline.paginator
+          [:div.form-group
+           [:div.btn-toolbar
+            [:button.btn.btn-default
+             {:on-click (fn [] (swap! pager update :page (comp (partial max 0) dec)))
+              :disabled (< (:page @pager) 1)}
+             [:i.fa.fa-chevron-left]]
+            [:button.btn.btn-default
+             {:on-click (fn [] (swap! pager update :page (comp (partial min pages) inc)))
+              :disabled (= (:page @pager) pages)}
+             [:i.fa.fa-chevron-right]]]]
+          [:div.form-group
+           {:style {:margin-left "15px"}}
            (into [:select.form-control
                   {:on-change (fn [e] (swap! pager assoc :page (oget e :target :value)))
+                   :class (when (< pages 2) "disabled")
+                   :disabled (< pages 2)
                    :value (:page @pager)}]
                  (map (fn [p]
                         [:option {:value p} (str "Page " (inc p))]) (range (inc pages))))
            [:label {:style {:margin-left "5px"}} (str "of " (inc pages))]]]
-
          [:table.table.table-condensed.table-striped
           {:style {:background-color "white"}}
           [:thead [:tr [:th {:row-span 2} "Your Identifier"] [:th {:col-span 5} "Matches"]]
@@ -625,25 +632,28 @@
       (let [pages               (Math/floor (/ (count results) (:show @pager)))
             rows-in-view        (take (:show @pager) (drop (* (:show @pager) (:page @pager)) results))
             type-summary-fields (get @summary-fields (keyword type))]
-        [:div.form-inline.clearfix
-         [:div.form-group
-          [:div.btn-toolbar
-           [:button.btn.btn-default
-            {:on-click (fn [] (swap! pager update :page (comp (partial max 0) dec)))}
-            [:i.fa.fa-chevron-left]]
-           [:button.btn.btn-default
-            {:on-click (fn [] (swap! pager update :page (comp (partial min pages) inc)))}
-            [:i.fa.fa-chevron-right]]]]
-
-         [:div.clearfix
-          [:div.form-group.pull-right
+        [:div
+         [:div.form-inline.paginator
+          [:div.form-group
+           [:div.btn-toolbar
+            [:button.btn.btn-default
+             {:on-click (fn [] (swap! pager update :page (comp (partial max 0) dec)))
+              :disabled (< (:page @pager) 1)}
+             [:i.fa.fa-chevron-left]]
+            [:button.btn.btn-default
+             {:on-click (fn [] (swap! pager update :page (comp (partial min pages) inc)))
+              :disabled (= (:page @pager) pages)}
+             [:i.fa.fa-chevron-right]]]]
+          [:div.form-group
+           {:style {:margin-left "15px"}}
            (into [:select.form-control
                   {:on-change (fn [e] (swap! pager assoc :page (oget e :target :value)))
+                   :class (when (< pages 2) "disabled")
+                   :disabled (< pages 2)
                    :value (:page @pager)}]
                  (map (fn [p]
                         [:option {:value p} (str "Page " (inc p))]) (range (inc pages))))
            [:label {:style {:margin-left "5px"}} (str "of " (inc pages))]]]
-
          [:table.table.table-condensed.table-striped
           {:style {:background-color "white"}}
           [:thead [:tr [:th "Your Identifier"]]]
@@ -653,10 +663,6 @@
                        (fn [row-idx value]
                          [:tr [:td value]]))))]]))))
 
-
-
-
-
 (defn review-table []
   (let [pager          (reagent/atom {:show 5 :page 0})
         summary-fields (subscribe [:current-summary-fields])
@@ -665,20 +671,24 @@
       (let [pages               (Math/floor (/ (count results) (:show @pager)))
             rows-in-view        (take (:show @pager) (drop (* (:show @pager) (:page @pager)) results))
             type-summary-fields (get @summary-fields (keyword type))]
-        [:div.form-inline.clearfix
-         [:div.form-group
-          [:div.btn-toolbar
-           [:button.btn.btn-default
-            {:on-click (fn [] (swap! pager update :page (comp (partial max 0) dec)))}
-            [:i.fa.fa-chevron-left]]
-           [:button.btn.btn-default
-            {:on-click (fn [] (swap! pager update :page (comp (partial min pages) inc)))}
-            [:i.fa.fa-chevron-right]]]]
-
-         [:div.clearfix
-          [:div.form-group.pull-right
+        [:div.form
+         [:div.form-inline.paginator
+          [:div.form-group
+           [:div.btn-toolbar
+            [:button.btn.btn-default
+             {:on-click (fn [] (swap! pager update :page (comp (partial max 0) dec)))
+              :disabled (< (:page @pager) 1)}
+             [:i.fa.fa-chevron-left]]
+            [:button.btn.btn-default
+             {:on-click (fn [] (swap! pager update :page (comp (partial min pages) inc)))
+              :disabled (= (:page @pager) pages)}
+             [:i.fa.fa-chevron-right]]]]
+          [:div.form-group
+           {:style {:margin-left "15px"}}
            (into [:select.form-control
                   {:on-change (fn [e] (swap! pager assoc :page (oget e :target :value)))
+                   :class (when (< pages 2) "disabled")
+                   :disabled (< pages 2)
                    :value (:page @pager)}]
                  (map (fn [p]
                         [:option {:value p} (str "Page " (inc p))]) (range (inc pages))))
