@@ -506,26 +506,26 @@
                             :class (when @files "disabled")
                             :disabled @files
                             :style {:height "100%"} :rows 5}]]
-           [:div.btn-toolbar
-            [:button.btn.btn-default {:on-click (fn [] (dispatch [::evts/load-example]))}
-             "Example"]
-            [:button.btn.btn-default {:on-click (fn [] (dispatch [::evts/update-textbox-identifiers nil]))}
-             "Clear"]]]
+           ]
           [:div.col-sm-4 [file-manager]]]
 
          [:div.row
-          [:div.col-sm-12 [:div.btn-toolbar.pull-right
-                           {:style {:margin-top "10px"}}
-                           [:button.btn.btn-default
-                            {:on-click (fn [] (dispatch [::evts/reset]))}
-                            #_(str "Upload" (when @files (str " " (count @files) " file" (when (> (count @files) 1) "s"))))
-                            "Reset"]
-                           [:button.btn.btn-primary
-                            {:on-click (fn [] (dispatch [::evts/parse-staged-files @files @textbox-identifiers @options]))
-                             :disabled (when (and (nil? @files) (nil? @textbox-identifiers)) true)}
-                            #_(str "Upload" (when @files (str " " (count @files) " file" (when (> (count @files) 1) "s"))))
-                            "Continue"
-                            [:i.fa.fa-chevron-right {:style {:padding-left "5px"}}]]]]]]))))
+          [:div.col-sm-12.clear-fix
+           [:div.btn-toolbar.pull-left
+            [:button.btn.btn-default {:on-click (fn [] (dispatch [::evts/load-example]))}
+             "Example"]]
+
+           [:div.btn-toolbar.pull-right
+            [:button.btn.btn-default
+             {:on-click (fn [] (dispatch [::evts/reset]))}
+             #_(str "Upload" (when @files (str " " (count @files) " file" (when (> (count @files) 1) "s"))))
+             "Reset"]
+            [:button.btn.btn-primary
+             {:on-click (fn [] (dispatch [::evts/parse-staged-files @files @textbox-identifiers @options]))
+              :disabled (when (and (nil? @files) (nil? @textbox-identifiers)) true)}
+             #_(str "Upload" (when @files (str " " (count @files) " file" (when (> (count @files) 1) "s"))))
+             "Continue"
+             [:i.fa.fa-chevron-right {:style {:padding-left "5px"}}]]]]]]))))
 
 
 (defn paginator []
