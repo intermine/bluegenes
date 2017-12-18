@@ -14,6 +14,7 @@
             [bluegenes.events.id-resolver :as evts]
             [bluegenes.subs.id-resolver :as subs]
             [oops.core :refer [oget oget+ ocall]]
+            [accountant.core :refer [navigate!]]
             [imcljs.path :as path]))
 
 ;;; TODOS:
@@ -815,21 +816,22 @@
     (fn [view]
       [:h4 [:ol.breadcrumb {:style {:padding "8px 15px"}}
             [:li {:class (when (or (= view nil) (= view :upload)) "active")
-                  :on-click (fn [] (dispatch [::evts/set-view nil]))}
+                  :on-click (fn [] (when @response (navigate! "/upload")))}
              [:a [:i.fa.fa-upload.fa-1x] " Upload"]]
             [:li.disabled {:class (when (= view :review) "active")
-                           :on-click (fn [] (when @response (dispatch [::evts/set-view :review])))}
+                           :on-click (fn [] (when @response (navigate! "/upload/review")))}
              (if @response
                [:a [:i.fa.fa-exclamation-triangle.fa-1x] " Review"]
                [:span [:i.fa.fa-exclamation-triangle.fa-1x] " Review"])]]])))
 
 (defn wizard []
-  (let [view (subscribe [::subs/view])]
+  (let [view (subscribe [::subs/view])
+        panel-params (subscribe [:panel-params])]
     (fn []
       [:div.wizard
-       [bread @view]
+       [bread (:step @panel-params)]
        [:div.wizard-body.clearfix
-        (case @view
+        (case (:step @panel-params)
           :review [review-step]
           [upload-step])]
        [:div.wizard-footer

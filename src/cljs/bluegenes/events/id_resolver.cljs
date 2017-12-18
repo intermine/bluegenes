@@ -22,7 +22,6 @@
 
 (reg-event-fx ::parse-staged-files
               (fn [{db :db} [_ js-Files text options]]
-                (js/console.log "TEXsT" (string/blank? text))
                 {:db (assoc-in db [:idresolver :stage :status] {:action :parsing})
                  ::fx/http {:uri "/api/ids/parse"
                             :method :post
@@ -52,7 +51,8 @@
                                       :case-sensitive (:case-sensitive options)
                                       :type (:type options)
                                       :extra (:organism options)})
-                             :on-success [::store-identifiers]}})))
+                             :on-success [::store-identifiers]}
+                   :navigate "/upload/review"})))
 
 (def time-formatter (time-format/formatter "dd MMM yyyy HH:mm:ss"))
 
