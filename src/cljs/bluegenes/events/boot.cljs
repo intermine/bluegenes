@@ -16,6 +16,7 @@
               :events :authentication/store-token
               :dispatch-n [[:assets/fetch-model]
                            [:assets/fetch-lists]
+                           [:assets/fetch-class-keys]
                            [:assets/fetch-templates]
                            [:assets/fetch-widgets]
                            [:assets/fetch-summary-fields]
@@ -25,6 +26,7 @@
              {:when :seen-all-of?
               :events [:assets/success-fetch-model
                        :assets/success-fetch-lists
+                       [:assets/fetch-class-keys]
                        :assets/success-fetch-templates
                        :assets/success-fetch-summary-fields
                        :assets/success-fetch-widgets
@@ -38,6 +40,7 @@
               :events :authentication/store-token
               :dispatch-n [[:assets/fetch-model]
                            [:assets/fetch-lists]
+                           [:assets/fetch-class-keys]
                            [:assets/fetch-templates]
                            [:assets/fetch-widgets]
                            [:assets/fetch-summary-fields]
@@ -46,6 +49,7 @@
              {:when :seen-all-of?
               :events [:assets/success-fetch-model
                        :assets/success-fetch-lists
+                       [:assets/fetch-class-keys]
                        :assets/success-fetch-templates
                        :assets/success-fetch-summary-fields
                        :assets/success-fetch-widgets
@@ -197,6 +201,20 @@
     {:db db
      :im-operation {:op (partial fetch/lists (get-in db [:mines (:current-mine db) :service]))
                     :on-success [:assets/success-fetch-lists (:current-mine db)]}}))
+
+; Fetch class keys
+
+(reg-event-db
+  :assets/success-fetch-class-keys
+  (fn [db [_ mine-kw class-keys]]
+    (assoc-in db [:mines mine-kw :class-keys] class-keys)))
+
+(reg-event-fx
+  :assets/fetch-class-keys
+  (fn [{db :db}]
+    {:db db
+     :im-operation {:op (partial fetch/class-keys (get-in db [:mines (:current-mine db) :service]))
+                    :on-success [:assets/success-fetch-class-keys (:current-mine db)]}}))
 
 ; Fetch templates
 
