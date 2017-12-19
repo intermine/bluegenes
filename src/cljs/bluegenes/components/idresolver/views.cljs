@@ -488,7 +488,7 @@
         [:div
          [:h3 "Create a new list"]
          [:div.alert.alert-info
-          [:p "Select the type of list to create and then enter your identifiers or upload them from a file."]
+          [:p [:i.fa.fa-fw.fa-info-circle] " Select the type of list to create and then enter your identifiers or upload them from a file."]
           [:ul
            [:li "Separate identifiers by a comma, space, tab or new line."]
            [:li "Qualify any identifiers that contain whitespace with double quotes like so: \"even skipped\"."]]]
@@ -579,6 +579,8 @@
             rows-in-view        (take (:show @pager) (drop (* (:show @pager) (:page @pager)) results))
             type-summary-fields (get @summary-fields (keyword type))]
         [:div
+         [:div.alert.alert-result-table.alert-info
+          [:p [:i.fa.fa-fw.fa-info-circle] "An exact match was found for the following identifiers"]]
          [paginator pager results]
          [:table.table.table-condensed.table-striped
           {:style {:background-color "white"}}
@@ -602,11 +604,17 @@
   (let [pager          (reagent/atom {:show 10 :page 0})
         summary-fields (subscribe [:current-summary-fields])
         model          (subscribe [:current-model])]
-    (fn [type results show-keep?]
+    (fn [type results category-kw]
       (let [pages               (Math/floor (/ (count results) (:show @pager)))
             rows-in-view        (take (:show @pager) (drop (* (:show @pager) (:page @pager)) results))
             type-summary-fields (get @summary-fields (keyword type))]
         [:div
+         (case category-kw
+           :converted [:div.alert.alert-result-table.alert-info
+                       [:p [:i.fa.fa-fw.fa-info-circle] (str "These identifiers matched non-" type " records from which a relationship to a " type " was found")]]
+           :other [:div.alert.alert-result-table.alert-info
+                   [:p [:i.fa.fa-fw.fa-info-circle] "These identifiers matched old identifiers"]]
+           nil)
          [paginator pager results]
          [:table.table.table-condensed.table-striped
           {:style {:background-color "white"}}
@@ -645,6 +653,8 @@
             rows-in-view        (take (:show @pager) (drop (* (:show @pager) (:page @pager)) results))
             type-summary-fields (get @summary-fields (keyword type))]
         [:div
+         [:div.alert.alert-result-table.alert-info
+          [:p [:i.fa.fa-fw.fa-info-circle] (str "These identifiers returned no matches")]]
          [paginator pager results]
          [:table.table.table-condensed.table-striped
           {:style {:background-color "white"}}
@@ -664,6 +674,8 @@
             rows-in-view        (take (:show @pager) (drop (* (:show @pager) (:page @pager)) results))
             type-summary-fields (get @summary-fields (keyword type))]
         [:div.form
+         [:div.alert.alert-result-table.alert-info
+          [:p [:i.fa.fa-fw.fa-info-circle] (str "These identifiers matched more than one " type)]]
          [paginator pager results]
          [:table.table.table-condensed.table-striped
           {:style {:background-color "white"}}
@@ -787,8 +799,8 @@
             (case @tab
               :issues [review-table (:type @resolution-response) (-> @resolution-response :matches :DUPLICATE)]
               :notFound [not-found-table (:type @resolution-response) (-> @resolution-response :unresolved)]
-              :converted [converted-table (:type @resolution-response) (-> @resolution-response :matches :TYPE_CONVERTED)]
-              :other [converted-table (:type @resolution-response) (-> @resolution-response :matches :OTHER)]
+              :converted [converted-table (:type @resolution-response) (-> @resolution-response :matches :TYPE_CONVERTED) :converted]
+              :other [converted-table (:type @resolution-response) (-> @resolution-response :matches :OTHER) :other]
               [matches-table (:type @resolution-response) (-> @resolution-response :matches :MATCH)])]])))))
 
 (defn bread []
