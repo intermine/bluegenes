@@ -26,7 +26,7 @@
              {:when :seen-all-of?
               :events [:assets/success-fetch-model
                        :assets/success-fetch-lists
-                       [:assets/fetch-class-keys]
+                       :assets/success-fetch-class-keys
                        :assets/success-fetch-templates
                        :assets/success-fetch-summary-fields
                        :assets/success-fetch-widgets
@@ -49,7 +49,7 @@
              {:when :seen-all-of?
               :events [:assets/success-fetch-model
                        :assets/success-fetch-lists
-                       [:assets/fetch-class-keys]
+                       :assets/success-fetch-class-keys
                        :assets/success-fetch-templates
                        :assets/success-fetch-summary-fields
                        :assets/success-fetch-widgets
