@@ -505,6 +505,7 @@
                            {:on-change (fn [e] (dispatch [::evts/update-textbox-identifiers (oget e :target :value)]))
                             :value @textbox-identifiers
                             :class (when @files "disabled")
+                            :spellCheck false
                             :disabled @files
                             :style {:height "100%"} :rows 5}]]
            ]
