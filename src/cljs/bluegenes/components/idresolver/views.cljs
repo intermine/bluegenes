@@ -463,6 +463,7 @@
        [:label "List type"]
        [im-controls/select-type
         {:value type
+         :qualified? true
          :on-change (fn [type] (dispatch [::evts/update-type @model type]))}]])))
 
 (defn case-sensitive-option []

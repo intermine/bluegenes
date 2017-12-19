@@ -35,7 +35,7 @@ Example usage:
                       (sort-by :shortName @organisms))))])))
 
 (defn select-organism []
-  (let [organisms (subscribe [:cache/organisms])
+  (let [organisms        (subscribe [:cache/organisms])
         default-organism (subscribe [:mine-default-organism])]
     (fn [{:keys [value on-change disabled class]}]
       [:div.form-group
@@ -48,7 +48,7 @@ Example usage:
                [[:option {:value ""} "Any"]
                 [:option {:value "_"} ""]]
                (map (fn [{short-name :shortName}]
-                     [:option {:value short-name} short-name]) @organisms)))])))
+                      [:option {:value short-name} short-name]) @organisms)))])))
 
 (defn sort-classes [classes]
   (sort-by (comp :displayName second) < classes))
@@ -56,8 +56,10 @@ Example usage:
 (defn select-type []
   (let [model        (subscribe [:current-model])
         current-mine (subscribe [:current-mine])]
-    (fn [{:keys [value on-change]}]
-      (let [default-types (get @current-mine :default-object-types)]
+    (fn [{:keys [value on-change qualified?]}]
+      ; when qualified? is true, only show intermine object types that have class keys
+      (let [{default-types :default-object-types
+             class-keys :class-keys} @current-mine]
         [:div.form-group
          (into [:select.form-control
                 {:value (or value (-> default-types first name))
@@ -69,7 +71,10 @@ Example usage:
                  (concat [[:option {:value "_"} ""]])
                  (map (fn [[class-kw {:keys [name displayName]}]]
                         [:option {:value name} displayName])
-                      (sort-classes (apply dissoc (:classes @model) default-types)))))]))))
+                      (sort-classes
+                        (apply dissoc
+                               (cond-> (:classes @model)
+                                       qualified? (select-keys (keys class-keys))) default-types)))))]))))
 
 
 (defn object-type-dropdown []
