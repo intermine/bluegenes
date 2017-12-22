@@ -650,3 +650,24 @@
                   {:db (assoc-in db [:mymine :entries] new-entries)
                    :dispatch-n [[::rederive]
                                 [::set-cursor parent-tag]]})))
+
+
+(defn build-list-query [type summary-fields name title]
+  {:title  title
+   :from   type
+   :select summary-fields
+   :where  [{:path  type
+             :op    "IN"
+             :value name}]})
+
+
+(reg-event-fx
+  ::view-list-results
+  (fn [{db :db} [_ {:keys [type name title source]}]]
+    (let [summary-fields (get-in db [:assets :summary-fields source (keyword type)])]
+      {:db       db
+       :dispatch [:results/set-query
+                  {:source source
+                   :type   :query
+                   :value  (build-list-query type summary-fields name title)}]
+       :navigate "/results"})))
