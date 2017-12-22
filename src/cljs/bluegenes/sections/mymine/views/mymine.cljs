@@ -622,7 +622,7 @@
           [:div [ico im-obj-type]
            [:a {:on-click (fn [e]
                             (.stopPropagation e)
-                            (dispatch [:lists/view-results (assoc dets :source @source)]))}
+                            (dispatch [::evts/view-list-results (assoc dets :source @source)]))}
             name (when-not authorized
                    [:svg.icon.icon-lock [:use {:xlinkHref "#icon-lock"}]])]]]
          [:td  [tag-container @hierarchy-trail]]
@@ -648,7 +648,7 @@
           [:div [ico im-obj-type]
            [:a {:on-click (fn [e]
                             (.stopPropagation e)
-                            (dispatch [:lists/view-results (assoc dets :source @source)]))} name]
+                            (dispatch [::evts/view-list-results (assoc dets :source @source)]))} name]
            (when-not authorized
              [:svg.icon.icon-globe {:style {:fill "#939393"}} [:use {:xlinkHref "#icon-globe"}]])
            ]]
