@@ -464,7 +464,7 @@
                           [:div.modal-dialog
                            [:div.modal-content
                             [:div.modal-header [:h2 "Rename List"]]
-                            [:div.modal-body [:p "Please enter a new name for the folder"]
+                            [:div.modal-body [:p "Please enter a new name for your list"]
                              [:input.form-control
                               {:ref (fn [e] (when e (do (oset! e :value label) (reset! input-dom-node (js/$ e)))))
                                :type "text"
