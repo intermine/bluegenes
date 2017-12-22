@@ -411,7 +411,6 @@
     (fn []
       (into [:ul
              [unsorted-folder]
-             #_[public-folder]
              [:li.separator]
              (when @authed? [add-folder])
              [:li.separator (merge {}
@@ -422,13 +421,7 @@
                 (mapv
                   (fn [t] ^{:key (str "tag-" (:entry-id t))} [tag t])
                   (sort-by :label @tags))
-                [
-                 [:span "Debug message: "]
-                 [:span "Please log in to use tags"]]))))))
-
-;[:li.separator]
-
-
+                [[:li.info [:svg.icon.icon-info [:use {:xlinkHref "#icon-info"}]] "Want to save your lists permanently? Click \"Log In\" (top right corner) to get started."]]))))))
 
 (defn details-list []
   (fn [{:keys [description tags authorized name type source size title status id timestamp dateCreated]}]
