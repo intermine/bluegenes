@@ -34,11 +34,12 @@
      (map
       (fn [tool]
         [:div.tool
-         (cond (:hasimage tool) [:img {:src (:hasimage tool)}])
-         [:h2 (get-in tool [:package :name])]
+         (cond (:hasimage tool)
+           [:div.tool-preview [:img {:src (:hasimage tool) :height "220px"}]])
+         [:div.details[:h2 (get-in tool [:package :name])]
          [:span.tool-type [:h3 "Tool Type:"] [get-tool-types tool]]
          [output-tool-classes (get-in tool [:config :classes])]
-         [:div.description (get-in tool [:package :description])]])
+         [:div.description (get-in tool [:package :description])]]])
       (:tools @tools)))))
 
 (defn tool-store []

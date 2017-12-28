@@ -78,4 +78,32 @@
       }
     }
   }
+
+  .tool-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+  }
+
+  .tool {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 1em 0.5em;
+
+    h2,
+    h3 {
+      font-size: 1.1em;
+      display: inline-block;
+      margin: @spacer/5;
+    }
+  }
+
+  .tool-preview {
+    min-width: 220px;
+    max-width: 300px;
+    overflow: hidden;
+    border: solid 1px grey;
+    border-radius: 2px;
+  }
 }
