@@ -35,7 +35,7 @@
     (.log js/console "%ctool name:" "background-color:aliceblue" (clj->js (:name tool)) "string?" (string? (:name tool)))
 
       ;; and still, these both fail saying they can't find the method
-      ;; that we just proved exists.
+      ;; that we just proved exists. Poo.
 
         ;(ocall+ js/window (:name tool) el service package nil config)
         ;(js-invoke js/window (:name tool) el service package nil config)
