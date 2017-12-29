@@ -1,4 +1,4 @@
-(ns bluegenes.sections.reportpage.handlers
+(ns bluegenes.sections.reportpage.events
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [re-frame.core :as re-frame :refer [reg-event-db reg-event-fx reg-fx dispatch subscribe]]
             [bluegenes.db :as db]
@@ -79,5 +79,28 @@
     {:db (-> db
              (assoc :fetching-report? true)
              (dissoc :report))
-     :dispatch-n [[:fetch-report (keyword mine) type id]
+     :dispatch-n [[::fetch-tools nil]
+                  [:fetch-report (keyword mine) type id]
                   [:filter-report-templates (keyword mine) type id]]}))
+
+(reg-event-fx
+ ::fetch-tools []
+  (fn [{db :db}]
+      {:db db
+       :http {:method :get
+              :on-success [::store-tools]
+              :uri (str "/api/tools/all" )}}))
+
+(defn aggregate-classes [m tool]
+  ;;Oh my, I had help on this one. https://stackoverflow.com/questions/48010316/clojure-clojurescript-group-by-a-map-on-multiple-values/48010630#48010630
+  (->> (get-in tool [:config :classes])
+       (reduce (fn [acc elem]
+                 (update acc elem conj tool))
+               m)))
+
+(reg-event-db
+ ::store-tools
+  (fn [db [_ tools]]
+      (->
+        (assoc-in db [:tools :all] (:tools tools))
+        (assoc-in [:tools :classes] (reduce aggregate-classes {} (:tools tools))))))
