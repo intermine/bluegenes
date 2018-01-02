@@ -34,8 +34,8 @@
     [:div [:label "Organism"]
      [im-controls/organism-dropdown
       {:selected-value (if (some? @selected-organism) @selected-organism "Any")
-       :on-change (fn [organism]
-                    (dispatch [:idresolver/set-selected-organism organism]))}]]))
+       :on-change      (fn [organism]
+                         (dispatch [:idresolver/set-selected-organism organism]))}]]))
 
 (defn object-type-selection
   "UI component allowing user to choose which object type to search. Defaults to the first one configured for a mine."
@@ -44,10 +44,10 @@
         values               (subscribe [:idresolver/object-types])]
     [:div [:label "Type"]
      [im-controls/object-type-dropdown
-      {:values @values
+      {:values         @values
        :selected-value @selected-object-type
-       :on-change (fn [object-type]
-                    (dispatch [:idresolver/set-selected-object-type object-type]))}]]))
+       :on-change      (fn [object-type]
+                         (dispatch [:idresolver/set-selected-object-type object-type]))}]]))
 
 (defn splitter "Splits a string on any one of a set of strings."
   [string]
@@ -67,11 +67,11 @@
     (fn []
       [:div.btn-toolbar.controls
        [:button.btn.btn-warning
-        {:class (if (nil? @results) "disabled")
+        {:class    (if (nil? @results) "disabled")
          :on-click (fn [] (dispatch [:idresolver/clear]))}
         "Clear all"]
        [:button.btn.btn-warning
-        {:class (if (empty? @selected) "disabled")
+        {:class    (if (empty? @selected) "disabled")
          :on-click (fn [] (dispatch [:idresolver/delete-selected]))}
         (str "Remove selected (" (count @selected) ")")]
        [:button.btn.btn-primary.btn-raised
@@ -91,32 +91,32 @@
   (reagent/create-class
     (let [val   (reagent/atom nil)
           timer (reagent/atom nil)]
-      {:reagent-render (fn []
-                         [:input#identifierinput.freeform
-                          {:type "text"
-                           :placeholder "Type or paste identifiers here..."
-                           :value @val
-                           :on-key-press
-                           (fn [e]
-                             (let [keycode (.-charCode e)
-                                   input   (.. e -target -value)]
-                               (cond (= keycode 13)
-                                     (submit-input input val))))
-                           ;;not all keys are picked up by on key press or on-change so we need to do both.
-                           :on-change
-                           (fn [e]
-                             (let [input (.. e -target -value)]
-                               ;;we have a counter that automatically submits the typed entry if the user waits long enough (currently 1.5s).
-                               ;stop old auto-submit counter.
-                               (js/clearInterval @timer)
-                               ;start new timer again
-                               (reset! timer (js/setTimeout #(submit-input input val) timeout))
-                               ;submit the stuff
-                               (if (has-separator? input)
-                                 (do
-                                   (js/clearInterval @timer)
-                                   (submit-input input val))
-                                 (reset! val input))))}])
+      {:reagent-render      (fn []
+                              [:input#identifierinput.freeform
+                               {:type        "text"
+                                :placeholder "Type or paste identifiers here..."
+                                :value       @val
+                                :on-key-press
+                                             (fn [e]
+                                               (let [keycode (.-charCode e)
+                                                     input   (.. e -target -value)]
+                                                 (cond (= keycode 13)
+                                                       (submit-input input val))))
+                                ;;not all keys are picked up by on key press or on-change so we need to do both.
+                                :on-change
+                                             (fn [e]
+                                               (let [input (.. e -target -value)]
+                                                 ;;we have a counter that automatically submits the typed entry if the user waits long enough (currently 1.5s).
+                                                 ;stop old auto-submit counter.
+                                                 (js/clearInterval @timer)
+                                                 ;start new timer again
+                                                 (reset! timer (js/setTimeout #(submit-input input val) timeout))
+                                                 ;submit the stuff
+                                                 (if (has-separator? input)
+                                                   (do
+                                                     (js/clearInterval @timer)
+                                                     (submit-input input val))
+                                                   (reset! val input))))}])
        ;;autofocus on the entry field when the page loads
        :component-did-mount (fn [this] (.focus (reagent/dom-node this)))})))
 
@@ -146,7 +146,7 @@
   (fn [[oid data]]
     [:span.id-item [:span.dropdown
                     [:span.dropdown-toggle
-                     {:type "button"
+                     {:type        "button"
                       :data-toggle "dropdown"}
                      (:input data)
                      [:span.caret]]
@@ -170,7 +170,7 @@
 
 (def reasons
   {:TYPE_CONVERTED "we're searching for genes and you input a protein (or vice versa)."
-   :OTHER " the synonym you input is out of date."})
+   :OTHER          " the synonym you input is out of date."})
 
 (defn input-item-converted [original results]
   (let [new-primary-id    (get-in results [:matches 0 :summary :primaryIdentifier])
@@ -196,7 +196,7 @@
            [:div.id-resolver-item-container
             {:class (if (some #{input} @selected) "selected")}
             [:div.id-resolver-item
-             {:class class
+             {:class    class
               :on-click (fn [e]
                           (.preventDefault e)
                           (.stopPropagation e)
@@ -282,11 +282,11 @@
                                        (:case-sensitive? @stage-options)]))}
           (str "Upload" (when @files (str " " (count @files) " file" (when (> (count @files) 1) "s"))))]
        [:input
-        {:type "file"
-         :ref (fn [e] (reset! upload-elem e))
-         :multiple true
-         :style {:display "none"}
-         :on-click (fn [e] (.stopPropagation e)) ;;otherwise we just end up focusing on the input on the left/top.
+        {:type      "file"
+         :ref       (fn [e] (reset! upload-elem e))
+         :multiple  true
+         :style     {:display "none"}
+         :on-click  (fn [e] (.stopPropagation e)) ;;otherwise we just end up focusing on the input on the left/top.
          :on-change (fn [e] (dispatch [::evts/stage-files (oget e :target :files)]))}]
        [:div.form-group
         [:label "or Upload from file(s)"]
@@ -304,9 +304,9 @@
      [:p "All your identifiers in a text file? Try dragging and dropping it here, or "
       [:label.browseforfile {:on-click (fn [e] (.stopPropagation e))} ;;otherwise it focuses on the typeable input
        [:input
-        {:type "file"
-         :multiple true
-         :on-click (fn [e] (.stopPropagation e)) ;;otherwise we just end up focusing on the input on the left/top.
+        {:type      "file"
+         :multiple  true
+         :on-click  (fn [e] (.stopPropagation e)) ;;otherwise we just end up focusing on the input on the left/top.
          :on-change (fn [e] (dispatch [::evts/stage-files (oget e :target :files)]))}]
        ;;this input isn't visible, but don't worry, clicking on the label is still accessible. Even the MDN says it's ok. True story.
        "browse for a file"]]
@@ -318,16 +318,16 @@
       [:div.resolvey
        [:div#dropzone1
         {
-         :on-drop (partial handle-drop-over drag-state)
-         :on-click (fn [evt]
-                     (.preventDefault evt)
-                     (.stopPropagation evt)
-                     (dispatch [:idresolver/clear-selected])
-                     (.focus (sel1 :#identifierinput)))
-         :on-drag-over (partial handle-drag-over drag-state)
+         :on-drop       (partial handle-drop-over drag-state)
+         :on-click      (fn [evt]
+                          (.preventDefault evt)
+                          (.stopPropagation evt)
+                          (dispatch [:idresolver/clear-selected])
+                          (.focus (sel1 :#identifierinput)))
+         :on-drag-over  (partial handle-drag-over drag-state)
          :on-drag-leave (fn [] (reset! drag-state false))
-         :on-drag-end (fn [] (reset! drag-state false))
-         :on-drag-exit (fn [] (reset! drag-state false))}
+         :on-drag-end   (fn [] (reset! drag-state false))
+         :on-drag-exit  (fn [] (reset! drag-state false))}
         [:div.eenput
          {:class (if @drag-state "dragging")}
          [:div.idresolver
@@ -451,9 +451,9 @@
     [:div.form-group
      [:label "Organism"]
      [im-controls/select-organism
-      {:value organism
-       :disabled disable-organism?
-       :class (when disable-organism? "disabled")
+      {:value     organism
+       :disabled  disable-organism?
+       :class     (when disable-organism? "disabled")
        :on-change (fn [organism] (dispatch [::evts/update-option :organism organism]))}]]))
 
 (defn select-type-option []
@@ -462,9 +462,9 @@
       [:div.form-group
        [:label "List type"]
        [im-controls/select-type
-        {:value type
+        {:value      type
          :qualified? true
-         :on-change (fn [type] (dispatch [::evts/update-type @model type]))}]])))
+         :on-change  (fn [type] (dispatch [::evts/update-type @model type]))}]])))
 
 (defn case-sensitive-option []
   (fn [bool]
@@ -472,8 +472,8 @@
      [:div.checkbox
       [:label
        [:input
-        {:type "checkbox"
-         :checked bool
+        {:type      "checkbox"
+         :checked   bool
          :on-change (fn [e]
                       (dispatch [::evts/update-option :case-sensitive (oget e :target :checked)]))}]
        [:span {:style {:margin-left "8px"}} " My identifiers are case sensitive"]]]]))
@@ -502,12 +502,12 @@
                           {:style {:height "100%"}}
                           [:label "Enter identifiers"]
                           [:textarea.form-control
-                           {:on-change (fn [e] (dispatch [::evts/update-textbox-identifiers (oget e :target :value)]))
-                            :value @textbox-identifiers
-                            :class (when @files "disabled")
+                           {:on-change  (fn [e] (dispatch [::evts/update-textbox-identifiers (oget e :target :value)]))
+                            :value      @textbox-identifiers
+                            :class      (when @files "disabled")
                             :spellCheck false
-                            :disabled @files
-                            :style {:height "100%"} :rows 5}]]
+                            :disabled   @files
+                            :style      {:height "100%"} :rows 5}]]
            ]
           [:div.col-sm-4 [file-manager]]]
 
@@ -550,7 +550,7 @@
         [:label "Show"]
         (into [:select.form-control
                {:on-change (fn [e] (swap! pager assoc :show (js/parseInt (oget e :target :value)) :page 0))
-                :value (:show @pager)}]
+                :value     (:show @pager)}]
               (map (fn [p]
                      [:option {:value p} p])
                    (let [to-show (inc (count (take-while (fn [v] (<= v (count results))) allowed-number-of-results)))]
@@ -560,9 +560,9 @@
         {:style {:margin-left "5px"}}
         (into [:select.form-control
                {:on-change (fn [e] (swap! pager assoc :page (js/parseInt (oget e :target :value))))
-                :disabled (< pages 2)
-                :class (when (< pages 2) "disabled")
-                :value (:page @pager)}]
+                :disabled  (< pages 2)
+                :class     (when (< pages 2) "disabled")
+                :value     (:page @pager)}]
               (map (fn [p]
                      [:option {:value p} (str "Page " (inc p))]) (range pages)))
         [:label {:style {:margin-left "5px"}} (str "of " pages)]]])))
@@ -707,8 +707,8 @@
                                            [:div.checkbox
                                             [:label
                                              [:input
-                                              {:type "checkbox"
-                                               :checked keep?
+                                              {:type      "checkbox"
+                                               :checked   keep?
                                                :on-change (fn [e]
                                                             (dispatch [::evts/toggle-keep-duplicate
                                                                        duplicate-idx match-idx]))}]]]])))))))
@@ -777,8 +777,8 @@
             [:div.col-sm-12
              [:div.form-group
               [:label "List Name"]
-              [:input.form-control.input-lg {:type "text"
-                                             :value @list-name
+              [:input.form-control.input-lg {:type      "text"
+                                             :value     @list-name
                                              :on-change (fn [e] (dispatch [::evts/update-list-name (oget e :target :value)]))}]]
              [:button.btn.btn-success.pull-right.btn-lg
               {:on-click (fn [] (dispatch [::evts/save-list]))}
@@ -808,14 +808,110 @@
   (let [response (subscribe [::subs/resolution-response])]
     (fn [view]
       [:h4 [:ol.breadcrumb {:style {:padding "8px 15px"}}
-            [:li {:class (when (or (= view nil) (= view :input)) "active")
+            [:li {:class    (when (or (= view nil) (= view :input)) "active")
                   :on-click (fn [] (when @response (navigate! "/upload/input")))}
              [:a [:i.fa.fa-upload.fa-1x] " Upload"]]
-            [:li.disabled {:class (when (= view :save) "active")
+            [:li.disabled {:class    (when (= view :save) "active")
                            :on-click (fn [] (when @response (navigate! "/upload/save")))}
              (if @response
                [:a [:i.fa.fa-exclamation-triangle.fa-1x] " Save"]
                [:span [:i.fa.fa-exclamation-triangle.fa-1x] " Save"])]]])))
+
+(defn item []
+  (fn [v]
+    [:div.item {:style {:width            "100%"
+                        :padding-bottom   "75%"
+                        :background-color "aliceblue"
+                        :border           "1px solid grey"
+                        :margin           "5px 0"
+                        :transition       "all 500ms ease-in-out"}}
+     (str v)]))
+
+
+(defn scrollbar []
+  (fn [dimensions-atom update-scroll-fn]
+    (let [{:keys [width height parent-width parent-height]
+           :or   {width 1 height 1 parent-width 0 parent-height 0}
+           :as   dimensions} @dimensions-atom]
+      [:div
+       [:div.track {:style {:position         "absolute"
+                            :width            "13px"
+                            :height           "100%"
+                            :right            0
+                            :top              0
+                            :box-sizing       "border-box"
+                            :background-color "#ebe8e8"}}]
+       [:div.handle {:style         {:position         "absolute"
+                                     :height           (str (* 100 (/ parent-height height)) "%")
+                                     :width            "11px"
+                                     :top              0
+                                     :right            1
+                                     :box-sizing       "border-box"
+                                     :border           "1px solid white"
+                                     :background-color "#9b9b9b"}
+                     :on-mouse-down update-scroll-fn}]])))
+
+(defn mouse-move [container-dimensions e]
+  (ocall e :preventDefault)
+  (ocall e :stopPropagation)
+  (let [dx (* -1 (- (or (:x @container-dimensions) (oget e :screenX)) (oget e :screenX)))
+        dy (* -1 (- (or (:y @container-dimensions) (oget e :screenY)) (oget e :screenY)))]
+    (swap! container-dimensions #(-> %
+                                     (assoc :x (oget e :screenX))
+                                     (assoc :y (oget e :screenY))
+                                     (update :scroll-top + dy))))
+  (println "MOVING!!" @container-dimensions))
+
+(defn scrollable []
+  (let [container-dimensions (reagent/atom {:scroll-top 0 :dx 0 :dy 0})
+        update-scroll-fn     (fn [v]
+                               (let [mm (partial mouse-move container-dimensions)]
+                                 (let [w (js/$ js/window)]
+                                   (-> w
+                                       (ocall :on "mousemove" mm)
+                                       (ocall :one "mouseup" (fn [] (ocall w :off "mousemove" mm)))))))]
+    (fn [& contents]
+      [:div.scrollable {:style {:overflow "hidden"
+                                :height   "100%"
+                                :position "relative"
+                                }
+                        :ref   (fn [e]
+                                 (println "SCROLL")
+                                 (when e (-> e js/$ (ocall :scrollTop 300))))}
+       (->> (reagent/children (reagent/current-component))
+            (into [:div.scroll-contents {:ref (fn [e]
+                                                (when e
+                                                  (let [el (js/$ e) parent-el (ocall el :parent)]
+                                                    (swap! container-dimensions assoc
+                                                           :parent-width (ocall parent-el :outerWidth)
+                                                           :parent-height (ocall parent-el :outerHeight)
+                                                           :width (ocall el :outerWidth)
+                                                           :height (ocall el :outerHeight)))))}]))
+       [scrollbar container-dimensions update-scroll-fn]])))
+
+
+(defn scrollbar-test []
+  (fn []
+    [:div {:style {:height           "400px"
+                   :width            "200px"
+                   :background-color "yellow"}}
+     [scrollable
+      [item 1]
+      [item 1]
+      [item 1]
+      [item 1]]]))
+
+
+(defn cont []
+  (let [heights (reagent/atom [])]
+    (fn []
+      [:div
+       [:pre (str @heights)]
+       [:div.clearfix
+        {:style {:width    "200px"
+                 :height   "400px"
+                 :position "relative"}}
+        [scrollable]]])))
 
 (defn wizard []
   (let [view         (subscribe [::subs/view])
@@ -829,7 +925,9 @@
           [upload-step])]
        [:div.wizard-footer
         [:div.grow]
-        [:div.shrink]]])))
+        [:div.shrink]]
+       ])))
+
 
 
 (defn main []
@@ -840,20 +938,24 @@
                               (when (nil? (:type @options))
                                 (dispatch [::evts/reset])))
        :reagent-render
-       (fn []
-         (let [bank         (subscribe [:idresolver/bank])
-               no-matches   (subscribe [:idresolver/results-no-matches])
-               result-count (- (count @bank) (count @no-matches))]
-           [:div.container.idresolverupload
-            #_[:div.headerwithguidance
-               [:a.guidance
-                {:on-click
-                 (fn []
-                   (dispatch [:idresolver/example splitter]))} "[Show me an example]"]]
-            [wizard]
-            #_[input-div]
-            ;[stats]
-            (cond (> result-count 0) [preview result-count])
-            ;[selected]
-            ;[debugger]
-            ]))})))
+                            (fn []
+                              (let [bank         (subscribe [:idresolver/bank])
+                                    no-matches   (subscribe [:idresolver/results-no-matches])
+                                    result-count (- (count @bank) (count @no-matches))]
+                                [:div.container.idresolverupload
+                                 #_[:div.headerwithguidance
+                                    [:a.guidance
+                                     {:on-click
+                                      (fn []
+                                        (dispatch [:idresolver/example splitter]))} "[Show me an example]"]]
+                                 ;[cont]
+                                 [scrollbar-test]
+                                 [wizard]
+
+
+                                 #_[input-div]
+                                 ;[stats]
+                                 (cond (> result-count 0) [preview result-count])
+                                 ;[selected]
+                                 ;[debugger]
+                                 ]))})))
