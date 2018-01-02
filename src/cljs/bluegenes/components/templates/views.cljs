@@ -59,7 +59,7 @@
         (results-count-text results-preview))]]))
 
 (defn select-template-settings
-  "UI component to allow users to select template details, e.g. select a list to be in, lookup value grater than, less than, etc."
+  "UI component to allow users to select template details, e.g. select a list to be in, lookup value greater than, less than, etc."
   [selected-template]
   (let [service   (subscribe [:selected-template-service])
         row-count (subscribe [:template-chooser/count])
@@ -126,6 +126,7 @@
           [:div.body
            [select-template-settings selected-template]
            [preview-results]])
+        [:button.view "View >>"]
         [tags (:tags query)]
         ]])))
 
