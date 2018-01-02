@@ -1,4 +1,4 @@
-(ns bluegenes.events.mymine
+(ns bluegenes.sections.mymine.events
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [re-frame.core :refer [reg-event-db reg-event-db reg-event-fx reg-fx subscribe]]
             [cljs.core.async :refer [<!]]
@@ -7,7 +7,7 @@
             [imcljs.save :as save]
             [bluegenes.effects :as fx]
             [clojure.string :as s]
-            [bluegenes.subs.mymine :as subs]
+            [bluegenes.sections.mymine.subs :as subs]
             [oops.core :refer [ocall]]
             [clojure.walk :as walk]
             [cljs-uuid-utils.core :refer [make-random-uuid]]))
@@ -344,10 +344,15 @@
 (reg-event-db
   ::set-modal
   (fn [db [_ modal-kw]]
-    (let [a (get-in db [:mymine :checked])]
+    (let [a (get-in db [:mymine :checked])
+          lists (subscribe [:lists/filtered-lists])
+          ;;sort lists and reverse so we can subtract the smallest list
+          ;; from the larger lists by default. Users can change the order
+          ;; if they need to, but this seems a sane default.
+          sorted-lists (reverse (sort-by :size (filter (fn [l] (some #{(:id l)} a)) @lists)))]
       (update-in db [:mymine] assoc
                  :modal modal-kw
-                 :suggested-state [a #{}]))))
+                 :suggested-state [(butlast sorted-lists) [(last sorted-lists)]]))))
 
 (reg-event-fx
   ::lo-combine
@@ -389,9 +394,9 @@
   ::lo-subtract
   (fn [{db :db} [_ list-name]]
     (let [lists            (get-in db [:assets :lists (get db :current-mine)])
-          [ids-a ids-b] (get-in db [:mymine :suggested-state])
-          selected-lists-a (map :name (filter (fn [l] (some #{(:id l)} ids-a)) lists))
-          selected-lists-b (map :name (filter (fn [l] (some #{(:id l)} ids-b)) lists))
+          [lists-a lists-b] (get-in db [:mymine :suggested-state])
+          selected-lists-a (map :name lists-a)
+          selected-lists-b (map :name lists-b)
           parent-id        (get-in db [:mymine :cursor :entry-id])]
 
       (let [service (get-in db [:mines (get db :current-mine) :service])]
@@ -645,3 +650,24 @@
                   {:db (assoc-in db [:mymine :entries] new-entries)
                    :dispatch-n [[::rederive]
                                 [::set-cursor parent-tag]]})))
+
+
+(defn build-list-query [type summary-fields name title]
+  {:title  title
+   :from   type
+   :select summary-fields
+   :where  [{:path  type
+             :op    "IN"
+             :value name}]})
+
+
+(reg-event-fx
+  ::view-list-results
+  (fn [{db :db} [_ {:keys [type name title source]}]]
+    (let [summary-fields (get-in db [:assets :summary-fields source (keyword type)])]
+      {:db       db
+       :dispatch [:results/set-query
+                  {:source source
+                   :type   :query
+                   :value  (build-list-query type summary-fields name title)}]
+       :navigate "/results"})))

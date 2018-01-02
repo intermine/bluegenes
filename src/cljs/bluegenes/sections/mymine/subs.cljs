@@ -1,11 +1,12 @@
-(ns bluegenes.subs.mymine
+(ns bluegenes.sections.mymine.subs
   (:require [re-frame.core :as re-frame :refer [reg-sub subscribe]]
             [reagent.core :as r]
             [cljs-time.format :as tf]
             [cljs-time.core :as t]
             [clojure.string :refer [split]]
             [clojure.walk :refer [postwalk]]
-            [oops.core :refer [ocall]]))
+            [oops.core :refer [ocall]]
+            [bluegenes.sections.mymine.listsubs]))
 
 ; Thanks!
 ; https://groups.google.com/forum/#!topic/clojure/VVVa3TS15pU
@@ -410,17 +411,8 @@
 
 (reg-sub
   ::suggested-modal-state
-  (fn [db] (get-in db [:mymine :suggested-state])))
-
-(reg-sub
-  ::suggested-modal-state-details
-  (fn [] [(subscribe [:lists/filtered-lists])
-          (subscribe [::suggested-modal-state])])
-  (fn [[lists [a b]]]
-    [(filter (fn [l] (some #{(:id l)} a)) lists)
-     (filter (fn [l] (some #{(:id l)} b)) lists)]))
-
-
+  (fn [db]
+    (get-in db [:mymine :suggested-state])))
 
 (reg-sub
   ::one-list
@@ -437,18 +429,6 @@
   ::modal
   (fn [db]
     (get-in db [:mymine :modal])))
-
-(reg-sub
-  ::modal-suggested-state
-  (fn [db]
-    (get-in db [:mymine :suggested-state])))
-
-;(reg-sub
-;  ::menu-item
-;  :<- [::menu-target]
-;  :<- [::my-tree]
-;  (fn [[menu-target tree]]
-;    (-> tree (get-in menu-target) (assoc :trail menu-target))))
 
 (reg-sub
   ::menu-item

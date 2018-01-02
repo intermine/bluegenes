@@ -45,11 +45,6 @@
   (defroute "/regions" []
             (re-frame/dispatch [:set-active-panel :regions-panel]))
 
-  ;(defroute "/saved-data" []
-  ;          (re-frame/dispatch [:set-active-panel :saved-data-panel]))
-  (defroute "/saved-data" []
-            (re-frame/dispatch [:set-active-panel :saved-data-panel]))
-
   (defroute "/mymine" []
             (re-frame/dispatch [:set-active-panel :mymine-panel]))
 
@@ -61,17 +56,17 @@
   ;; --------------------
 
   (accountant/configure-navigation!
-   ;;We use a custom brew accountant version which navigates based on fragments. 
-   ;;this prevents the annoying double back button problem where the homepage kept on 
+   ;;We use a custom brew accountant version which navigates based on fragments.
+   ;;this prevents the annoying double back button problem where the homepage kept on
    ;;popping up in the history when we pressed the back button even though we hadn't been to the homepage at that point in the navigation flow.
-    {:nav-handler  (fn [path] 
-      ;;We don't dispatch the entire url to analytics, just the first part of the page url. otherwise we'd be 
+    {:nav-handler  (fn [path]
+      ;;We don't dispatch the entire url to analytics, just the first part of the page url. otherwise we'd be
       ;; in scary over-tracking scenarios where we track queries.
-      ;; The try/catch is because some urls are malformed (possibly ones imtables builds, I'm unsure). 
+      ;; The try/catch is because some urls are malformed (possibly ones imtables builds, I'm unsure).
       ;; They throw an error when secretary tries to regex the first part of the url. too many hashes?
     (try
        (let [shortened-path (secretary/locate-route-value path)]
-        (js/ga "send" "pageview" (secretary/locate-route-value path)))        
+        (js/ga "send" "pageview" (secretary/locate-route-value path)))
         (catch :default e (.error js/console "Unable to dispatch google analytics for this page: " path " make sure the url is formed correctly. Stacktrace: " e))
         )
     (secretary/dispatch! path))
