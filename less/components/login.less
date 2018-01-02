@@ -1,9 +1,52 @@
+@import "../variables";
+
 .login-form-dropdown {
     border-radius: 0;
-    border: 1px solid grey;
+    border: 1px solid @body-foreground-color;
 }
 
 .login-form {
     min-width: 400px;
-    padding: 20px;
+    padding: @spacer;
+
+    label {
+        color: @body-foreground-color;
+    }
+
+    h2 {
+        margin-top: 0;
+        font-size: @spacer*1.2;
+        display: inline;
+    }
+
+    .icon {
+        fill: @highlight-color-text;
+        width: 2*@spacer;
+        height: 2*@spacer;
+        //the negative margin is to stop the button looking way-unbalanced.
+        margin-left: -0.5 * @spacer;
+    }
+
+    a {
+        color: @body-foreground-color;
+    }
+
+    .forceregistrationscreen {
+        display:none;
+    }
+
+    .register-or-login {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+    }
+
+    .register {
+        margin-right: 1em;
+        display: flex;
+
+        a {
+            padding: 1em;
+        }
+    }
 }
