@@ -437,3 +437,49 @@ button.btn {
 .icon-4x {
   .icon(4em)
 }
+
+.dropdown-mixed-content {
+  //mixin used for list / lookup/ = / > / < lookup dropdown
+  //(probably other places too)
+
+  @dropdown-size:400px;
+
+    max-width: @dropdown-size;
+    min-width:  @dropdown-size;
+    font-size: 0.9em;
+
+    .clip-400 {
+        max-height:  @dropdown-size;
+        overflow-y: auto;
+    }
+
+
+
+    .size {
+        font-size: 0.7em;
+        color: grey;
+    }
+
+    h4, h3, h2, h1 {
+        color: @highlight-color;
+    }
+    .icon {
+      fill: @highlight-color;
+    }
+
+    ul {
+        margin: 0;
+        padding: 0;
+        li {
+            padding: 3px;
+
+            clear: both;
+            // font-weight: normal;
+            color: black;
+
+            a {
+                text-decoration: none;
+            }
+        }
+    }
+}
