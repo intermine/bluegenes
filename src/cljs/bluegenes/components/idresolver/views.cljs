@@ -289,7 +289,7 @@
          :on-click (fn [e] (.stopPropagation e)) ;;otherwise we just end up focusing on the input on the left/top.
          :on-change (fn [e] (dispatch [::evts/stage-files (oget e :target :files)]))}]
        [:div.form-group
-        [:label "or Upload from file(s)"]
+        #_[:label "or Upload from file(s)"]
         (when @files (into [:div.files] (map (fn [js-File] [file js-File]) @files)))
         [:button.btn.btn-default.btn-raised
          {:on-click (fn [] (-> @upload-elem js/$ (ocall :click)))
@@ -468,55 +468,95 @@
 
 (defn case-sensitive-option []
   (fn [bool]
-    [:div
-     [:input#organismCheckbox
-      {:type "checkbox"
-       :checked bool
-       :on-change (fn [e]
-                    (dispatch [::evts/update-option :case-sensitive (oget e :target :checked)]))}]
-     [:label {:for "organismCheckbox"} "Identifiers are case sensitive"]]))
+    [:div.clearfix
+     [:div.form-group
+      [:label {:for "caseSensitiveCheckbox"} "Identifiers are case sensitive"]
+      [:input#caseSensitiveCheckbox
+       {:type "checkbox"
+        :checked bool
+        :on-change (fn [e]
+                     (dispatch [::evts/update-option :case-sensitive (oget e :target :checked)]))}]]]))
 
 
 (defn upload-step []
   (let [files (subscribe [::subs/staged-files])
         textbox-identifiers (subscribe [::subs/textbox-identifiers])
-        options (subscribe [::subs/stage-options])]
+        options (subscribe [::subs/stage-options])
+        tab (subscribe [::subs/upload-tab])]
     (fn []
       (let [{:keys [organism type case-sensitive disable-organism?]} @options]
         [:div
-         [:h3 "Create a new list"]
-         [:div.alert.alert-info
-          [:p [:i.fa.fa-fw.fa-info-circle] " Select the type of list to create and then enter your identifiers or upload them from a file."]
-          [:ul
-           [:li "Separate identifiers by a comma, space, tab or new line."]
-           [:li "Qualify any identifiers that contain whitespace with double quotes like so: \"even skipped\"."]]]
-         [:div.row
-          [:div.col-sm-6 [select-type-option type]]
-          [:div.col-sm-6 [select-organism-option organism disable-organism?]]]
-         [:div.row
-          [:div.col-sm-6 [case-sensitive-option case-sensitive]]]
-         [:div.row
-          [:div.col-sm-8 [:div.form-group
-                          {:style {:height "100%"}}
-                          [:label "Enter identifiers"]
-                          [:textarea.form-control
-                           {:on-change (fn [e] (dispatch [::evts/update-textbox-identifiers (oget e :target :value)]))
-                            :value @textbox-identifiers
-                            :class (when @files "disabled")
-                            :spellCheck false
-                            :disabled @files
-                            :style {:height "100%"} :rows 5}]]
-           ]
-          [:div.col-sm-4 [file-manager]]]
+
+         [:h2 {:style {:margin "0"
+                       :margin-bottom "10px"}}
+          "Create a new list"]
+         [:div
+          {:style {:background-color "#f7f7f7"
+                   :margin "10px 0"
+                   :color "black"
+                   :padding "10px"
+                   :border-radius "8px"
+                   :border "1px solid #d6d6d6"}}
+          [:div {:style {:display "flex"}}
+           [:div {:style {:flex "0 0 auto" :display "flex" :align-items "center"}}
+            [:i.fa.fa-fw.fa-info-circle.fa-4x]]
+           [:div {:style {:flex "1 0 auto" :display "flex" :flex-direction "column" :justify-content "center"}}
+            [:p "Select the type of list to create and then enter your identifiers or upload them from a file."]
+            [:ul
+             [:li "Separate identifiers by a comma, space, tab or new line"]
+             [:li "Qualify any identifiers that contain whitespace with double quotes like so: \"even skipped\""]]]]]
+
+         #_[:div.alert.alert-info
+            [:p " Select the type of list to create and then enter your identifiers or upload them from a file."]
+            [:ul
+             [:li "Separate identifiers by a comma, space, tab or new line."]
+             [:li "Qualify any identifiers that contain whitespace with double quotes like so: \"even skipped\"."]]]
+
 
          [:div.row
-          [:div.col-sm-12.clear-fix
+          [:div.col-sm-4
+           [select-type-option type]
+           [select-organism-option organism disable-organism?]
+           [case-sensitive-option case-sensitive]]
+          [:div.col-sm-8
+
+           [:ul.nav.nav-tabs
+            [:li {:class (cond-> ""
+                                 (= @tab nil) (str " active")
+                                 @files (str "disabled"))
+                  :on-click (fn [] (when-not @files (dispatch [::evts/update-option :upload-tab nil])))
+                  :disabled true}
+             [:a [:i.fa.fa-font] " Free Text"]]
+            [:li {:class (cond-> ""
+                                 (= @tab :file) (str " active")
+                                 @textbox-identifiers (str "disabled"))
+                  :on-click (fn [] (when-not @textbox-identifiers (dispatch [::evts/update-option :upload-tab :file])))
+                  :disabled true}
+             [:a [:i.fa.fa-upload] " File Upload"]]]
+
+           [:div.form-group.nav-tab-body
+            {:style {:height "100%"}}
+            #_[:div [:label.pull-left "Identifiers"]]
+
+            (case @tab
+              :file [file-manager]
+              [:textarea.form-control
+               {:on-change (fn [e] (dispatch [::evts/update-textbox-identifiers (oget e :target :value)]))
+                :value @textbox-identifiers
+                :class (when @files "disabled")
+                :spellCheck false
+                :disabled @files
+                :style {:height "100%"} :rows 5}])]
+
+
+
+
            [:div.btn-toolbar.pull-left
+            ]
+           [:div.btn-toolbar.pull-right
             [:button.btn.btn-default.btn-raised
              {:on-click (fn [] (dispatch [::evts/load-example]))}
-             "Example"]]
-
-           [:div.btn-toolbar.pull-right
+             "Example"]
             [:button.btn.btn-default.btn-raised
              {:on-click (fn [] (dispatch [::evts/reset]))}
              #_(str "Upload" (when @files (str " " (count @files) " file" (when (> (count @files) 1) "s"))))
@@ -526,7 +566,45 @@
               :disabled (when (and (nil? @files) (nil? @textbox-identifiers)) true)}
              #_(str "Upload" (when @files (str " " (count @files) " file" (when (> (count @files) 1) "s"))))
              "Continue"
-             [:i.fa.fa-chevron-right {:style {:padding-left "5px"}}]]]]]]))))
+             [:i.fa.fa-chevron-right {:style {:padding-left "5px"}}]]]]]
+
+         #_[:div.row
+            [:div.col-sm-6 [select-type-option type]]
+            [:div.col-sm-6 [select-organism-option organism disable-organism?]]]
+         #_[:div.row
+            [:div.col-sm-6 [case-sensitive-option case-sensitive]]]
+         #_[:div.row
+            [:div.col-sm-8 [:div.form-group
+                            {:style {:height "100%"}}
+                            [:label "Enter identifiers"]
+                            [:textarea.form-control
+                             {:on-change (fn [e] (dispatch [::evts/update-textbox-identifiers (oget e :target :value)]))
+                              :value @textbox-identifiers
+                              :class (when @files "disabled")
+                              :spellCheck false
+                              :disabled @files
+                              :style {:height "100%"} :rows 5}]]
+             ]
+            [:div.col-sm-4 [file-manager]]]
+
+         #_[:div.row
+            [:div.col-sm-12.clear-fix
+             [:div.btn-toolbar.pull-left
+              [:button.btn.btn-default.btn-raised
+               {:on-click (fn [] (dispatch [::evts/load-example]))}
+               "Example"]]
+
+             [:div.btn-toolbar.pull-right
+              [:button.btn.btn-default.btn-raised
+               {:on-click (fn [] (dispatch [::evts/reset]))}
+               #_(str "Upload" (when @files (str " " (count @files) " file" (when (> (count @files) 1) "s"))))
+               "Reset"]
+              [:button.btn.btn-primary.btn-raised
+               {:on-click (fn [] (dispatch [::evts/parse-staged-files @files @textbox-identifiers @options]))
+                :disabled (when (and (nil? @files) (nil? @textbox-identifiers)) true)}
+               #_(str "Upload" (when @files (str " " (count @files) " file" (when (> (count @files) 1) "s"))))
+               "Continue"
+               [:i.fa.fa-chevron-right {:style {:padding-left "5px"}}]]]]]]))))
 
 
 (defn paginator []

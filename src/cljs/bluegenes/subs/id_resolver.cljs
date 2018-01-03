@@ -41,6 +41,11 @@
          (fn [db]
            (get-in db [:idresolver :stage :options :review-tab])))
 
+(reg-sub ::upload-tab
+         (fn [db]
+           (get-in db [:idresolver :stage :options :upload-tab])))
+
+
 
 (reg-sub ::view
          (fn [db]
