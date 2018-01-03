@@ -4,14 +4,13 @@
             [im-tables.events]
             [bluegenes.events.boot]
             [bluegenes.events.auth]
-            [bluegenes.events.mymine]
             [bluegenes.events.id-resolver]
+            [bluegenes.sections.mymine.events]
             [day8.re-frame.http-fx]
             [day8.re-frame.forward-events-fx]
             [day8.re-frame.async-flow-fx]
             [bluegenes.sections.reportpage.handlers]
             [bluegenes.components.search.events]
-            ;[bluegenes.components.databrowser.events]
             [bluegenes.components.navbar.events]
             [bluegenes.components.enrichment.events]
             [bluegenes.components.search.events :as search-full]
@@ -24,9 +23,6 @@
             [clojure.string :refer [join split]]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
             [imcljs.fetch :as fetch]))
-
-
-
 
 ; Change the main panel to a new view
 (reg-event-fx

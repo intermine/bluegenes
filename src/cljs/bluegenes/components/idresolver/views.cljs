@@ -817,101 +817,6 @@
                [:a [:i.fa.fa-exclamation-triangle.fa-1x] " Save"]
                [:span [:i.fa.fa-exclamation-triangle.fa-1x] " Save"])]]])))
 
-(defn item []
-  (fn [v]
-    [:div.item {:style {:width            "100%"
-                        :padding-bottom   "75%"
-                        :background-color "aliceblue"
-                        :border           "1px solid grey"
-                        :margin           "5px 0"
-                        :transition       "all 500ms ease-in-out"}}
-     (str v)]))
-
-
-(defn scrollbar []
-  (fn [dimensions-atom update-scroll-fn]
-    (let [{:keys [width height parent-width parent-height]
-           :or   {width 1 height 1 parent-width 0 parent-height 0}
-           :as   dimensions} @dimensions-atom]
-      [:div
-       [:div.track {:style {:position         "absolute"
-                            :width            "13px"
-                            :height           "100%"
-                            :right            0
-                            :top              0
-                            :box-sizing       "border-box"
-                            :background-color "#ebe8e8"}}]
-       [:div.handle {:style         {:position         "absolute"
-                                     :height           (str (* 100 (/ parent-height height)) "%")
-                                     :width            "11px"
-                                     :top              0
-                                     :right            1
-                                     :box-sizing       "border-box"
-                                     :border           "1px solid white"
-                                     :background-color "#9b9b9b"}
-                     :on-mouse-down update-scroll-fn}]])))
-
-(defn mouse-move [container-dimensions e]
-  (ocall e :preventDefault)
-  (ocall e :stopPropagation)
-  (let [dx (* -1 (- (or (:x @container-dimensions) (oget e :screenX)) (oget e :screenX)))
-        dy (* -1 (- (or (:y @container-dimensions) (oget e :screenY)) (oget e :screenY)))]
-    (swap! container-dimensions #(-> %
-                                     (assoc :x (oget e :screenX))
-                                     (assoc :y (oget e :screenY))
-                                     (update :scroll-top + dy))))
-  (println "MOVING!!" @container-dimensions))
-
-(defn scrollable []
-  (let [container-dimensions (reagent/atom {:scroll-top 0 :dx 0 :dy 0})
-        update-scroll-fn     (fn [v]
-                               (let [mm (partial mouse-move container-dimensions)]
-                                 (let [w (js/$ js/window)]
-                                   (-> w
-                                       (ocall :on "mousemove" mm)
-                                       (ocall :one "mouseup" (fn [] (ocall w :off "mousemove" mm)))))))]
-    (fn [& contents]
-      [:div.scrollable {:style {:overflow "hidden"
-                                :height   "100%"
-                                :position "relative"
-                                }
-                        :ref   (fn [e]
-                                 (println "SCROLL")
-                                 (when e (-> e js/$ (ocall :scrollTop 300))))}
-       (->> (reagent/children (reagent/current-component))
-            (into [:div.scroll-contents {:ref (fn [e]
-                                                (when e
-                                                  (let [el (js/$ e) parent-el (ocall el :parent)]
-                                                    (swap! container-dimensions assoc
-                                                           :parent-width (ocall parent-el :outerWidth)
-                                                           :parent-height (ocall parent-el :outerHeight)
-                                                           :width (ocall el :outerWidth)
-                                                           :height (ocall el :outerHeight)))))}]))
-       [scrollbar container-dimensions update-scroll-fn]])))
-
-
-(defn scrollbar-test []
-  (fn []
-    [:div {:style {:height           "400px"
-                   :width            "200px"
-                   :background-color "yellow"}}
-     [scrollable
-      [item 1]
-      [item 1]
-      [item 1]
-      [item 1]]]))
-
-
-(defn cont []
-  (let [heights (reagent/atom [])]
-    (fn []
-      [:div
-       [:pre (str @heights)]
-       [:div.clearfix
-        {:style {:width    "200px"
-                 :height   "400px"
-                 :position "relative"}}
-        [scrollable]]])))
 
 (defn wizard []
   (let [view         (subscribe [::subs/view])
@@ -927,8 +832,6 @@
         [:div.grow]
         [:div.shrink]]
        ])))
-
-
 
 (defn main []
   (let [options (subscribe [::subs/stage-options])]
@@ -949,10 +852,7 @@
                                       (fn []
                                         (dispatch [:idresolver/example splitter]))} "[Show me an example]"]]
                                  ;[cont]
-                                 [scrollbar-test]
                                  [wizard]
-
-
                                  #_[input-div]
                                  ;[stats]
                                  (cond (> result-count 0) [preview result-count])

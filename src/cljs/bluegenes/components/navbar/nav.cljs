@@ -7,14 +7,40 @@
             [oops.core :refer [ocall oget]]
             [bluegenes.components.progress_bar :as progress-bar]))
 
+(defn mine-icon
+  "returns the icon set for a specific mine, or a default.
+   Pass it the entire set of mine details, e.g.
+   @(subscribe [:current-mine])."
+  [mine]
+  (let [icon (:icon mine)]
+    [:svg.icon.logo {:class icon}
+     [:use {:xlinkHref (str "#" icon)}]]))
+
 (defn update-form [atom key evt]
   (swap! atom assoc key (oget evt :target :value)))
 
+(defn register-for-mine
+  "Note the iframe hack we've included below to ensure the user actually
+  reaches the registration page, rather than the homepage :(
+  I'm sure in the future we'll remove this when we have auth set up fully.
+  The dangerouslysetInnerHTML comment is intentional as a hidden iframe looks
+  mega spooky to anyone inspecting source. Please don't remove the comment unless it's because we've got better auth working!!"
+  [current-mine]
+  (let [link (str "//"
+                  (get-in @current-mine [:mine :url]) "/createAccount.do")]
+    [:div.register
+     [:div.sneaky-iframe-fix-see-comment
+      {:dangerouslySetInnerHTML {:__html (str "<!-- InterMine automatically redirects to the homepage unless you have a session (sigh) - but we want the user to go to the registration page. So we're loading the page in an iframe the user can't see, to bootstrap the session :/ -->")}}]
+     [:iframe.forceregistrationscreen {:src link :height "0px" :width "0px"}]
+     [:a {:href link} "Register"]]))
+
 (defn login-form []
-  (let [credentials       (reagent/atom {:username nil :password nil})
-        current-mine      (subscribe [:current-mine])]
+  (let [credentials (reagent/atom {:username nil :password nil})
+        current-mine (subscribe [:current-mine])]
     (fn [thinking?]
       [:form.login-form
+
+       [:h2 "Log in to " (:name @current-mine)]
        [:div.form-group
         [:label "Email Address"]
         [:input.form-control
@@ -29,21 +55,21 @@
           :on-change (partial update-form credentials :password)
           :on-key-up (fn [k]
                        (when (= 13 (oget k :keyCode))
-                         (dispatch [:bluegenes.events.auth/login (assoc @credentials
-                                                                   :service (:service @current-mine)
-                                                                   :mine-id (:id @current-mine))])))}]]
-       [:button.btn.btn-primary.btn-raised
-        {:type "button"
-         :on-click (fn [] (dispatch [:bluegenes.events.auth/login (assoc @credentials
-                                                                    :service (:service @current-mine)
-                                                                    :mine-id (:id @current-mine))]))}
-        "Sign In"]
-       ])))
-
-(defn mine-icon [mine]
-  (let [icon (:icon mine)]
-    [:svg.icon.logo {:class icon}
-     [:use {:xlinkHref (str "#" icon)}]]))
+                         (dispatch [:bluegenes.events.auth/login
+                                    (assoc @credentials
+                                      :service (:service @current-mine)
+                                      :mine-id (:id @current-mine))])))}]]
+       [:div.register-or-login
+        [register-for-mine current-mine]
+        [:button.btn.btn-primary.btn-raised
+         {:type "button"
+          :on-click (fn []
+                      (dispatch [:bluegenes.events.auth/login
+                                 (assoc @credentials
+                                   :service (:service @current-mine)
+                                   :mine-id (:id @current-mine))]))}
+         [mine-icon @current-mine]
+         "Sign In"]]])))
 
 (defn settings []
   (let [current-mine (subscribe [:current-mine])]
@@ -62,7 +88,7 @@
   (let [identity (subscribe [:bluegenes.subs.auth/identity])]
     [:li.logon.dropdown.success.secondary-nav
      [:a.dropdown-toggle {:data-toggle "dropdown" :role "button"}
-      [:svg.icon.icon-cog [:use {:xlinkHref "#icon-user-circle"}]] 
+      [:svg.icon.icon-cog [:use {:xlinkHref "#icon-user-circle"}]]
       [:span.long-name (str " " (:username @identity))]]
      [:ul.dropdown-menu
       [:li [:a {:on-click #(dispatch [:bluegenes.events.auth/logout])} "Log Out"]]]]))
@@ -105,38 +131,35 @@
 
 (defn main []
   (let [active-panel (subscribe [:active-panel])
-        app-name     (subscribe [:name])
-        short-name   (subscribe [:short-name])
-        lists        (subscribe [:lists])
-        ttip         (subscribe [:tooltip])
+        app-name (subscribe [:name])
+        short-name (subscribe [:short-name])
+        lists (subscribe [:lists])
+        ttip (subscribe [:tooltip])
         current-mine (subscribe [:current-mine])
-        panel-is     (fn [panel-key] (= @active-panel panel-key))]
+        panel-is (fn [panel-key] (= @active-panel panel-key))]
     (fn []
-      [:nav
-        [:ul
-         [:li.minename.primary-nav  {:on-click #(navigate! "/")}
-               [active-mine-logo]
-               [:span.long-name (:name @current-mine)]]
-         [:li.homelink.primary-nav.larger-screen-only {:class (if (panel-is :home-panel) "active")} [:a {:on-click #(navigate! "/")} "Home"]]
-         [:li.primary-nav {:class (if (panel-is :upload-panel) "active")} [:a {:on-click #(navigate! "/upload/input")}
-                                                               [:svg.icon.icon-upload.extra-tiny-screen [:use {:xlinkHref "#icon-upload"}]]
-                                                               [:span..long-name.larger-screen-only "Upload"]]]
-         [:li.primary-nav {:class (if (panel-is :mymine-panel) "active")}
-          [:a {:on-click #(navigate! "/mymine")}
-           [:svg.icon.icon-cog [:use {:xlinkHref "#icon-my-data"}]]
-           [:span "My\u00A0Data"]]]
-
-         [:li.primary-nav {:class (if (panel-is :templates-panel) "active")} [:a {:on-click #(navigate! "/templates")} "Templates"]]
-
-         ;;don't show region search for mines that have no example configured
-         (cond (:regionsearch-example @current-mine)
-               [:li {:class (if (panel-is :regions-panel) "active")} [:a {:on-click #(navigate! "/regions")} "Regions"]]
-               )
-         [:li.primary-nav {:class (if (panel-is :querybuilder-panel) "active")} [:a {:on-click #(navigate! "/querybuilder")} "Query\u00A0Builder"]]
-         [:li.secondary-nav.search [search/main]]
-         (cond (not (panel-is :search-panel)) [:li.secondary-nav.search-mini [:a {:on-click #(navigate! "/search")} [:svg.icon.icon-search [:use {:xlinkHref "#icon-search"}]]]])
-         [:li.secondary-nav.larger-screen-only [:a {:on-click #(navigate! "/help")} [:svg.icon.icon-question [:use {:xlinkHref "#icon-question"}]]]]
-         ;;This may have worked at some point in the past. We need to res it.
-         [settings]
-         [user]]
+      [:nav.main-nav
+       [:ul
+        [:li.minename.primary-nav {:on-click #(navigate! "/")}
+         [active-mine-logo]
+         [:span.long-name (:name @current-mine)]]
+        [:li.homelink.primary-nav.larger-screen-only {:class (if (panel-is :home-panel) "active")} [:a {:on-click #(navigate! "/")} "Home"]]
+        [:li.primary-nav {:class (if (panel-is :upload-panel) "active")}
+         [:a {:on-click #(navigate! "/upload/input")}
+          [:svg.icon.icon-upload.extra-tiny-screen [:use {:xlinkHref "#icon-upload"}]]
+          [:span..long-name.larger-screen-only "Upload"]]]
+        [:li.primary-nav {:class (if (panel-is :mymine-panel) "active")}
+         [:a {:on-click #(navigate! "/mymine")}
+          [:svg.icon.icon-cog [:use {:xlinkHref "#icon-my-data"}]]
+          [:span "My\u00A0Data"]]]
+        [:li.primary-nav {:class (if (panel-is :templates-panel) "active")} [:a {:on-click #(navigate! "/templates")} "Templates"]]
+        ;;don't show region search for mines that have no example configured
+        (cond (:regionsearch-example @current-mine)
+              [:li {:class (if (panel-is :regions-panel) "active")} [:a {:on-click #(navigate! "/regions")} "Regions"]])
+        [:li.primary-nav {:class (if (panel-is :querybuilder-panel) "active")} [:a {:on-click #(navigate! "/querybuilder")} "Query\u00A0Builder"]]
+        [:li.secondary-nav.search [search/main]]
+        (cond (not (panel-is :search-panel)) [:li.secondary-nav.search-mini [:a {:on-click #(navigate! "/search")} [:svg.icon.icon-search [:use {:xlinkHref "#icon-search"}]]]])
+        [:li.secondary-nav.larger-screen-only [:a {:on-click #(navigate! "/help")} [:svg.icon.icon-question [:use {:xlinkHref "#icon-question"}]]]]
+        [settings]
+        [user]]
        [progress-bar/main]])))

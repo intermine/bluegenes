@@ -6,8 +6,8 @@
             [cljs-time.coerce :as c]
             [oops.core :refer [oget ocall oset!]]
             [goog.i18n.NumberFormat.Format]
-            [bluegenes.events.mymine :as evts]
-            [bluegenes.subs.mymine :as subs]
+            [bluegenes.sections.mymine.events :as evts]
+            [bluegenes.sections.mymine.subs :as subs]
             [inflections.core :as inf]
             [bluegenes.sections.mymine.views.modals :as modals]
             [bluegenes.sections.mymine.views.contextmenu :as m]
@@ -25,7 +25,6 @@
 (defn hide-context-menu [evt]
   (ocall (js/$ "#contextMenu") :hide))
 ;(dispatch [::evts/set-context-menu-target])
-
 
 (defn attach-hide-context-menu []
   (ocall (js/$ "body") :on "click" hide-context-menu))
@@ -84,13 +83,6 @@
                                                                       :left (oget evt :pageX)
                                                                       :top (oget evt :pageY)})))))})
 
-
-
-
-
-;(defn dispatch-edit [location key value]
-;  (dispatch [::evts/new-folder location key value]))
-
 (defn trigger-context-menu [data]
   {:on-context-menu (fn [evt]
                       (when-not (oget evt :nativeEvent :ctrlKey)
@@ -108,8 +100,6 @@
                           (ocall (js/$ "#contextMenu") :css (clj->js {:display "block"
                                                                       :left (oget evt :pageX)
                                                                       :top (oget evt :pageY)})))))})
-
-
 
 (defn folder-cell []
   (fn [{:keys [file-type trail index label open editing?] :as item}]
@@ -139,38 +129,6 @@
      [:span.grow [:a label]]]))
 
 (def clj-type type)
-
-(defn table-row [{:keys [id] :as me}]
-  (let [over          (subscribe [::subs/dragging-over])
-        selected      (subscribe [::subs/selected])
-        checked       (subscribe [::subs/checked-ids])
-        asset-details (subscribe [::subs/one-list id])]
-    (fn [{:keys [editing? friendly-date-created level file-type type trail index read-only? size type id] :as row}]
-      (let [selected? (some? (some #{trail} @selected))
-            checked?  (some? (some #{id} @checked))]
-        [:tr (-> {:class (clojure.string/join " " [
-                                                   ;(when selected? (str "im-type box " type))
-                                                   (when selected? (str "selected"))
-                                                   (cond
-                                                     (= trail @over) "draggingover"
-                                                     :else nil)])}
-                 (merge (click-events trail index row))
-                 (cond-> (not read-only?) (merge (drag-events trail index row))))
-         [:td.shrinky (when (not= file-type :folder)
-                        [:input
-                         {:type "checkbox"
-                          :checked checked?
-                          :on-change (fn [e]
-                                       (dispatch [::evts/toggle-checked id]))}])]
-         [:td {:style {:padding-left (str (* level 20) "px")}}
-          (case file-type
-            :folder [folder-cell row]
-            :list [list-cell row @asset-details]
-            :query [query-cell row])]
-         [:td type]
-         [:td size]
-         [:td friendly-date-created]]))))
-
 
 (defn table-header []
   (fn [{:keys [label type key sort-by]}]
@@ -453,7 +411,6 @@
     (fn []
       (into [:ul
              [unsorted-folder]
-             #_[public-folder]
              [:li.separator]
              (when @authed? [add-folder])
              [:li.separator (merge {}
@@ -464,13 +421,7 @@
                 (mapv
                   (fn [t] ^{:key (str "tag-" (:entry-id t))} [tag t])
                   (sort-by :label @tags))
-                [
-                 [:span "Debug message: "]
-                 [:span "Please log in to use tags"]]))))))
-
-;[:li.separator]
-
-
+                [[:li.info [:svg.icon.icon-info [:use {:xlinkHref "#icon-info"}]] "Want to save your lists permanently? Click \"Log In\" (top right corner) to get started."]]))))))
 
 (defn details-list []
   (fn [{:keys [description tags authorized name type source size title status id timestamp dateCreated]}]
@@ -498,52 +449,44 @@
                                     :data-keyboard true
                                     :data-target "#myTestModal"}
                                    {})]
-        [:div
-         [:nav.nav-list-operations.navbar.navbar-inverse.list-operations {:style {:font-size "0.9em"
-                                                                                  :background "none"
-                                                                                  :color "black"
-                                                                                  :fill "black"}}
-          [:div {:class "container-fluid"}
-           [:ul {:class "nav navbar-nav"}
+
+         [:nav.nav-list-operations
+           [:ul
             [:li {:class (when cant-perform? "disabled")}
-             [:a {:on-click (fn [] (when (not cant-perform?) (dispatch [::evts/copy-n])))} [:span "Duplicate "
-                                                                                            [:svg.icon.icon-duplicate
-                                                                                             {:style {:fill "black"}}
-                                                                                             [:use {:xlinkHref "#icon-duplicate"}]]]]]
+             [:a {:on-click (fn [] (when (not cant-perform?) (dispatch [::evts/copy-n])))}
+              "Duplicate " [:svg.icon.icon-duplicate [:use {:xlinkHref "#icon-duplicate"}]]]]
             [:li {:class (when cant-perform? "disabled")}
              [:a {:on-click (fn [] (when (not cant-perform?)
                                      (dispatch [::evts/delete-lists])))}
-              [:span "Delete " [:svg.icon.icon-bin [:use {:xlinkHref "#icon-bin"}]]]]]
+               "Delete " [:svg.icon.icon-bin [:use {:xlinkHref "#icon-bin"}]]]]
 
             [:li {:class (when (empty? operation-properties) "disabled")}
              [:a (merge
                    operation-properties
                    {:on-click (fn [] (when (not cant-operate?) (dispatch [::evts/set-modal :combine])))})
-              [:span "Combine " [:svg.icon.icon-venn-combine
-                                 {:style {:fill "rgba(0,0,0,0)"}}
-                                 [:use {:xlinkHref "#icon-venn-combine"}]]]]]
+              "Combine " [:svg.icon.icon-venn-combine.venn
+                                 [:use {:xlinkHref "#icon-venn-combine"}]]]]
 
             [:li {:class (when (empty? operation-properties) "disabled")}
              [:a (merge
                    operation-properties
                    {:on-click (fn [] (when (not cant-operate?) (dispatch [::evts/set-modal :intersect])))})
-              [:span "Intersect " [:svg.icon.icon-venn-intersection [:use {:xlinkHref "#icon-venn-intersection"}]]]]]
+               "Intersect " [:svg.icon.icon-venn-intersection.venn [:use {:xlinkHref "#icon-venn-intersection"}]]]]
             [:li {:class (when (empty? operation-properties) "disabled")}
              [:a (merge
                    operation-properties
                    {:on-click (fn [] (when (not cant-operate?) (dispatch [::evts/set-modal :difference])))})
-              [:span "Difference " [:svg.icon.icon-venn-disjunction
-                                    {:style {:fill "rgba(0,0,0,0)"}}
-                                    [:use {:xlinkHref "#icon-venn-disjunction"}]]]]]
+              "Difference " [:svg.icon.icon-venn-disjunction.venn
+                                    [:use {:xlinkHref "#icon-venn-disjunction"}]]]]
             [:li {:class (when (empty? operation-properties) "disabled")}
              [:a (merge
                    operation-properties
                    {:on-click (fn [] (when (not cant-operate?) (dispatch [::evts/set-modal :subtract])))})
-              [:span "Subtract " [:svg.icon.icon-venn-difference [:use {:xlinkHref "#icon-venn-difference"}]]]]]
+               "Subtract " [:svg.icon.icon-venn-difference.venn [:use {:xlinkHref "#icon-venn-difference"}]]]]
 
             #_[:li {}
                [:a {:on-click (fn [] (dispatch [::evts/fetch-tree]))}
-                [:span "Fetch " [:svg.icon.icon-venn-difference [:use {:xlinkHref "#icon-venn-difference"}]]]]]]]]]))))
+                [:span "Fetch " [:svg.icon.icon-venn-difference [:use {:xlinkHref "#icon-venn-difference"}]]]]]]]))))
 
 
 
@@ -564,15 +507,15 @@
 (defn breadcrumb []
   (fn [labels]
     (if labels
-      [:h2
+
        (into [:ol.breadcrumb]
              (map-indexed (fn [idx {:keys [label] :as entry}]
                             (let [focused? (= idx (dec (count labels)))]
                               [:li {:class (when focused? "active")
                                     :on-click (fn [] (dispatch [::evts/set-cursor entry]))}
-                               [:a label]]))
-                          labels))]
-      [:h2 [:ol.breadcrumb [:li.active [:a "All Items"]]]])))
+                               [:h2 [:a label]]]))
+                          labels))
+       [:ol.breadcrumb [:li.active [:h2 [:a "All Items"]]]])))
 
 
 (defn checkbox [id]
@@ -630,7 +573,7 @@
           [:div [ico im-obj-type]
            [:a {:on-click (fn [e]
                             (.stopPropagation e)
-                            (dispatch [:lists/view-results (assoc dets :source @source)]))}
+                            (dispatch [::evts/view-list-results (assoc dets :source @source)]))}
             name (when-not authorized
                    [:svg.icon.icon-lock [:use {:xlinkHref "#icon-lock"}]])]]]
          [:td  [tag-container @hierarchy-trail]]
@@ -656,14 +599,14 @@
           [:div [ico im-obj-type]
            [:a {:on-click (fn [e]
                             (.stopPropagation e)
-                            (dispatch [:lists/view-results (assoc dets :source @source)]))} name]
+                            (dispatch [::evts/view-list-results (assoc dets :source @source)]))} name]
            (when-not authorized
              [:svg.icon.icon-globe {:style {:fill "#939393"}} [:use {:xlinkHref "#icon-globe"}]])
            ]]
          [:div.col-2 [tag-container @hierarchy-trail]]
-         [:div.col-1 type]
-         [:div.col-1 size]
-         #_[:td #_(tf/unparse built-in-formatter (c/from-long timestamp))]]))))
+         [:div.col-1 {:class (str "tag-type type-" type)} type]
+         [:div.col-1.list-size size]
+         ]))))
 
 (defn row [{:keys [im-obj-type] :as item}]
   (fn []
@@ -703,6 +646,7 @@
          [:div.mymine.noselect
           [:div.file-browser [tag-browser]]
           [:div.files
+          [:div.headerwithguidance [:h1 "My Data"]]
            [list-operations]
            (when @show-selected-pane?
              [:div.top.shrink
@@ -797,5 +741,3 @@
           [modals/modal-rename-list @context-menu-target]
           [m/context-menu-container @context-menu-target]])})))
 ;[thinker/main]
-
-

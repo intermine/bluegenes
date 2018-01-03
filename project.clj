@@ -139,7 +139,6 @@
                        :min {:source-paths ["src/cljs"]
                              :jar true
                              :compiler {:main bluegenes.core
-                                        :parallel-build true
                                         :output-to "resources/public/js/compiled/app.js"
                                         ;:output-dir "resources/public/js/compiled"
                                         :optimizations :advanced

@@ -48,11 +48,6 @@
   (defroute "/regions" []
             (re-frame/dispatch [:set-active-panel :regions-panel]))
 
-  ;(defroute "/saved-data" []
-  ;          (re-frame/dispatch [:set-active-panel :saved-data-panel]))
-  (defroute "/saved-data" []
-            (re-frame/dispatch [:set-active-panel :saved-data-panel]))
-
   (defroute "/mymine" []
             (re-frame/dispatch [:set-active-panel :mymine-panel]))
 
@@ -78,6 +73,4 @@
                       (catch :default e (.error js/console "Unable to dispatch google analytics for this page: " path " make sure the url is formed correctly. Stacktrace: " e))
                       )
                     (secretary/dispatch! path))
-     :path-exists? (fn [path] (secretary/locate-route path))})
-
-  )
+     :path-exists? (fn [path] (secretary/locate-route path))}))

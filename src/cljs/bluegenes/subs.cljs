@@ -1,15 +1,14 @@
 (ns bluegenes.subs
   (:require-macros [reagent.ratom :refer [reaction]])
   (:require [re-frame.core :refer [reg-sub]]
-    ; [bluegenes.components.databrowser.subs]
             [bluegenes.components.enrichment.subs]
             [bluegenes.mines :as mines]
             [clojure.string :refer [split]]
             [bluegenes.sections.querybuilder.subs]
             [bluegenes.components.search.subs]
             [bluegenes.subs.auth]
-            [bluegenes.subs.mymine]
             [bluegenes.subs.id-resolver]))
+
 
 (reg-sub
   :name
