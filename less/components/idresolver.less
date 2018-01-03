@@ -1,4 +1,4 @@
-@import "../../resources/public/vendor/bootstrap/less/bootstrap";
+@import "../../resources/public/vendor/bootstrap/less/variables";
 @import "../variables";
 @import "../datatype-colors";
 @import "../layouts/input-dashed-style";
@@ -39,9 +39,11 @@
             &.bar-warning {
                 background-color: #ef8c00;
                 background-color: #fcf8e3;
+                background-color: #ff5722;
                 border-top: 1px solid darken(#fcf8e3, 20%);
                 border-right: 1px solid darken(#fcf8e3, 20%);
                 color: darken(#fcf8e3, 70%);
+                color: lighten(#ff5722, 70%);
 
             }
             &.bar-danger {
@@ -63,6 +65,10 @@
 }
 
 .wizard {
+
+    label {
+        color: #2c2c2c;
+    }
 
     .form-group {
         margin: 0;
