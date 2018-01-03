@@ -28,7 +28,7 @@ $ createdb bluegenes-prod
 You then need to configure BlueGenes to use those databases. Copy and edit the example in [config/dev/README.md](config/dev/README.md) and save it to `config/dev/config.edn` and `config/prod/config.edn`.
 
 ##### Google Analytics
-If you wish to track pages hits, set up [Google analytics](https://analytics.google.com/analytics/web/#embed/report-home/a76615855w155408876p157084577/) for your domain, then add your google analytics id to your config.edn files (mentioned above) or environment variables. This is completely optional. 
+If you wish to track pages hits, set up [Google analytics](https://analytics.google.com/analytics/web/#embed/report-home/a76615855w155408876p157084577/) for your domain, then add your google analytics id to your config.edn files (mentioned above) or environment variables. This is completely optional.
 
 ```clojure
   {:google-analytics "UA-12345678-9"}
@@ -143,12 +143,10 @@ If it's not set, it will run on port 5000 by default.
 One of the easiest ways to deploy the prod minified version is to set up [Dokku](http://dokku.viewdocs.io/dokku/) on your intended server. Once dokku is configured on your remote host, all you need to do to deploy a minified build is add the server as a remote and push to it:
 
 	git remote add my-awesome-server bluegenes@my-awesome-server.git
-    git push my-awesome-server master
+  git push my-awesome-server master
 
 
 [lein]: https://github.com/technomancy/leiningen
 [bower]: http://bower.io/
 [npm]: https://www.npmjs.com/
 [nodejs]: https://nodejs.org/
-
-### Google Analytics
