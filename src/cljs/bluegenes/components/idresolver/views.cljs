@@ -781,7 +781,7 @@
                                               (let [without-prefix (keyword (join "." (rest (split field "."))))]
                                                 [:td (get summary without-prefix)])) type-summary-fields)
                                           [:td
-                                           [:div.checkbox
+                                           [:div
                                             [:label
                                              [:input
                                               {:type "checkbox"
