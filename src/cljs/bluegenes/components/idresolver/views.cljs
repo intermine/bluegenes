@@ -34,20 +34,20 @@
     [:div [:label "Organism"]
      [im-controls/organism-dropdown
       {:selected-value (if (some? @selected-organism) @selected-organism "Any")
-       :on-change      (fn [organism]
-                         (dispatch [:idresolver/set-selected-organism organism]))}]]))
+       :on-change (fn [organism]
+                    (dispatch [:idresolver/set-selected-organism organism]))}]]))
 
 (defn object-type-selection
   "UI component allowing user to choose which object type to search. Defaults to the first one configured for a mine."
   []
   (let [selected-object-type (subscribe [:idresolver/selected-object-type])
-        values               (subscribe [:idresolver/object-types])]
+        values (subscribe [:idresolver/object-types])]
     [:div [:label "Type"]
      [im-controls/object-type-dropdown
-      {:values         @values
+      {:values @values
        :selected-value @selected-object-type
-       :on-change      (fn [object-type]
-                         (dispatch [:idresolver/set-selected-object-type object-type]))}]]))
+       :on-change (fn [object-type]
+                    (dispatch [:idresolver/set-selected-object-type object-type]))}]]))
 
 (defn splitter "Splits a string on any one of a set of strings."
   [string]
@@ -61,17 +61,17 @@
   (some? (some separators str)))
 
 (defn controls []
-  (let [results  (subscribe [:idresolver/results])
-        matches  (subscribe [:idresolver/results-matches])
+  (let [results (subscribe [:idresolver/results])
+        matches (subscribe [:idresolver/results-matches])
         selected (subscribe [:idresolver/selected])]
     (fn []
       [:div.btn-toolbar.controls
        [:button.btn.btn-warning
-        {:class    (if (nil? @results) "disabled")
+        {:class (if (nil? @results) "disabled")
          :on-click (fn [] (dispatch [:idresolver/clear]))}
         "Clear all"]
        [:button.btn.btn-warning
-        {:class    (if (empty? @selected) "disabled")
+        {:class (if (empty? @selected) "disabled")
          :on-click (fn [] (dispatch [:idresolver/delete-selected]))}
         (str "Remove selected (" (count @selected) ")")]
        [:button.btn.btn-primary.btn-raised
@@ -89,34 +89,34 @@
 
 (defn input-box []
   (reagent/create-class
-    (let [val   (reagent/atom nil)
+    (let [val (reagent/atom nil)
           timer (reagent/atom nil)]
-      {:reagent-render      (fn []
-                              [:input#identifierinput.freeform
-                               {:type        "text"
-                                :placeholder "Type or paste identifiers here..."
-                                :value       @val
-                                :on-key-press
-                                             (fn [e]
-                                               (let [keycode (.-charCode e)
-                                                     input   (.. e -target -value)]
-                                                 (cond (= keycode 13)
-                                                       (submit-input input val))))
-                                ;;not all keys are picked up by on key press or on-change so we need to do both.
-                                :on-change
-                                             (fn [e]
-                                               (let [input (.. e -target -value)]
-                                                 ;;we have a counter that automatically submits the typed entry if the user waits long enough (currently 1.5s).
-                                                 ;stop old auto-submit counter.
-                                                 (js/clearInterval @timer)
-                                                 ;start new timer again
-                                                 (reset! timer (js/setTimeout #(submit-input input val) timeout))
-                                                 ;submit the stuff
-                                                 (if (has-separator? input)
-                                                   (do
-                                                     (js/clearInterval @timer)
-                                                     (submit-input input val))
-                                                   (reset! val input))))}])
+      {:reagent-render (fn []
+                         [:input#identifierinput.freeform
+                          {:type "text"
+                           :placeholder "Type or paste identifiers here..."
+                           :value @val
+                           :on-key-press
+                           (fn [e]
+                             (let [keycode (.-charCode e)
+                                   input (.. e -target -value)]
+                               (cond (= keycode 13)
+                                     (submit-input input val))))
+                           ;;not all keys are picked up by on key press or on-change so we need to do both.
+                           :on-change
+                           (fn [e]
+                             (let [input (.. e -target -value)]
+                               ;;we have a counter that automatically submits the typed entry if the user waits long enough (currently 1.5s).
+                               ;stop old auto-submit counter.
+                               (js/clearInterval @timer)
+                               ;start new timer again
+                               (reset! timer (js/setTimeout #(submit-input input val) timeout))
+                               ;submit the stuff
+                               (if (has-separator? input)
+                                 (do
+                                   (js/clearInterval @timer)
+                                   (submit-input input val))
+                                 (reset! val input))))}])
        ;;autofocus on the entry field when the page loads
        :component-did-mount (fn [this] (.focus (reagent/dom-node this)))})))
 
@@ -132,8 +132,8 @@
 (defn build-duplicate-identifier
   "Different objects types have different summary fields. Try to select one intelligently or fall back to primary identifier if the others ain't there."
   [result]
-  (let [summary   (:summary result)
-        symbol    (:symbol summary)
+  (let [summary (:summary result)
+        symbol (:symbol summary)
         accession (:primaryAccession summary)
         primaryId (:primaryId summary)]
     (str
@@ -146,7 +146,7 @@
   (fn [[oid data]]
     [:span.id-item [:span.dropdown
                     [:span.dropdown-toggle
-                     {:type        "button"
+                     {:type "button"
                       :data-toggle "dropdown"}
                      (:input data)
                      [:span.caret]]
@@ -170,10 +170,10 @@
 
 (def reasons
   {:TYPE_CONVERTED "we're searching for genes and you input a protein (or vice versa)."
-   :OTHER          " the synonym you input is out of date."})
+   :OTHER " the synonym you input is out of date."})
 
 (defn input-item-converted [original results]
-  (let [new-primary-id    (get-in results [:matches 0 :summary :primaryIdentifier])
+  (let [new-primary-id (get-in results [:matches 0 :summary :primaryIdentifier])
         conversion-reason ((:status results) reasons)]
     [:span.id-item {:title (str "You input '" original "', but we converted it to '" new-primary-id "', because " conversion-reason)}
      original " -> " new-primary-id]
@@ -181,7 +181,7 @@
 
 (defn input-item [{:keys [input] :as i}]
   "visually displays items that have been input and have been resolved as known or unknown IDs (or currently are resolving)"
-  (let [result   (subscribe [:idresolver/results-item input])
+  (let [result (subscribe [:idresolver/results-item input])
         selected (subscribe [:idresolver/selected])]
     (reagent/create-class
       {:component-did-mount
@@ -189,14 +189,14 @@
        :reagent-render
        (fn [i]
          (let [result-vals (second (first @result))
-               class       (if (empty? @result)
-                             "inactive"
-                             (name (:status result-vals)))
-               class       (if (some #{input} @selected) (str class " selected") class)]
+               class (if (empty? @result)
+                       "inactive"
+                       (name (:status result-vals)))
+               class (if (some #{input} @selected) (str class " selected") class)]
            [:div.id-resolver-item-container
             {:class (if (some #{input} @selected) "selected")}
             [:div.id-resolver-item
-             {:class    class
+             {:class class
               :on-click (fn [e]
                           (.preventDefault e)
                           (.stopPropagation e)
@@ -219,15 +219,15 @@
 
 (defn parse-files [files]
   (dotimes [i (.-length files)]
-    (let [rdr      (js/FileReader.)
+    (let [rdr (js/FileReader.)
           the-file (aget files i)]
       (set! (.-onload rdr)
             (fn [e]
               (let [file-content (.-result (.-target e))
-                    file-name    (if (= ";;; " (.substr file-content 0 4))
-                                   (let [idx (.indexOf file-content "\n\n")]
-                                     (.slice file-content 4 idx))
-                                   (.-name the-file))]
+                    file-name (if (= ";;; " (.substr file-content 0 4))
+                                (let [idx (.indexOf file-content "\n\n")]
+                                  (.slice file-content 4 idx))
+                                (.-name the-file))]
                 (submit-input file-content))))
       (.readAsText rdr the-file))))
 
@@ -269,11 +269,11 @@
          [:i.fa.fa-times]]]])))
 
 (defn file-manager []
-  (let [files               (subscribe [::subs/staged-files])
+  (let [files (subscribe [::subs/staged-files])
         textbox-identifiers (subscribe [::subs/textbox-identifiers])
-        stage-options       (subscribe [::subs/stage-options])
-        stage-status        (subscribe [::subs/stage-status])
-        upload-elem         (reagent/atom nil)]
+        stage-options (subscribe [::subs/stage-options])
+        stage-status (subscribe [::subs/stage-status])
+        upload-elem (reagent/atom nil)]
     (fn []
       [:div.file-manager
        #_[:button.btn.btn-default
@@ -282,16 +282,16 @@
                                        (:case-sensitive? @stage-options)]))}
           (str "Upload" (when @files (str " " (count @files) " file" (when (> (count @files) 1) "s"))))]
        [:input
-        {:type      "file"
-         :ref       (fn [e] (reset! upload-elem e))
-         :multiple  true
-         :style     {:display "none"}
-         :on-click  (fn [e] (.stopPropagation e)) ;;otherwise we just end up focusing on the input on the left/top.
+        {:type "file"
+         :ref (fn [e] (reset! upload-elem e))
+         :multiple true
+         :style {:display "none"}
+         :on-click (fn [e] (.stopPropagation e)) ;;otherwise we just end up focusing on the input on the left/top.
          :on-change (fn [e] (dispatch [::evts/stage-files (oget e :target :files)]))}]
        [:div.form-group
         [:label "or Upload from file(s)"]
         (when @files (into [:div.files] (map (fn [js-File] [file js-File]) @files)))
-        [:button.btn.btn-default
+        [:button.btn.btn-default.btn-raised
          {:on-click (fn [] (-> @upload-elem js/$ (ocall :click)))
           :disabled @textbox-identifiers}
          (if @files "Add more files" "Browse")]]])))
@@ -304,9 +304,9 @@
      [:p "All your identifiers in a text file? Try dragging and dropping it here, or "
       [:label.browseforfile {:on-click (fn [e] (.stopPropagation e))} ;;otherwise it focuses on the typeable input
        [:input
-        {:type      "file"
-         :multiple  true
-         :on-click  (fn [e] (.stopPropagation e)) ;;otherwise we just end up focusing on the input on the left/top.
+        {:type "file"
+         :multiple true
+         :on-click (fn [e] (.stopPropagation e)) ;;otherwise we just end up focusing on the input on the left/top.
          :on-change (fn [e] (dispatch [::evts/stage-files (oget e :target :files)]))}]
        ;;this input isn't visible, but don't worry, clicking on the label is still accessible. Even the MDN says it's ok. True story.
        "browse for a file"]]
@@ -318,16 +318,16 @@
       [:div.resolvey
        [:div#dropzone1
         {
-         :on-drop       (partial handle-drop-over drag-state)
-         :on-click      (fn [evt]
-                          (.preventDefault evt)
-                          (.stopPropagation evt)
-                          (dispatch [:idresolver/clear-selected])
-                          (.focus (sel1 :#identifierinput)))
-         :on-drag-over  (partial handle-drag-over drag-state)
+         :on-drop (partial handle-drop-over drag-state)
+         :on-click (fn [evt]
+                     (.preventDefault evt)
+                     (.stopPropagation evt)
+                     (dispatch [:idresolver/clear-selected])
+                     (.focus (sel1 :#identifierinput)))
+         :on-drag-over (partial handle-drag-over drag-state)
          :on-drag-leave (fn [] (reset! drag-state false))
-         :on-drag-end   (fn [] (reset! drag-state false))
-         :on-drag-exit  (fn [] (reset! drag-state false))}
+         :on-drag-end (fn [] (reset! drag-state false))
+         :on-drag-exit (fn [] (reset! drag-state false))}
         [:div.eenput
          {:class (if @drag-state "dragging")}
          [:div.idresolver
@@ -342,12 +342,12 @@
        ])))
 
 (defn stats []
-  (let [bank           (subscribe [:idresolver/bank])
-        no-matches     (subscribe [:idresolver/results-no-matches])
-        matches        (subscribe [:idresolver/results-matches])
+  (let [bank (subscribe [:idresolver/bank])
+        no-matches (subscribe [:idresolver/results-no-matches])
+        matches (subscribe [:idresolver/results-matches])
         type-converted (subscribe [:idresolver/results-type-converted])
-        duplicates     (subscribe [:idresolver/results-duplicates])
-        other          (subscribe [:idresolver/results-other])]
+        duplicates (subscribe [:idresolver/results-duplicates])
+        other (subscribe [:idresolver/results-other])]
     (fn []
       ;;goodness gracious this could use a refactor
       [:div.legend
@@ -430,7 +430,7 @@
   (dommy/listen! (sel1 :body) :keyup key-up-handler))
 
 (defn preview [result-count]
-  (let [results-preview   (subscribe [:idresolver/results-preview])
+  (let [results-preview (subscribe [:idresolver/results-preview])
         fetching-preview? (subscribe [:idresolver/fetching-preview?])]
     [:div
      [:h4.title "Results preview:"
@@ -451,9 +451,9 @@
     [:div.form-group
      [:label "Organism"]
      [im-controls/select-organism
-      {:value     organism
-       :disabled  disable-organism?
-       :class     (when disable-organism? "disabled")
+      {:value organism
+       :disabled disable-organism?
+       :class (when disable-organism? "disabled")
        :on-change (fn [organism] (dispatch [::evts/update-option :organism organism]))}]]))
 
 (defn select-type-option []
@@ -462,27 +462,25 @@
       [:div.form-group
        [:label "List type"]
        [im-controls/select-type
-        {:value      type
+        {:value type
          :qualified? true
-         :on-change  (fn [type] (dispatch [::evts/update-type @model type]))}]])))
+         :on-change (fn [type] (dispatch [::evts/update-type @model type]))}]])))
 
 (defn case-sensitive-option []
   (fn [bool]
-    [:div.form-group
-     [:div.checkbox
-      [:label
-       [:input
-        {:type      "checkbox"
-         :checked   bool
-         :on-change (fn [e]
-                      (dispatch [::evts/update-option :case-sensitive (oget e :target :checked)]))}]
-       [:span {:style {:margin-left "8px"}} " My identifiers are case sensitive"]]]]))
+    [:div
+     [:input#organismCheckbox
+      {:type "checkbox"
+       :checked bool
+       :on-change (fn [e]
+                    (dispatch [::evts/update-option :case-sensitive (oget e :target :checked)]))}]
+     [:label {:for "organismCheckbox"} "Identifiers are case sensitive"]]))
 
 
 (defn upload-step []
-  (let [files               (subscribe [::subs/staged-files])
+  (let [files (subscribe [::subs/staged-files])
         textbox-identifiers (subscribe [::subs/textbox-identifiers])
-        options             (subscribe [::subs/stage-options])]
+        options (subscribe [::subs/stage-options])]
     (fn []
       (let [{:keys [organism type case-sensitive disable-organism?]} @options]
         [:div
@@ -502,27 +500,28 @@
                           {:style {:height "100%"}}
                           [:label "Enter identifiers"]
                           [:textarea.form-control
-                           {:on-change  (fn [e] (dispatch [::evts/update-textbox-identifiers (oget e :target :value)]))
-                            :value      @textbox-identifiers
-                            :class      (when @files "disabled")
+                           {:on-change (fn [e] (dispatch [::evts/update-textbox-identifiers (oget e :target :value)]))
+                            :value @textbox-identifiers
+                            :class (when @files "disabled")
                             :spellCheck false
-                            :disabled   @files
-                            :style      {:height "100%"} :rows 5}]]
+                            :disabled @files
+                            :style {:height "100%"} :rows 5}]]
            ]
           [:div.col-sm-4 [file-manager]]]
 
          [:div.row
           [:div.col-sm-12.clear-fix
            [:div.btn-toolbar.pull-left
-            [:button.btn.btn-default {:on-click (fn [] (dispatch [::evts/load-example]))}
+            [:button.btn.btn-default.btn-raised
+             {:on-click (fn [] (dispatch [::evts/load-example]))}
              "Example"]]
 
            [:div.btn-toolbar.pull-right
-            [:button.btn.btn-default
+            [:button.btn.btn-default.btn-raised
              {:on-click (fn [] (dispatch [::evts/reset]))}
              #_(str "Upload" (when @files (str " " (count @files) " file" (when (> (count @files) 1) "s"))))
              "Reset"]
-            [:button.btn.btn-primary
+            [:button.btn.btn-primary.btn-raised
              {:on-click (fn [] (dispatch [::evts/parse-staged-files @files @textbox-identifiers @options]))
               :disabled (when (and (nil? @files) (nil? @textbox-identifiers)) true)}
              #_(str "Upload" (when @files (str " " (count @files) " file" (when (> (count @files) 1) "s"))))
@@ -532,7 +531,7 @@
 
 (defn paginator []
   (fn [pager results]
-    (let [pages        (Math/ceil (/ (count results) (:show @pager)))
+    (let [pages (Math/ceil (/ (count results) (:show @pager)))
           rows-in-view (take (:show @pager) (drop (* (:show @pager) (:page @pager)) results))]
       [:div.form-inline.paginator
        [:div.form-group
@@ -550,7 +549,7 @@
         [:label "Show"]
         (into [:select.form-control
                {:on-change (fn [e] (swap! pager assoc :show (js/parseInt (oget e :target :value)) :page 0))
-                :value     (:show @pager)}]
+                :value (:show @pager)}]
               (map (fn [p]
                      [:option {:value p} p])
                    (let [to-show (inc (count (take-while (fn [v] (<= v (count results))) allowed-number-of-results)))]
@@ -560,9 +559,9 @@
         {:style {:margin-left "5px"}}
         (into [:select.form-control
                {:on-change (fn [e] (swap! pager assoc :page (js/parseInt (oget e :target :value))))
-                :disabled  (< pages 2)
-                :class     (when (< pages 2) "disabled")
-                :value     (:page @pager)}]
+                :disabled (< pages 2)
+                :class (when (< pages 2) "disabled")
+                :value (:page @pager)}]
               (map (fn [p]
                      [:option {:value p} (str "Page " (inc p))]) (range pages)))
         [:label {:style {:margin-left "5px"}} (str "of " pages)]]])))
@@ -572,12 +571,12 @@
 
 
 (defn matches-table []
-  (let [pager          (reagent/atom {:show 10 :page 0})
+  (let [pager (reagent/atom {:show 10 :page 0})
         summary-fields (subscribe [:current-summary-fields])
-        model          (subscribe [:current-model])]
+        model (subscribe [:current-model])]
     (fn [type results show-keep?]
-      (let [pages               (Math/ceil (/ (count results) (:show @pager)))
-            rows-in-view        (take (:show @pager) (drop (* (:show @pager) (:page @pager)) results))
+      (let [pages (Math/ceil (/ (count results) (:show @pager)))
+            rows-in-view (take (:show @pager) (drop (* (:show @pager) (:page @pager)) results))
             type-summary-fields (get @summary-fields (keyword type))]
         [:div
          [:div.alert.alert-result-table.alert-info
@@ -602,12 +601,12 @@
                                      [:td (get summary without-prefix)])) type-summary-fields))))))]]))))
 
 (defn converted-table []
-  (let [pager          (reagent/atom {:show 10 :page 0})
+  (let [pager (reagent/atom {:show 10 :page 0})
         summary-fields (subscribe [:current-summary-fields])
-        model          (subscribe [:current-model])]
+        model (subscribe [:current-model])]
     (fn [type results category-kw]
-      (let [pages               (Math/floor (/ (count results) (:show @pager)))
-            rows-in-view        (take (:show @pager) (drop (* (:show @pager) (:page @pager)) results))
+      (let [pages (Math/floor (/ (count results) (:show @pager)))
+            rows-in-view (take (:show @pager) (drop (* (:show @pager) (:page @pager)) results))
             type-summary-fields (get @summary-fields (keyword type))]
         [:div
          (case category-kw
@@ -646,12 +645,12 @@
 
 
 (defn not-found-table []
-  (let [pager          (reagent/atom {:show 10 :page 0})
+  (let [pager (reagent/atom {:show 10 :page 0})
         summary-fields (subscribe [:current-summary-fields])
-        model          (subscribe [:current-model])]
+        model (subscribe [:current-model])]
     (fn [type results show-keep?]
-      (let [pages               (Math/floor (/ (count results) (:show @pager)))
-            rows-in-view        (take (:show @pager) (drop (* (:show @pager) (:page @pager)) results))
+      (let [pages (Math/floor (/ (count results) (:show @pager)))
+            rows-in-view (take (:show @pager) (drop (* (:show @pager) (:page @pager)) results))
             type-summary-fields (get @summary-fields (keyword type))]
         [:div
          [:div.alert.alert-result-table.alert-info
@@ -667,12 +666,12 @@
                          [:tr [:td value]]))))]]))))
 
 (defn review-table []
-  (let [pager          (reagent/atom {:show 5 :page 0})
+  (let [pager (reagent/atom {:show 5 :page 0})
         summary-fields (subscribe [:current-summary-fields])
-        model          (subscribe [:current-model])]
+        model (subscribe [:current-model])]
     (fn [type results show-keep?]
-      (let [pages               (Math/floor (/ (count results) (:show @pager)))
-            rows-in-view        (take (:show @pager) (drop (* (:show @pager) (:page @pager)) results))
+      (let [pages (Math/floor (/ (count results) (:show @pager)))
+            rows-in-view (take (:show @pager) (drop (* (:show @pager) (:page @pager)) results))
             type-summary-fields (get @summary-fields (keyword type))]
         [:div.form
          [:div.alert.alert-result-table.alert-info
@@ -707,8 +706,8 @@
                                            [:div.checkbox
                                             [:label
                                              [:input
-                                              {:type      "checkbox"
-                                               :checked   keep?
+                                              {:type "checkbox"
+                                               :checked keep?
                                                :on-change (fn [e]
                                                             (dispatch [::evts/toggle-keep-duplicate
                                                                        duplicate-idx match-idx]))}]]]])))))))
@@ -737,9 +736,9 @@
 
 (defn review-step []
   (let [resolution-response (subscribe [::subs/resolution-response])
-        list-name           (subscribe [::subs/list-name])
-        stats               (subscribe [::subs/stats])
-        tab                 (subscribe [::subs/review-tab])]
+        list-name (subscribe [::subs/list-name])
+        stats (subscribe [::subs/stats])
+        tab (subscribe [::subs/review-tab])]
     (fn []
       (let [{:keys [matches issues notFound converted duplicates all other]} @stats]
         (if (= nil @resolution-response)
@@ -777,8 +776,8 @@
             [:div.col-sm-12
              [:div.form-group
               [:label "List Name"]
-              [:input.form-control.input-lg {:type      "text"
-                                             :value     @list-name
+              [:input.form-control.input-lg {:type "text"
+                                             :value @list-name
                                              :on-change (fn [e] (dispatch [::evts/update-list-name (oget e :target :value)]))}]]
              [:button.btn.btn-success.pull-right.btn-lg
               {:on-click (fn [] (dispatch [::evts/save-list]))}
@@ -808,10 +807,10 @@
   (let [response (subscribe [::subs/resolution-response])]
     (fn [view]
       [:h4 [:ol.breadcrumb {:style {:padding "8px 15px"}}
-            [:li {:class    (when (or (= view nil) (= view :input)) "active")
+            [:li {:class (when (or (= view nil) (= view :input)) "active")
                   :on-click (fn [] (when @response (navigate! "/upload/input")))}
              [:a [:i.fa.fa-upload.fa-1x] " Upload"]]
-            [:li.disabled {:class    (when (= view :save) "active")
+            [:li.disabled {:class (when (= view :save) "active")
                            :on-click (fn [] (when @response (navigate! "/upload/save")))}
              (if @response
                [:a [:i.fa.fa-exclamation-triangle.fa-1x] " Save"]
@@ -819,7 +818,7 @@
 
 
 (defn wizard []
-  (let [view         (subscribe [::subs/view])
+  (let [view (subscribe [::subs/view])
         panel-params (subscribe [:panel-params])]
     (fn []
       [:div.wizard
@@ -841,21 +840,21 @@
                               (when (nil? (:type @options))
                                 (dispatch [::evts/reset])))
        :reagent-render
-                            (fn []
-                              (let [bank         (subscribe [:idresolver/bank])
-                                    no-matches   (subscribe [:idresolver/results-no-matches])
-                                    result-count (- (count @bank) (count @no-matches))]
-                                [:div.container.idresolverupload
-                                 #_[:div.headerwithguidance
-                                    [:a.guidance
-                                     {:on-click
-                                      (fn []
-                                        (dispatch [:idresolver/example splitter]))} "[Show me an example]"]]
-                                 ;[cont]
-                                 [wizard]
-                                 #_[input-div]
-                                 ;[stats]
-                                 (cond (> result-count 0) [preview result-count])
-                                 ;[selected]
-                                 ;[debugger]
-                                 ]))})))
+       (fn []
+         (let [bank (subscribe [:idresolver/bank])
+               no-matches (subscribe [:idresolver/results-no-matches])
+               result-count (- (count @bank) (count @no-matches))]
+           [:div.container.idresolverupload
+            #_[:div.headerwithguidance
+               [:a.guidance
+                {:on-click
+                 (fn []
+                   (dispatch [:idresolver/example splitter]))} "[Show me an example]"]]
+            ;[cont]
+            [wizard]
+            #_[input-div]
+            ;[stats]
+            (cond (> result-count 0) [preview result-count])
+            ;[selected]
+            ;[debugger]
+            ]))})))
