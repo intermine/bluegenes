@@ -779,7 +779,7 @@
               [:input.form-control.input-lg {:type "text"
                                              :value @list-name
                                              :on-change (fn [e] (dispatch [::evts/update-list-name (oget e :target :value)]))}]]
-             [:button.btn.btn-success.pull-right.btn-lg
+             [:button.btn.btn-success.pull-right.btn-lg.btn-raised
               {:on-click (fn [] (dispatch [::evts/save-list]))}
               [:i.fa.fa-cloud-upload {:style {:padding-right "5px"}}]
               "Save List"]]]
