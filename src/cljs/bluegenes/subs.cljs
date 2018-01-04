@@ -6,7 +6,9 @@
             [clojure.string :refer [split]]
             [bluegenes.sections.querybuilder.subs]
             [bluegenes.components.search.subs]
-            [bluegenes.subs.auth]))
+            [bluegenes.subs.auth]
+            [bluegenes.subs.id-resolver]))
+
 
 (reg-sub
   :name
@@ -111,6 +113,11 @@
   :summary-fields
   (fn [db _]
     (:summary-fields (:assets db))))
+
+(reg-sub
+  :current-summary-fields
+  (fn [db [_ class-kw]]
+    (get-in db [:assets :summary-fields (:current-mine db)])))
 
 (reg-sub
   :report

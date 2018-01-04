@@ -35,8 +35,8 @@
      [:a {:href link} "Register"]]))
 
 (defn login-form []
-  (let [credentials       (reagent/atom {:username nil :password nil})
-        current-mine      (subscribe [:current-mine])]
+  (let [credentials (reagent/atom {:username nil :password nil})
+        current-mine (subscribe [:current-mine])]
     (fn [thinking?]
       [:form.login-form
 
@@ -57,8 +57,8 @@
                        (when (= 13 (oget k :keyCode))
                          (dispatch [:bluegenes.events.auth/login
                                     (assoc @credentials
-                                           :service (:service @current-mine)
-                                           :mine-id (:id @current-mine))])))}]]
+                                      :service (:service @current-mine)
+                                      :mine-id (:id @current-mine))])))}]]
        [:div.register-or-login
         [register-for-mine current-mine]
         [:button.btn.btn-primary.btn-raised
@@ -66,8 +66,8 @@
           :on-click (fn []
                       (dispatch [:bluegenes.events.auth/login
                                  (assoc @credentials
-                                        :service (:service @current-mine)
-                                        :mine-id (:id @current-mine))]))}
+                                   :service (:service @current-mine)
+                                   :mine-id (:id @current-mine))]))}
          [mine-icon @current-mine]
          "Sign In"]]])))
 
@@ -110,53 +110,50 @@
 (defn save-data-tooltip []
   (let [label (reagent/atom nil)]
     (reagent/create-class
-     {:component-did-mount
-      (fn [e] (reset! label (:label (reagent/props e))))
-      :reagent-render
-      (fn [tooltip-data]
-        [tooltip/main
-         {:content [:div.form-inline
-                    [:label "Name: "
-                     [:input.form-control
-                      {:autofocus true
-                       :type "text"
-                       :on-change (fn [e] (reset! label (.. e -target -value)))
-                       :placeholder @label}]]
-                    [:button.btn "Save"]]
-          :on-blur (fn []
-                     (dispatch [:save-saved-data-tooltip (:id tooltip-data) @label]))}])})))
+      {:component-did-mount
+       (fn [e] (reset! label (:label (reagent/props e))))
+       :reagent-render
+       (fn [tooltip-data]
+         [tooltip/main
+          {:content [:div.form-inline
+                     [:label "Name: "
+                      [:input.form-control
+                       {:autofocus true
+                        :type "text"
+                        :on-change (fn [e] (reset! label (.. e -target -value)))
+                        :placeholder @label}]]
+                     [:button.btn "Save"]]
+           :on-blur (fn []
+                      (dispatch [:save-saved-data-tooltip (:id tooltip-data) @label]))}])})))
 
 (defn active-mine-logo []
   [mine-icon @(subscribe [:current-mine])])
 
 (defn main []
   (let [active-panel (subscribe [:active-panel])
-        app-name     (subscribe [:name])
-        short-name   (subscribe [:short-name])
-        lists        (subscribe [:lists])
-        ttip         (subscribe [:tooltip])
+        app-name (subscribe [:name])
+        short-name (subscribe [:short-name])
+        lists (subscribe [:lists])
+        ttip (subscribe [:tooltip])
         current-mine (subscribe [:current-mine])
-        panel-is     (fn [panel-key] (= @active-panel panel-key))]
+        panel-is (fn [panel-key] (= @active-panel panel-key))]
     (fn []
       [:nav.main-nav
        [:ul
-        [:li.minename.primary-nav  {:on-click #(navigate! "/")}
+        [:li.minename.primary-nav {:on-click #(navigate! "/")}
          [active-mine-logo]
          [:span.long-name (:name @current-mine)]]
         [:li.homelink.primary-nav.larger-screen-only {:class (if (panel-is :home-panel) "active")} [:a {:on-click #(navigate! "/")} "Home"]]
         [:li.primary-nav {:class (if (panel-is :upload-panel) "active")}
-         [:a {:on-click #(navigate! "/upload")}
-
+         [:a {:on-click #(navigate! "/upload/input")}
           [:svg.icon.icon-upload.extra-tiny-screen [:use {:xlinkHref "#icon-upload"}]]
-          [:span.long-name.larger-screen-only "Upload"]]]
+          [:span..long-name.larger-screen-only "Upload"]]]
         [:li.primary-nav {:class (if (panel-is :mymine-panel) "active")}
          [:a {:on-click #(navigate! "/mymine")}
           [:svg.icon.icon-cog [:use {:xlinkHref "#icon-my-data"}]]
           [:span "My\u00A0Data"]]]
-
         [:li.primary-nav {:class (if (panel-is :templates-panel) "active")} [:a {:on-click #(navigate! "/templates")} "Templates"]]
-
-         ;;don't show region search for mines that have no example configured
+        ;;don't show region search for mines that have no example configured
         (cond (:regionsearch-example @current-mine)
               [:li {:class (if (panel-is :regions-panel) "active")} [:a {:on-click #(navigate! "/regions")} "Regions"]])
         [:li.primary-nav {:class (if (panel-is :querybuilder-panel) "active")} [:a {:on-click #(navigate! "/querybuilder")} "Query\u00A0Builder"]]

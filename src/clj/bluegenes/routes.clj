@@ -5,7 +5,7 @@
             [ring.util.response :refer [response]]
             [bluegenes.ws.auth :as auth]
             [bluegenes.ws.mymine :as mymine]
-            ))
+            [bluegenes.ws.ids :as ids]))
 
 (defroutes routes
            (GET "/" req
@@ -16,4 +16,5 @@
            (GET "/version" [] (response {:version "0.1.0"}))
            (context "/api" []
              (context "/auth" [] auth/routes)
-             (context "/mymine" [] mymine/routes)))
+             (context "/mymine" [] mymine/routes)
+             (context "/ids" [] ids/routes)))

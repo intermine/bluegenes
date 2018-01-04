@@ -4,6 +4,7 @@
             [im-tables.events]
             [bluegenes.events.boot]
             [bluegenes.events.auth]
+            [bluegenes.events.id-resolver]
             [bluegenes.sections.mymine.events]
             [day8.re-frame.http-fx]
             [day8.re-frame.forward-events-fx]
@@ -22,9 +23,6 @@
             [clojure.string :refer [join split]]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
             [imcljs.fetch :as fetch]))
-
-
-
 
 ; Change the main panel to a new view
 (reg-event-fx
@@ -49,6 +47,7 @@
             (assoc :dispatch-n
                    (cond-> [[:do-active-panel active-panel panel-params evt]]
                            evt (conj evt))))))
+
 
 (reg-event-fx
   :save-state
