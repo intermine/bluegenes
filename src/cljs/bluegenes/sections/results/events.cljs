@@ -99,7 +99,7 @@
        :dispatch-n [[:enrichment/enrich]
                     [:im-tables.main/replace-all-state
                      [:results :fortable]
-                     {:settings {:links {:vocab {:mine "flymine"}
+                     {:settings {:links {:vocab {:mine (name (:source (last (get-in db [:results :history]))))}
                                          :on-click (fn [val] (accountant/navigate! val))}}
                       :query query
                       :service (get-in db [:mines last-source :service])}]]})))
@@ -119,7 +119,7 @@
        :dispatch-n [[:enrichment/enrich]
                     [:im-tables.main/replace-all-state
                      [:results :fortable]
-                     {:settings {:links {:vocab {:mine "flymine"}
+                     {:settings {:links {:vocab {:mine (name (:source (last (get-in db [:results :history]))))}
                                          :on-click (fn [val] (accountant/navigate! val))}}
                       :query (get package :value)
                       :service (get-in db [:mines (:source package) :service])}]]})))
