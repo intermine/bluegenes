@@ -164,12 +164,12 @@
                                                                              id (assoc list-details
                                                                                   :file-type :list
                                                                                   :label name)))
-            parent-id (assoc :http {:method :post
-                                    :params {:im-obj-type "list"
-                                             :im-obj-id id
-                                             :parent-id parent-id}
-                                    :on-success [::success-store-tag]
-                                    :uri "/api/mymine/entries"}))))
+            parent-id (assoc ::fx/http {:method :post
+                                        :transit-params {:im-obj-type "list"
+                                                         :im-obj-id id
+                                                         :parent-id parent-id}
+                                        :on-success [::success-store-tag]
+                                        :uri "/api/mymine/entries"}))))
 
 (reg-event-fx
   ::fetch-one-list
@@ -433,12 +433,12 @@
     (let [focus (get-in db [:mymine :focus])]
       {:dispatch-n [[::clear-checked]
                     [:assets/fetch-lists]]
-       :http {:method :post
-              :params {:im-obj-type "list"
-                       :im-obj-id (:listId m)
-                       :parent-id parent-id}
-              :on-success [::success-store-tag]
-              :uri "/api/mymine/entries"}})))
+       ::fx/http {:method :post
+                  :transit-params {:im-obj-type "list"
+                                   :im-obj-id (:listId m)
+                                   :parent-id parent-id}
+                  :on-success [::success-store-tag]
+                  :uri "/api/mymine/entries"}})))
 
 
 
@@ -468,14 +468,14 @@
                 (let [context-menu-target (get-in db [:mymine :context-menu-target])
                       mine-id             (get-in db [:current-mine])]
                   {:db db
-                   :http {:method :post
-                          :params {:im-obj-type "tag"
-                                   :parent-id (:entry-id context-menu-target)
-                                   :label label
-                                   :mine (name mine-id)
-                                   :open? true}
-                          :on-success [::success-store-tag]
-                          :uri "/api/mymine/entries"}})))
+                   ::fx/http {:method :post
+                              :transit-params {:im-obj-type "tag"
+                                               :parent-id (:entry-id context-menu-target)
+                                               :label label
+                                               :mine (name mine-id)
+                                               :open? true}
+                              :on-success [::success-store-tag]
+                              :uri "/api/mymine/entries"}})))
 
 
 
@@ -518,9 +518,9 @@
               (fn [{db :db} [_ label]]
                 (let [context-menu-target (get-in db [:mymine :context-menu-target])]
                   {:db db
-                   :http {:method :delete
-                          :on-success [::success-delete-tag]
-                          :uri (str "/api/mymine/entries/" (:entry-id context-menu-target))}})))
+                   ::fx/http {:method :delete
+                              :on-success [::success-delete-tag]
+                              :uri (str "/api/mymine/entries/" (:entry-id context-menu-target))}})))
 
 
 (defn isa-filter [root-id entry]
@@ -542,12 +542,12 @@
               (fn [{db :db} [_ label]]
                 (let [context-menu-target (get-in db [:mymine :context-menu-target])]
                   {:db db
-                   :http {:method :post
-                          :on-success [::success-rename-tag]
-                          :uri (str "/api/mymine/entries/"
-                                    (:entry-id context-menu-target)
-                                    "/rename/"
-                                    label)}})))
+                   ::fx/http {:method :post
+                              :on-success [::success-rename-tag]
+                              :uri (str "/api/mymine/entries/"
+                                        (:entry-id context-menu-target)
+                                        "/rename/"
+                                        label)}})))
 
 (reg-event-db ::success-rename-tag
               (fn [db [_ [{entry-id :entry-id :as response}]]]
@@ -560,9 +560,9 @@
               (fn [{db :db}]
                 (let [current-mine (name (get-in db [:current-mine]))]
                   {:db db
-                   :http {:method :get
-                          :on-success [::echo-tree]
-                          :uri (str "/api/mymine/entries/" current-mine)}})))
+                   ::fx/http {:method :get
+                              :on-success [::echo-tree]
+                              :uri (str "/api/mymine/entries/" current-mine)}})))
 
 (defn toggle-open [entries entry-id status]
   (map (fn [e] (if (= (:entry-id e) entry-id)
@@ -572,8 +572,8 @@
 (reg-event-fx ::toggle-tag-open []
               (fn [{db :db} [_ entry-id status]]
                 {:db (update-in db [:mymine :entries] toggle-open entry-id status)
-                 :http {:method :post
-                        :uri (str "/api/mymine/entries/" entry-id "/open/" status)}}))
+                 ::fx/http {:method :post
+                            :uri (str "/api/mymine/entries/" entry-id "/open/" status)}}))
 
 (reg-event-db ::set-cursor
               (fn [db [_ entry]]
@@ -617,7 +617,7 @@
               (fn [{db :db} [_ tag]]
                 (let [{dragging-id :entry-id :as dragging} (get-in db [:mymine :drag :dragging])
                       {dropping-id :entry-id :as dropping} (get-in db [:mymine :drag :dragging-over])
-                      hierarchy (get-in db [:mymine :hierarchy])
+                      hierarchy    (get-in db [:mymine :hierarchy])
                       current-mine (get-in db [:current-mine])]
                   (let [noop {:db (assoc-in db [:mymine :drag] nil)}]
 
@@ -627,17 +627,17 @@
                             (keyword "tag" (:entry-id dragging))) noop
                       (not= "tag" (:im-obj-type dropping)) noop
                       (nil? dragging-id)
-                      (assoc noop :http {:method :post
-                                         :params (assoc dragging :parent-id dropping-id :mine current-mine)
-                                         :on-success [::success-store-tag]
-                                         :uri "/api/mymine/entries"})
+                      (assoc noop ::fx/http {:method :post
+                                             :transit-params (assoc dragging :parent-id dropping-id :mine current-mine)
+                                             :on-success [::success-store-tag]
+                                             :uri "/api/mymine/entries"})
                       (and (not= dragging-id dropping-id))
-                      (assoc noop :http {:method :post
-                                         :on-success [::success-move-entry]
-                                         :uri (str "/api/mymine/entries/"
-                                                   dragging-id
-                                                   "/move/"
-                                                   dropping-id)})
+                      (assoc noop ::fx/http {:method :post
+                                             :on-success [::success-move-entry]
+                                             :uri (str "/api/mymine/entries/"
+                                                       dragging-id
+                                                       "/move/"
+                                                       dropping-id)})
                       :else noop)))))
 
 (reg-event-fx ::success-move-entry

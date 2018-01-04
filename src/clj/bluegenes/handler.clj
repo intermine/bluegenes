@@ -21,7 +21,9 @@
 (def handler (-> #'routes/routes
                  wrap-reload
                  wrap-session
-                 wrap-restful-format
+                 (wrap-restful-format :formats [:json :json-kw :transit-msgpack :transit-json])
+                 ;wrap-params
+                 ;wrap-restful-format
                  ;wrap-json-response
                  ;wrap-keyword-params
                  ;wrap-params
