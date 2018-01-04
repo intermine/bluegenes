@@ -150,3 +150,8 @@ One of the easiest ways to deploy the prod minified version is to set up [Dokku]
 [bower]: http://bower.io/
 [npm]: https://www.npmjs.com/
 [nodejs]: https://nodejs.org/
+
+### Further help needed?
+
+If you think the issue is related to InterMine or its webservices, check out the [InterMine documentation](http://intermine.readthedocs.io/en/latest/about/contact-us/)
+Documentation on BlueGenes is available in [the docs folder](https://github.com/intermine/bluegenes/blob/dev/docs/index.md)
