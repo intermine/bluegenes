@@ -17,7 +17,7 @@
     :else n))
 
 (defn -main [& args]
-  (let [port (->int (or (:server-port env) 5000))]
+  (let [port (->int (or (:server-port env) (:port env) 5000))]
     (timbre/set-level! :info)
     (try
       (do
