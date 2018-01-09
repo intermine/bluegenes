@@ -143,7 +143,16 @@ If it's not set, it will run on port 5000 by default.
 One of the easiest ways to deploy the prod minified version is to set up [Dokku](http://dokku.viewdocs.io/dokku/) on your intended server. Once dokku is configured on your remote host, all you need to do to deploy a minified build is add the server as a remote and push to it:
 
 	git remote add my-awesome-server bluegenes@my-awesome-server.git
-  git push my-awesome-server master
+        git push my-awesome-server master
+	
+Also see the note in the next section about Postgres
+
+### Setting up bluegenes for remote deployment
+
+Ensure that you set all [config variables](ADD LINK) and point to an existing postgres database. 
+
+In the case of **Heroku**, that means editing the app on the Heroku dashboard and add a Postgres service.  
+For **Dokku**, use the postgres plugin to link a postgres database. 
 
 
 [lein]: https://github.com/technomancy/leiningen
