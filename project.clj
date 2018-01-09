@@ -94,7 +94,7 @@
                      ["less" "once"]]
             "prod" ["do" "build" ["pdo" ["run"]]]}
 
-  :min-lein-version "2.5.3"
+  :min-lein-version "2.8.1"
 
   :source-paths ["src/clj" "src/cljs" "src/cljc" "src/workers" "script/"]
 
