@@ -76,11 +76,9 @@
 
 
                  ; Intermine Assets
-                 [intermine/imcljs "0.2.0"]
+                 [intermine/imcljs "0.3.3"]
                  [intermine/im-tables "0.3.4"]
-                 [intermine/accountant-fragments "0.1.8"]
-
-                 ]
+                 [intermine/accountant-fragments "0.1.8"]]
 
   :plugins [[lein-cljsbuild "1.1.7"]
             [lein-less "1.7.5"]
