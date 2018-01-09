@@ -19,14 +19,14 @@ Example usage:
 "
 (defn organism-dropdown []
   (let [organisms (subscribe [:cache/organisms])]
-    (fn [{:keys [selected-value on-change ]}]
+    (fn [{:keys [selected-value on-change]}]
       [:div.btn-group.organism-dropdown
        [:button.btn.btn-primary.dropdown-toggle
         {:data-toggle "dropdown"}
         [:span (if selected-value (str selected-value " ") "All Organisms ") [:span.caret]]]
        (-> [:ul.dropdown-menu]
            (into [[:li [:a.clear {:on-click (partial on-change nil)}
-                         [:svg.icon.icon-close [:use {:xlinkHref "#icon-close"}]] " Clear"]]
+                        [:svg.icon.icon-close [:use {:xlinkHref "#icon-close"}]] " Clear"]]
                   [:li.divider]])
            (into (map (fn [organism]
                         [:li [:a
@@ -34,20 +34,62 @@ Example usage:
                               (:shortName organism)]])
                       (sort-by :shortName @organisms))))])))
 
+(defn select-organism []
+  (let [organisms        (subscribe [:cache/organisms])
+        default-organism (subscribe [:mine-default-organism])]
+    (fn [{:keys [value on-change disabled class]}]
+      [:div.form-group
+       (into [:select.form-control
+              {:value (if disabled "" (or value @default-organism ""))
+               :disabled disabled
+               :class class
+               :on-change (fn [e] (on-change (oget e :target :value)))}]
+             (concat
+               [[:option {:value ""} "Any"]
+                [:option {:value "_"} ""]]
+               (map (fn [{short-name :shortName}]
+                      [:option {:value short-name} short-name]) @organisms)))])))
+
+(defn sort-classes [classes]
+  (sort-by (comp :displayName second) < classes))
+
+(defn select-type []
+  (let [model        (subscribe [:current-model])
+        current-mine (subscribe [:current-mine])]
+    (fn [{:keys [value on-change qualified?]}]
+      ; when qualified? is true, only show intermine object types that have class keys
+      (let [{default-types :default-object-types
+             class-keys :class-keys} @current-mine]
+        [:div.form-group
+         (into [:select.form-control
+                {:value (or value (-> default-types first name))
+                 :on-change (fn [e] (on-change (oget e :target :value)))}]
+               (concat
+                 (map (fn [[class-kw {:keys [name displayName]}]]
+                        [:option {:value name} displayName])
+                      (sort-classes (select-keys (:classes @model) default-types)))
+                 (concat [[:option {:value "_"} ""]])
+                 (map (fn [[class-kw {:keys [name displayName]}]]
+                        [:option {:value name} displayName])
+                      (sort-classes
+                        (apply dissoc
+                               (cond-> (:classes @model)
+                                       qualified? (select-keys (keys class-keys))) default-types)))))]))))
+
 
 (defn object-type-dropdown []
   (let [display-names @(subscribe [:model])]
-  (fn [{:keys [values selected-value on-change ]}]
-    [:div.btn-group.object-type-dropdown
-     [:button.btn.btn-primary.dropdown-toggle
-      {:data-toggle "dropdown"}
-      [:span (if selected-value (str (get-in display-names [selected-value :displayName]) " ") "Select a type") [:span.caret]]]
-     (-> [:ul.dropdown-menu]
-         (into (map (fn [value]
-            [:li [:a
-                  {:on-click (partial on-change value)}
-                  (get-in display-names [value :displayName])]])
-          values)))])))
+    (fn [{:keys [values selected-value on-change]}]
+      [:div.btn-group.object-type-dropdown
+       [:button.btn.btn-primary.dropdown-toggle
+        {:data-toggle "dropdown"}
+        [:span (if selected-value (str (get-in display-names [selected-value :displayName]) " ") "Select a type") [:span.caret]]]
+       (-> [:ul.dropdown-menu]
+           (into (map (fn [value]
+                        [:li [:a
+                              {:on-click (partial on-change value)}
+                              (get-in display-names [value :displayName])]])
+                      values)))])))
 
 
 (defn has-text?
@@ -73,20 +115,20 @@ Example usage:
     (fn [{:keys [on-change value restricted-type]}]
       (let [text-filter (partial has-text? @filter-text)
             type-filter (partial has-type? restricted-type)
-            lists (filter (apply every-pred [text-filter type-filter]) (@current-mine-name @lists))]
+            lists       (filter (apply every-pred [text-filter type-filter]) (@current-mine-name @lists))]
         [:div.dropdown
          [:span.dropdown-toggle
-          {:style       {:color          "#039be5"
-                         :text-transform "none"}
+          {:style {:color "#039be5"
+                   :text-transform "none"}
            :data-toggle "dropdown"}
           [:span (if (and (not= value "") (not= value nil)) value "Choose List ") [:span.caret]]]
          [:div.dropdown-menu.dropdown-mixed-content
           [:div.container-fluid
            [:form.form
             [:input.form-control
-             {:type        "text"
-              :value       @filter-text
-              :on-change   (fn [e] (reset! filter-text (oget e :target :value)))
+             {:type "text"
+              :value @filter-text
+              :on-change (fn [e] (reset! filter-text (oget e :target :value)))
               :placeholder "Filter..."}]]
 
            (if (empty? @filter-text)
@@ -131,47 +173,47 @@ Example usage:
                                (sort-by :name lists)))])]]]))))
 
 
-(def ops [{:op         "IN"
-           :label      "In some list"
+(def ops [{:op "IN"
+           :label "In some list"
            :applies-to [:class]}
-          {:op         "NOT IN"
-           :label      "Not in some list"
+          {:op "NOT IN"
+           :label "Not in some list"
            :applies-to [:class]}
-          {:op         "="
-           :label      "="
+          {:op "="
+           :label "="
            :applies-to ["java.lang.String" "java.lang.Boolean" "java.lang.Integer" "java.lang.Double" "java.lang.Float"]}
-          {:op         "!="
-           :label      "!="
+          {:op "!="
+           :label "!="
            :applies-to ["java.lang.String" "java.lang.Boolean" "java.lang.Integer" "java.lang.Double" "java.lang.Float"]}
-          {:op         "CONTAINS"
-           :label      "Contains"
+          {:op "CONTAINS"
+           :label "Contains"
            :applies-to ["java.lang.String"]}
-          {:op         "<"
-           :label      "<"
+          {:op "<"
+           :label "<"
            :applies-to ["java.lang.Integer" "java.lang.Double" "java.lang.Float"]}
-          {:op         "<="
-           :label      "<="
+          {:op "<="
+           :label "<="
            :applies-to ["java.lang.Integer" "java.lang.Double" "java.lang.Float"]}
-          {:op         ">"
-           :label      ">"
+          {:op ">"
+           :label ">"
            :applies-to ["java.lang.Integer" "java.lang.Double" "java.lang.Float"]}
-          {:op         ">="
-           :label      ">="
+          {:op ">="
+           :label ">="
            :applies-to ["java.lang.Integer" "java.lang.Double" "java.lang.Float"]}
-          {:op         "LIKE"
-           :label      "Like"
+          {:op "LIKE"
+           :label "Like"
            :applies-to ["java.lang.String"]}
-          {:op         "NOT LIKE"
-           :label      "Not like"
+          {:op "NOT LIKE"
+           :label "Not like"
            :applies-to ["java.lang.String"]}
-          {:op         "ONE OF"
-           :label      "One of"
+          {:op "ONE OF"
+           :label "One of"
            :applies-to []}
-          {:op         "NONE OF"
-           :label      "None of"
+          {:op "NONE OF"
+           :label "None of"
            :applies-to []}
-          {:op         "LOOKUP"
-           :label      "Lookup"
+          {:op "LOOKUP"
+           :label "Lookup"
            :applies-to ["java.lang.String" :class]}])
 
 
@@ -183,7 +225,7 @@ Example usage:
     (let [{:keys [type on-change is-class? field-type]} options]
       [:div.dropdown
        [:button.btn.btn-default.btn-raised.dropdown-toggle
-        {:style       {:text-transform "none"}
+        {:style {:text-transform "none"}
          :data-toggle "dropdown"}
         (str (or
                (:label (first (filter #(= (:op constraint) (:op %)) ops)))
