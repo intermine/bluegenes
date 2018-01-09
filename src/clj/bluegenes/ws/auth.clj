@@ -59,10 +59,10 @@
   ; clj-http throws exceptions for 'bad' responses:
   (try
     ; Try to fetch a token from the InterMine server web service
-    (let [token             (fetch-token {:username username
-                                          :password password
-                                          :service service})
-          whoami            (im-auth/who-am-i? (assoc service :token token) token)
+    (let [token (fetch-token {:username username
+                              :password password
+                              :service service})
+          whoami (im-auth/who-am-i? (assoc service :token token) token)
           whoami-with-token (assoc whoami :token token :mine-id (name mine-id))]
       ; Store the token in the session and return it to the user
       (->
@@ -70,8 +70,6 @@
         (assoc :session {:identity whoami-with-token})))
     (catch Exception e
       (let [{status :status body :body :as error} (ex-data e)]
-        (println "Authentication Error:")
-        (clojure.pprint/pprint (ex-data e))
         ; Parse the body of the bad request sent back from the IM server
         (let [json-response (cheshire/parse-string body)]
           (case status
