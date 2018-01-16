@@ -81,7 +81,7 @@
                  [intermine/accountant-fragments "0.1.8"]]
 
   :deploy-repositories {"clojars" {:sign-releases false}}
-  
+
   :plugins [[lein-cljsbuild "1.1.7"]
             [lein-less "1.7.5"]
             [lein-ancient "0.6.14"]
