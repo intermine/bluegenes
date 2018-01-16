@@ -152,7 +152,7 @@
                                          :optimizations :none}}}}
 
 
-  :main bluegenes.server
+  :main bluegenes.core
 
   :uberjar-name "bluegenes.jar"
 
