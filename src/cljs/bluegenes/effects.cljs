@@ -27,11 +27,6 @@
           (dispatch (conj on-success response)))))))
 
 (reg-fx
-  :im-operation
-  (fn [{:keys [on-success on-failure response-format op params]}]
-    (go (dispatch (conj on-success (<! (op)))))))
-
-(reg-fx
   :im-operation-n
   (fn [v]
     (doall (map (fn [{:keys [on-success on-failure response-format op params]}]
