@@ -26,12 +26,6 @@
           (dispatch [:flag-invalid-tokens])
           (dispatch (conj on-success response)))))))
 
-(reg-fx
-  :im-operation-n
-  (fn [v]
-    (doall (map (fn [{:keys [on-success on-failure response-format op params]}]
-                  (go (dispatch (conj on-success (<! (op)))))) v))))
-
 ; This side effect provides HTTP support in a variety of ways. It uses cljs-http: https://github.com/r0man/cljs-http
 ; Example usage:
 (comment
