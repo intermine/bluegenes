@@ -4,7 +4,7 @@
             [im-tables.events]
             [bluegenes.events.boot]
             [bluegenes.events.auth]
-            [bluegenes.events.id-resolver]
+            [bluegenes.components.idresolver.events]
             [bluegenes.sections.mymine.events]
             [day8.re-frame.http-fx]
             [day8.re-frame.forward-events-fx]

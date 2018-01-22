@@ -1,108 +1,66 @@
 (ns bluegenes.components.idresolver.subs
-  (:require-macros [reagent.ratom :refer [reaction]])
-  (:require [re-frame.core :as re-frame :refer [reg-sub]]))
+  (:require [re-frame.core :refer [reg-sub]]
+            [clojure.string :refer [blank?]]))
 
-(reg-sub
-  :idresolver/bank
-  (fn [db]
-    (-> db :idresolver :bank)))
+(defn not-blank [s]
+  (if-not (blank? s) s nil))
 
-(reg-sub
-  :idresolver/resolving?
-  (fn [db]
-    (-> db :idresolver :resolving?)))
+(reg-sub ::staged-files
+         (fn [db]
+           (not-empty (get-in db [:idresolver :stage :files]))))
 
-(reg-sub
-  :idresolver/results
-  (fn [db]
-    (-> db :idresolver :results)))
+(reg-sub ::textbox-identifiers
+         (fn [db]
+           (not-blank (get-in db [:idresolver :stage :textbox]))))
 
-(reg-sub
-  :idresolver/results-preview
-  (fn [db]
-    (-> db :idresolver :results-preview)))
+(reg-sub ::stage-options
+         (fn [db]
+           (not-empty (get-in db [:idresolver :stage :options]))))
 
-(reg-sub
-  :idresolver/fetching-preview?
-  (fn [db]
-    (-> db :idresolver :fetching-preview?)))
+(reg-sub ::stage-status
+         (fn [db]
+           (not-empty (get-in db [:idresolver :stage :status]))))
 
-(reg-sub
-  :idresolver/selected
-  (fn [db]
-    (get-in db [:idresolver :selected])))
+(reg-sub ::stage-flags
+         (fn [db]
+           (not-empty (get-in db [:idresolver :stage :flags]))))
 
-(reg-sub
- :idresolver/selected-organism
- (fn [db]
-  (get-in db [:idresolver :selected-organism :shortName])))
+(reg-sub ::resolution-response
+         (fn [db]
+           (not-empty (get-in db [:idresolver :response]))))
 
+(reg-sub ::list-name
+         (fn [db]
+           (get-in db [:idresolver :save :list-name])))
 
-(reg-sub
- :idresolver/selected-object-type
- (fn [db]
-   (let [object-type-default (get-in db [:mines (:current-mine db) :default-selected-object-type])
-         selected (get-in db [:idresolver :selected-object-type])]
-    (if (some? selected) selected object-type-default))))
+(reg-sub ::resolution-stats
+         (fn [db]
+           (get-in db [:idresolver :response :stats])))
 
+(reg-sub ::review-tab
+         (fn [db]
+           (get-in db [:idresolver :stage :options :review-tab])))
 
-(reg-sub
- :idresolver/object-types
- (fn [db]
-   (let [current-mine (get-in db [:mines (get db :current-mine)])
-         current-model (get-in current-mine [:service :model :classes])]
-    (get-in db [:mines (:current-mine db) :default-object-types]))))
+(reg-sub ::upload-tab
+         (fn [db]
+           (get-in db [:idresolver :stage :options :upload-tab])))
 
 
-(reg-sub
-  :idresolver/saved
-  (fn [db [_ id]]
-    (-> db :idresolver :saved (get id))))
 
-(reg-sub
-  :idresolver/everything
-  (fn [db]
-    (get-in db [:idresolver])))
+(reg-sub ::view
+         (fn [db]
+           (get-in db [:idresolver :stage :view])))
 
-(reg-sub
-  :idresolver/results-item
-  :<- [:idresolver/results]
-  (fn [results [_ input]]
-    (filter (fn [[oid result]]
-              (< -1 (.indexOf (:input result) input))) results)))
-
-(reg-sub
-  :idresolver/results-no-matches
-  :<- [:idresolver/results]
-  (fn [results]
-    (filter (fn [[oid result]]
-              (= :UNRESOLVED (:status result))) results)))
-
-(reg-sub
-  :idresolver/results-matches
-  :<- [:idresolver/results]
-  (fn [results]
-    (filter (fn [[oid result]]
-              (= :MATCH (:status result))) results)))
-
-(reg-sub
-  :idresolver/results-duplicates
-  :<- [:idresolver/results]
-  (fn [results]
-    (filter (fn [[oid result]]
-              (= :DUPLICATE (:status result))) results)))
-
-(reg-sub
-  :idresolver/results-type-converted
-  :<- [:idresolver/results]
-  (fn [results]
-    (filter (fn [[oid result]]
-              (= :TYPE_CONVERTED (:status result))) results)))
-
-
-(reg-sub
-  :idresolver/results-other
-  :<- [:idresolver/results]
-  (fn [results]
-    (filter (fn [[oid result]]
-              (= :OTHER (:status result))) results)))
+(reg-sub ::stats
+         :<- [::resolution-response]
+         (fn [resolution-response]
+           (let [{{{:keys [matches issues notFound all]} :identifiers :as s} :stats} resolution-response
+                 {{:keys [OTHER WILDCARD DUPLICATE TYPE_CONVERTED MATCH]} :matches} resolution-response]
+             {:matches matches
+              :issues issues
+              :notFound notFound
+              :all all
+              :duplicates (count DUPLICATE)
+              :converted (count TYPE_CONVERTED)
+              :other (count OTHER)
+              })))

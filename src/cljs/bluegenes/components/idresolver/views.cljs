@@ -4,18 +4,23 @@
             [json-html.core :as json-html]
             [dommy.core :as dommy :refer-macros [sel sel1]]
             [clojure.string :refer [join split]]
-            [bluegenes.components.idresolver.events]
             [bluegenes.components.icons :as icons]
             [bluegenes.components.ui.results_preview :refer [preview-table]]
             [bluegenes.components.loader :refer [loader mini-loader]]
-            [bluegenes.components.idresolver.subs]
             [bluegenes.components.imcontrols.views :as im-controls]
             [bluegenes.components.lighttable :as lighttable]
-            [bluegenes.events.id-resolver :as evts]
-            [bluegenes.subs.id-resolver :as subs]
+            [bluegenes.components.idresolver.events :as evts]
+            [bluegenes.components.idresolver.subs :as subs]
             [oops.core :refer [oget oget+ ocall]]
             [accountant.core :refer [navigate!]]
-            [imcljs.path :as path]))
+            [imcljs.path :as path]
+    ; TODO - reinstate (combine) the in-place id resolver
+    ; The in-place resolver is currently disabled, but the events and subs
+    ; are kept in place to prevent runtime errors such as dereferencing
+    ; nonexistent subscriptions
+            [bluegenes.components.idresolver.subs-inplace]
+            [bluegenes.components.idresolver.events-inplace]
+            ))
 
 ;;; TODOS:
 

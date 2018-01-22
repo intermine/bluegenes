@@ -7,7 +7,7 @@
             [bluegenes.sections.querybuilder.subs]
             [bluegenes.components.search.subs]
             [bluegenes.subs.auth]
-            [bluegenes.subs.id-resolver]))
+            [bluegenes.components.idresolver.subs]))
 
 
 (reg-sub
