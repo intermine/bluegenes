@@ -88,22 +88,22 @@
 (reg-event-fx
   :boot
   (fn [world [_ provided-identity]]
-    (let [db               (-> db/default-db
-                               (assoc :mines default-mines/mines)
-                               (update :auth assoc
-                                       :thinking? false
-                                       :identity provided-identity
-                                       :message nil
-                                       :error? false)
-                               (assoc-in [:mines (:id @(subscribe [:current-mine])) :service :token] (:token provided-identity)))
-          state            (persistence/get-state!)
-          has-state?       (seq state)
+    (let [db (-> db/default-db
+                 (assoc :mines default-mines/mines)
+                 (update :auth assoc
+                         :thinking? false
+                         :identity provided-identity
+                         :message nil
+                         :error? false)
+                 (assoc-in [:mines (:id @(subscribe [:current-mine])) :service :token] (:token provided-identity)))
+          state (persistence/get-state!)
+          has-state? (seq state)
           ;;prune out old mines from localstorage that aren't part of the app anymore
           good-state-mines (get-current-mines (:mines state) (:mines db))
           ;;make sure we have all current localstorage mines and all new ones (if any)
-          all-mines        (merge default-mines/mines good-state-mines)
+          all-mines (merge default-mines/mines good-state-mines)
           ;;make sure the active mine wasn't removed. Will select a default if needed.
-          current-mine     (get-active-mine all-mines (:current-mine state))]
+          current-mine (get-active-mine all-mines (:current-mine state))]
 
       ; Do not use data from local storage if the client version in local storage
       ; is not the same as the current client version
@@ -147,16 +147,16 @@
   (fn [{db :db}]
     (let [analytics-id (:googleAnalytics (js->clj js/serverVars :keywordize-keys true))
           analytics-enabled? (not (clojure.string/blank? analytics-id))]
-          (if analytics-enabled?
-            ;;set tracker up if we have a tracking id
-            (do
-              (js/ga "create" analytics-id "auto")
-              (js/ga "send" "pageview")
-              (.info js/console "Google Analytics enabled. Tracking ID:" analytics-id))
-            ;;inobtrusive console message if there's no id
-            (.info js/console "Google Analytics disabled. No tracking ID."))
-    {:db (assoc db :google-analytics {:enabled? analytics-enabled? :analytics-id analytics-id})}
-    )))
+      (if analytics-enabled?
+        ;;set tracker up if we have a tracking id
+        (do
+          (js/ga "create" analytics-id "auto")
+          (js/ga "send" "pageview")
+          (.info js/console "Google Analytics enabled. Tracking ID:" analytics-id))
+        ;;inobtrusive console message if there's no id
+        (.info js/console "Google Analytics disabled. No tracking ID."))
+      {:db (assoc db :google-analytics {:enabled? analytics-enabled? :analytics-id analytics-id})}
+      )))
 
 ; Store an authentication token for a given mine
 (reg-event-db
@@ -170,8 +170,8 @@
   (fn [{db :db} [_ mine-kw]]
     (let [mine (dissoc (get-in db [:mines mine-kw :service]) :token)]
       {:db db
-       :im-operation {:on-success [:authentication/store-token mine-kw]
-                      :op (partial fetch/session mine)}})))
+       :im-chan {:on-success [:authentication/store-token mine-kw]
+                 :chan (fetch/session mine)}})))
 
 ; Fetch model
 
@@ -184,8 +184,8 @@
   :assets/fetch-model
   (fn [{db :db}]
     {:db db
-     :im-operation {:op (partial fetch/model (get-in db [:mines (:current-mine db) :service]))
-                    :on-success [:assets/success-fetch-model (:current-mine db)]}}))
+     :im-chan {:chan (fetch/model (get-in db [:mines (:current-mine db) :service]))
+               :on-success [:assets/success-fetch-model (:current-mine db)]}}))
 
 ; Fetch lists
 
@@ -198,8 +198,8 @@
   :assets/fetch-lists
   (fn [{db :db}]
     {:db db
-     :im-operation {:op (partial fetch/lists (get-in db [:mines (:current-mine db) :service]))
-                    :on-success [:assets/success-fetch-lists (:current-mine db)]}}))
+     :im-chan {:chan (fetch/lists (get-in db [:mines (:current-mine db) :service]))
+               :on-success [:assets/success-fetch-lists (:current-mine db)]}}))
 
 ; Fetch class keys
 
@@ -212,8 +212,8 @@
   :assets/fetch-class-keys
   (fn [{db :db}]
     {:db db
-     :im-operation {:op (partial fetch/class-keys (get-in db [:mines (:current-mine db) :service]))
-                    :on-success [:assets/success-fetch-class-keys (:current-mine db)]}}))
+     :im-chan {:chan (fetch/class-keys (get-in db [:mines (:current-mine db) :service]))
+               :on-success [:assets/success-fetch-class-keys (:current-mine db)]}}))
 
 ; Fetch templates
 
@@ -226,8 +226,8 @@
   :assets/fetch-templates
   (fn [{db :db}]
     {:db db
-     :im-operation {:op (partial fetch/templates (get-in db [:mines (:current-mine db) :service]))
-                    :on-success [:assets/success-fetch-templates (:current-mine db)]}}))
+     :im-chan {:chan (fetch/templates (get-in db [:mines (:current-mine db) :service]))
+               :on-success [:assets/success-fetch-templates (:current-mine db)]}}))
 
 ; Fetch summary fields
 
@@ -240,22 +240,22 @@
   :assets/fetch-summary-fields
   (fn [{db :db}]
     {:db db
-     :im-operation {:op (partial fetch/summary-fields (get-in db [:mines (:current-mine db) :service]))
-                    :on-success [:assets/success-fetch-summary-fields (:current-mine db)]}}))
+     :im-chan {:chan (fetch/summary-fields (get-in db [:mines (:current-mine db) :service]))
+               :on-success [:assets/success-fetch-summary-fields (:current-mine db)]}}))
 
 (reg-event-fx
   :assets/fetch-widgets
   ;;fetches all enrichment widgets. afaik the non-enrichment widgets are InterMine 1.x UI specific so are filtered out upon success
   (fn [{db :db}]
-    {:im-operation
-     {:op (partial fetch/widgets (get-in db [:mines (:current-mine db) :service]))
+    {:im-chan
+     {:chan (fetch/widgets (get-in db [:mines (:current-mine db) :service]))
       :on-success [:assets/success-fetch-widgets (:current-mine db)]}}
     ))
 
 (reg-event-db
   :assets/success-fetch-widgets
   (fn [db [_ mine-kw widgets]]
-    (let [widget-type      "enrichment"
+    (let [widget-type "enrichment"
           filtered-widgets (doall (filter (fn [widget]
                                             (= widget-type (:widgetType widget))
                                             ) widgets))]
@@ -265,8 +265,8 @@
   :assets/fetch-intermine-version
   ;;fetches all enrichment widgets. afaik the non-enrichment widgets are InterMine 1.x UI specific so are filtered out upon success
   (fn [{db :db}]
-    {:im-operation
-     {:op (partial fetch/version-intermine (get-in db [:mines (:current-mine db) :service]))
+    {:im-chan
+     {:chan (fetch/version-intermine (get-in db [:mines (:current-mine db) :service]))
       :on-success [:assets/success-fetch-intermine-version (:current-mine db)]}}
     ))
 
