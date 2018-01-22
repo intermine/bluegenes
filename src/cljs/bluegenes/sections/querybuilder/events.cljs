@@ -195,26 +195,6 @@
 (defn get-letters [query]
   (let [logic (reader/read-string "(A and B or C or D)")]))
 
-
-;(reg-event-fx
-;  :qb/summarize-view
-;  (fn [{db :db} [_ view]]
-;    (let [
-;          service (get-in db [:mines (get-in db [:current-mine]) :service])
-;          id-path (str (im-path/trim-to-last-class (:model service) (join "." view)) ".id")
-;          order   (get-in db [:qb :order])
-;          query   (make-query
-;                    (:model service)
-;                    (get-in db [:qm :root-class])
-;                    (get-in db loc)
-;                    (get-in db [:qb :constraint-logic]))]
-;      {:db           db
-;       :im-operation {:on-success [:qb/success-summary id-path]
-;                      :op         (partial fetch/row-count
-;                                           service
-;                                           (assoc query :select [id-path]))}})))
-
-
 (defn view-map [model q]
   (->> (map (fn [v] (split v ".")) (:select q))
        (reduce (fn [total next] (assoc-in total next {:visible true})) {})))
