@@ -105,7 +105,7 @@
                                     "test/js"]
 
   :figwheel {:css-dirs ["resources/public/css"]
-             :ring-handler bluegenes.handler/dev-handler
+             ;:ring-handler bluegenes.handler/handler
              :reload-clj-files {:cljc true}}
 
   :less {:source-paths ["less"]
