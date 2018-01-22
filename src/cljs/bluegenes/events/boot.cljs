@@ -3,7 +3,6 @@
             [bluegenes.db :as db]
             [bluegenes.mines :as default-mines]
             [imcljs.fetch :as fetch]
-            [oops.core :refer [oget+]]
             [bluegenes.persistence :as persistence]))
 
 
@@ -55,7 +54,11 @@
             :halt? true}]})
 
 
-(defn im-tables-events-forwarder []
+(defn im-tables-events-forwarder
+  "Creates instructions for listening in on im-tables events.
+  Why? im-tables is its own re-frame application and it can save query results.
+  When its save-list-success event is seen, fire a BlueGenes event to re-fetch lists"
+  []
   {:register :im-tables-events ;;  <-- used
    :events #{:imt.io/save-list-success}
    :dispatch-to [:assets/fetch-lists]})
@@ -71,7 +74,8 @@
             (assoc new-mine-list mine-name details))) {} state-mines))
     ))
 
-(defn get-active-mine "Return the current mine if it still exists after a config update, or else just return the first one if the ID doesn't exist for some reason"
+(defn get-active-mine
+  "Return the current mine if it still exists after a config update, or else just return the first one if the ID doesn't exist for some reason"
   [all-mines mine-name]
   (let [mine-names (set (keys all-mines))]
     (if (contains? mine-names mine-name)
@@ -86,12 +90,15 @@
   :boot
   (fn [world [_ provided-identity]]
     (let [db (-> db/default-db
+                 ; Merge the various mine configurations from mines.cljc
                  (assoc :mines default-mines/mines)
+                 ; Store the user's identity map provided by the server via the client constructor
                  (update :auth assoc
                          :thinking? false
                          :identity provided-identity
                          :message nil
                          :error? false)
+                 ; Store our token (important for when fetching assets in the boot-flow above
                  (assoc-in [:mines (:id @(subscribe [:current-mine])) :service :token] (:token provided-identity)))
           state (persistence/get-state!)
           has-state? (seq state)
@@ -111,13 +118,17 @@
                :assets (:assets state)
                ;;we had assets in localstorage. We'll still load the fresh ones in the background in case they changed, but we can make do with these for now.
                :fetching-assets? false)
+         ; Boot the application asynchronously
          :async-flow (boot-flow db provided-identity)
+         ; Register an event sniffer for im-tables
          :forward-events (im-tables-events-forwarder)}
 
         {:db (assoc db
                :mines default-mines/mines
                :fetching-assets? true)
+         ; Boot the application asynchronously
          :async-flow (boot-flow db provided-identity)
+         ; Register an event sniffer for im-tables
          :forward-events (im-tables-events-forwarder)})
       )))
 
