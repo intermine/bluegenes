@@ -37,6 +37,18 @@
     (doall (map (fn [{:keys [on-success on-failure response-format op params]}]
                   (go (dispatch (conj on-success (<! (op)))))) v))))
 
+; This side effect provides HTTP support in a variety of ways. It uses cljs-http: https://github.com/r0man/cljs-http
+; Example usage:
+(comment
+  (reg-event-fx :some/event
+                (fn [world]
+                  {:bluegenes.effects/http
+                   ; or... ::http if the namespace is referred
+                   {:method :get
+                    :uri "/mymine"
+                    :json-params {:value 1 :another 2}
+                    :on-success [:some-success-event]
+                    :on-error [:some-failure-event]}})))
 (reg-fx
   ::http
   (let [token nil]
