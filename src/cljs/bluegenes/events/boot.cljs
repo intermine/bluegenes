@@ -7,55 +7,52 @@
             [bluegenes.persistence :as persistence]))
 
 
-(defn boot-flow [db ident]
-  (if ident
-    {:first-dispatch [:authentication/store-token (get db :current-mine) (:token ident)]
-     :rules [
-             ; Fetch a token before anything else then load assets
-             {:when :seen?
-              :events :authentication/store-token
-              :dispatch-n [[:assets/fetch-model]
-                           [:assets/fetch-lists]
-                           [:assets/fetch-class-keys]
-                           [:assets/fetch-templates]
-                           [:assets/fetch-widgets]
-                           [:assets/fetch-summary-fields]
-                           [:assets/fetch-intermine-version]
-                           [:bluegenes.sections.mymine.events/fetch-tree]]}
-             ; When all assets are loaded let bluegenes know
-             {:when :seen-all-of?
-              :events [:assets/success-fetch-model
-                       :assets/success-fetch-lists
-                       :assets/success-fetch-class-keys
-                       :assets/success-fetch-templates
-                       :assets/success-fetch-summary-fields
-                       :assets/success-fetch-widgets
-                       :assets/success-fetch-intermine-version]
-              :dispatch-n (list [:finished-loading-assets] [:save-state])
-              :halt? true}]}
-    {:first-dispatch [:authentication/fetch-anonymous-token (get db :current-mine)]
-     :rules [
-             ; Fetch a token before anything else then load assets
-             {:when :seen?
-              :events :authentication/store-token
-              :dispatch-n [[:assets/fetch-model]
-                           [:assets/fetch-lists]
-                           [:assets/fetch-class-keys]
-                           [:assets/fetch-templates]
-                           [:assets/fetch-widgets]
-                           [:assets/fetch-summary-fields]
-                           [:assets/fetch-intermine-version]]}
-             ; When all assets are loaded let bluegenes know
-             {:when :seen-all-of?
-              :events [:assets/success-fetch-model
-                       :assets/success-fetch-lists
-                       :assets/success-fetch-class-keys
-                       :assets/success-fetch-templates
-                       :assets/success-fetch-summary-fields
-                       :assets/success-fetch-widgets
-                       :assets/success-fetch-intermine-version]
-              :dispatch-n (list [:start-analytics] [:finished-loading-assets] [:save-state])
-              :halt? true}]}))
+(defn boot-flow
+  "Produces a set of re-frame instructions that load all of InterMine's assets into BlueGenes
+  See https://github.com/Day8/re-frame-async-flow-fx
+  The idea is that any URL routing (such as entering BlueGenes at the home page or a subsection)
+  is queued until all of the assets (data model, lists, templates etc) are fetched.
+  When finished, an event called :finished-loading-assets is dispatch which tells BlueGenes
+  it can continue routing."
+  [db ident]
+  ; First things first...
+  {:first-dispatch (if ident
+                     ; If we have an identity (and therefore a token) then store it
+                     [:authentication/store-token (get db :current-mine) (:token ident)]
+                     ; Otherwise go fetch an anonymous token
+                     [:authentication/fetch-anonymous-token (get db :current-mine)])
+   :rules [
+           ; When the store-token event has been dispatched then fetch the assets.
+           ; We wait for the token because some assets need a token for private data (lists, queries)
+           {:when :seen?
+            :events :authentication/store-token
+            :dispatch-n [[:assets/fetch-model]
+                         [:assets/fetch-lists]
+                         [:assets/fetch-class-keys]
+                         [:assets/fetch-templates]
+                         [:assets/fetch-widgets]
+                         [:assets/fetch-summary-fields]
+                         [:assets/fetch-intermine-version]
+                         ; If we have an identity then fetch the MyMine tags
+                         (when ident [:bluegenes.sections.mymine.events/fetch-tree])]}
+           ; When we've seen all of the events that indicating our assets have been fetched successfully...
+           {:when :seen-all-of?
+            :events [:assets/success-fetch-model
+                     :assets/success-fetch-lists
+                     :assets/success-fetch-class-keys
+                     :assets/success-fetch-templates
+                     :assets/success-fetch-summary-fields
+                     :assets/success-fetch-widgets
+                     :assets/success-fetch-intermine-version]
+            ; Then finished setting up BlueGenes
+            :dispatch-n [
+                         ; Start Google Analytics
+                         [:start-analytics]
+                         ; Set a flag that all assets are fetched (unqueues URL routing)
+                         [:finished-loading-assets]
+                         ; Save the current state to local storage
+                         [:save-state]]
+            :halt? true}]})
 
 
 (defn im-tables-events-forwarder []
