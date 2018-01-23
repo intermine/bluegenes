@@ -18,7 +18,7 @@
   ;; define routes here
   (defroute "/" []
             (dispatch [:set-active-panel :home-panel]))
-  
+
   (defroute "/debug" []
             (dispatch [:set-active-panel :debug-panel]))
 

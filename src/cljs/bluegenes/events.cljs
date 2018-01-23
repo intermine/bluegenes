@@ -98,11 +98,6 @@
                (assoc :search-term term))
        :suggest {:c suggest-chan :search-term term :source (get db :current-mine)}})))
 
-(reg-event-fx
-  :add-toast
-  (fn [db [_ message]]
-    (update-in db [:toasts] conj message)))
-
 (reg-event-db
   :test-progress-bar
   (fn [db [_ percent]]

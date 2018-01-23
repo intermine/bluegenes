@@ -145,11 +145,6 @@
     (get-in db [:cache :organisms])))
 
 (reg-sub
-  :toasts
-  (fn [db]
-    (get-in db [:toasts])))
-
-(reg-sub
   :current-mine
   (fn [db]
     (get-in db [:mines (get db :current-mine)])))
