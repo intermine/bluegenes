@@ -17,5 +17,6 @@ Checked the following pages load results successfully and allow you to proceed t
 - [ ] Search (full results page)
 - [ ] Report page loads, including homologues and tools
 - [ ] Region search
+- [ ] Login and logout works for more than one user (use test user demo@intermine.org pw demo if needed)
 
 This is not an exhaustive list - if you spot something else strange please bring it up!
