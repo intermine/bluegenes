@@ -6,7 +6,6 @@
             [oops.core :refer [ocall oget]]
             [clojure.string :as str :refer [starts-with? ends-with?]]
             [bluegenes.utils :refer [uncamel]]
-            [bluegenes.components.bootstrap :refer [tooltip-new]]
             [bluegenes.components.ui.constraint :refer [constraint]]
             [imcljs.path :as im-path]
             [cljs.reader :refer [read]]

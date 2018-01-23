@@ -26,23 +26,6 @@
                     (assoc :data-container "body")
                     (update :data-content render-to-static-markup)) rest])}))
 
-(defn tooltip-new
-  ;;DEPRECATED REPLACE WITH tooltip when encountered.
-  "Reagent wrapper for bootstrap's tooltip component.
-  Usage:
-  [tooltip [:i.fa.fa-question {:data-trigger hover
-                               :data-placement right
-                               :title Some string here]"
-  []
-  (reagent/create-class
-    {:component-did-mount
-     (fn [this]
-       (let [node (reagent/dom-node this)]
-         (ocall (-> node js/$) "tooltip")))
-     :reagent-render
-     (fn [props & [contents]]
-       [:span props contents])}))
-
  (defn tooltip
    "Reagent wrapper for bootstrap's tooltip component.
    Usage:
