@@ -137,13 +137,6 @@
       (add-ids-to-folders tree))))
 
 (reg-sub
-  ::folders
-  (fn [] (subscribe [::my-tree]))
-  (fn [tree]
-    {}
-    #_(mapcat flatten-folders (map (fn [[k v]] [k (assoc v :trail [k])]) tree))))
-
-(reg-sub
   ::selected
   (fn [db]
     (get-in db [:mymine :selected])))
@@ -348,23 +341,6 @@
                     :label (:title l)
                     :trail [:public (:title l)])))))))
 
-#_(reg-sub
-    ::unfilled
-    (fn [] [(subscribe [::as-list])
-            (subscribe [:lists/filtered-lists])
-            (subscribe [::my-tree])])
-    (fn [[as-list filtered-lists tree]]
-      (let [my-lists (map :id (filter (comp true? :authorized) filtered-lists))
-            filled   (remove nil? (map :id as-list))]
-        ; TODO This is broken until https://github.com/intermine/intermine/pull/1633 is fixed
-
-        (->> tree
-             (mapcat flatten-ids)
-             (map (comp :id second))
-             (remove nil?))
-        ;(.log js/console "filled" filled)
-        (clojure.set/difference my-lists filled))))
-
 (reg-sub
   ::context-menu-location
   (fn [db]
@@ -374,12 +350,6 @@
   ::dragging-over-old
   (fn [db]
     (get-in db [:mymine :dragging-over])))
-
-;(reg-sub
-;  ::context-menu-target
-;  (fn [] [(subscribe [::with-public]) (subscribe [::context-menu-location])])
-;  (fn [[tree location]]
-;    (when location (assoc (get-in tree location) :trail location))))
 
 (reg-sub
   ::context-menu-target
@@ -391,7 +361,6 @@
   (fn [] [(subscribe [::with-public]) (subscribe [::context-menu-location])])
   (fn [[tree location]]
     (assoc (get-in tree location) :trail location)))
-
 
 (reg-sub
   ::op-selected-items
@@ -442,22 +411,6 @@
   (fn [db]
     (get-in db [:mymine :menu-file-details])))
 
-(reg-sub
-  ::pure-tree
-  (fn [db]
-    (get-in db [:mymine :tree])))
-
-;(reg-sub
-;  ::a-list
-;  (fn [[_ specific-id]]
-;    (subscribe [:lists/filtered-lists]))
-;  (fn [filtered-lists [_ specific-id]]
-;    ; Need access to specific-id for something like:
-;    (filter #(= specific-id (:id %)) filtered-lists)
-;    ))
-
-
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (reg-sub
@@ -499,8 +452,6 @@
   (if-let [entry-id (:entry-id entry)]
     (isa? hierarchy (keyword "tag" entry-id) (keyword "tag" root-id))
     false))
-
-
 
 (reg-sub
   ::hierarchy
