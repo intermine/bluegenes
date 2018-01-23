@@ -71,21 +71,9 @@
      :visual-navbar-minechange []}))
 
 (reg-event-db
-  :async-assoc
-  (fn [db [_ location-vec val]]
-    (assoc-in db location-vec val)))
-
-(reg-event-db
-  :log-out
-  (fn [db]
-    (dissoc db :who-am-i)))
-
-(reg-event-db
   :handle-suggestions
   (fn [db [_ results]]
     (assoc db :suggestion-results (:results results))))
-
-
 
 (reg-event-fx
   :bounce-search
@@ -99,15 +87,9 @@
        :suggest {:c suggest-chan :search-term term :source (get db :current-mine)}})))
 
 (reg-event-db
-  :test-progress-bar
-  (fn [db [_ percent]]
-    (assoc db :progress-bar-percent percent)))
-
-(reg-event-db
   :cache/store-organisms
   (fn [db [_ res]]
     (assoc-in db [:cache :organisms] (:results res))))
-
 
 (reg-event-fx
   :cache/fetch-organisms
