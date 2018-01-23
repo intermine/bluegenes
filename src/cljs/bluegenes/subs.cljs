@@ -100,16 +100,6 @@
     (get-in db [:assets :lists])))
 
 (reg-sub
-  :listskw
-  (fn [db [_]]
-    (let [list-map (get-in db [:assets :lists])]
-      (reduce (fn [total [minekw lists]]
-                (doall (reduce (fn [col next-list]
-                                 (assoc col (keyword (name minekw) (name (:name next-list))) next-list))
-                               {} lists)))
-              {} list-map))))
-
-(reg-sub
   :summary-fields
   (fn [db _]
     (:summary-fields (:assets db))))
