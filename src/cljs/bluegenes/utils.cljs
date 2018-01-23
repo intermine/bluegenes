@@ -8,4 +8,5 @@
     (as-> s $
           (split $ #"(?=[A-Z][^A-Z])")
           (join " " $)
-          (capitalize $)) s))
+          (capitalize $))
+    s))
