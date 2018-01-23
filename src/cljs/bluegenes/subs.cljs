@@ -135,11 +135,6 @@
     (:items (:saved-data db))))
 
 (reg-sub
-  :tooltip
-  (fn [db]
-    (get-in db [:tooltip :saved-data])))
-
-(reg-sub
   :cache/organisms
   (fn [db]
     (get-in db [:cache :organisms])))
