@@ -130,11 +130,6 @@
     (:progress-bar-percent db)))
 
 (reg-sub
-  :saved-data
-  (fn [db _]
-    (:items (:saved-data db))))
-
-(reg-sub
   :cache/organisms
   (fn [db]
     (get-in db [:cache :organisms])))
