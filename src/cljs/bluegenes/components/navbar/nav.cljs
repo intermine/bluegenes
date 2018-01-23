@@ -2,7 +2,6 @@
   (:require [re-frame.core :refer [subscribe dispatch]]
             [reagent.core :as reagent]
             [bluegenes.components.search.typeahead :as search]
-            [bluegenes.components.tooltip.views :as tooltip]
             [accountant.core :refer [navigate!]]
             [oops.core :refer [ocall oget]]
             [bluegenes.components.progress_bar :as progress-bar]))
@@ -106,25 +105,6 @@
       (if @authed?
         [logged-in @authed?]
         [anonymous]))))
-
-(defn save-data-tooltip []
-  (let [label (reagent/atom nil)]
-    (reagent/create-class
-      {:component-did-mount
-       (fn [e] (reset! label (:label (reagent/props e))))
-       :reagent-render
-       (fn [tooltip-data]
-         [tooltip/main
-          {:content [:div.form-inline
-                     [:label "Name: "
-                      [:input.form-control
-                       {:autofocus true
-                        :type "text"
-                        :on-change (fn [e] (reset! label (.. e -target -value)))
-                        :placeholder @label}]]
-                     [:button.btn "Save"]]
-           :on-blur (fn []
-                      (dispatch [:save-saved-data-tooltip (:id tooltip-data) @label]))}])})))
 
 (defn active-mine-logo []
   [mine-icon @(subscribe [:current-mine])])
