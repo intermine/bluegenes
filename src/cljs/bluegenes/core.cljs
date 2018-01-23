@@ -46,5 +46,3 @@
   ; Initialize our bootstrap dropdowns
   (ocall (js/$ ".dropdown-toggle") :dropdown)
   (mount-root))
-
-;(modules/set-loaded! "app")
