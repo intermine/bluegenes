@@ -9,27 +9,6 @@
     (into (sorted-map) (get-in db [:qb :qm]))))
 
 (reg-sub
-  :qb/query-constraints
-  (fn [db]
-    (get-in db [:qb :query-constraints])))
-
-(reg-sub
-  :qb/query-is-valid?
-  (fn [db]
-    (get-in db [:qb :query-is-valid?])))
-
-(defn flatten-query [[k value] total views]
-  (let [new-total (conj total k)]
-    (if-let [children (not-empty (select-keys value (filter (complement keyword?) (keys value))))] ; Keywords are reserved for flags
-      (into [] (mapcat (fn [c] (flatten-query c new-total (conj views (assoc value :path new-total)))) children))
-      (conj views (assoc value :path new-total)))))
-
-(reg-sub
-  :qb/flattened
-  (fn [db]
-    (distinct (flatten-query (first (get-in db [:qb :qm])) [] []))))
-
-(reg-sub
   :qb/constraint-logic
   (fn [db]
     (join "" (drop-last (rest (apply vector (str (con-logic/vec->list (get-in db [:qb :constraint-logic])))))))))
@@ -40,9 +19,9 @@
     (get-in db [:qb :root-class])))
 
 (reg-sub
-  :qb/mappy
+  :qb/enhance-query
   (fn [db]
-    (get-in db [:qb :mappy])))
+    (get-in db [:qb :enhance-query])))
 
 (defn constraint-values
   "Walks down the query map and pulls all codes from constraints"
@@ -51,9 +30,9 @@
 
 (reg-sub
   :qb/constraint-value-count
-  :<- [:qb/mappy]
-  (fn [mappy]
-    (count (remove blank? (constraint-values mappy)))))
+  :<- [:qb/enhance-query]
+  (fn [enhance-query]
+    (count (remove blank? (constraint-values enhance-query)))))
 
 
 (reg-sub

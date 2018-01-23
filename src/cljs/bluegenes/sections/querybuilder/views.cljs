@@ -66,17 +66,17 @@
                  "Gene.organism.name"]})
 
 (defn attribute []
-  (let [mappy (subscribe [:qb/mappy])]
+  (let [enhance-query (subscribe [:qb/enhance-query])]
     (fn [model [k properties] & [trail sub]]
       (let [path      (conj trail (name k))
-            selected? (get-in @mappy path)]
+            selected? (get-in @enhance-query path)]
         [:li.haschildren
          [:span
           {:on-click (fn []
                        (if selected?
-                         (dispatch [:qb/mappy-remove-view path sub])
-                         (dispatch [:qb/mappy-add-view path sub])))}
-          (if (get-in @mappy path)
+                         (dispatch [:qb/enhance-query-remove-view path sub])
+                         (dispatch [:qb/enhance-query-add-view path sub])))}
+          (if (get-in @enhance-query path)
             [:svg.icon.icon-checkbox-checked [:use {:xlinkHref "#icon-checkbox-checked"}]]
             [:svg.icon.icon-checkbox-unchecked [:use {:xlinkHref "#icon-checkbox-unchecked"}]])
           [:span.qb-label (:displayName properties)]]]))))
@@ -102,7 +102,7 @@
           [:span.label-button
            {:on-click (fn [e]
                         (ocall e :stopPropagation)
-                        (dispatch [:qb/mappy-add-summary-views path sub]))}
+                        (dispatch [:qb/enhance-query-add-summary-views path sub]))}
            "Summary"]]
          (when open?
            (into [:ul]
@@ -113,7 +113,7 @@
                        [:li  [:span
                               (into
                                [:select.form-control
-                                {:on-change (fn [e] (dispatch [:qb/mappy-choose-subclass path (oget e :target :value)]))}]
+                                {:on-change (fn [e] (dispatch [:qb/enhance-query-choose-subclass path (oget e :target :value)]))}]
                                (map (fn [subclass]
                                       [:option {:value subclass} (uncamel (name subclass))]) (conj subclasses (:referencedType properties))))]])))
                   (if sub
@@ -131,7 +131,7 @@
               [:li [:div
                     {:style {:white-space "nowrap"}}
                     [:button.btn.btn-default.btn-slim
-                     {:on-click (fn [] (dispatch [:qb/mappy-add-summary-views [root-class]]))}
+                     {:on-click (fn [] (dispatch [:qb/enhance-query-add-summary-views [root-class]]))}
                      [:span.label-button
                       "Summary"]]
                     [:button.btn.btn-primary.btn-slim
@@ -158,11 +158,11 @@
            (when-let [s (:subclass properties)] [:span.label.label-default (uncamel s)])
            [:svg.icon.icon-bin
             {:on-click (if (> (count path) 1)
-                         (fn [] (dispatch [:qb/mappy-remove-view path]))
-                         (fn [] (dispatch [:qb/mappy-clear-query path])))}
+                         (fn [] (dispatch [:qb/enhance-query-remove-view path]))
+                         (fn [] (dispatch [:qb/enhance-query-clear-query path])))}
             [:use {:xlinkHref "#icon-bin"}]]
 
-           [:svg.icon.icon-filter {:on-click (fn [] (dispatch [:qb/mappy-add-constraint path]))} [:use {:xlinkHref "#icon-filter"}]]
+           [:svg.icon.icon-filter {:on-click (fn [] (dispatch [:qb/enhance-query-add-constraint path]))} [:use {:xlinkHref "#icon-filter"}]]
            (when-let [c (:id-count properties)]
              [:span.label.label-soft
               {:class (when (= 0 c) "label-no-results")
@@ -178,21 +178,21 @@
                                    :path (join "." path)
                                    :lists @lists
                                    :code (:code con)
-                                   :on-remove (fn [] (dispatch [:qb/mappy-remove-constraint path idx]))
+                                   :on-remove (fn [] (dispatch [:qb/enhance-query-remove-constraint path idx]))
                                     ;:possible-values (when (some? (:possible-values properties)) (map :item (:possible-values properties)))
                                    :value (:value con)
                                    :op (:op con)
                                    :on-select-list (fn [c]
-                                                     (dispatch [:qb/mappy-update-constraint path idx c])
-                                                     (dispatch [:qb/mappy-build-im-query true]))
+                                                     (dispatch [:qb/enhance-query-update-constraint path idx c])
+                                                     (dispatch [:qb/enhance-query-build-im-query true]))
                                    :on-change-operator (fn [x]
-                                                         (dispatch [:qb/mappy-update-constraint path idx x])
-                                                         (dispatch [:qb/mappy-build-im-query true]))
+                                                         (dispatch [:qb/enhance-query-update-constraint path idx x])
+                                                         (dispatch [:qb/enhance-query-build-im-query true]))
                                    :on-change (fn [c]
-                                                (dispatch [:qb/mappy-update-constraint path idx c]))
+                                                (dispatch [:qb/enhance-query-update-constraint path idx c]))
                                    :on-blur (fn [c]
-                                              (dispatch [:qb/mappy-update-constraint path idx c])
-                                              (dispatch [:qb/mappy-build-im-query true]))
+                                              (dispatch [:qb/enhance-query-update-constraint path idx c])
+                                              (dispatch [:qb/enhance-query-build-im-query true]))
                                     ;(dispatch [:qb/build-im-query])
 
                                    :label? false]]]) constraints)))
@@ -205,13 +205,13 @@
                     (map (fn [n] [queryview-node model n path]) (sort classes))))))]))))
 
 (defn queryview-browser []
-  (let [mappy (subscribe [:qb/mappy])]
+  (let [enhance-query (subscribe [:qb/enhance-query])]
     (fn [model]
-      (if (not-empty @mappy)
+      (if (not-empty @enhance-query)
         [:div.query-browser
          (into [:ul.tree]
                (map (fn [n]
-                      [queryview-node model n]) @mappy))]
+                      [queryview-node model n]) @enhance-query))]
         [:div
          [:div "Please select at least one attribute from the Model Browser."]
          [:button.btn.btn-primary.btn-raised
@@ -253,7 +253,7 @@
         {:on-click (fn [] (dispatch [:qb/export-query]))}
         (str "Show All " (when-let [c (:iTotalRecords @results-preview)] (str c " ")) "Rows")]
        [:button.btn.btn-danger
-        {:on-click (fn [] (dispatch [:qb/mappy-clear-query]))}
+        {:on-click (fn [] (dispatch [:qb/enhance-query-clear-query]))}
         "Clear Query"]])))
 
 (defn preview [result-count]
@@ -311,7 +311,7 @@
       [:pre (str (->xml (:model (:service @current-mine)) @query))])))
 
 (defn query-viewer []
-  (let [mappy        (subscribe [:qb/mappy])
+  (let [enhance-query        (subscribe [:qb/enhance-query])
         current-mine (subscribe [:current-mine])
         query        (subscribe [:qb/im-query])
         tab-index    (reagent/atom 0)
@@ -329,10 +329,10 @@
                [:h4 "Constraint Logic"]
                [logic-box]])]
          1 [sortable-list])
-       (when (not-empty @mappy) [controls])])))
+       (when (not-empty @enhance-query) [controls])])))
 
 (defn column-order-preview []
-  (let [mappy        (subscribe [:qb/mappy])
+  (let [enhance-query        (subscribe [:qb/enhance-query])
         current-mine (subscribe [:current-mine])
         tab-index    (reagent/atom 0)
         prev         (subscribe [:qb/preview])]
@@ -346,7 +346,7 @@
          1 [xml-view])])))
 
 (defn main []
-  (let [mappy        (subscribe [:qb/mappy])
+  (let [enhance-query        (subscribe [:qb/enhance-query])
         query        (subscribe [:qb/query])
         current-mine (subscribe [:current-mine])
         root-class   (subscribe [:qb/root-class])
