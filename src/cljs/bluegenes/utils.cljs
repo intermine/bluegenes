@@ -1,12 +1,11 @@
 (ns bluegenes.utils
-  (:require [clojure.string :refer [blank? join split upper-case]]))
-
-(def not-blank? (complement blank?))
+  (:require [clojure.string :refer [blank? join split capitalize]]))
 
 (defn uncamel
   "Uncamel case a string. Example: thisIsAString -> This is a string"
   [s]
-  (if (not-blank? s)
-    (join (-> (split (join " " (split s #"(?=[A-Z][^A-Z])")) "")
-              (update 0 upper-case)))
-    s))
+  (if-not (blank? s)
+    (as-> s $
+          (split $ #"(?=[A-Z][^A-Z])")
+          (join " " $)
+          (capitalize $)) s))
