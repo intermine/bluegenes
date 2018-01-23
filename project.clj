@@ -1,4 +1,4 @@
-(def props {:version "0.9.1-SNAPSHOT"})
+(def props {:version "0.9.2-SNAPSHOT"})
 
 (defproject intermine/bluegenes (:version props)
   :dependencies [; Clojure
@@ -119,7 +119,8 @@
                     :resource-paths ["config/prod"]
                     :plugins []}
              :uberjar {:resource-paths ["config/prod"]
-                       :prep-tasks ["clean" ["less" "once"] ["cljsbuild" "once" "min"] "compile"]}}
+                       :prep-tasks ["clean" ["less" "once"] ["cljsbuild" "once" "min"] "compile"]
+                       :aot :all}}
 
   :cljsbuild {:builds {:dev {:source-paths ["src/cljs"]
                              :figwheel {:on-jsload "bluegenes.core/mount-root"}
@@ -155,8 +156,6 @@
   :main bluegenes.core
 
   :uberjar-name "bluegenes.jar"
-
-  ;:aot [bluegenes.server]
 
   :repositories [
                  ["clojars"
