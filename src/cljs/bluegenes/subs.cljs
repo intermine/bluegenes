@@ -71,11 +71,13 @@
   (fn [db _]
     (:fetching-report? db)))
 
+; TODO - This is used by the report page. There must be a better way.
 (reg-sub
   :runnable-templates
   (fn [db _]
     (:templates (:report db))))
 
+; TODO - This is used by the report page. There must be a better way.
 (reg-sub
   :collections
   (fn [db _]
@@ -109,6 +111,7 @@
   (fn [db [_ class-kw]]
     (get-in db [:assets :summary-fields (:current-mine db)])))
 
+; TODO - This is used by the report page. There must be a better way.
 (reg-sub
   :report
   (fn [db _]
