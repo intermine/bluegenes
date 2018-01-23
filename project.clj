@@ -1,4 +1,4 @@
-(def props {:version "0.9.0"})
+(def props {:version "0.9.1-SNAPSHOT"})
 
 (defproject intermine/bluegenes (:version props)
   :dependencies [; Clojure

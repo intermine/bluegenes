@@ -8,10 +8,14 @@
 ;; It's because figwheel likes to highjack routes at / and display a default page if there is no index.html in place.
 ;; Naughty figwheel!
 
-(defn version
-  "Read the project's version string from project.clj"
-  []
-  (:version (-> "project.clj" slurp read-string (nth 2))))
+
+; *** IMPORTANT ***
+; The version binding below will be nil when BlueGenes is deployed as a dependency of another project (for example: Gradle).
+; This is because project.clj does not get packaged into the "skinny" jar file when BlueGenes is pushed to clojars.
+; TODO: Figure out how to get BlueGenes version without relying on project.clj
+(defn version [] (:version (try
+                             (-> "project.clj" slurp read-string (nth 2))
+                             (catch Exception e nil))))
 
 ; A pure CSS loading animation to be displayed before the bluegenes javascript is read:
 (def loader-style
