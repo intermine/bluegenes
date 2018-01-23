@@ -1,8 +1,5 @@
 (ns bluegenes.events.auth
-  (:require-macros [cljs.core.async.macros :refer [go go-loop]])
-  (:require [re-frame.core :refer [subscribe reg-event-db reg-event-db reg-event-fx]]
-            [cljs.core.async :refer [<!]]
-            [imcljs.auth :as im-auth]
+  (:require [re-frame.core :refer [subscribe reg-event-db reg-event-fx]]
             [bluegenes.effects :as fx]))
 
 (def error-messages {401 "Invalid username or password"
