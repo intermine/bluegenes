@@ -79,7 +79,7 @@
           (if (get-in @mappy path)
             [:svg.icon.icon-checkbox-checked [:use {:xlinkHref "#icon-checkbox-checked"}]]
             [:svg.icon.icon-checkbox-unchecked [:use {:xlinkHref "#icon-checkbox-unchecked"}]])
-          [:span.qb-label (str " " (uncamel (:name properties)))]]]))))
+          [:span.qb-label (:displayName properties)]]]))))
 
 (defn node []
   (let [menu (subscribe [:qb/menu])]
@@ -98,7 +98,7 @@
           [:svg.icon.icon-plus
            {:class (when open? "arrow-down")}
            [:use {:xlinkHref "#icon-plus"}]]
-          [:span.qb-class (uncamel (:name properties))]
+          [:span.qb-class (:displayName properties)]
           [:span.label-button
            {:on-click (fn [e]
                         (ocall e :stopPropagation)
@@ -114,7 +114,8 @@
                               (into
                                [:select.form-control
                                 {:on-change (fn [e] (dispatch [:qb/mappy-choose-subclass path (oget e :target :value)]))}]
-                               (map (fn [subclass] [:option {:value subclass} (uncamel (name subclass))]) (conj subclasses (:referencedType properties))))]])))
+                               (map (fn [subclass]
+                                      [:option {:value subclass} (uncamel (name subclass))]) (conj subclasses (:referencedType properties))))]])))
                   (if sub
                     (map (fn [i] [attribute model i path sub]) (sort (remove (comp (partial = :id) first) (im-path/attributes model sub))))
                     (map (fn [i] [attribute model i path sub]) (sort (remove (comp (partial = :id) first) (im-path/attributes model (:referencedType properties))))))
