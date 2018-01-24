@@ -202,7 +202,7 @@
                          (let [class? (im-path/class? model path)
                                op (or op (if class? "LOOKUP" "="))]
                            [:div.constraint-component
-                            [:div.input-group
+                            [:div.input-group.constraint-input
                              [constraint-operator
                               :model model
                               :path path
