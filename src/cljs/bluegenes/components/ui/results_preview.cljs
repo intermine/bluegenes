@@ -26,7 +26,7 @@
        [:thead
         (into [:tr]
               (map (fn [h]
-                     ^{:key h} [table-header h])
+                     [table-header h])
                    (:columnHeaders query-results)))]
        [:tbody
         (if

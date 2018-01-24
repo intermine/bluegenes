@@ -140,7 +140,7 @@
                             ; Same for left arrows
                             (re-find #"<-{1,}" part) [:svg.icon.icon-arrow-left [:use {:xlinkHref "#icon-arrow-left"}]]
                             ; Otherwise just return the section of text within a span
-                            :else [:span part])))))
+                            :else [:span (str part " ")])))))
         [:div.description
          {:dangerouslySetInnerHTML {:__html (:description query)}}]
         (if (= (name id) (:name @selected-template))
