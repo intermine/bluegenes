@@ -54,7 +54,7 @@
                  :data-placement "top"
                  :data-trigger   "hover"}
           ^{:key p-value}
-          [:span description]]]]
+          [:a description]]]]
        [:div.col-xs-4 [:span {:style {:font-size "0.8em"}} (.toExponential p-value 6)]]]]]))
 
 (defn has-text?
