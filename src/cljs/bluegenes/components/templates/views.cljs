@@ -83,6 +83,7 @@
                          :path (:path con)
                          :value (:value con)
                          :op (:op con)
+                         :label (s/join " > " (take-last 2 (s/split (im-path/friendly (:model @service) (:path con)) #" > ")))
                          :code (:code con)
                          :hide-code? true
                          :label? true
