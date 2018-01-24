@@ -212,7 +212,7 @@
                               :lists lists
                               :on-change (fn [op] ((or on-change-operator on-change) {:code code :path path :value value :op op}))]
                              [:div
-                              [:span label]
+                              [:span.constraint-component-label label]
                               (cond
                                 ; If this is a LIST constraint then show a list dropdown
                                 (or (= op "IN")
