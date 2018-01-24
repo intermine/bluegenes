@@ -76,7 +76,7 @@
            ; Only show editable constraints, but don't filter because we want the index!
            (->> (keep-indexed (fn [idx con] (if (:editable con) [idx con])) (:where @selected-template))
                 (map (fn [[idx {:keys [switched switchable] :as con}]]
-                       [:div
+                       [:div.template-constraint-container
                         [constraint
                          :model (:model @service)
                          :typeahead? false
