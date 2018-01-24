@@ -100,12 +100,15 @@
   []
   (let [component (reagent/atom nil)
         focused?  (reagent/atom false)]
-    (fn [& {:keys [model path value typeahead? on-change on-blur allow-possible-values possible-values]}]
+    (fn [& {:keys [disabled model path value typeahead? on-change on-blur
+                   allow-possible-values possible-values disabled]}]
       [:div.constraint-text-input
        {:ref (fn [e] (reset! component e))
         :class (when @focused? "open")}
        [:input.form-control.dropdown
         {:data-toggle "none"
+         :disabled disabled
+         :class (when disabled "disabled")
          :type "text"
          :on-focus (fn [e] (reset! focused? true))
          :on-change (fn [e] (on-change (oget e :target :value)))
@@ -148,10 +151,10 @@
   :on-change  A function to call with the new operator
   :lists      (Optional) if provided, automatically disable list constraints
               if there are no lists of that type"
-  (fn [& {:keys [model path op on-change lists]}]
+  (fn [& {:keys [model path op on-change lists disabled]}]
     [:div.input-group-btn.dropdown.constraint-operator
      [:button.btn.btn-default.dropdown-toggle
-      {:data-toggle "dropdown"}
+      {:data-toggle "dropdown" :disabled disabled}
       (str (constraint-label op) " ") [:span.caret {:style {:margin-left "5px"}}]]
      (let [path-class            (im-path/class model path)
            any-lists-with-class? (some? (some (fn [list] (= path-class (keyword (:type list)))) lists))
@@ -194,7 +197,8 @@
                                 (dispatch [:cache/fetch-possible-values path])))
        :reagent-render (fn [& {:keys [lists model path value op code on-change
                                       on-select-list on-change-operator on-remove
-                                      on-blur label? possible-values typeahead? hide-code?]}]
+                                      on-blur label? possible-values typeahead? hide-code?
+                                      disabled]}]
                          (let [class? (im-path/class? model path)
                                op (or op (if class? "LOOKUP" "="))]
                            [:div.constraint-component
@@ -202,6 +206,7 @@
                              [constraint-operator
                               :model model
                               :path path
+                              :disabled disabled
                               ; Default to an OP if one has not been given
                               :op op
                               :lists lists
@@ -212,6 +217,7 @@
                                    (= op "NOT IN")) [list-dropdown
                                                      :value value
                                                      :lists lists
+                                                     :disabled disabled
                                                      :restrict-type (im-path/class model path)
                                                      :on-change (fn [list]
                                                                   ((or on-select-list on-change) {:path path :value list :code code :op op}))]
@@ -221,6 +227,7 @@
                                       :value value
                                       :typeahead? typeahead?
                                       :path path
+                                      :disabled disabled
                                       :allow-possible-values (and (not= op "IN") (not= op "NOT IN"))
                                       :possible-values @pv
                                       :on-change (fn [val] (on-change {:path path :value val :op op :code code}))

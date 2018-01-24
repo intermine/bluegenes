@@ -86,6 +86,7 @@
                          :code (:code con)
                          :hide-code? true
                          :label? true
+                         :disabled (= switched "OFF")
                          :lists (second (first @lists))
                          :on-change (fn [new-constraint]
                                       (dispatch [:template-chooser/replace-constraint
