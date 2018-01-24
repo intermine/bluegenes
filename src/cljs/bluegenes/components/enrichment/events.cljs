@@ -46,29 +46,6 @@
   (fn [{db :db} [_ value]]
     {:db (assoc-in db [:results :text-filter] value)}))
 
-(reg-event-fx
-  :enrichment/set-query
-  (abort-spec specs/im-package)
-  (fn [{db :db} [_ {:keys [source value type] :as package}]]
-    (let [model (get-in db [:mines source :service :model])]
-      {:db (update-in db [:results] assoc
-                      :query value
-                      :package package
-                      ;:service (get-in db [:mines source :service])
-                      :history [package]
-                      :history-index 0
-                      :query-parts (q/group-views-by-class model value)
-                      :enrichment-results nil)
-       ; TOOD ^:flush-dom
-       :dispatch-n [[:enrichment/enrich]
-                    [:im-tables.main/replace-all-state
-                     [:results :fortable]
-                     {:settings {:links {:vocab {:mine (name source)}
-                                         :on-click (fn [val] (accountant/navigate! val))}}
-                      :query value
-                      :service (get-in db [:mines source :service])}]]})))
-
-
 (defn what-we-can-enrich
   "Returns list of columns in the results view that have widgets available for enrichment."
   [widgets query-parts]

@@ -8,6 +8,10 @@
             [dommy.core :as dommy :refer-macros [sel sel1]]
             [bluegenes.components.ui.list_dropdown :refer [list-dropdown]]))
 
+; These are what appear in a constraint drop down in order. Each map contains:
+;  :op         - The syntax found in InterMine Query Language
+;  :label      - A more friendly version to display to users
+;  :applies-to - The Java type that represents the field in InterMine
 (def operators [{:op "LOOKUP"
                  :label "Lookup"
                  :applies-to [nil]}
@@ -51,14 +55,21 @@
                  :label "None of"
                  :applies-to []}])
 
-(defn applies-to? [type op]
+(defn applies-to?
+  "Given a field type (ex java.lang.Double) return all constraint maps that support that type"
+  [type op]
   (some true? (map (partial = type) (:applies-to op))))
 
-(defn constraint-label [op]
+(defn constraint-label
+  "Return the label for a given operator.
+  This looks a little complicated because we want our constraints to have order
+  so we need to filter the collection, get the first constraint map (they should all be unique anyway)
+  then gets its label"
+  [op]
   (:label (first (filter #(= op (:op %)) operators))))
 
 (defn has-text?
-  "Return true if a label contains a string"
+  "Return true v contains a string"
   [string v]
   (if string
     (if v
@@ -67,7 +78,8 @@
     true))
 
 (defn has-three-matching-letters?
-  "Return true if a label contains a string"
+  "Return true if v contains a string and that string is 3 or more characters.
+  (Silly but it speeds up text filtering)"
   [string v]
   (if (and string (>= (count string) 3))
     (if v
@@ -75,7 +87,7 @@
       false)
     false))
 
-
+; Make NodeList javascript objects seqable (can be used with map / reduce etc)
 (extend-type js/NodeList
   ISeqable
   (-seq [array] (array-seq array 0)))
@@ -83,7 +95,9 @@
 (defn set-text-value [node value]
   (when node (-> (sel1 node :input) (dommy/set-value! value))))
 
-(defn constraint-text-input []
+(defn constraint-text-input
+  "A component that represents the freeform textbox for String / Lookup constraints"
+  []
   (let [component (reagent/atom nil)
         focused?  (reagent/atom false)]
     (fn [& {:keys [model path value typeahead? on-change on-blur allow-possible-values possible-values]}]
@@ -182,7 +196,7 @@
                                       on-select-list on-change-operator on-remove
                                       on-blur label? possible-values typeahead? hide-code?]}]
                          (let [class? (im-path/class? model path)
-                               op     (or op (if class? "LOOKUP" "="))]
+                               op (or op (if class? "LOOKUP" "="))]
                            [:div.constraint-component
                             [:div.input-group
                              [constraint-operator

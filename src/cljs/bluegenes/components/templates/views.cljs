@@ -4,8 +4,6 @@
             [accountant.core :refer [navigate!]]
             [clojure.string :refer [split join blank?]]
             [json-html.core :as json-html]
-            [bluegenes.components.imcontrols.views :refer [op-dropdown list-dropdown]]
-            [bluegenes.components.inputgroup :as input]
             [bluegenes.components.lighttable :as lighttable]
             [imcljs.path :as im-path]
             [bluegenes.components.ui.constraint :refer [constraint]]
@@ -15,7 +13,7 @@
 
 
 (defn categories []
-  (let [categories        (subscribe [:template-chooser-categories])
+  (let [categories (subscribe [:template-chooser-categories])
         selected-category (subscribe [:selected-template-category])]
     (fn []
       (into [:ul.nav.nav-pills.template-categories
@@ -44,7 +42,7 @@
   "Preview results of template as configured by the user or default config"
   [results-preview fetching-preview]
   (let [fetching-preview? (subscribe [:template-chooser/fetching-preview?])
-        results-preview   (subscribe [:template-chooser/results-preview])]
+        results-preview (subscribe [:template-chooser/results-preview])]
     [:div.col-xs-8.preview
      [:h4 "Results Preview"]
      [preview-table
@@ -61,9 +59,9 @@
 (defn select-template-settings
   "UI component to allow users to select template details, e.g. select a list to be in, lookup value greater than, less than, etc."
   [selected-template]
-  (let [service   (subscribe [:selected-template-service])
+  (let [service (subscribe [:selected-template-service])
         row-count (subscribe [:template-chooser/count])
-        lists     (subscribe [:lists])]
+        lists (subscribe [:lists])]
     [:div.col-xs-4.border-right
      (into [:form.form]
            ; Only show editable constraints, but don't filter because we want the index!
@@ -94,7 +92,7 @@
     (if (> (count tagvec) 0)
       (map (fn [tag]
              (let [tag-parts (clojure.string/split tag #":")
-                   tag-name  (peek tag-parts)
+                   tag-name (peek tag-parts)
                    is-aspect (and (= 3 (count tag-parts)) (= "aspect" (nth tag-parts 1)))]
                (if is-aspect
                  [:span.tag-type {:class (str "type-" tag-name)} tag-name]
@@ -114,12 +112,18 @@
                      (if (not= (name id) (:name @selected-template))
                        (dispatch [:template-chooser/choose-template id])))
          :class (if (= (name id) (:name @selected-template)) "selected")}
-        (into [:h4] (->> (s/split (:title query) #"-{1,}>")
-                         (interpose [:svg.icon.icon-arrow-right [:use {:xlinkHref "#icon-arrow-right"}]])
-                         (map (fn [part]
-                                (if (string? part)
-                                  (interpose [:svg.icon.icon-arrow-left [:use {:xlinkHref "#icon-arrow-left"}]] (s/split part #"<-{1,}"))
-                                  part)))))
+        ; Replace ASCII arrows in the template's title with SVG arrows
+        (into [:h4]
+              (->> (s/split (:title query) #" ") ; Split the title on space
+                   ; Map over each part and replace any ASCII arrows with SVG icons
+                   (map (fn [part]
+                          (cond
+                            ; If this part of text equals right arrow of any length then return an SVG right arrow
+                            (re-find #"-{1,}>" part) [:svg.icon.icon-arrow-right [:use {:xlinkHref "#icon-arrow-right"}]]
+                            ; Same for left arrows
+                            (re-find #"<-{1,}" part) [:svg.icon.icon-arrow-left [:use {:xlinkHref "#icon-arrow-left"}]]
+                            ; Otherwise just return the section of text within a span
+                            :else [:span part])))))
         [:div.description
          {:dangerouslySetInnerHTML {:__html (:description query)}}]
         (if (= (name id) (:name @selected-template))
@@ -142,7 +146,7 @@
        [:svg.icon.icon-wondering [:use {:xlinkHref "#icon-wondering"}]]
        " No templates available"
        (let [category-filter (subscribe [:selected-template-category])
-             text-filter     (subscribe [:template-chooser/text-filter])
+             text-filter (subscribe [:template-chooser/text-filter])
              filters-active? (or (some? @category-filter) (not (blank? @text-filter)))]
          (cond filters-active?
 

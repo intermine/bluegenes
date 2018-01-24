@@ -1,3 +1,4 @@
+
 # BlueGenes
 ## About
 BlueGenes is designed to make searching and analysing genomic data easy. It's powered by [InterMine](http://intermine.org/) web services, meaning that the data from nearly 30 InterMines worldwide can be accessed from the same familiar interface.
@@ -144,21 +145,29 @@ One of the easiest ways to deploy the prod minified version is to set up [Dokku]
 
 	git remote add my-awesome-server bluegenes@my-awesome-server.git
         git push my-awesome-server master
-	
+
 Also see the note in the next section about Postgres
 
 ### Setting up bluegenes for remote deployment
 
-Ensure that you set all [config variables](ADD LINK) and point to an existing postgres database. 
+Ensure that you set all [config variables](ADD LINK) and point to an existing postgres database.
 
-In the case of **Heroku**, that means editing the app on the Heroku dashboard and add a Postgres service.  
-For **Dokku**, use the postgres plugin to link a postgres database. 
+In the case of **Heroku**, that means editing the app on the Heroku dashboard and add a Postgres service.
+For **Dokku**, use the postgres plugin to link a postgres database.
 
 
 [lein]: https://github.com/technomancy/leiningen
 [bower]: http://bower.io/
 [npm]: https://www.npmjs.com/
 [nodejs]: https://nodejs.org/
+
+### Deploying to Clojars
+
+When deploying BlueGenes to Clojars, the JAR file should include all compiled assets include javascript, less, and the vendor libraries. This allows other projects to include BlueGenes as a dependency and deploy the client and server without needing to compile BlueGenes. To deploy a compiled JAR to clojars, include the `uberjar` profile when running the `lein deploy clojars` command:
+```bash
+$ lein with-profile +uberjar deploy clojars
+```
+
 
 ### Further help needed?
 

@@ -15,11 +15,6 @@
     true))
 
 (reg-sub
-  :lists/selected
-  (fn [db]
-    (get-in db [:lists :selected])))
-
-(reg-sub
   :lists/text-filter
   (fn [db]
     (get-in db [:lists :controls :filters :text-filter])))
@@ -33,14 +28,6 @@
   :lists/sort-order
   (fn [db]
     (get-in db [:lists :controls :sort])))
-
-(defn build-comparer [[k v]]
-  (comparator (fn [x y]
-                (let [f (case v :asc < :desc > nil =)]
-                  (cond
-                    (nil? (get x k)) (= x y)
-                    (string? (get x k)) (f (upper-case (get x k)) (upper-case (get y k)))
-                    :else nil)))))
 
 (defn tag-check?
   "Does this list contain (or not contain) a particular tag?"

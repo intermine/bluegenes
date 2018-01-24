@@ -53,8 +53,8 @@
 
 
 ; See config/[env]/config.edn
+; This stateful binding becomes our database connection when (mount/start) is called from the bluegenes.server namespace
 (defstate db :start (let [db-config (gather-db-config env)]
-                      (infof
-                        "Starting DB connection pool to //%s:%s/%s"
-                        (:db-host db-config) (:db-port db-config) (:db-name db-config))
+                      (infof "Starting DB connection pool to //%s:%s/%s"
+                             (:db-host db-config) (:db-port db-config) (:db-name db-config))
                       {:datasource (make-datasource (hikarify-db-spec db-config))}))

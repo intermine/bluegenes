@@ -4,20 +4,22 @@
             [oops.core :refer [oget]]))
 
 (defn has-text?
-  "Return true if a label contains a string"
+  "Returns true if the details vector contains a string"
   [string details]
   (if string
     (re-find (re-pattern (str "(?i)" string)) (clojure.string/join " " (map details [:name :description])))
     true))
 
 (defn has-type?
-  "Return true if a label contains a string"
+  "Returns true if list is of a certain type"
   [type list]
   (if type
     (= type (keyword (:type list)))
     true))
 
-(defn im-lists []
+(defn im-lists
+  "Component: a list of intermine lists"
+  []
   (fn [& {:keys [lists on-change]}]
     (into [:ul]
           (map (fn [{:keys [name title size]}]

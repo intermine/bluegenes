@@ -1,60 +1,64 @@
 (ns bluegenes.routes
   (:require-macros [secretary.core :refer [defroute]])
-  (:import goog.History)
   (:require [secretary.core :as secretary]
             [accountant.core :as accountant]
-            [re-frame.core :as re-frame :refer [subscribe]]))
+            [re-frame.core :refer [dispatch]]))
 
-
-(defn app-routes []
+(defn app-routes
+  "When called, define client side URL routes and capture them in the browser history.
+  The majority of the routes fire a :set-active-panel but ours is slightly different
+  from what's in the re-frame boilerplate. Our :set-active-panel event takes some extra values:
+  [:set-active-panel
+  :panel-name
+  {some data to store in {:db {:panel-params}}
+  :some-event-to-fire-after-the-route-has-dispatched]"
+  []
   (secretary/set-config! :prefix "#")
   ;; --------------------
   ;; define routes here
   (defroute "/" []
-            (re-frame/dispatch [:set-active-panel :home-panel]))
-
-  (defroute "/about" []
-            (re-frame/dispatch [:set-active-panel :about-panel]))
+            (dispatch [:set-active-panel :home-panel]))
 
   (defroute "/debug" []
-            (re-frame/dispatch [:set-active-panel :debug-panel]))
+            (dispatch [:set-active-panel :debug-panel]))
 
   (defroute "/help" []
-            (re-frame/dispatch [:set-active-panel :help-panel]))
+            (dispatch [:set-active-panel :help-panel]))
 
   (defroute "/templates" []
-            (re-frame/dispatch [:set-active-panel :templates-panel]))
+            (dispatch [:set-active-panel :templates-panel]))
 
   (defroute "/upload" []
-            (re-frame/dispatch [:set-active-panel :upload-panel]))
+            (dispatch [:set-active-panel :upload-panel]))
 
   (defroute "/upload/:step" {step :step}
-            (re-frame/dispatch [:set-active-panel :upload-panel {:step (keyword step)}]))
+            (dispatch [:set-active-panel :upload-panel {:step (keyword step)}]))
 
   (defroute "/explore" []
-            (re-frame/dispatch [:set-active-panel :explore-panel]))
+            (dispatch [:set-active-panel :explore-panel]))
 
   (defroute "/search" []
-            (re-frame/dispatch [:set-active-panel :search-panel]))
+            (dispatch [:set-active-panel :search-panel]))
 
   (defroute "/querybuilder" []
-            (re-frame/dispatch [:set-active-panel :querybuilder-panel
-                                nil
-                                [:qb/make-tree]]))
+            (dispatch [:set-active-panel
+                       :querybuilder-panel
+                       nil
+                       [:qb/make-tree]]))
 
   (defroute "/results" []
-            (re-frame/dispatch [:set-active-panel :results-panel]))
+            (dispatch [:set-active-panel :results-panel]))
 
   (defroute "/regions" []
-            (re-frame/dispatch [:set-active-panel :regions-panel]))
+            (dispatch [:set-active-panel :regions-panel]))
 
   (defroute "/mymine" []
-            (re-frame/dispatch [:set-active-panel :mymine-panel]))
+            (dispatch [:set-active-panel :mymine-panel]))
 
   (defroute "/reportpage/:mine/:type/:id" [mine type id]
-            (re-frame/dispatch [:set-active-panel :reportpage-panel
-                                {:type type :id id :mine mine}
-                                [:load-report mine type id]]))
+            (dispatch [:set-active-panel :reportpage-panel
+                       {:type type :id id :mine mine}
+                       [:load-report mine type id]]))
 
   ;; --------------------
 

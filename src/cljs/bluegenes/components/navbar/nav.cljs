@@ -2,9 +2,8 @@
   (:require [re-frame.core :refer [subscribe dispatch]]
             [reagent.core :as reagent]
             [bluegenes.components.search.typeahead :as search]
-            [bluegenes.components.tooltip.views :as tooltip]
             [accountant.core :refer [navigate!]]
-            [oops.core :refer [ocall oget]]
+            [oops.core :refer [oget]]
             [bluegenes.components.progress_bar :as progress-bar]))
 
 (defn mine-icon
@@ -39,7 +38,6 @@
         current-mine (subscribe [:current-mine])]
     (fn [thinking?]
       [:form.login-form
-
        [:h2 "Log in to " (:name @current-mine)]
        [:div.form-group
         [:label "Email Address"]
@@ -107,34 +105,11 @@
         [logged-in @authed?]
         [anonymous]))))
 
-(defn save-data-tooltip []
-  (let [label (reagent/atom nil)]
-    (reagent/create-class
-      {:component-did-mount
-       (fn [e] (reset! label (:label (reagent/props e))))
-       :reagent-render
-       (fn [tooltip-data]
-         [tooltip/main
-          {:content [:div.form-inline
-                     [:label "Name: "
-                      [:input.form-control
-                       {:autofocus true
-                        :type "text"
-                        :on-change (fn [e] (reset! label (.. e -target -value)))
-                        :placeholder @label}]]
-                     [:button.btn "Save"]]
-           :on-blur (fn []
-                      (dispatch [:save-saved-data-tooltip (:id tooltip-data) @label]))}])})))
-
 (defn active-mine-logo []
   [mine-icon @(subscribe [:current-mine])])
 
 (defn main []
   (let [active-panel (subscribe [:active-panel])
-        app-name (subscribe [:name])
-        short-name (subscribe [:short-name])
-        lists (subscribe [:lists])
-        ttip (subscribe [:tooltip])
         current-mine (subscribe [:current-mine])
         panel-is (fn [panel-key] (= @active-panel panel-key))]
     (fn []

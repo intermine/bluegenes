@@ -3,62 +3,62 @@
             [bluegenes.db :as db]
             [bluegenes.mines :as default-mines]
             [imcljs.fetch :as fetch]
-            [oops.core :refer [oget+]]
             [bluegenes.persistence :as persistence]))
 
 
-(defn boot-flow [db ident]
-  (if ident
-    {:first-dispatch [:authentication/store-token (get db :current-mine) (:token ident)]
-     :rules [
-             ; Fetch a token before anything else then load assets
-             {:when :seen?
-              :events :authentication/store-token
-              :dispatch-n [[:assets/fetch-model]
-                           [:assets/fetch-lists]
-                           [:assets/fetch-class-keys]
-                           [:assets/fetch-templates]
-                           [:assets/fetch-widgets]
-                           [:assets/fetch-summary-fields]
-                           [:assets/fetch-intermine-version]
-                           [:bluegenes.sections.mymine.events/fetch-tree]]}
-             ; When all assets are loaded let bluegenes know
-             {:when :seen-all-of?
-              :events [:assets/success-fetch-model
-                       :assets/success-fetch-lists
-                       :assets/success-fetch-class-keys
-                       :assets/success-fetch-templates
-                       :assets/success-fetch-summary-fields
-                       :assets/success-fetch-widgets
-                       :assets/success-fetch-intermine-version]
-              :dispatch-n (list [:finished-loading-assets] [:save-state])
-              :halt? true}]}
-    {:first-dispatch [:authentication/fetch-anonymous-token (get db :current-mine)]
-     :rules [
-             ; Fetch a token before anything else then load assets
-             {:when :seen?
-              :events :authentication/store-token
-              :dispatch-n [[:assets/fetch-model]
-                           [:assets/fetch-lists]
-                           [:assets/fetch-class-keys]
-                           [:assets/fetch-templates]
-                           [:assets/fetch-widgets]
-                           [:assets/fetch-summary-fields]
-                           [:assets/fetch-intermine-version]]}
-             ; When all assets are loaded let bluegenes know
-             {:when :seen-all-of?
-              :events [:assets/success-fetch-model
-                       :assets/success-fetch-lists
-                       :assets/success-fetch-class-keys
-                       :assets/success-fetch-templates
-                       :assets/success-fetch-summary-fields
-                       :assets/success-fetch-widgets
-                       :assets/success-fetch-intermine-version]
-              :dispatch-n (list [:start-analytics] [:finished-loading-assets] [:save-state])
-              :halt? true}]}))
+(defn boot-flow
+  "Produces a set of re-frame instructions that load all of InterMine's assets into BlueGenes
+  See https://github.com/Day8/re-frame-async-flow-fx
+  The idea is that any URL routing (such as entering BlueGenes at the home page or a subsection)
+  is queued until all of the assets (data model, lists, templates etc) are fetched.
+  When finished, an event called :finished-loading-assets is dispatch which tells BlueGenes
+  it can continue routing."
+  [db ident]
+  ; First things first...
+  {:first-dispatch (if ident
+                     ; If we have an identity (and therefore a token) then store it
+                     [:authentication/store-token (get db :current-mine) (:token ident)]
+                     ; Otherwise go fetch an anonymous token
+                     [:authentication/fetch-anonymous-token (get db :current-mine)])
+   :rules [
+           ; When the store-token event has been dispatched then fetch the assets.
+           ; We wait for the token because some assets need a token for private data (lists, queries)
+           {:when :seen?
+            :events :authentication/store-token
+            :dispatch-n [[:assets/fetch-model]
+                         [:assets/fetch-lists]
+                         [:assets/fetch-class-keys]
+                         [:assets/fetch-templates]
+                         [:assets/fetch-widgets]
+                         [:assets/fetch-summary-fields]
+                         [:assets/fetch-intermine-version]
+                         ; If we have an identity then fetch the MyMine tags
+                         (when ident [:bluegenes.sections.mymine.events/fetch-tree])]}
+           ; When we've seen all of the events that indicating our assets have been fetched successfully...
+           {:when :seen-all-of?
+            :events [:assets/success-fetch-model
+                     :assets/success-fetch-lists
+                     :assets/success-fetch-class-keys
+                     :assets/success-fetch-templates
+                     :assets/success-fetch-summary-fields
+                     :assets/success-fetch-widgets
+                     :assets/success-fetch-intermine-version]
+            ; Then finished setting up BlueGenes
+            :dispatch-n [
+                         ; Start Google Analytics
+                         [:start-analytics]
+                         ; Set a flag that all assets are fetched (unqueues URL routing)
+                         [:finished-loading-assets]
+                         ; Save the current state to local storage
+                         [:save-state]]
+            :halt? true}]})
 
 
-(defn im-tables-events-forwarder []
+(defn im-tables-events-forwarder
+  "Creates instructions for listening in on im-tables events.
+  Why? im-tables is its own re-frame application and it can save query results.
+  When its save-list-success event is seen, fire a BlueGenes event to re-fetch lists"
+  []
   {:register :im-tables-events ;;  <-- used
    :events #{:imt.io/save-list-success}
    :dispatch-to [:assets/fetch-lists]})
@@ -74,7 +74,8 @@
             (assoc new-mine-list mine-name details))) {} state-mines))
     ))
 
-(defn get-active-mine "Return the current mine if it still exists after a config update, or else just return the first one if the ID doesn't exist for some reason"
+(defn get-active-mine
+  "Return the current mine if it still exists after a config update, or else just return the first one if the ID doesn't exist for some reason"
   [all-mines mine-name]
   (let [mine-names (set (keys all-mines))]
     (if (contains? mine-names mine-name)
@@ -88,22 +89,25 @@
 (reg-event-fx
   :boot
   (fn [world [_ provided-identity]]
-    (let [db               (-> db/default-db
-                               (assoc :mines default-mines/mines)
-                               (update :auth assoc
-                                       :thinking? false
-                                       :identity provided-identity
-                                       :message nil
-                                       :error? false)
-                               (assoc-in [:mines (:id @(subscribe [:current-mine])) :service :token] (:token provided-identity)))
-          state            (persistence/get-state!)
-          has-state?       (seq state)
+    (let [db (-> db/default-db
+                 ; Merge the various mine configurations from mines.cljc
+                 (assoc :mines default-mines/mines)
+                 ; Store the user's identity map provided by the server via the client constructor
+                 (update :auth assoc
+                         :thinking? false
+                         :identity provided-identity
+                         :message nil
+                         :error? false)
+                 ; Store our token (important for when fetching assets in the boot-flow above
+                 (assoc-in [:mines (:id @(subscribe [:current-mine])) :service :token] (:token provided-identity)))
+          state (persistence/get-state!)
+          has-state? (seq state)
           ;;prune out old mines from localstorage that aren't part of the app anymore
           good-state-mines (get-current-mines (:mines state) (:mines db))
           ;;make sure we have all current localstorage mines and all new ones (if any)
-          all-mines        (merge default-mines/mines good-state-mines)
+          all-mines (merge default-mines/mines good-state-mines)
           ;;make sure the active mine wasn't removed. Will select a default if needed.
-          current-mine     (get-active-mine all-mines (:current-mine state))]
+          current-mine (get-active-mine all-mines (:current-mine state))]
 
       ; Do not use data from local storage if the client version in local storage
       ; is not the same as the current client version
@@ -114,13 +118,17 @@
                :assets (:assets state)
                ;;we had assets in localstorage. We'll still load the fresh ones in the background in case they changed, but we can make do with these for now.
                :fetching-assets? false)
+         ; Boot the application asynchronously
          :async-flow (boot-flow db provided-identity)
+         ; Register an event sniffer for im-tables
          :forward-events (im-tables-events-forwarder)}
 
         {:db (assoc db
                :mines default-mines/mines
                :fetching-assets? true)
+         ; Boot the application asynchronously
          :async-flow (boot-flow db provided-identity)
+         ; Register an event sniffer for im-tables
          :forward-events (im-tables-events-forwarder)})
       )))
 
@@ -147,16 +155,16 @@
   (fn [{db :db}]
     (let [analytics-id (:googleAnalytics (js->clj js/serverVars :keywordize-keys true))
           analytics-enabled? (not (clojure.string/blank? analytics-id))]
-          (if analytics-enabled?
-            ;;set tracker up if we have a tracking id
-            (do
-              (js/ga "create" analytics-id "auto")
-              (js/ga "send" "pageview")
-              (.info js/console "Google Analytics enabled. Tracking ID:" analytics-id))
-            ;;inobtrusive console message if there's no id
-            (.info js/console "Google Analytics disabled. No tracking ID."))
-    {:db (assoc db :google-analytics {:enabled? analytics-enabled? :analytics-id analytics-id})}
-    )))
+      (if analytics-enabled?
+        ;;set tracker up if we have a tracking id
+        (do
+          (js/ga "create" analytics-id "auto")
+          (js/ga "send" "pageview")
+          (.info js/console "Google Analytics enabled. Tracking ID:" analytics-id))
+        ;;inobtrusive console message if there's no id
+        (.info js/console "Google Analytics disabled. No tracking ID."))
+      {:db (assoc db :google-analytics {:enabled? analytics-enabled? :analytics-id analytics-id})}
+      )))
 
 ; Store an authentication token for a given mine
 (reg-event-db
@@ -170,8 +178,8 @@
   (fn [{db :db} [_ mine-kw]]
     (let [mine (dissoc (get-in db [:mines mine-kw :service]) :token)]
       {:db db
-       :im-operation {:on-success [:authentication/store-token mine-kw]
-                      :op (partial fetch/session mine)}})))
+       :im-chan {:on-success [:authentication/store-token mine-kw]
+                 :chan (fetch/session mine)}})))
 
 ; Fetch model
 
@@ -184,8 +192,8 @@
   :assets/fetch-model
   (fn [{db :db}]
     {:db db
-     :im-operation {:op (partial fetch/model (get-in db [:mines (:current-mine db) :service]))
-                    :on-success [:assets/success-fetch-model (:current-mine db)]}}))
+     :im-chan {:chan (fetch/model (get-in db [:mines (:current-mine db) :service]))
+               :on-success [:assets/success-fetch-model (:current-mine db)]}}))
 
 ; Fetch lists
 
@@ -198,8 +206,8 @@
   :assets/fetch-lists
   (fn [{db :db}]
     {:db db
-     :im-operation {:op (partial fetch/lists (get-in db [:mines (:current-mine db) :service]))
-                    :on-success [:assets/success-fetch-lists (:current-mine db)]}}))
+     :im-chan {:chan (fetch/lists (get-in db [:mines (:current-mine db) :service]))
+               :on-success [:assets/success-fetch-lists (:current-mine db)]}}))
 
 ; Fetch class keys
 
@@ -212,8 +220,8 @@
   :assets/fetch-class-keys
   (fn [{db :db}]
     {:db db
-     :im-operation {:op (partial fetch/class-keys (get-in db [:mines (:current-mine db) :service]))
-                    :on-success [:assets/success-fetch-class-keys (:current-mine db)]}}))
+     :im-chan {:chan (fetch/class-keys (get-in db [:mines (:current-mine db) :service]))
+               :on-success [:assets/success-fetch-class-keys (:current-mine db)]}}))
 
 ; Fetch templates
 
@@ -226,8 +234,8 @@
   :assets/fetch-templates
   (fn [{db :db}]
     {:db db
-     :im-operation {:op (partial fetch/templates (get-in db [:mines (:current-mine db) :service]))
-                    :on-success [:assets/success-fetch-templates (:current-mine db)]}}))
+     :im-chan {:chan (fetch/templates (get-in db [:mines (:current-mine db) :service]))
+               :on-success [:assets/success-fetch-templates (:current-mine db)]}}))
 
 ; Fetch summary fields
 
@@ -240,22 +248,22 @@
   :assets/fetch-summary-fields
   (fn [{db :db}]
     {:db db
-     :im-operation {:op (partial fetch/summary-fields (get-in db [:mines (:current-mine db) :service]))
-                    :on-success [:assets/success-fetch-summary-fields (:current-mine db)]}}))
+     :im-chan {:chan (fetch/summary-fields (get-in db [:mines (:current-mine db) :service]))
+               :on-success [:assets/success-fetch-summary-fields (:current-mine db)]}}))
 
 (reg-event-fx
   :assets/fetch-widgets
   ;;fetches all enrichment widgets. afaik the non-enrichment widgets are InterMine 1.x UI specific so are filtered out upon success
   (fn [{db :db}]
-    {:im-operation
-     {:op (partial fetch/widgets (get-in db [:mines (:current-mine db) :service]))
+    {:im-chan
+     {:chan (fetch/widgets (get-in db [:mines (:current-mine db) :service]))
       :on-success [:assets/success-fetch-widgets (:current-mine db)]}}
     ))
 
 (reg-event-db
   :assets/success-fetch-widgets
   (fn [db [_ mine-kw widgets]]
-    (let [widget-type      "enrichment"
+    (let [widget-type "enrichment"
           filtered-widgets (doall (filter (fn [widget]
                                             (= widget-type (:widgetType widget))
                                             ) widgets))]
@@ -265,8 +273,8 @@
   :assets/fetch-intermine-version
   ;;fetches all enrichment widgets. afaik the non-enrichment widgets are InterMine 1.x UI specific so are filtered out upon success
   (fn [{db :db}]
-    {:im-operation
-     {:op (partial fetch/version-intermine (get-in db [:mines (:current-mine db) :service]))
+    {:im-chan
+     {:chan (fetch/version-intermine (get-in db [:mines (:current-mine db) :service]))
       :on-success [:assets/success-fetch-intermine-version (:current-mine db)]}}
     ))
 

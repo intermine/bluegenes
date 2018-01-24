@@ -10,8 +10,7 @@
             [bluegenes.sections.mymine.subs :as subs]
             [inflections.core :as inf]
             [bluegenes.sections.mymine.views.modals :as modals]
-            [bluegenes.sections.mymine.views.contextmenu :as m]
-            [bluegenes.components.thinker :as thinker])
+            [bluegenes.sections.mymine.views.contextmenu :as m])
 
   (:import
     (goog.i18n NumberFormat)
@@ -740,4 +739,3 @@
           [modals/modal-lo-intersect @context-menu-target]
           [modals/modal-rename-list @context-menu-target]
           [m/context-menu-container @context-menu-target]])})))
-;[thinker/main]
