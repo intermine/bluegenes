@@ -145,16 +145,22 @@
 
 (reg-event-fx ::save-list-success
               (fn [{db :db} [_ list-name object-type response]]
+                ; Get the summary fields for this object type (used to construct the query for the List Analysis page
                 (let [summary-fields (get-in db [:assets :summary-fields (get db :current-mine) (keyword object-type)])]
                   {:db db
+                   ; Navigate to the List Analysis page
                    :navigate "results"
-                   :dispatch [:results/set-query {:source (get db :current-mine)
-                                                  :type :query
-                                                  :value {:from object-type
-                                                          :select summary-fields
-                                                          :where [{:path object-type
-                                                                   :op "IN"
-                                                                   :value list-name}]}}]})))
+                   :dispatch-n [
+                                ; Re-fetch our lists so that it shows in MyMine
+                                [:assets/fetch-lists]
+                                ; Set the query in the List Analysis page to use the new list
+                                [:results/set-query {:source (get db :current-mine)
+                                                     :type :query
+                                                     :value {:from object-type
+                                                             :select summary-fields
+                                                             :where [{:path object-type
+                                                                      :op "IN"
+                                                                      :value list-name}]}}]]})))
 
 (reg-event-db ::reset
               (fn [db [_ example-type example-text]]
