@@ -1,16 +1,11 @@
 (ns bluegenes.sections.results.events
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [re-frame.core :refer [reg-event-db reg-event-fx reg-fx dispatch subscribe]]
-            [cljs.core.async :refer [put! chan <! >! timeout close!]]
+            [cljs.core.async :refer [put! chan <! close!]]
             [imcljs.fetch :as fetch]
             [imcljs.path :as path]
             [imcljs.query :as q]
-            [clojure.spec.alpha :as s]
-            [clojure.set :refer [intersection]]
-            [day8.re-frame.http-fx]
-            [ajax.core :as ajax]
             [bluegenes.interceptors :refer [clear-tooltips]]
-            [dommy.core :refer-macros [sel sel1]]
             [accountant.core :as accountant]
             [bluegenes.interceptors :refer [abort-spec]]))
 
