@@ -14,6 +14,22 @@
             [accountant.core :as accountant]
             [bluegenes.interceptors :refer [abort-spec]]))
 
+
+(comment
+  "To automatically display some results in this section (the Results / List Analysis page),
+  fire the :results/history+ event with a package that represents a query, like so:"
+  (dispatch [:results/history+ {:source :flymine
+                                :type :query
+                                :value {:title "Appears in Breadcrumb"
+                                        :from "Gene"
+                                        :select ["Gene.symbol"]
+                                        :where {:path "Gene.symbol" :op "=" :value "runt"}}}])
+  "
+  Doing so will automatically direct the browser to the /results/[latest-history-index] route
+  which in turn fires the [:results/load-history latest-history-index]. This triggers the fetching
+  of enrichment results and boots the im-table
+  ")
+
 (defn build-matches-query [query path-constraint identifier]
   (update-in (js->clj (.parse js/JSON query) :keywordize-keys true) [:where]
              conj {:path path-constraint
@@ -47,7 +63,6 @@
                                    :value identifier}]})]
       {:db (assoc-in db [:results :summary-chan] summary-chan)
        :get-summary-values summary-chan})))
-
 
 ; Fire this event to append a query package to the BlueGenes list analysis history
 ; and then route the browser to a URL that displays the last package in history (the one we just added)
