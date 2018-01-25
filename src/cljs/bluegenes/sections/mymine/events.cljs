@@ -666,7 +666,7 @@
   (fn [{db :db} [_ {:keys [type name title source]}]]
     (let [summary-fields (get-in db [:assets :summary-fields source (keyword type)])]
       {:db       db
-       :dispatch [:results/set-query
+       :dispatch [:results/history+
                   {:source source
                    :type   :query
                    :value  (build-list-query type summary-fields name title)}]
