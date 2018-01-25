@@ -163,10 +163,11 @@
           current-mine   (:current-mine db)
           summary-fields (get-in db [:assets :summary-fields current-mine (keyword object-type)])]
       {:db db
-       :dispatch [:results/set-query
+       :dispatch [:results/history+
                   {:source current-mine
                    :type :query
-                   :value {:from object-type
+                   :value {:title "Search Results"
+                           :from object-type
                            :select summary-fields
                            :where [{:path (str object-type ".id")
                                     :op "ONE OF"

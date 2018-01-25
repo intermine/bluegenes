@@ -44,11 +44,10 @@
       [:h4 "Results for '" @(subscribe [:search-term]) "'" [results-count]]
 
       (cond (and @active-filter? @some-selected?)
-            [:a.cta {:href "/#/results"
-                     :on-click (fn [e]
+            [:a.cta {:on-click (fn [e]
                                  (ocall e :preventDefault)
-                                 (dispatch [:search/to-results])
-                                 (navigate! "/results"))} "View selected results in a table"])]
+                                 (dispatch [:search/to-results]))}
+             "View selected results in a table"])]
      ;;TODO: Does this even make sense? Only implement if we figure out a good behaviour
      ;; select all search results seems odd, as does the whole page.
      ; [:div [:label "Select all" [:input {:type "checkbox"

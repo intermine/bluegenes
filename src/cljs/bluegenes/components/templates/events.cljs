@@ -48,11 +48,10 @@
   (fn [{db :db} [_]]
     (let [summary-fields (get-in db [:assets :summary-fields (keyword type)])]
       {:db db
-       :dispatch [:results/set-query
+       :dispatch [:results/history+
                   {:source (ns->kw (get-in db [:components :template-chooser :selected-template-name]))
                    :type :query
-                   :value (remove-switchedoff-constraints (get-in db [:components :template-chooser :selected-template]))}]
-       :navigate (str "results")})))
+                   :value (remove-switchedoff-constraints (get-in db [:components :template-chooser :selected-template]))}]})))
 
 (defn one-of? [col value] (some? (some #{value} col)))
 (defn should-update? [old-op new-op]

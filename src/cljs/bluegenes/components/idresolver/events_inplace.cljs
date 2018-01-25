@@ -236,12 +236,10 @@
           object-type    (get-object-type db)
           summary-fields (get-in db [:assets :summary-fields current-mine object-type])
           results        (build-query ids object-type summary-fields)]
-      (cond-> {}
-              true (assoc :dispatch-n [[:results/set-query {:source (get db :current-mine)
-                                                            :type :query
-                                                            :value (:value results)}]
-                                       [:idresolver/fetch-preview results]])
-              navigate? (assoc :navigate (str "results"))))))
+      {:dispatch-n [[:results/history+ {:source (get db :current-mine)
+                                        :type :query
+                                        :value (:value results)}]
+                    [:idresolver/fetch-preview results]]})))
 
 
 
