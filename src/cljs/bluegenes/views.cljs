@@ -32,6 +32,7 @@
         [:img {:width "120px" :src "https://cdn.rawgit.com/intermine/design-materials/c4716412/logos/intermine/intermine.png" :alt "InterMine"}]]]
       [:a {:href "https://intermineorg.wordpress.com/cite/"} "Cite"]
       [:a {:href "http://intermine.readthedocs.io/en/latest/about/contact-us/"} "Contact"]
+       [:a {:href "http://chat.intermine.org/"} "Chat"]
       [:a {:href "https://intermineorg.wordpress.com/"} "Blog"]
        [:a {:on-click #(navigate! "/help")} [:svg.icon.icon-question [:use {:xlinkHref "#icon-question"}]] " Help"]]
      [:div [:p "Funded by:"]
