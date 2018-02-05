@@ -85,6 +85,15 @@
         (first mine-names)))
     ))
 
+    (defn init-defaults-from-intermine
+      "If this bluegenes instance is coupled with InterMine, load the intermine's config directlyfrom env variables passed to bluegenes. Otherwise, fail gracefully." []
+      (let [mine-defaults (:intermineDefaults (js->clj js/serverVars :keywordize-keys true))]
+        (.log js/console "%cmine-defaults" "color:mediumorchid;font-weight:bold;" (clj->js mine-defaults))
+        {:default {:id :default
+                   :service {:root (:bluegenes-default-service-root mine-defaults)}
+                   :name (:bluegenes-default-mine-name mine-defaults)}}
+      mine-defaults))
+
 ; Boot the application.
 (reg-event-fx
   :boot
@@ -101,11 +110,13 @@
                  ; Store our token (important for when fetching assets in the boot-flow above
                  (assoc-in [:mines (:id @(subscribe [:current-mine])) :service :token] (:token provided-identity)))
           state (persistence/get-state!)
+          ;;if InterMine's passed in defaultmine settings, apply these first.
+          intermine-defaults (init-defaults-from-intermine)
           has-state? (seq state)
           ;;prune out old mines from localstorage that aren't part of the app anymore
           good-state-mines (get-current-mines (:mines state) (:mines db))
           ;;make sure we have all current localstorage mines and all new ones (if any)
-          all-mines (merge default-mines/mines good-state-mines)
+          all-mines (merge default-mines/mines good-state-mines intermine-defaults)
           ;;make sure the active mine wasn't removed. Will select a default if needed.
           current-mine (get-active-mine all-mines (:current-mine state))]
 
