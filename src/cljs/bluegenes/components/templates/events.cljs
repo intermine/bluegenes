@@ -10,16 +10,24 @@
 (def name->kw (comp keyword name))
 (def ns->vec (juxt ns->kw name->kw))
 
+; Predictable function used to filter active constraints
+(def not-disabled-predicate (comp (partial not= "OFF") :switched))
+
+(defn remove-switchedoff-constraints
+  "Filter the constraints of a query map and only keep those with a :switched value other than OFF"
+  [query]
+  (update query :where #(filter not-disabled-predicate %)))
+
 (reg-event-fx
   :template-chooser/choose-template
   (fn [{db :db} [_ id]]
     (let [query (get-in db [:assets :templates (ns->kw id) (name->kw id)])]
-      {:db         (update-in db [:components :template-chooser]
-                              assoc
-                              :selected-template query
-                              :selected-template-name id
-                              :selected-template-service (get-in db [:mines (ns->kw id) :service])
-                              :count nil)
+      {:db (update-in db [:components :template-chooser]
+                      assoc
+                      :selected-template query
+                      :selected-template-name id
+                      :selected-template-service (get-in db [:mines (ns->kw id) :service])
+                      :count nil)
        :dispatch-n [[:template-chooser/run-count]
                     [:template-chooser/fetch-preview]]
        })))
@@ -39,12 +47,11 @@
   :templates/send-off-query
   (fn [{db :db} [_]]
     (let [summary-fields (get-in db [:assets :summary-fields (keyword type)])]
-      {:db       db
-       :dispatch [:results/set-query
+      {:db db
+       :dispatch [:results/history+
                   {:source (ns->kw (get-in db [:components :template-chooser :selected-template-name]))
-                   :type   :query
-                   :value  (get-in db [:components :template-chooser :selected-template])}]
-       :navigate (str "results")})))
+                   :type :query
+                   :value (remove-switchedoff-constraints (get-in db [:components :template-chooser :selected-template]))}]})))
 
 (defn one-of? [col value] (some? (some #{value} col)))
 (defn should-update? [old-op new-op]
@@ -58,10 +65,10 @@
   :template-chooser/replace-constraint
   (fn [{db :db} [_ index new-constraint]]
     (let [constraint-location [:components :template-chooser :selected-template :where index]
-          old-constraint      (get-in db constraint-location)]
+          old-constraint (get-in db constraint-location)]
       ; Only fetch the query results if the operator hasn't change from a LIST to a VALUE or vice versa
       (if (should-update? (:op old-constraint) (:op new-constraint))
-        {:db         (assoc-in db constraint-location new-constraint)
+        {:db (assoc-in db constraint-location new-constraint)
          :dispatch-n [[:template-chooser/run-count]
                       [:template-chooser/fetch-preview]]}
         {:db (-> db
@@ -93,14 +100,14 @@
 (reg-event-fx
   :template-chooser/fetch-preview
   (fn [{db :db}]
-    (let [query         (get-in db [:components :template-chooser :selected-template])
+    (let [query (remove-switchedoff-constraints (get-in db [:components :template-chooser :selected-template]))
           template-name (get-in db [:components :template-chooser :selected-template-name])
-          service       (get-in db [:mines (ns->kw template-name) :service])
-          count-chan    (fetch/table-rows service query {:size 5})
-          new-db        (update-in db [:components :template-chooser] assoc
-                                   :preview-chan count-chan
-                                   :fetching-preview? true)]
-      {:db                            new-db
+          service (get-in db [:mines (ns->kw template-name) :service])
+          count-chan (fetch/table-rows service query {:size 5})
+          new-db (update-in db [:components :template-chooser] assoc
+                            :preview-chan count-chan
+                            :fetching-preview? true)]
+      {:db new-db
        :im-chan {:chan count-chan
                  :on-success [:template-chooser/store-results-preview]}})))
 
@@ -114,14 +121,14 @@
 (reg-event-fx
   :template-chooser/run-count
   (fn [{db :db}]
-    (let [query         (get-in db [:components :template-chooser :selected-template])
+    (let [query (remove-switchedoff-constraints (get-in db [:components :template-chooser :selected-template]))
           template-name (get-in db [:components :template-chooser :selected-template-name])
-          service       (get-in db [:mines (ns->kw template-name) :service])
-          count-chan    (fetch/row-count
-                          service
-                          query)
-          new-db        (update-in db [:components :template-chooser] assoc
-                                   :count-chan count-chan
-                                   :counting? true)]
-      {:db                          new-db
+          service (get-in db [:mines (ns->kw template-name) :service])
+          count-chan (fetch/row-count
+                       service
+                       query)
+          new-db (update-in db [:components :template-chooser] assoc
+                            :count-chan count-chan
+                            :counting? true)]
+      {:db new-db
        :template-chooser/pipe-count count-chan})))

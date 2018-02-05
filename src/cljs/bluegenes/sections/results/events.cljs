@@ -1,19 +1,29 @@
 (ns bluegenes.sections.results.events
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [re-frame.core :refer [reg-event-db reg-event-fx reg-fx dispatch subscribe]]
-            [cljs.core.async :refer [put! chan <! >! timeout close!]]
+            [cljs.core.async :refer [put! chan <! close!]]
             [imcljs.fetch :as fetch]
             [imcljs.path :as path]
             [imcljs.query :as q]
-            [clojure.spec.alpha :as s]
-            [clojure.set :refer [intersection]]
-            [day8.re-frame.http-fx]
-            [ajax.core :as ajax]
             [bluegenes.interceptors :refer [clear-tooltips]]
-            [dommy.core :refer-macros [sel sel1]]
-    ;[bluegenes.sections.saveddata.events]
             [accountant.core :as accountant]
             [bluegenes.interceptors :refer [abort-spec]]))
+
+
+(comment
+  "To automatically display some results in this section (the Results / List Analysis page),
+  fire the :results/history+ event with a package that represents a query, like so:"
+  (dispatch [:results/history+ {:source :flymine
+                                :type :query
+                                :value {:title "Appears in Breadcrumb"
+                                        :from "Gene"
+                                        :select ["Gene.symbol"]
+                                        :where {:path "Gene.symbol" :op "=" :value "runt"}}}])
+  "
+  Doing so will automatically direct the browser to the /results/[latest-history-index] route
+  which in turn fires the [:results/load-history latest-history-index]. This triggers the fetching
+  of enrichment results and boots the im-table
+  ")
 
 (defn build-matches-query [query path-constraint identifier]
   (update-in (js->clj (.parse js/JSON query) :keywordize-keys true) [:where]
@@ -34,96 +44,64 @@
 (reg-event-fx
   :results/get-item-details
   (fn [{db :db} [_ identifier path-constraint]]
-    (let [source         (get-in db [:results :package :source])
-          model          (get-in db [:mines source :service :model])
-          classname      (keyword (path/class model path-constraint))
+    (let [source (get-in db [:results :package :source])
+          model (get-in db [:mines source :service :model])
+          classname (keyword (path/class model path-constraint))
           summary-fields (get-in db [:assets :summary-fields source classname])
-          service        (get-in db [:mines source :service])
-          summary-chan   (fetch/rows
-                           service
-                           {:from classname
-                            :select summary-fields
-                            :where [{:path (last (clojure.string/split path-constraint "."))
-                                     :op "="
-                                     :value identifier}]})]
+          service (get-in db [:mines source :service])
+          summary-chan (fetch/rows
+                         service
+                         {:from classname
+                          :select summary-fields
+                          :where [{:path (last (clojure.string/split path-constraint "."))
+                                   :op "="
+                                   :value identifier}]})]
       {:db (assoc-in db [:results :summary-chan] summary-chan)
        :get-summary-values summary-chan})))
 
+; Fire this event to append a query package to the BlueGenes list analysis history
+; and then route the browser to a URL that displays the last package in history (the one we just added)
 (reg-event-fx
-  :results/set-query
+  :results/history+
   (abort-spec bluegenes.specs/im-package)
   (fn [{db :db} [_ {:keys [source value type] :as package}]]
-    (let [model (get-in db [:mines source :service :model])]
-      {:db (update-in db [:results] assoc
-                      :query value
-                      :package package
-                      :history [package]
-                      :history-index 0
-                      :query-parts (q/group-views-by-class model (get package :value))
-                      :enrichment-results nil)
-       ; TOOD ^:flush-dom
+    {:db (update-in db [:results :history] conj package)
+     ; By navigating to the URL below, the :results/load-index (directly below) event is fired;
+     :navigate (str "/results/" (count (get-in db [:results :history])))}))
+
+
+; Load one package at a particular index from the list analysis history collection
+(reg-event-fx
+  :results/load-history
+  [(clear-tooltips)] ; This clears any existing tooltips on the screen when the event fires
+  (fn [{db :db} [_ idx]]
+    (let [
+          ; Get the details of the current package
+          {:keys [source type value] :as package} (nth (get-in db [:results :history]) idx)
+          ; Get the current model
+          model (get-in db [:mines source :service :model])]
+      ; Store the values in app-db.
+      ; TODO - 99% of this can be factored out by passing the package to the :enrichment/enrich and parsing it there
+      {:db (update db :results assoc
+                   :query value
+                   :package package
+                   ; The index is used to highlight breadcrumbs
+                   :history-index idx
+                   :query-parts (q/group-views-by-class model value)
+                   ; Clear the enrichment results before loading any new ones
+                   :enrichment-results nil)
        :dispatch-n [
+                    ; Fire the enrichment event (see the TODO above)
                     [:enrichment/enrich]
+                    ; Boot the im-table
                     [:im-tables.main/replace-all-state
+                     ; The location in app-db in which im-tables will store its results
                      [:results :fortable]
+                     ; Default settings for the table
                      {:settings {:links {:vocab {:mine (name source)}
                                          :on-click (fn [val] (accountant/navigate! val))}}
                       :query value
                       :service (get-in db [:mines source :service])}]]})))
-
-
-(reg-event-fx
-  :results/add-to-history
-  [(clear-tooltips)]
-  (fn [{db :db} [_ {identifier :identifier} details]]
-    (let [last-source (:source (last (get-in db [:results :history])))
-          model       (get-in db [:mines last-source :service :model])
-          previous    (get-in db [:results :query])
-          query       (merge (build-matches-query
-                               (:pathQuery details)
-                               (:pathConstraint details)
-                               identifier)
-                             {:title (str
-                                       (:title details))})
-          new-package {:source last-source
-                       :type :query
-                       :value query}]
-      {:db (-> db
-               (update-in [:results :history] conj new-package)
-               (update-in [:results] assoc
-                          :query query
-                          :package new-package
-                          :history-index (inc (get-in db [:results :history-index]))
-                          :query-parts (q/group-views-by-class model query)
-                          :enrichment-results nil))
-       :dispatch-n [[:enrichment/enrich]
-                    [:im-tables.main/replace-all-state
-                     [:results :fortable]
-                     {:settings {:links {:vocab {:mine (name (:source (last (get-in db [:results :history]))))}
-                                         :on-click (fn [val] (accountant/navigate! val))}}
-                      :query query
-                      :service (get-in db [:mines last-source :service])}]]})))
-
-(reg-event-fx
-  :results/load-from-history
-  (fn [{db :db} [_ index]]
-    (let [package (get-in db [:results :history index])
-          model   (get-in db [:mines (:source package) :service :model])]
-      {:db (-> db
-               (update-in [:results] assoc
-                          :query (get package :value)
-                          :package package
-                          :history-index index
-                          :query-parts (q/group-views-by-class model (get package :value))
-                          :enrichment-results nil))
-       :dispatch-n [[:enrichment/enrich]
-                    [:im-tables.main/replace-all-state
-                     [:results :fortable]
-                     {:settings {:links {:vocab {:mine (name (:source (last (get-in db [:results :history]))))}
-                                         :on-click (fn [val] (accountant/navigate! val))}}
-                      :query (get package :value)
-                      :service (get-in db [:mines (:source package) :service])}]]})))
-
 
 (reg-event-fx
   :fetch-ids-from-query

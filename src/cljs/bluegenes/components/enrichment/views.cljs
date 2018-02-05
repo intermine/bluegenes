@@ -20,8 +20,8 @@
 (def sidebar-hover (reagent/atom false))
 
 (defn popover-table []
-  (let [values         (subscribe [:enrichment/summary-values])
-        result         (first (:results @values))
+  (let [values (subscribe [:enrichment/summary-values])
+        result (first (:results @values))
         column-headers (:columnHeaders @values)]
     (fn [matches p-value]
       [:div.sidebar-popover
@@ -38,24 +38,39 @@
    [:svg.icon.icon-question
     [:use {:xlinkHref "#icon-question"}]]])
 
+(defn build-matches-query [query path-constraint identifier]
+  (update-in (js->clj (.parse js/JSON query) :keywordize-keys true) [:where]
+             conj {:path path-constraint
+                   :op "ONE OF"
+                   :values [identifier]}))
+
 (defn enrichment-result-row []
-  (fn [{:keys [description matches identifier p-value matches-query] :as row}
-       {:keys [pathConstraint] :as details}]
-    [:li.enrichment-item
-     {:on-mouse-enter (fn [] (dispatch [:enrichment/get-item-details identifier pathConstraint]))
-      :on-click       (fn []
-                        (dispatch [:results/add-to-history row details]))}
-     [:div.container-fluid
-      [:div.row
-       [:div.col-xs-2 matches]
-       [:div.col-xs-6
-        [popover
-         [:span {:data-content   [popover-table matches p-value]
-                 :data-placement "top"
-                 :data-trigger   "hover"}
-          ^{:key p-value}
-          [:span description]]]]
-       [:div.col-xs-4 [:span {:style {:font-size "0.8em"}} (.toExponential p-value 6)]]]]]))
+  (let [current-mine (subscribe [:current-mine-name])]
+    (fn [{:keys [description matches identifier p-value matches-query] :as row}
+         {:keys [pathConstraint] :as details}]
+      [:li.enrichment-item
+       {:on-mouse-enter (fn [] (dispatch [:enrichment/get-item-details identifier pathConstraint]))
+        :on-click (fn []
+                    (dispatch [:results/history+ {:source @current-mine
+                                                  :type :query
+                                                  :value (assoc
+                                                           (build-matches-query
+                                                            (:pathQuery details)
+                                                            (:pathConstraint details)
+                                                            identifier)
+                                                           :title identifier)}])
+                    #_(dispatch [:results/add-to-history row details]))}
+       [:div.container-fluid
+        [:div.row
+         [:div.col-xs-2 matches]
+         [:div.col-xs-6
+          [popover
+           [:span {:data-content [popover-table matches p-value]
+                   :data-placement "top"
+                   :data-trigger "hover"}
+            ^{:key p-value}
+            [:a description]]]]
+         [:div.col-xs-4 [:span {:style {:font-size "0.8em"}} (.toExponential p-value 6)]]]]])))
 
 (defn has-text?
   "Return true if a label contains a string"
@@ -75,7 +90,7 @@
      [:div.col-xs-4.p-val "p-value" [p-val-tooltip]]]]])
 
 (defn enrichment-results-preview []
-  (let [page-state  (reagent/atom {:page 0 :show 5})
+  (let [page-state (reagent/atom {:page 0 :show 5})
         text-filter (subscribe [:enrichment/text-filter])
         config (subscribe [:enrichment/enrichment-config])]
     (fn [[widget-name {:keys [results] :as details}]]
@@ -89,20 +104,22 @@
              [:span
               [:span
                {:on-click (fn [] (swap! page-state update :page dec))
-                :title "View previous 5 enrichment results"} [:svg.icon.icon-circle-left [:use {:xlinkHref "#icon-circle-left"}]]]
-
+                :title "View previous 5 enrichment results"} [:svg.icon.icon-chevron-left [:use {:xlinkHref "#icon-chevron-left"}]]]
+              ;;TODO: replace the > below with the svg icon when enrichment is fixed.
+              ;;[:svg.icon.icon-circle-right [:use {:xlinkHref "#icon-circle-right"}]]
               [:span
                {:on-click (fn [] (swap! page-state update :page inc))
-                :title "View next 5 enrichment results"}[:svg.icon.icon-circle-right [:use {:xlinkHref "#icon-circle-right"}]]]])]
+                :title "View next 5 enrichment results"} [:svg.icon.icon-chevron-right [:use {:xlinkHref "#icon-chevron-right"}]]]])]
+
           [:span [mini-loader "tiny"]])]
        (cond (seq (:results details)) enrichment-results-header)
        (into [:ul.enrichment-list]
              (map (fn [row] [enrichment-result-row row details])
                   (take (:show @page-state)
                         (filter
-                         (fn [{:keys [description]}]
-                           (has-text? @text-filter description))
-                         (drop (* (:page @page-state) (:show @page-state)) results)))))])))
+                          (fn [{:keys [description]}]
+                            (has-text? @text-filter description))
+                          (drop (* (:page @page-state) (:show @page-state)) results)))))])))
 
 (defn enrichment-results []
   (let [all-enrichment-results (subscribe [:enrichment/enrichment-results])
@@ -115,7 +132,7 @@
                 [:h4 "No Enrichment Widgets Available"])]
         [:div.demo
          [css-transition-group
-          {:transition-name          "fade"
+          {:transition-name "fade"
            :transition-enter-timeout 500
            :transition-leave-timeout 500}
           (map (fn [enrichment-response]
@@ -126,13 +143,13 @@
   (let [value (subscribe [:enrichment/text-filter])]
     [:label.text-filter "Filter enrichment results"
      [:input.form-control
-      {:type        "text"
-       :value       @value
-       :on-change   (fn [e]
-                      (let [value (.. e -target -value)]
-                        (if (or (= value "") (= value nil))
-                          (dispatch [:enrichment/set-text-filter nil])
-                          (dispatch [:enrichment/set-text-filter value]))))
+      {:type "text"
+       :value @value
+       :on-change (fn [e]
+                    (let [value (.. e -target -value)]
+                      (if (or (= value "") (= value nil))
+                        (dispatch [:enrichment/set-text-filter nil])
+                        (dispatch [:enrichment/set-text-filter value]))))
        :placeholder "Filter..."}]]))
 
 (defn enrichment-settings []
@@ -208,7 +225,7 @@
 
 (defn enrich []
   (let [query-parts (subscribe [:results/query-parts])
-        value       (subscribe [:enrichment/text-filter])]
+        value (subscribe [:enrichment/text-filter])]
     (fn []
       [:div.enrichment
        {:on-mouse-enter (fn [] (reset! sidebar-hover true))
