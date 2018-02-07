@@ -275,11 +275,12 @@
   :qb/export-query
   (fn [{db :db} [_]]
     {:db db
-     :dispatch [:results/set-query
+     :dispatch [:results/history+
                 {:source (get-in db [:current-mine])
                  :type :query
-                 :value (get-in db [:qb :im-query])}]
-     :navigate (str "results")}))
+                 :value (assoc
+                          (get-in db [:qb :im-query])
+                          :title "Custom Built Query")}]}))
 
 (defn within? [col item]
   (some? (some #{item} col)))

@@ -26,7 +26,7 @@
        [:thead
         (into [:tr]
               (map (fn [h]
-                     ^{:key h} [table-header h])
+                     [table-header h])
                    (:columnHeaders query-results)))]
        [:tbody
         (if
@@ -34,9 +34,9 @@
           [:tr
            [:td {:col-span (count (:columnHeaders query-results))}
             [:h4 "Query returned no results"]]]
-          (doall (map
-                   (fn [r]
-                     ^{:key (reduce str (map :id r))} [table-row r])
+          (doall (map-indexed
+                   (fn [idx r]
+                     ^{:key idx} [table-row r])
                    (:results query-results))))
         (if (and (not hide-count?) (> (:iTotalRecords query-results) 5))
           [:tr
