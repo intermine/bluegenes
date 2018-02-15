@@ -79,10 +79,12 @@
           ; Get the details of the current package
           {:keys [source type value] :as package} (nth (get-in db [:results :history]) idx)
           ; Get the current model
-          model (get-in db [:mines source :service :model])]
+          model (get-in db [:mines source :service :model])
+          service (get-in db [:mines source :service])]
       ; Store the values in app-db.
       ; TODO - 99% of this can be factored out by passing the package to the :enrichment/enrich and parsing it there
       {:db (update db :results assoc
+                   :table nil
                    :query value
                    :package package
                    ; The index is used to highlight breadcrumbs
@@ -93,15 +95,23 @@
        :dispatch-n [
                     ; Fire the enrichment event (see the TODO above)
                     [:enrichment/enrich]
+                    [:im-tables/load [:results :table] {:service service
+                                                        :query value
+                                                        :settings {:pagination {:limit 10}
+                                                                   :links {:vocab {:mine "BananaMine"}
+                                                                           :url (fn [vocab] (str "#/reportpage/"
+                                                                                                 (:mine vocab) "/"
+                                                                                                 (:class vocab) "/"
+                                                                                                 (:objectId vocab)))}}}]
                     ; Boot the im-table
-                    [:im-tables.main/replace-all-state
-                     ; The location in app-db in which im-tables will store its results
-                     [:results :fortable]
-                     ; Default settings for the table
-                     {:settings {:links {:vocab {:mine (name source)}
-                                         :on-click (fn [val] (accountant/navigate! val))}}
-                      :query value
-                      :service (get-in db [:mines source :service])}]]})))
+                    #_[:im-tables.main/replace-all-state
+                       ; The location in app-db in which im-tables will store its results
+                       [:results :fortable]
+                       ; Default settings for the table
+                       {:settings {:links {:vocab {:mine (name source)}
+                                           :on-click (fn [val] (accountant/navigate! val))}}
+                        :query value
+                        :service (get-in db [:mines source :service])}]]})))
 
 (reg-event-fx
   :fetch-ids-from-query

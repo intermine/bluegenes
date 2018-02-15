@@ -16,7 +16,7 @@
   (if (< length (count string)) (str (clojure.string/join (take (- length 3) string)) "...") string))
 
 (defn breadcrumb []
-  (let [history (subscribe [:results/history])
+  (let [history       (subscribe [:results/history])
         history-index (subscribe [:results/history-index])]
     (fn []
       [:div.breadcrumb-container
@@ -25,7 +25,7 @@
              (map-indexed
                (fn [idx {{title :title} :value}]
                  (let [adjusted-title (if (not= idx @history-index) (adjust-str-to-length 20 title) title)]
-                   [:div {:class (if (= @history-index idx) "active")
+                   [:div {:class    (if (= @history-index idx) "active")
                           :on-click #(accountant/navigate! (str "/results/" idx))}
                     [tooltip
                      {:title title}
@@ -45,7 +45,10 @@
          [:div.results-and-enrichment
           [:div.col-md-8.col-sm-12.panel
            ;;[:results :fortable] is the key where the imtables data (appdb) are stored.
-           [tables/main [:results :fortable]]]
+
+
+
+           [tables/main  [:results :table]]]
           [:div.col-md-4.col-sm-12
            [enrichment/enrich]
            ]]]
