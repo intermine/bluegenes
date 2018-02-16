@@ -7,7 +7,9 @@
             [imcljs.query :as q]
             [bluegenes.interceptors :refer [clear-tooltips]]
             [accountant.core :as accountant]
-            [bluegenes.interceptors :refer [abort-spec]]))
+            [bluegenes.interceptors :refer [abort-spec]]
+            [cljs-time.core :as time]
+            [cljs-time.coerce :as time-coerce]))
 
 
 (comment
@@ -65,30 +67,35 @@
   :results/history+
   (abort-spec bluegenes.specs/im-package)
   (fn [{db :db} [_ {:keys [source value type] :as package}]]
-    {:db (update-in db [:results :history] conj package)
+    {:db (-> db
+             (update-in [:results :history] conj package)
+             (assoc-in [:results :queries (:title value)]
+                       (assoc package :last-executed (time-coerce/to-long (time/now)))))
      ; By navigating to the URL below, the :results/load-index (directly below) event is fired;
-     :navigate (str "/results/" (count (get-in db [:results :history])))}))
+     :navigate (str "/results/" (:title value))}))
 
 
 ; Load one package at a particular index from the list analysis history collection
 (reg-event-fx
   :results/load-history
   [(clear-tooltips)] ; This clears any existing tooltips on the screen when the event fires
-  (fn [{db :db} [_ idx]]
+  (fn [{db :db} [_ title]]
+    (println "looking for title" title)
     (let [
           ; Get the details of the current package
-          {:keys [source type value] :as package} (nth (get-in db [:results :history]) idx)
+          {:keys [source type value] :as package} (get-in db [:results :queries title])
           ; Get the current model
           model (get-in db [:mines source :service :model])
           service (get-in db [:mines source :service])]
       ; Store the values in app-db.
       ; TODO - 99% of this can be factored out by passing the package to the :enrichment/enrich and parsing it there
+      (js/console.log "LOADING P" package)
       {:db (update db :results assoc
                    :table nil
                    :query value
                    :package package
                    ; The index is used to highlight breadcrumbs
-                   :history-index idx
+                   :history-index title
                    :query-parts (q/group-views-by-class model value)
                    ; Clear the enrichment results before loading any new ones
                    :enrichment-results nil)
