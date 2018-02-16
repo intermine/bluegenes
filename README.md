@@ -1,4 +1,5 @@
 
+
 # BlueGenes
 ## About
 BlueGenes is designed to make searching and analysing genomic data easy. It's powered by [InterMine](http://intermine.org/) web services, meaning that the data from nearly 30 InterMines worldwide can be accessed from the same familiar interface.
@@ -14,19 +15,7 @@ BlueGenes is designed to make searching and analysing genomic data easy. It's po
 
 #### System Requirements
 * Java 1.6+
-* PostgreSQL 9.3+
 * [Leiningen 2.5+](https://leiningen.org/)
-
-#### Initial Setup
-
-BlueGenes has two main components: a web application and a server that hosts it. The server requires a connection to a PostgreSQL server to persist user data. We recommend creating two databases, one for development/testing and one for production:
-
-```bash
-$ createdb bluegenes-dev
-$ createdb bluegenes-prod
-```
-
-You then need to configure BlueGenes to use those databases. Copy and edit the example in [config/dev/README.md](config/dev/README.md) and save it to `config/dev/config.edn` and `config/prod/config.edn`.
 
 ##### Google Analytics
 If you wish to track pages hits, set up [Google analytics](https://analytics.google.com/analytics/web/#embed/report-home/a76615855w155408876p157084577/) for your domain, then add your google analytics id to your config.edn files (mentioned above) or environment variables. This is completely optional.
@@ -145,16 +134,6 @@ One of the easiest ways to deploy the prod minified version is to set up [Dokku]
 
 	git remote add my-awesome-server bluegenes@my-awesome-server.git
         git push my-awesome-server master
-
-Also see the note in the next section about Postgres
-
-### Setting up bluegenes for remote deployment
-
-Ensure that you set all [config variables](ADD LINK) and point to an existing postgres database.
-
-In the case of **Heroku**, that means editing the app on the Heroku dashboard and add a Postgres service.
-For **Dokku**, use the postgres plugin to link a postgres database.
-
 
 [lein]: https://github.com/technomancy/leiningen
 [bower]: http://bower.io/
