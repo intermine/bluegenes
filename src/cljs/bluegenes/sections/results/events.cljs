@@ -80,7 +80,6 @@
   :results/load-history
   [(clear-tooltips)] ; This clears any existing tooltips on the screen when the event fires
   (fn [{db :db} [_ title]]
-    (println "looking for title" title)
     (let [
           ; Get the details of the current package
           {:keys [source type value] :as package} (get-in db [:results :queries title])
@@ -89,7 +88,6 @@
           service (get-in db [:mines source :service])]
       ; Store the values in app-db.
       ; TODO - 99% of this can be factored out by passing the package to the :enrichment/enrich and parsing it there
-      (js/console.log "LOADING P" package)
       {:db (update db :results assoc
                    :table nil
                    :query value
