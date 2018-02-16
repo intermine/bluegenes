@@ -2,7 +2,7 @@
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [re-frame.core :refer [dispatch subscribe reg-fx]]
             [accountant.core :as accountant]
-            [cljs.core.async :refer [<!]]
+            [cljs.core.async :refer [<! close!]]
             [cljs-http.client :as http]))
 
 ;; See bottom of namespace for effect registrations and examples  on how to use them
@@ -20,15 +20,24 @@
 ; Navigates the browser to the given url and adds an entry to the HTML5 History
 (reg-fx :navigate (fn [url] (accountant/navigate! url)))
 
-(defn im-chan-fxfn
-  "The :im-chan side effect is used to read a value from a channel that represents an HTTP request
-  and dispatches events depending on the status of that request's response."
-  [{:keys [on-success on-failure chan]}]
-  (go
-    (let [{:keys [statusCode] :as response} (<! chan)]
-      (if (and statusCode (= statusCode 401))
-        (dispatch [:flag-invalid-tokens])
-        (dispatch (conj on-success response))))))
+"The :im-chan side effect is used to read a value from a channel that represents an HTTP request
+and dispatches events depending on the status of that request's response."
+(reg-fx :im-chan
+        (let [previous-requests (atom {})]
+          (fn [{:keys [on-success on-failure chan abort]}]
+            ; This http request can be closed early to prevent asynchronous http race conditions
+            (when abort
+              ; Look for a request stored in the state keyed by whatever value is in 'abort'
+              ; and close it
+              (some-> @previous-requests (get abort) close!)
+              ; Swap the old value for the new value
+              (swap! previous-requests assoc abort chan))
+            (go
+              (let [{:keys [statusCode] :as response} (<! chan)]
+                (if (and statusCode (= statusCode 401))
+                  (dispatch [:flag-invalid-tokens])
+                  (dispatch (conj on-success response))))))))
+
 
 (defn http-fxfn
   "The :http side effect is similar to :im-chan but is more generic and is used
@@ -76,7 +85,6 @@
                  (recur))))))
 
 ;;; Register the effects
-(reg-fx :im-chan im-chan-fxfn)
 (reg-fx ::http http-fxfn)
 
 ;;; Examples
