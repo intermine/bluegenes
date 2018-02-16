@@ -24,7 +24,7 @@
   ; "PORT" is often the default value for app serving platforms such as Heroku and Dokku
   (let [port (->int (or (:server-port env) (:port env) 5000))]
     (timbre/set-level! :info) ; Enable Logging
-    (try
+    #_(try
       (do
         (mount/start) ; Mount our database connection
         (migrations/migrate)) ; Apply any database migrations that haven't been applied

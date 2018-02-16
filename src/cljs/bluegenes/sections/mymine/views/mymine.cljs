@@ -643,16 +643,18 @@
        (fn []
 
          [:div.mymine.noselect
-          [:div.file-browser [tag-browser]]
+          ; TODO - remove tags
+          #_[:div.file-browser [tag-browser]]
           [:div.files
-          [:div.headerwithguidance [:h1 "My Data"]]
+          ;[:div.headerwithguidance [:h1 "My Data"]]
            [list-operations]
            (when @show-selected-pane?
              [:div.top.shrink
               (into [:div [:h3 "Selected items with other tags"]] (map-indexed (fn [idx x]
                                                                  ^{:key (str "selected" (or (:entry-id x) (str (:im-obj-type x) (:im-obj-id x))))} [row (assoc x :index idx)]) @selected-items-not-in-view))])
            [:div.bottom
-            [breadcrumb @cursor-trail]
+            ; TODO - remove tags
+            #_[breadcrumb @cursor-trail]
             (let [just-files (not-empty (filter (comp (partial not= "tag") :im-obj-type) @cursor-items))]
               (if just-files
                 (into [:div] (map-indexed (fn [idx x]
