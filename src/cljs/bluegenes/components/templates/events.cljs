@@ -32,6 +32,8 @@
                     [:template-chooser/fetch-preview]]
        })))
 
+
+
 (reg-event-db
   :template-chooser/set-category-filter
   (fn [db [_ id]]

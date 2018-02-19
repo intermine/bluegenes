@@ -79,7 +79,7 @@
                        [:div.template-constraint-container
                         [constraint
                          :model (:model @service)
-                         :typeahead? false
+                         :typeahead? true
                          :path (:path con)
                          :value (:value con)
                          :op (:op con)
