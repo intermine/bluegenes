@@ -55,9 +55,9 @@
                                                   :type :query
                                                   :value (assoc
                                                            (build-matches-query
-                                                            (:pathQuery details)
-                                                            (:pathConstraint details)
-                                                            identifier)
+                                                             (:pathQuery details)
+                                                             (:pathConstraint details)
+                                                             identifier)
                                                            :title identifier)}])
                     #_(dispatch [:results/add-to-history row details]))}
        [:div.container-fluid
@@ -90,36 +90,22 @@
      [:div.col-xs-4.p-val "p-value" [p-val-tooltip]]]]])
 
 (defn enrichment-results-preview []
-  (let [page-state (reagent/atom {:page 0 :show 5})
-        text-filter (subscribe [:enrichment/text-filter])
+  (let [text-filter (subscribe [:enrichment/text-filter])
         config (subscribe [:enrichment/enrichment-config])]
     (fn [[widget-name {:keys [results] :as details}]]
       [:div.sidebar-item
        [:h4 {:class (if (empty? results) "inactive")}
         (get-in @config [widget-name :title])
         (if results
-          [:span
-           [:span (if results (str " (" (count results) ")"))]
-           (if (< 0 (count results))
-             [:span
-              [:span
-               {:on-click (fn [] (swap! page-state update :page dec))
-                :title "View previous 5 enrichment results"} [:svg.icon.icon-chevron-left [:use {:xlinkHref "#icon-chevron-left"}]]]
-              ;;TODO: replace the > below with the svg icon when enrichment is fixed.
-              ;;[:svg.icon.icon-circle-right [:use {:xlinkHref "#icon-circle-right"}]]
-              [:span
-               {:on-click (fn [] (swap! page-state update :page inc))
-                :title "View next 5 enrichment results"} [:svg.icon.icon-chevron-right [:use {:xlinkHref "#icon-chevron-right"}]]]])]
-
+          [:span (if results (str " (" (count results) ")"))]
           [:span [mini-loader "tiny"]])]
        (cond (seq (:results details)) enrichment-results-header)
        (into [:ul.enrichment-list]
              (map (fn [row] [enrichment-result-row row details])
-                  (take (:show @page-state)
-                        (filter
-                          (fn [{:keys [description]}]
-                            (has-text? @text-filter description))
-                          (drop (* (:page @page-state) (:show @page-state)) results)))))])))
+                  (filter
+                    (fn [{:keys [description]}]
+                      (has-text? @text-filter description))
+                    results)))])))
 
 (defn enrichment-results []
   (let [all-enrichment-results (subscribe [:enrichment/enrichment-results])

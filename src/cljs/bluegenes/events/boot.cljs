@@ -63,7 +63,16 @@
   []
   {:register :im-tables-events ;;  <-- used
    :events #{:imt.io/save-list-success}
-   :dispatch-to [:assets/fetch-lists]})
+   :dispatch-to [:intercept-save-list]})
+
+; When a list is saved from im-tables, intercept the message
+; and show an alert while also refreshing the user's lists
+(reg-event-fx :intercept-save-list
+              (fn [{db :db} [_ [_ {:keys [listName listSize] :as evt}]]]
+                {:db (update db :messages conj)
+                 :dispatch-n [[:assets/fetch-lists]
+                              [:messages/add {:markup [:span (str "Saved list to My Data: " listName)]
+                                              :style "success"}]]}))
 
 (defn get-current-mines
   "This method is implemented for robust updates. It ensures that local-storage client-cached mine entries are deleted if the mine entry is removed from mines.cljc. Goes hand in hand with get-active mine to ensure that we still have an active mine to select"
