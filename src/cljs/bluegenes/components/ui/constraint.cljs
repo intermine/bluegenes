@@ -267,7 +267,9 @@
                                                     ((or on-blur on-change) {:path path :values val :op op :code code})
                                                     ((or on-blur on-change) {:path path :value val :op op :code code})))])]
                              (when (and code (not hide-code?)) [:span.constraint-label code])]
-                            (when on-remove [:svg.icon.icon-bin
-                                             {:on-click (fn [op] (on-remove {:path path :value value :op op}))}
-                                             [:use {:xlinkHref "#icon-bin"}]
-                                             ])]))})))
+                            (when on-remove
+
+                              [:svg.icon.icon-bin
+                                 {:on-click (fn [op] (on-remove {:path path :value value :op op}))}
+                                 [:use {:xlinkHref "#icon-bin"}]
+                                 ])]))})))
