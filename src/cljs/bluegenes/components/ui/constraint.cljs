@@ -105,15 +105,17 @@
                    allow-possible-values possible-values disabled op]}]
       (if (and typeahead? (seq? possible-values))
         (cond
-          (= op "=") [:div.constraint-text-input
-                      {:class (when @focused? "open")}
-                      (into [:select.form-control
-                             {:disabled disabled
-                              :class (when disabled "disabled")
-                              :value value
-                              :on-change (fn [e] (on-change (oget e :target :value)))}]
-                            (map (fn [v]
-                                   [:option {:value v} v]) (remove nil? possible-values)))]
+          (or
+            (= op "=")
+            (= op "!=")) [:div.constraint-text-input
+                          {:class (when @focused? "open")}
+                          (into [:select.form-control
+                                 {:disabled disabled
+                                  :class (when disabled "disabled")
+                                  :value value
+                                  :on-change (fn [e] (on-change (oget e :target :value)))}]
+                                (map (fn [v]
+                                       [:option {:value v} v]) (remove nil? possible-values)))]
           (or
             (= op "ONE OF")
             (= op "NONE OF")) [:div.constraint-text-input
@@ -124,13 +126,13 @@
                                        :class (when disabled "disabled")
                                        :value value
                                        :on-change (fn [e]
-
-                                                    (on-change (map first (filter (fn [[k elem]] (oget elem :selected)) @multiselects)))
-                                                    )}]
+                                                    (on-change (map first (filter (fn [[k elem]] (oget elem :selected)) @multiselects))))}]
                                      (map (fn [v]
                                             [:option
                                              {:ref (fn [e] (when e (swap! multiselects assoc v e)))
-                                              :value v} v]) (remove nil? possible-values)))]
+                                              :value v}
+                                             v])
+                                          (remove nil? possible-values)))]
           :else nil)
         [:input.form-control
          {:data-toggle "none"
