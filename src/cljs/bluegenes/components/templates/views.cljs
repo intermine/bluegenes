@@ -93,7 +93,7 @@
                                       (dispatch [:template-chooser/replace-constraint
                                                  idx (merge (cond-> con
                                                                     (contains? new-constraint :values) (dissoc :value)
-                                                                    (contains? new-constraint :value) (dissoc :values)) new-constraint )]))]
+                                                                    (contains? new-constraint :value) (dissoc :values)) new-constraint)]))]
                         (when switchable
                           [toggle {:status switched
                                    :on-change (fn [new-constraint]

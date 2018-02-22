@@ -126,14 +126,27 @@
                                        :class (when disabled "disabled")
                                        :value value
                                        :on-change (fn [e]
-                                                    (on-change (map first (filter (fn [[k elem]] (oget elem :selected)) @multiselects))))}]
+
+                                                    (let [value (doall (map first (filter (fn [[k elem]] (oget elem :selected)) @multiselects)))]
+                                                      (on-change value)))}]
                                      (map (fn [v]
                                             [:option
                                              {:ref (fn [e] (when e (swap! multiselects assoc v e)))
                                               :value v}
                                              v])
                                           (remove nil? possible-values)))]
-          :else nil)
+          :else [:input.form-control
+                 {:data-toggle "none"
+                  :disabled disabled
+                  :class (when disabled "disabled")
+                  :type "text"
+                  :value value
+                  :on-focus (fn [e] (reset! focused? true))
+                  :on-change (fn [e] (on-change (oget e :target :value)))
+                  :on-blur (fn [e] (on-blur (oget e :target :value)) (reset! focused? false))
+                  :on-key-down (fn [e] (when (= (oget e :keyCode) 13)
+                                         (on-blur (oget e :target :value))
+                                         (reset! focused? false)))}])
         [:input.form-control
          {:data-toggle "none"
           :disabled disabled
@@ -242,7 +255,7 @@
                                        :allow-possible-values (and (not= op "IN") (not= op "NOT IN"))
                                        :possible-values @pv
                                        :on-change (fn [val]
-                                                    (if (or (= op "ONE OF") (= op "NONE OF"))
+                                                    (if (and (some? val) (or (= op "ONE OF") (= op "NONE OF")))
                                                       (on-change {:path path :values val :op op :code code})
                                                       (on-change {:path path :value val :op op :code code})))
                                        :on-blur (fn [val] (when on-blur (on-blur {:path path :value val :op op :code code})))])]
