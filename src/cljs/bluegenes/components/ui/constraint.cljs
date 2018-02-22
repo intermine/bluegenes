@@ -50,10 +50,10 @@
                  :applies-to ["java.lang.String"]}
                 {:op "ONE OF"
                  :label "One of"
-                 :applies-to []}
+                 :applies-to ["java.lang.String"]}
                 {:op "NONE OF"
                  :label "None of"
-                 :applies-to []}])
+                 :applies-to ["java.lang.String"]}])
 
 (defn applies-to?
   "Given a field type (ex java.lang.Double) return all constraint maps that support that type"
@@ -99,33 +99,51 @@
 (defn constraint-text-input
   "A component that represents the freeform textbox for String / Lookup constraints"
   []
-  (let [component (reagent/atom nil)
+  (let [multiselects (reagent/atom {})
         focused? (reagent/atom false)]
     (fn [& {:keys [disabled model path value typeahead? on-change on-blur
-                   allow-possible-values possible-values disabled]}]
-      [:div.constraint-text-input
-       {:ref (fn [e] (reset! component e))
-        :class (when @focused? "open")}
-       (if (and typeahead? (seq? possible-values))
-         (into [:select.form-control
-                {:disabled disabled
-                 :class (when disabled "disabled")
-                 :value value
-                 :on-change (fn [e] (on-change (oget e :target :value)))}]
-               (map (fn [v]
-                      [:option {:value v} v]) (remove nil? possible-values)))
-         [:input.form-control
-          {:data-toggle "none"
-           :disabled disabled
-           :class (when disabled "disabled")
-           :type "text"
-           :on-focus (fn [e] (reset! focused? true))
-           :on-change (fn [e] (on-change (oget e :target :value)))
-           :on-blur (fn [e] (on-blur (oget e :target :value)) (reset! focused? false))
-           :on-key-down (fn [e] (when (= (oget e :keyCode) 13)
-                                  (on-blur (oget e :target :value))
-                                  (reset! focused? false)))
-           :value value}])])))
+                   allow-possible-values possible-values disabled op]}]
+      (if (and typeahead? (seq? possible-values))
+        (cond
+          (= op "=") [:div.constraint-text-input
+                      {:class (when @focused? "open")}
+                      (into [:select.form-control
+                             {:disabled disabled
+                              :class (when disabled "disabled")
+                              :value value
+                              :on-change (fn [e] (on-change (oget e :target :value)))}]
+                            (map (fn [v]
+                                   [:option {:value v} v]) (remove nil? possible-values)))]
+          (or
+            (= op "ONE OF")
+            (= op "NONE OF")) [:div.constraint-text-input
+                               {:class (when @focused? "open")}
+                               (into [:select.form-control
+                                      {:multiple true
+                                       :disabled disabled
+                                       :class (when disabled "disabled")
+                                       :value value
+                                       :on-change (fn [e]
+
+                                                    (on-change (map first (filter (fn [[k elem]] (oget elem :selected)) @multiselects)))
+                                                    )}]
+                                     (map (fn [v]
+                                            [:option
+                                             {:ref (fn [e] (when e (swap! multiselects assoc v e)))
+                                              :value v} v]) (remove nil? possible-values)))]
+          :else nil)
+        [:input.form-control
+         {:data-toggle "none"
+          :disabled disabled
+          :class (when disabled "disabled")
+          :type "text"
+          :value value
+          :on-focus (fn [e] (reset! focused? true))
+          :on-change (fn [e] (on-change (oget e :target :value)))
+          :on-blur (fn [e] (on-blur (oget e :target :value)) (reset! focused? false))
+          :on-key-down (fn [e] (when (= (oget e :keyCode) 13)
+                                 (on-blur (oget e :target :value))
+                                 (reset! focused? false)))}]))))
 
 
 (defn constraint-operator []
@@ -196,8 +214,9 @@
                               :op op
                               :lists lists
                               :on-change (fn [op]
-                                           (println "OC")
-                                           ((or on-change-operator on-change) {:code code :path path :value value :op op}))]
+                                           (if (or (= op "ONE OF") (= op "NONE OF"))
+                                             ((or on-change-operator on-change) {:code code :path path :values (cond-> value string? list) :op op})
+                                             ((or on-change-operator on-change) {:code code :path path :value (cond-> value seq? first) :op op})))]
                              [:div
                               [:span.constraint-component-label label]
                               (cond
@@ -214,12 +233,16 @@
                                 :else [constraint-text-input
                                        :model model
                                        :value value
+                                       :op op
                                        :typeahead? typeahead?
                                        :path path
                                        :disabled disabled
                                        :allow-possible-values (and (not= op "IN") (not= op "NOT IN"))
                                        :possible-values @pv
-                                       :on-change (fn [val] (on-change {:path path :value val :op op :code code}))
+                                       :on-change (fn [val]
+                                                    (if (or (= op "ONE OF") (= op "NONE OF"))
+                                                      (on-change {:path path :values val :op op :code code})
+                                                      (on-change {:path path :value val :op op :code code})))
                                        :on-blur (fn [val] (when on-blur (on-blur {:path path :value val :op op :code code})))])]
                              (when (and code (not hide-code?)) [:span.constraint-label code])]
                             (when on-remove [:svg.icon.icon-bin

@@ -81,7 +81,7 @@
                          :model (:model @service)
                          :typeahead? true
                          :path (:path con)
-                         :value (:value con)
+                         :value (or (:value con) (:values con))
                          :op (:op con)
                          :label (s/join " > " (take-last 2 (s/split (im-path/friendly (:model @service) (:path con)) #" > ")))
                          :code (:code con)
@@ -91,7 +91,9 @@
                          :lists (second (first @lists))
                          :on-change (fn [new-constraint]
                                       (dispatch [:template-chooser/replace-constraint
-                                                 idx (merge con new-constraint)]))]
+                                                 idx (merge (cond-> con
+                                                                    (contains? new-constraint :values) (dissoc :value)
+                                                                    (contains? new-constraint :value) (dissoc :values)) new-constraint )]))]
                         (when switchable
                           [toggle {:status switched
                                    :on-change (fn [new-constraint]
