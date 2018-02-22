@@ -2,7 +2,7 @@
   (:require [imcljs.path :as im-path]
             [re-frame.core :refer [subscribe dispatch]]
             [oops.core :refer [oget ocall]]
-            [clojure.string :refer [includes? split]]
+            [clojure.string :refer [includes? blank? split join]]
             [bluegenes.components.loader :refer [mini-loader]]
             [reagent.core :as reagent :refer [create-class]]
             [dommy.core :as dommy :refer-macros [sel sel1]]
@@ -102,7 +102,7 @@
   (let [multiselects (reagent/atom {})
         focused? (reagent/atom false)]
     (fn [& {:keys [disabled model path value typeahead? on-change on-blur
-                   allow-possible-values possible-values disabled op]}]
+                   allow-possible-values possible-values disabled op] :as x}]
       (if (and typeahead? (seq? possible-values))
         (cond
           (or
@@ -112,10 +112,15 @@
                           (into [:select.form-control
                                  {:disabled disabled
                                   :class (when disabled "disabled")
-                                  :value value
-                                  :on-change (fn [e] (on-change (oget e :target :value)))}]
-                                (map (fn [v]
-                                       [:option {:value v} v]) (remove nil? possible-values)))]
+                                  :value (or value "")
+                                  :on-change (fn [e] (on-blur (oget e :target :value)))}]
+                                (cond-> (map (fn [v] [:option {:value v} v]) (remove nil? possible-values))
+                                        (blank? value) (conj
+                                                         [:option {:disabled true :value ""}
+                                                          (str
+                                                            "Choose "
+                                                            (join " > "
+                                                                  (take-last 2 (split (im-path/friendly model path) " > "))))])))]
           (or
             (= op "ONE OF")
             (= op "NONE OF")) [:div.constraint-text-input
@@ -124,11 +129,10 @@
                                       {:multiple true
                                        :disabled disabled
                                        :class (when disabled "disabled")
-                                       :value value
+                                       :value (or value [])
                                        :on-change (fn [e]
-
                                                     (let [value (doall (map first (filter (fn [[k elem]] (oget elem :selected)) @multiselects)))]
-                                                      (on-change value)))}]
+                                                      (on-blur value)))}]
                                      (map (fn [v]
                                             [:option
                                              {:ref (fn [e] (when e (swap! multiselects assoc v e)))
@@ -231,7 +235,7 @@
                               :on-change (fn [op]
                                            (if (or (= op "ONE OF") (= op "NONE OF"))
                                              ((or on-change-operator on-change) {:code code :path path :values (cond-> value string? list) :op op})
-                                             ((or on-change-operator on-change) {:code code :path path :value (cond-> value seq? first) :op op})))]
+                                             ((or on-change-operator on-change) {:code code :path path :value (cond-> value (seq? value) first) :op op})))]
                              [:div
                               [:span.constraint-component-label label]
                               (cond
@@ -258,7 +262,10 @@
                                                     (if (and (some? val) (or (= op "ONE OF") (= op "NONE OF")))
                                                       (on-change {:path path :values val :op op :code code})
                                                       (on-change {:path path :value val :op op :code code})))
-                                       :on-blur (fn [val] (when on-blur (on-blur {:path path :value val :op op :code code})))])]
+                                       :on-blur (fn [val]
+                                                  (if (and (some? val) (or (= op "ONE OF") (= op "NONE OF")))
+                                                    ((or on-blur on-change) {:path path :values val :op op :code code})
+                                                    ((or on-blur on-change) {:path path :value val :op op :code code})))])]
                              (when (and code (not hide-code?)) [:span.constraint-label code])]
                             (when on-remove [:svg.icon.icon-bin
                                              {:on-click (fn [op] (on-remove {:path path :value value :op op}))}

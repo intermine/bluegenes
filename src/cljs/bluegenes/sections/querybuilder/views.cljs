@@ -181,7 +181,7 @@
                                    :on-remove (fn [] (dispatch [:qb/enhance-query-remove-constraint path idx]))
                                    ;:possible-values (when (some? (:possible-values properties)) (map :item (:possible-values properties)))
                                    :typeahead? true
-                                   :value (:value con)
+                                   :value (or (:value con) (:values con))
                                    :op (:op con)
                                    :on-select-list (fn [c]
                                                      (dispatch [:qb/enhance-query-update-constraint path idx c])
@@ -189,11 +189,15 @@
                                    :on-change-operator (fn [x]
                                                          (dispatch [:qb/enhance-query-update-constraint path idx x])
                                                          (dispatch [:qb/enhance-query-build-im-query true]))
+
                                    :on-change (fn [c]
-                                                (dispatch [:qb/enhance-query-update-constraint path idx c]))
+                                                (dispatch [:qb/enhance-query-update-constraint path idx c])
+                                                ;(dispatch [:qb/enhance-query-build-im-query true])
+                                                )
                                    :on-blur (fn [c]
                                               (dispatch [:qb/enhance-query-update-constraint path idx c])
                                               (dispatch [:qb/enhance-query-build-im-query true]))
+
                                    ;(dispatch [:qb/build-im-query])
 
                                    :label? false]]]) constraints)))
