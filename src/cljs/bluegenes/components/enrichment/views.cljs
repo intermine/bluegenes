@@ -20,21 +20,6 @@
 (def sidebar-hover (reagent/atom false))
 
 (defn popover-table []
-  (let [values (subscribe [:enrichment/summary-values])
-        result (first (:results @values))
-        column-headers (:columnHeaders @values)]
-    (fn [matches p-value]
-      ;(js/console.log "RENDER" @values)
-      ;(js/console.log "RENDER" result matches p-value)
-      [:div.sidebar-popover
-       [:table
-        (into [:tbody]
-              (map-indexed (fn [idx header]
-                             [:tr.popover-contents.sidebar-popover
-                              [:td.title (last (clojure.string/split header " > "))]
-                              [:td.value (get result idx)]]) column-headers))]])))
-
-(defn tbl []
   (fn [{:keys [results columnHeaders] :as me}]
     [:div.sidebar-popover
      [:table
@@ -76,7 +61,7 @@
           matches]
          [:div.col-xs-7
           [popover
-           [:span {:data-content [tbl @(subscribe [:enrichment/a-summary-values identifier])]
+           [:span {:data-content [popover-table @(subscribe [:enrichment/a-summary-values identifier])]
                    :data-placement "top"
                    :data-trigger "hover"}
             ^{:key p-value}
