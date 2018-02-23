@@ -33,13 +33,13 @@
 
 (reg-event-db
   :save-summary-fields
-  (fn [db [_ response]]
-    (assoc-in db [:results :summary-values] response)))
+  (fn [db [_ identifier response]]
+    (assoc-in db [:results :summary-values identifier] response)))
 
 (reg-fx
   :get-summary-values
-  (fn [c]
-    (go (dispatch [:save-summary-fields (<! c)]))))
+  (fn [[identifier c]]
+    (go (dispatch [:save-summary-fields identifier (<! c)]))))
 
 (reg-event-fx
   :results/get-item-details
@@ -57,7 +57,7 @@
                                    :op "="
                                    :value identifier}]})]
       {:db (assoc-in db [:results :summary-chan] summary-chan)
-       :get-summary-values summary-chan})))
+       :get-summary-values [identifier summary-chan]})))
 
 ; Fire this event to append a query package to the BlueGenes list analysis history
 ; and then route the browser to a URL that displays the last package in history (the one we just added)
