@@ -88,13 +88,21 @@
       false)
     true))
 
-(def enrichment-results-header
-  [:div.enrichment-header
-   [:div.container-fluid
-    [:div.row
-     [:div.col-xs-2 "Matches"]
-     [:div.col-xs-7 "Item"]
-     [:div.col-xs-3.p-val "p-value" [p-val-tooltip]]]]])
+(defn enrichment-results-header []
+  (fn [{:keys [on-click selected?]}]
+    [:div.enrichment-header
+     [:div.container-fluid
+      [:div.row
+       [:div.col-xs-2
+        {:style {:white-space "nowrap"}}
+        [:input
+         {:type "checkbox"
+          :checked selected?
+          :on-click (fn [e]
+                      (ocall e :stopPropagation) (on-click))}]
+        "Matches"]
+       [:div.col-xs-7 "Item"]
+       [:div.col-xs-3.p-val "p-value" [p-val-tooltip]]]]]))
 
 (defn enrichment-results-preview []
   (let [text-filter (subscribe [:enrichment/text-filter])
@@ -133,8 +141,14 @@
                                                    ; ... unless it's empty, then use all filtered identifiers
                                                    (map :identifier filtered-results)))
                                                :title "Enrichment Results")}]))}
-             "View"]])
-         (cond (seq (:results details)) enrichment-results-header)
+             "View Selected"]])
+         (cond (seq (:results details))
+               [enrichment-results-header
+                {:selected? (= (count filtered-results) (count @selected))
+                 :on-click (fn []
+                             (if (empty? @selected)
+                               (reset! selected (set (map :identifier filtered-results)))
+                               (reset! selected #{})))}])
          (into [:ul.enrichment-list]
                (map (fn [row]
                       (let [selected? (contains? @selected (:identifier row))]
