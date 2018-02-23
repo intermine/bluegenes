@@ -125,7 +125,7 @@
             [:span (if results (str " (" (count results) ")"))]
             [:span [mini-loader "tiny"]])]
          (when (not-empty results)
-           [:div.btn-toolbar
+           [:div
             [:button.btn.btn-default.btn-raised.btn-xs
              {:on-click (fn []
                           (dispatch [:results/history+
@@ -141,7 +141,7 @@
                                                    ; ... unless it's empty, then use all filtered identifiers
                                                    (map :identifier filtered-results)))
                                                :title "Enrichment Results")}]))}
-             "View Selected"]])
+             (if (empty? @selected) "View All"  "View Selected")]])
          (cond (seq (:results details))
                [enrichment-results-header
                 {:selected? (= (count filtered-results) (count @selected))
