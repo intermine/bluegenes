@@ -89,7 +89,6 @@
           service (get-in db [:mines source :service])]
       ; Store the values in app-db.
       ; TODO - 99% of this can be factored out by passing the package to the :enrichment/enrich and parsing it there
-      (js/console.log "mine name" mine-name)
       {:db (update db :results assoc
                    :table nil
                    :query value
