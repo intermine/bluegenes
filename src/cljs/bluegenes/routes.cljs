@@ -51,12 +51,12 @@
                       nil
                       [:results/load-history 0]))
 
-  (defroute "/results/:idx" [idx]
+  (defroute "/results/:title" [title]
             (dispatch [:set-active-panel :results-panel
                        nil
                        ; URL PARAMETERS ARE ALWAYS STRINGS! Parse as Integer because
                        ; we use the value as a location in a collection (nth [a b c d] "2")
-                       [:results/load-history (js/parseInt idx)]]))
+                       [:results/load-history title]]))
 
   (defroute "/regions" []
             (dispatch [:set-active-panel :regions-panel]))

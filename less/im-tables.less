@@ -8,16 +8,6 @@
 /// You may, if need be, paste the new im-tables styles in here, but leave   ///
 /// this warning intact. Kthxbye.                                            ///
 ////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-/// DO NOT EDIT // DO NOT EDIT // DO NOT EDIT // DO NOT EDIT // DO NOT EDIT  ///
-/// This is a straight copy/paste from imtables and is pasted in manually    ///
-/// until we get something smarter set up. Edit anything here and it'll      ///
-/// disappear next time we copy/paste. If you want to override an imtables   ///
-/// style, go to im-tables-overrides instead.                                ///
-////////////////////////////////////////////////////////////////////////////////
-/// You may, if need be, paste the new im-tables styles in here, but leave   ///
-/// this warning intact. Kthxbye.                                            ///
-////////////////////////////////////////////////////////////////////////////////
 
 .table > thead > tr > th {
   vertical-align: top;
@@ -83,6 +73,49 @@
 }
 .im-table .im-tooltip .table {
   margin-bottom: 0;
+}
+.im-modal {
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  position: fixed;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-animation: fadein 2s;
+  /* Safari, Chrome and Opera > 12.1 */
+  -moz-animation: fadein 2s;
+  /* Firefox < 16 */
+  -ms-animation: fadein 2s;
+  /* Internet Explorer */
+  -o-animation: fadein 2s;
+  /* Opera < 12.1 */
+  animation: fadein 150ms;
+  animation-timing-function: ease-out;
+  animation-fill-mode: backwards;
+}
+.im-modal .im-modal-content {
+  flex: 0 0 auto;
+  animation: slidein 150ms;
+}
+@keyframes fadein {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes slidein {
+  from {
+    transform: translate(0%, -50%);
+  }
+  to {
+    transform: translate(0%, 0%);
+  }
 }
 .force-wrap {
   /* These are technically the same, but use both */
@@ -361,7 +394,7 @@
   white-space: nowrap;
 }
 .im-table .summary-toolbar .dropdown-menu {
-  min-width: 35vw;
+  min-width: 360px;
   padding: 0;
 }
 .im-table .summary-toolbar .filter-icon.active-filter {
@@ -521,3 +554,37 @@
 .im-table .modal-header h3 {
   margin: 0;
 }
+.im-table .table-history-detail {
+  font-size: 0.8em;
+  font-family: monospace;
+  background-color: #e7e7e7;
+  padding: 5px;
+}
+.im-table .histo {
+  background-color: #f0f8ff;
+  display: flex;
+  height: 75px;
+  box-sizing: border-box;
+  position: relative;
+  border-bottom: 1px solid black;
+}
+.im-table .histo .histo-bucket {
+  flex: 1 0;
+}
+.im-table .histo .histo-bucket.full {
+  background-color: #0058a6;
+  border-left: 1px solid white;
+  border-right: 1px solid white;
+}
+.im-table .histo .trimmer {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background-color: orange;
+  opacity: 0.3;
+}
+.im-table .numerical-content-wrapper {
+  padding: 10px;
+}
+
+
