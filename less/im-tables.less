@@ -394,7 +394,7 @@
   white-space: nowrap;
 }
 .im-table .summary-toolbar .dropdown-menu {
-  min-width: 35vw;
+  min-width: 360px;
   padding: 0;
 }
 .im-table .summary-toolbar .filter-icon.active-filter {
@@ -560,111 +560,31 @@
   background-color: #e7e7e7;
   padding: 5px;
 }
-
-.im-modal {
+.im-table .histo {
+  background-color: #f0f8ff;
+  display: flex;
+  height: 75px;
+  box-sizing: border-box;
+  position: relative;
+  border-bottom: 1px solid black;
+}
+.im-table .histo .histo-bucket {
+  flex: 1 0;
+}
+.im-table .histo .histo-bucket.full {
+  background-color: #0058a6;
+  border-left: 1px solid white;
+  border-right: 1px solid white;
+}
+.im-table .histo .trimmer {
+  position: absolute;
   top: 0;
   bottom: 0;
-  left: 0;
-  right: 0;
-  position: fixed;
-  background-color: rgba(0, 0, 0, 0.5);
-  z-index: 999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  -webkit-animation: fadein 2s;
-  /* Safari, Chrome and Opera > 12.1 */
-  -moz-animation: fadein 2s;
-  /* Firefox < 16 */
-  -ms-animation: fadein 2s;
-  /* Internet Explorer */
-  -o-animation: fadein 2s;
-  /* Opera < 12.1 */
-  animation: fadein 150ms;
-  animation-timing-function: ease-out;
-  animation-fill-mode: backwards;
+  background-color: orange;
+  opacity: 0.3;
 }
-.im-modal .im-modal-content {
-  flex: 0 0 auto;
-  animation: slidein 150ms;
-}
-@keyframes fadein {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-@keyframes slidein {
-  from {
-    transform: translate(0%, -50%);
-  }
-  to {
-    transform: translate(0%, 0%);
-  }
+.im-table .numerical-content-wrapper {
+  padding: 10px;
 }
 
-.im-table .im-tooltip {
-  position: absolute;
-  background: #ffffff;
-  border: 1px solid #c2e1f5;
-  min-width: 25vw;
-  max-width: 45vw;
-  min-height: 50px;
-  -webkit-box-shadow: 2px 2px 12px 1px rgba(0, 0, 0, 0.35);
-  -moz-box-shadow: 2px 2px 12px 1px rgba(0, 0, 0, 0.35);
-  box-shadow: 2px 2px 12px 1px rgba(0, 0, 0, 0.35);
-  padding: 5px;
-  margin-top: 10px;
-  z-index: 999;
-  animation-duration: 0.4s;
-  animation-name: fadein;
-  transition-timing-function: ease-in;
-}
-@keyframes fadein {
-  from {
-    opacity: 0.1;
-  }
-  to {
-    opacity: 1;
-  }
-}
-.im-table .im-tooltip:after,
-.im-table .im-tooltip:before {
-  bottom: 50%;
-  content: " ";
-  border-color: rgba(255, 255, 255, 0);
-  height: 0;
-  position: absolute;
-  pointer-events: none;
-  border-style: solid;
-}
-.im-table .im-tooltip.tooltip-right:before {
-  border-right-color: #c2e1f5;
-}
-.im-table .im-tooltip.tooltip-right:after {
-  border-right-color: #ffffff;
-  margin-right: -1px;
-}
-.im-table .im-tooltip.tooltip-right:after,
-.im-table .im-tooltip.tooltip-right:before {
-  right: 100%;
-  border-width: 10px 10px 10px 0;
-}
-.im-table .im-tooltip.tooltip-left:after,
-.im-table .im-tooltip.tooltip-left:before {
-  left: 100%;
-  border-width: 10px 0 10px 10px;
-}
-.im-table .im-tooltip.tooltip-left:before {
-  border-left-color: #c2e1f5;
-}
-.im-table .im-tooltip.tooltip-left:after {
-  margin-left: -1px;
-  border-left-color: #ffffff;
-}
-.im-table .im-tooltip .table {
-  margin-bottom: 0;
-}
 
