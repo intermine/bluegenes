@@ -5,7 +5,7 @@
             [bluegenes.components.loader :refer [mini-loader]]
             [bluegenes.sections.results.subs]
             [imcljs.path :as path]
-            [bluegenes.components.bootstrap :refer [popover tooltip]]
+            [bluegenes.components.bootstrap :refer [popover poppable tooltip]]
             [clojure.string :refer [split]]
             [oops.core :refer [oget ocall]]))
 
@@ -22,7 +22,7 @@
 (defn popover-table []
   (fn [{:keys [results columnHeaders] :as me}]
     [:div.sidebar-popover
-     [:table
+     [:table.table.table-condensed.table-striped
       (into [:tbody]
             (map-indexed (fn [idx header]
                            [:tr.popover-contents.sidebar-popover
@@ -60,20 +60,21 @@
                         (on-click identifier))}]
           matches]
          [:div.col-xs-7
-          [popover
-           [:span {:data-content [popover-table @(subscribe [:enrichment/a-summary-values identifier])]
-                   :data-placement "top"
-                   :data-trigger "hover"}
-            ^{:key p-value}
-            [:a {:on-click (fn []
-                             (dispatch [:results/history+ {:source @current-mine
-                                                           :type :query
-                                                           :value (assoc
-                                                                    (build-matches-query
-                                                                      (:pathQuery details)
-                                                                      (:pathConstraint details)
-                                                                      identifier)
-                                                                    :title identifier)}]))} description]]]]
+
+          (let [summary-value @(subscribe [:enrichment/a-summary-values identifier])]
+            [poppable
+             {:data (if summary-value
+                      [popover-table @(subscribe [:enrichment/a-summary-values identifier])]
+                      [:span "Loading"])
+              :children [:a {:on-click (fn []
+                                         (dispatch [:results/history+ {:source @current-mine
+                                                                       :type :query
+                                                                       :value (assoc
+                                                                                (build-matches-query
+                                                                                  (:pathQuery details)
+                                                                                  (:pathConstraint details)
+                                                                                  identifier)
+                                                                                :title identifier)}]))} description]}])]
          [:div.col-xs-3 [:span {:style {:font-size "0.8em"}} (.toExponential p-value 6)]]]]])))
 
 (defn has-text?
@@ -138,7 +139,7 @@
                                                    ; ... unless it's empty, then use all filtered identifiers
                                                    (map :identifier filtered-results)))
                                                :title "Enrichment Results")}]))}
-             (if (empty? @selected) "View All"  "View Selected")]])
+             (if (empty? @selected) "View All" "View Selected")]])
          (cond (seq (:results details))
                [enrichment-results-header
                 {:selected? (= (count filtered-results) (count @selected))
