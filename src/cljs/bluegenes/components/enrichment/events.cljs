@@ -39,7 +39,7 @@
                                      :op "="
                                      :value identifier}]})]
       {:db (assoc-in db [:results :summary-chan] summary-chan)
-       :get-summary-values summary-chan})))
+       :get-summary-values [identifier summary-chan]})))
 
 (reg-event-fx
   :enrichment/set-text-filter

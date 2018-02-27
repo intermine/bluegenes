@@ -7,7 +7,8 @@
 (defn logout
   "Log the user out by clearing the session"
   []
-  (response/ok {:success true :session nil}))
+  (-> (response/ok {:success true})
+      (assoc :session nil)))
 
 (defn handle-auth
   "Ring handler for handling authentication. Attempts to authenticate with the

@@ -72,16 +72,16 @@
         row-count (subscribe [:template-chooser/count])
         lists (subscribe [:lists])]
     [:div.col-xs-4.border-right
-     (into [:form.form]
+     (into [:div.form]
            ; Only show editable constraints, but don't filter because we want the index!
            (->> (keep-indexed (fn [idx con] (if (:editable con) [idx con])) (:where @selected-template))
                 (map (fn [[idx {:keys [switched switchable] :as con}]]
                        [:div.template-constraint-container
                         [constraint
                          :model (:model @service)
-                         :typeahead? false
+                         :typeahead? true
                          :path (:path con)
-                         :value (:value con)
+                         :value (or (:value con) (:values con))
                          :op (:op con)
                          :label (s/join " > " (take-last 2 (s/split (im-path/friendly (:model @service) (:path con)) #" > ")))
                          :code (:code con)
@@ -89,14 +89,22 @@
                          :label? true
                          :disabled (= switched "OFF")
                          :lists (second (first @lists))
+                         :on-blur (fn [new-constraint]
+                                    (dispatch [:template-chooser/update-preview
+                                               idx (merge (cond-> con
+                                                                  (contains? new-constraint :values) (dissoc :value)
+                                                                  (contains? new-constraint :value) (dissoc :values)) new-constraint)]))
                          :on-change (fn [new-constraint]
                                       (dispatch [:template-chooser/replace-constraint
-                                                 idx (merge con new-constraint)]))]
+                                                 idx (merge (cond-> con
+                                                                    (contains? new-constraint :values) (dissoc :value)
+                                                                    (contains? new-constraint :value) (dissoc :values)) new-constraint)]))]
                         (when switchable
                           [toggle {:status switched
                                    :on-change (fn [new-constraint]
                                                 (dispatch [:template-chooser/replace-constraint
-                                                           idx (assoc con :switched (case switched "ON" "OFF" "ON"))]))}])]))))]))
+                                                           idx (assoc con :switched (case switched "ON" "OFF" "ON"))])
+                                                (dispatch [:template-chooser/update-preview]))}])]))))]))
 
 (defn tags
   "UI element to visually output all aspect tags into each template card for easy scanning / identification of tags.

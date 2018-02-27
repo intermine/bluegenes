@@ -49,7 +49,7 @@
             filter-fn      (apply every-pred [text-filter type-filter])
             filtered-lists (filter filter-fn lists)]
         [:div.dropdown
-         [:button.btn.btn-default.dropdown-toggle
+         [:button.btn.btn-raised.btn-default.dropdown-toggle
           {:disabled disabled
            :style       {:text-transform "none"
                          :white-space    "normal"}
