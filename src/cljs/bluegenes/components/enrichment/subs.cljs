@@ -36,3 +36,8 @@
   :enrichment/summary-values
   (fn [db]
     (get-in db [:results :summary-values])))
+
+(reg-sub
+  :enrichment/a-summary-values
+  (fn [db [_ identifier]]
+    (get-in db [:results :summary-values identifier])))

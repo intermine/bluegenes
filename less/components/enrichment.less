@@ -3,6 +3,12 @@
 .enrichment {
     font-size: 0.9em;
 
+    a {
+        text-decoration: underline;
+    }
+
+
+
     a .icon {
         vertical-align: baseline;
     }
@@ -79,6 +85,8 @@
     .enrichment-list {
         padding-left: 0;
         font-size: 0.9em;
+        max-height: 300px;
+        overflow-y: auto;
 
         li {
             transition: all 0.25s ease;
@@ -168,8 +176,21 @@
     }
 }
 
-//this can't be namespaced nicely because twitter bootstrap is evil and
-//creates a new element that won't inherit all of the nicely namespaced classes. Sigh.
-.enrichment-popover.popover-contents {
-    color: #fff;
+.popover-content {
+    padding: 4px;
+}
+.popover-contents {
+    .title {
+        font-weight: bold;
+    }
+}
+
+.sidebar-popover {
+    font-size: 0.9em;
+    .table {
+        margin: 0;
+        td {
+            padding: 4px;
+        }
+    }
 }
