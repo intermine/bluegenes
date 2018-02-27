@@ -35,39 +35,43 @@
 
 (defn login-form []
   (let [credentials (reagent/atom {:username nil :password nil})
-        current-mine (subscribe [:current-mine])]
-    (fn [thinking?]
-      [:form.login-form
-       [:h2 "Log in to " (:name @current-mine)]
-       [:div.form-group
-        [:label "Email Address"]
-        [:input.form-control
-         {:type "text"
-          :value (:username @credentials)
-          :on-change (partial update-form credentials :username)}]]
-       [:div.form-group
-        [:label "Password"]
-        [:input.form-control
-         {:type "password"
-          :value (:password @credentials)
-          :on-change (partial update-form credentials :password)
-          :on-key-up (fn [k]
-                       (when (= 13 (oget k :keyCode))
-                         (dispatch [:bluegenes.events.auth/login
-                                    (assoc @credentials
-                                      :service (:service @current-mine)
-                                      :mine-id (:id @current-mine))])))}]]
-       [:div.register-or-login
-        [register-for-mine current-mine]
-        [:button.btn.btn-primary.btn-raised
-         {:type "button"
-          :on-click (fn []
-                      (dispatch [:bluegenes.events.auth/login
-                                 (assoc @credentials
-                                   :service (:service @current-mine)
-                                   :mine-id (:id @current-mine))]))}
-         [mine-icon @current-mine]
-         "Sign In"]]])))
+        current-mine (subscribe [:current-mine])
+        auth-values (subscribe [:bluegenes.subs.auth/auth])]
+    (fn []
+      (let [{:keys [error? thinking?]} @auth-values]
+        [:form.login-form
+         [:h2 "Log in to " (:name @current-mine)]
+         [:div.form-group
+          [:label "Email Address"]
+          [:input.form-control
+           {:type "text"
+            :value (:username @credentials)
+            :on-change (partial update-form credentials :username)}]]
+         [:div.form-group
+          [:label "Password"]
+          [:input.form-control
+           {:type "password"
+            :value (:password @credentials)
+            :on-change (partial update-form credentials :password)
+            :on-key-up (fn [k]
+                         (when (= 13 (oget k :keyCode))
+                           (dispatch [:bluegenes.events.auth/login
+                                      (assoc @credentials
+                                        :service (:service @current-mine)
+                                        :mine-id (:id @current-mine))])))}]]
+         [:div.register-or-login
+          [register-for-mine current-mine]
+          [:button.btn.btn-primary.btn-raised
+           {:type "button"
+            :on-click (fn []
+                        (dispatch [:bluegenes.events.auth/login
+                                   (assoc @credentials
+                                     :service (:service @current-mine)
+                                     :mine-id (:id @current-mine))]))}
+           [mine-icon @current-mine]
+           "Sign In"]]
+         (when error?
+           [:div.alert.alert-danger.error-box "Invalid username or password"])]))))
 
 (defn settings []
   (let [current-mine (subscribe [:current-mine])]

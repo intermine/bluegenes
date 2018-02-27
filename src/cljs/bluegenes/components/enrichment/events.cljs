@@ -8,6 +8,7 @@
             [imcljs.query :as q]
             [clojure.spec.alpha :as s]
             [clojure.set :refer [intersection]]
+            [bluegenes.effects :as fx]
             [day8.re-frame.http-fx]
             [ajax.core :as ajax]
             [bluegenes.interceptors :refer [clear-tooltips]]
@@ -26,20 +27,20 @@
 (reg-event-fx
   :enrichment/get-item-details
   (fn [{db :db} [_ identifier path-constraint]]
-    (let [source         (get-in db [:results :package :source])
-          model          (get-in db [:mines source :service :model])
-          classname      (keyword (path/class model path-constraint))
+    (let [source (get-in db [:results :package :source])
+          model (get-in db [:mines source :service :model])
+          classname (keyword (path/class model path-constraint))
           summary-fields (get-in db [:assets :summary-fields source classname])
-          service        (get-in db [:mines source :service])
-          summary-chan   (fetch/rows
-                           service
-                           {:from (name classname)
-                            :select summary-fields
-                            :where [{:path (last (clojure.string/split path-constraint "."))
-                                     :op "="
-                                     :value identifier}]})]
+          service (get-in db [:mines source :service])
+          summary-chan (fetch/rows
+                         service
+                         {:from (name classname)
+                          :select summary-fields
+                          :where [{:path (last (clojure.string/split path-constraint "."))
+                                   :op "="
+                                   :value identifier}]})]
       {:db (assoc-in db [:results :summary-chan] summary-chan)
-       :get-summary-values summary-chan})))
+       :get-summary-values [identifier summary-chan]})))
 
 (reg-event-fx
   :enrichment/set-text-filter
@@ -49,9 +50,9 @@
 (defn what-we-can-enrich
   "Returns list of columns in the results view that have widgets available for enrichment."
   [widgets query-parts]
-  (let [possible-roots       (set (keys query-parts))
+  (let [possible-roots (set (keys query-parts))
         possible-enrichments (reduce (fn [x y] (conj x (keyword (first (:targets y))))) #{} widgets)
-        enrichable-roots     (intersection possible-enrichments possible-roots)
+        enrichable-roots (intersection possible-enrichments possible-roots)
         ]
     (select-keys query-parts enrichable-roots)
     ))
@@ -79,13 +80,13 @@
 (defn resolve-what-to-enrich
   "This is complex - we need to resolve which columns are of a suitable type to be enriched by a widget, and then select one. Where possible we try to always preserve the same column that the user was looking at in the previous enrichment, to ensure general consistency."
   [db]
-  (let [query-parts              (get-in db [:results :query-parts])
-        widgets                  (get-in db [:assets :widgets (:current-mine db)])
+  (let [query-parts (get-in db [:results :query-parts])
+        widgets (get-in db [:assets :widgets (:current-mine db)])
         existing-enrichable-path (get-in db [:results :active-enrichment-column :path])
-        existing-type            (get-in db [:results :active-enrichment-column :type])
-        enrichable               (what-we-can-enrich widgets query-parts)
+        existing-type (get-in db [:results :active-enrichment-column :type])
+        enrichable (what-we-can-enrich widgets query-parts)
         use-existing-enrichable? (can-we-enrich-on-existing-preference? enrichable existing-enrichable-path)
-        enrichable-default       (last (last (vals enrichable)))]
+        enrichable-default (last (last (vals enrichable)))]
     (if use-existing-enrichable?
       ;;default to the type we had selected last enrichment if possible
       (first (filter
@@ -97,12 +98,12 @@
 (reg-event-fx
   :enrichment/enrich
   (fn [{db :db} [_]]
-    (let [query-parts    (get-in db [:results :query-parts])
-          widgets        (get-in db [:assets :widgets (:current-mine db)])
-          enrichable     (what-we-can-enrich widgets query-parts)
+    (let [query-parts (get-in db [:results :query-parts])
+          widgets (get-in db [:assets :widgets (:current-mine db)])
+          enrichable (what-we-can-enrich widgets query-parts)
           what-to-enrich (resolve-what-to-enrich db)
-          can-enrich?    (pos? (count enrichable))
-          source-kw      (get-in db [:results :package :source])]
+          can-enrich? (pos? (count enrichable))
+          source-kw (get-in db [:results :package :source])]
       (if can-enrich?
         (let [enrich-query (:query what-to-enrich)]
           {:db (-> db
@@ -153,12 +154,12 @@
 (reg-event-fx
   :enrichment/run-all-enrichment-queries
   (fn [{db :db} [_]]
-    (let [selection         {:ids (get-in db [:results :ids-to-enrich])}
-          settings          (get-in db [:results :enrichment-settings])
-          widgets           (get-in db [:assets :widgets (:current-mine db)])
+    (let [selection {:ids (get-in db [:results :ids-to-enrich])}
+          settings (get-in db [:results :enrichment-settings])
+          widgets (get-in db [:assets :widgets (:current-mine db)])
           enrichment-column (get-in db [:results :active-enrichment-column])
-          suitable-widgets  (get-suitable-widgets widgets enrichment-column)
-          queries           (build-all-enrichment-queries selection suitable-widgets settings)]
+          suitable-widgets (get-suitable-widgets widgets enrichment-column)
+          queries (build-all-enrichment-queries selection suitable-widgets settings)]
       {:db (assoc-in db [:results :active-widgets] suitable-widgets)
        :dispatch-n queries})))
 
@@ -171,18 +172,14 @@
   (fn [{db :db} [_ params]]
     (let [updated-params (cond-> params
                                  ; Stringify our :ids coll to be comma separated
-                                 (contains? params :ids) (update :ids (partial string/join ",") ))]
+                                 (contains? params :ids) (update :ids (partial string/join ",")))]
       (let [enrichment-chan (fetch/enrichment (service db (get-in db [:results :package :source])) updated-params)]
-       {:db (assoc-in db [:results
-                          :enrichment-results
-                          (keyword (:widget updated-params))] nil)
-        :enrichment/get-enrichment [(:widget updated-params) enrichment-chan]}))))
-
-(reg-fx
-  :enrichment/get-enrichment
-  (fn [[widget-name results]]
-    (go (dispatch [:enrichment/handle-results widget-name (<! results)]))))
-
+        {:db (assoc-in db [:results
+                           :enrichment-results
+                           (keyword (:widget updated-params))] nil)
+         :im-chan {:chan enrichment-chan
+                   :abort [:enrichment (:widget updated-params)]
+                   :on-success [:enrichment/handle-results (:widget updated-params)]}}))))
 
 (reg-event-db
   :enrichment/handle-results

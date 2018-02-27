@@ -32,6 +32,8 @@
                     [:template-chooser/fetch-preview]]
        })))
 
+
+
 (reg-event-db
   :template-chooser/set-category-filter
   (fn [db [_ id]]
@@ -69,11 +71,24 @@
       ; Only fetch the query results if the operator hasn't change from a LIST to a VALUE or vice versa
       (if (should-update? (:op old-constraint) (:op new-constraint))
         {:db (assoc-in db constraint-location new-constraint)
-         :dispatch-n [[:template-chooser/run-count]
-                      [:template-chooser/fetch-preview]]}
+         ;:dispatch-n [[:template-chooser/run-count]
+         ;             [:template-chooser/fetch-preview]]
+         }
         {:db (-> db
                  (assoc-in constraint-location (assoc new-constraint :value nil))
                  (assoc-in [:components :template-chooser :results-preview] nil))}))))
+
+(reg-event-fx
+  :template-chooser/update-preview
+  (fn [{db :db} [_ index new-constraint]]
+
+    (let [constraint-location [:components :template-chooser :selected-template :where index]
+          old-constraint (get-in db constraint-location)]
+      ; Only fetch the query results if the operator hasn't change from a LIST to a VALUE or vice versa
+      {:db db
+       :dispatch-n [[:template-chooser/run-count]
+                    [:template-chooser/fetch-preview]]})))
+
 
 (reg-event-db
   :template-chooser/update-count
@@ -104,12 +119,15 @@
           template-name (get-in db [:components :template-chooser :selected-template-name])
           service (get-in db [:mines (ns->kw template-name) :service])
           count-chan (fetch/table-rows service query {:size 5})
+          query-changed? (not= query (get-in db [:components :template-chooser :previously-ran]))
           new-db (update-in db [:components :template-chooser] assoc
                             :preview-chan count-chan
-                            :fetching-preview? true)]
-      {:db new-db
-       :im-chan {:chan count-chan
-                 :on-success [:template-chooser/store-results-preview]}})))
+
+                            :previously-ran query)]
+      (cond-> {:db new-db}
+              query-changed? (assoc-in [:db :components :template-chooser :fetching-preview?] true)
+              query-changed? (assoc :im-chan {:chan count-chan
+                                              :on-success [:template-chooser/store-results-preview]} )))))
 
 
 

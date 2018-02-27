@@ -71,3 +71,8 @@
  (fn [db]
    (let [results (get-in db [:results :query])]
      (some? results))))
+
+(reg-sub
+  :results/historical-queries
+  (fn [db]
+    (sort-by (comp :last-executed second) > (seq (get-in db [:results :queries])))))
