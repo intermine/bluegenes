@@ -71,8 +71,8 @@
     (r/create-class
       {:component-did-mount (fn [this] (reset! dom-node (js/$ (r/dom-node this))))
        :reagent-render (let [suggested-state (subscribe [::subs/suggested-modal-state])
-                             checked-items   (subscribe [::subs/checked-details])
-                             new-list-name   (r/atom nil)]
+                             checked-items (subscribe [::subs/checked-details])
+                             new-list-name (r/atom nil)]
                          (fn [{:keys [errors body on-success state]}]
                            [:div
                             [:h4 "Keep items from these lists"]
@@ -139,9 +139,9 @@
                                [:div.alert.alert-warning "A list with this name already exists"])]]))})))
 
 (defn modal-list-operations []
-  (let [state     (r/atom "")
+  (let [state (r/atom "")
         all-lists (subscribe [:lists/filtered-lists])
-        disabled  (r/atom false)]
+        disabled (r/atom false)]
     (r/create-class
       {:component-did-update (fn [])
        :component-did-mount (fn [this]
@@ -229,7 +229,7 @@
 (defn modal-delete-item []
   (let [input-dom-node (r/atom nil)
         modal-dom-node (r/atom nil)
-        dets           (subscribe [::subs/details])]
+        dets (subscribe [::subs/details])]
     (r/create-class
       {:component-did-mount (fn [this]
                               ; When modal is closed, clear the context menu target. This prevents the modal
@@ -240,7 +240,7 @@
                               #_(ocall (js/$ (r/dom-node this))
                                        :on "shown.bs.modal"
                                        (fn [] (ocall @input-dom-node :select))))
-       :reagent-render (fn [{:keys [file-type label trail]}]
+       :reagent-render (fn [{:keys [name]}]
                          [:div#myMineDeleteModal.modal.fade
                           {:tab-index "-1" ; Allows "escape" key to work.... for some reason
                            :role "dialog"
@@ -263,16 +263,16 @@
                               [:button.btn.btn-default
                                {:data-dismiss "modal"}
                                "Cancel"]
-                              [:button.btn.btn-success.btn-raised
+                              [:button.btn.btn-danger.btn-raised
                                {:data-dismiss "modal"
-                                :on-click (fn [] (dispatch [::evts/delete trail (:name @dets)]))}
-                               "Remove Folder"]]]]]])})))
+                                :on-click (fn [] (dispatch [::evts/delete name]))}
+                               "Delete List"]]]]]])})))
 
 
 (defn modal-new-folder []
   (let [input-dom-node (r/atom nil)
         modal-dom-node (r/atom nil)
-        menu-details   (subscribe [::subs/menu-details])]
+        menu-details (subscribe [::subs/menu-details])]
     (r/create-class
       {:component-did-mount (fn [this]
                               ; When modal is closed, clear the context menu target. This prevents the modal
@@ -318,8 +318,8 @@
 (defn modal-copy []
   (let [input-dom-node (r/atom nil)
         modal-dom-node (r/atom nil)
-        dets           (subscribe [::subs/details])
-        menu-details   (subscribe [::subs/menu-details])]
+        dets (subscribe [::subs/details])
+        menu-details (subscribe [::subs/menu-details])]
     (r/create-class
       {:component-did-mount (fn [this]
                               ; When modal is closed, clear the context menu target. This prevents the modal
@@ -330,7 +330,7 @@
                               (ocall (js/$ (r/dom-node this))
                                      :on "shown.bs.modal"
                                      (fn [] (ocall @input-dom-node :select))))
-       :reagent-render (fn [{:keys [file-type label trail]}]
+       :reagent-render (fn [{:keys [name description]}]
                          [:div#myMineCopyModal.modal.fade
                           {:tab-index "-1" ; Allows "escape" key to work.... for some reason
                            :role "dialog"
@@ -340,12 +340,13 @@
                             [:div.modal-header [:h2 "Copy List"]]
                             [:div.modal-body [:p "Please enter a name for the new list"]
                              [:input.form-control
-                              {:ref (fn [e] (when e (do (oset! e :value "") (reset! input-dom-node (js/$ e)))))
+                              {:ref (fn [e] (when e (do (oset! e :value name) (reset! input-dom-node (js/$ e)))))
                                :type "text"
                                :on-key-up (fn [evt]
                                             (case (oget evt :keyCode)
                                               13 (do ; Detect "Return
-                                                   (dispatch [::evts/copy trail (:name @dets) (ocall @input-dom-node :val)])
+                                                   ;(dispatch [::evts/copy trail (:name @dets) (ocall @input-dom-node :val)])
+
                                                    (ocall @modal-dom-node :modal "hide"))
                                               nil))}]]
                             [:div.modal-footer
@@ -355,14 +356,16 @@
                                "Cancel"]
                               [:button.btn.btn-success.btn-raised
                                {:data-dismiss "modal"
-                                :on-click (fn [] (dispatch [::evts/copy trail (:name @dets) (ocall @input-dom-node :val)]))}
+                                :on-click (fn []
+                                            (dispatch [::evts/copy name (ocall @input-dom-node :val)])
+                                            )}
                                "OK"]]]]]])})))
 
 
 (defn modal-lo []
   (let [input-dom-node (r/atom nil)
         modal-dom-node (r/atom nil)
-        dets           (subscribe [::subs/details])]
+        dets (subscribe [::subs/details])]
     (r/create-class
       {:component-did-mount (fn [this]
                               ; When modal is closed, clear the context menu target. This prevents the modal
@@ -404,7 +407,7 @@
 (defn modal-lo-intersect []
   (let [input-dom-node (r/atom nil)
         modal-dom-node (r/atom nil)
-        dets           (subscribe [::subs/details])]
+        dets (subscribe [::subs/details])]
     (r/create-class
       {:component-did-mount (fn [this]
                               ; When modal is closed, clear the context menu target. This prevents the modal
@@ -456,7 +459,7 @@
                               (ocall (js/$ (r/dom-node this))
                                      :on "shown.bs.modal"
                                      (fn [] (ocall @input-dom-node :select))))
-       :reagent-render (fn [{:keys [file-type label trail] :as it}]
+       :reagent-render (fn [{:keys [description name trail] :as dets}]
                          [:div#myMineRenameList.modal.fade
                           {:tab-index "-1" ; Allows "escape" key to work.... for some reason
                            :role "dialog"
@@ -466,7 +469,7 @@
                             [:div.modal-header [:h2 "Rename List"]]
                             [:div.modal-body [:p "Please enter a new name for your list"]
                              [:input.form-control
-                              {:ref (fn [e] (when e (do (oset! e :value label) (reset! input-dom-node (js/$ e)))))
+                              {:ref (fn [e] (when e (do (oset! e :value name) (reset! input-dom-node (js/$ e)))))
                                :type "text"
                                :on-key-up (fn [evt]
                                             (case (oget evt :keyCode)
@@ -481,7 +484,7 @@
                                "Cancel"]
                               [:button.btn.btn-success.btn-raised
                                {:data-dismiss "modal"
-                                :on-click (fn [] (dispatch-edit trail :label (ocall @input-dom-node :val)))}
+                                :on-click (fn [] (dispatch [::evts/rename-list name (ocall @input-dom-node :val)]))}
                                "OK"]]]]]])})))
 
 

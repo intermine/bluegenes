@@ -275,11 +275,12 @@
   :qb/export-query
   (fn [{db :db} [_]]
     {:db db
-     :dispatch [:results/set-query
+     :dispatch [:results/history+
                 {:source (get-in db [:current-mine])
                  :type :query
-                 :value (get-in db [:qb :im-query])}]
-     :navigate (str "results")}))
+                 :value (assoc
+                          (get-in db [:qb :im-query])
+                          :title "Custom Built Query")}]}))
 
 (defn within? [col item]
   (some? (some #{item} col)))
@@ -394,8 +395,8 @@
 (reg-event-db
   :qb/enhance-query-update-constraint
   (fn [db [_ path idx constraint]]
-    (let [add-code? (and (blank? (:code constraint)) (not-blank? (:value constraint)))
-          remove-code? (and (blank? (:value constraint)) (:code constraint))]
+    (let [add-code? (and (blank? (:code constraint)) (or (not-blank? (:value constraint)) (not-blank? (:values constraint))))
+          remove-code? (and (blank? (:value constraint)) (blank? (:values constraint)) (:code constraint))]
       (let [updated-constraint
             (cond-> constraint
                     add-code? (assoc :code (next-available-const-code (get-in db [:qb :enhance-query])))
@@ -431,7 +432,7 @@
                          im-query/sterilize-query)
             query-changed? (not= im-query (get-in db [:qb :im-query]))]
         (cond-> {:db (update-in db [:qb] assoc :im-query im-query)}
-                (and query-changed? fetch-preview?) (assoc :dispatch [:qb/fetch-preview service im-query])
+                (and fetch-preview?) (assoc :dispatch [:qb/fetch-preview service im-query])
                 )))))
 
 

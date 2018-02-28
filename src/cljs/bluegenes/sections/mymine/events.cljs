@@ -93,7 +93,7 @@
   ::new-folder
   (fn [db [_ location-trail name]]
     (let [action-target (not-empty (get-in db [:mymine :action-target]))
-          uuid          (keyword (str "tag-" (str (make-random-uuid))))]
+          uuid (keyword (str "tag-" (str (make-random-uuid))))]
       (if-not action-target
         (-> db (assoc-in [:mymine :tree uuid] {:label name :file-type :folder}))
         (-> db
@@ -174,6 +174,7 @@
 (reg-event-fx
   ::fetch-one-list
   (fn [{db :db} [_ trail {list-name :listName} parent-id]]
+    (js/console.log "fetching one list" list-name)
     (let [service (get-in db [:mines (get db :current-mine) :service])]
       {:im-chan {:chan (fetch/one-list service list-name)
                  :on-success [::fetch-one-list-success trail parent-id]
@@ -181,19 +182,20 @@
 
 (reg-event-fx
   ::copy-success
-  (fn [{db :db} [_ trail parent-id response]]
+  (fn [{db :db} [_ response]]
+    (js/console.log "copy success" response)
     {:dispatch-n [
                   [::clear-checked]
-                  [::fetch-one-list trail response parent-id]]}))
+                  [::fetch-one-list response]]}))
 
 (reg-event-fx
   ::copy-n
   (fn [{db :db}]
-    (let [ids           (get-in db [:mymine :checked])
-          lists         (get-in db [:assets :lists (get db :current-mine)])
+    (let [ids (get-in db [:mymine :checked])
+          lists (get-in db [:assets :lists (get db :current-mine)])
           names-to-copy (map :name (filter (comp ids :id) lists))
-          focus         (or (get-in db [:mymine :focus]) [:unsorted])
-          parent-id     (get-in db [:mymine :cursor :entry-id])]
+          focus (or (get-in db [:mymine :focus]) [:unsorted])
+          parent-id (get-in db [:mymine :cursor :entry-id])]
       ; Now automatically increment the names of the list (since we're copying many)
       (let [evts (reduce (fn [total next]
                            (if-let [previous (first (not-empty (filter #(s/starts-with? % (str next "_")) (map :name lists))))]
@@ -210,11 +212,11 @@
   ::copy-focus
   (fn [{db :db} [_ trail old-list-name new-list-name parent-id]]
     ;[on-success on-failure response-format chan params]
-    (let [service          (get-in db [:mines (get db :current-mine) :service])
-          target-file      (get-in db [:mymine :menu-file-details])
-          lists            (get-in db [:assets :lists (get db :current-mine)])
+    (let [service (get-in db [:mines (get db :current-mine) :service])
+          target-file (get-in db [:mymine :menu-file-details])
+          lists (get-in db [:assets :lists (get db :current-mine)])
           target-list-name (->> lists (filter (fn [l] (= (:id target-file) (:id l)))) first :name)
-          location         (butlast (:trail target-file))]
+          location (butlast (:trail target-file))]
       {:im-chan {:chan (save/im-list-copy service old-list-name new-list-name)
                  :on-success [::copy-success location parent-id]
                  :on-failure [::copy-failure]}})))
@@ -228,8 +230,8 @@
 (reg-event-fx
   ::delete-lists
   (fn [{db :db} [_]]
-    (let [lists          (get-in db [:assets :lists (get db :current-mine)])
-          checked        (get-in db [:mymine :checked])
+    (let [lists (get-in db [:assets :lists (get db :current-mine)])
+          checked (get-in db [:mymine :checked])
           selected-lists (map :name (filter (fn [l] (some #{(:id l)} checked)) lists))]
       (let [service (get-in db [:mines (get db :current-mine) :service])]
         {:im-chan {:chan (save/im-list-delete service selected-lists)
@@ -238,16 +240,10 @@
 
 (reg-event-fx
   ::copy
-  (fn [{db :db} [_ trail old-list-name new-list-name]]
-    ;[on-success on-failure response-format chan params]
-    (let [service          (get-in db [:mines (get db :current-mine) :service])
-          target-file      (get-in db [:mymine :menu-file-details])
-          lists            (get-in db [:assets :lists (get db :current-mine)])
-          target-list-name (->> lists (filter (fn [l] (= (:id target-file) (:id l)))) first :name)
-          location         (let [t (butlast (:trail target-file))]
-                             (if (= t '(:public)) nil t))]
+  (fn [{db :db} [_ old-list-name new-list-name]]
+    (let [service (get-in db [:mines (get db :current-mine) :service])]
       {:im-chan {:chan (save/im-list-copy service old-list-name new-list-name)
-                 :on-success [::copy-success location]
+                 :on-success [:assets/fetch-lists]
                  :on-failure [::copy-failure]}})))
 
 ;;;; END TODO
@@ -257,27 +253,20 @@
   (fn [{db :db} [_ trail response]]
     {:dispatch [:assets/fetch-lists trail response]}))
 
-
 (reg-event-fx
   ::rename-list
-  (fn [{db :db} [_ new-list-name]]
-    (let [service (get-in db [:mines (get db :current-mine) :service])
-          _       (js/console.log "DB" db)
-          id      (last (get-in db [:mymine :action-target]))
-          _       (js/console.log "ID" id)
-          {old-list-name :name} @(subscribe [::subs/one-list id])]
-      (js/console.log "RENAMING" old-list-name new-list-name)
+  (fn [{db :db} [_ old-list-name new-list-name]]
+    (let [service (get-in db [:mines (get db :current-mine) :service])]
       {:im-chan {:chan (save/im-list-rename service old-list-name new-list-name)
                  :on-success [:assets/fetch-lists]
                  :on-failure [::copy-failure]}})))
 
 (reg-event-fx
   ::delete
-  (fn [{db :db} [_ trail list-name]]
-    ;[on-success on-failure response-format chan params]
+  (fn [{db :db} [_ list-name]]
     (let [service (get-in db [:mines (get db :current-mine) :service])]
       {:im-chan {:chan (send/delete-list service list-name)
-                 :on-success [::delete-success trail]
+                 :on-success [:assets/fetch-lists]
                  :on-failure [::delete-failure]}})))
 
 (reg-event-db
@@ -299,11 +288,11 @@
   ::drop
   (fn [{db :db} [_ trail]]
     (let [{:keys [dragging dragging-over dragging-node]} (:mymine db)]
-      (let [tree               (get-in db [:mymine :tree])
+      (let [tree (get-in db [:mymine :tree])
             drop-parent-folder (parent-folder tree dragging-over)
-            drag-type          (:file-type (get-in tree dragging))
-            drop-type          (:file-type (get-in tree dragging-over))
-            dragging-id        (keyword (str (name (:file-type dragging-node)) "-" (:id dragging-node)))]
+            drag-type (:file-type (get-in tree dragging))
+            drop-type (:file-type (get-in tree dragging-over))
+            dragging-id (keyword (str (name (:file-type dragging-node)) "-" (:id dragging-node)))]
         ; Don't do anything if we're moving something into the same folder
         (cond
           (= dragging dragging-over) {:db db :dispatch [::drag-end]} ; File was moved onto itself. Ignore.
@@ -357,10 +346,10 @@
 (reg-event-fx
   ::lo-combine
   (fn [{db :db} [_ list-name]]
-    (let [lists          (get-in db [:assets :lists (get db :current-mine)])
-          checked        (get-in db [:mymine :checked])
+    (let [lists (get-in db [:assets :lists (get db :current-mine)])
+          checked (get-in db [:mymine :checked])
           selected-lists (map :name (filter (fn [l] (some #{(:id l)} checked)) lists))
-          parent-id      (get-in db [:mymine :cursor :entry-id])]
+          parent-id (get-in db [:mymine :cursor :entry-id])]
       (let [service (get-in db [:mines (get db :current-mine) :service])]
         {:im-chan {:chan (save/im-list-union service list-name selected-lists)
                    :on-success [::lo-success parent-id]
@@ -369,10 +358,10 @@
 (reg-event-fx
   ::lo-intersect
   (fn [{db :db} [_ list-name]]
-    (let [lists          (get-in db [:assets :lists (get db :current-mine)])
-          checked        (get-in db [:mymine :checked])
+    (let [lists (get-in db [:assets :lists (get db :current-mine)])
+          checked (get-in db [:mymine :checked])
           selected-lists (map :name (filter (fn [l] (some #{(:id l)} checked)) lists))
-          parent-id      (get-in db [:mymine :cursor :entry-id])]
+          parent-id (get-in db [:mymine :cursor :entry-id])]
       (let [service (get-in db [:mines (get db :current-mine) :service])]
         {:im-chan {:chan (save/im-list-intersect service list-name selected-lists)
                    :on-success [::lo-success parent-id]
@@ -381,10 +370,10 @@
 (reg-event-fx
   ::lo-difference
   (fn [{db :db} [_ list-name]]
-    (let [lists          (get-in db [:assets :lists (get db :current-mine)])
-          checked        (get-in db [:mymine :checked])
+    (let [lists (get-in db [:assets :lists (get db :current-mine)])
+          checked (get-in db [:mymine :checked])
           selected-lists (map :name (filter (fn [l] (some #{(:id l)} checked)) lists))
-          parent-id      (get-in db [:mymine :cursor :entry-id])]
+          parent-id (get-in db [:mymine :cursor :entry-id])]
       (let [service (get-in db [:mines (get db :current-mine) :service])]
         {:im-chan {:chan (save/im-list-difference service list-name selected-lists)
                    :on-success [::lo-success parent-id]
@@ -393,11 +382,11 @@
 (reg-event-fx
   ::lo-subtract
   (fn [{db :db} [_ list-name]]
-    (let [lists            (get-in db [:assets :lists (get db :current-mine)])
+    (let [lists (get-in db [:assets :lists (get db :current-mine)])
           [lists-a lists-b] (get-in db [:mymine :suggested-state])
           selected-lists-a (map :name lists-a)
           selected-lists-b (map :name lists-b)
-          parent-id        (get-in db [:mymine :cursor :entry-id])]
+          parent-id (get-in db [:mymine :cursor :entry-id])]
 
       (let [service (get-in db [:mines (get db :current-mine) :service])]
         {:im-chan {:chan (save/im-list-subtraction service list-name selected-lists-a selected-lists-b)
@@ -466,7 +455,7 @@
 (reg-event-fx ::store-tag []
               (fn [{db :db} [_ label]]
                 (let [context-menu-target (get-in db [:mymine :context-menu-target])
-                      mine-id             (get-in db [:current-mine])]
+                      mine-id (get-in db [:current-mine])]
                   {:db db
                    ::fx/http {:method :post
                               :transit-params {:im-obj-type "tag"
@@ -617,7 +606,7 @@
               (fn [{db :db} [_ tag]]
                 (let [{dragging-id :entry-id :as dragging} (get-in db [:mymine :drag :dragging])
                       {dropping-id :entry-id :as dropping} (get-in db [:mymine :drag :dragging-over])
-                      hierarchy    (get-in db [:mymine :hierarchy])
+                      hierarchy (get-in db [:mymine :hierarchy])
                       current-mine (get-in db [:current-mine])]
                   (let [noop {:db (assoc-in db [:mymine :drag] nil)}]
 
@@ -646,28 +635,28 @@
                                          (if (= entry-id (:entry-id e))
                                            (assoc e :parent-id parent-id)
                                            e)) (get-in db [:mymine :entries]))
-                      parent-tag  (first (filter (comp #{parent-id} :entry-id) new-entries))]
+                      parent-tag (first (filter (comp #{parent-id} :entry-id) new-entries))]
                   {:db (assoc-in db [:mymine :entries] new-entries)
                    :dispatch-n [[::rederive]
                                 [::set-cursor parent-tag]]})))
 
 
 (defn build-list-query [type summary-fields name title]
-  {:title  title
-   :from   type
+  {:title title
+   :from type
    :select summary-fields
-   :where  [{:path  type
-             :op    "IN"
-             :value name}]})
+   :where [{:path type
+            :op "IN"
+            :value name}]})
 
 
 (reg-event-fx
   ::view-list-results
   (fn [{db :db} [_ {:keys [type name title source]}]]
     (let [summary-fields (get-in db [:assets :summary-fields source (keyword type)])]
-      {:db       db
-       :dispatch [:results/set-query
+      {:db db
+       :dispatch [:results/history+
                   {:source source
-                   :type   :query
-                   :value  (build-list-query type summary-fields name title)}]
+                   :type :query
+                   :value (build-list-query type summary-fields name title)}]
        :navigate "/results"})))

@@ -47,7 +47,16 @@
                        [:qb/make-tree]]))
 
   (defroute "/results" []
-            (dispatch [:set-active-panel :results-panel]))
+            (dispatch [:set-active-panel :results-panel]
+                      nil
+                      [:results/load-history 0]))
+
+  (defroute "/results/:idx" [idx]
+            (dispatch [:set-active-panel :results-panel
+                       nil
+                       ; URL PARAMETERS ARE ALWAYS STRINGS! Parse as Integer because
+                       ; we use the value as a location in a collection (nth [a b c d] "2")
+                       [:results/load-history (js/parseInt idx)]]))
 
   (defroute "/regions" []
             (dispatch [:set-active-panel :regions-panel]))

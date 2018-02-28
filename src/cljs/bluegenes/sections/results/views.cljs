@@ -16,7 +16,7 @@
   (if (< length (count string)) (str (clojure.string/join (take (- length 3) string)) "...") string))
 
 (defn breadcrumb []
-  (let [history       (subscribe [:results/history])
+  (let [history (subscribe [:results/history])
         history-index (subscribe [:results/history-index])]
     (fn []
       [:div.breadcrumb-container
@@ -26,9 +26,9 @@
                (fn [idx {{title :title} :value}]
                  (let [adjusted-title (if (not= idx @history-index) (adjust-str-to-length 20 title) title)]
                    [:div {:class (if (= @history-index idx) "active")
-                         :on-click       (fn [x] (dispatch [:results/load-from-history idx]))}
+                          :on-click #(accountant/navigate! (str "/results/" idx))}
                     [tooltip
-                     { :title title}
+                     {:title title}
                      adjusted-title]])) @history))])))
 
 (defn no-results []
@@ -45,11 +45,11 @@
          [:div.results-and-enrichment
           [:div.col-md-8.col-sm-12.panel
            ;;[:results :fortable] is the key where the imtables data (appdb) are stored.
-             [tables/main [:results :fortable]]]
+           [tables/main [:results :fortable]]]
           [:div.col-md-4.col-sm-12
            [enrichment/enrich]
            ]]]
         ;;oh noes, somehow we made it here with noresults. Fail elegantly, not just console errors.
         [no-results]
         )
-)))
+      )))
