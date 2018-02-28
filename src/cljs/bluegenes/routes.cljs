@@ -2,7 +2,8 @@
   (:require-macros [secretary.core :refer [defroute]])
   (:require [secretary.core :as secretary]
             [accountant.core :as accountant]
-            [re-frame.core :refer [dispatch]]))
+            [re-frame.core :refer [dispatch]]
+            [oops.core :refer [ocall]]))
 
 (defn app-routes
   "When called, define client side URL routes and capture them in the browser history.
@@ -80,6 +81,7 @@
                     ;; in scary over-tracking scenarios where we track queries.
                     ;; The try/catch is because some urls are malformed (possibly ones imtables builds, I'm unsure).
                     ;; They throw an error when secretary tries to regex the first part of the url. too many hashes?
+                    (ocall (js/$ ".popover") "remove")
                     (try
                       (let [shortened-path (secretary/locate-route-value path)]
                         (js/ga "send" "pageview" (secretary/locate-route-value path)))
