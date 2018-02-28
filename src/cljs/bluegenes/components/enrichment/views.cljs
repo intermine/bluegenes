@@ -5,9 +5,9 @@
             [bluegenes.components.loader :refer [mini-loader]]
             [bluegenes.sections.results.subs]
             [imcljs.path :as path]
-            [bluegenes.components.bootstrap :refer [popover tooltip]]
+            [bluegenes.components.bootstrap :refer [popover poppable tooltip]]
             [clojure.string :refer [split]]
-            [oops.core :refer [oget]]))
+            [oops.core :refer [oget ocall]]))
 
 ;;==============================TODO============================
 ;; 1. some enrichment widgets have filters! Add support for this
@@ -20,17 +20,14 @@
 (def sidebar-hover (reagent/atom false))
 
 (defn popover-table []
-  (let [values (subscribe [:enrichment/summary-values])
-        result (first (:results @values))
-        column-headers (:columnHeaders @values)]
-    (fn [matches p-value]
-      [:div.sidebar-popover
-       [:table
-        (into [:tbody]
-              (map-indexed (fn [idx header]
-                             [:tr.popover-contents.sidebar-popover
-                              [:td.title (last (clojure.string/split header " > "))]
-                              [:td.value (get result idx)]]) column-headers))]])))
+  (fn [{:keys [results columnHeaders] :as me}]
+    [:div.sidebar-popover
+     [:table.table.table-condensed.table-striped
+      (into [:tbody]
+            (map-indexed (fn [idx header]
+                           [:tr.popover-contents.sidebar-popover
+                            [:td.title (last (clojure.string/split header " > "))]
+                            [:td.value (get (first results) idx)]]) columnHeaders))]]))
 
 (defn p-val-tooltip []
   [tooltip {:title
@@ -42,35 +39,43 @@
   (update-in (js->clj (.parse js/JSON query) :keywordize-keys true) [:where]
              conj {:path path-constraint
                    :op "ONE OF"
-                   :values [identifier]}))
+                   :values (cond-> identifier (string? identifier) list)}))
 
 (defn enrichment-result-row []
   (let [current-mine (subscribe [:current-mine-name])]
     (fn [{:keys [description matches identifier p-value matches-query] :as row}
-         {:keys [pathConstraint] :as details}]
+         {:keys [pathConstraint] :as details}
+         on-click
+         selected?]
       [:li.enrichment-item
-       {:on-mouse-enter (fn [] (dispatch [:enrichment/get-item-details identifier pathConstraint]))
-        :on-click (fn []
-                    (dispatch [:results/history+ {:source @current-mine
-                                                  :type :query
-                                                  :value (assoc
-                                                           (build-matches-query
-                                                            (:pathQuery details)
-                                                            (:pathConstraint details)
-                                                            identifier)
-                                                           :title identifier)}])
-                    #_(dispatch [:results/add-to-history row details]))}
+       {:on-mouse-enter (fn [] (dispatch [:enrichment/get-item-details identifier pathConstraint]))}
        [:div.container-fluid
         [:div.row
-         [:div.col-xs-2 matches]
-         [:div.col-xs-6
-          [popover
-           [:span {:data-content [popover-table matches p-value]
-                   :data-placement "top"
-                   :data-trigger "hover"}
-            ^{:key p-value}
-            [:a description]]]]
-         [:div.col-xs-4 [:span {:style {:font-size "0.8em"}} (.toExponential p-value 6)]]]]])))
+         [:div.col-xs-2
+          [:input
+           {:type "checkbox"
+            :checked selected?
+            :on-click (fn [e]
+                        (ocall e :stopPropagation)
+                        (on-click identifier))}]
+          matches]
+         [:div.col-xs-7
+
+          (let [summary-value @(subscribe [:enrichment/a-summary-values identifier])]
+            [poppable
+             {:data (if summary-value
+                      [popover-table @(subscribe [:enrichment/a-summary-values identifier])]
+                      [:span "Loading"])
+              :children [:a {:on-click (fn []
+                                         (dispatch [:results/history+ {:source @current-mine
+                                                                       :type :query
+                                                                       :value (assoc
+                                                                                (build-matches-query
+                                                                                  (:pathQuery details)
+                                                                                  (:pathConstraint details)
+                                                                                  identifier)
+                                                                                :title identifier)}]))} description]}])]
+         [:div.col-xs-3 [:span {:style {:font-size "0.8em"}} (.toExponential p-value 6)]]]]])))
 
 (defn has-text?
   "Return true if a label contains a string"
@@ -81,45 +86,72 @@
       false)
     true))
 
-(def enrichment-results-header
-  [:div.enrichment-header
-   [:div.container-fluid
-    [:div.row
-     [:div.col-xs-2 "Matches"]
-     [:div.col-xs-6 "Item"]
-     [:div.col-xs-4.p-val "p-value" [p-val-tooltip]]]]])
+(defn enrichment-results-header []
+  (fn [{:keys [on-click selected?]}]
+    [:div.enrichment-header
+     [:div.container-fluid
+      [:div.row
+       [:div.col-xs-2
+        {:style {:white-space "nowrap"}}
+        [:input
+         {:type "checkbox"
+          :checked selected?
+          :on-click (fn [e]
+                      (ocall e :stopPropagation) (on-click))}]
+        "Matches"]
+       [:div.col-xs-7 "Item"]
+       [:div.col-xs-3.p-val "p-value" [p-val-tooltip]]]]]))
 
 (defn enrichment-results-preview []
-  (let [page-state (reagent/atom {:page 0 :show 5})
-        text-filter (subscribe [:enrichment/text-filter])
-        config (subscribe [:enrichment/enrichment-config])]
+  (let [text-filter (subscribe [:enrichment/text-filter])
+        config (subscribe [:enrichment/enrichment-config])
+        selected (reagent/atom #{})
+        current-mine (subscribe [:current-mine-name])]
     (fn [[widget-name {:keys [results] :as details}]]
-      [:div.sidebar-item
-       [:h4 {:class (if (empty? results) "inactive")}
-        (get-in @config [widget-name :title])
-        (if results
-          [:span
-           [:span (if results (str " (" (count results) ")"))]
-           (if (< 0 (count results))
-             [:span
-              [:span
-               {:on-click (fn [] (swap! page-state update :page dec))
-                :title "View previous 5 enrichment results"} [:svg.icon.icon-chevron-left [:use {:xlinkHref "#icon-chevron-left"}]]]
-              ;;TODO: replace the > below with the svg icon when enrichment is fixed.
-              ;;[:svg.icon.icon-circle-right [:use {:xlinkHref "#icon-circle-right"}]]
-              [:span
-               {:on-click (fn [] (swap! page-state update :page inc))
-                :title "View next 5 enrichment results"} [:svg.icon.icon-chevron-right [:use {:xlinkHref "#icon-chevron-right"}]]]])]
-
-          [:span [mini-loader "tiny"]])]
-       (cond (seq (:results details)) enrichment-results-header)
-       (into [:ul.enrichment-list]
-             (map (fn [row] [enrichment-result-row row details])
-                  (take (:show @page-state)
-                        (filter
-                          (fn [{:keys [description]}]
-                            (has-text? @text-filter description))
-                          (drop (* (:page @page-state) (:show @page-state)) results)))))])))
+      (let [on-click (fn [v]
+                       (if (contains? @selected v)
+                         (swap! selected (comp set (partial remove #{v})))
+                         (swap! selected conj v)))
+            filtered-results (filter
+                               (fn [{:keys [description]}]
+                                 (has-text? @text-filter description))
+                               results)]
+        [:div.sidebar-item
+         [:h4 {:class (if (empty? results) "inactive")}
+          (get-in @config [widget-name :title])
+          (if results
+            [:span (if results (str " (" (count results) ")"))]
+            [:span [mini-loader "tiny"]])]
+         (when (not-empty results)
+           [:div
+            [:button.btn.btn-default.btn-raised.btn-xs
+             {:on-click (fn []
+                          (dispatch [:results/history+
+                                     {:source @current-mine
+                                      :type :query
+                                      :value (assoc
+                                               (build-matches-query
+                                                 (:pathQuery details)
+                                                 (:pathConstraint details)
+                                                 (or
+                                                   ; Build a query for only the selected identifiers
+                                                   (not-empty @selected)
+                                                   ; ... unless it's empty, then use all filtered identifiers
+                                                   (map :identifier filtered-results)))
+                                               :title "Enrichment Results")}]))}
+             (if (empty? @selected) "View All" "View Selected")]])
+         (cond (seq (:results details))
+               [enrichment-results-header
+                {:selected? (= (count filtered-results) (count @selected))
+                 :on-click (fn []
+                             (if (empty? @selected)
+                               (reset! selected (set (map :identifier filtered-results)))
+                               (reset! selected #{})))}])
+         (into [:ul.enrichment-list]
+               (map (fn [row]
+                      (let [selected? (contains? @selected (:identifier row))]
+                        [enrichment-result-row row details on-click selected?]))
+                    filtered-results))]))))
 
 (defn enrichment-results []
   (let [all-enrichment-results (subscribe [:enrichment/enrichment-results])

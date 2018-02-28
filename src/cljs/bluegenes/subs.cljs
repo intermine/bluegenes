@@ -155,3 +155,8 @@
   :invalid-tokens?
   (fn [db]
     (get db :invalid-tokens?)))
+
+(reg-sub
+  :messages
+  (fn [db]
+    (sort-by :when > (vals (:messages db)))))
