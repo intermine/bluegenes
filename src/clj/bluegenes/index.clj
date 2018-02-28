@@ -37,14 +37,12 @@
    [:meta {:content "width=device-width, initial-scale=1", :name "viewport"}]
    ;;outputting clj-based vars for use in the cljs:
    [:script
-    "var serverVars={googleAnalytics :'" (:google-analytics env) "',"
+    "var serverVars={googleAnalytics :'" (:google-analytics env) "'"
     (cond (:bluegenes-default-service-root env)
-    (str "intermineDefaults: {"
-         "serviceRoot:'"  (:bluegenes-default-service-root env))) "',"
+    (str ", intermineDefaults: {"
+         "serviceRoot:'"  (:bluegenes-default-service-root env) "',"
          "mineName: '" (:bluegenes-default-mine-name env)  "'"
-
-
-    "}};"]
+    "}"))"};"]
   ; Javascript:
    [:link {:rel "shortcut icon" :href "https://cdn.rawgit.com/intermine/design-materials/f5f00be4/logos/intermine/fav32x32.png" :type "image/png"}]
    [:script {:src "http://cdn.intermine.org/js/intermine/imjs/3.15.0/im.min.js"}]

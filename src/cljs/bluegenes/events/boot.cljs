@@ -3,7 +3,8 @@
             [bluegenes.db :as db]
             [bluegenes.mines :as default-mines]
             [imcljs.fetch :as fetch]
-            [bluegenes.persistence :as persistence]))
+            [bluegenes.persistence :as persistence]
+            [bluegenes.events.webproperties]))
 
 
 (defn boot-flow
@@ -25,7 +26,8 @@
            ; We wait for the token because some assets need a token for private data (lists, queries)
            {:when :seen?
             :events :authentication/store-token
-            :dispatch-n [[:assets/fetch-model]
+            :dispatch-n [[:assets/fetch-web-properties]
+                         [:assets/fetch-model]
                          [:assets/fetch-lists]
                          [:assets/fetch-class-keys]
                          [:assets/fetch-templates]
@@ -38,7 +40,8 @@
                          ]}
            ; When we've seen all of the events that indicating our assets have been fetched successfully...
            {:when :seen-all-of?
-            :events [:assets/success-fetch-model
+            :events [:assets/success-fetch-web-properties
+                     :assets/success-fetch-model
                      :assets/success-fetch-lists
                      :assets/success-fetch-class-keys
                      :assets/success-fetch-templates
@@ -206,16 +209,18 @@
 ; Fetch model
 
 (reg-event-db
-  :assets/success-fetch-model
-  (fn [db [_ mine-kw model]]
-    (assoc-in db [:mines mine-kw :service :model] model)))
+ :assets/success-fetch-model
+ (fn [db [_ mine-kw model]]
+   (assoc-in db [:mines mine-kw :service :model] model)))
 
 (reg-event-fx
-  :assets/fetch-model
-  (fn [{db :db}]
-    {:db db
-     :im-chan {:chan (fetch/model (get-in db [:mines (:current-mine db) :service]))
-               :on-success [:assets/success-fetch-model (:current-mine db)]}}))
+ :assets/fetch-model
+ (fn [{db :db}]
+   {:db db
+    :im-chan {:chan (fetch/model (get-in db [:mines (:current-mine db) :service]))
+              :on-success [:assets/success-fetch-model (:current-mine db)]}}))
+
+
 
 ; Fetch lists
 
