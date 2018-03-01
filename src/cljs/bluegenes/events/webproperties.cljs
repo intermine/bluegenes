@@ -3,15 +3,14 @@
             [bluegenes.db :as db]
             [imcljs.fetch :as fetch]))
 
+
+
 (defn web-properties-to-bluegenes
   "Map intermine web properties to bluegenes properties"
-  [web-properties]
+  [web-properties previous-properties]
   {:name                         (get-in web-properties [:project :title])
-   ;;todo - apparently this is in the model?
-   :default-object-types         [:Gene :Protein]
    :default-organism             (get-in web-properties [:genomicRegionSearch :defaultOrganisms])
-   ;;todo - apparently this is in the model?
-   ;;https://github.com/intermine/intermine/issues/1631#issuecomment-316986480
+   ;;todo - set sane default programmatically or default to first.
    :default-selected-object-type :Gene
    :regionsearch-example         (get-in web-properties [:genomicRegionSearch :defaultSpans])
    :idresolver-example           {:Gene    (get-in web-properties [:bag :example :identifiers])
@@ -33,7 +32,7 @@
  :assets/success-fetch-web-properties
  (fn [db [_ mine-kw web-properties]]
    (let [original-properties    (get-in db [:mines (:current-mine db)])
-         fetched-properties     (web-properties-to-bluegenes web-properties)]
+         fetched-properties     (web-properties-to-bluegenes web-properties original-properties)]
      (assoc-in db [:mines mine-kw] (merge original-properties fetched-properties)))))
 
 (reg-event-fx
