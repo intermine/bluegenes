@@ -22,10 +22,11 @@
                                   ;; hopefully, it will return.
                                   ; :Protein "Q8T3M3,FBpp0081318,FTZ_DROME"
 }
-   :default-query-example        {;;to be done; need json queries though.
+   :default-query-example        {;;we need json queries to use the endpoint properly
                                   ;;https://github.com/intermine/intermine/issues/1770
+                                  ;;note that the default query button won't appear
+                                  ;;until we fix this issue
 }})
-
 
 ; Fetch web properties
 (reg-event-db
@@ -33,7 +34,7 @@
  (fn [db [_ mine-kw web-properties]]
    (let [original-properties    (get-in db [:mines (:current-mine db)])
          fetched-properties     (web-properties-to-bluegenes web-properties)]
-      (assoc-in db [:mines mine-kw] (merge original-properties fetched-properties)))))
+     (assoc-in db [:mines mine-kw] (merge original-properties fetched-properties)))))
 
 (reg-event-fx
  :assets/fetch-web-properties
