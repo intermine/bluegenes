@@ -85,6 +85,7 @@
           {:keys [source type value] :as package} (get-in db [:results :queries title])
           ; Get the current model
           model (get-in db [:mines source :service :model])
+          mine-name (get-in db [:mines source])
           service (get-in db [:mines source :service])]
       ; Store the values in app-db.
       ; TODO - 99% of this can be factored out by passing the package to the :enrichment/enrich and parsing it there
@@ -103,20 +104,11 @@
                     [:im-tables/load [:results :table] {:service service
                                                         :query value
                                                         :settings {:pagination {:limit 10}
-                                                                   :links {:vocab {:mine "BananaMine"}
+                                                                   :links {:vocab {:mine (name source)}
                                                                            :url (fn [vocab] (str "#/reportpage/"
                                                                                                  (:mine vocab) "/"
                                                                                                  (:class vocab) "/"
-                                                                                                 (:objectId vocab)))}}}]
-                    ; Boot the im-table
-                    #_[:im-tables.main/replace-all-state
-                       ; The location in app-db in which im-tables will store its results
-                       [:results :fortable]
-                       ; Default settings for the table
-                       {:settings {:links {:vocab {:mine (name source)}
-                                           :on-click (fn [val] (accountant/navigate! val))}}
-                        :query value
-                        :service (get-in db [:mines source :service])}]]})))
+                                                                                                 (:objectId vocab)))}}}]]})))
 
 (reg-event-fx
   :fetch-ids-from-query

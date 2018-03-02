@@ -65,10 +65,8 @@
                           (dispatch [::evts/toggle-selected trail index {:reset? true}]))))
    :on-context-menu (fn [evt]
 
-                      (println "TRAIL IS" trail)
 
                       (when-not (oget evt :nativeEvent :ctrlKey)
-
 
                         (do
                           ; Prevent the browser from showing its context menu
@@ -590,7 +588,7 @@
         [:div.grid.grid-middle
          (merge {:class (when (= @context-menu-target file) "highlighted")}
                 (tag-drag-events file)
-                (trigger-context-menu file)
+                (trigger-context-menu (assoc dets :im-obj-type "list"))
                 {:on-click (fn []
                              (dispatch [::evts/set-context-menu-target file]))})
          [:div.col-1.shrink [checkbox im-obj-id]]
