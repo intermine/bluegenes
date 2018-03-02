@@ -19,6 +19,10 @@
         display: inline;
     }
 
+    .error-box {
+        animation: login-error-fadein 1s;
+    }
+
     .icon {
         fill: @highlight-color-text;
         width: 2*@spacer;
@@ -49,4 +53,22 @@
             padding: 1em;
         }
     }
+}
+
+
+@-webkit-keyframes login-error-fadein {
+  0%   { opacity: 0; }
+  100% { opacity: 1; }
+}
+@-moz-keyframes login-error-fadein {
+  0%   { opacity: 0; }
+  100% { opacity: 1; }
+}
+@-o-keyframes login-error-fadein {
+  0%   { opacity: 0; }
+  100% { opacity: 1; }
+}
+@keyframes login-error-fadein {
+  0%   { opacity: 0; }
+  100% { opacity: 1; }
 }

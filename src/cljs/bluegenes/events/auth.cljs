@@ -8,17 +8,18 @@
 (defn login-fn
   "Fire events to log in a user"
   [{db :db} [_ {:keys [username password] :as credentials}]]
-  {:db (assoc-in db [:auth :thinking?] true)
+  {:db (update db :auth assoc :thinking? true :error? nil)
    ::fx/http {:uri "/api/auth/login"
               :method :post
               :on-success [::login-success]
               :on-failure [::login-failure]
+              :on-unauthorised [::login-failure]
               :transit-params credentials}})
 
 (defn logout-fn
   "Fire events to log out a user. This clears the Session on the server"
   [{db :db} [_]]
-  {:db (assoc-in db [:auth :thinking?] true)
+  {:db (update db :auth assoc :thinking? true)
    ::fx/http {:uri "/api/auth/logout"
               :method :get
               :on-success [::logout-success]}})
@@ -36,11 +37,13 @@
                    :error? false)
            (assoc-in [:mines (:id @(subscribe [:current-mine])) :service :token] token))
    :dispatch-n [[:assets/fetch-lists]
-                [:bluegenes.sections.mymine.events/fetch-tree]]})
+                ; TODO - remove tags
+                #_[:bluegenes.sections.mymine.events/fetch-tree]
+                ]})
 
 (defn login-failure-fn
   "Clear a user's identity and store an error message"
-  [db [_ {:keys [statusCode]}]]
+  [db [_ {:keys [statusCode] :as r}]]
   (let [msg (get error-messages statusCode "Error")]
     (update db :auth assoc
             :thinking? false

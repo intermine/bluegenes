@@ -65,10 +65,8 @@
                           (dispatch [::evts/toggle-selected trail index {:reset? true}]))))
    :on-context-menu (fn [evt]
 
-                      (println "TRAIL IS" trail)
 
                       (when-not (oget evt :nativeEvent :ctrlKey)
-
 
                         (do
                           ; Prevent the browser from showing its context menu
@@ -590,7 +588,7 @@
         [:div.grid.grid-middle
          (merge {:class (when (= @context-menu-target file) "highlighted")}
                 (tag-drag-events file)
-                (trigger-context-menu file)
+                (trigger-context-menu (assoc dets :im-obj-type "list"))
                 {:on-click (fn []
                              (dispatch [::evts/set-context-menu-target file]))})
          [:div.col-1.shrink [checkbox im-obj-id]]
@@ -643,16 +641,18 @@
        (fn []
 
          [:div.mymine.noselect
-          [:div.file-browser [tag-browser]]
+          ; TODO - remove tags
+          #_[:div.file-browser [tag-browser]]
           [:div.files
-          [:div.headerwithguidance [:h1 "My Data"]]
+          ;[:div.headerwithguidance [:h1 "My Data"]]
            [list-operations]
            (when @show-selected-pane?
              [:div.top.shrink
               (into [:div [:h3 "Selected items with other tags"]] (map-indexed (fn [idx x]
                                                                  ^{:key (str "selected" (or (:entry-id x) (str (:im-obj-type x) (:im-obj-id x))))} [row (assoc x :index idx)]) @selected-items-not-in-view))])
            [:div.bottom
-            [breadcrumb @cursor-trail]
+            ; TODO - remove tags
+            #_[breadcrumb @cursor-trail]
             (let [just-files (not-empty (filter (comp (partial not= "tag") :im-obj-type) @cursor-items))]
               (if just-files
                 (into [:div] (map-indexed (fn [idx x]
