@@ -39,7 +39,7 @@
 
 (reg-sub
   :mine-name
-  (fn [db]
+  (fn [db]7
     (:mine-name db)))
 
 (reg-sub
