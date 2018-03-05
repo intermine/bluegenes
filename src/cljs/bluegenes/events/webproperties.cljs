@@ -3,16 +3,16 @@
             [bluegenes.db :as db]
             [imcljs.fetch :as fetch]))
 
-
-
 (defn web-properties-to-bluegenes
   "Map intermine web properties to bluegenes properties"
   [web-properties previous-properties]
   {:name                         (get-in web-properties [:project :title])
    :default-organism             (get-in web-properties [:genomicRegionSearch :defaultOrganisms])
    ;;todo - set sane default programmatically or default to first.
-   :default-selected-object-type :Gene
+   :default-selected-object-type (first (get-in web-properties [:genomicRegionSearch :defaultOrganisms]))
    :regionsearch-example         (get-in web-properties [:genomicRegionSearch :defaultSpans])
+   ;;this needs to be passed in as an arg or pulled from the branding endpoint.
+   :icon                         "icon-intermine"
    :idresolver-example           {:Gene    (get-in web-properties [:bag :example :identifiers])
                                   ;; there should be details implemented for non-gene ID
                                   ;;defaults,
@@ -21,11 +21,12 @@
                                   ;; hopefully, it will return.
                                   ; :Protein "Q8T3M3,FBpp0081318,FTZ_DROME"
 }
-   :default-query-example        {;;we need json queries to use the endpoint properly
+;   :default-query-example        {;;we need json queries to use the endpoint properly
                                   ;;https://github.com/intermine/intermine/issues/1770
                                   ;;note that the default query button won't appear
                                   ;;until we fix this issue
-}})
+                                ;}
+   })
 
 ; Fetch web properties
 (reg-event-db

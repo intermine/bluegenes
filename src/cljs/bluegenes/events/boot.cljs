@@ -89,17 +89,15 @@
     (if (contains? mine-names mine-name)
       mine-name
       (do
-        (.debug js/console (clj->js mine-name) "doesn't exist so we've auto-selected the first available mine")
+        (.info js/console (clj->js mine-name) "doesn't exist so we've auto-selected the first available mine")
         (first mine-names)))))
 
 (defn init-defaults-from-intermine
   "If this bluegenes instance is coupled with InterMine, load the intermine's config directlyfrom env variables passed to bluegenes. Otherwise, fail gracefully." []
   (let [mine-defaults (:intermineDefaults (js->clj js/serverVars :keywordize-keys true))]
-    (.log js/console "%cmine-defaults" "color:mediumorchid;font-weight:bold;" (clj->js mine-defaults))
     {:default {:id :default
-               :service {:root (:bluegenes-default-service-root mine-defaults)}
-               :name (:bluegenes-default-mine-name mine-defaults)}}
-    mine-defaults))
+               :service {:root (:serviceRoot mine-defaults)}
+               :name (:mineName mine-defaults)}}))
 
 ; Boot the application.
 (reg-event-fx
@@ -124,7 +122,6 @@
          good-state-mines (get-current-mines (:mines state) (:mines db))
           ;;make sure we have all current localstorage mines and all new ones (if any)
          all-mines (merge default-mines/mines good-state-mines intermine-defaults)
-          ;;make sure the active mine wasn't removed. Will select a default if needed.
          current-mine (get-active-mine all-mines (:current-mine state))]
 
       ; Do not use data from local storage if the client version in local storage
@@ -142,7 +139,8 @@
         :forward-events (im-tables-events-forwarder)}
 
        {:db (assoc db
-                   :mines default-mines/mines
+                   :current-mine current-mine
+                   :mines all-mines
                    :fetching-assets? true)
          ; Boot the application asynchronously
         :async-flow (boot-flow db provided-identity)
@@ -192,9 +190,11 @@
 (reg-event-fx
  :authentication/fetch-anonymous-token
  (fn [{db :db} [_ mine-kw]]
-   (let [mine (dissoc (get-in db [:mines mine-kw :service]) :token)]
+   ;;re-use mine-kw if the mine exists, otherwise use default mine
+   (let [mine-name  (if (contains? (get db [:mines]) mine-kw) mine-kw :default)
+         mine (dissoc (get-in db [:mines mine-name :service]) :token)]
      {:db db
-      :im-chan {:on-success [:authentication/store-token mine-kw]
+      :im-chan {:on-success [:authentication/store-token mine-name]
                 :chan (fetch/session mine)}})))
 
 ; Fetch model
