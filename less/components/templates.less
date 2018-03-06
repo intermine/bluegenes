@@ -21,7 +21,16 @@
     font-weight: bold;
 }
 
-.templates {
+
+.affix + .template-container {
+    padding-top: 102px;
+}
+
+
+.template-component-container {
+
+    width: 100%;
+
     .preview {
         max-width: 60vw;
         overflow-x: "hidden";
@@ -34,14 +43,22 @@
     .template-filters {
         background: darken(@body-background-color,3%);
         //this padding stops content showing through at weird breakpoints;
-        padding-top: @crazy-padding;
-        position: fixed;
+        // padding-top: @crazy-padding;
+        // position: fixed;
         z-index: 42; //a higher z-index than light tables is the answer. And 42 is always the answer.
-        margin-top: -@crazy-padding;
-        padding-bottom: 2px;
+        // margin-top: -@crazy-padding;
+        // padding-bottom: 2px;
         box-shadow: 1px 1px 1px rgba(0,0,0,0.2);
-        right: 0;
-        left: 0;
+        // right: 0;
+        // left: 0;
+        width: 100%;
+
+        &.affix {
+            top: 0;
+            width: 100%;
+        }
+
+
 
         .template-filter {
             .control-label {
@@ -329,7 +346,7 @@
                 :hover {
                     cursor: pointer;
                 }
-            } 
+            }
         }
     }
 
@@ -362,6 +379,7 @@
     }
 }
 
+/**
 @media (min-width:1200px) {
     .templates .template-filters {
         margin-top: -10px - @crazy-padding;
@@ -372,6 +390,7 @@
         margin-top: 1 4px;
     }
 }
+**/
 
 .constraint-container {
     input {
