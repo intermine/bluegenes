@@ -83,17 +83,21 @@
           (assoc new-mine-list mine-name details))) {} state-mines))))
 
 (defn get-active-mine
-  "Return the current mine if it still exists after a config update, or else just return the first one if the ID doesn't exist for some reason"
+  "Return the current mine if it still exists after a config update, OR
+   - return the default (env variable) mine, OR
+   - just return the first one if the ID doesn't exist for some reason"
   [all-mines mine-name]
-  (let [mine-names (set (keys all-mines))]
+  (let [mine-names (set (keys all-mines))
+        mine-default (:default mine-names)
+        backup-mine (if (some? mine-default) mine-default (first mine-names))]
     (if (contains? mine-names mine-name)
       mine-name
       (do
-        (.info js/console (clj->js mine-name) "doesn't exist so we've auto-selected the first available mine")
-        (first mine-names)))))
+        (.info js/console "your chosen intermine doesn't exist so we've auto-selected this mine for you:" mine-default)
+        backup-mine))))
 
 (defn init-defaults-from-intermine
-  "If this bluegenes instance is coupled with InterMine, load the intermine's config directlyfrom env variables passed to bluegenes. Otherwise, fail gracefully." []
+  "If this bluegenes instance is coupled with InterMine, load the intermine's config directly from env variables passed to bluegenes. Otherwise, fail gracefully." []
   (let [mine-defaults (:intermineDefaults (js->clj js/serverVars :keywordize-keys true))]
     {:default {:id :default
                :service {:root (:serviceRoot mine-defaults)}
