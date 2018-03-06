@@ -22,7 +22,9 @@
   []
   (let [active-mine (subscribe [:current-mine])
         example-text (:regionsearch-example @active-mine)]
-    (clojure.string/join "\n" example-text)))
+    ;; We can't use split-lines because the lines are split with an escaped
+    ;; slash - that is, they are split on `\\n` and not `\n`
+    (clojure.string/join "\n" (split example-text #"\\n"))))
 
 (def region-help-content-popover ;;help text
   (str "Genome regions in the following formats are accepted:"
