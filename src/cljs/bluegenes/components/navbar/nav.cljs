@@ -117,7 +117,7 @@
         current-mine (subscribe [:current-mine])
         panel-is (fn [panel-key] (= @active-panel panel-key))]
     (fn []
-      [:nav.main-nav
+      [:nav#bluegenes-main-nav.main-nav
        [:ul
         [:li.minename.primary-nav {:on-click #(navigate! "/")}
          [active-mine-logo]
