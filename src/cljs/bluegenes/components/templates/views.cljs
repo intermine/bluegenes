@@ -8,7 +8,7 @@
             [imcljs.path :as im-path]
             [bluegenes.components.ui.constraint :refer [constraint]]
             [bluegenes.components.ui.results_preview :refer [preview-table]]
-            [oops.core :refer [oget]]
+            [oops.core :refer [oget ocall]]
             [clojure.string :as s]))
 
 
@@ -202,27 +202,34 @@
                      (dispatch [:template-chooser/set-text-filter (.. e -target -value)]))}])))
 
 
-(defn filters [categories template-filter filter-state]
-  [:div.template-filters.container-fluid
-   [:div.template-filter
-    [:label.control-label "Filter by category"]
-    [categories]]
-   [:div.template-filter
-    [:label.control-label "Filter by description"]
-    [template-filter filter-state]]])
+
+
+
+(defn filters []
+  (let [me (reagent/atom nil)]
+    (reagent/create-class
+      {:component-did-mount (fn []
+                              (let [nav-height (-> "#bluegenes-main-nav" js/$ (ocall :outerHeight true))]
+                                (some-> @me (ocall :affix (clj->js {:offset {:top nav-height}})))))
+       :reagent-render (fn [categories template-filter filter-state]
+                         [:div.template-filters.container-fluid
+                          {:ref (fn [e] (some->> e js/$ (reset! me)))}
+                          [:div.template-filter
+                           [:label.control-label "Filter by category"]
+                           [categories]]
+                          [:div.template-filter
+                           [:label.control-label "Filter by description"]
+                           [template-filter filter-state]]])})))
 
 
 (defn main []
   (let [im-templates (subscribe [:templates-by-category])
         filter-state (reagent/atom nil)]
     (fn []
-      [:div.container-fluid
-       ;(json-html/edn->hiccup @selected-template)
-       [:div.row
-        [:div.col-xs-12.templates
-         [filters categories template-filter filter-state]
-         [:div.template-list
-          ;;the bad placeholder exists to displace content, but is invisible. It's a duplicate of the filters header
-          [:div.bad-placeholder [filters categories template-filter filter-state]]
-          [templates @im-templates]]]
-        ]])))
+      [:div.template-component-container
+       [filters categories template-filter filter-state]
+       [:div.container.template-container
+        [:div.row
+         [:div.col-xs-12.templates
+          [:div.template-list
+           [templates @im-templates]]]]]])))
