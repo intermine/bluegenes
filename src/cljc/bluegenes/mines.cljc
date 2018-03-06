@@ -334,7 +334,7 @@
                              :url     "www.mousemine.org/mousemine"
                              :service {:root "www.mousemine.org/mousemine"}}}
             :bovinemine {:id             :bovinemine
-                         :service        {:root "bovinegenome.org/bovinemine-dev/service" :token nil}
+                         :service        {:root "bovinegenome.org/bovinemine/service" :token nil}
                          :name           "BovineMine"
                          :common         "Bovine"
                          :icon           "icon-intermine"
