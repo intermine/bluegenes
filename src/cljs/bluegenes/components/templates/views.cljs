@@ -188,8 +188,7 @@
                         (dispatch [:template-chooser/set-category-filter nil]))
                       } "removing the filters"]
                  " to view more results. "]])
-         )
-       ])))
+         )])))
 
 (defn template-filter []
   (let [text-filter (subscribe [:template-chooser/text-filter])]
@@ -200,10 +199,6 @@
         :placeholder "Filter text..."
         :on-change (fn [e]
                      (dispatch [:template-chooser/set-text-filter (.. e -target -value)]))}])))
-
-
-
-
 
 (defn filters []
   (let [me (reagent/atom nil)]
@@ -224,12 +219,43 @@
 
 (defn main []
   (let [im-templates (subscribe [:templates-by-category])
-        filter-state (reagent/atom nil)]
-    (fn []
-      [:div.template-component-container
-       [filters categories template-filter filter-state]
-       [:div.container.template-container
-        [:div.row
-         [:div.col-xs-12.templates
-          [:div.template-list
-           [templates @im-templates]]]]]])))
+        filter-state (reagent/atom nil)
+        me (reagent/atom nil)
+        filters-are-fixed? (reagent/atom nil)
+        filter-height (reagent/atom nil)
+        on-resize (fn []
+                    ; Store the height of the child .template-filters element
+                    (reset! filter-height
+                            (-> @me
+                                (ocall :find ".template-filters")
+                                (ocall :outerHeight true))))
+        on-scroll (fn []
+                    ; Store whether the child .template-filers element is affixed or not
+                    (reset! filters-are-fixed?
+                            (-> @me
+                                (ocall :find ".template-filters")
+                                (ocall :hasClass "affix"))))]
+    (reagent/create-class
+      {:component-did-mount (fn []
+                              ; Call the resize function when the component mounts
+                              (on-resize)
+                              ; On resize update the known value of the child filters element
+                              (-> js/window js/$ (ocall :on "resize" on-resize))
+                              ; On scroll update the known value of the child filters element affixed status
+                              (-> js/window js/$ (ocall :on "scroll" on-scroll)))
+       :component-will-unmount (fn []
+                                 ; Remove the events when the component unmounts
+                                 (-> js/window js/$ (ocall :off "resize" on-resize))
+                                 (-> js/window js/$ (ocall :off "scroll" on-scroll)))
+       :reagent-render (fn []
+                         [:div.template-component-container
+                          ; Store a reference to this element so we can find the child filters container
+                          [:div {:ref (fn [e] (some->> e js/$ (reset! me)))}
+                           [filters categories template-filter filter-state]]
+                          [:div.container.template-container
+                           ; Dynamically push this container down when the filters element is fixed
+                           {:style {:padding-top (if @filters-are-fixed? (str @filter-height "px") 0)}}
+                           [:div.row
+                            [:div.col-xs-12.templates
+                             [:div.template-list
+                              [templates @im-templates]]]]]])})))
