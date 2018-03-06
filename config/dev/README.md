@@ -1,6 +1,8 @@
 # Example Configuration
 
 All keys can be overridden with environment variables, such as `DATABASE_URL=http://...`
+These properties are read in by [yogthos], which can read in variables in a variety of ways
+See https://github.com/yogthos/config#yogthosconfig for more details.
 
 ```clojure
 {
