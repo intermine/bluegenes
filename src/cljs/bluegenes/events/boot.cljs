@@ -89,19 +89,21 @@
   [all-mines mine-name]
   (let [mine-names (set (keys all-mines))
         mine-default (:default mine-names)
-        backup-mine (if (some? mine-default) mine-default (first mine-names))]
+        backup-mine (if mine-default mine-default (first mine-names))]
     (if (contains? mine-names mine-name)
       mine-name
       (do
-        (.info js/console "your chosen intermine doesn't exist so we've auto-selected this mine for you:" mine-default)
+        (.info js/console "your chosen intermine doesn't exist so we've auto-selected this mine for you:" backup-mine)
         backup-mine))))
 
 (defn init-defaults-from-intermine
   "If this bluegenes instance is coupled with InterMine, load the intermine's config directly from env variables passed to bluegenes. Otherwise, fail gracefully." []
   (let [mine-defaults (:intermineDefaults (js->clj js/serverVars :keywordize-keys true))]
+    (if mine-defaults
     {:default {:id :default
                :service {:root (:serviceRoot mine-defaults)}
-               :name (:mineName mine-defaults)}}))
+               :name (:mineName mine-defaults)}}
+      {})))
 
 ; Boot the application.
 (reg-event-fx
@@ -195,7 +197,7 @@
  :authentication/fetch-anonymous-token
  (fn [{db :db} [_ mine-kw]]
    ;;re-use mine-kw if the mine exists, otherwise use default mine
-   (let [mine-name  (if (contains? (get db [:mines]) mine-kw) mine-kw :default)
+   (let [mine-name  (if (contains? (get db :mines) mine-kw) mine-kw :default)
          mine (dissoc (get-in db [:mines mine-name :service]) :token)]
      {:db db
       :im-chan {:on-success [:authentication/store-token mine-name]
