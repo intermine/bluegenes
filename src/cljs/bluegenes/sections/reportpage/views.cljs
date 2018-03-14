@@ -7,7 +7,6 @@
             [bluegenes.components.loader :refer [loader]]
             [bluegenes.sections.reportpage.components.minelinks :as minelinks]
             [accountant.core :refer [navigate!]]
-            [bluegenes.sections.reportpage.events :as evts]
             [bluegenes.sections.reportpage.subs :as subs]
             [im-tables.views.core :as im-table]
             [imcljs.path :as im-path]))
