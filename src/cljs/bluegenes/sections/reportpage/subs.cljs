@@ -33,33 +33,34 @@
          :<- [:panel-params]
          (fn [[current-templates current-model {report-item-type :type report-item-id :id}]]
            ; Starting with all templates for the current mine...
-           (->> current-templates
-                ; Only keep ones that meet the following criteria (return something other than nil)
-                (keep (fn [[template-kw {:keys [where tags] :as template-details}]]
-                        ; When we only have one editable constraint
-                        (when (= 1 (count (filter :editable where)))
-                          ; Make a list of indices that are LOOKUP, editable, and
-                          ; have a backing class of the report page item type
-                          (when-let [replaceable-indexes
-                                     (not-empty (keep-indexed (fn [idx {:keys [path op editable :as constraint]}]
-                                                                (when
-                                                                  (and
-                                                                    (= op "LOOKUP")
-                                                                    (= report-item-type (name (im-path/class current-model path)))
-                                                                    (= editable true)) idx))
-                                                              where))]
-                            ; When that list of indices is 1, aka we only have one constraint to change
-                            (when (= 1 (count replaceable-indexes))
-                              ; Update that particular index with the report page item id and change the op to =
-                              ; and also update the path (which ends on a class) to include ".id" on the end.
-                              ; Don't make the assumption that it's <report-item-type>.id
-                              ; as a query's root might not be the same class as the object on the report page
-                              (let [constraint-path (get-in template-details [:where (first replaceable-indexes) :path])]
-                                [template-kw (update-in template-details [:where (first replaceable-indexes)] assoc
-                                                        :value report-item-id
-                                                        :path (str constraint-path ".id")
-                                                        :op "=")]))))))
-                ; And return just the vals
-                vals)))
+           (when (and current-templates current-model)
+             (->> current-templates
+                  ; Only keep ones that meet the following criteria (return something other than nil)
+                  (keep (fn [[template-kw {:keys [where tags] :as template-details}]]
+                          ; When we only have one editable constraint
+                          (when (= 1 (count (filter :editable where)))
+                            ; Make a list of indices that are LOOKUP, editable, and
+                            ; have a backing class of the report page item type
+                            (when-let [replaceable-indexes
+                                       (not-empty (keep-indexed (fn [idx {:keys [path op editable :as constraint]}]
+                                                                  (when
+                                                                    (and
+                                                                      (= op "LOOKUP")
+                                                                      (= report-item-type (name (im-path/class current-model path)))
+                                                                      (= editable true)) idx))
+                                                                where))]
+                              ; When that list of indices is 1, aka we only have one constraint to change
+                              (when (= 1 (count replaceable-indexes))
+                                ; Update that particular index with the report page item id and change the op to =
+                                ; and also update the path (which ends on a class) to include ".id" on the end.
+                                ; Don't make the assumption that it's <report-item-type>.id
+                                ; as a query's root might not be the same class as the object on the report page
+                                (let [constraint-path (get-in template-details [:where (first replaceable-indexes) :path])]
+                                  [template-kw (update-in template-details [:where (first replaceable-indexes)] assoc
+                                                          :value report-item-id
+                                                          :path (str constraint-path ".id")
+                                                          :op "=")]))))))
+                  ; And return just the vals
+                  vals))))
 
 
