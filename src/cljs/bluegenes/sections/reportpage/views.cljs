@@ -55,44 +55,43 @@
 
          (let [{:keys [type id]} @params]
            [:div
-            (if @fetching-report?
-              [loader (str (:type @params) " Report")])
-            [summary/main (:summary @report)]
-            (cond (= "Gene" (:type @params))
-                  [minelinks/main (:id @params)])
-
             ; Only show the body of the report when the summary has loaded
-            (when (:summary @report)
-              [:div.report-body
-               (into [:div]
-                     (map (fn [{:keys [name title] :as t}]
-                            (let [key nil]
-                              [tbl {:loc [:report-page id name]
-                                    :service (:service @service)
-                                    :title title
-                                    :query t
-                                    :settings {:pagination {:limit 5}
-                                               :links {:vocab {:mine (clj-name (or @current-mine-name ""))}
-                                                       :url (fn [vocab] (str "#/reportpage/"
-                                                                             (:mine vocab) "/"
-                                                                             (:class vocab) "/"
-                                                                             (:objectId vocab)))}}}]))
-                          @runnable-templates))
-               (into [:div.container]
-                     (map (fn [{:keys [name referencedType displayName] :as x}]
-                            (let [key (str id name)]
-                              ^{:key key} [tbl {:loc [:report-page id name]
-                                                :service (:service @service)
-                                                :title displayName
-                                                :query {:from type
-                                                        :select (map (partial str type "." name ".") (map strip-class (get @summary-fields (keyword referencedType))))
-                                                        :where [{:path (str type ".id")
-                                                                 :op "="
-                                                                 :value id}]}
-                                                :settings {:pagination {:limit 5}
-                                                           :links {:vocab {:mine (clj-name (or @current-mine-name ""))}
-                                                                   :url (fn [vocab] (str "#/reportpage/"
-                                                                                         (:mine vocab) "/"
-                                                                                         (:class vocab) "/"
-                                                                                         (:objectId vocab)))}}}]))
-                          (concat non-empty-references non-empty-collections)))])]))])))
+            (if @fetching-report?
+              [loader (str (:type @params) " Report")]
+              [:div
+               [summary/main (:summary @report)]
+               (when (= "Gene" (:type @params)) [minelinks/main (:id @params)])
+               (when (:summary @report)
+                 [:div.report-body
+                  (into [:div]
+                        (map (fn [{:keys [name title] :as t}]
+                               (let [key nil]
+                                 [tbl {:loc [:report-page id name]
+                                       :service (:service @service)
+                                       :title title
+                                       :query t
+                                       :settings {:pagination {:limit 5}
+                                                  :links {:vocab {:mine (clj-name (or @current-mine-name ""))}
+                                                          :url (fn [vocab] (str "#/reportpage/"
+                                                                                (:mine vocab) "/"
+                                                                                (:class vocab) "/"
+                                                                                (:objectId vocab)))}}}]))
+                             @runnable-templates))
+                  (into [:div.container]
+                        (map (fn [{:keys [name referencedType displayName] :as x}]
+                               (let [key (str id name)]
+                                 ^{:key key} [tbl {:loc [:report-page id name]
+                                                   :service (:service @service)
+                                                   :title displayName
+                                                   :query {:from type
+                                                           :select (map (partial str type "." name ".") (map strip-class (get @summary-fields (keyword referencedType))))
+                                                           :where [{:path (str type ".id")
+                                                                    :op "="
+                                                                    :value id}]}
+                                                   :settings {:pagination {:limit 5}
+                                                              :links {:vocab {:mine (clj-name (or @current-mine-name ""))}
+                                                                      :url (fn [vocab] (str "#/reportpage/"
+                                                                                            (:mine vocab) "/"
+                                                                                            (:class vocab) "/"
+                                                                                            (:objectId vocab)))}}}]))
+                             (concat non-empty-references non-empty-collections)))])])]))])))
