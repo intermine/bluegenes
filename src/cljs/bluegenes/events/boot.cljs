@@ -119,6 +119,8 @@
     (let [db (-> db/default-db
                  ; Merge the various mine configurations from mines.cljc
                  (assoc :mines default-mines/mines)
+                 ; Add :default key to :mines list so that it's not later pruned from local storage
+                 (assoc-in [:mines :default] {})
                  ; Store the user's identity map provided by the server via the client constructor
                  (update :auth assoc
                          :thinking? false
