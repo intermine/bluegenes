@@ -2,8 +2,8 @@
 
 (defproject org.intermine/bluegenes (:version props)
   :dependencies [; Clojure
-                 [org.clojure/clojure "1.9.0-RC1"]
-                 [org.clojure/clojurescript "1.9.946"]
+                 [org.clojure/clojure "1.9.0"]
+                 [org.clojure/clojurescript "1.10.145"]
                  [org.clojure/core.async "0.3.443"]
 
                  ; MVC
@@ -131,6 +131,8 @@
                                         :asset-path "js/compiled"
                                         :source-map-timestamp true
                                         :pretty-print true
+                                        :npm-deps {:highlight.js "9.12.0"}
+                                        :install-deps true
                                         ;:parallel-build true
                                         :preloads [devtools.preload
                                                    re-frisk.preload]
@@ -143,6 +145,8 @@
                                         :output-to "resources/public/js/compiled/app.js"
                                         ;:output-dir "resources/public/js/compiled"
                                         :optimizations :advanced
+                                        :npm-deps {:highlight.js "9.12.0"}
+                                        :install-deps true
                                         :closure-defines {goog.DEBUG false}
                                         :pretty-print false}}
 
