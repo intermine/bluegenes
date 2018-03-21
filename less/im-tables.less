@@ -8,7 +8,6 @@
 /// You may, if need be, paste the new im-tables styles in here, but leave   ///
 /// this warning intact. Kthxbye.                                            ///
 ////////////////////////////////////////////////////////////////////////////////
-
 .table > thead > tr > th {
   vertical-align: top;
 }
@@ -100,6 +99,8 @@
 .im-modal .im-modal-content {
   flex: 0 0 auto;
   animation: slidein 150ms;
+  margin-left: 20px;
+  margin-right: 20px;
 }
 @keyframes fadein {
   from {
@@ -115,6 +116,21 @@
   }
   to {
     transform: translate(0%, 0%);
+  }
+}
+/*
+    This override is necessary to allow modals to expand to the width of their content rather
+    than be fixed to 600px as found in bootstrap. For example, code generation modal.
+*/
+.codegen-modal {
+  width: 100% !important;
+  padding-left: 30px;
+  padding-right: 30px;
+  max-width: 1200px !important;
+}
+@media (min-width: 768px) {
+  .codegen-modal .modal-dialog {
+    width: auto;
   }
 }
 /*
@@ -236,11 +252,20 @@ github.com style (c) Vasily Polovnyov <vast@whiteants.net>
 .im-table .hljs {
   white-space: pre;
 }
+.im-table .dashboard-buttons {
+  margin-right: 30px;
+}
+.im-table .codegen-checkbox-container {
+  margin-top: 15px;
+}
 .im-table .popover {
   padding: 0;
 }
 .im-table .popover .table {
   margin: 0;
+}
+.im-table .pagination-bar label {
+  line-height: 2.4em;
 }
 .im-table .inset {
   -webkit-box-shadow: inset 3px 3px 6px -4px rgba(0, 0, 0, 0.69);
