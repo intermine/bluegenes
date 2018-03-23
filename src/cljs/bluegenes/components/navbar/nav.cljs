@@ -83,7 +83,10 @@
                           [:li {:on-click (fn [e] (dispatch [:set-active-mine (keyword id)]))
                                 :class (cond (= id (:id @current-mine)) "active")}
                            [:a [mine-icon details]
-                            (:name details)]]) @(subscribe [:mines])))
+                            (if (= :default id)
+                                   (clojure.string/join " - " [(:name details) "Default"])
+                                   (:name details))
+                            ]]) @(subscribe [:mines])))
              [:li.special [:a {:on-click #(navigate! "/debug")} ">_ Developer"]])])))
 
 (defn logged-in []
