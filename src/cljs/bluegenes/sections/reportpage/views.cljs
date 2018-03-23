@@ -77,7 +77,7 @@
                                                                                 (:class vocab) "/"
                                                                                 (:objectId vocab)))}}}]))
                              @runnable-templates))
-                  (into [:div.container]
+                  (into [:div]
                         (map (fn [{:keys [name referencedType displayName] :as x}]
                                (let [key (str id name)]
                                  ^{:key key} [tbl {:loc [:report-page id name]
