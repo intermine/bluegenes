@@ -334,7 +334,7 @@
                              :url     "www.mousemine.org/mousemine"
                              :service {:root "www.mousemine.org/mousemine"}}}
             :bovinemine {:id             :bovinemine
-                         :service        {:root "bovinegenome.org/bovinemine-dev/service" :token nil}
+                         :service        {:root "bovinegenome.org/bovinemine/service" :token nil}
                          :name           "BovineMine"
                          :common         "Bovine"
                          :icon           "icon-intermine"
@@ -410,7 +410,7 @@
             ;                                      :url     "intermine.wormbase.org/tools/wormmine"
             ;                                      :service {:root "intermine.wormbase.org/tools/wormmine"}}}
             :yeastmine      {:id                           :yeastmine
-                             :service                      {:root "yeastmine-test-aws.yeastgenome.org/yeastmine-dev/"}
+                             :service                      {:root "https://yeastmine.dev.yeastgenome.org/yeastmine-dev/"}
                              :name                         "YeastMine"
                              :output?                      true
                              :common                       "Yeast"
@@ -438,24 +438,7 @@
                                                                       :value "Protein secretion"
                                                                       :code "A"}]}
                              :mine                         {:name    "YeastMine"
-                                                            :url     "yeastmine.yeastgenome.org/yeastmine"
-                                                            :service {:root "yeastmine.yeastgenome.org/yeastmine"}}}
+                                                            :url     "https://yeastmine.dev.yeastgenome.org/yeastmine-dev/"
+                                                            :service {:root "https://yeastmine.dev.yeastgenome.org/yeastmine-dev/"}}}
 
-            ; :mitominer     {:id                 :mitominer
-            ;                 :service            {:root "mitominer.mrc-mbu.cam.ac.uk/release-4.0"}
-            ;                 :name               "MitoMiner"
-            ;                 :output?            true
-            ;                 :common             "MitoMiner"
-            ;                 :icon               "icon-human"
-            ;                 :abbrev             "H. sapiens" ;;HAVING A DEFAULT ORGANISM MAY BE A BAD IDEA!! ;; i know
-            ;                 :default-organism   "H. sapiens"
-            ;                 :default-selected-object-type :Gene
-            ;                 :default-object-types   [:Gene :Protein]
-            ;                 :status             {:status :na}
-            ;                 :idresolver-example {:Gene "Atp5a1, Atp5b, Atp5d, Atp5c1"
-            ;                                      :Protein "Q03265, P56480, Q9D3D9, Q91VR2"}
-            ;                 :mine
-            ;                                     {:name    "MitoMiner"
-            ;                                      :url     "mitominer.mrc-mbu.cam.ac.uk/release-4.0"
-            ;                                      :service {:root "mitominer.mrc-mbu.cam.ac.uk/release-4.0"}}}
 })

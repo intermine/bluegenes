@@ -8,17 +8,6 @@
 /// You may, if need be, paste the new im-tables styles in here, but leave   ///
 /// this warning intact. Kthxbye.                                            ///
 ////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////
-/// DO NOT EDIT // DO NOT EDIT // DO NOT EDIT // DO NOT EDIT // DO NOT EDIT  ///
-/// This is a straight copy/paste from imtables and is pasted in manually    ///
-/// until we get something smarter set up. Edit anything here and it'll      ///
-/// disappear next time we copy/paste. If you want to override an imtables   ///
-/// style, go to im-tables-overrides instead.                                ///
-////////////////////////////////////////////////////////////////////////////////
-/// You may, if need be, paste the new im-tables styles in here, but leave   ///
-/// this warning intact. Kthxbye.                                            ///
-////////////////////////////////////////////////////////////////////////////////
-
 .table > thead > tr > th {
   vertical-align: top;
 }
@@ -84,6 +73,148 @@
 .im-table .im-tooltip .table {
   margin-bottom: 0;
 }
+.im-modal {
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  position: fixed;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-animation: fadein 2s;
+  /* Safari, Chrome and Opera > 12.1 */
+  -moz-animation: fadein 2s;
+  /* Firefox < 16 */
+  -ms-animation: fadein 2s;
+  /* Internet Explorer */
+  -o-animation: fadein 2s;
+  /* Opera < 12.1 */
+  animation: fadein 150ms;
+  animation-timing-function: ease-out;
+  animation-fill-mode: backwards;
+}
+.im-modal .im-modal-content {
+  flex: 0 0 auto;
+  animation: slidein 150ms;
+  margin-left: 20px;
+  margin-right: 20px;
+}
+@keyframes fadein {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes slidein {
+  from {
+    transform: translate(0%, -50%);
+  }
+  to {
+    transform: translate(0%, 0%);
+  }
+}
+/*
+    This override is necessary to allow modals to expand to the width of their content rather
+    than be fixed to 600px as found in bootstrap. For example, code generation modal.
+*/
+.codegen-modal {
+  width: 100% !important;
+  padding-left: 30px;
+  padding-right: 30px;
+  max-width: 1200px !important;
+}
+@media (min-width: 768px) {
+  .codegen-modal .modal-dialog {
+    width: auto;
+  }
+}
+/*
+
+github.com style (c) Vasily Polovnyov <vast@whiteants.net>
+
+*/
+.hljs {
+  display: block;
+  overflow-x: auto;
+  padding: 0.5em;
+  color: #333;
+  background: #f8f8f8;
+}
+.hljs-comment,
+.hljs-quote {
+  color: #998;
+  font-style: italic;
+}
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-subst {
+  color: #333;
+  font-weight: bold;
+}
+.hljs-number,
+.hljs-literal,
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag .hljs-attr {
+  color: #008080;
+}
+.hljs-string,
+.hljs-doctag {
+  color: #d14;
+}
+.hljs-title,
+.hljs-section,
+.hljs-selector-id {
+  color: #900;
+  font-weight: bold;
+}
+.hljs-subst {
+  font-weight: normal;
+}
+.hljs-type,
+.hljs-class .hljs-title {
+  color: #458;
+  font-weight: bold;
+}
+.hljs-tag,
+.hljs-name,
+.hljs-attribute {
+  color: #000080;
+  font-weight: normal;
+}
+.hljs-regexp,
+.hljs-link {
+  color: #009926;
+}
+.hljs-symbol,
+.hljs-bullet {
+  color: #990073;
+}
+.hljs-built_in,
+.hljs-builtin-name {
+  color: #0086b3;
+}
+.hljs-meta {
+  color: #999;
+  font-weight: bold;
+}
+.hljs-deletion {
+  background: #fdd;
+}
+.hljs-addition {
+  background: #dfd;
+}
+.hljs-emphasis {
+  font-style: italic;
+}
+.hljs-strong {
+  font-weight: bold;
+}
 .force-wrap {
   /* These are technically the same, but use both */
   overflow-wrap: break-word;
@@ -118,11 +249,23 @@
   /* CSS Triangles - see Trevor's post */
   /* IE can just show/hide with no transition */
 }
+.im-table .hljs {
+  white-space: pre;
+}
+.im-table .dashboard-buttons {
+  margin-right: 30px;
+}
+.im-table .codegen-checkbox-container {
+  margin-top: 15px;
+}
 .im-table .popover {
   padding: 0;
 }
 .im-table .popover .table {
   margin: 0;
+}
+.im-table .pagination-bar label {
+  line-height: 2.4em;
 }
 .im-table .inset {
   -webkit-box-shadow: inset 3px 3px 6px -4px rgba(0, 0, 0, 0.69);
@@ -361,7 +504,7 @@
   white-space: nowrap;
 }
 .im-table .summary-toolbar .dropdown-menu {
-  min-width: 35vw;
+  min-width: 360px;
   padding: 0;
 }
 .im-table .summary-toolbar .filter-icon.active-filter {
@@ -520,4 +663,36 @@
 }
 .im-table .modal-header h3 {
   margin: 0;
+}
+.im-table .table-history-detail {
+  font-size: 0.8em;
+  font-family: monospace;
+  background-color: #e7e7e7;
+  padding: 5px;
+}
+.im-table .histo {
+  background-color: #f0f8ff;
+  display: flex;
+  height: 75px;
+  box-sizing: border-box;
+  position: relative;
+  border-bottom: 1px solid black;
+}
+.im-table .histo .histo-bucket {
+  flex: 1 0;
+}
+.im-table .histo .histo-bucket.full {
+  background-color: #0058a6;
+  border-left: 1px solid white;
+  border-right: 1px solid white;
+}
+.im-table .histo .trimmer {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background-color: orange;
+  opacity: 0.3;
+}
+.im-table .numerical-content-wrapper {
+  padding: 10px;
 }

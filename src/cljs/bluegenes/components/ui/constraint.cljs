@@ -2,20 +2,24 @@
   (:require [imcljs.path :as im-path]
             [re-frame.core :refer [subscribe dispatch]]
             [oops.core :refer [oget ocall]]
-            [clojure.string :refer [includes? split]]
+            [clojure.string :refer [includes? blank? split join]]
             [bluegenes.components.loader :refer [mini-loader]]
             [reagent.core :as reagent :refer [create-class]]
             [dommy.core :as dommy :refer-macros [sel sel1]]
             [bluegenes.components.ui.list_dropdown :refer [list-dropdown]]))
 
+; These are what appear in a constraint drop down in order. Each map contains:
+;  :op         - The syntax found in InterMine Query Language
+;  :label      - A more friendly version to display to users
+;  :applies-to - The Java type that represents the field in InterMine
 (def operators [{:op "LOOKUP"
                  :label "Lookup"
                  :applies-to [nil]}
                 {:op "IN"
-                 :label "In some list"
+                 :label "In list"
                  :applies-to [nil]}
                 {:op "NOT IN"
-                 :label "Not in some list"
+                 :label "Not in list"
                  :applies-to [nil]}
                 {:op "="
                  :label "="
@@ -46,19 +50,26 @@
                  :applies-to ["java.lang.String"]}
                 {:op "ONE OF"
                  :label "One of"
-                 :applies-to []}
+                 :applies-to ["java.lang.String"]}
                 {:op "NONE OF"
                  :label "None of"
-                 :applies-to []}])
+                 :applies-to ["java.lang.String"]}])
 
-(defn applies-to? [type op]
+(defn applies-to?
+  "Given a field type (ex java.lang.Double) return all constraint maps that support that type"
+  [type op]
   (some true? (map (partial = type) (:applies-to op))))
 
-(defn constraint-label [op]
+(defn constraint-label
+  "Return the label for a given operator.
+  This looks a little complicated because we want our constraints to have order
+  so we need to filter the collection, get the first constraint map (they should all be unique anyway)
+  then gets its label"
+  [op]
   (:label (first (filter #(= op (:op %)) operators))))
 
 (defn has-text?
-  "Return true if a label contains a string"
+  "Return true v contains a string"
   [string v]
   (if string
     (if v
@@ -67,7 +78,8 @@
     true))
 
 (defn has-three-matching-letters?
-  "Return true if a label contains a string"
+  "Return true if v contains a string and that string is 3 or more characters.
+  (Silly but it speeds up text filtering)"
   [string v]
   (if (and string (>= (count string) 3))
     (if v
@@ -75,7 +87,7 @@
       false)
     false))
 
-
+; Make NodeList javascript objects seqable (can be used with map / reduce etc)
 (extend-type js/NodeList
   ISeqable
   (-seq [array] (array-seq array 0)))
@@ -83,47 +95,79 @@
 (defn set-text-value [node value]
   (when node (-> (sel1 node :input) (dommy/set-value! value))))
 
-(defn constraint-text-input []
-  (let [component (reagent/atom nil)
-        focused?  (reagent/atom false)]
-    (fn [& {:keys [model path value typeahead? on-change on-blur allow-possible-values possible-values]}]
-      [:div.constraint-text-input
-       {:ref (fn [e] (reset! component e))
-        :class (when @focused? "open")}
-       [:input.form-control.dropdown
-        {:data-toggle "none"
-         :type "text"
-         :on-focus (fn [e] (reset! focused? true))
-         :on-change (fn [e] (on-change (oget e :target :value)))
-         :on-blur (fn [e] (on-blur (oget e :target :value)) (reset! focused? false))
-         :on-key-down (fn [e] (when (= (oget e :keyCode) 13)
-                                (on-blur (oget e :target :value))
-                                (reset! focused? false)))
-         :value value}]
-       (when (and (not (false? typeahead?)) (not (im-path/class? model path)))
-         (cond
-           (false? possible-values) [:ul.dropdown-menu.scrollable-dropdown
-                                     [:li [:a.disabled "Too many values to show"]]]
-           (<= (count possible-values) 100) (let [filtered   (not-empty (filter (partial has-text? value) (sort possible-values)))
-                                                  unfiltered (not-empty (filter (partial (complement has-text?) value) (sort possible-values)))]
-                                              (if (nil? possible-values)
-                                                [:ul.dropdown-menu.scrollable-dropdown
-                                                 [:li [:a.disabled [:span [mini-loader "tiny"]]]]]
-                                                (into [:ul.dropdown-menu.scrollable-dropdown]
-                                                      (concat
-                                                        (map (fn [v] [:li {:on-mouse-down (fn [] (set-text-value @component v))} [:a v]]) filtered)
-                                                        (when (and filtered unfiltered) [[:li.divider]])
-                                                        (map (fn [v] [:li {:on-mouse-down (fn [] (set-text-value @component v))} [:a v]]) unfiltered)))))
-           (> (count possible-values) 100) (let [filtered (not-empty (filter (partial has-three-matching-letters? value) (sort possible-values)))]
-                                             (if (< (count value) 3)
-                                               [:ul.dropdown-menu.scrollable-dropdown
-                                                [:li [:a.disabled "Type more to filter values..."]]]
-                                               (if (empty? filtered)
-                                                 [:ul.dropdown-menu.scrollable-dropdown
-                                                  [:li [:a.disabled "No results"]]]
-                                                 (into [:ul.dropdown-menu.scrollable-dropdown]
-                                                       (map (fn [v] [:li {:on-mouse-down (fn [] (set-text-value @component v))} [:a v]])
-                                                            filtered)))))))])))
+
+(defn constraint-text-input
+  "A component that represents the freeform textbox for String / Lookup constraints"
+  []
+  (let [multiselects (reagent/atom {})
+        focused? (reagent/atom false)]
+    (fn [& {:keys [disabled model path value typeahead? on-change on-blur code lists
+                   allow-possible-values possible-values disabled op on-select-list] :as x}]
+      (cond
+        (and (and typeahead? (seq? possible-values))
+             (or (= op "=")
+                 (= op "!="))) [:div.constraint-text-input
+                                {:class (when @focused? "open")}
+                                (into [:select.form-control
+                                       {:disabled disabled
+                                        :class (when disabled "disabled")
+                                        :value (or value "")
+                                        :on-change (fn [e]
+                                                     (on-change (oget e :target :value))
+                                                     (on-blur (oget e :target :value)))}]
+                                      (cond-> (map (fn [v] [:option {:value v} v]) (remove nil? possible-values))
+                                              (blank? value) (conj
+                                                               [:option {:disabled true :value ""}
+                                                                (str
+                                                                  "Choose "
+                                                                  (join " > "
+                                                                        (take-last 2 (split (im-path/friendly model path) " > "))))])))]
+        (and
+          (and typeahead? (seq? possible-values))
+          (or (= op "ONE OF")
+              (= op "NONE OF"))) [:div.constraint-text-input
+                                  {:class (when @focused? "open")}
+                                  (into [:select.form-control
+                                         {:multiple true
+                                          :disabled disabled
+                                          :class (when disabled "disabled")
+                                          :value (or value [])
+                                          :on-change (fn [e]
+                                                       (let [value (doall (map first (filter (fn [[k elem]] (oget elem :selected)) @multiselects)))]
+                                                         (on-change value)
+                                                         (on-blur value)))}]
+                                        (map (fn [v]
+                                               [:option
+                                                {:ref (fn [e] (when e (swap! multiselects assoc v e)))
+                                                 :value v}
+                                                v])
+                                             (remove nil? possible-values)))]
+        (or
+          (= op "IN")
+          (= op "NOT IN")) [list-dropdown
+                            :value value
+                            :lists lists
+                            :disabled disabled
+                            :restrict-type (im-path/class model path)
+                            :on-change (fn [list]
+                                         ((or on-select-list on-change) list)
+                                         (on-blur list))]
+        :else [:input.form-control
+               {:data-toggle "none"
+                :disabled disabled
+                :class (when disabled "disabled")
+                :type "text"
+                :value value
+                :on-focus (fn [e] (reset! focused? true))
+                :on-change (fn [e] (on-change (oget e :target :value)))
+                :on-blur (fn [e] (on-blur (oget e :target :value)) (reset! focused? false))
+                :on-key-down (fn [e] (when (= (oget e :keyCode) 13)
+                                       (on-blur (oget e :target :value))
+                                       (reset! focused? false)))}]))))
+
+
+(defn one-of? [value col] (some? (some #{value} col)))
+(def not-one-of? (complement one-of?))
 
 
 (defn constraint-operator []
@@ -134,32 +178,37 @@
   :on-change  A function to call with the new operator
   :lists      (Optional) if provided, automatically disable list constraints
               if there are no lists of that type"
-  (fn [& {:keys [model path op on-change lists]}]
-    [:div.input-group-btn.dropdown.constraint-operator
-     [:button.btn.btn-default.dropdown-toggle
-      {:data-toggle "dropdown"}
-      (str (constraint-label op) " ") [:span.caret {:style {:margin-left "5px"}}]]
-     (let [path-class            (im-path/class model path)
-           any-lists-with-class? (some? (some (fn [list] (= path-class (keyword (:type list)))) lists))
-           disable-lists?        (and lists (not any-lists-with-class?))]
-       (into [:ul.dropdown-menu]
-             (as-> operators $
-                   (filter (partial applies-to? (im-path/data-type model path)) $)
-                   (cond->> $
-                            disable-lists? (remove (comp #{"IN" "NOT IN"} :op)))
-                   (map (fn [{:keys [op label] :as operator}]
-                          ; If we were given a collection of lists, and this operator is a list operator,
-                          ; and there are no lists of the Class of this path, then disabled the operator.
-                          [:li
-                           {:on-click (if-not disable-lists? (partial on-change op))}
-                           [:a (case op
-                                 "IN" (str "In a " (:displayName (first (im-path/walk model (name path-class)))) " list")
-                                 "NOT IN" (str "Not in a " (:displayName (first (im-path/walk model (name path-class)))) " list")
-                                 (str label))]]) $)
-                   (cond-> $
-                           (and disable-lists? (nil? (im-path/data-type model path))) (concat [[:li
-                                                                                                {:class "disabled"}
-                                                                                                [:a (str "(No " (:displayName (first (im-path/walk model (name path-class)))) " lists)")]]])))))]))
+  (fn [& {:keys [model path op on-change on-blur lists disabled value]}]
+    (let [path-class (im-path/class model path)
+          any-lists-with-class? (some? (some (fn [list] (= path-class (keyword (:type list)))) lists))
+          disable-lists? (and lists (not any-lists-with-class?))]
+      (into [:select.form-control
+             {:disabled disabled
+              :class (when disabled "disabled")
+              :value op
+              :on-change (fn [e]
+                           (let [new-op (oget e :target :value)]
+                             (on-change (oget e :target :value))
+                             ; Only fire the on-blur event when the operator has not changed from
+                             ; a non-list operator to a list-operator.
+                             ; Switching from "= Protein Domain" to "IN Protein Domain" doesn't make sense!
+                             (when-not (and (one-of? new-op ["IN" "NOT IN"]) (not-one-of? op ["IN" "NOT IN"]))
+                               (on-blur (oget e :target :value)))))}]
+            (as-> operators $
+                  (filter (partial applies-to? (im-path/data-type model path)) $)
+                  #_(cond->> $
+                             disable-lists? (remove (comp #{"IN" "NOT IN"} :op)))
+                  (map (fn [{:keys [op label] :as operator}]
+                         ; If we were given a collection of lists, and this operator is a list operator,
+                         ; and there are no lists of the Class of this path, then disabled the operator.
+                         [:option
+                          {:value op}
+                          label]) $)
+                  (cond-> $
+                          (and disable-lists? (nil? (im-path/data-type model path)))
+                          (concat [[:li
+                                    {:class "disabled"}
+                                    [:a (str "(No " (:displayName (first (im-path/walk model (name path-class)))) " lists)")]]])))))))
 
 (defn constraint [& {:keys [model path]}]
   "Creates a button group that represents a query constraint.
@@ -180,39 +229,107 @@
                                 (dispatch [:cache/fetch-possible-values path])))
        :reagent-render (fn [& {:keys [lists model path value op code on-change
                                       on-select-list on-change-operator on-remove
-                                      on-blur label? possible-values typeahead? hide-code?]}]
+                                      on-blur label? possible-values typeahead? hide-code?
+                                      disabled label] :as con}]
                          (let [class? (im-path/class? model path)
-                               op     (or op (if class? "LOOKUP" "="))]
-                           [:div.constraint-component
-                            [:div.input-group
-                             [constraint-operator
-                              :model model
-                              :path path
-                              ; Default to an OP if one has not been given
-                              :op op
-                              :lists lists
-                              :on-change (fn [op] ((or on-change-operator on-change) {:code code :path path :value value :op op}))]
-                             (cond
-                               ; If this is a LIST constraint then show a list dropdown
-                               (or (= op "IN")
-                                   (= op "NOT IN")) [list-dropdown
-                                                     :value value
-                                                     :lists lists
-                                                     :restrict-type (im-path/class model path)
-                                                     :on-change (fn [list]
-                                                                  ((or on-select-list on-change) {:path path :value list :code code :op op}))]
-                               ; Otherwise show a text input
-                               :else [constraint-text-input
-                                      :model model
-                                      :value value
-                                      :typeahead? typeahead?
-                                      :path path
-                                      :allow-possible-values (and (not= op "IN") (not= op "NOT IN"))
-                                      :possible-values @pv
-                                      :on-change (fn [val] (on-change {:path path :value val :op op :code code}))
-                                      :on-blur (fn [val] (when on-blur (on-blur {:path path :value val :op op :code code})))])
-                             (when (and code (not hide-code?)) [:span.constraint-label code])]
-                            (when on-remove [:svg.icon.icon-bin
-                                             {:on-click (fn [op] (on-remove {:path path :value value :op op}))}
-                                             [:use {:xlinkHref "#icon-bin"}]
-                                             ])]))})))
+                               op (or op (if class? "LOOKUP" "="))]
+                           [:div.constraint-container
+                            [:div.row.no-gutter
+                             [:div.col-sm-12 [:label label]]]
+                            [:div.row.no-gutter
+                             [:div.col-sm-4
+                              [constraint-operator
+                               :model model
+                               :path path
+                               :disabled disabled
+                               ; Default to an OP if one has not been given
+                               :op op
+                               :value value
+                               :lists lists
+                               :on-blur (fn [op]
+                                          (if (or (= op "ONE OF") (= op "NONE OF"))
+                                            ((or on-blur on-change) {:code code :path path :values (cond-> value string? list) :op op})
+                                            ((or on-blur on-change) {:code code :path path :value (cond-> value (seq? value) first) :op op})))
+                               :on-change (fn [op]
+                                            (if (or (= op "ONE OF") (= op "NONE OF"))
+                                              ((or on-change-operator on-change) {:code code :path path :values (cond-> value string? list) :op op})
+                                              ((or on-change-operator on-change) {:code code :path path :value (cond-> value (seq? value) first) :op op})))]]
+                             [:div.col-sm-8
+                              [:div
+                               {:style {:position "relative"}}
+                               [constraint-text-input
+                                :model model
+                                :value value
+                                :op op
+                                :on-select-list on-select-list
+                                :typeahead? typeahead?
+                                :path path
+                                :code code
+                                :lists lists
+                                :disabled disabled
+                                :allow-possible-values (and (not= op "IN") (not= op "NOT IN"))
+                                :possible-values @pv
+                                :on-change (fn [val]
+                                             (if (and (some? val) (or (= op "ONE OF") (= op "NONE OF")))
+                                               (on-change {:path path :values val :op op :code code})
+                                               (on-change {:path path :value val :op op :code code})))
+                                :on-blur (fn [val]
+                                           (if (and (some? val) (or (= op "ONE OF") (= op "NONE OF")))
+                                             ((or on-blur on-change) {:path path :values val :op op :code code})
+                                             ((or on-blur on-change) {:path path :value val :op op :code code})))]
+                               (when on-remove
+                                 [:svg.icon.icon-bin
+                                  {:style {:position "absolute"}
+                                   :on-click (fn [op] (on-remove {:path path :value value :op op}))}
+                                  [:use {:xlinkHref "#icon-bin"}]
+                                  ])]]]]
+                           #_[:div.constraint-component
+                              [:div.input-group.constraint-input
+                               [constraint-operator
+                                :model model
+                                :path path
+                                :disabled disabled
+                                ; Default to an OP if one has not been given
+                                :op op
+                                :lists lists
+                                :on-change (fn [op]
+                                             (if (or (= op "ONE OF") (= op "NONE OF"))
+                                               ((or on-change-operator on-change) {:code code :path path :values (cond-> value string? list) :op op})
+                                               ((or on-change-operator on-change) {:code code :path path :value (cond-> value (seq? value) first) :op op})))]
+                               [:div
+                                [:span.constraint-component-label label]
+                                (cond
+                                  ; If this is a LIST constraint then show a list dropdown
+                                  (or (= op "IN")
+                                      (= op "NOT IN")) [list-dropdown
+                                                        :value value
+                                                        :lists lists
+                                                        :disabled disabled
+                                                        :restrict-type (im-path/class model path)
+                                                        :on-change (fn [list]
+                                                                     ((or on-select-list on-change) {:path path :value list :code code :op op}))]
+                                  ; Otherwise show a text input
+                                  :else [constraint-text-input
+                                         :model model
+                                         :value value
+                                         :op op
+                                         :typeahead? typeahead?
+                                         :path path
+                                         :disabled disabled
+                                         :allow-possible-values (and (not= op "IN") (not= op "NOT IN"))
+                                         :possible-values @pv
+                                         :on-change (fn [val]
+                                                      (if (and (some? val) (or (= op "ONE OF") (= op "NONE OF")))
+                                                        (on-change {:path path :values val :op op :code code})
+                                                        (on-change {:path path :value val :op op :code code})))
+                                         :on-blur (fn [val]
+                                                    (if (and (some? val) (or (= op "ONE OF") (= op "NONE OF")))
+                                                      ((or on-blur on-change) {:path path :values val :op op :code code})
+                                                      ((or on-blur on-change) {:path path :value val :op op :code code})))])]
+                               (when (and code (not hide-code?)) [:span.constraint-label code])]
+                              (when on-remove
+
+                                [:svg.icon.icon-bin
+                                 {:on-click (fn [op] (on-remove {:path path :value value :op op}))}
+                                 [:use {:xlinkHref "#icon-bin"}]
+                                 ])]))})))

@@ -1,9 +1,9 @@
-(def props {:version "0.5.1"})
+(def props {:version "0.9.4-SNAPSHOT"})
 
-(defproject bluegenes (str (:version props) "-SNAPSHOT")
+(defproject org.intermine/bluegenes (:version props)
   :dependencies [; Clojure
-                 [org.clojure/clojure "1.9.0-RC1"]
-                 [org.clojure/clojurescript "1.9.946"]
+                 [org.clojure/clojure "1.9.0"]
+                 [org.clojure/clojurescript "1.10.145"]
                  [org.clojure/core.async "0.3.443"]
 
                  ; MVC
@@ -76,11 +76,11 @@
 
 
                  ; Intermine Assets
-                 [intermine/imcljs "0.1.36"]
-                 [intermine/im-tables "0.3.4"]
-                 [intermine/accountant-fragments "0.1.8"]
+                 [org.intermine/im-tables "0.8.1"]
+                 [org.intermine/imcljs "0.5.1"]
+                 [intermine/accountant-fragments "0.1.8"]]
 
-                 ]
+  :deploy-repositories {"clojars" {:sign-releases false}}
 
   :plugins [[lein-cljsbuild "1.1.7"]
             [lein-less "1.7.5"]
@@ -96,7 +96,7 @@
                      ["less" "once"]]
             "prod" ["do" "build" ["pdo" ["run"]]]}
 
-  :min-lein-version "2.5.3"
+  :min-lein-version "2.8.1"
 
   :source-paths ["src/clj" "src/cljs" "src/cljc" "src/workers" "script/"]
 
@@ -105,7 +105,7 @@
                                     "test/js"]
 
   :figwheel {:css-dirs ["resources/public/css"]
-             :ring-handler bluegenes.handler/dev-handler
+             ;:ring-handler bluegenes.handler/handler
              :reload-clj-files {:cljc true}}
 
   :less {:source-paths ["less"]
@@ -119,7 +119,8 @@
                     :resource-paths ["config/prod"]
                     :plugins []}
              :uberjar {:resource-paths ["config/prod"]
-                       :prep-tasks ["clean" ["less" "once"] ["cljsbuild" "once" "min"] "compile"]}}
+                       :prep-tasks ["clean" ["less" "once"] ["cljsbuild" "once" "min"] "compile"]
+                       :aot :all}}
 
   :cljsbuild {:builds {:dev {:source-paths ["src/cljs"]
                              :figwheel {:on-jsload "bluegenes.core/mount-root"}
@@ -130,6 +131,8 @@
                                         :asset-path "js/compiled"
                                         :source-map-timestamp true
                                         :pretty-print true
+                                        :npm-deps {:highlight.js "9.12.0"}
+                                        :install-deps true
                                         ;:parallel-build true
                                         :preloads [devtools.preload
                                                    re-frisk.preload]
@@ -139,10 +142,11 @@
                        :min {:source-paths ["src/cljs"]
                              :jar true
                              :compiler {:main bluegenes.core
-                                        :parallel-build true
                                         :output-to "resources/public/js/compiled/app.js"
                                         ;:output-dir "resources/public/js/compiled"
                                         :optimizations :advanced
+                                        :npm-deps {:highlight.js "9.12.0"}
+                                        :install-deps true
                                         :closure-defines {goog.DEBUG false}
                                         :pretty-print false}}
 
@@ -153,11 +157,9 @@
                                          :optimizations :none}}}}
 
 
-  :main bluegenes.server
+  :main bluegenes.core
 
   :uberjar-name "bluegenes.jar"
-
-  ;:aot [bluegenes.server]
 
   :repositories [
                  ["clojars"

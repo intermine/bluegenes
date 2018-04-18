@@ -4,20 +4,22 @@
             [oops.core :refer [oget]]))
 
 (defn has-text?
-  "Return true if a label contains a string"
+  "Returns true if the details vector contains a string"
   [string details]
   (if string
     (re-find (re-pattern (str "(?i)" string)) (clojure.string/join " " (map details [:name :description])))
     true))
 
 (defn has-type?
-  "Return true if a label contains a string"
+  "Returns true if list is of a certain type"
   [type list]
   (if type
     (= type (keyword (:type list)))
     true))
 
-(defn im-lists []
+(defn im-lists
+  "Component: a list of intermine lists"
+  []
   (fn [& {:keys [lists on-change]}]
     (into [:ul]
           (map (fn [{:keys [name title size]}]
@@ -41,14 +43,15 @@
   :restrict-type  (Optional) a keyword to restrict the list to a type, like :Gene
   :on-change      A function to call with the name of the list"
   (let [text-filter-atom (reagent/atom nil)]
-    (fn [& {:keys [value lists restrict-type on-change :as x]}]
+    (fn [& {:keys [value lists restrict-type on-change disabled :as x]}]
       (let [text-filter    (partial has-text? @text-filter-atom)
             type-filter    (partial has-type? restrict-type)
             filter-fn      (apply every-pred [text-filter type-filter])
             filtered-lists (filter filter-fn lists)]
         [:div.dropdown
-         [:button.btn.btn-default.dropdown-toggle
-          {:style       {:text-transform "none"
+         [:button.btn.btn-raised.btn-default.dropdown-toggle
+          {:disabled disabled
+           :style       {:text-transform "none"
                          :white-space    "normal"}
            :data-toggle "dropdown"}
           (str (or value "Choose a list") " ") [:span.caret]]

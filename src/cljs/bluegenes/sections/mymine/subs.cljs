@@ -1,11 +1,12 @@
-(ns bluegenes.subs.mymine
+(ns bluegenes.sections.mymine.subs
   (:require [re-frame.core :as re-frame :refer [reg-sub subscribe]]
             [reagent.core :as r]
             [cljs-time.format :as tf]
             [cljs-time.core :as t]
             [clojure.string :refer [split]]
             [clojure.walk :refer [postwalk]]
-            [oops.core :refer [ocall]]))
+            [oops.core :refer [ocall]]
+            [bluegenes.sections.mymine.listsubs]))
 
 ; Thanks!
 ; https://groups.google.com/forum/#!topic/clojure/VVVa3TS15pU
@@ -134,13 +135,6 @@
   (fn [db]
     (let [tree (get-in db [:mymine :tree])]
       (add-ids-to-folders tree))))
-
-(reg-sub
-  ::folders
-  (fn [] (subscribe [::my-tree]))
-  (fn [tree]
-    {}
-    #_(mapcat flatten-folders (map (fn [[k v]] [k (assoc v :trail [k])]) tree))))
 
 (reg-sub
   ::selected
@@ -347,23 +341,6 @@
                     :label (:title l)
                     :trail [:public (:title l)])))))))
 
-#_(reg-sub
-    ::unfilled
-    (fn [] [(subscribe [::as-list])
-            (subscribe [:lists/filtered-lists])
-            (subscribe [::my-tree])])
-    (fn [[as-list filtered-lists tree]]
-      (let [my-lists (map :id (filter (comp true? :authorized) filtered-lists))
-            filled   (remove nil? (map :id as-list))]
-        ; TODO This is broken until https://github.com/intermine/intermine/pull/1633 is fixed
-
-        (->> tree
-             (mapcat flatten-ids)
-             (map (comp :id second))
-             (remove nil?))
-        ;(.log js/console "filled" filled)
-        (clojure.set/difference my-lists filled))))
-
 (reg-sub
   ::context-menu-location
   (fn [db]
@@ -373,12 +350,6 @@
   ::dragging-over-old
   (fn [db]
     (get-in db [:mymine :dragging-over])))
-
-;(reg-sub
-;  ::context-menu-target
-;  (fn [] [(subscribe [::with-public]) (subscribe [::context-menu-location])])
-;  (fn [[tree location]]
-;    (when location (assoc (get-in tree location) :trail location))))
 
 (reg-sub
   ::context-menu-target
@@ -390,7 +361,6 @@
   (fn [] [(subscribe [::with-public]) (subscribe [::context-menu-location])])
   (fn [[tree location]]
     (assoc (get-in tree location) :trail location)))
-
 
 (reg-sub
   ::op-selected-items
@@ -410,17 +380,8 @@
 
 (reg-sub
   ::suggested-modal-state
-  (fn [db] (get-in db [:mymine :suggested-state])))
-
-(reg-sub
-  ::suggested-modal-state-details
-  (fn [] [(subscribe [:lists/filtered-lists])
-          (subscribe [::suggested-modal-state])])
-  (fn [[lists [a b]]]
-    [(filter (fn [l] (some #{(:id l)} a)) lists)
-     (filter (fn [l] (some #{(:id l)} b)) lists)]))
-
-
+  (fn [db]
+    (get-in db [:mymine :suggested-state])))
 
 (reg-sub
   ::one-list
@@ -439,18 +400,6 @@
     (get-in db [:mymine :modal])))
 
 (reg-sub
-  ::modal-suggested-state
-  (fn [db]
-    (get-in db [:mymine :suggested-state])))
-
-;(reg-sub
-;  ::menu-item
-;  :<- [::menu-target]
-;  :<- [::my-tree]
-;  (fn [[menu-target tree]]
-;    (-> tree (get-in menu-target) (assoc :trail menu-target))))
-
-(reg-sub
   ::menu-item
   :<- [::menu-target]
   :<- [::my-tree]
@@ -461,22 +410,6 @@
   ::menu-details
   (fn [db]
     (get-in db [:mymine :menu-file-details])))
-
-(reg-sub
-  ::pure-tree
-  (fn [db]
-    (get-in db [:mymine :tree])))
-
-;(reg-sub
-;  ::a-list
-;  (fn [[_ specific-id]]
-;    (subscribe [:lists/filtered-lists]))
-;  (fn [filtered-lists [_ specific-id]]
-;    ; Need access to specific-id for something like:
-;    (filter #(= specific-id (:id %)) filtered-lists)
-;    ))
-
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -519,8 +452,6 @@
   (if-let [entry-id (:entry-id entry)]
     (isa? hierarchy (keyword "tag" entry-id) (keyword "tag" root-id))
     false))
-
-
 
 (reg-sub
   ::hierarchy

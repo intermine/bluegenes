@@ -1,9 +1,13 @@
 @import "overrides";
-@import "variables"; // well done, you've found the correct location to edit bluegenes specific
+@import "variables";
+// well done, you've found the correct location to edit bluegenes specific
 // imtables styles. Don't use im-tables.less, because it's a copy/paste from
 // the imtables repo.
 
+@lightish-grey: #ccc;
+
 .im-table {
+    .btn .fa {margin-right: @spacer/4}
     .btn-group {
         margin: 0;
 
@@ -25,7 +29,7 @@
         .table {
             margin-bottom: 0;
         }
-        border-bottom: solid 1px #ccc;
+        border-bottom: solid 1px  @lightish-grey;
         box-shadow: 1px 1px 1px 1px rgba(0,0,0,0.18);
     }
 
@@ -35,7 +39,7 @@
         }
 
         .imtable-constraint {
-            border: solid 1px #ccc;
+            border: solid 1px  @lightish-grey;
 
             .constraint-input {
                 margin: 0;
@@ -44,7 +48,7 @@
 
             select.form-control {
                 border: 0;
-                border-right: solid 1px #ccc;
+                border-right: solid 1px  @lightish-grey;
             }
 
             .btn,
@@ -54,7 +58,7 @@
             }
 
             .btn {
-                border-left: solid 1px #ccc;
+                border-left: solid 1px  @lightish-grey;
             }
 
             .btn,
@@ -66,6 +70,28 @@
         .btn {
             margin: 0;
         }
+    }
+    /* fix bootstrap silly negative margins */
+    .pagination-bar {
+        margin-left: 4px;
+    }
+
+    .dashboard-buttons > .btn-group {
+        border: solid 1px  @lightish-grey;
+        box-shadow: 1px 1px 1px rgba(0,0,0,0.2);
+        margin: 0.5em 0.25em;
+        border-radius: 2px;
+        min-height: 2.2em;
+        display: flex;
+        align-items: center;
+    }
+
+    .dashboard-buttons .dropdown-toggle {
+        min-height: 2em;
+    }
+
+    .im-table-toolbar label {
+      .dark-text;
     }
 }
 

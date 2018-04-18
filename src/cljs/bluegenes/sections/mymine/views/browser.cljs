@@ -2,8 +2,8 @@
   (:require [re-frame.core :refer [subscribe dispatch]]
             [reagent.core :as r]
             [oops.core :refer [oget ocall]]
-            [bluegenes.events.mymine :as evts]
-            [bluegenes.subs.mymine :as subs]))
+            [bluegenes.sections.mymine.events :as evts]
+            [bluegenes.sections.mymine.subs :as subs]))
 
 (defmulti node (comp :file-type second))
 
@@ -67,5 +67,3 @@
         (into
           [:ul.mymine-browser]
           (map (fn [x] [leaf x]) @my-tree))]])))
-
-

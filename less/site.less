@@ -18,15 +18,14 @@
 @import "components/templates";
 @import "components/alerts";
 @import "components/login";
+@import "components/toggle";
 @import "saved-data";
 @import "developer";
 @import "overrides";
 @import "components/navbar";
 @import "layouts/input-group";
 @import "layouts/header";
-@import "transitions";
 @import "components/regions";
-@import "components/lists";
 @import "components/toast";
 @import "im-tables";
 @import "im-tables-overrides";
@@ -57,7 +56,7 @@ html {
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  margin: 0 1em;
+  margin: 0 0;
   flex-grow: 1;
 }
 @annoyingscrollbars: 5em;
@@ -75,7 +74,7 @@ main {
   display: flex;
   flex-grow: 1;
   justify-content: center;
-  margin-top: @spacer; //this margin directly offsets the annoying scrollbars that we were getting with a 100% page height and sticky header
+  // margin-top: @spacer; //this margin directly offsets the annoying scrollbars that we were getting with a 100% page height and sticky header
 }
 //smaller screens:
 @media (max-width:539px) {
@@ -309,6 +308,7 @@ input.form-control:focus {
   background-color: white;
 }
 
+
 input[type="checkbox"] {
   @the-color: #999;
   margin-right: 0.8em;
@@ -339,6 +339,7 @@ input[type="checkbox"] {
     display: block;
   }
 }
+
 
 label {
   line-height: 1.2em;
@@ -438,4 +439,62 @@ button.btn {
 
 .icon-4x {
   .icon(4em);
+}
+
+.dropdown-mixed-content {
+  //mixin used for list / lookup/ = / > / < lookup dropdown
+  //(probably other places too)
+
+  @dropdown-size:400px;
+
+    max-width: @dropdown-size;
+    min-width:  @dropdown-size;
+    font-size: 0.9em;
+
+    .clip-400 {
+        max-height:  @dropdown-size;
+        overflow-y: auto;
+    }
+
+
+
+    .size {
+        font-size: 0.7em;
+        color: grey;
+    }
+
+    h4, h3, h2, h1 {
+        color: @highlight-color;
+    }
+    .icon {
+      fill: @highlight-color;
+    }
+
+    ul {
+        margin: 0;
+        padding: 0;
+        li {
+            padding: 3px;
+
+            clear: both;
+            // font-weight: normal;
+            color: black;
+
+            a {
+                text-decoration: none;
+            }
+        }
+    }
+}
+
+
+
+.no-gutter {
+  margin-right: 0;
+  margin-left: 0;
+}
+
+.no-gutter > [class*="col-"] {
+  padding-right: 5px;
+  padding-left: 5px;
 }

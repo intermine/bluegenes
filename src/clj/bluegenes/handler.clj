@@ -10,18 +10,16 @@
             [ring.middleware.reload :refer [wrap-reload]]
             [ring.middleware.format :refer [wrap-restful-format]]))
 
-
-(def dev-handler (-> #'routes/routes
-                     wrap-session
-                     wrap-reload
-                     wrap-json-response
-                     wrap-keyword-params
-                     wrap-params))
-
 (def handler (-> #'routes/routes
+                 ; Watch changes to the .clj and hot reload them
                  wrap-reload
+                 ; Add session functionality to the Ring requests
                  wrap-session
-                 wrap-restful-format
+                 ; Accept and parse request parameters in various formats
+                 (wrap-restful-format :formats [:json :json-kw :transit-msgpack :transit-json])
+                 ; The rest are mostly replaced by wrap-restful-format but are being left for historical purposes:
+                 ;wrap-params
+                 ;wrap-restful-format
                  ;wrap-json-response
                  ;wrap-keyword-params
                  ;wrap-params

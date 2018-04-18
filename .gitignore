@@ -15,3 +15,5 @@ node_modules
 .lein-repl-history
 .nrepl-port
 .DS_Store
+pom.xml
+package-lock.json

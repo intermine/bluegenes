@@ -1,3 +1,5 @@
+
+
 # BlueGenes
 ## About
 BlueGenes is designed to make searching and analysing genomic data easy. It's powered by [InterMine](http://intermine.org/) web services, meaning that the data from nearly 30 InterMines worldwide can be accessed from the same familiar interface.
@@ -13,22 +15,10 @@ BlueGenes is designed to make searching and analysing genomic data easy. It's po
 
 #### System Requirements
 * Java 1.6+
-* PostgreSQL 9.3+
 * [Leiningen 2.5+](https://leiningen.org/)
 
-#### Initial Setup
-
-BlueGenes has two main components: a web application and a server that hosts it. The server requires a connection to a PostgreSQL server to persist user data. We recommend creating two databases, one for development/testing and one for production:
-
-```bash
-$ createdb bluegenes-dev
-$ createdb bluegenes-prod
-```
-
-You then need to configure BlueGenes to use those databases. Copy and edit the example in [config/dev/README.md](config/dev/README.md) and save it to `config/dev/config.edn` and `config/prod/config.edn`.
-
 ##### Google Analytics
-If you wish to track pages hits, set up [Google analytics](https://analytics.google.com/analytics/web/#embed/report-home/a76615855w155408876p157084577/) for your domain, then add your google analytics id to your config.edn files (mentioned above) or environment variables. This is completely optional. 
+If you wish to track pages hits, set up [Google analytics](https://analytics.google.com/analytics/web/#embed/report-home/a76615855w155408876p157084577/) for your domain, then add your google analytics id to your config.edn files (mentioned above) or environment variables. This is completely optional.
 
 ```clojure
   {:google-analytics "UA-12345678-9"}
@@ -143,12 +133,22 @@ If it's not set, it will run on port 5000 by default.
 One of the easiest ways to deploy the prod minified version is to set up [Dokku](http://dokku.viewdocs.io/dokku/) on your intended server. Once dokku is configured on your remote host, all you need to do to deploy a minified build is add the server as a remote and push to it:
 
 	git remote add my-awesome-server bluegenes@my-awesome-server.git
-    git push my-awesome-server master
-
+        git push my-awesome-server master
 
 [lein]: https://github.com/technomancy/leiningen
 [bower]: http://bower.io/
 [npm]: https://www.npmjs.com/
 [nodejs]: https://nodejs.org/
 
-### Google Analytics
+### Deploying to Clojars
+
+When deploying BlueGenes to Clojars, the JAR file should include all compiled assets include javascript, less, and the vendor libraries. This allows other projects to include BlueGenes as a dependency and deploy the client and server without needing to compile BlueGenes. To deploy a compiled JAR to clojars, include the `uberjar` profile when running the `lein deploy clojars` command:
+```bash
+$ lein with-profile +uberjar deploy clojars
+```
+
+
+### Further help needed?
+
+If you think the issue is related to InterMine or its webservices, check out the [InterMine documentation](http://intermine.readthedocs.io/en/latest/about/contact-us/)
+Documentation on BlueGenes is available in [the docs folder](https://github.com/intermine/bluegenes/blob/dev/docs/index.md)

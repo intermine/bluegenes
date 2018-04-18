@@ -13,7 +13,24 @@
     font-size: 2em;
 }
 
-.templates {
+.template-constraint-container {
+    margin-bottom: 10px;
+}
+
+.constraint-component-label {
+    font-weight: bold;
+}
+
+
+.affix + .template-container {
+    padding-top: 102px;
+}
+
+
+.template-component-container {
+
+    width: 100%;
+
     .preview {
         max-width: 60vw;
         overflow-x: "hidden";
@@ -26,14 +43,22 @@
     .template-filters {
         background: darken(@body-background-color,3%);
         //this padding stops content showing through at weird breakpoints;
-        padding-top: @crazy-padding;
-        position: fixed;
+        // padding-top: @crazy-padding;
+        // position: fixed;
         z-index: 42; //a higher z-index than light tables is the answer. And 42 is always the answer.
-        margin-top: -@crazy-padding;
-        padding-bottom: 2px;
+        // margin-top: -@crazy-padding;
+        // padding-bottom: 2px;
         box-shadow: 1px 1px 1px rgba(0,0,0,0.2);
-        right: 0;
-        left: 0;
+        // right: 0;
+        // left: 0;
+        width: 100%;
+
+        &.affix {
+            top: 0;
+            width: 100%;
+        }
+
+
 
         .template-filter {
             .control-label {
@@ -260,6 +285,10 @@
         border-bottom: solid 3px #ecebeb;
         .transitions;
 
+        :hover {
+            cursor: pointer;
+        }
+
         .title {
             font-size: 1.4em;
 
@@ -307,6 +336,17 @@
             -webkit-box-shadow: 0 2px 5px -1px rgba(0,0,0,0.33);
             -moz-box-shadow: 0 2px 5px -1px rgba(0,0,0,0.33);
             box-shadow: 0 2px 5px -1px rgba(0,0,0,0.33);
+
+            // remove pointer from selected template
+            :hover {
+                cursor: default;
+            }
+
+            .input-group {
+                :hover {
+                    cursor: pointer;
+                }
+            }
         }
     }
 
@@ -326,7 +366,20 @@
             border-radius: 2px;
         }
     }
+
+    .view {
+        display: flex;
+        align-items: baseline;
+        justify-content: flex-start;
+        bottom: -27px;
+        position: relative;
+        border: none;
+        background-color: #039BE5;
+        color: #FFFFFF;
+    }
 }
+
+/**
 @media (min-width:1200px) {
     .templates .template-filters {
         margin-top: -10px - @crazy-padding;
@@ -335,5 +388,16 @@
 @media (max-width:600px) {
     .templates .template-filters .template-filter .control-label {
         margin-top: 1 4px;
+    }
+}
+**/
+
+.constraint-container {
+    input {
+        display: inline;
+    }
+
+    .icon {
+        display: inline
     }
 }

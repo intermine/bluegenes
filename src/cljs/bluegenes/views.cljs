@@ -14,9 +14,7 @@
             [bluegenes.components.ui.alerts :as alerts]
             [bluegenes.components.idresolver.views :as idresolver]
             [bluegenes.sections.results.views :as results]
-            [bluegenes.sections.lists.views :as lists]
             [bluegenes.sections.regions.views :as regions]
-            ;[bluegenes.sections.saveddata.views :as saved-data]
             [bluegenes.sections.help.views :as help]
             [accountant.core :refer [navigate!]]
             [oops.core :refer [ocall oapply oget oset!]]
@@ -24,11 +22,6 @@
 
 ;; about
 (enable-console-print!)
-(defn about-panel []
-  (fn []
-    [:div "This is the About Page."
-     [:div [:a.callout {:on-click #(navigate! "/")} "go to Home Page"]]]))
-
 
 (defn footer []
   (fn []
@@ -39,6 +32,7 @@
         [:img {:width "120px" :src "https://cdn.rawgit.com/intermine/design-materials/c4716412/logos/intermine/intermine.png" :alt "InterMine"}]]]
       [:a {:href "https://intermineorg.wordpress.com/cite/"} "Cite"]
       [:a {:href "http://intermine.readthedocs.io/en/latest/about/contact-us/"} "Contact"]
+       [:a {:href "http://chat.intermine.org/"} "Chat"]
       [:a {:href "https://intermineorg.wordpress.com/"} "Blog"]
        [:a {:on-click #(navigate! "/help")} [:svg.icon.icon-question [:use {:xlinkHref "#icon-question"}]] " Help"]]
      [:div [:p "Funded by:"]
@@ -58,12 +52,9 @@
 (defmethod panels :search-panel [] [search/main])
 (defmethod panels :results-panel [] [results/main])
 (defmethod panels :regions-panel [] [regions/main])
-(defmethod panels :saved-data-panel [] [lists/main])
 (defmethod panels :mymine-panel [] [mymine/main])
-;(defmethod panels :explore-panel [] [explore/main])
 (defmethod panels :help-panel [] [help/main])
 (defmethod panels :querybuilder-panel [] [qb/main])
-;(defmethod panels :querybuilder-panel [] [:div.container [querybuilder/main]])
 (defmethod panels :default [] [home/main])
 
 (defn show-panel
@@ -81,4 +72,5 @@
        [nav/main]
        [:main [show-panel @active-panel]]
        [footer]
-       [alerts/invalid-token-alert]])))
+       [alerts/invalid-token-alert]
+       [alerts/messages]])))

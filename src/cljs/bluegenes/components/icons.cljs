@@ -32,6 +32,16 @@
      [:rect.intermine-logo.lowlight {:x 8 :y 6 :width 7 :height 4 :fill "#bbb"}]
      [:rect.intermine-logo.lowlight {:x 8 :y 11 :width 7 :height 4 :fill "#bbb"}]]
 
+    [:symbol#icon-chevron-right {:view-box "0 0 14 32"}
+     [:title "chevron-right"]
+     [:path {:d "M4 6l-4 4 6 6-6 6 4 4 10-10-10-10z"}]]
+
+    [:symbol#icon-chevron-left {:view-box "0 0 14 32"}
+     [:title "chevron-left"]
+     [:path {:d "M14 10l-4-4-10 10 10 10 4-4-6-6 6-6z"}]]
+
+
+
     [:symbol#icon-document-list {:view-box "0 0 32 32"}
      [:title "document-list"]
      [:path {:d "M19 3v6.002c0 1.111 0.898 1.998 2.006 1.998h4.994v17.003c0 1.107-0.894 1.997-1.997 1.997h-15.005c-1.107 0-1.997-0.899-1.997-2.007v-22.985c0-1.109 0.899-2.007 2.009-2.007h9.991zM20 3v5.997c0 0.554 0.451 1.003 0.991 1.003h5.009l-6-7zM15 14v1h8v-1h-8zM10 13v3h3v-3h-3zM11 14v1h1v-1h-1zM10 18v3h3v-3h-3zM11 19v1h1v-1h-1zM15 19v1h8v-1h-8zM10 23v3h3v-3h-3zM11 24v1h1v-1h-1zM15 24v1h8v-1h-8z"}]]

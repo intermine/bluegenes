@@ -1,14 +1,14 @@
 (ns bluegenes.subs
   (:require-macros [reagent.ratom :refer [reaction]])
   (:require [re-frame.core :refer [reg-sub]]
-    ; [bluegenes.components.databrowser.subs]
             [bluegenes.components.enrichment.subs]
             [bluegenes.mines :as mines]
             [clojure.string :refer [split]]
             [bluegenes.sections.querybuilder.subs]
             [bluegenes.components.search.subs]
             [bluegenes.subs.auth]
-            [bluegenes.subs.mymine]))
+            [bluegenes.components.idresolver.subs]))
+
 
 (reg-sub
   :name
@@ -39,7 +39,7 @@
 
 (reg-sub
   :mine-name
-  (fn [db]
+  (fn [db]7
     (:mine-name db)))
 
 (reg-sub
@@ -71,11 +71,13 @@
   (fn [db _]
     (:fetching-report? db)))
 
+; TODO - This is used by the report page. There must be a better way.
 (reg-sub
   :runnable-templates
   (fn [db _]
     (:templates (:report db))))
 
+; TODO - This is used by the report page. There must be a better way.
 (reg-sub
   :collections
   (fn [db _]
@@ -100,20 +102,16 @@
     (get-in db [:assets :lists])))
 
 (reg-sub
-  :listskw
-  (fn [db [_]]
-    (let [list-map (get-in db [:assets :lists])]
-      (reduce (fn [total [minekw lists]]
-                (doall (reduce (fn [col next-list]
-                                 (assoc col (keyword (name minekw) (name (:name next-list))) next-list))
-                               {} lists)))
-              {} list-map))))
-
-(reg-sub
   :summary-fields
   (fn [db _]
     (:summary-fields (:assets db))))
 
+(reg-sub
+  :current-summary-fields
+  (fn [db [_ class-kw]]
+    (get-in db [:assets :summary-fields (:current-mine db)])))
+
+; TODO - This is used by the report page. There must be a better way.
 (reg-sub
   :report
   (fn [db _]
@@ -125,24 +123,9 @@
     (:progress-bar-percent db)))
 
 (reg-sub
-  :saved-data
-  (fn [db _]
-    (:items (:saved-data db))))
-
-(reg-sub
-  :tooltip
-  (fn [db]
-    (get-in db [:tooltip :saved-data])))
-
-(reg-sub
   :cache/organisms
   (fn [db]
     (get-in db [:cache :organisms])))
-
-(reg-sub
-  :toasts
-  (fn [db]
-    (get-in db [:toasts])))
 
 (reg-sub
   :current-mine
@@ -172,3 +155,8 @@
   :invalid-tokens?
   (fn [db]
     (get db :invalid-tokens?)))
+
+(reg-sub
+  :messages
+  (fn [db]
+    (sort-by :when > (vals (:messages db)))))
