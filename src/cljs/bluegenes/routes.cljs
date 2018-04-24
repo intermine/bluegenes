@@ -22,7 +22,7 @@
 
   (defroute "/debug/:panel" [panel]
     (.log js/console "%cpanel" "background:#ccc;border-bottom:solid 3px indianred; border-radius:2px;" (clj->js panel))
-            (re-frame/dispatch [:set-active-panel :debug-panel
+            (dispatch [:set-active-panel :debug-panel
                                nil
                                [:bluegenes.events.developer/panel panel]
                                 ]))
