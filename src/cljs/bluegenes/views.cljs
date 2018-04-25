@@ -44,7 +44,6 @@
 
 (defmulti panels identity)
 (defmethod panels :home-panel [] [home/main])
-(defmethod panels :about-panel [] [about-panel])
 (defmethod panels :debug-panel [panel] [dev/debug-panel])
 (defmethod panels :templates-panel [] [templates/main])
 (defmethod panels :reportpage-panel [] [reportpage/main])

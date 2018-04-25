@@ -1,6 +1,7 @@
 (ns bluegenes.events.developer
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [re-frame.core :refer [subscribe reg-event-db reg-event-db reg-event-fx]]
+            [bluegenes.effects :as fx]
             [cljs.core.async :refer [<!]]))
 
 (reg-event-db
@@ -13,7 +14,7 @@
   (fn [{db :db} [_ panel-name]]
     (if (= panel-name "tool-store")
     {:db (assoc db :debug-panel panel-name)
-     :http {:uri "/api/tools/all"
+     ::fx/http {:uri "/api/tools/all"
             :method :get
             :on-success [::tool-load-success]
             :on-denied [::tool-load-fail]}}
