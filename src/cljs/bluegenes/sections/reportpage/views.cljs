@@ -57,6 +57,24 @@
                                                  )}}}])
                @nonempty-collections-references))))
 
+(defn templates-for-entity [service current-mine-name id]
+  (let [runnable-templates (subscribe [::subs/runnable-templates])]
+  (into [:div]
+        (map (fn [{:keys [name title] :as t}]
+               (let [key nil]
+                 [tbl {:loc [:report-page id (:name t)]
+                       :service (:service @service)
+                       :title title
+                       :query t
+                       :settings {:pagination {:limit 5}
+                                  :links {:vocab {:mine (clj-name (or @current-mine-name ""))}
+                                          :url (fn [vocab]
+                                                 (str "#/reportpage/"
+                                                                (:mine vocab) "/"
+                                                                (:class vocab) "/"
+                                                                (:objectId vocab)))}}}]))
+             @runnable-templates))))
+
 (defn main []
   (let [params (subscribe [:panel-params])
         report (subscribe [:report])
@@ -66,7 +84,7 @@
         model (subscribe [:current-model])
         current-mine-name (subscribe [:current-mine-name])
         fetching-report? (subscribe [:fetching-report?])
-        runnable-templates (subscribe [::subs/runnable-templates])]
+        ]
     (fn []
       [:div.container.report
        (let [{:keys [type id]} @params]
@@ -80,18 +98,5 @@
              (when (:summary @report)
                [:div.report-body
                [collections-and-references service current-mine-name type id]
-                (into [:div]
-                      (map (fn [{:keys [name title] :as t}]
-                             (let [key nil]
-                               [tbl {:loc [:report-page id name]
-                                     :service (:service @service)
-                                     :title title
-                                     :query t
-                                     :settings {:pagination {:limit 5}
-                                                :links {:vocab {:mine (clj-name (or @current-mine-name ""))}
-                                                        :url (fn [vocab]
-                                                               (str "#/reportpage/"
-                                                                              (:mine vocab) "/"
-                                                                              (:class vocab) "/"
-                                                                              (:objectId vocab)))}}}]))
-                           @runnable-templates))])])])])))
+               [templates-for-entity service current-mine-name id]
+                ])])])])))
