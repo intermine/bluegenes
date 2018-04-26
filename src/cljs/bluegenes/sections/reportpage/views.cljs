@@ -45,17 +45,11 @@
         current-mine-name (subscribe [:current-mine-name])
         fetching-report? (subscribe [:fetching-report?])
         summary-fields (subscribe [:current-summary-fields])
-        runnable-templates (subscribe [::subs/runnable-templates])]
+        runnable-templates (subscribe [::subs/runnable-templates])
+        nonempty-collections-references (subscribe [::subs/non-empty-collections-and-references])]
     (fn []
 
       [:div.container.report
-       (let [
-             ; TODO Move the following heavy lifting to the events and subs:
-             collections (vals (get-in @model [:classes (keyword (:type @params)) :collections]))
-             references (vals (get-in @model [:classes (keyword (:type @params)) :references]))
-             non-empty-collections (filter (fn [c] (> (get-in @model [:classes (keyword (:referencedType c)) :count]) 0)) collections)
-             non-empty-references (filter (fn [c] (> (get-in @model [:classes (keyword (:referencedType c)) :count]) 0)) references)]
-
          (let [{:keys [type id]} @params]
            [:div
             ; Only show the body of the report when the summary has loaded
@@ -97,4 +91,4 @@
                                                                                             (:mine vocab) "/"
                                                                                             (:class vocab) "/"
                                                                                             (:objectId vocab)))}}}]))
-                             (concat non-empty-references non-empty-collections)))])])]))])))
+                             @nonempty-collections-references))])])])])))

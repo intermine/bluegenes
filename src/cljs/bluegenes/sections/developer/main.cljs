@@ -1,7 +1,7 @@
 (ns bluegenes.developer.main
   (:require [re-frame.core :as re-frame :refer [subscribe dispatch]]
-            [bluegenes.events.developer :as events]
-            [bluegenes.subs.developer :as subs]
+            [bluegenes.developer.events :as events]
+            [bluegenes.developer.subs :as subs]
             [bluegenes.developer.icons :as icons]
             [bluegenes.developer.tools :as tools]
             [bluegenes.persistence :as persistence]

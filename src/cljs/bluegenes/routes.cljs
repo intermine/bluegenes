@@ -24,7 +24,7 @@
     (.log js/console "%cpanel" "background:#ccc;border-bottom:solid 3px indianred; border-radius:2px;" (clj->js panel))
             (dispatch [:set-active-panel :debug-panel
                                nil
-                               [:bluegenes.events.developer/panel panel]
+                               [:bluegenes.developer.events/panel panel]
                                 ]))
 
   (defroute "/help" []
