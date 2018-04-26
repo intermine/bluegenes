@@ -2,6 +2,7 @@
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [re-frame.core :as re-frame :refer [reg-event-db reg-event-fx reg-fx dispatch subscribe]]
             [bluegenes.db :as db]
+            [bluegenes.effects :as fx]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
             [imcljs.fetch :as fetch]
             [imcljs.path :as path]))
@@ -40,7 +41,7 @@
  ::fetch-tools []
   (fn [{db :db}]
       {:db db
-       :http {:method :get
+       :fx/http {:method :get
               :on-success [::store-tools]
               :uri (str "/api/tools/all" )}}))
 
