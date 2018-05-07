@@ -7,8 +7,7 @@
     "test": "test"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "postinstall": "npm install bower -g && bower cache clean && bower install"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
@@ -22,7 +21,7 @@
   "homepage": "https://github.com/intermine/bluegenes#README",
   "dependencies": {
     "@cljs-oss/module-deps": "^1.1.1",
-    "bower": "^1.8.0",
+    "bootstrap-material-design": "https://github.com/intermine/bootstrap-material-design.git#im-0.0.2",
     "highlight.js": "^9.12.0"
   }
 }
