@@ -3,7 +3,6 @@
 /*-init.clj
 /resources/public/js/compiled
 /resources/public/js/min
-/resources/public/vendor
 /resources/public/css
 /resources/public/tools
 config/**/*.edn
