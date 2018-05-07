@@ -22,6 +22,9 @@
   "dependencies": {
     "@cljs-oss/module-deps": "^1.1.1",
     "bootstrap-material-design": "https://github.com/intermine/bootstrap-material-design.git#im-0.0.2",
-    "highlight.js": "^9.12.0"
+    "highlight.js": "^9.12.0",
+    "bootstrap": "^3.3.7",
+    "font-awesome": "^4.7.0",
+    "gridlex": "^2.5.0"
   }
 }
