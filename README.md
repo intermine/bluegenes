@@ -1,5 +1,6 @@
 
 
+
 # BlueGenes
 ## About
 BlueGenes is designed to make searching and analysing genomic data easy. It's powered by [InterMine](http://intermine.org/) web services, meaning that the data from nearly 30 InterMines worldwide can be accessed from the same familiar interface.
@@ -45,8 +46,8 @@ Open [src/cljc/bluegenes/mines.cljc](https://github.com/intermine/bluegenes/blob
 
 ```clj
 (def mines {:humanmine {...}
-            :yourmine  {:id :yourmine
-	                ...})
+            :yourmine {:id :yourmine
+  ...})
 ```
 
 
@@ -58,7 +59,7 @@ Open `src/cljs/bluegenes/db.cljs` and edit the `:current-mine` hashmap value to 
 (def default-db
   {...
    :mine-name :yourmine
-   ...}
+  ...}
 ```
 Please note that you will have to recompile the application for the changes to take effect (see below). Also, may need to clear your local storage for the `:default-mine` to take effect. You can do this by visiting the web application, clicking the cog on the top right, selecting Debug, and then clicking the button to delete local storage.
 
@@ -72,14 +73,14 @@ please see your friendly java vendor for details.
 
 A [node-js][nodejs] environment is also required, which handles the
 installation of the javascript dependencies using [npm][npm] and
-[Bower][bower].
+[yarn][yarn].
 
 **Required:** The InterMine you point BlueGenes at *must* be running InterMine
 
 ### Download dependencies.
 
 ```
-bower install
+yarn install
 ```
 
 Compile css file once.
@@ -132,11 +133,11 @@ If it's not set, it will run on port 5000 by default.
 ### Minified deployment using dokku
 One of the easiest ways to deploy the prod minified version is to set up [Dokku](http://dokku.viewdocs.io/dokku/) on your intended server. Once dokku is configured on your remote host, all you need to do to deploy a minified build is add the server as a remote and push to it:
 
-	git remote add my-awesome-server bluegenes@my-awesome-server.git
+   git remote add my-awesome-server bluegenes@my-awesome-server.git
         git push my-awesome-server master
 
 [lein]: https://github.com/technomancy/leiningen
-[bower]: http://bower.io/
+[yarn]:https://yarnpkg.com/lang/en/
 [npm]: https://www.npmjs.com/
 [nodejs]: https://nodejs.org/
 
