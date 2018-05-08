@@ -61,6 +61,6 @@
                (fetch-script tool tool-id)
                (fetch-styles tool)
                [:div.tool {:class (:name tool)}
-                [:h3 (:name tool)]
+                [:h3 (get-in tool [:config :toolName] (:name tool))]
                 [:div {:id tool-id}]]))
            @toolses))))
