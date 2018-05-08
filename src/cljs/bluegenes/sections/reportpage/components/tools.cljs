@@ -14,7 +14,7 @@
         package {:class (:type @package-details)
         ;;we'll need to reformat deep links if we want this to not be hardcoded.
                  :format "id"
-                 :type (:id @package-details)}]
+                 :value (:id @package-details)}]
     (clj->js package)))
 
 (defn run-script [tool tool-id]
@@ -23,22 +23,8 @@
   (let [el (.getElementById js/document tool-id)
         service (clj->js (:service @(subscribe [:current-mine])))
         package (create-package)
-        config (clj->js (:config tool))
-        ;;this doesn't work
-        ;the-fn (oget+ js/window (:name tool))
-        ;;but this does
-        the-fn (oget+ js/window "bluegenesProtvista")
-        ]
-    ;;so, this shows that the function *is* on the window
-    (.log js/console "%cthe-fn" "border-bottom:dotted 3px orange" the-fn)
-    ;;and this shows that the function name is a string
-    (.log js/console "%ctool name:" "background-color:aliceblue" (clj->js (:name tool)) "string?" (string? (:name tool)))
-
-      ;; and still, these both fail saying they can't find the method
-      ;; that we just proved exists. Poo.
-
-        ;(ocall+ js/window (:name tool) el service package nil config)
-        ;(js-invoke js/window (:name tool) el service package nil config)
+        config (clj->js (:config tool))]
+         (ocall+ js/window (str (:name tool) ".main") el service package nil config)
   ))
 
 (defn fetch-script
@@ -49,7 +35,7 @@
   (let [script-tag (.createElement js/document "script")
         head (first (.getElementsByTagName js/document "head"))]
     ;;fetch script
-    (oset! script-tag "src" (str "/tools/" (:name tool) "/src/index.js"))
+    (oset! script-tag "src" (str "/tools/" (:name tool) "/dist/bundle.js"))
     ;;run-script will automatically be triggered when the script loads
     (oset! script-tag "onload" #(run-script tool tool-id))
     ;;append script to dom

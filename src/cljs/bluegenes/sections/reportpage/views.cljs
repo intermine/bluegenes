@@ -7,8 +7,8 @@
             [bluegenes.components.loader :refer [loader]]
             [bluegenes.sections.reportpage.components.minelinks :as minelinks]
             [bluegenes.sections.reportpage.components.tools :as tools]
-            [accountant.core :refer [navigate!]]
             [bluegenes.sections.reportpage.subs :as subs]
+            [accountant.core :refer [navigate!]]
             [im-tables.views.core :as im-table]
             [imcljs.path :as im-path]))
 
@@ -95,5 +95,6 @@
              (when (= "Gene" (:type @params)) [minelinks/main (:id @params)])
              (when (:summary @report)
                [:div.report-body
+                [tools/main]
                 [collections-and-references service current-mine-name type id]
                 [templates-for-entity service current-mine-name id]])])])])))

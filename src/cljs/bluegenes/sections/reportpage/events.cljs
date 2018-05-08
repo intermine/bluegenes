@@ -34,14 +34,13 @@
              (assoc :fetching-report? true)
              (dissoc :report))
      :dispatch-n [[::fetch-tools nil]
-                  [:fetch-report (keyword mine) type id]
-                  [:filter-report-templates (keyword mine) type id]]}))
+                  [:fetch-report (keyword mine) type id]]}))
 
 (reg-event-fx
- ::fetch-tools []
-  (fn [{db :db}]
+ ::fetch-tools
+  (fn [{db :db} [x tool-type]]
       {:db db
-       :fx/http {:method :get
+       ::fx/http {:method :get
               :on-success [::store-tools]
               :uri (str "/api/tools/all" )}}))
 
