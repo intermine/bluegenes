@@ -41,6 +41,17 @@
     ;;append script to dom
     (.appendChild head script-tag)))
 
+(defn fetch-styles
+  [tool]
+  (let [style-tag (.createElement js/document "link")
+        head (first (.getElementsByTagName js/document "head"))]
+    ;;fetch stylesheet and set some properties
+    (oset! style-tag "href" (str "/tools/" (:name tool) "/dist/style.css"))
+    (oset! style-tag "type" "text/css")
+    (oset! style-tag "rel" "stylesheet")
+    ;;append to dom
+    (.appendChild head style-tag)))
+
 (defn main []
   (let [toolses           (subscribe [::subs/tools-by-current-type])]
     (into [:div.tools]
@@ -48,7 +59,8 @@
            (fn [tool]
              (let [tool-id (gensym (:name tool))]
                (fetch-script tool tool-id)
-               [:div.tool
+               (fetch-styles tool)
+               [:div.tool {:class (:name tool)}
                 [:h3 (:name tool)]
                 [:div {:id tool-id}]]))
            @toolses))))
