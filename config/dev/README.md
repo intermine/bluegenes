@@ -4,7 +4,7 @@ All keys can be overridden with environment variables, such as `DATABASE_URL=htt
 These properties are read in by [yogthos], which can read in variables in a variety of ways
 See https://github.com/yogthos/config#yogthosconfig for more details.
 
-Copy and paste the code below and save it as `config.edn`. Don't forget to tweak it to match your properties!
+Copy and paste the code below and save it as `config.edn`. Don't forget to tweak it to match your preferred properties!
 
 ```clojure
 {
