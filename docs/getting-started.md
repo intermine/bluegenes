@@ -1,5 +1,10 @@
 You can run bluegenes locally for development purposes. Here's what the local setup should look like. 
 
+## System Requirements
+* Java 1.6+
+* [Leiningen 2.5+](https://leiningen.org/)
+
+
 ### Prerequisites and Dependencies
 
 You will need [Leiningen][lein] 2.0 or above installed (2.4+ to use the web-repl). This handles all
