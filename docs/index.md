@@ -5,6 +5,6 @@ Documentation is generally distributed to live in-folder with the code in the fo
 
 ## Quick links to existing documentation files:
 
-[Getting Started (Main repo readme)](https://github.com/intermine/bluegenes/blob/dev/README.md)  
+[Getting Started - developers](getting-started.md)  
 [Troubleshooting BlueGenes issues](troubleshooting.md)  
 [Server-side config](https://github.com/intermine/bluegenes/blob/dev/config/dev/README.md)  
