@@ -16,3 +16,20 @@ One of the easiest ways to deploy the prod minified version is to set up [Dokku]
 	git remote add my-awesome-server bluegenes@my-awesome-server.git
         git push my-awesome-server master
 ```
+
+
+### Uberjar
+
+It's also possible to compile BlueGenes to a jar that will automatically launch a server when executed. 
+
+To compile and package BlueGenes into an executable jar, run the following command in the project folder:
+```bash
+$ lein uberjar
+```
+Then, to start the application, execute the jar and pass in one of the `config.edn` files from above:
+
+```bash
+$ java -jar -Dconfig="config/prod/config.edn" target/bluegenes.jar
+```
+
+(When executing the jar the `config.edn` file can be located anywhere, including your home directory for security.)
