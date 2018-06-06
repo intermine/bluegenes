@@ -21,5 +21,6 @@ In all cases, you may also wish to see the [docs](docs/index.md) and [BlueGenes 
 
 ### Further help needed?
 
-If you think the issue is related to InterMine or its webservices, check out the [InterMine documentation](http://intermine.readthedocs.io/en/latest/about/contact-us/)
-Documentation on BlueGenes is available in [the docs folder](https://github.com/intermine/bluegenes/blob/dev/docs/index.md)
+- If you think the issue is related to InterMine or its webservices, check out the [InterMine documentation](http://intermine.readthedocs.io/en/latest/about/contact-us/)
+- Email our [dev list](http://intermine.readthedocs.io/en/latest/support/mailing-list/)
+- Pop by and say hi in our [chat](http://chat.intermine.org) during UK office hours
