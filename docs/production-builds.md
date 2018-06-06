@@ -16,7 +16,6 @@ Once dokku is configured on your remote host, all you need to do to deploy a min
         git push my-awesome-server master
 ```
 
-
 ### Uberjar
 
 It's also possible to compile BlueGenes to a jar that will automatically launch a server when executed. 
@@ -32,3 +31,14 @@ $ java -jar -Dconfig="config/prod/config.edn" target/bluegenes.jar
 ```
 
 (When executing the jar the `config.edn` file can be located anywhere, including your home directory for security.)
+
+## BlueGenes as a Jar on Clojars
+
+InterMine 2.0 includes a Gradle target to launch BlueGenes. If you want to update the version of the JAR being launched, you'll need to create an uberjar as above. If it's an official InterMine release, then it can be deployed to clojars, an online artifact repository. Here's how, assuming you have access to deploy to the [org.intermine organisation on clojars](https://clojars.org/groups/org.intermine). Speak to Yo for access if you need it.
+
+### Deploying to Clojars
+
+When deploying BlueGenes to Clojars, the JAR file should include all compiled assets include javascript, less, and the vendor libraries. This allows other projects to include BlueGenes as a dependency and deploy the client and server without needing to compile BlueGenes. To deploy a compiled JAR to clojars, include the `uberjar` profile when running the `lein deploy clojars` command:
+```bash
+$ lein with-profile +uberjar deploy clojars
+```
