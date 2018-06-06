@@ -6,11 +6,10 @@ There are actually a few ways, depending in your needs.
 
 ## Standalone BlueGenes
 
-If you have a [heroku](https://www.heroku.com/) or [dokku](https://github.com/dokku/dokku) server, you can launch a version 
-of InterMine that's mine-agnostic(ish). 
+One of the easiest ways to deploy the prod minified version is to set up [Dokku](http://dokku.viewdocs.io/dokku/) on your intended server. You can also use BlueGenes with [heroku](https://www.heroku.com/).
 
 ### Minified deployment using dokku
-One of the easiest ways to deploy the prod minified version is to set up [Dokku](http://dokku.viewdocs.io/dokku/) on your intended server. Once dokku is configured on your remote host, all you need to do to deploy a minified build is add the server as a remote and push to it:
+Once dokku is configured on your remote host, all you need to do to deploy a minified build is add the server as a remote and push to it:
 
 ```bash
 	git remote add my-awesome-server bluegenes@my-awesome-server.git
@@ -26,7 +25,7 @@ To compile and package BlueGenes into an executable jar, run the following comma
 ```bash
 $ lein uberjar
 ```
-Then, to start the application, execute the jar and pass in one of the `config.edn` files from above:
+Then, to start the application, execute the jar and pass in a [`config.edn` file](../config/dev/README.md):
 
 ```bash
 $ java -jar -Dconfig="config/prod/config.edn" target/bluegenes.jar
