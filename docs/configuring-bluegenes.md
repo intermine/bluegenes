@@ -1,6 +1,8 @@
 
 # Configuration
 
+This applies primarily to standalone BlueGenes. See also /config/dev/README.md
+
 ## Adding a new mine
 Open [src/cljc/bluegenes/mines.cljc](https://github.com/intermine/bluegenes/blob/dev/src/cljc/bluegenes/mines.cljc#L7-L51) and copy the value of the `sample-mine` variable into the `mines` hashmap. Change the key to something unique (`:yourmine`) and edit the default values appropriately. Be sure to edit the {:id ...} value to reflect the key you used for `:yourmine`
 
@@ -10,9 +12,9 @@ Open [src/cljc/bluegenes/mines.cljc](https://github.com/intermine/bluegenes/blob
 	                ...})
 ```
 
+This configuration step will go away once we make BlueGenes start using the registry. 
 
-
-## Changing the default mine
+### Changing the default mine
 Open `src/cljs/bluegenes/db.cljs` and edit the `:current-mine` hashmap value to the keyword of a mine in `mines.cljc` (see above).
 
 ```clj
