@@ -3,7 +3,7 @@ You can run bluegenes locally for development purposes. Here's what the local se
 ## System Requirements
 * Java 1.6+
 * [Leiningen 2.5+](https://leiningen.org/)
-* [node 7+][node]  (you can check your version using `node -v`)
+* [node 7+][nodejs]  (you can check your version using `node -v`)
 * [Bower][bower]
 * **Required:** The InterMine you point BlueGenes at *must* be running InterMine 1.8 or later; ideally 2.0. 
 
