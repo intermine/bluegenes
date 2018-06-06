@@ -5,8 +5,8 @@ Documentation is generally distributed to live in-folder with the code in the fo
 
 ## Quick links to existing documentation files:
 
-- [Getting Started - developers](getting-started.md)  
-- [Building BlueGenes for production](production-builds.md)  
-
+- [Getting Started - developers](getting-started.md) - how to run bluegenes locally so you can make changes
+- [Building BlueGenes for production](production-builds.md) - how to launch it to servers, for production use.
 - [Troubleshooting BlueGenes issues](troubleshooting.md)  
-- [Server-side config](https://github.com/intermine/bluegenes/blob/dev/config/dev/README.md)  
+- [Configuring BlueGenes](configuring-bluegenes.md) - includes how to configure Analytics and which mines are shown. 
+    - [Server-side config](https://github.com/intermine/bluegenes/blob/dev/config/dev/README.md) - such as port number, default intermine url. 
