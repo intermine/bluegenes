@@ -15,8 +15,8 @@ BlueGenes is designed to make searching and analysing genomic data easy. It's po
 
 - **Development BlueGenes** If you want to run BlueGenes locally so that you can modify it, please see [docs/getting-started](docs/getting-started.md).
 - **BlueGenes as built into InterMine 2.0** If you have upgraded to InterMine 2.0 (the Gradle release), see the [instructions to launch a BlueGenes target](https://intermine.readthedocs.io/en/intermine-2.0/system-requirements/software/gradle/index.html#deploy-blue-genes). 
-- **Standalone BlueGenes** If you'd like to launch BlueGenes without it being associated directly with a single InterMine, or if you haven't upgraded to InterMine 2.0 yet (but you're above 1.8), please see [docs/production-builts](docs/production-builds.md).
-`
+- **Standalone BlueGenes** If you'd like to launch BlueGenes without it being associated directly with a single InterMine, or if you haven't upgraded to InterMine 2.0 yet (but you're above 1.8), please see [docs/production-builds](docs/production-builds.md).
+
 In all cases, you may also wish to see the [docs](docs/index.md) and [BlueGenes config instructions](docs/configuring-bluegenes.md)
 
 ### Further help needed?
