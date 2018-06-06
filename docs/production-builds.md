@@ -34,7 +34,7 @@ $ java -jar -Dconfig="config/prod/config.edn" target/bluegenes.jar
 
 ## BlueGenes as a Jar on Clojars
 
-InterMine 2.0 includes a Gradle target to launch BlueGenes. If you want to update the version of the JAR being launched, you'll need to create an uberjar as above. If it's an official InterMine release, then it can be deployed to clojars, an online artifact repository. Here's how, assuming you have access to deploy to the [org.intermine organisation on clojars](https://clojars.org/groups/org.intermine). Speak to Yo for access if you need it.
+InterMine 2.0 includes [a Gradle target to launch BlueGenes](https://intermine.readthedocs.io/en/intermine-2.0/system-requirements/software/gradle/index.html#deploy-blue-genes). If you want to update the version of the JAR being launched, you'll need to create an uberjar as abov, OR if it's an official InterMine release, then it can be deployed to clojars, an online artifact repository. Here's how, assuming you have access to deploy to the [org.intermine organisation on clojars](https://clojars.org/groups/org.intermine). Speak to Yo for access if you need it.
 
 ### Deploying to Clojars
 
