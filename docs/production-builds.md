@@ -4,6 +4,22 @@ The steps details in [getting-started](getting-started.md) are designed to get y
 But now that you've completed your snazzy updates and you want to deploy the BlueGenes to production, how do you do it?
 There are actually a few ways, depending in your needs. 
 
+## Testing a minified instance before deploying:
+
+Most of the time, we develop with uncompressed files - it's faster for hot reloads. But for production, we want things to be extra fast on load and we don't hot-reload changes, so it's better to present minified files that have had all un-necessary code stripped. Clojure uses Google Closure tools (yup, Clojure uses Closure) to minify things. 
+
+Sometimes the Closure compiler is overzealous and removes something we actually wanted to keep. To check what your work looks like in a minified build, run this in the terminal (I'd recommend closing any existing lein run / lein figwheel sessions first). 
+
+```bash
+lein cljsbuild min once + lein run
+```
+
+OR there is also a shortcut - you could just say this for the same results
+
+```
+lein prod
+```
+
 ## Standalone BlueGenes
 
 One of the easiest ways to deploy the prod minified version is to set up [Dokku](http://dokku.viewdocs.io/dokku/) on your intended server. You can also use BlueGenes with [heroku](https://www.heroku.com/).
