@@ -6,6 +6,11 @@
             [clojure.string :refer [lower-case]]
             [ring.middleware.multipart-params :refer [wrap-multipart-params]]))
 
+;;;;;;;;;;;;;;;;;;;;
+;;;; These services bulk-parse IDs on the server side, for the upload / idresolver
+;;;; SEE bluegenes/src/cljs/bluegenes/components/idresolver/README.md for details
+;;;;;;;;;;;;;;;;;;;;
+
 (defn parse-identifiers
   "Given a string, use regular expressions to parse values into a list"
   [s]
