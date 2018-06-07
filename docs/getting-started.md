@@ -49,6 +49,11 @@ lein doo phantom test once
 
 The above command assumes that you have [phantomjs](https://www.npmjs.com/package/phantomjs) installed. However, please note that [doo](https://github.com/bensu/doo) can be configured to run cljs.test in many other JS environments (chrome, ie, safari, opera, slimer, node, rhino, or nashorn).
 
+## What next?
+
+Once you're happy with any edits you've made, you probably want to check that it all works the same in a minified prod build. See [production builds](production-builds.md) for info on deploying and testing a minified build. 
+
+
 [lein]: https://github.com/technomancy/leiningen
 [bower]: http://bower.io/
 [npm]: https://www.npmjs.com/
