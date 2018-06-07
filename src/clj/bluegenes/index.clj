@@ -3,10 +3,8 @@
             [config.core :refer [env]]
             [cheshire.core :as json]))
 
-;; Hello dear maker of the internet. You want to edit *this* file for prod, NOT the index.html copy.
-;; Why did we configure it this way? It's not to drive you mad, I assure you.
-;; It's because figwheel likes to highjack routes at / and display a default page if there is no index.html in place.
-;; Naughty figwheel!
+;; Hello dear maker of the internet. You want to edit *this* file for prod,
+;; NOT resources/public/index.html.
 
 
 ; *** IMPORTANT ***
@@ -26,7 +24,7 @@
 (defn head []
   [:head
    loader-style
-   [:title "InterMine 2.0 bluegenes"]
+   [:title "InterMine 2.0 BlueGenes"]
    ; CSS:
    (include-css "https://cdnjs.cloudflare.com/ajax/libs/gridlex/2.2.0/gridlex.min.css")
    (include-css "http://cdn.intermine.org/js/intermine/im-tables/2.0.0/main.sandboxed.css")
