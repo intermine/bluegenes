@@ -1,9 +1,9 @@
-(ns bluegenes.developer.main
+(ns bluegenes.sections.developer.devhome
   (:require [re-frame.core :as re-frame :refer [subscribe dispatch]]
-            [bluegenes.developer.events :as events]
-            [bluegenes.developer.subs :as subs]
-            [bluegenes.developer.icons :as icons]
-            [bluegenes.developer.tools :as tools]
+            [bluegenes.sections.developer.events :as events]
+            [bluegenes.sections.developer.subs :as subs]
+            [bluegenes.sections.developer.icons :as icons]
+            [bluegenes.sections.developer.tools :as tools]
             [bluegenes.persistence :as persistence]
             [accountant.core :refer [navigate!]]))
 

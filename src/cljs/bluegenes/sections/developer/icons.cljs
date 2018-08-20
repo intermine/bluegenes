@@ -1,4 +1,4 @@
-(ns bluegenes.developer.icons
+(ns bluegenes.sections.developer.icons
   (:require [re-frame.core :as re-frame :refer [subscribe dispatch]]
             [bluegenes.components.icons :as icons]))
 

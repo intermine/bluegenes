@@ -1,4 +1,4 @@
-(ns bluegenes.developer.subs
+(ns bluegenes.sections.developer.subs
   (:require [re-frame.core :as re-frame :refer [reg-sub subscribe]]))
 
 (reg-sub

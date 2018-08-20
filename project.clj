@@ -32,6 +32,7 @@
                  [cheshire "5.8.0"]
                  [metosin/ring-http-response "0.9.0"]
                  [ring-middleware-format "0.7.2"]
+                 
 
                  ; Dev tools
                  [re-frisk "0.5.0"]

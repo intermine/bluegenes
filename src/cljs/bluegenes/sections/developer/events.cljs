@@ -1,4 +1,4 @@
-(ns bluegenes.developer.events
+(ns bluegenes.sections.developer.events
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [re-frame.core :refer [subscribe reg-event-db reg-event-db reg-event-fx]]
             [bluegenes.effects :as fx]

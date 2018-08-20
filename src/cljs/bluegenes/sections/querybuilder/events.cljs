@@ -54,6 +54,7 @@
   :qb/pv
   (fn [{:keys [service store-in summary-path query]}]
     (let [sum-chan (fetch/unique-values service query summary-path 100)]
+      (.log js/console "%csummary-path" "background:DEEPSKYBLUE; border-radius:2px;" (clj->js summary-path))
       (go (dispatch [:qb/store-possible-values store-in (<! sum-chan)])))))
 
 
