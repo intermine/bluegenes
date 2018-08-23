@@ -8,12 +8,68 @@ Go to src/clj/bluegenes/index.clj to make changes.
 This file is only used by figwheel.
 
 ==============================================================-->
-  <head>
-    <title>Wrong port for InterMine 2.0 Bluegenes</title>
-    <style>
-    </style>
-  </head>
-  <body>
-    Whoopsie. This is the port for Figwheel, but not the main port for dev bluegenes. You probably wanted to visit <a href="http://localhost:5000">http://localhost:5000</a>, not localhost:3449. If you've manually configured your preferred BlueGenes port, it might be somewhere else - [check your config file](https://github.com/intermine/bluegenes/blob/dev/config/dev/README.md).
-  </body>
+
+<head>
+  <title>Wrong port for InterMine 2.0 Bluegenes</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items:center;
+      background-color:#ddd;
+      height:100vh;
+      box-sizing:border-box;
+      margin:0; padding:0;
+    }
+
+    main {
+      background:#fff;
+      max-width: 800px;
+      padding:1em;
+      display:flex;
+      flex-direction:column;
+      justify-content: center;
+      align-items:center;
+      box-shadow: 3px 3px 3px rgba(0,0,0,0.2);
+      border-radius:4px;
+    }
+
+    h1 {
+      text-align:center;
+    }
+
+    .icon {
+      display: inline-block;
+      width: 8em;
+      height: 8em;
+      fill: #abcdef;
+      margin-right:1em;
+    }
+
+  </style>
+  <svg aria-hidden="true" style="position: absolute; width: 0; height: 0; overflow: hidden;" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <defs>
+    <symbol id="icon-hipster" viewBox="0 0 32 32">
+    <title>hipster</title>
+    <path d="M16 32c8.837 0 16-7.163 16-16s-7.163-16-16-16-16 7.163-16 16 7.163 16 16 16zM16 3c7.18 0 13 5.82 13 13s-5.82 13-13 13-13-5.82-13-13 5.82-13 13-13zM8 10c0-1.105 0.895-2 2-2s2 0.895 2 2-0.895 2-2 2-2-0.895-2-2zM20 10c0-1.105 0.895-2 2-2s2 0.895 2 2-0.895 2-2 2-2-0.895-2-2z"></path>
+    <path d="M21.121 16.879c-1.172-1.172-3.071-1.172-4.243 0s-1.172 3.071 0 4.243c0.038 0.038 0.076 0.074 0.115 0.109 2.704 2.453 9.006-0.058 9.006-3.23-1.938 1.25-3.452 0.306-4.879-1.121z"></path>
+    <path d="M10.879 16.879c1.172-1.172 3.071-1.172 4.243 0s1.172 3.071 0 4.243c-0.038 0.038-0.076 0.074-0.115 0.109-2.704 2.453-9.006-0.058-9.006-3.23 1.938 1.25 3.452 0.306 4.879-1.121z"></path>
+    </symbol>
+</defs>
+</svg>
+
+
+</head>
+
+<body>
+  <main>
+    <svg class="icon icon-hipster"><use xlink:href="#icon-hipster"></use></svg>
+    <h1>Whoopsie.</h1>
+
+    <p>This is the port for Figwheel, but not the main port for dev bluegenes. You probably wanted to visit <a href="http://localhost:5000">http://localhost:5000</a>, not localhost:3449. </p>
+    <p>If you've manually configured your preferred BlueGenes port, it might be somewhere else - <a href="https://github.com/intermine/bluegenes/blob/dev/config/dev/README.md">check your config file</a>.</p>
+  </main>
+</body>
+
 </html>
