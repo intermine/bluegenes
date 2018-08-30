@@ -13,17 +13,22 @@ You can run bluegenes locally for development purposes. Here's what the local se
 bower install
 ```
 
-Compile css file once.
+### Compile the CSS
+
+We use [less](http://lesscss.org/) to write our styles. In order to run BlueGenes you'll need to compile the less, using
+
 
 ```
 lein less once
 ```
 
-Automatically recompile css file on change.
+_Or_, if you'll be making lots of style edits and don't want to type `lein less once` every time you make a change, you can automatically recompile the css file whenever it changes, using:
 
 ```
 lein less auto
 ```
+
+Note that you won't see a prompt telling you when it's complete if you use `lein less auto` - but the browser page will automatically refresh so you'll know when it's done. 
 
 ### Start the process to reload code changes in the browser:
 
