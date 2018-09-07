@@ -2,43 +2,74 @@
 <html lang="en">
 <!-- ============================================================
 
-Hello you lovely person! I wouldn't recommend editing this file and expecting
-it to show up in prod. Ideally this file wouldn't exist at all, but in dev mode, figwheel refuses to serve src/clj/bluegenes/index.clj as the root of the directory. I don't know why, and it's really mean, but we've worked around it by adding an index.html to the root instead. If you want to update things in the base html page, I'd suggest modifying index.clj mentioned above, generating the html, and pasting it in here. Leave this notice here of course or one day someone will be sad and confused when they update index.html and it isn't reflected in prod, but IS reflected in dev.
+Don't edit this file if you want to edit the index for bluegenes.
+Go to src/clj/bluegenes/index.clj to make changes.
+
+This file is only used by figwheel.
 
 ==============================================================-->
-  <head>
-    <title>InterMine 2.0 Bluegenes</title>
-    <style>
-#wrappy{display:flex;justify-content:center;align-items:center;height:90vh;width:100%;flex-direction:column;font-family:sans-serif;font-size:2em;color:#999}#loader{flex-grow:1;display:flex;align-items:center;justify-content:center}.loader-organism{width:40px;height:0;display:block;border:12px solid #eee;border-radius:20px;opacity:.75;margin-right:-24px;animation-timing-function:ease-in;position:relative;animation-duration:2.8s;animation-name:pulse;animation-iteration-count:infinite}.worm{animation-delay:.2s}.zebra{animation-delay:.4s}.human{animation-delay:.6s}.yeast{animation-delay:.8s}.rat{animation-delay:1s}.mouse{animation-delay:1.2s}.fly{animation-delay:1.4s}@keyframes pulse{0%,100%{border-color:#3f51b5}15%{border-color:#9c27b0}30%{border-color:#e91e63}45%{border-color:#ff5722}60%{border-color:#ffc107}75%{border-color:#8bc34a}90%{border-color:#00bcd4}}
-    </style>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/gridlex/2.2.0/gridlex.min.css">
-    <link rel="shortcut icon" href="https://cdn.rawgit.com/intermine/design-materials/f5f00be4/logos/intermine/fav32x32.png" type="image/png"}>
-    <link href="http://cdn.intermine.org/js/intermine/im-tables/2.0.0/main.sandboxed.css" rel="stylesheet" type="text/css">
-    <link href="css/site.css" rel="stylesheet" type="text/css">
-    <meta charset='utf-8'>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <script src="http://cdn.intermine.org/js/intermine/imjs/3.15.0/im.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.1.0.min.js"   integrity="sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s="   crossorigin="anonymous"></script>
-    <script src="vendor/bootstrap/dist/js/bootstrap.js"></script>
-    <script src="vendor/bootstrap/js/tooltip.js"></script>
-    <script src="vendor/bootstrap/js/popover.js"></script>
-  </head>
-  <body>
-    <div id="wrappy">
-      <div>LOADING INTERMINE</div>
-      <div id="loader">
-        <div class="worm loader-organism"></div>
-        <div class="zebra loader-organism"></div>
-        <div class="human loader-organism"></div>
-        <div class="yeast loader-organism"></div>
-        <div class="rat loader-organism"></div>
-        <div class="mouse loader-organism"></div>
-        <div class="fly loader-organism"></div>
-      </div>
-    </div>
 
-    <div id="app"></div>
-    <script src="js/compiled/app.js"></script>
-    <script>bluegenes.core.init();</script>
-  </body>
+<head>
+  <title>Wrong port for InterMine 2.0 Bluegenes</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items:center;
+      background-color:#ddd;
+      height:100vh;
+      box-sizing:border-box;
+      margin:0; padding:0;
+    }
+
+    main {
+      background:#fff;
+      max-width: 800px;
+      padding:1em;
+      display:flex;
+      flex-direction:column;
+      justify-content: center;
+      align-items:center;
+      box-shadow: 3px 3px 3px rgba(0,0,0,0.2);
+      border-radius:4px;
+    }
+
+    h1 {
+      text-align:center;
+    }
+
+    .icon {
+      display: inline-block;
+      width: 8em;
+      height: 8em;
+      fill: #abcdef;
+      margin-right:1em;
+    }
+
+  </style>
+  <svg aria-hidden="true" style="position: absolute; width: 0; height: 0; overflow: hidden;" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <defs>
+    <symbol id="icon-hipster" viewBox="0 0 32 32">
+    <title>hipster</title>
+    <path d="M16 32c8.837 0 16-7.163 16-16s-7.163-16-16-16-16 7.163-16 16 7.163 16 16 16zM16 3c7.18 0 13 5.82 13 13s-5.82 13-13 13-13-5.82-13-13 5.82-13 13-13zM8 10c0-1.105 0.895-2 2-2s2 0.895 2 2-0.895 2-2 2-2-0.895-2-2zM20 10c0-1.105 0.895-2 2-2s2 0.895 2 2-0.895 2-2 2-2-0.895-2-2z"></path>
+    <path d="M21.121 16.879c-1.172-1.172-3.071-1.172-4.243 0s-1.172 3.071 0 4.243c0.038 0.038 0.076 0.074 0.115 0.109 2.704 2.453 9.006-0.058 9.006-3.23-1.938 1.25-3.452 0.306-4.879-1.121z"></path>
+    <path d="M10.879 16.879c1.172-1.172 3.071-1.172 4.243 0s1.172 3.071 0 4.243c-0.038 0.038-0.076 0.074-0.115 0.109-2.704 2.453-9.006-0.058-9.006-3.23 1.938 1.25 3.452 0.306 4.879-1.121z"></path>
+    </symbol>
+</defs>
+</svg>
+
+
+</head>
+
+<body>
+  <main>
+    <svg class="icon icon-hipster"><use xlink:href="#icon-hipster"></use></svg>
+    <h1>Whoopsie.</h1>
+
+    <p>This is the port for Figwheel, but not the main port for dev bluegenes. You probably wanted to visit <a href="http://localhost:5000">http://localhost:5000</a>, not localhost:3449. </p>
+    <p>If you've manually configured your preferred BlueGenes port, it might be somewhere else - <a href="https://github.com/intermine/bluegenes/blob/dev/config/dev/README.md">check your config file</a>.</p>
+  </main>
+</body>
+
 </html>
