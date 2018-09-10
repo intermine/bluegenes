@@ -11,7 +11,7 @@ Most of the time, we develop with uncompressed files - it's faster for hot reloa
 Sometimes the Closure compiler is overzealous and removes something we actually wanted to keep. To check what your work looks like in a minified build, run this in the terminal (I'd recommend closing any existing lein run / lein figwheel sessions first). 
 
 ```bash
-lein cljsbuild min once + lein run
+lein cljsbuild once min + lein run
 ```
 
 OR there is also a shortcut - you could just say this for the same results
