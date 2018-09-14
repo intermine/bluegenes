@@ -32,7 +32,7 @@
                  [cheshire "5.8.0"]
                  [metosin/ring-http-response "0.9.0"]
                  [ring-middleware-format "0.7.2"]
-                 
+
 
                  ; Dev tools
                  [re-frisk "0.5.0"]
@@ -113,11 +113,11 @@
          :target-path "resources/public/css"}
 
   :profiles {:dev {:dependencies [[binaryage/devtools "0.9.7"]]
-                   :resource-paths ["config/dev"]
+                   :resource-paths ["config/dev" "tools"]
                    :plugins [[lein-figwheel "0.5.14"]
                              [lein-doo "0.1.8"]]}
              :prod {:dependencies []
-                    :resource-paths ["config/prod"]
+                    :resource-paths ["config/prod" "tools"]
                     :plugins []}
              :uberjar {:resource-paths ["config/prod"]
                        :prep-tasks ["clean" ["less" "once"] ["cljsbuild" "once" "min"] "compile"]

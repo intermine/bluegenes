@@ -6,6 +6,7 @@
 /resources/public/vendor
 /resources/public/css
 /resources/public/tools/*
+/tools/bluegenes**
 config/**/*.edn
 .lein-failures
 out

@@ -24,7 +24,7 @@
    }))
 
 (defn tools [session]
-  (let [file "resources/public/tools"
+  (let [file "tools"
         res {:tools
              (reduce
                    (fn [tool-list newitem]
