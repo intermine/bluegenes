@@ -12,6 +12,7 @@
 (reg-event-fx
   ::panel
   (fn [{db :db} [_ panel-name]]
+    ;; load all tools from the tool API and display them here
     (if (= panel-name "tool-store")
     {:db (assoc db :debug-panel panel-name)
      ::fx/http {:uri "/api/tools/all"

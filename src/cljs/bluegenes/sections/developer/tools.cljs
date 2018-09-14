@@ -14,7 +14,9 @@
                  "rows" :list-results-page
                  "query" :list-results-page})
 
-(defn get-tool-types [tool]
+(defn get-tool-types
+  "Check what classes pages a given tool will be able to display on."
+  [tool]
   (into [:span]
         (map
          (fn [tool-type]
@@ -22,29 +24,40 @@
              (get page-types the-type)))
          (get-in tool [:config :accepts]))))
 
-(defn output-tool-classes [classes]
-  (into [:div.tool-class [:h3 "Suitable for pages with these classes:"]]
-        (map (fn [the-class]
-               [:span {:class (str "type-" the-class)} the-class]) classes)))
+(defn output-tool-classes
+  "Show all object type classes a single tool will be displayed for. "
+  [classes]
+  [:div.tool-class [:h3 "This tool will display on the following page types:"]
+   (into [:ul]
+         (map (fn [the-class]
+                [:li {:class (str "type-" the-class)} the-class]) classes))])
 
-(defn tool-list []
+(defn tool-list
+  "Display all tool types to the user."
+  []
   (let [tools (subscribe [::subs/tools])]
     (into
      [:div.tool-list]
      (map
       (fn [tool]
         [:div.tool
-         (cond (:hasimage tool)
-           [:div.tool-preview [:img {:src (:hasimage tool) :height "220px"}]])
-         [:div.details[:h2 (get-in tool [:package :name])]
-         [:span.tool-type [:h3 "Tool Type:"] [get-tool-types tool]]
-         [output-tool-classes (get-in tool [:config :classes])]
-         [:div.description (get-in tool [:package :description])]]])
+         [:h2 (get-in tool [:package :name])]
+         (if (:hasimage tool)
+           [:div.tool-preview [:img {:src (:hasimage tool) :height "220px"}]]
+           [:div.tool-no-preview "No tool preview available"])
+         [:div.details
+          [:div.description (get-in tool [:package :description])]
+          [:span.tool-type [:h3 "Tool Type:"] [get-tool-types tool]]
+          [output-tool-classes (get-in tool [:config :classes])]]])
       (:tools @tools)))))
 
 (defn tool-store []
-  [:div
+  [:div.tool-store
    [:h1 "Tool Store"]
-   [:div.panel.container
-    [:div "Showing all tools that are currently installed for Report Pages"]
+   [:div.container
+    [:div.info
+     [:svg.icon.icon-info [:use {:xlinkHref "#icon-info"}]]
+     [:p "Showing all tools that are currently installed for Report Pages. To add more tools, see the "
+     [:a {:href "https://github.com/intermine/bluegenes/tree/dev/docs"} "BlueGenes Documentation"] "." ]
+     ]
     [tool-list]]])

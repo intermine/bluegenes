@@ -21,11 +21,9 @@
             (dispatch [:set-active-panel :home-panel]))
 
   (defroute "/debug/:panel" [panel]
-    (.log js/console "%cpanel" "background:#ccc;border-bottom:solid 3px indianred; border-radius:2px;" (clj->js panel))
             (dispatch [:set-active-panel :debug-panel
-                               nil
-                               [:bluegenes.developer.events/panel panel]
-                                ]))
+                       nil
+                       [:bluegenes.sections.developer.events/panel panel]]))
 
   (defroute "/help" []
             (dispatch [:set-active-panel :help-panel]))
@@ -80,16 +78,15 @@
     ;;We use a custom brew accountant version which navigates based on fragments.
     ;;this prevents the annoying double back button problem where the homepage kept on
     ;;popping up in the history when we pressed the back button even though we hadn't been to the homepage at that point in the navigation flow.
-    {:nav-handler (fn [path]
+   {:nav-handler (fn [path]
                     ;;We don't dispatch the entire url to analytics, just the first part of the page url. otherwise we'd be
                     ;; in scary over-tracking scenarios where we track queries.
                     ;; The try/catch is because some urls are malformed (possibly ones imtables builds, I'm unsure).
                     ;; They throw an error when secretary tries to regex the first part of the url. too many hashes?
-                    (ocall (js/$ ".popover") "remove")
-                    (try
-                      (let [shortened-path (secretary/locate-route-value path)]
-                        (js/ga "send" "pageview" (secretary/locate-route-value path)))
-                      (catch :default e (.error js/console "Unable to dispatch google analytics for this page: " path " make sure the url is formed correctly. Stacktrace: " e))
-                      )
-                    (secretary/dispatch! path))
-     :path-exists? (fn [path] (secretary/locate-route path))}))
+                   (ocall (js/$ ".popover") "remove")
+                   (try
+                     (let [shortened-path (secretary/locate-route-value path)]
+                       (js/ga "send" "pageview" (secretary/locate-route-value path)))
+                     (catch :default e (.error js/console "Unable to dispatch google analytics for this page: " path " make sure the url is formed correctly. Stacktrace: " e)))
+                   (secretary/dispatch! path))
+    :path-exists? (fn [path] (secretary/locate-route path))}))
