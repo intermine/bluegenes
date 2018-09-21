@@ -1,0 +1,4 @@
+{
+ ;;where tools are installed
+ :tool-path "tools/node_modules/@intermine"
+ }

@@ -54,7 +54,7 @@
 
   .dev-navigation {
     display: flex;
-    flex-wrap:wrap;
+    flex-wrap: wrap;
     margin: 0;
     padding: 0;
 
@@ -62,7 +62,7 @@
       list-style-type: none;
       padding: @spacer 2*@spacer;
       background-color: @highlight-color;
-      color: #fff;
+      color: @highlight-color-text;
       border-radius: 2px;
       margin: @spacer;
 
@@ -81,36 +81,26 @@
   }
 
   .tool-store {
+    padding: @spacer 0;
+
     .info {
       .border-radius;
       .box-shadow;
       border: solid 1px @light-contrast;
       display: flex;
       align-items: center;
+      padding: @spacer 0;
+      background-color:
+      p {
+        margin: 0;
+      }
 
-      p {margin:0;}
-
-       .icon-info {
+      .icon-info {
         width: 3*@spacer;
         height: 3*@spacer;
-        padding: 0.5*@spacer;
-        fill:@highlight-color;
+        padding: 0.5*@spacer  0.5*@spacer  0.5*@spacer 0;
+        fill: @highlight-color;
       }
-    }
-
-
-
-    .tool {
-      .border-radius;
-      .box-shadow;
-      background-color: #fff;
-      padding: @spacer;
-    }
-    h2,
-    h3 {
-      font-size: 1.1 *@spacer;
-      display: inline-block;
-      margin: @spacer/5;
     }
 
     .tool-list {
@@ -118,30 +108,66 @@
       flex-wrap: wrap;
       justify-content: space-around;
 
+      .tool-size {
+        min-width: 220px;
+        max-width: 350px;
+      }
+
       .tool {
+        .tool-size;
         display: flex;
         flex-direction: column;
         align-items: center;
         margin: @spacer 0.5*@spacer *@spacer;
+        padding: 0;
+        .border-radius;
+        .box-shadow;
+        background-color: #fff;
 
-        .preview-style {
-          min-width: 220px;
-          max-width: 300px;
-          overflow: hidden;
-          border: solid 1px @body-foreground-color;
-          border-radius: 2px;
+        h2,
+        h3 {
+          font-size: 1.1 *@spacer;
+          display: inline-block;
+          margin: @spacer/5;
+        }
+
+        > h2 {
+          background-color: @navbar-color;
+          color: @navbar-color-text;
+          border-top-left-radius: 2px;
+          border-top-right-radius: 2px;
+          padding: 1em;
+          display: flex;
+          align-self: stretch;
+          margin: 0;
+        }
+
+        .description {
+          border-bottom: solid 1px #ccc;
+          padding-bottom: @spacer;
+
+          .icon-info {
+            margin-top: 2px;
+          }
         }
 
         .tool-preview {
-          .preview-style;
+          .tool-size;
+
+          img {
+            object-fit: cover;
+          }
+          border-bottom: solid 1px @body-foreground-color;
+          overflow: hidden;
         }
 
         .tool-no-preview {
-          .preview-style;
+          border-bottom: solid 1px @body-foreground-color;
           background-color: @light-contrast;
           display: flex;
           flex-grow: 1;
           max-height: 220px;
+          max-width: none;
           align-items: center;
           justify-content: center;
           width: 100%;
@@ -152,6 +178,8 @@
           display: flex;
           flex-direction: column;
           font-weight: normal;
+          align-items: center;
+          padding: @spacer;
 
           h2 {
             font-weight: bold;
@@ -171,10 +199,10 @@
 
           li {
             display: flex;
-            background-color: @light-contrast;
+            background-color: transparent;
             color: @body-foreground-color;
             border-width: 0 0 0 3px;
-            padding: 0.5 * @spacer;
+            padding: 0 0.5 * @spacer;
             margin: @spacer/6;
           }
         }

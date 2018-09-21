@@ -15,7 +15,7 @@
                  "query" :list-results-page})
 
 (defn get-tool-types
-  "Check what classes pages a given tool will be able to display on."
+  "Check what classes pages a given tool will be able to display on. Currently somewhat defunct, given that we only have report page tools, but will come in handy when we extend to the list results page."
   [tool]
   (into [:span]
         (map
@@ -46,15 +46,16 @@
            [:div.tool-preview [:img {:src (:hasimage tool) :height "220px"}]]
            [:div.tool-no-preview "No tool preview available"])
          [:div.details
-          [:div.description (get-in tool [:package :description])]
-          [:span.tool-type [:h3 "Tool Type:"] [get-tool-types tool]]
+          [:div.description [:svg.icon.icon-info [:use {:xlinkHref "#icon-info"}]] (get-in tool [:package :description])]
           [output-tool-classes (get-in tool [:config :classes])]]])
       (:tools @tools)))))
 
-(defn tool-store []
+(defn tool-store
+  "Page structure for tool store UI"
+  []
   [:div.tool-store
    [:h1 "Tool Store"]
-   [:div.container
+   [:div
     [:div.info
      [:svg.icon.icon-info [:use {:xlinkHref "#icon-info"}]]
      [:p "Showing all tools that are currently installed for Report Pages. To add more tools, see the "

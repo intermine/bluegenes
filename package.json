@@ -1,8 +1,7 @@
 {
   "name": "bluegenes",
   "version": "1.0.0",
-  "description": "A [re-frame](https://github.com/Day8/re-frame) application designed to ... well, that part is up to you.",
-  "main": "index.js",
+  "description": "Clojure-based GUI for InterMine",
   "directories": {
     "test": "test"
   },

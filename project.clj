@@ -113,13 +113,13 @@
          :target-path "resources/public/css"}
 
   :profiles {:dev {:dependencies [[binaryage/devtools "0.9.7"]]
-                   :resource-paths ["config/dev" "tools"]
+                   :resource-paths ["config/dev" "tools" "config/defaults"]
                    :plugins [[lein-figwheel "0.5.14"]
                              [lein-doo "0.1.8"]]}
              :prod {:dependencies []
-                    :resource-paths ["config/prod" "tools"]
+                    :resource-paths ["config/prod" "tools"  "config/defaults"]
                     :plugins []}
-             :uberjar {:resource-paths ["config/prod"]
+             :uberjar {:resource-paths ["config/prod" "config/defaults"]
                        :prep-tasks ["clean" ["less" "once"] ["cljsbuild" "once" "min"] "compile"]
                        :aot :all}}
 
