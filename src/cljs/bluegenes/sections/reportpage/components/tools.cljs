@@ -9,7 +9,9 @@
   ISeqable
   (-seq [array] (array-seq array 0)))
 
-(defn create-package []
+(defn create-package
+  "Format the arguments for a tool api compliant tool, such that a tool knows what to display"
+  []
   (let [package-details (subscribe [:panel-params])
         package {:class (:type @package-details)
         ;;we'll need to reformat deep links if we want this to not be hardcoded.
@@ -17,7 +19,9 @@
                  :value (:id @package-details)}]
     (clj->js package)))
 
-(defn run-script [tool tool-id]
+(defn run-script
+  "Executes a tool-api compliant main method to initialise a tool"
+  [tool tool-id]
   ;;the default method signature is
   ;;package-name(el, service, package, state, config)
   (let [el (.getElementById js/document tool-id)
@@ -32,6 +36,7 @@
   ;; that this is heavy dom manipulation it seems necessary.
   ;; TODO: could active scripts in appdb be dereferenced and added to
   ;; the head automatically? That might be better if possible.
+  "Dynamically inserts the tool api script into the head of the document"
   [tool tool-id]
   (let [script-tag (.createElement js/document "script")
         head (first (.getElementsByTagName js/document "head"))
@@ -48,6 +53,7 @@
       (.error js/console "%cNo script path provided for %s" "background:#ccc;border-bottom:solid 3px indianred; border-radius:2px;" (:name tool)))))
 
 (defn fetch-styles
+  "If the tool api script has a stylesheet as well, load it and insert into the doc"
   [tool]
   (let [style-tag (.createElement js/document "link")
         head (first (.getElementsByTagName js/document "head"))
@@ -61,7 +67,9 @@
     (.appendChild head style-tag))
     )))
 
-(defn main []
+(defn main
+  "Initialise all the tools on the page"
+  []
   (let [toolses           (subscribe [::subs/tools-by-current-type])]
     (into [:div.tools]
           (map
