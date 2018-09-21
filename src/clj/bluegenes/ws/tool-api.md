@@ -1,11 +1,10 @@
 # Bluegenes Tool API Spec
 
+BlueGenes is built in Clojure and ClojureScript, but we don't want to re-write all existing browser data vis and analysis tools, so we've built a way to integrate JavaScript tools into report pages.
 
-#### Assumptions:
+You can take existing JavaScript biology applications and provide a wrapper for them, allowing them to interact with BlueGenes.
 
-* js Dependencies are bundled into the app (requirejs, browserify, webpack)
-
-Our justification is that sharing dependencies between third party tools introduces levels of complexity that are expensive (time consuming) and can be challenging to developers. If we find that third party apps are truly to large then we'll reconsider a more complicated approach.
+This document provides reference for the API specifications, but there is also a [tutorial to walk you through creating a wrapper for your tool](tool-api-tutorial).
 
 ## App structure:
 
@@ -24,7 +23,26 @@ Our justification is that sharing dependencies between third party tools introdu
 |   +-- preview.png (optional)
 ```
 
-#### config.json
+You may optionally also have additional folders, including node_modules, if needed. They won't interfere.
+
+### dist
+
+Put all of your prod-ready bundled files in here. Ideally this should be no more than two things:
+
+- **bundle.js**, contains your entire application, bundled with its dependencies
+- **style.css**, optional. Use if any additional styles are required.
+
+### src
+
+Where do the bundled files come from? Probably the src directory. Ensure that:
+
+- **index.js** This is the preferred entry point to build dist/bundle.js. May import external libraries or node modules if needed. [See bluegenesProtVista example ](https://github.com/intermine/bluegenesProtVista/tree/master/src)
+- **style.less** This is the preferred entry point to build dist/styles.css.  If your tool has a stylesheet already, make sure to import the styles and wrap them in a parent class to ensure the styles are sandboxed and don't leak into another file. See [bluegenesProtVista's less file for an example](https://github.com/intermine/bluegenesProtVista/blob/master/src/style.less) and [the css it compiled to](https://github.com/intermine/bluegenesProtVista/blob/master/dist/style.css).
+
+### config.json
+
+This file provides bluegenes-specific config info. Some further config info is drawn from package.json as well.
+
 ```json
 {
   "accepts": ["id", "ids", "list", "lists", "records", "rows"],
@@ -37,9 +55,13 @@ Our justification is that sharing dependencies between third party tools introdu
   "toolName" : "Protein Features"
 }
 ```
-**Accepts: possible values **
+##### Accepts: possible values
 
+###### Currently supported in BlueGenes:
 * id: a single database id  
+
+###### Planned for the future:
+
 * ids: multiple database ids  
 * list: a single list name  
 * lists: multiple list names  
@@ -48,8 +70,6 @@ Our justification is that sharing dependencies between third party tools introdu
 
 Plurality (i.e. id vs ids) will help to determine which context a tool can appear (report page, list analysis page)
 
-Records and Rows can also be accepted. The advantage here is that BlueGenes has likely already run and stored the query results in memory, so the tool can skip a redundant call to the server.
-
 **columnMapping** is an important way to specify (or override) which columns should be passed to the tool by BlueGenes. As an example, for a gene tool, you might want to pass a symbol, OR a primaryIdentifier, or even secondaryIdentifier - and this might change depending in the InterMine that is fuelling the BlueGenes. Set a default likely value here, and in the future individual bluegenes administrators can override it if needed.
 
 **classes** default to `*` if this tool isn't class / objectType specific. otherwise your tool might be specific to a certain class, e.g. a gene displayer.
@@ -57,6 +77,8 @@ Records and Rows can also be accepted. The advantage here is that BlueGenes has 
 **files** - one file each for css and js, please. This should be the file bundled/built with all dependencies except/ imjs if needed. CSS is optional if the tool has no styles.
 
 **toolName** what would you want to see as a header for this tool? e.g. ProtVista might be called "Protein Features".
+
+
 
 ##### el
 
