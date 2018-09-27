@@ -17,6 +17,10 @@ npm install --save some-tool-name-here
 
 This will install the tool into the `tools/node_modules/@intermine` directory, and save the tool to your package.json file. It will automatically be picked up and displayed in any relevant pages.
 
+#### Updating published tools
+
+If a tool's npm package is updated, all you need to do in order to pull the updates is run `npm update` from the `bluegenes/tools` folder, and all your packages will be updated.
+
 ### Development tools
 
 If your tool is under development, you'll need to mimic it living in the `tools/node_modules/@intermine` directory. Your tool should comply with the [tool API guidelines](tool-api.md).
