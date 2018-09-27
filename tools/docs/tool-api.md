@@ -4,7 +4,7 @@ BlueGenes is built in Clojure and ClojureScript, but we don't want to re-write a
 
 You can take existing JavaScript biology applications and provide a wrapper for them, allowing them to interact with BlueGenes.
 
-This document provides reference for the API specifications, but there is also a [tutorial to walk you through creating a wrapper for your tool](tool-api-tutorial).
+This document provides reference for the API specifications, but there is also a [tutorial to walk you through creating a wrapper for your tool](tool-api-tutorial.md).
 
 ## App structure:
 
