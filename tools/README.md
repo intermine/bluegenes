@@ -11,5 +11,5 @@ recent version of [npm and node](https://nodejs.org/en/download/) installed (you
 ## For more details about writing tools, see:
 
 - [tool admin/installation guide](docs/tools.md)
-- [tutoral: how to make a new tool](docs/tool-api-tutorial)
-- [tool api specs](docs/tool-api-tutorial)
+- [tutoral: how to make a new tool](docs/tool-api-tutorial.md)
+- [tool api specs](docs/tool-api-tutorial.md)
