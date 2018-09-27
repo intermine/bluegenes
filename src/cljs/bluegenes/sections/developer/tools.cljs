@@ -41,7 +41,7 @@
      (map
       (fn [tool]
         [:div.tool
-         [:h2 (get-in tool [:package :name])]
+         [:h2 (get-in tool [:names :human])]
          (if (:hasimage tool)
            [:div.tool-preview [:img {:src (:hasimage tool) :height "220px"}]]
            [:div.tool-no-preview "No tool preview available"])

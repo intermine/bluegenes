@@ -28,7 +28,7 @@
         service (clj->js (:service @(subscribe [:current-mine])))
         package (create-package)
         config (clj->js (:config tool))]
-    (ocall+ js/window (str (:name tool) ".main") el service package nil config)))
+    (ocall+ js/window (str (get-in tool [:names :cljs]) ".main") el service package nil config)))
 
 (defn fetch-script
   ;; inspired by https://stackoverflow.com/a/31374433/1542891
@@ -43,14 +43,14 @@
         tool-path (get-in tool [:config :files :js])]
     (if tool-path
       (do
-        ;;fetch script
-        (oset! script-tag "src" (str "/tools/" (:name tool) "/" tool-path))
+        ;;fetch script from npm's node_modules directory
+        (oset! script-tag "src" (str "/tools/" (get-in tool [:names :npm]) "/" tool-path))
         ;;run-script will automatically be triggered when the script loads
         (oset! script-tag "onload" #(run-script tool tool-id))
         ;;append script to dom
         (.appendChild head script-tag))
       ;; there must be a script tag. If there isn't, console error.
-      (.error js/console "%cNo script path provided for %s" "background:#ccc;border-bottom:solid 3px indianred; border-radius:2px;" (:name tool)))))
+      (.error js/console "%cNo script path provided for %s" "background:#ccc;border-bottom:solid 3px indianred; border-radius:2px;" (get-in tool [:names :human])))))
 
 (defn fetch-styles
   "If the tool api script has a stylesheet as well, load it and insert into the doc"
@@ -60,7 +60,7 @@
         style-path (get-in tool [:config :files :css])]
     (cond style-path
     ;;fetch stylesheet and set some properties
-    (do (oset! style-tag "href" (str "/tools/" (:name tool) "/" style-path))
+    (do (oset! style-tag "href" (str "/tools/" (get-in tool [:names :npm]) "/" style-path))
     (oset! style-tag "type" "text/css")
     (oset! style-tag "rel" "stylesheet")
     ;;append to dom
@@ -74,10 +74,10 @@
     (into [:div.tools]
           (map
            (fn [tool]
-             (let [tool-id (gensym (:name tool))]
+             (let [tool-id (gensym (get-in tool [:config :toolName :cljs]))]
                (fetch-script tool tool-id)
                (fetch-styles tool)
-               [:div.tool {:class (:name tool)}
-                [:h3 (get-in tool [:config :toolName] (:name tool))]
+               [:div.tool {:class (get-in tool [:names :cljs])}
+                [:h3 (get-in tool [:names :human])]
                 [:div {:id tool-id}]]))
            @toolses))))
