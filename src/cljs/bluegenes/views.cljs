@@ -34,7 +34,7 @@
       [:a {:href "http://intermine.readthedocs.io/en/latest/about/contact-us/"} "Contact"]
        [:a {:href "http://chat.intermine.org/" :target "_blank"} "Chat"]
       [:a {:href "https://intermineorg.wordpress.com/"} "Blog"]
-       [:a {:href "https://github.com/intermine" :target "_blank"} "GitHub"] 
+       [:a {:href "https://github.com/intermine/" :target "_blank"} "GitHub"] 
        [:a {:on-click #(navigate! "/help")} [:svg.icon.icon-question [:use {:xlinkHref "#icon-question"}]] " Help"]]
      [:div [:p "Funded by:"]
       [:a {:href "http://www.wellcome.ac.uk/" :target "_blank"} "Wellcome Trust"]
