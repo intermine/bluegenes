@@ -2,6 +2,26 @@
 
 You don't need to know Clojure/Clojurescript in order to create a data vis / analysis tool for BlueGenes. This document will walk you through converting your favourite javascript tool into a BlueGenes compatible tool. You may wish to keep the [Tool API documentation](tool-api.md) open in another tab.
 
+For this tutorial, we'll be creating a tool that fetches GO terms related to a single gene, broken down by namespace. Using the query builder and im-tables, we can generate the imjs query required, and we'll save it for later:
+
+```javascript
+var query    = {
+  "from": "Gene",
+  "select": [
+    "goAnnotation.ontologyTerm.name",
+    "goAnnotation.ontologyTerm.description",
+    "goAnnotation.ontologyTerm.namespace"
+  ],
+  "where": [
+    {
+      "path": "symbol",
+      "op": "=",
+      "value": "zen"
+    }
+  ]
+};
+```
+
 ## Getting ready:
 
 What you'll need to build the tool:
@@ -24,7 +44,7 @@ If you look at the [Tool API documentation](tool-api.md), you many note that Blu
 Assuming you've installed yeoman already, run the following command to install the BlueGenes tool generator:
 
 ```bash
- npm install -g generator-bluegenes-tool
+ npm install -g @intermine/generator-bluegenes-tool
 ```
 
 Brilliant! You'll only need to install the generator once.
@@ -34,14 +54,15 @@ Brilliant! You'll only need to install the generator once.
 In the parent folder where you'd like your project to live, make a new folder with your preferred name (perhaps something like `~/projects/myBluegenesTool`), and then run:
 
 ```
-yo bluegenes-tool
+yo @intermine/bluegenes-tool
 ```
 
 This will walk you through a few questions in a step-by-step wizard. We'll walk through what each one means now:
 
-1. **? What shall we name your project? This is a computer name with no spaces or special characters.** a name for your tool. We'd recommend prefixing every tool with the word bluegenes, e.g. `bluegenesProtVista` or `bluegenesCytoscape`. If you're not sure what you want to call your project yet, you could name it `bluegenesTest`
-2. **Thanks! Now, give me a human name for the project - e.g. "Protein Feature Viewer"** - a nice friendly name for humans to read - spaces are allowed. Examples might be "BlueGenes ProtVista" or "BlueGenes Cytoscape Interaction Viewer".
-3. **Fabulous. Which report pages do you expect this tool to work for, e.g. "Gene" or "Protein"? Separate with commas and put * for all.** This needs to be an InterMine class or classes - for the [Cytoscape interaction viewer](https://github.com/intermine/bluegenes-tool-cytoscape), I entered `Protein, Gene` since we can show Protein and Gene interactions in this tool.
+1. **? What shall we name your project? This is a computer name with no spaces or special characters.** a name for your tool. We'd recommend prefixing every tool with the word bluegenesTool, e.g. `bluegenesToolProtVista` or `bluegenesToolCytoscape`. If you're not sure what you want to call your project yet, you could name it `bluegenesToolGOTerms`.
+2. **NPM package name? This is a computer name with no capital letters or special characters apart from the - dash** - something like `bluegenes-tool-go-terms` would be perfect.
+2. **Thanks! Now, give me a human name for the project - e.g. "Protein Feature Viewer"** - a nice friendly name for humans to read - spaces are allowed. Let's call ours "GO Terms"
+3. **Fabulous. Which report pages do you expect this tool to work for, e.g. "Gene" or "Protein"? Separate with commas and put * for all.** This needs to be an InterMine class or classes. Since GO stands for Gene Ontology, let's enter `Gene`, to show this tool on all gene report pages.
 4. **Awesome. What type of InterMine data can you work with?** - Right now, you should only select `id` - the tool API as of version 1 only supports the report page. Selecting id means that the tool will be passed the id of a single InterMine entity - e.g. a protein might be represented by the ID 4815162342.
 5. **What's your name?** Hopefully you know the answer to this one! ;) This is important for package.json, which we will automatically generate you.
 6. **Your email** As above - it's useful for package.json.
@@ -51,6 +72,80 @@ This will walk you through a few questions in a step-by-step wizard. We'll walk 
 Once you select a licence, the yeoman installer should set up your repository and all the files within based on the responses you gave to the wizard. This may take a minute or two.
 
 ### Setting up your newly scaffolded tool
+
+Take a few minutes to look through your newly generated tool files. We'll be doing most of our work in the `src/index.js` file, and previewing it via demo.html.
+
+#### fetching and formatting our data
+
+Open up src/index.js and take a quick look. There's a lot of dummy / example code that we can delete, but make sure not to delete the main method, `export function main (el, service, imEntity, state, config)`. Instead, the code we write should be INSIDE this method (or called from inside it). This is the method that BlueGenes will automatically call when it loads your tool.
+
+You can read more about the arguments for this method in the [tool API docs](tool-api.md). In this tutorial, we'll use these args:
+
+- `service` provides the URL and token for communicating with a mine,
+- `imEntity` provides the details of the report page we're looking at - i.e. it might be that the tool is being passed the objectid of a gene, or the accession of a protein...
+- `el` - the id of the html element we can attach any text / visualisations to.
+
+Let's write some code. Remember the query we looked up, earlier? We want to use
+imjs to load the query results and then display them on the page. Let's copy the
+ query into index.js and print the results to the console to see if it works like we hoped.
+
+ Here's my first pass at index.js, deleting all the boilerplate and logging my query to the console:
+
+```javascript
+//make sure to export main, with the signature
+export function main (el, service, imEntity, state, config) {
+
+  var query    = {
+    "from": imEntity.class, //this should always be Gene, because we configured this tool to display data on Gene report pages.
+    "select": [
+      "goAnnotation.ontologyTerm.name",
+      "goAnnotation.ontologyTerm.description",
+      "goAnnotation.ontologyTerm.namespace"
+    ],
+    "orderBy": [
+      {
+        "path": "goAnnotation.ontologyTerm.namespace",
+        "direction": "ASC"
+      }
+    ],
+    "where": [
+      {
+        "path": imEntity.format, //this translates to id, based on our tool config.
+        "op": "=",
+        "value": imEntity.value  // BlueGenes will pass this dynamically.
+      }
+    ]
+  };
+    //fetch data using imjs, which is available on the window.
+    var goTerms = new imjs.Service(service)
+        .records(query)
+        .then(function(response) {
+          //we'll add more code here, but in the meantime, print the result to the console.
+          console.log(response);
+    });
+}
+```
+
+Note the use of `imEntity` to form the query. You might be wondering where this data is coming from.
+When you're using BlueGenes, it'll be passed automatically from BlueGenes to your tool. Since we're just working in standalone mode at the minute, hop over to demo.html instead to see what's being passed over as arguments. You can tweak the `dataToInitialiseToolWith` variable to make sure it reflects sample data you want to work with. You can also change the mine URL if needed!
+
+Set your `dataToInitialiseToolWith` variable in demo.html to look like this. You may need to tweak the id depending on which InterMine you are using. (To get an id in a JSP-based InterMine, go to a report page and grab it from the URL. The url in the code snippet below came from this report page: [http://www.humanmine.org/humanmine/report.do?id=1276963](http://www.humanmine.org/humanmine/report.do?id=1276963))
+
+```javascript
+dataToInitialiseToolWith = {
+  "class": "Gene",
+  "format": "id",
+  // right now this id corresponds to Human GATA1
+  // this is a bit fragile since IDs change with every build
+  // but we don't want to make the code more complicated than
+  // needed for the demo.
+  "value": 1276963
+},
+```
+
+Okay, now that we have our sample data set up and some code, let's test if it works!
+
+In your console, you'll need to bundle your js file. To do so, run `npm run build`. 
 
 //TODO:
 
