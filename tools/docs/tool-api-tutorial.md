@@ -9,7 +9,8 @@ var query    = {
   "from": "Gene",
   "select": [
     "goAnnotation.ontologyTerm.name",
-    "goAnnotation.ontologyTerm.description",
+    "goAnnotation.evidence.code.code",
+    "goAnnotation.evidence.code.name",
     "goAnnotation.ontologyTerm.namespace"
   ],
   "where": [
@@ -34,6 +35,8 @@ What you'll need to build the tool:
 Optionally, to test your tool:
 
 - [A local BlueGenes install](https://github.com/intermine/bluegenes/blob/dev/docs/getting-started.md)
+
+We'll expect a basic familiarity with programming and
 
 ## Generate your tool scaffold
 
@@ -99,14 +102,9 @@ export function main (el, service, imEntity, state, config) {
     "from": imEntity.class, //this should always be Gene, because we configured this tool to display data on Gene report pages.
     "select": [
       "goAnnotation.ontologyTerm.name",
-      "goAnnotation.ontologyTerm.description",
+      "goAnnotation.evidence.code.code",
+      "goAnnotation.evidence.code.name",
       "goAnnotation.ontologyTerm.namespace"
-    ],
-    "orderBy": [
-      {
-        "path": "goAnnotation.ontologyTerm.namespace",
-        "direction": "ASC"
-      }
     ],
     "where": [
       {
@@ -145,7 +143,114 @@ dataToInitialiseToolWith = {
 
 Okay, now that we have our sample data set up and some code, let's test if it works!
 
-In your console, you'll need to bundle your js file. To do so, run `npm run build`. 
+In your console, you'll need to bundle your js file. To do so, run `npm run build`. You should notice that we now have a folder called `dist` which contains a file: `bundle.js`. How can we inspect to see if it is working or not? Well, we've included a handy little server for just this purpose! To test it out, run `npm run dev` and then navigate to
+[http://localhost:3456](http://localhost:3456). If everything went well, you should see a white screen, and your query results logged to the [javascript console](https://www.digitalocean.com/community/tutorials/how-to-use-the-javascript-developer-console). Great! It should look roughly like this:
+
+![output of console log, showing an array of GO terms associated with the Gene we searched for.](/img/inspected-console.png)
+
+##### Making something display on the screen...
+
+White screens are boring. Let's output our results by iterating through them, sorting by namespace,  and printing to the screen. In the demo below, we've used a quick and easy echnique of building up the HTML using strings; we wouldn't recommend this for any large applications but for a small demo tool it's sufficient - a framework would definitely be overkill!
+
+Here's the same code as before, but expanded to output the results visually in the HTML. In particular, note how we've set `el.innerHTML = <someHTMLHere>` - this is how we get our work to display in BlueGenes.
+
+```javascript
+//make sure to export main, with the signature
+export function main(el, service, imEntity, state, config) {
+
+  //this query fetches GO terms and evidence codes associated with the given gene.
+  var query = {
+    "from": imEntity.class, //In this case, this should always be Gene, because
+    // we configured this tool to display data on Gene report pages. It's still
+    // better practice to use imEntity.class rather than hardcoding to gene -
+    // consider a tool that worked for genes OR proteins, for example!
+    "select": [
+      "goAnnotation.ontologyTerm.name",
+      "goAnnotation.evidence.code.code",
+      "goAnnotation.evidence.code.name",
+      "goAnnotation.ontologyTerm.namespace"
+    ],
+    "orderBy": [{
+      "path": "goAnnotation.ontologyTerm.namespace",
+      "direction": "ASC"
+    }],
+    "where": [{
+      "path": imEntity.format, //this translates to id, based on our tool config.
+      "op": "=",
+      "value": imEntity.value // BlueGenes will pass this dynamically.
+    }]
+  };
+
+  //fetch data using imjs, which is available on the window.
+  var goTerms = new imjs.Service(service)
+    .records(query)
+    .then(function(response) {
+      //process results so they're grouped by their namespaces
+      var terms = resultsToNamespaceBuckets(response);
+      // output the results into HTML and add to the element provided
+      // in the head of the main method.
+      el.innerHTML = buildVisualOutput(terms);
+    });
+}
+
+/**
+Given namespace-sorted terms, return an HTML list of each term with its evidence
+code(s).
+**/
+function buildVisualOutput(terms) {
+  var namespaces = Object.keys(terms),
+    termUI = "<div>";
+  //loop through the namespaces and create a header for each namespace
+  namespaces.map(function(namespace) {
+    termUI = termUI + "<div><h3>" + namespace + "</h3> <ul>";
+    //loop through the terms in each namespace
+    terms[namespace].map(function(result) {
+      //create a new list entry for each GO term.
+      termUI = termUI + "<li>" + result.ontologyTerm.name
+      // we're also going to add the evidence codes for each GO term. Codes
+      // are used to explain _why_ a given gene is annotation with a GO term.
+      // Evidence codes come in an array (there could be more than one per GO
+      // term), so we have to loop through them too.
+      result.evidence.map(function(evidence) {
+        //add a span for each evidence code.
+        termUI = termUI + "<span class='evidencecode' title='" +
+          evidence.code.name +
+          "'>" + evidence.code.code + "</span>";
+      });
+      //close all the open elements so we have well-formed HTML.
+      termUI = termUI + "</li>";
+    });
+    termUI = termUI + "</ul></div>"
+  });
+  return termUI;
+}
+
+/**
+Given a set of InterMine results (GO terms associated with a single gene),
+sort the terms by namespace and return the results sorted into named buckets.
+**/
+function resultsToNamespaceBuckets(response) {
+  //we're going to sort our terms by namespace.
+  //here's a var to store each type of term in...
+  var terms = {
+    molecular_function: [],
+    cellular_component: [],
+    biological_process: []
+  };
+  //iterate through the results and group them by namespace
+  response[0].goAnnotation.map(function(result) {
+    //we don't need to store anything except the details in ontologyterm
+    //push each term into the correct box
+    terms[result.ontologyTerm.namespace].push(result);
+  });
+  return terms;
+}
+```
+
+##### Goodness, that's ugly! Let's make it look a little nicer.
+
+//CSS
+
 
 //TODO:
 
