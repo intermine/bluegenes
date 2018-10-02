@@ -30,6 +30,7 @@
       [:p "BlueGenes (alpha) powered by: "
        [:a {:href "http://www.intermine.org"}
         [:img {:width "120px" :src "https://cdn.rawgit.com/intermine/design-materials/c4716412/logos/intermine/intermine.png" :alt "InterMine"}]]]
+      [:a {:href "https://calm-earth-98875.herokuapp.com/"} "Datasets"]
       [:a {:href "https://intermineorg.wordpress.com/cite/"} "Cite"]
       [:a {:href "http://intermine.readthedocs.io/en/latest/about/contact-us/"} "Contact"]
        [:a {:href "http://chat.intermine.org/" :target "_blank"} "Chat"]
