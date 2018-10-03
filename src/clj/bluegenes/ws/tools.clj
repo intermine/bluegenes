@@ -54,7 +54,7 @@
         {:tools
          (reduce
           (fn [tool-list newitem]
-            (conj tool-list (get-tool-config newitem (:tool-path env))))
+            (conj tool-list (get-tool-config newitem (:bluegenes-tool-path env))))
           #{} (installed-tools-list))}]
     (response/ok res)))
 
