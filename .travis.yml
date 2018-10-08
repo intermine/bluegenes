@@ -1,0 +1,13 @@
+language: generic
+sudo: required
+
+before_script:
+  - wget https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein -O /tmp/lein
+  - chmod +x /tmp/lein
+  - export PATH=$PATH:/tmp/lein
+
+script:
+  - npm install
+  - bower install
+  - lein less once
+  - lein cljsbuild once min
