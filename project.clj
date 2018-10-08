@@ -1,10 +1,13 @@
-(def props {:version "0.9.4-SNAPSHOT"})
+(def props {:version "0.9.8-SNAPSHOT"})
 
 (defproject org.intermine/bluegenes (:version props)
+  :licence "LGPL-2.1-only"
+  :description "Bluegenes is a Clojure-powered user interface for InterMine, the biological data warehouse"
+  :url "http://www.intermine.org"
   :dependencies [; Clojure
                  [org.clojure/clojure "1.9.0"]
                  [org.clojure/clojurescript "1.10.145"]
-                 [org.clojure/core.async "0.3.443"]
+                 [org.clojure/core.async "0.4.474"]
 
                  ; MVC
                  [re-frame "0.10.2"]

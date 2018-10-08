@@ -31,4 +31,4 @@
       (catch Exception e (errorf "Unable to connect to database: %s" (.getMessage e))))
     ; Start the Jetty server by passing in the URL routes defined in 'handler'
     (run-jetty handler {:port port :join? false})
-    (infof "Bluegenes server started on port: %s" port)))
+    (infof "=== Bluegenes server started on port: %s" port)))
