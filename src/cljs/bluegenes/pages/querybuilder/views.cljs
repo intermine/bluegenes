@@ -1,4 +1,4 @@
-(ns bluegenes.sections.querybuilder.views
+(ns bluegenes.pages.querybuilder.views
   (:require [re-frame.core :refer [subscribe dispatch]]
             [reagent.core :as reagent :refer [create-class]]
             [imcljs.path :as p]

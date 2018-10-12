@@ -1,4 +1,4 @@
-(ns bluegenes.sections.querybuilder.subs
+(ns bluegenes.pages.querybuilder.subs
   (:require [re-frame.core :refer [reg-sub]]
             [clojure.string :refer [join blank?]]
             [bluegenes.sections.querybuilder.logic :as con-logic]))

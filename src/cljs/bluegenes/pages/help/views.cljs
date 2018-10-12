@@ -1,4 +1,4 @@
-(ns bluegenes.sections.help.views
+(ns bluegenes.pages.help.views
   (:require [re-frame.core :as re-frame :refer [subscribe]]
             [bluegenes.components.icons :as icons]
         ))

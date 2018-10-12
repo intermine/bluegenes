@@ -1,7 +1,7 @@
 (ns bluegenes.sections.mymine.views.contextmenu
   (:require [re-frame.core :refer [subscribe dispatch]]
             [reagent.core :as r]
-            [bluegenes.sections.mymine.events :as evts]
+            [bluegenes.pages.mymine.events :as evts]
             [bluegenes.sections.mymine.subs :as subs]
             [oops.core :refer [ocall]]))
 

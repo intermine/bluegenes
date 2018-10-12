@@ -34,7 +34,7 @@
                          [:assets/fetch-intermine-version]
                          ; If we have an identity then fetch the MyMine tags
                          ; TODO - remove tags
-                         #_(when ident [:bluegenes.sections.mymine.events/fetch-tree])]}
+                         #_(when ident [:bluegenes.pages.mymine.events/fetch-tree])]}
            ; When we've seen all of the events that indicating our assets have been fetched successfully...
            {:when :seen-all-of?
             :events [:assets/success-fetch-model

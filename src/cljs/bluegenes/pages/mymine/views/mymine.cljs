@@ -6,7 +6,7 @@
             [cljs-time.coerce :as c]
             [oops.core :refer [oget ocall oset!]]
             [goog.i18n.NumberFormat.Format]
-            [bluegenes.sections.mymine.events :as evts]
+            [bluegenes.pages.mymine.events :as evts]
             [bluegenes.sections.mymine.subs :as subs]
             [inflections.core :as inf]
             [bluegenes.sections.mymine.views.modals :as modals]

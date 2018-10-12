@@ -2,7 +2,7 @@
   (:require [re-frame.core :refer [subscribe dispatch]]
             [reagent.core :as r]
             [oops.core :refer [oget ocall]]
-            [bluegenes.sections.mymine.events :as evts]
+            [bluegenes.pages.mymine.events :as evts]
             [bluegenes.sections.mymine.subs :as subs]))
 
 (defmulti node (comp :file-type second))

@@ -1,4 +1,4 @@
-(ns bluegenes.sections.regions.views
+(ns bluegenes.pages.regions.views
   (:require [re-frame.core :refer [subscribe dispatch]]
             [reagent.core :as reagent]
             [bluegenes.sections.regions.graphs :as graphs]

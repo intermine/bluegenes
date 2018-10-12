@@ -1,4 +1,4 @@
-(ns bluegenes.sections.home.views
+(ns bluegenes.pages.home.views
   (:require [re-frame.core :as re-frame :refer [subscribe]]
             [bluegenes.sections.home.circles :as circles]))
 

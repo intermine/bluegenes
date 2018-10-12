@@ -1,4 +1,4 @@
-(ns bluegenes.sections.querybuilder.events
+(ns bluegenes.pages.querybuilder.events
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [re-frame.core :refer [reg-event-db reg-fx reg-event-fx dispatch]]
             [cljs.core.async :as a :refer [<! close! chan]]

@@ -2,7 +2,7 @@
   (:require [re-frame.core :refer [subscribe dispatch]]
             [reagent.core :as r]
             [oops.core :refer [ocall oset! oget]]
-            [bluegenes.sections.mymine.events :as evts]
+            [bluegenes.pages.mymine.events :as evts]
             [bluegenes.sections.mymine.subs :as subs]
             [clojure.string :as s]))
 

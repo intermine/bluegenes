@@ -1,4 +1,4 @@
-(ns bluegenes.sections.reportpage.views
+(ns bluegenes.pages.reportpage.views
   (:require [re-frame.core :as re-frame :refer [subscribe dispatch]]
             [reagent.core :as r]
             [bluegenes.sections.reportpage.components.summary :as summary]
