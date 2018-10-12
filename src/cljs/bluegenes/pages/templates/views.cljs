@@ -1,4 +1,4 @@
-(ns bluegenes.components.templates.views
+(ns bluegenes.pages.templates.views
   (:require [reagent.core :as reagent]
             [re-frame.core :refer [subscribe dispatch]]
             [accountant.core :refer [navigate!]]

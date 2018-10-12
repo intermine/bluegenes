@@ -1,4 +1,4 @@
-(ns bluegenes.sections.results.subs
+(ns bluegenes.pages.results.subs
   (:require-macros [reagent.ratom :refer [reaction]])
   (:require [re-frame.core :refer [reg-sub]]))
 

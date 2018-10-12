@@ -1,4 +1,4 @@
-(ns bluegenes.sections.regions.events
+(ns bluegenes.pages.regions.events
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [re-frame.core :refer [reg-event-db reg-event-fx reg-fx dispatch subscribe]]
             [imcljs.entity :as entity]

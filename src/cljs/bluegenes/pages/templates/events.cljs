@@ -1,4 +1,4 @@
-(ns bluegenes.components.templates.events
+(ns bluegenes.pages.templates.events
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [re-frame.core :refer [reg-event-db reg-event-fx reg-fx dispatch subscribe]]
             [re-frame.events]

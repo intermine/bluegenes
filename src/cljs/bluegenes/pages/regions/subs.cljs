@@ -1,4 +1,4 @@
-(ns bluegenes.sections.regions.subs
+(ns bluegenes.pages.regions.subs
   (:require-macros [reagent.ratom :refer [reaction]])
   (:require [re-frame.core :refer [reg-sub]]
             [imcljs.entity :as entity]))

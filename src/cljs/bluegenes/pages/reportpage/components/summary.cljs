@@ -1,4 +1,4 @@
-(ns bluegenes.sections.reportpage.components.summary
+(ns bluegenes.pages.reportpage.components.summary
   (:require [re-frame.core :refer [subscribe dispatch]]
             [accountant.core :refer [navigate!]]))
 

@@ -1,6 +1,6 @@
 (ns bluegenes.pages.home.views
   (:require [re-frame.core :as re-frame :refer [subscribe]]
-            [bluegenes.sections.home.circles :as circles]))
+            [bluegenes.pages.home.circles :as circles]))
 
 (defn footer []
   (fn []

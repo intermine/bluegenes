@@ -3,7 +3,7 @@
             [reagent.core :as reagent]
             [bluegenes.components.table :as table]
             [bluegenes.components.loader :refer [mini-loader]]
-            [bluegenes.sections.results.subs]
+            [bluegenes.pages.results.subs]
             [imcljs.path :as path]
             [bluegenes.components.bootstrap :refer [popover poppable tooltip]]
             [clojure.string :refer [split]]

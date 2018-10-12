@@ -1,3 +1,3 @@
 (ns bluegenes.pages.templates.core
-  (:require [bluegenes.components.templates.events]
-            [bluegenes.components.templates.subs]))
+  (:require [bluegenes.pages.templates.events]
+            [bluegenes.pages.templates.subs]))

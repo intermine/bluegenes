@@ -1,13 +1,13 @@
 (ns bluegenes.pages.reportpage.views
   (:require [re-frame.core :as re-frame :refer [subscribe dispatch]]
             [reagent.core :as r]
-            [bluegenes.sections.reportpage.components.summary :as summary]
+            [bluegenes.pages.reportpage.components.summary :as summary]
             [bluegenes.components.table :as table]
             [bluegenes.components.lighttable :as lighttable]
             [bluegenes.components.loader :refer [loader]]
-            [bluegenes.sections.reportpage.components.minelinks :as minelinks]
+            [bluegenes.pages.reportpage.components.minelinks :as minelinks]
             [accountant.core :refer [navigate!]]
-            [bluegenes.sections.reportpage.subs :as subs]
+            [bluegenes.pages.reportpage.subs :as subs]
             [im-tables.views.core :as im-table]
             [imcljs.path :as im-path]))
 

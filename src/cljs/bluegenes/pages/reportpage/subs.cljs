@@ -1,4 +1,4 @@
-(ns bluegenes.sections.reportpage.subs
+(ns bluegenes.pages.reportpage.subs
   (:require [re-frame.core :refer [reg-sub]]
             [imcljs.path :as im-path]))
 

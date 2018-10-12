@@ -1,9 +1,9 @@
-(ns bluegenes.sections.regions.graphs
+(ns bluegenes.pages.regions.graphs
   (:require [re-frame.core :refer [subscribe dispatch]]
             [reagent.core :as reagent]
             [bluegenes.components.table :as table]
-            [bluegenes.sections.regions.events]
-            [bluegenes.sections.regions.subs]
+            [bluegenes.pages.regions.events]
+            [bluegenes.pages.regions.subs]
             [bluegenes.components.imcontrols.views :as im-controls]
             [bluegenes.components.bootstrap :refer [popover tooltip]]
             [clojure.string :refer [split]]

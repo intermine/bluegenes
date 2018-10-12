@@ -8,7 +8,7 @@
             [bluegenes.components.search.views :as search]
             [bluegenes.effects]
             [bluegenes.pages.reportpage.views :as reportpage]
-            [bluegenes.components.templates.views :as templates]
+            [bluegenes.pages.templates.views :as templates]
             [bluegenes.pages.querybuilder.views :as qb]
             [bluegenes.pages.mymine.views.main :as mymine]
             [bluegenes.components.ui.alerts :as alerts]

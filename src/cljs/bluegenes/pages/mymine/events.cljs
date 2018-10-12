@@ -7,7 +7,7 @@
             [imcljs.save :as save]
             [bluegenes.effects :as fx]
             [clojure.string :as s]
-            [bluegenes.sections.mymine.subs :as subs]
+            [bluegenes.pages.mymine.subs :as subs]
             [oops.core :refer [ocall]]
             [clojure.walk :as walk]
             [cljs-uuid-utils.core :refer [make-random-uuid]]))

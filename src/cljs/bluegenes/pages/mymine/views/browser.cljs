@@ -3,7 +3,7 @@
             [reagent.core :as r]
             [oops.core :refer [oget ocall]]
             [bluegenes.pages.mymine.events :as evts]
-            [bluegenes.sections.mymine.subs :as subs]))
+            [bluegenes.pages.mymine.subs :as subs]))
 
 (defmulti node (comp :file-type second))
 

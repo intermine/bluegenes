@@ -1,4 +1,4 @@
-(ns bluegenes.sections.home.circles
+(ns bluegenes.pages.home.circles
   (:require [re-frame.core :as re-frame]
             [bluegenes.components.search.typeahead :as search]
             [accountant.core :refer [navigate!]]))

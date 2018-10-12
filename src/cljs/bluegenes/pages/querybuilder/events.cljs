@@ -8,7 +8,8 @@
             [imcljs.query :refer [->xml]]
             [clojure.set :refer [difference]]
             [cljs.reader :as reader]
-            [bluegenes.sections.querybuilder.logic :refer [read-logic-string remove-code vec->list append-code]]
+            [bluegenes.pages.querybuilder.logic
+             :refer [read-logic-string remove-code vec->list append-code]]
             [clojure.string :refer [join split blank?]]))
 
 (def loc [:qb :qm])

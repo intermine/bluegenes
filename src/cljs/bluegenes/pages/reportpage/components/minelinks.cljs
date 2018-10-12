@@ -1,4 +1,4 @@
-(ns bluegenes.sections.reportpage.components.minelinks
+(ns bluegenes.pages.reportpage.components.minelinks
   (:require-macros [cljs.core.async.macros :refer [go]])
    (:require [re-frame.core :as re-frame :refer [subscribe]]
      [cljs.core.async :refer [put! chan <! >! timeout close!]]

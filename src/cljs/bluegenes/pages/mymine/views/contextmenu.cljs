@@ -2,7 +2,7 @@
   (:require [re-frame.core :refer [subscribe dispatch]]
             [reagent.core :as r]
             [bluegenes.pages.mymine.events :as evts]
-            [bluegenes.sections.mymine.subs :as subs]
+            [bluegenes.pages.mymine.subs :as subs]
             [oops.core :refer [ocall]]))
 
 (defn tag-context-menu []

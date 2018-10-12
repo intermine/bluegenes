@@ -1,4 +1,4 @@
-(ns bluegenes.sections.querybuilder.logic
+(ns bluegenes.pages.querybuilder.logic
   (:require [re-frame.core :refer [subscribe dispatch]]
             [clojure.string :refer [split join blank? starts-with? ends-with?]]
             [oops.core :refer [ocall oget]]

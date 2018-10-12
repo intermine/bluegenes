@@ -2,7 +2,7 @@
   (:require [re-frame.core :refer [subscribe dispatch]]
             [reagent.core :as r]
             [oops.core :refer [oget ocall]]
-            [bluegenes.sections.mymine.views.mymine :as mymine]))
+            [bluegenes.pages.mymine.views.mymine :as mymine]))
 
 
 
