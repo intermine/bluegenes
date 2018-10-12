@@ -1,4 +1,4 @@
-(ns bluegenes.sections.mymine.views.contextmenu
+(ns bluegenes.pages.mymine.views.contextmenu
   (:require [re-frame.core :refer [subscribe dispatch]]
             [reagent.core :as r]
             [bluegenes.pages.mymine.events :as evts]

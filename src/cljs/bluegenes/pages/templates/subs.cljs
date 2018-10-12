@@ -1,7 +1,7 @@
 (ns bluegenes.pages.templates.subs
   (:require-macros [reagent.ratom :refer [reaction]])
   (:require [re-frame.core :as re-frame :refer [reg-sub]]
-            [bluegenes.components.templates.helpers :as template-helpers]))
+            [bluegenes.pages.templates.helpers :as template-helpers]))
 
 (defn template-contains-string?
   "Return true if a template's description contains a string"

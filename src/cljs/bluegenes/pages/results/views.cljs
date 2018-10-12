@@ -4,7 +4,7 @@
             [bluegenes.components.table :as table]
             [bluegenes.pages.results.events]
             [bluegenes.pages.results.subs]
-            [bluegenes.components.enrichment.views :as enrichment]
+            [bluegenes.pages.results.enrichment.views :as enrichment]
             [bluegenes.components.bootstrap :refer [popover tooltip]]
             [clojure.string :refer [split]]
             [oops.core :refer [oget oget+ ocall oset!]]

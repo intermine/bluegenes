@@ -6,7 +6,7 @@
             [clojure.string :refer [split]]
             [clojure.walk :refer [postwalk]]
             [oops.core :refer [ocall]]
-            [bluegenes.sections.mymine.listsubs]))
+            [bluegenes.pages.mymine.listsubs]))
 
 ; Thanks!
 ; https://groups.google.com/forum/#!topic/clojure/VVVa3TS15pU

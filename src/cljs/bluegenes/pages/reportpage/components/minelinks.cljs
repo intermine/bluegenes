@@ -2,7 +2,7 @@
   (:require-macros [cljs.core.async.macros :refer [go]])
    (:require [re-frame.core :as re-frame :refer [subscribe]]
      [cljs.core.async :refer [put! chan <! >! timeout close!]]
-     [bluegenes.sections.reportpage.components.homologues :refer [homologues]]
+     [bluegenes.pages.reportpage.components.homologues :refer [homologues]]
      [bluegenes.components.loader :refer [mini-loader]]
      [reagent.core :as reagent]
     )

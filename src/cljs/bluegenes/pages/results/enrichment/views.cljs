@@ -1,4 +1,4 @@
-(ns bluegenes.components.enrichment.views
+(ns bluegenes.pages.results.enrichment.views
   (:require [re-frame.core :refer [subscribe dispatch]]
             [reagent.core :as reagent]
             [bluegenes.components.table :as table]

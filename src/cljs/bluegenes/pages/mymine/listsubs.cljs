@@ -1,4 +1,4 @@
-(ns bluegenes.sections.mymine.listsubs
+(ns bluegenes.pages.mymine.listsubs
   (:require-macros [reagent.ratom :refer [reaction]])
   (:require [re-frame.core :refer [reg-sub]]
             [clojure.string :refer [upper-case]]

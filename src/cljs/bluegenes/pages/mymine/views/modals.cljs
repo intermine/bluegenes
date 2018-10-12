@@ -1,4 +1,4 @@
-(ns bluegenes.sections.mymine.views.modals
+(ns bluegenes.pages.mymine.views.modals
   (:require [re-frame.core :refer [subscribe dispatch]]
             [reagent.core :as r]
             [oops.core :refer [ocall oset! oget]]

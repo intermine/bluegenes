@@ -1,4 +1,4 @@
-(ns bluegenes.components.templates.helpers
+(ns bluegenes.pages.templates.helpers
   (:require [reagent.core :as reagent]
             [re-frame.core :as re-frame :refer [subscribe dispatch]]))
 

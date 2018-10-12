@@ -9,8 +9,8 @@
             [bluegenes.pages.mymine.events :as evts]
             [bluegenes.pages.mymine.subs :as subs]
             [inflections.core :as inf]
-            [bluegenes.sections.mymine.views.modals :as modals]
-            [bluegenes.sections.mymine.views.contextmenu :as m])
+            [bluegenes.pages.mymine.views.modals :as modals]
+            [bluegenes.pages.mymine.views.contextmenu :as m])
 
   (:import
     (goog.i18n NumberFormat)

@@ -1,4 +1,4 @@
-(ns bluegenes.sections.reportpage.components.homologues
+(ns bluegenes.pages.reportpage.components.homologues
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require
     [re-frame.core :refer [subscribe]]
