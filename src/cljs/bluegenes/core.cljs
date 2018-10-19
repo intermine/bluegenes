@@ -9,7 +9,7 @@
             [bluegenes.routes :as routes]
             [bluegenes.views :as views]
             [bluegenes.config :as config]
-            [bluegenes.components.templates.core]
+            [bluegenes.pages.templates.core]
             [cljsjs.google-analytics]
             [accountant.core :refer [navigate!]]
             [oops.core :refer [oget oset! ocall oapply ocall! oapply!

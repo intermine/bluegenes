@@ -38,7 +38,7 @@
            (assoc-in [:mines (:id @(subscribe [:current-mine])) :service :token] token))
    :dispatch-n [[:assets/fetch-lists]
                 ; TODO - remove tags
-                #_[:bluegenes.sections.mymine.events/fetch-tree]
+                #_[:bluegenes.pages.mymine.events/fetch-tree]
                 ]})
 
 (defn login-failure-fn
