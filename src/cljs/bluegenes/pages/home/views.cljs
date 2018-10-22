@@ -8,7 +8,7 @@
      [:div
       [:p "Powered by: "
        [:a {:href "nope"}
-        [:img {:width "120px" :src "https://cdn.rawgit.com/intermine/design-materials/master/logos/intermine/intermine.png"}]]]
+        [:img {:width "120px" :src "https://raw.githubusercontent.com/intermine/design-materials/master/logos/intermine/intermine.png"}]]]
       [:a {:href "nope"} "Cite"]
       [:a {:href "nope"} "Contact"]
       [:a {:href "nope"} "Blog"]]
