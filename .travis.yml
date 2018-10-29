@@ -8,6 +8,5 @@ before_script:
 
 script:
   - npm install
-  - bower install
   - lein less once
   - lein cljsbuild once min
