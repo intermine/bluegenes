@@ -16,8 +16,7 @@
                          (if @selected?
                            (dispatch [:search/deselect-result result])
                            (dispatch [:search/select-result result])))
-             :name "keyword-search"}
-     ]))
+             :name "keyword-search"}]))
 
 (defn set-selected! [row-data elem]
   "selects an item and navigates there. "
@@ -54,8 +53,8 @@
           [:span string [:span.searchterm term]]) (butlast broken-string))
    (cond ;;special case: if both strings are empty, the entire string was the term in question
      (and ;;so we need to wrap it in searchterm and return the term
-       (clojure.string/blank? (last broken-string))
-       (clojure.string/blank? (first broken-string)))
+      (clojure.string/blank? (last broken-string))
+      (clojure.string/blank? (first broken-string)))
      [:span.searchterm term])
    ;;finally, we need to output the last term, without appending anything to it.
    [:span (last broken-string)]])
@@ -75,8 +74,8 @@
       [:span string])))
 
 (defmulti result-row
-          "Result-row outputs nicely formatted type-specific results for common types and has a default that just outputs all non id, type, and relevance fields."
-          (fn [row-data] (:type (:result row-data))))
+  "Result-row outputs nicely formatted type-specific results for common types and has a default that just outputs all non id, type, and relevance fields."
+  (fn [row-data] (:type (:result row-data))))
 
 (defmethod result-row "Gene" [row-data]
   [row-structure row-data
@@ -131,5 +130,4 @@
 
         (doall (reduce (fn [my-list [k value]]
                          (if (and (not= k "name") (not= k "description"))
-                           (conj my-list [:li [:h6.default-description k] [:div.default-value value]]))) [:ul] details))
-        ])]))
+                           (conj my-list [:li [:h6.default-description k] [:div.default-value value]]))) [:ul] details))])]))

@@ -13,8 +13,8 @@
             [bluegenes.pages.mymine.views.contextmenu :as m])
 
   (:import
-    (goog.i18n NumberFormat)
-    (goog.i18n.NumberFormat Format)))
+   (goog.i18n NumberFormat)
+   (goog.i18n.NumberFormat Format)))
 
 (defn stop-prop [evt] (ocall evt :stopPropagation))
 
@@ -64,7 +64,6 @@
                           (dispatch [::evts/toggle-selected trail index])
                           (dispatch [::evts/toggle-selected trail index {:reset? true}]))))
    :on-context-menu (fn [evt]
-
 
                       (when-not (oget evt :nativeEvent :ctrlKey)
 
@@ -162,7 +161,6 @@
                                                                   :left (oget evt :pageX)
                                                                   :top (oget evt :pageY)})))})
 
-
 (defn droppable [trail]
   {:on-drag-end (fn [evt] (dispatch [::evts/drag-end trail]))
    :on-drag-over (fn [evt] (ocall evt :preventDefault) (dispatch [::evts/drag-over trail]))
@@ -176,18 +174,17 @@
       (let [has-child-folders? (> (count (filter #(= :folder (:file-type (second %))) children)) 0)]
         [:li
          (merge
-           {:on-click (fn [] (dispatch [::evts/set-focus trail]))
-            :class (cond
-                     (= trail @over) "draggingover"
-                     (= trail @focus) "active"
-                     :else nil)}
-           (menuable row)
-           (droppable trail))
+          {:on-click (fn [] (dispatch [::evts/set-focus trail]))
+           :class (cond
+                    (= trail @over) "draggingover"
+                    (= trail @focus) "active"
+                    :else nil)}
+          (menuable row)
+          (droppable trail))
          #_(merge {:on-click (fn [] (dispatch [::evts/set-focus trail]))
                    :on-context-menu (fn [evt]
 
                                       (when-not (oget evt :nativeEvent :ctrlKey)
-
 
                                         (do
                                           ; Prevent the browser from showing its context menu
@@ -279,9 +276,6 @@
          "New Tag"]
         [:div.extra]]])))
 
-
-
-
 (defn root-folder []
   (let [over  (subscribe [::subs/dragging-over])
         focus (subscribe [::subs/focus])]
@@ -323,16 +317,15 @@
       :root [root-folder f]
       [private-folder f])))
 
-
 (defn toggle-open [entry-id status evt]
   (ocall evt :stopPropagation)
   (dispatch [::evts/toggle-tag-open entry-id (not status)]))
 
 (defn is-active? [entry-id context-menu-target-atom cursor-atom dragging-over-atom]
   (or
-    (= entry-id (:entry-id @context-menu-target-atom))
-    (= entry-id (:entry-id @cursor-atom))
-    (= entry-id (:entry-id @dragging-over-atom))))
+   (= entry-id (:entry-id @context-menu-target-atom))
+   (= entry-id (:entry-id @cursor-atom))
+   (= entry-id (:entry-id @dragging-over-atom))))
 
 (defn show-caret? [sub-tags-atom]
   (if @sub-tags-atom 1 0))
@@ -342,8 +335,6 @@
                (ocall evt :stopPropagation)
                (dispatch [::evts/set-context-menu-target])
                (dispatch [::evts/set-cursor entity]))})
-
-
 
 (defn tag [{entry-id :entry-id}]
   (let [context-menu-target (subscribe [::subs/context-menu-target])
@@ -398,7 +389,6 @@
    :on-drop (fn [evt]
               (dispatch [::evts/dropping-on :bar]))})
 
-
 (defn tag-browser []
   (let [tags          (subscribe [::subs/sub-tags nil])
         dragging-over (subscribe [::subs/dragging-over])
@@ -414,11 +404,11 @@
                                    (sep-drag-events)
                                    {:class (when (and @dragging? (= :bar @dragging-over)) "separator-highlighted")})]]
             (conj
-              (if @authed?
-                (mapv
-                  (fn [t] ^{:key (str "tag-" (:entry-id t))} [tag t])
-                  (sort-by :label @tags))
-                [[:li.info [:svg.icon.icon-info [:use {:xlinkHref "#icon-info"}]] "Want to save your lists permanently? Click \"Log In\" (top right corner) to get started."]]))))))
+             (if @authed?
+               (mapv
+                (fn [t] ^{:key (str "tag-" (:entry-id t))} [tag t])
+                (sort-by :label @tags))
+               [[:li.info [:svg.icon.icon-info [:use {:xlinkHref "#icon-info"}]] "Want to save your lists permanently? Click \"Log In\" (top right corner) to get started."]]))))))
 
 (defn details-list []
   (fn [{:keys [description tags authorized name type source size title status id timestamp dateCreated]}]
@@ -434,8 +424,6 @@
       [:div.details.open
        [details-list @dets]])))
 
-
-
 (defn list-operations []
   (let [checked (subscribe [::subs/checked-ids])]
     (fn []
@@ -447,46 +435,43 @@
                                     :data-target "#myTestModal"}
                                    {})]
 
-         [:nav.nav-list-operations
-           [:ul
-            [:li {:class (when cant-perform? "disabled")}
-             [:a {:on-click (fn [] (when (not cant-perform?) (dispatch [::evts/copy-n])))}
-              "Duplicate " [:svg.icon.icon-duplicate [:use {:xlinkHref "#icon-duplicate"}]]]]
-            [:li {:class (when cant-perform? "disabled")}
-             [:a {:on-click (fn [] (when (not cant-perform?)
-                                     (dispatch [::evts/delete-lists])))}
-               "Delete " [:svg.icon.icon-bin [:use {:xlinkHref "#icon-bin"}]]]]
+        [:nav.nav-list-operations
+         [:ul
+          [:li {:class (when cant-perform? "disabled")}
+           [:a {:on-click (fn [] (when (not cant-perform?) (dispatch [::evts/copy-n])))}
+            "Duplicate " [:svg.icon.icon-duplicate [:use {:xlinkHref "#icon-duplicate"}]]]]
+          [:li {:class (when cant-perform? "disabled")}
+           [:a {:on-click (fn [] (when (not cant-perform?)
+                                   (dispatch [::evts/delete-lists])))}
+            "Delete " [:svg.icon.icon-bin [:use {:xlinkHref "#icon-bin"}]]]]
 
-            [:li {:class (when (empty? operation-properties) "disabled")}
-             [:a (merge
-                   operation-properties
-                   {:on-click (fn [] (when (not cant-operate?) (dispatch [::evts/set-modal :combine])))})
-              "Combine " [:svg.icon.icon-venn-combine.venn
-                                 [:use {:xlinkHref "#icon-venn-combine"}]]]]
+          [:li {:class (when (empty? operation-properties) "disabled")}
+           [:a (merge
+                operation-properties
+                {:on-click (fn [] (when (not cant-operate?) (dispatch [::evts/set-modal :combine])))})
+            "Combine " [:svg.icon.icon-venn-combine.venn
+                        [:use {:xlinkHref "#icon-venn-combine"}]]]]
 
-            [:li {:class (when (empty? operation-properties) "disabled")}
-             [:a (merge
-                   operation-properties
-                   {:on-click (fn [] (when (not cant-operate?) (dispatch [::evts/set-modal :intersect])))})
-               "Intersect " [:svg.icon.icon-venn-intersection.venn [:use {:xlinkHref "#icon-venn-intersection"}]]]]
-            [:li {:class (when (empty? operation-properties) "disabled")}
-             [:a (merge
-                   operation-properties
-                   {:on-click (fn [] (when (not cant-operate?) (dispatch [::evts/set-modal :difference])))})
-              "Difference " [:svg.icon.icon-venn-disjunction.venn
-                                    [:use {:xlinkHref "#icon-venn-disjunction"}]]]]
-            [:li {:class (when (empty? operation-properties) "disabled")}
-             [:a (merge
-                   operation-properties
-                   {:on-click (fn [] (when (not cant-operate?) (dispatch [::evts/set-modal :subtract])))})
-               "Subtract " [:svg.icon.icon-venn-difference.venn [:use {:xlinkHref "#icon-venn-difference"}]]]]
+          [:li {:class (when (empty? operation-properties) "disabled")}
+           [:a (merge
+                operation-properties
+                {:on-click (fn [] (when (not cant-operate?) (dispatch [::evts/set-modal :intersect])))})
+            "Intersect " [:svg.icon.icon-venn-intersection.venn [:use {:xlinkHref "#icon-venn-intersection"}]]]]
+          [:li {:class (when (empty? operation-properties) "disabled")}
+           [:a (merge
+                operation-properties
+                {:on-click (fn [] (when (not cant-operate?) (dispatch [::evts/set-modal :difference])))})
+            "Difference " [:svg.icon.icon-venn-disjunction.venn
+                           [:use {:xlinkHref "#icon-venn-disjunction"}]]]]
+          [:li {:class (when (empty? operation-properties) "disabled")}
+           [:a (merge
+                operation-properties
+                {:on-click (fn [] (when (not cant-operate?) (dispatch [::evts/set-modal :subtract])))})
+            "Subtract " [:svg.icon.icon-venn-difference.venn [:use {:xlinkHref "#icon-venn-difference"}]]]]
 
-            #_[:li {}
-               [:a {:on-click (fn [] (dispatch [::evts/fetch-tree]))}
-                [:span "Fetch " [:svg.icon.icon-venn-difference [:use {:xlinkHref "#icon-venn-difference"}]]]]]]]))))
-
-
-
+          #_[:li {}
+             [:a {:on-click (fn [] (dispatch [::evts/fetch-tree]))}
+              [:span "Fetch " [:svg.icon.icon-venn-difference [:use {:xlinkHref "#icon-venn-difference"}]]]]]]]))))
 
 (defn checked-card []
   (fn [{:keys [name id type] :as details}]
@@ -505,15 +490,14 @@
   (fn [labels]
     (if labels
 
-       (into [:ol.breadcrumb]
-             (map-indexed (fn [idx {:keys [label] :as entry}]
-                            (let [focused? (= idx (dec (count labels)))]
-                              [:li {:class (when focused? "active")
-                                    :on-click (fn [] (dispatch [::evts/set-cursor entry]))}
-                               [:h2 [:a label]]]))
-                          labels))
-       [:ol.breadcrumb [:li.active [:h2 [:a "All Items"]]]])))
-
+      (into [:ol.breadcrumb]
+            (map-indexed (fn [idx {:keys [label] :as entry}]
+                           (let [focused? (= idx (dec (count labels)))]
+                             [:li {:class (when focused? "active")
+                                   :on-click (fn [] (dispatch [::evts/set-cursor entry]))}
+                              [:h2 [:a label]]]))
+                         labels))
+      [:ol.breadcrumb [:li.active [:h2 [:a "All Items"]]]])))
 
 (defn checkbox [id]
   (let [checked-ids (subscribe [::subs/checked-ids])]
@@ -598,12 +582,10 @@
                             (.stopPropagation e)
                             (dispatch [::evts/view-list-results (assoc dets :source @source)]))} name]
            (when-not authorized
-             [:svg.icon.icon-globe {:style {:fill "#939393"}} [:use {:xlinkHref "#icon-globe"}]])
-           ]]
+             [:svg.icon.icon-globe {:style {:fill "#939393"}} [:use {:xlinkHref "#icon-globe"}]])]]
          [:div.col-2 [tag-container @hierarchy-trail]]
          [:div.col-1 {:class (str "tag-type type-" type)} type]
-         [:div.col-1.list-size size]
-         ]))))
+         [:div.col-1.list-size size]]))))
 
 (defn row [{:keys [im-obj-type] :as item}]
   (fn []
@@ -634,108 +616,101 @@
         selected-items-not-in-view (subscribe [::subs/selected-items-not-in-view])
         show-selected-pane?        (subscribe [::subs/show-selected-pane?])]
 
-
     (r/create-class
-      {:component-did-mount attach-hide-context-menu
-       :reagent-render
-       (fn []
+     {:component-did-mount attach-hide-context-menu
+      :reagent-render
+      (fn []
 
-         [:div.mymine.noselect
+        [:div.mymine.noselect
           ; TODO - remove tags
-          #_[:div.file-browser [tag-browser]]
-          [:div.files
+         #_[:div.file-browser [tag-browser]]
+         [:div.files
           ;[:div.headerwithguidance [:h1 "My Data"]]
-           [list-operations]
-           (when @show-selected-pane?
-             [:div.top.shrink
-              (into [:div [:h3 "Selected items with other tags"]] (map-indexed (fn [idx x]
-                                                                 ^{:key (str "selected" (or (:entry-id x) (str (:im-obj-type x) (:im-obj-id x))))} [row (assoc x :index idx)]) @selected-items-not-in-view))])
-           [:div.bottom
+          [list-operations]
+          (when @show-selected-pane?
+            [:div.top.shrink
+             (into [:div [:h3 "Selected items with other tags"]] (map-indexed (fn [idx x]
+                                                                                ^{:key (str "selected" (or (:entry-id x) (str (:im-obj-type x) (:im-obj-id x))))} [row (assoc x :index idx)]) @selected-items-not-in-view))])
+          [:div.bottom
             ; TODO - remove tags
-            #_[breadcrumb @cursor-trail]
-            (let [just-files (not-empty (filter (comp (partial not= "tag") :im-obj-type) @cursor-items))]
-              (if just-files
-                (into [:div] (map-indexed (fn [idx x]
-                                            ^{:key (str (or (:entry-id x) (str (:im-obj-type x) (:im-obj-id x))))} [row (assoc x :index idx)]) @cursor-items))
-                #_[:table.table.mymine-table
-                   [:thead
-                    [:tr
-                     [:th ""]
-                     [table-header {:label "Name"
-                                    :key :label
-                                    :type :alphanum
-                                    :sort-by @sort-by}]
-                     [:th ""]
-                     [table-header {:label "Type"
-                                    :key :type
-                                    :type :alphanum
-                                    :sort-by @sort-by}]
-                     [table-header {:label "Size"
-                                    :key :size
-                                    :type :alphanum
-                                    :sort-by @sort-by}]
-                     [table-header {:label "Last Modified"
-                                    :key :dateCreated
-                                    :type :date
-                                    :sort-by @sort-by}]]]
+           #_[breadcrumb @cursor-trail]
+           (let [just-files (not-empty (filter (comp (partial not= "tag") :im-obj-type) @cursor-items))]
+             (if just-files
+               (into [:div] (map-indexed (fn [idx x]
+                                           ^{:key (str (or (:entry-id x) (str (:im-obj-type x) (:im-obj-id x))))} [row (assoc x :index idx)]) @cursor-items))
+               #_[:table.table.mymine-table
+                  [:thead
+                   [:tr
+                    [:th ""]
+                    [table-header {:label "Name"
+                                   :key :label
+                                   :type :alphanum
+                                   :sort-by @sort-by}]
+                    [:th ""]
+                    [table-header {:label "Type"
+                                   :key :type
+                                   :type :alphanum
+                                   :sort-by @sort-by}]
+                    [table-header {:label "Size"
+                                   :key :size
+                                   :type :alphanum
+                                   :sort-by @sort-by}]
+                    [table-header {:label "Last Modified"
+                                   :key :dateCreated
+                                   :type :date
+                                   :sort-by @sort-by}]]]
 
-                   (into [:tbody]
-                         (map-indexed (fn [idx x]
-                                        ^{:key (str (or (:entry-id x) (str (:im-obj-type x) (:im-obj-id x))))} [row (assoc x :index idx)]) @cursor-items))]
+                  (into [:tbody]
+                        (map-indexed (fn [idx x]
+                                       ^{:key (str (or (:entry-id x) (str (:im-obj-type x) (:im-obj-id x))))} [row (assoc x :index idx)]) @cursor-items))]
 
+               [:h4 "Empty Folder"]))
 
-                [:h4 "Empty Folder"]))
+           #_(let [just-files (not-empty (filter (comp (partial not= "tag") :im-obj-type) @cursor-items))]
+               (if just-files
+                 [:table.table.mymine-table
+                  [:thead
+                   [:tr
+                    [:th ""]
+                    [table-header {:label "Name"
+                                   :key :label
+                                   :type :alphanum
+                                   :sort-by @sort-by}]
+                    [:th ""]
+                    [table-header {:label "Type"
+                                   :key :type
+                                   :type :alphanum
+                                   :sort-by @sort-by}]
+                    [table-header {:label "Size"
+                                   :key :size
+                                   :type :alphanum
+                                   :sort-by @sort-by}]
+                    [table-header {:label "Last Modified"
+                                   :key :dateCreated
+                                   :type :date
+                                   :sort-by @sort-by}]]]
 
+                  (into [:tbody]
+                        (map-indexed (fn [idx x]
+                                       ^{:key (str (or (:entry-id x) (str (:im-obj-type x) (:im-obj-id x))))} [row (assoc x :index idx)]) @selected-items))]
 
-            #_(let [just-files (not-empty (filter (comp (partial not= "tag") :im-obj-type) @cursor-items))]
-                (if just-files
-                  [:table.table.mymine-table
-                   [:thead
-                    [:tr
-                     [:th ""]
-                     [table-header {:label "Name"
-                                    :key :label
-                                    :type :alphanum
-                                    :sort-by @sort-by}]
-                     [:th ""]
-                     [table-header {:label "Type"
-                                    :key :type
-                                    :type :alphanum
-                                    :sort-by @sort-by}]
-                     [table-header {:label "Size"
-                                    :key :size
-                                    :type :alphanum
-                                    :sort-by @sort-by}]
-                     [table-header {:label "Last Modified"
-                                    :key :dateCreated
-                                    :type :date
-                                    :sort-by @sort-by}]]]
+                 [:h4 "Empty Folder"]))]]
 
-                   (into [:tbody]
-                         (map-indexed (fn [idx x]
-                                        ^{:key (str (or (:entry-id x) (str (:im-obj-type x) (:im-obj-id x))))} [row (assoc x :index idx)]) @selected-items))]
-
-
-                  [:h4 "Empty Folder"]))]]
-
-
-          #_(when true #_(not-empty @checked)
-              [modals/list-operations-commutative
-               {:title "Combine Lists"
-                :body "The new list will contain items from all selected lists"}])
+         #_(when true #_(not-empty @checked)
+                 [modals/list-operations-commutative
+                  {:title "Combine Lists"
+                   :body "The new list will contain items from all selected lists"}])
           ;[checked-panel]
 
 
+         [modals/modal-list-operations @modal-kw]
 
-
-          [modals/modal-list-operations @modal-kw]
-
-          [modals/modal @context-menu-target]
-          [modals/modal-copy @context-menu-target]
-          [modals/modal-delete-item @context-menu-target]
-          [modals/modal-new-folder @context-menu-target]
-          [modals/modal-delete-folder @context-menu-target]
-          [modals/modal-lo @context-menu-target]
-          [modals/modal-lo-intersect @context-menu-target]
-          [modals/modal-rename-list @context-menu-target]
-          [m/context-menu-container @context-menu-target]])})))
+         [modals/modal @context-menu-target]
+         [modals/modal-copy @context-menu-target]
+         [modals/modal-delete-item @context-menu-target]
+         [modals/modal-new-folder @context-menu-target]
+         [modals/modal-delete-folder @context-menu-target]
+         [modals/modal-lo @context-menu-target]
+         [modals/modal-lo-intersect @context-menu-target]
+         [modals/modal-rename-list @context-menu-target]
+         [m/context-menu-container @context-menu-target]])})))

@@ -65,5 +65,5 @@
        [:pre (str @selected)]
        [:div.col-sm-6
         (into
-          [:ul.mymine-browser]
-          (map (fn [x] [leaf x]) @my-tree))]])))
+         [:ul.mymine-browser]
+         (map (fn [x] [leaf x]) @my-tree))]])))

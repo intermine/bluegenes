@@ -17,16 +17,16 @@
   Also functions for exporting in various formats
   "
   (:require
-    [dommy.core :as dommy :refer-macros [sel sel1]]
-    [cognitect.transit :as t]))
+   [dommy.core :as dommy :refer-macros [sel sel1]]
+   [cognitect.transit :as t]))
 
 (defn merge-state [state other-state except-paths]
   (merge state
-    (reduce
-      (fn [r p]
-        (assoc-in r p (get-in state p)))
-      other-state
-      except-paths)))
+         (reduce
+          (fn [r p]
+            (assoc-in r p (get-in state p)))
+          other-state
+          except-paths)))
 
 (defn to-transit [state]
   (t/write (t/writer :json-verbose) state))
@@ -45,12 +45,12 @@
   ([]
    (get-state! {} []))
   ([state]
-    (get-state! state []))
+   (get-state! state []))
   ([state paths]
-    (merge-state state
-      (t/read (t/reader :json)
-        (js/localStorage.getItem "bluegenes/state"))
-      paths)))
+   (merge-state state
+                (t/read (t/reader :json)
+                        (js/localStorage.getItem "bluegenes/state"))
+                paths)))
 
 (defn merge-state-from-file [state file]
   (merge state (t/read (t/reader :json) file)))
@@ -60,23 +60,21 @@
   as a file locally to be saved on the user's
   magnetic disk-drive storage medium"
   ([tipe naym contents]
-    (let [
-          a (.createElement js/document "a")
-          f (js/Blob. (clj->js [contents]) {:type (name tipe)})
-          ]
-      (set! (.-href a) (.createObjectURL js/URL f))
-      (set! (.-download a) (str naym "." (name tipe)))
-      (println "<a>" a)
-      (.dispatchEvent a (js/MouseEvent. "click")))))
+   (let [a (.createElement js/document "a")
+         f (js/Blob. (clj->js [contents]) {:type (name tipe)})]
+     (set! (.-href a) (.createObjectURL js/URL f))
+     (set! (.-download a) (str naym "." (name tipe)))
+     (println "<a>" a)
+     (.dispatchEvent a (js/MouseEvent. "click")))))
 
 (defn make-filename [s]
   (str (get-in s [:msas (:selected-msa s) :name]) "-" (:selected-msa s) ".dg"))
 
 (defn load! [s]
   (-> (sel1 :#file_button) .click)
-   s)
+  s)
 
 (defn save! [s]
   (download! "JSON"
-    (make-filename s)
-    (to-transit s)) s)
+             (make-filename s)
+             (to-transit s)) s)

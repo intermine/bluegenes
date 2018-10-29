@@ -41,12 +41,10 @@
   unless the keys are words that indicate options, specifically text and caseSensitive"
   [{:keys [multipart-params] :as req}]
   ; An example request that contains files, plaintext, and options:
-  (comment {:multipart-params [
-                               ["file1.txt" {:filename "file1.txt" :content-type "text/plain" :tempfile "d80sd08d"}]
+  (comment {:multipart-params [["file1.txt" {:filename "file1.txt" :content-type "text/plain" :tempfile "d80sd08d"}]
                                ["file2.txt" {:filename "file2.txt" :content-type "text/plain" :tempfile "3hjdgou3"}]
                                ["text" "Eve thor zen fkh batman"]
-                               ["caseSensitive" "true"]
-                               ]})
+                               ["caseSensitive" "true"]]})
   (let [; Remove the multipart form fields that are "option" flags
         files (apply dissoc multipart-params multipart-options)
         ; Any text to be parsed from a string should be passed as the "text" multipart parameter

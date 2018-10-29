@@ -15,8 +15,8 @@
   "returns true is the result should be considered 'active' - e.g. if there is no filter at all, or if the result matches the active filter type."
   (if-let [af (:active-filter @(subscribe [:search/full-results]))]
     (or
-      (= (name (:active-filter @(subscribe [:search/full-results]))) (:type result))
-      (nil? (:active-filter @(subscribe [:search/full-results]))))
+     (= (name (:active-filter @(subscribe [:search/full-results]))) (:type result))
+     (nil? (:active-filter @(subscribe [:search/full-results]))))
     true))
 
 (defn count-total-results [state]
@@ -26,9 +26,9 @@
 (defn count-current-results []
   "returns number of results currently shown, taking into account result limits nd filters"
   (count
-    (remove
-      (fn [result]
-        (not (is-active-result? result))) (:results @(subscribe [:search/full-results])))))
+   (remove
+    (fn [result]
+      (not (is-active-result? result))) (:results @(subscribe [:search/full-results])))))
 
 (defn results-count []
   "Visual component: outputs the number of results shown."
@@ -94,9 +94,9 @@
 (defn main []
   (let [global-search-term (re-frame/subscribe [:search-term])]
     (reagent/create-class
-      {:reagent-render
-       (fn render []
-         [search-form global-search-term])
-       :component-will-mount (fn [this]
-                               (cond (some? @global-search-term)
-                                     (dispatch [:search/full-search])))})))
+     {:reagent-render
+      (fn render []
+        [search-form global-search-term])
+      :component-will-mount (fn [this]
+                              (cond (some? @global-search-term)
+                                    (dispatch [:search/full-search])))})))

@@ -14,11 +14,9 @@
       [:a {:href "nope"} "Blog"]]
      [:div [:p "Funded by:"]
       [:a {:href "nope"} "Wellcome Trust"]
-      [:a {:href "nope"} "NIH"]
-      ]]))
+      [:a {:href "nope"} "NIH"]]]))
 
 (defn main []
   (fn []
     [:div.approot
-     [circles/main-panel]
-     ]))
+     [circles/main-panel]]))

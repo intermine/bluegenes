@@ -11,22 +11,21 @@
             [im-tables.views.core :as im-table]
             [imcljs.path :as im-path]))
 
-
 (defn tbl [{:keys [loc]}]
   (let [data (subscribe [::subs/a-table loc])]
     (r/create-class
-      {:component-did-mount (fn [this]
-                              (let [{:keys [loc path constraint] :as data} (r/props this)]
-                                (dispatch [:im-tables/load loc (dissoc data :loc)])))
-       :reagent-render (fn [{:keys [loc title all]}]
-                         (fn []
-                           (let [result-count (get-in @data [:response :iTotalRecords])]
-                             [:div
-                              [:h3 (str title (when result-count (str " (" result-count ")")))]
-                              (if (= 0 result-count)
-                                [:div "No Results"]
-                                [:div {:style {:background-color "white"}}
-                                 [im-table/main loc]])])))})))
+     {:component-did-mount (fn [this]
+                             (let [{:keys [loc path constraint] :as data} (r/props this)]
+                               (dispatch [:im-tables/load loc (dissoc data :loc)])))
+      :reagent-render (fn [{:keys [loc title all]}]
+                        (fn []
+                          (let [result-count (get-in @data [:response :iTotalRecords])]
+                            [:div
+                             [:h3 (str title (when result-count (str " (" result-count ")")))]
+                             (if (= 0 result-count)
+                               [:div "No Results"]
+                               [:div {:style {:background-color "white"}}
+                                [im-table/main loc]])])))})))
 
 (defn strip-class [s]
   (clojure.string/join "." (drop 1 (clojure.string/split s "."))))
@@ -46,8 +45,7 @@
         runnable-templates (subscribe [::subs/runnable-templates])]
     (fn []
       [:div.container.report
-       (let [
-             ; TODO Move the following heavy lifting to the events and subs:
+       (let [; TODO Move the following heavy lifting to the events and subs:
              collections (vals (get-in @model [:classes (keyword (:type @params)) :collections]))
              references (vals (get-in @model [:classes (keyword (:type @params)) :references]))
              non-empty-collections (filter (fn [c] (> (get-in @model [:classes (keyword (:referencedType c)) :count]) 0)) collections)

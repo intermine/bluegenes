@@ -15,7 +15,6 @@
           [:div.clearfix]]]
         [:span]))))
 
-
 (defn message
   "A message component that dismisses itself after 5 seconds
   Messages should be in the following format:
@@ -24,19 +23,19 @@
    }"
   []
   (r/create-class
-    {:component-did-mount (fn [this]
-                            (let [{:keys [id]} (r/props this)]
-                              (js/setTimeout
-                                  (fn []
-                                    (dispatch [:messages/remove id])) 5000)))
-     :reagent-render (fn [{:keys [markup style when id]}]
-                       [:div.alert.message
-                        {:class (str "alert-" (or style "info"))}
-                        [:span.markup markup]
-                        [:span.controls
-                         [:button.btn.btn-default.btn-xs.btn-raised
-                          {:on-click (fn [] (dispatch [:messages/remove id]))
-                           :style {:margin 0}} "X"]]])}))
+   {:component-did-mount (fn [this]
+                           (let [{:keys [id]} (r/props this)]
+                             (js/setTimeout
+                              (fn []
+                                (dispatch [:messages/remove id])) 5000)))
+    :reagent-render (fn [{:keys [markup style when id]}]
+                      [:div.alert.message
+                       {:class (str "alert-" (or style "info"))}
+                       [:span.markup markup]
+                       [:span.controls
+                        [:button.btn.btn-default.btn-xs.btn-raised
+                         {:on-click (fn [] (dispatch [:messages/remove id]))
+                          :style {:margin 0}} "X"]]])}))
 
 (defn messages
   "Creates a message bar on the bottom of the screen"

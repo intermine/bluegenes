@@ -13,7 +13,6 @@
             [accountant.core :refer [navigate!]]
             [oops.core :refer [oget ocall]]))
 
-
 (def css-transition-group
   (reagent/adapt-react-class js/React.addons.CSSTransitionGroup))
 
@@ -81,17 +80,17 @@
   "UI component allowing user to type in the regions they wish to search for"
   []
   (reagent/create-class
-    (let [to-search (subscribe [:regions/to-search])
-          results (subscribe [:regions/results])]
-      {:reagent-render
-       (fn []
-         [:textarea.form-control
-          {:rows (if @results 3 6)
-           :placeholder (str "Type chromosome coords here, or click [Show me an example] above.")
-           :value @to-search
-           :on-change (fn [e]
-                        (dispatch [:regions/set-to-search (oget e "target" "value")]))}])
-       :component-did-mount (fn [this] (.focus (reagent/dom-node this)))})))
+   (let [to-search (subscribe [:regions/to-search])
+         results (subscribe [:regions/results])]
+     {:reagent-render
+      (fn []
+        [:textarea.form-control
+         {:rows (if @results 3 6)
+          :placeholder (str "Type chromosome coords here, or click [Show me an example] above.")
+          :value @to-search
+          :on-change (fn [e]
+                       (dispatch [:regions/set-to-search (oget e "target" "value")]))}])
+      :component-did-mount (fn [this] (.focus (reagent/dom-node this)))})))
 
 (defn clear-textbox []
   "Interactive UI component to clear any entered text present in the region input textarea."
@@ -115,8 +114,7 @@
       [:use {:xlinkHref "#icon-question"}]]]]
    [:div.region-text
     [clear-textbox]
-    [region-input-box]]
-   ])
+    [region-input-box]]])
 
 (defn checkboxes
   "UI component ot allow user to select which types of overlapping features to find"
@@ -130,12 +128,10 @@
        {:title (if @all-selected? "Deselect all" "Select all")
         :on-click (if @all-selected?
                     #(dispatch [:regions/deselect-all-feature-types])
-                    #(dispatch [:regions/select-all-feature-types])
-                    )}
+                    #(dispatch [:regions/select-all-feature-types]))}
        (if @all-selected?
          [:svg.icon.icon-checkbox-checked [:use {:xlinkHref "#icon-checkbox-checked"}]]
-         [:svg.icon.icon-checkbox-unchecked [:use {:xlinkHref "#icon-checkbox-unchecked"}]])
-       ] "Features to include"]
+         [:svg.icon.icon-checkbox-unchecked [:use {:xlinkHref "#icon-checkbox-unchecked"}]])] "Features to include"]
      ;; having the container around the tree is important because the tree is recursive
      ;; and we know for sure that the container is the final parent! :)
      [:div.feature-tree-container
@@ -153,29 +149,26 @@
       [organism-selection]
       [:button.btn.btn-primary.btn-raised.fattysubmitbutton
        {:disabled (or
-                    (= "" @to-search)
-                    (= nil @to-search)
-                    (empty? (filter (fn [[name enabled?]] enabled?) (:feature-types @settings))))
+                   (= "" @to-search)
+                   (= nil @to-search)
+                   (empty? (filter (fn [[name enabled?]] enabled?) (:feature-types @settings))))
         :on-click (fn [e] (dispatch [:regions/run-query])
                     (ocall (oget e "target") "blur"))
         :title "Enter something into the 'Regions to search' box or click on [Show me an example], then click here! :)"}
-       "Search"]
-      ]
+       "Search"]]
      ; Results section
-     [checkboxes to-search settings]
-     ]))
+     [checkboxes to-search settings]]))
 
 (defn main []
   (reagent/create-class
-    {:component-did-mount #(dispatch [:regions/select-all-feature-types])
-     :reagent-render
-     (fn []
-       [:div.container.regionsearch
-        [:div.headerwithguidance
-         [:h1 "Region Search"]
-         [:a.guidance
-          {:on-click #(dispatch [:regions/set-to-search (ex)])}
-          "[Show me an example]"]]
-        [input-section]
-        [results-section]
-        ])}))
+   {:component-did-mount #(dispatch [:regions/select-all-feature-types])
+    :reagent-render
+    (fn []
+      [:div.container.regionsearch
+       [:div.headerwithguidance
+        [:h1 "Region Search"]
+        [:a.guidance
+         {:on-click #(dispatch [:regions/set-to-search (ex)])}
+         "[Show me an example]"]]
+       [input-section]
+       [results-section]])}))

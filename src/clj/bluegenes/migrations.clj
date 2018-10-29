@@ -21,9 +21,9 @@
   []
   (migratus/migrate
     ; Get our database configuration
-    (let [db-config (gather-db-config env)]
+   (let [db-config (gather-db-config env)]
       ; And build a configuration map used by Migratus
-      {:store :database
-       :migration-dir "migrations/"
-       :migration-table-name "migrations"
-       :db (migratusify-db-spec (gather-db-config env))})))
+     {:store :database
+      :migration-dir "migrations/"
+      :migration-table-name "migrations"
+      :db (migratusify-db-spec (gather-db-config env))})))
