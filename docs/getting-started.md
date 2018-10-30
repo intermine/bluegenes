@@ -4,13 +4,13 @@ You can run bluegenes locally for development purposes. Here's what the local se
 * Java 1.6+
 * [Leiningen 2.5+](https://leiningen.org/)
 * [node 7+][nodejs]  (you can check your version using `node -v`)
-* [Bower][bower]
+* [npm][npm]
 * **Required:** The InterMine you point BlueGenes at *must* be running InterMine 1.8 or later; ideally 2.0. 
 
 ### Download dependencies.
 
 ```
-bower install
+npm install
 ```
 
 ### Compile the CSS
@@ -60,7 +60,6 @@ Once you're happy with any edits you've made, you probably want to check that it
 
 
 [lein]: https://github.com/technomancy/leiningen
-[bower]: http://bower.io/
 [npm]: https://www.npmjs.com/
 [nodejs]: https://nodejs.org/
 
