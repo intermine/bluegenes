@@ -15,19 +15,19 @@
     true))
 
 (reg-sub
-  :lists/text-filter
-  (fn [db]
-    (get-in db [:lists :controls :filters :text-filter])))
+ :lists/text-filter
+ (fn [db]
+   (get-in db [:lists :controls :filters :text-filter])))
 
 (reg-sub
-  :lists/flag-filters
-  (fn [db]
-    (get-in db [:lists :controls :filters :flags])))
+ :lists/flag-filters
+ (fn [db]
+   (get-in db [:lists :controls :filters :flags])))
 
 (reg-sub
-  :lists/sort-order
-  (fn [db]
-    (get-in db [:lists :controls :sort])))
+ :lists/sort-order
+ (fn [db]
+   (get-in db [:lists :controls :sort])))
 
 (defn tag-check?
   "Does this list contain (or not contain) a particular tag?"
@@ -38,23 +38,22 @@
      (some? (f #{needle} (:tags haystack))))))
 
 (reg-sub
-  :lists/filtered-lists
-  :<- [:lists]
-  :<- [:lists/text-filter]
-  :<- [:lists/flag-filters]
-  :<- [:lists/sort-order]
-  (fn [[all-lists text-filter flag-filters sort-order] _]
+ :lists/filtered-lists
+ :<- [:lists]
+ :<- [:lists/text-filter]
+ :<- [:lists/flag-filters]
+ :<- [:lists/sort-order]
+ (fn [[all-lists text-filter flag-filters sort-order] _]
     ; Our lists are in a source map {:flymine '(list1 list2 list) :humanmine '(list1 list2 list)}
     ; so create a flattened collection where each list has a :source key
-    (let [all-lists-with-source
-          (reduce (fn [total [mine-kw lists]]
-                    (apply conj total (map (fn [list] (assoc list :source mine-kw)) lists)))
-                  [] all-lists)]
+   (let [all-lists-with-source
+         (reduce (fn [total [mine-kw lists]]
+                   (apply conj total (map (fn [list] (assoc list :source mine-kw)) lists)))
+                 [] all-lists)]
       ; Then apply any filters set by the user
-      (cond->> all-lists-with-source
-               text-filter (filter (partial has-text? text-filter))
-               (some? (:authorized flag-filters)) (filter #(= (:authorized %) (:authorized flag-filters)))
-               (some? (:favourite flag-filters)) (filter (partial tag-check? (:favourite flag-filters) "im:favourite"))
+     (cond->> all-lists-with-source
+       text-filter (filter (partial has-text? text-filter))
+       (some? (:authorized flag-filters)) (filter #(= (:authorized %) (:authorized flag-filters)))
+       (some? (:favourite flag-filters)) (filter (partial tag-check? (:favourite flag-filters) "im:favourite"))
                ;true (sort (apply comp (map build-comparer sort-order)))
-               true (sort-by :timestamp >)
-               ))))
+       true (sort-by :timestamp >)))))

@@ -18,12 +18,12 @@
 
 (defn main [_ & [expanded]]
   (reagent/create-class
-    (let [expanded? (reagent.core/atom expanded)]
-      {:component-did-mount  (partial handle expanded?)
-       :component-did-update (partial handle expanded?)
-       :reagent-render       (fn [{:keys [service query]}]
-                               [:div
-                                {:on-click #(reset! expanded? true)}
-                                (if @expanded?
-                                  [:div.imtables [:div.im-target]]
-                                  [:div (:title query)])])})))
+   (let [expanded? (reagent.core/atom expanded)]
+     {:component-did-mount  (partial handle expanded?)
+      :component-did-update (partial handle expanded?)
+      :reagent-render       (fn [{:keys [service query]}]
+                              [:div
+                               {:on-click #(reset! expanded? true)}
+                               (if @expanded?
+                                 [:div.imtables [:div.im-target]]
+                                 [:div (:title query)])])})))

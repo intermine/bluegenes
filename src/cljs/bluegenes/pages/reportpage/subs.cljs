@@ -46,10 +46,10 @@
                             (when-let [replaceable-indexes
                                        (not-empty (keep-indexed (fn [idx {:keys [path op editable :as constraint]}]
                                                                   (when
-                                                                    (and
-                                                                      (= op "LOOKUP")
-                                                                      (= report-item-type (name (im-path/class current-model path)))
-                                                                      (= editable true)) idx))
+                                                                   (and
+                                                                    (= op "LOOKUP")
+                                                                    (= report-item-type (name (im-path/class current-model path)))
+                                                                    (= editable true)) idx))
                                                                 where))]
 
                               ; When that list of indices is 1, aka we only have one constraint to change
@@ -66,6 +66,10 @@
                                                           :path (str constraint-path ".id")
                                                           :op "=")]))))))
                   ; And return just the vals
-                  (map last)))))
+                  (map
+
+
+
+                   last)))))
 
 

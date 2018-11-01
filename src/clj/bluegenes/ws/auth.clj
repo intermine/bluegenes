@@ -25,8 +25,8 @@
           whoami-with-token (assoc whoami :token token :mine-id (name mine-id))]
       ; Store the identity map in the session and return it to the user:
       (->
-        (response/ok whoami-with-token)
-        (assoc :session {:identity whoami-with-token})))
+       (response/ok whoami-with-token)
+       (assoc :session {:identity whoami-with-token})))
     (catch Exception e
       (let [{status :status body :body :as error} (ex-data e)]
         ; Parse the body of the bad request sent back from the IM server
@@ -38,5 +38,5 @@
                                  :error "Unable to reach remote server"})))))))
 
 (defroutes routes
-           (GET "/logout" session (logout))
-           (POST "/login" session handle-auth))
+  (GET "/logout" session (logout))
+  (POST "/login" session handle-auth))

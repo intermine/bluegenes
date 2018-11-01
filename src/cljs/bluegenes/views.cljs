@@ -17,10 +17,11 @@
             [bluegenes.pages.regions.views :as regions]
             [bluegenes.pages.help.views :as help]
             [accountant.core :refer [navigate!]]
-            [oops.core :refer [ocall oapply oget oset!]]
-            ))
+            [oops.core :refer [ocall oapply oget oset!]]))
 
 ;; about
+
+
 (enable-console-print!)
 
 (defn footer []
@@ -32,16 +33,16 @@
         [:img {:width "120px" :src "https://raw.githubusercontent.com/intermine/design-materials/c4716412/logos/intermine/intermine.png" :alt "InterMine"}]]]
       [:a {:href "https://intermineorg.wordpress.com/cite/"} "Cite"]
       [:a {:href "http://intermine.readthedocs.io/en/latest/about/contact-us/"} "Contact"]
-       [:a {:href "http://chat.intermine.org/" :target "_blank"} "Chat"]
+      [:a {:href "http://chat.intermine.org/" :target "_blank"} "Chat"]
       [:a {:href "https://intermineorg.wordpress.com/"} "Blog"]
-       [:a {:href "https://github.com/intermine/" :target "_blank"} "GitHub"] 
-       [:a {:on-click #(navigate! "/help")} [:svg.icon.icon-question [:use {:xlinkHref "#icon-question"}]] " Help"]]
+      [:a {:href "https://github.com/intermine/" :target "_blank"} "GitHub"]
+      [:a {:on-click #(navigate! "/help")} [:svg.icon.icon-question [:use {:xlinkHref "#icon-question"}]] " Help"]]
      [:div [:p "Funded by:"]
       [:a {:href "http://www.wellcome.ac.uk/" :target "_blank"} "Wellcome Trust"]
-      [:a {:href "https://www.nih.gov/" :target "_blank"} "NIH"]
-      ]]))
+      [:a {:href "https://www.nih.gov/" :target "_blank"} "NIH"]]]))
 
 ;; main
+
 
 (defmulti panels identity)
 (defmethod panels :home-panel [] [home/main])
@@ -66,7 +67,7 @@
         ;;note: I think we can do better than this loader - perhaps a static html first page
         first-blush-loader (ocall js/document "getElementById"  "wrappy")]
     (fn []
-      (cond first-blush-loader (ocall first-blush-loader "remove" ))
+      (cond first-blush-loader (ocall first-blush-loader "remove"))
       [:div.approot
        [icons/icons]
        [nav/main]

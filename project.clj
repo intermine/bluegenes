@@ -85,7 +85,8 @@
   :plugins [[lein-cljsbuild "1.1.7"]
             [lein-less "1.7.5"]
             [lein-ancient "0.6.14"]
-            [lein-pdo "0.1.1"]]
+            [lein-pdo "0.1.1"]
+            [lein-cljfmt "0.6.1"]]
 
   :aliases {"dev" ["do" "clean"
                    ["pdo" ["figwheel" "dev"]
@@ -94,7 +95,8 @@
             "build" ["do" "clean"
                      ["cljsbuild" "once" "min"]
                      ["less" "once"]]
-            "prod" ["do" "build" ["pdo" ["run"]]]}
+            "prod" ["do" "build" ["pdo" ["run"]]]
+            "format" ["cljfmt" "fix"]}
 
   :min-lein-version "2.8.1"
 

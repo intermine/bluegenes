@@ -13,11 +13,10 @@
 
 (defn navigate-to-full-results
   "Navigate to the full results page. duh." []
-    (navigate! "/search")
-    (cond
-      (some? @(subscribe [:search-term]))
-        (dispatch [:search/full-search])
-))
+  (navigate! "/search")
+  (cond
+    (some? @(subscribe [:search-term]))
+    (dispatch [:search/full-search])))
 
 (defn suggestion
   "The UI element and behaviour for a single suggestion in the dropdown" []
@@ -27,17 +26,16 @@
             parsed (clojure.string/split info (re-pattern (str "(?i)" @search-term)))]
         [:div.list-group-item.quicksearch-result
          {:on-mouse-down
-                 (fn [e]
-                   (let [clicked-button (.-button e)]
-                     (cond (= clicked-button 0) ;;left click only pls.
-                           (navigate-to-report item))))
+          (fn [e]
+            (let [clicked-button (.-button e)]
+              (cond (= clicked-button 0) ;;left click only pls.
+                    (navigate-to-report item))))
           :class (cond is-active? "active ")}
          [:div.row-content {:class (str "type type-" (:type item))}
           [:h4.list-group-item-heading (:type item)]
           (into
-            [:div.list-group-item-text]
-            (interpose [:span.highlight @search-term] (map (fn [part] [:span part]) parsed)))]
-         ]))))
+           [:div.list-group-item-text]
+           (interpose [:span.highlight @search-term] (map (fn [part] [:span part]) parsed)))]]))))
 
 (defn monitor-enter-key [e]
   (let [keycode          (.-charCode e)
@@ -56,8 +54,7 @@
           (navigate-to-full-results))
         ;; no matter what the result, stop showing the quicksearch when
         ;; we press enter, kthx.
-        (.blur (. e -target))))
-    ))
+        (.blur (. e -target))))))
 
 (defn monitor-arrow-keys
   "Navigate the dropdown suggestions if the user presses up or down" [e]
@@ -67,8 +64,7 @@
       (= keycode "ArrowUp")
       (dispatch [:search/move-selection :prev])
       (= keycode "ArrowDown")
-      (dispatch [:search/move-selection :next])
-      )))
+      (dispatch [:search/move-selection :next]))))
 
 (defn show-all-results
   "UI element within the dropdown to show all results." []
@@ -78,40 +74,37 @@
      {:on-mouse-down
       (fn [e] (let [clicked-button (.-button e)]
                 (cond (= clicked-button 0) ;;left click only pls.
-                      (navigate-to-full-results))))
-      }
+                      (navigate-to-full-results))))}
      [:div.list-group-item {:class (cond is-active? "active")}
-      [:h4 "Show all results"]]]
-    ))
+      [:h4 "Show all results"]]]))
 
 (defn main []
   (reagent/create-class
-    (let [results     (subscribe [:suggestion-results])
-          search-term (subscribe [:search-term])]
-      {:component-did-mount (fn [e]
-                              (let [node (reagent/dom-node e)]
-                                (-> node
-                                    (sel1 :input)
-                                    (dommy/listen! :focus (fn [] (dommy/add-class! node :open)))
-                                    (dommy/listen! :blur (fn [] (dommy/remove-class! node :open))))))
-       :reagent-render
-                            (fn []
-                              [:div.dropdown
-                               [:input.form-control.input-lg.square
-                                {:type         "text"
-                                 :value        @search-term
-                                 :placeholder  "Search"
-                                 :on-change    #(dispatch [:bounce-search (-> % .-target .-value)])
+   (let [results     (subscribe [:suggestion-results])
+         search-term (subscribe [:search-term])]
+     {:component-did-mount (fn [e]
+                             (let [node (reagent/dom-node e)]
+                               (-> node
+                                   (sel1 :input)
+                                   (dommy/listen! :focus (fn [] (dommy/add-class! node :open)))
+                                   (dommy/listen! :blur (fn [] (dommy/remove-class! node :open))))))
+      :reagent-render
+      (fn []
+        [:div.dropdown
+         [:input.form-control.input-lg.square
+          {:type         "text"
+           :value        @search-term
+           :placeholder  "Search"
+           :on-change    #(dispatch [:bounce-search (-> % .-target .-value)])
                                  ;Navigate to the main search results page if the user presses enter.
-                                 :on-key-press (fn [e] (monitor-enter-key e))
+           :on-key-press (fn [e] (monitor-enter-key e))
                                  ; Why is this separate from on-key-press, you ask? arrow keys don't trigger keypress events apparent. what meanies.
-                                 :on-key-up    (fn [e] (monitor-arrow-keys e))}]
-                               (if (> (count @results) 0)
-                                 [:div.dropdown-menu.quicksearch
-                                  [show-all-results]
-                                  (into [:div.list-group]
+           :on-key-up    (fn [e] (monitor-arrow-keys e))}]
+         (if (> (count @results) 0)
+           [:div.dropdown-menu.quicksearch
+            [show-all-results]
+            (into [:div.list-group]
 
-                                        (map-indexed (fn [index result] (let [active-selection (subscribe [:quicksearch-selected-index])
-                                                                              is-active?       (= index @active-selection)]
-                                                                          [suggestion result is-active?])) @results))
-                                  ])])})))
+                  (map-indexed (fn [index result] (let [active-selection (subscribe [:quicksearch-selected-index])
+                                                        is-active?       (= index @active-selection)]
+                                                    [suggestion result is-active?])) @results))])])})))

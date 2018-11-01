@@ -70,11 +70,11 @@
                                          (dispatch [:results/history+ {:source @current-mine
                                                                        :type :query
                                                                        :value (assoc
-                                                                                (build-matches-query
-                                                                                  (:pathQuery details)
-                                                                                  (:pathConstraint details)
-                                                                                  identifier)
-                                                                                :title identifier)}]))} description]}])]
+                                                                               (build-matches-query
+                                                                                (:pathQuery details)
+                                                                                (:pathConstraint details)
+                                                                                identifier)
+                                                                               :title identifier)}]))} description]}])]
          [:div.col-xs-3 [:span {:style {:font-size "0.8em"}} (.toExponential p-value 6)]]]]])))
 
 (defn has-text?
@@ -113,9 +113,9 @@
                          (swap! selected (comp set (partial remove #{v})))
                          (swap! selected conj v)))
             filtered-results (filter
-                               (fn [{:keys [description]}]
-                                 (has-text? @text-filter description))
-                               results)]
+                              (fn [{:keys [description]}]
+                                (has-text? @text-filter description))
+                              results)]
         [:div.sidebar-item
          [:h4 {:class (if (empty? results) "inactive")}
           (get-in @config [widget-name :title])
@@ -130,15 +130,15 @@
                                      {:source @current-mine
                                       :type :query
                                       :value (assoc
-                                               (build-matches-query
-                                                 (:pathQuery details)
-                                                 (:pathConstraint details)
-                                                 (or
+                                              (build-matches-query
+                                               (:pathQuery details)
+                                               (:pathConstraint details)
+                                               (or
                                                    ; Build a query for only the selected identifiers
-                                                   (not-empty @selected)
+                                                (not-empty @selected)
                                                    ; ... unless it's empty, then use all filtered identifiers
-                                                   (map :identifier filtered-results)))
-                                               :title "Enrichment Results")}]))}
+                                                (map :identifier filtered-results)))
+                                              :title "Enrichment Results")}]))}
              (if (empty? @selected) "View All" "View Selected")]])
          (cond (seq (:results details))
                [enrichment-results-header
