@@ -32,6 +32,7 @@
                          [:assets/fetch-widgets]
                          [:assets/fetch-summary-fields]
                          [:assets/fetch-intermine-version]
+                         [:assets/fetch-web-service-version]
                          ; If we have an identity then fetch the MyMine tags
                          ; TODO - remove tags
                          #_(when ident [:bluegenes.pages.mymine.events/fetch-tree])]}
@@ -44,9 +45,12 @@
                      :assets/success-fetch-templates
                      :assets/success-fetch-summary-fields
                      :assets/success-fetch-widgets
-                     :assets/success-fetch-intermine-version]
+                     :assets/success-fetch-intermine-version
+                     :assets/success-fetch-web-service-version]
             ; Then finished setting up BlueGenes
-            :dispatch-n [; Start Google Analytics
+            :dispatch-n [; Verify InterMine web service version
+                         [:verify-web-service-version]
+                         ; Start Google Analytics
                          [:start-analytics]
                          ; Set a flag that all assets are fetched (unqueues URL routing)
                          [:finished-loading-assets]
@@ -180,6 +184,19 @@
     {:db (assoc db :fetching-assets? false)
      :dispatch-n [[:cache/fetch-organisms]
                   [:regions/select-all-feature-types]]}))
+
+(reg-event-fx
+  :verify-web-service-version
+  (fn [{db :db}]
+    (let [mine (get db :current-mine)
+          version (js/Number (get-in db [:assets :web-service-version mine]))]
+      (when (and (< version 26)
+                 (not (zero? version)))
+                 ;; In case the web-service-version is an empty string
+        (js/alert (str "You are using an outdated InterMine WebService version: "
+                       version
+                       ". Unexpected behaviour may occur. We recommend updating to version 26 or above."))))
+    {:db db}))
 
 (reg-event-fx
   :start-analytics
@@ -318,3 +335,15 @@
   :assets/success-fetch-intermine-version
   (fn [db [_ mine-kw version]]
     (assoc-in db [:assets :intermine-version mine-kw] version)))
+
+(reg-event-fx
+  :assets/fetch-web-service-version
+  (fn [{db :db}]
+    {:im-chan
+     {:chan (fetch/version-web-service (get-in db [:mines (:current-mine db) :service]))
+      :on-success [:assets/success-fetch-web-service-version (:current-mine db)]}}))
+
+(reg-event-db
+  :assets/success-fetch-web-service-version
+  (fn [db [_ mine-kw version]]
+    (assoc-in db [:assets :web-service-version mine-kw] version)))
