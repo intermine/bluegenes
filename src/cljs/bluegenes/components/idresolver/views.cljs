@@ -19,12 +19,12 @@
     ; are kept in place to prevent runtime errors such as dereferencing
     ; nonexistent subscriptions
             [bluegenes.components.idresolver.subs-inplace]
-            [bluegenes.components.idresolver.events-inplace]
-            ))
+            [bluegenes.components.idresolver.events-inplace]))
 
 ;;; TODOS:
 
 ;We need to handler more than X results :D right now 1000 results would ALL show on screen. Eep.
+
 
 (def separators (set ",; "))
 
@@ -89,50 +89,47 @@
    (reset! val "")
    (submit-input input))
   ([input]
-   (dispatch [:idresolver/resolve (splitter input)]))
-  )
+   (dispatch [:idresolver/resolve (splitter input)])))
 
 (defn input-box []
   (reagent/create-class
-    (let [val (reagent/atom nil)
-          timer (reagent/atom nil)]
-      {:reagent-render (fn []
-                         [:input#identifierinput.freeform
-                          {:type "text"
-                           :placeholder "Type or paste identifiers here..."
-                           :value @val
-                           :on-key-press
-                           (fn [e]
-                             (let [keycode (.-charCode e)
-                                   input (.. e -target -value)]
-                               (cond (= keycode 13)
-                                     (submit-input input val))))
+   (let [val (reagent/atom nil)
+         timer (reagent/atom nil)]
+     {:reagent-render (fn []
+                        [:input#identifierinput.freeform
+                         {:type "text"
+                          :placeholder "Type or paste identifiers here..."
+                          :value @val
+                          :on-key-press
+                          (fn [e]
+                            (let [keycode (.-charCode e)
+                                  input (.. e -target -value)]
+                              (cond (= keycode 13)
+                                    (submit-input input val))))
                            ;;not all keys are picked up by on key press or on-change so we need to do both.
-                           :on-change
-                           (fn [e]
-                             (let [input (.. e -target -value)]
+                          :on-change
+                          (fn [e]
+                            (let [input (.. e -target -value)]
                                ;;we have a counter that automatically submits the typed entry if the user waits long enough (currently 1.5s).
                                ;stop old auto-submit counter.
-                               (js/clearInterval @timer)
+                              (js/clearInterval @timer)
                                ;start new timer again
-                               (reset! timer (js/setTimeout #(submit-input input val) timeout))
+                              (reset! timer (js/setTimeout #(submit-input input val) timeout))
                                ;submit the stuff
-                               (if (has-separator? input)
-                                 (do
-                                   (js/clearInterval @timer)
-                                   (submit-input input val))
-                                 (reset! val input))))}])
+                              (if (has-separator? input)
+                                (do
+                                  (js/clearInterval @timer)
+                                  (submit-input input val))
+                                (reset! val input))))}])
        ;;autofocus on the entry field when the page loads
-       :component-did-mount (fn [this] (.focus (reagent/dom-node this)))})))
+      :component-did-mount (fn [this] (.focus (reagent/dom-node this)))})))
 
 (defn organism-identifier
   "Sometimes the ambiguity we're resolving with duplicate ids is the sme symbol from two similar organisms, so we'll need to ass organism name where known."
   [summary]
   (if (:organism.name summary)
     (str " (" (:organism.name summary) ")")
-    ""
-    )
-  )
+    ""))
 
 (defn build-duplicate-identifier
   "Different objects types have different summary fields. Try to select one intelligently or fall back to primary identifier if the others ain't there."
@@ -142,9 +139,8 @@
         accession (:primaryAccession summary)
         primaryId (:primaryId summary)]
     (str
-      (first (remove nil? [symbol accession primaryId]))
-      (organism-identifier summary)
-      )))
+     (first (remove nil? [symbol accession primaryId]))
+     (organism-identifier summary))))
 
 (defn input-item-duplicate []
   "Input control. allows user to resolve when an ID has matched more than one object."
@@ -181,39 +177,37 @@
   (let [new-primary-id (get-in results [:matches 0 :summary :primaryIdentifier])
         conversion-reason ((:status results) reasons)]
     [:span.id-item {:title (str "You input '" original "', but we converted it to '" new-primary-id "', because " conversion-reason)}
-     original " -> " new-primary-id]
-    ))
+     original " -> " new-primary-id]))
 
 (defn input-item [{:keys [input] :as i}]
   "visually displays items that have been input and have been resolved as known or unknown IDs (or currently are resolving)"
   (let [result (subscribe [:idresolver/results-item input])
         selected (subscribe [:idresolver/selected])]
     (reagent/create-class
-      {:component-did-mount
-       (fn [])
-       :reagent-render
-       (fn [i]
-         (let [result-vals (second (first @result))
-               class (if (empty? @result)
-                       "inactive"
-                       (name (:status result-vals)))
-               class (if (some #{input} @selected) (str class " selected") class)]
-           [:div.id-resolver-item-container
-            {:class (if (some #{input} @selected) "selected")}
-            [:div.id-resolver-item
-             {:class class
-              :on-click (fn [e]
-                          (.preventDefault e)
-                          (.stopPropagation e)
-                          (dispatch [:idresolver/toggle-selected input]))}
-             [get-icon (:status result-vals)]
-             (case (:status result-vals)
-               :DUPLICATE [input-item-duplicate (first @result)]
-               :TYPE_CONVERTED [input-item-converted (:input i) result-vals]
-               :OTHER [input-item-converted (:input i) result-vals]
-               :MATCH [:span.id-item (:input i)]
-               [:span.id-item (:input i)])
-             ]]))})))
+     {:component-did-mount
+      (fn [])
+      :reagent-render
+      (fn [i]
+        (let [result-vals (second (first @result))
+              class (if (empty? @result)
+                      "inactive"
+                      (name (:status result-vals)))
+              class (if (some #{input} @selected) (str class " selected") class)]
+          [:div.id-resolver-item-container
+           {:class (if (some #{input} @selected) "selected")}
+           [:div.id-resolver-item
+            {:class class
+             :on-click (fn [e]
+                         (.preventDefault e)
+                         (.stopPropagation e)
+                         (dispatch [:idresolver/toggle-selected input]))}
+            [get-icon (:status result-vals)]
+            (case (:status result-vals)
+              :DUPLICATE [input-item-duplicate (first @result)]
+              :TYPE_CONVERTED [input-item-converted (:input i) result-vals]
+              :OTHER [input-item-converted (:input i) result-vals]
+              :MATCH [:span.id-item (:input i)]
+              [:span.id-item (:input i)])]]))})))
 
 (defn input-items []
   (let [bank (subscribe [:idresolver/bank])]
@@ -301,7 +295,6 @@
           :disabled @textbox-identifiers}
          (if @files "Add more files" "Browse")]]])))
 
-
 (defn drag-and-drop-prompt []
   (fn []
     [:div.upload-file
@@ -322,8 +315,7 @@
     (fn []
       [:div.resolvey
        [:div#dropzone1
-        {
-         :on-drop (partial handle-drop-over drag-state)
+        {:on-drop (partial handle-drop-over drag-state)
          :on-click (fn [evt]
                      (.preventDefault evt)
                      (.stopPropagation evt)
@@ -342,9 +334,7 @@
           [input-items]
           [input-box]
           [controls]]
-         [drag-and-drop-prompt]
-         ]]
-       ])))
+         [drag-and-drop-prompt]]]])))
 
 (defn stats []
   (let [bank (subscribe [:idresolver/bank])
@@ -363,16 +353,14 @@
           [:span.title "Matches"]
           [:svg.icon.icon-question [:use {:xlinkHref "#icon-question"}]]]
          [:div.details [:span.count (count @matches)]
-          [:p "The input you entered was successfully matched to a known ID"]
-          ]
-         ]
+          [:p "The input you entered was successfully matched to a known ID"]]]
+
         [:div.TYPE_CONVERTED {:tab-index -4}
          [:div.type-head [get-icon :TYPE_CONVERTED]
           [:span.title "Converted"]
           [:svg.icon.icon-question [:use {:xlinkHref "#icon-question"}]]]
          [:div.details [:span.count (count @type-converted)]
-          [:p "Input protein IDs resolved to gene (or vice versa)"]]
-         ]
+          [:p "Input protein IDs resolved to gene (or vice versa)"]]]
         [:div.OTHER {:tab-index -2}
          [:div.type-head [get-icon :OTHER]
           [:span.title "Synonyms"]
@@ -390,10 +378,7 @@
           [:span.title "Not\u00A0Found"]
           [:svg.icon.icon-question [:use {:xlinkHref "#icon-question"}]]]
          [:div.details [:span.count (count @no-matches)]
-          [:p "The ID provided isn't one that's known for your chosen organism"]]]
-        ]]
-
-      )))
+          [:p "The ID provided isn't one that's known for your chosen organism"]]]]])))
 
 (defn debugger []
   (let [everything (subscribe [:idresolver/everything])]
@@ -443,13 +428,10 @@
        (cond (> result-count 0)
              [:a {:on-click
                   (fn [] (dispatch [:idresolver/analyse true]))}
-              "View all >>"])
-       ]]
+              "View all >>"])]]
      [preview-table
       :loading? @fetching-preview?
-      :query-results @results-preview]]
-    ))
-
+      :query-results @results-preview]]))
 
 (defn select-organism-option []
   (fn [organism disable-organism?]
@@ -481,7 +463,6 @@
         :checked bool
         :on-change (fn [e]
                      (dispatch [::evts/update-option :case-sensitive (oget e :target :checked)]))}]]]))
-
 
 (defn upload-step []
   (let [files (subscribe [::subs/staged-files])
@@ -517,7 +498,6 @@
              [:li "Separate identifiers by a comma, space, tab or new line."]
              [:li "Qualify any identifiers that contain whitespace with double quotes like so: \"even skipped\"."]]]
 
-
          [:div.row
           [:div.col-sm-4
            [select-type-option type]
@@ -527,14 +507,14 @@
 
            [:ul.nav.nav-tabs
             [:li {:class (cond-> ""
-                                 (= @tab nil) (str " active")
-                                 @files (str "disabled"))
+                           (= @tab nil) (str " active")
+                           @files (str "disabled"))
                   :on-click (fn [] (when-not @files (dispatch [::evts/update-option :upload-tab nil])))
                   :disabled true}
              [:a [:i.fa.fa-font] " Free Text"]]
             [:li {:class (cond-> ""
-                                 (= @tab :file) (str " active")
-                                 @textbox-identifiers (str "disabled"))
+                           (= @tab :file) (str " active")
+                           @textbox-identifiers (str "disabled"))
                   :on-click (fn [] (when-not @textbox-identifiers (dispatch [::evts/update-option :upload-tab :file])))
                   :disabled true}
              [:a [:i.fa.fa-upload] " File Upload"]]]
@@ -553,11 +533,7 @@
                 :disabled @files
                 :style {:height "100%"} :rows 5}])]
 
-
-
-
-           [:div.btn-toolbar.pull-left
-            ]
+           [:div.btn-toolbar.pull-left]
            [:div.btn-toolbar.pull-right
             [:button.btn.btn-default.btn-raised
              {:on-click (fn [] (dispatch [::evts/load-example]))}
@@ -588,8 +564,7 @@
                               :class (when @files "disabled")
                               :spellCheck false
                               :disabled @files
-                              :style {:height "100%"} :rows 5}]]
-             ]
+                              :style {:height "100%"} :rows 5}]]]
             [:div.col-sm-4 [file-manager]]]
 
          #_[:div.row
@@ -610,7 +585,6 @@
                #_(str "Upload" (when @files (str " " (count @files) " file" (when (> (count @files) 1) "s"))))
                "Continue"
                [:i.fa.fa-chevron-right {:style {:padding-left "5px"}}]]]]]]))))
-
 
 (defn paginator []
   (fn [pager results]
@@ -649,10 +623,6 @@
                      [:option {:value p} (str "Page " (inc p))]) (range pages)))
         [:label {:style {:margin-left "5px"}} (str "of " pages)]]])))
 
-
-
-
-
 (defn matches-table []
   (let [pager (reagent/atom {:show 10 :page 0})
         summary-fields (subscribe [:current-summary-fields])
@@ -670,18 +640,18 @@
           [:thead [:tr [:th {:row-span 2} "Your Identifier"] [:th {:col-span 6} "Matches"]]
            (into [:tr]
                  (map
-                   (fn [f]
-                     (let [path (path/friendly @model f)]
-                       [:th (join " > " (rest (split path " > ")))])) type-summary-fields))]
+                  (fn [f]
+                    (let [path (path/friendly @model f)]
+                      [:th (join " > " (rest (split path " > ")))])) type-summary-fields))]
           (into [:tbody]
                 (->> rows-in-view
                      (map-indexed
-                       (fn [row-idx {:keys [summary input id]}]
-                         (into [:tr [:td (join ", " input)]]
-                               (map
-                                 (fn [field]
-                                   (let [without-prefix (keyword (join "." (rest (split field "."))))]
-                                     [:td (get summary without-prefix)])) type-summary-fields))))))]]))))
+                      (fn [row-idx {:keys [summary input id]}]
+                        (into [:tr [:td (join ", " input)]]
+                              (map
+                               (fn [field]
+                                 (let [without-prefix (keyword (join "." (rest (split field "."))))]
+                                   [:td (get summary without-prefix)])) type-summary-fields))))))]]))))
 
 (defn converted-table []
   (let [pager (reagent/atom {:show 10 :page 0})
@@ -703,29 +673,28 @@
           {:style {:background-color "white"}}
           [:thead [:tr [:th {:row-span 2} "Your Identifier"] [:th {:col-span 5} "Matches"]]
            (into
-             [:tr]
-             (map
-               (fn [f]
-                 (let [path (path/friendly @model f)]
-                   [:th (join " > " (rest (split path " > ")))])) type-summary-fields))]
+            [:tr]
+            (map
+             (fn [f]
+               (let [path (path/friendly @model f)]
+                 [:th (join " > " (rest (split path " > ")))])) type-summary-fields))]
           (into [:tbody]
                 (->> rows-in-view
                      (map-indexed
-                       (fn [duplicate-idx {:keys [input reason matches] :as duplicate}]
-                         (->> matches
-                              (map-indexed
-                                (fn [match-idx {:keys [summary keep?] :as match}]
-                                  (into
-                                    (if (= match-idx 0)
-                                      [:tr {:class (when keep? "success")}
-                                       [:td {:row-span (count matches)} input]]
-                                      [:tr {:class (when keep? "success")}])
-                                    (map
-                                      (fn [field]
-                                        (let [without-prefix (keyword (join "." (rest (split field "."))))]
-                                          [:td (get summary without-prefix)])) type-summary-fields)))))))
+                      (fn [duplicate-idx {:keys [input reason matches] :as duplicate}]
+                        (->> matches
+                             (map-indexed
+                              (fn [match-idx {:keys [summary keep?] :as match}]
+                                (into
+                                 (if (= match-idx 0)
+                                   [:tr {:class (when keep? "success")}
+                                    [:td {:row-span (count matches)} input]]
+                                   [:tr {:class (when keep? "success")}])
+                                 (map
+                                  (fn [field]
+                                    (let [without-prefix (keyword (join "." (rest (split field "."))))]
+                                      [:td (get summary without-prefix)])) type-summary-fields)))))))
                      (apply concat)))]]))))
-
 
 (defn not-found-table []
   (let [pager (reagent/atom {:show 10 :page 0})
@@ -745,8 +714,8 @@
           (into [:tbody]
                 (->> rows-in-view
                      (map-indexed
-                       (fn [row-idx value]
-                         [:tr [:td value]]))))]]))))
+                      (fn [row-idx value]
+                        [:tr [:td value]]))))]]))))
 
 (defn review-table []
   (let [pager (reagent/atom {:show 5 :page 0})
@@ -764,36 +733,36 @@
           {:style {:background-color "white"}}
           [:thead [:tr [:th {:row-span 2} "Your Identifier"] [:th {:col-span 6} "Matches"]]
            (into
-             [:tr [:th "Keep?"]]
-             (map
-               (fn [f]
-                 (let [path (path/friendly @model f)]
-                   [:th (join " > " (rest (split path " > ")))])) type-summary-fields))]
+            [:tr [:th "Keep?"]]
+            (map
+             (fn [f]
+               (let [path (path/friendly @model f)]
+                 [:th (join " > " (rest (split path " > ")))])) type-summary-fields))]
           (into [:tbody]
                 (->> rows-in-view
                      (map-indexed
-                       (fn [duplicate-idx {:keys [input reason matches] :as duplicate}]
-                         (->> matches
-                              (map-indexed
-                                (fn [match-idx {:keys [summary keep?] :as match}]
-                                  (into
-                                    (if (= match-idx 0)
-                                      [:tr {:class (when keep? "success")}
-                                       [:td {:row-span (count matches)} input]]
-                                      [:tr {:class (when keep? "success")}])
-                                    (conj (map
-                                            (fn [field]
-                                              (let [without-prefix (keyword (join "." (rest (split field "."))))]
-                                                [:td (get summary without-prefix)])) type-summary-fields)
-                                          [:td
-                                           [:div
-                                            [:label
-                                             [:input
-                                              {:type "checkbox"
-                                               :checked keep?
-                                               :on-change (fn [e]
-                                                            (dispatch [::evts/toggle-keep-duplicate
-                                                                       duplicate-idx match-idx]))}]]]])))))))
+                      (fn [duplicate-idx {:keys [input reason matches] :as duplicate}]
+                        (->> matches
+                             (map-indexed
+                              (fn [match-idx {:keys [summary keep?] :as match}]
+                                (into
+                                 (if (= match-idx 0)
+                                   [:tr {:class (when keep? "success")}
+                                    [:td {:row-span (count matches)} input]]
+                                   [:tr {:class (when keep? "success")}])
+                                 (conj (map
+                                        (fn [field]
+                                          (let [without-prefix (keyword (join "." (rest (split field "."))))]
+                                            [:td (get summary without-prefix)])) type-summary-fields)
+                                       [:td
+                                        [:div
+                                         [:label
+                                          [:input
+                                           {:type "checkbox"
+                                            :checked keep?
+                                            :on-change (fn [e]
+                                                         (dispatch [::evts/toggle-keep-duplicate
+                                                                    duplicate-idx match-idx]))}]]]])))))))
                      (apply concat)))]]))))
 
 (defn success-message []
@@ -801,7 +770,6 @@
     [:div.alert.alert-success.stat
      [:span
       [:div [:i.fa.fa-fw.fa-check] (str " " count " matching objects were found")]]]))
-
 
 (defn issues-message []
   (fn [count total]
@@ -843,8 +811,7 @@
                    (str converted " Converted")])
                 (when (> other 0) [:div.bar.bar-success {:style {:flex (* 100 (/ other all))}} (str other " Synonym" (when (> other 1) "s"))])
                 (when (> duplicates 0) [:div.bar.bar-warning {:style {:flex (* 100 (/ duplicates all))}} (str duplicates " Ambiguous")])
-                (when (> notFound 0) [:div.bar.bar-danger {:style {:flex (* 100 (/ notFound all))}} (str notFound " Not Found")])]
-               ]]]
+                (when (> notFound 0) [:div.bar.bar-danger {:style {:flex (* 100 (/ notFound all))}} (str notFound " Not Found")])]]]]
 
             (when (not= duplicates 0)
               [:div.alert.alert-warning
@@ -899,7 +866,6 @@
                [:a [:i.fa.fa-exclamation-triangle.fa-1x] " Save"]
                [:span [:i.fa.fa-exclamation-triangle.fa-1x] " Save"])]]])))
 
-
 (defn wizard []
   (let [view (subscribe [::subs/view])
         panel-params (subscribe [:panel-params])]
@@ -912,32 +878,31 @@
           [upload-step])]
        [:div.wizard-footer
         [:div.grow]
-        [:div.shrink]]
-       ])))
+        [:div.shrink]]])))
 
 (defn main []
   (let [options (subscribe [::subs/stage-options])]
     (reagent/create-class
-      {:component-did-mount (fn [e]
-                              (attach-body-events)
-                              (when (nil? (:type @options))
-                                (dispatch [::evts/reset])))
-       :reagent-render
-       (fn []
-         (let [bank (subscribe [:idresolver/bank])
-               no-matches (subscribe [:idresolver/results-no-matches])
-               result-count (- (count @bank) (count @no-matches))]
-           [:div.container.idresolverupload
-            #_[:div.headerwithguidance
-               [:a.guidance
-                {:on-click
-                 (fn []
-                   (dispatch [:idresolver/example splitter]))} "[Show me an example]"]]
+     {:component-did-mount (fn [e]
+                             (attach-body-events)
+                             (when (nil? (:type @options))
+                               (dispatch [::evts/reset])))
+      :reagent-render
+      (fn []
+        (let [bank (subscribe [:idresolver/bank])
+              no-matches (subscribe [:idresolver/results-no-matches])
+              result-count (- (count @bank) (count @no-matches))]
+          [:div.container.idresolverupload
+           #_[:div.headerwithguidance
+              [:a.guidance
+               {:on-click
+                (fn []
+                  (dispatch [:idresolver/example splitter]))} "[Show me an example]"]]
             ;[cont]
-            [wizard]
-            #_[input-div]
+           [wizard]
+           #_[input-div]
             ;[stats]
-            (cond (> result-count 0) [preview result-count])
+           (cond (> result-count 0) [preview result-count])
             ;[selected]
             ;[debugger]
-            ]))})))
+]))})))

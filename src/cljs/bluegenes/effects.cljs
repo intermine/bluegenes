@@ -11,11 +11,11 @@
 ; values in the main search box
 ; TODO: This can easily be retired by using the :im-chan effect below
 (reg-fx
-  :suggest
-  (fn [{:keys [c search-term source]}]
-    (if (= "" search-term)
-      (dispatch [:handle-suggestions nil])
-      (go (dispatch [:handle-suggestions (<! c)])))))
+ :suggest
+ (fn [{:keys [c search-term source]}]
+   (if (= "" search-term)
+     (dispatch [:handle-suggestions nil])
+     (go (dispatch [:handle-suggestions (<! c)])))))
 
 ; Navigates the browser to the given url and adds an entry to the HTML5 History
 (reg-fx :navigate (fn [url] (accountant/navigate! url)))
@@ -37,7 +37,6 @@ and dispatches events depending on the status of that request's response."
                 (if (and statusCode (= statusCode 401))
                   (dispatch [:flag-invalid-tokens])
                   (dispatch (conj on-success response))))))))
-
 
 (defn http-fxfn
   "The :http side effect is similar to :im-chan but is more generic and is used
@@ -64,13 +63,13 @@ and dispatches events depending on the status of that request's response."
                   :put http/put
                   http/get)]
     (let [c (http-fn uri (cond-> {}
-                                 json-params (assoc :json-params json-params)
-                                 transit-params (assoc :transit-params transit-params)
-                                 form-params (assoc :form-params form-params)
-                                 multipart-params (assoc :multipart-params multipart-params)
-                                 headers (update :headers #(merge % headers))
-                                 (and token @token) (update :headers assoc "X-Auth-Token" @token)
-                                 progress (assoc :progress progress)))]
+                           json-params (assoc :json-params json-params)
+                           transit-params (assoc :transit-params transit-params)
+                           form-params (assoc :form-params form-params)
+                           multipart-params (assoc :multipart-params multipart-params)
+                           headers (update :headers #(merge % headers))
+                           (and token @token) (update :headers assoc "X-Auth-Token" @token)
+                           progress (assoc :progress progress)))]
       (go (let [{:keys [status body] :as response} (<! c)]
             (cond
               (<= 200 status 399) (when on-success (dispatch (conj on-success body)))
@@ -79,10 +78,10 @@ and dispatches events depending on the status of that request's response."
               :else nil)))
       (when on-progress-upload
         (go-loop []
-                 (let [report (<! progress)]
-                   (when (= :upload (:direction report))
-                     (dispatch (conj on-progress-upload report))))
-                 (recur))))))
+          (let [report (<! progress)]
+            (when (= :upload (:direction report))
+              (dispatch (conj on-progress-upload report))))
+          (recur))))))
 
 ;;; Register the effects
 (reg-fx ::http http-fxfn)

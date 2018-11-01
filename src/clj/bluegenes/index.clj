@@ -37,10 +37,10 @@
    [:script
     "var serverVars={googleAnalytics :'" (:google-analytics env) "'"
     (cond (:bluegenes-default-service-root env)
-    (str ", intermineDefaults: {"
-         "serviceRoot:'"  (:bluegenes-default-service-root env) "',"
-         "mineName: '" (:bluegenes-default-mine-name env)  "'"
-    "}"))"};"]
+          (str ", intermineDefaults: {"
+               "serviceRoot:'"  (:bluegenes-default-service-root env) "',"
+               "mineName: '" (:bluegenes-default-mine-name env)  "'"
+               "}")) "};"]
   ; Javascript:
    [:link {:rel "shortcut icon" :href "https://raw.githubusercontent.com/intermine/design-materials/f5f00be4/logos/intermine/fav32x32.png" :type "image/png"}]
    [:script {:src "http://cdn.intermine.org/js/intermine/imjs/3.15.0/im.min.js"}]
@@ -50,7 +50,6 @@
    [:script {:crossorigin "anonymous",
              :src "https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"}]
    [:script {:src "https://apis.google.com/js/api.js"}]])
-
 
 (defn loader []
   [:div#wrappy
@@ -64,7 +63,6 @@
     [:div.mouse.loader-organism]
     [:div.fly.loader-organism]]])
 
-
 (defn index
   "Hiccup markup that generates the landing page and loads the necessary assets.
   A user might optionally have their identity already stored in a session."
@@ -72,13 +70,13 @@
   ; Generate a JSON representation of the user's identity (name, tokens, etc)
   (let [json-identity (json/generate-string identity)]
     (html5
-      (head)
-      [:body
-       (loader)
-       [:div#app]
+     (head)
+     [:body
+      (loader)
+      [:div#app]
        ; Bust the cache by using the project's version number as a URL parameter
-       [:script {:src (str "js/compiled/app.js?v=" (version))}]
+      [:script {:src (str "js/compiled/app.js?v=" (version))}]
        ; Call the constructor of the bluegenes client and pass in the user's optional identity as an object
-       [:script (str "bluegenes.core.init(" json-identity ");")]
-       ]
-      )))
+      [:script (str "bluegenes.core.init(" json-identity
+
+                    ");")]])))

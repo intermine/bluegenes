@@ -5,9 +5,6 @@
             [cljs.reader :refer [read-string]]
             [cljs.reader :refer [read-string]]))
 
-
-
-
 (defn index-of [haystack needle]
   (first (keep-indexed (fn [idx e] (when (= needle e) idx)) haystack)))
 
@@ -21,8 +18,7 @@
           grouped    (if (= 1 (count grouped)) (first grouped) grouped)]
       (let [final (reduce conj (conj first-part grouped) end)]
         (if (index-of final 'and) (recur final) final)))
-    (vector v))
-  )
+    (vector v)))
 
 (defn without-operators [col]
   (vec (filter (fn [item] (not (some? (some #{item} #{'and 'or})))) col)))
@@ -34,8 +30,6 @@
 (defn single-vec-of-symbol? [item]
   "Is the item a vector containing a symbol? ['A]"
   (and (= (count item) 1) (symbol? (first item))))
-
-
 
 (defn raise [v]
   (if (and (vector? v) (< (count v) 2) (vector? (first v)))
@@ -57,8 +51,8 @@
 
 (defn wrap-string-in-brackets [s]
   (cond-> s
-          (not (starts-with? s "(")) add-left-bracket
-          (not (ends-with? s ")")) add-right-bracket))
+    (not (starts-with? s "(")) add-left-bracket
+    (not (ends-with? s ")")) add-right-bracket))
 
 (defn clause-type [v]
   (cond
@@ -79,30 +73,29 @@
 
 (defn one-of? [haystack needle] (some? (some #{needle} haystack)))
 
-
 (defn remove-repeats [v]
   (let [without-repeats (reduce (fn [total next] (if (not= next (last total)) (conj total next) total)) [] v)]
     (vec (cond->> without-repeats
-              (one-of? ['or 'and] (first without-repeats)) (drop 1)
-              (one-of? ['or 'and] (last without-repeats)) butlast))))
+           (one-of? ['or 'and] (first without-repeats)) (drop 1)
+           (one-of? ['or 'and] (last without-repeats)) butlast))))
 
 (defn remove-code
   "Recursively removes a symbol from a tree and raises neighbours with a count of one"
   [v code]
   (->
-    (clojure.walk/postwalk
-      (fn [e]
-        (if (vector? e)
-          (let [removed     (vec (remove (partial = code) e))
-                without-ops (without-operators removed)]
-            (cond
-              (single-vec-of-vec? without-ops) (vec (mapcat identity without-ops))
-              (single-vec-of-symbol? without-ops) (first without-ops)
-              :else (remove-repeats removed)))
-          e))
-      v)
-    group-ands
-    raise))
+   (clojure.walk/postwalk
+    (fn [e]
+      (if (vector? e)
+        (let [removed     (vec (remove (partial = code) e))
+              without-ops (without-operators removed)]
+          (cond
+            (single-vec-of-vec? without-ops) (vec (mapcat identity without-ops))
+            (single-vec-of-symbol? without-ops) (first without-ops)
+            :else (remove-repeats removed)))
+        e))
+    v)
+   group-ands
+   raise))
 
 (defn read-logic-string [s]
   (some-> s

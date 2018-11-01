@@ -62,20 +62,20 @@
 
 (defroutes routes
            ; Create a new entry
-           (POST "/entries" req add-entry)
+  (POST "/entries" req add-entry)
            ; Store whether or a tag is expanded or not
-           (POST "/entries/:id/open/:status" [id status :as req] (toggle-open id status req))
+  (POST "/entries/:id/open/:status" [id status :as req] (toggle-open id status req))
            ; ;;;;
-           (POST "/entries/:id/rename/:label" [id label :as req] (update-label id label req))
+  (POST "/entries/:id/rename/:label" [id label :as req] (update-label id label req))
            ; Move entry to the root level
-           (POST "/entries/:id/move/" [id :as req] (move-tag id nil req))
+  (POST "/entries/:id/move/" [id :as req] (move-tag id nil req))
            ; Move entry under a new location
-           (POST "/entries/:id/move/:pid" [id pid :as req] (move-tag id pid req))
+  (POST "/entries/:id/move/:pid" [id pid :as req] (move-tag id pid req))
            ; Move an untagged item to a new one
-           #_(POST "/entries//move/:pid" [pid :as req] (move-tag2 id pid req))
+  #_(POST "/entries//move/:pid" [pid :as req] (move-tag2 id pid req))
            ; Delete an entry
-           (DELETE "/entries/:id" [id :as req] (delete-tag id req))
+  (DELETE "/entries/:id" [id :as req] (delete-tag id req))
            ; Get all entries
            ;(GET "/entries" req get-entries)
-           (GET "/entries/:mine-name" [mine-name :as req] (get-entries mine-name req)))
+  (GET "/entries/:mine-name" [mine-name :as req] (get-entries mine-name req)))
 

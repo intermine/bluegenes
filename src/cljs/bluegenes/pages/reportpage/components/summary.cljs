@@ -26,9 +26,7 @@
                                         (if (and (is-entity-identifier? view) (some? (get results index)))
                                           (conj new-vec (get results index))
                                           new-vec)) [] (:views field-map))]
-    (first identifier-columns)
-    ))
-
+    (first identifier-columns)))
 
 (defn main []
   (fn [field-map]

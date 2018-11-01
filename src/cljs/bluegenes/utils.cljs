@@ -6,7 +6,7 @@
   [s]
   (if-not (blank? s)
     (as-> s $
-          (split $ #"(?=[A-Z][^A-Z])")
-          (join " " $)
-          (capitalize $))
+      (split $ #"(?=[A-Z][^A-Z])")
+      (join " " $)
+      (capitalize $))
     s))

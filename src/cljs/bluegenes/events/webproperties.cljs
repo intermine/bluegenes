@@ -26,7 +26,7 @@
                                   ;;note that the default query button won't appear
                                   ;;until we fix this issue
                                 ;}
-   })
+})
 
 ; Fetch web properties
 (reg-event-db

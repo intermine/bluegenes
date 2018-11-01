@@ -306,8 +306,6 @@
                                                             :url     "https://apps.araport.org/thalemine/begin.do"
                                                             :service {:root "https://apps.araport.org/thalemine/begin.do"}}}
 
-
-
             :mousemine     {:id                 :mousemine
                             :service            {:root "www.mousemine.org/mousemine"}
                             :name               "MouseMine"
@@ -439,6 +437,4 @@
                                                                       :code "A"}]}
                              :mine                         {:name    "YeastMine"
                                                             :url     "https://yeastmine.dev.yeastgenome.org/yeastmine-dev/"
-                                                            :service {:root "https://yeastmine.dev.yeastgenome.org/yeastmine-dev/"}}}
-
-})
+                                                            :service {:root "https://yeastmine.dev.yeastgenome.org/yeastmine-dev/"}}}})

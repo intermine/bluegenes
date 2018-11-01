@@ -38,8 +38,7 @@
            (assoc-in [:mines (:id @(subscribe [:current-mine])) :service :token] token))
    :dispatch-n [[:assets/fetch-lists]
                 ; TODO - remove tags
-                #_[:bluegenes.pages.mymine.events/fetch-tree]
-                ]})
+                #_[:bluegenes.pages.mymine.events/fetch-tree]]})
 
 (defn login-failure-fn
   "Clear a user's identity and store an error message"

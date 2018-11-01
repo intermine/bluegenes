@@ -7,29 +7,29 @@
             [imcljs.path :as path]))
 
 (reg-event-db
-  :handle-report-summary
-  (fn [db [_ summary]]
-    (-> db
-        (assoc-in [:report :summary] summary)
-        (assoc :fetching-report? false))))
+ :handle-report-summary
+ (fn [db [_ summary]]
+   (-> db
+       (assoc-in [:report :summary] summary)
+       (assoc :fetching-report? false))))
 
 (reg-event-fx
-  :fetch-report
-  (fn [{db :db} [_ mine type id]]
-    (let [type-kw (keyword type)
-          q       {:from type
-                   :select (-> db :assets :summary-fields mine type-kw)
-                   :where [{:path (str type ".id")
-                            :op "="
-                            :value id}]}]
+ :fetch-report
+ (fn [{db :db} [_ mine type id]]
+   (let [type-kw (keyword type)
+         q       {:from type
+                  :select (-> db :assets :summary-fields mine type-kw)
+                  :where [{:path (str type ".id")
+                           :op "="
+                           :value id}]}]
 
-      {:im-chan {:chan (fetch/rows (get-in db [:mines mine :service]) q {:format "json"})
-                 :on-success [:handle-report-summary]}})))
+     {:im-chan {:chan (fetch/rows (get-in db [:mines mine :service]) q {:format "json"})
+                :on-success [:handle-report-summary]}})))
 
 (reg-event-fx
-  :load-report
-  (fn [{db :db} [_ mine type id]]
-    {:db (-> db
-             (assoc :fetching-report? true)
-             (dissoc :report))
-     :dispatch [:fetch-report (keyword mine) type id]}))
+ :load-report
+ (fn [{db :db} [_ mine type id]]
+   {:db (-> db
+            (assoc :fetching-report? true)
+            (dissoc :report))
+    :dispatch [:fetch-report (keyword mine) type id]}))
