@@ -45,8 +45,6 @@
          (fn [db]
            (get-in db [:idresolver :stage :options :upload-tab])))
 
-
-
 (reg-sub ::view
          (fn [db]
            (get-in db [:idresolver :stage :view])))
@@ -62,5 +60,4 @@
               :all all
               :duplicates (count DUPLICATE)
               :converted (count TYPE_CONVERTED)
-              :other (count OTHER)
-              })))
+              :other (count OTHER)})))

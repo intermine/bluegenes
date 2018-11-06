@@ -15,16 +15,16 @@
   need to manage an extra 'bad' dispatch."
   [spec]
   (re-frame.core/->interceptor
-    :id :stopper
-    :before (fn [context]
-              (let [[_ data] (get-in context [:coeffects :event])]
-                (if-not (s/valid? spec data)
-                  (do
-                    (throw (s/explain-str spec data))
-                    (-> context
-                        (dissoc :queue)
-                        (re-frame.core/enqueue [])))
-                  context)))))
+   :id :stopper
+   :before (fn [context]
+             (let [[_ data] (get-in context [:coeffects :event])]
+               (if-not (s/valid? spec data)
+                 (do
+                   (throw (s/explain-str spec data))
+                   (-> context
+                       (dissoc :queue)
+                       (re-frame.core/enqueue [])))
+                 context)))))
 
 (defn clear-tooltips
   "This interceptor is an example of something you do when you want to beat Bootstrap with a hammer.
@@ -33,6 +33,6 @@
   a popover unmounts."
   []
   (re-frame.core/->interceptor
-    :id :clear-tooltips
-    :after (fn [context] (ocall (js/$ ".popover") "remove") context)))
+   :id :clear-tooltips
+   :after (fn [context] (ocall (js/$ ".popover") "remove") context)))
 

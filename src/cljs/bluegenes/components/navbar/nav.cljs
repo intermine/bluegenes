@@ -57,8 +57,8 @@
                          (when (= 13 (oget k :keyCode))
                            (dispatch [:bluegenes.events.auth/login
                                       (assoc @credentials
-                                        :service (:service @current-mine)
-                                        :mine-id (:id @current-mine))])))}]]
+                                             :service (:service @current-mine)
+                                             :mine-id (:id @current-mine))])))}]]
          [:div.register-or-login
           [register-for-mine current-mine]
           [:button.btn.btn-primary.btn-raised
@@ -66,8 +66,8 @@
             :on-click (fn []
                         (dispatch [:bluegenes.events.auth/login
                                    (assoc @credentials
-                                     :service (:service @current-mine)
-                                     :mine-id (:id @current-mine))]))}
+                                          :service (:service @current-mine)
+                                          :mine-id (:id @current-mine))]))}
            [mine-icon @current-mine]
            "Sign In"]]
          (when error?
@@ -84,9 +84,8 @@
                                 :class (cond (= id (:id @current-mine)) "active")}
                            [:a [mine-icon details]
                             (if (= :default id)
-                                   (clojure.string/join " - " [(:name details) "Default"])
-                                   (:name details))
-                            ]]) @(subscribe [:mines])))
+                              (clojure.string/join " - " [(:name details) "Default"])
+                              (:name details))]]) @(subscribe [:mines])))
              [:li.special [:a {:on-click #(navigate! "/debug/main")} ">_ Developer"]])])))
 
 (defn logged-in []

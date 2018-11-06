@@ -6,7 +6,7 @@
 
  Before merging, confirm the following tasks have been executed
 
-- [ ] review a _minified_ build (e.g. `lein cljsbuild once min` + `lein run`, _not_ `lein figwheel`). 
+- [ ] review a _minified_ build (e.g. `lein prod`, _not_ `lein figwheel`). 
 
 Checked the following pages load results successfully and allow you to proceed to the results or report page:
 

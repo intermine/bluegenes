@@ -9,7 +9,7 @@
             [bluegenes.routes :as routes]
             [bluegenes.views :as views]
             [bluegenes.config :as config]
-            [bluegenes.components.templates.core]
+            [bluegenes.pages.templates.core]
             [cljsjs.google-analytics]
             [accountant.core :refer [navigate!]]
             [oops.core :refer [oget oset! ocall oapply ocall! oapply!
@@ -33,10 +33,9 @@
   (let [url (oget js/window "location" "hash")
         hashless-path (last (clojure.string/split url #"#"))]
     (cond (> (count url) 2) ;; if there is more than #/ in the url, navigate there
-      (if (= (first hashless-path) "/")
-        (navigate! hashless-path)
-        (navigate! (str "/" hashless-path)
-    )))))
+          (if (= (first hashless-path) "/")
+            (navigate! hashless-path)
+            (navigate! (str "/" hashless-path))))))
 
 (defn ^:export init [identity]
   (routes/app-routes)

@@ -25,10 +25,10 @@
   (let [port (->int (or (:server-port env) (:port env) 5000))]
     (timbre/set-level! :info) ; Enable Logging
     #_(try
-      (do
-        (mount/start) ; Mount our database connection
-        (migrations/migrate)) ; Apply any database migrations that haven't been applied
-      (catch Exception e (errorf "Unable to connect to database: %s" (.getMessage e))))
+        (do
+          (mount/start) ; Mount our database connection
+          (migrations/migrate)) ; Apply any database migrations that haven't been applied
+        (catch Exception e (errorf "Unable to connect to database: %s" (.getMessage e))))
     ; Start the Jetty server by passing in the URL routes defined in 'handler'
     (run-jetty handler {:port port :join? false})
     (infof "=== Bluegenes server started on port: %s" port)))

@@ -49,8 +49,7 @@
  (fn [db _]
    (get-in db [:search :selected-results])))
 
-
- (reg-sub
-  :search/some-selected?
-  (fn [db _]
-      (> (count (get-in db [:search :selected-results])) 0)))
+(reg-sub
+ :search/some-selected?
+ (fn [db _]
+   (> (count (get-in db [:search :selected-results])) 0)))

@@ -8,7 +8,7 @@
             [ring.util.http-response :as response]
             [clojure.java.io :as io]))
 
-(def tools-config (str (:bluegenes-tool-path env) "../package.json" ))
+(def tools-config (str (:bluegenes-tool-path env) "../package.json"))
 
 (defn get-tool-config
   "check tool folder for config and other relevant files and return as
@@ -47,11 +47,10 @@
   (try
     (println "tools config" tools-config)
     (let [packages (cheshire/parse-string (slurp tools-config) true)]
-    (println packages)
-    (println (keys (:dependencies packages)))
+      (println packages)
+      (println (keys (:dependencies packages)))
       (keys (:dependencies packages)))
-    (catch Exception e (str "Couldn't find tools at " tools-config (.getMessage e))))
-    )
+    (catch Exception e (str "Couldn't find tools at " tools-config (.getMessage e)))))
 
 (defn tools
   "Format the list of tools as a REST response to our GET."
@@ -68,4 +67,4 @@
 
 (defroutes routes
   ;;returns all available tools installed in the /tools folder
-           (GET "/all" session (tools session)))
+  (GET "/all" session (tools session)))

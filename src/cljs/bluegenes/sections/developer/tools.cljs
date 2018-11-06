@@ -1,7 +1,7 @@
-(ns bluegenes.sections.developer.tools
+(ns bluegenes.pages.developer.tools
   (:require [re-frame.core :as re-frame :refer [subscribe dispatch]]
-            [bluegenes.sections.developer.events :as events]
-            [bluegenes.sections.developer.subs :as subs]
+            [bluegenes.pages.developer.events :as events]
+            [bluegenes.pages.developer.subs :as subs]
             [accountant.core :refer [navigate!]]))
 
 (def page-types {:report-page "Report page"
@@ -59,6 +59,5 @@
     [:div.info
      [:svg.icon.icon-info [:use {:xlinkHref "#icon-info"}]]
      [:p "Showing all tools that are currently installed for Report Pages. To add more tools, see the "
-     [:a {:href "https://github.com/intermine/bluegenes/tree/dev/docs"} "BlueGenes Documentation"] "." ]
-     ]
+      [:a {:href "https://github.com/intermine/bluegenes/tree/dev/docs"} "BlueGenes Documentation"] "."]]
     [tool-list]]])

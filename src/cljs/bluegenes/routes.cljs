@@ -18,59 +18,59 @@
   ;; --------------------
   ;; define routes here
   (defroute "/" []
-            (dispatch [:set-active-panel :home-panel]))
+    (dispatch [:set-active-panel :home-panel]))
 
   (defroute "/debug/:panel" [panel]
             (dispatch [:set-active-panel :debug-panel
                        nil
-                       [:bluegenes.sections.developer.events/panel panel]]))
+                       [:bluegenes.pages.developer.events/panel panel]]))
 
   (defroute "/help" []
-            (dispatch [:set-active-panel :help-panel]))
+    (dispatch [:set-active-panel :help-panel]))
 
   (defroute "/templates" []
-            (dispatch [:set-active-panel :templates-panel]))
+    (dispatch [:set-active-panel :templates-panel]))
 
   (defroute "/upload" []
-            (dispatch [:set-active-panel :upload-panel]))
+    (dispatch [:set-active-panel :upload-panel]))
 
   (defroute "/upload/:step" {step :step}
-            (dispatch [:set-active-panel :upload-panel {:step (keyword step)}]))
+    (dispatch [:set-active-panel :upload-panel {:step (keyword step)}]))
 
   (defroute "/explore" []
-            (dispatch [:set-active-panel :explore-panel]))
+    (dispatch [:set-active-panel :explore-panel]))
 
   (defroute "/search" []
-            (dispatch [:set-active-panel :search-panel]))
+    (dispatch [:set-active-panel :search-panel]))
 
   (defroute "/querybuilder" []
-            (dispatch [:set-active-panel
-                       :querybuilder-panel
-                       nil
-                       [:qb/make-tree]]))
+    (dispatch [:set-active-panel
+               :querybuilder-panel
+               nil
+               [:qb/make-tree]]))
 
   (defroute "/results" []
-            (dispatch [:set-active-panel :results-panel]
-                      nil
-                      [:results/load-history 0]))
+    (dispatch [:set-active-panel :results-panel]
+              nil
+              [:results/load-history 0]))
 
   (defroute "/results/:title" [title]
-            (dispatch [:set-active-panel :results-panel
-                       nil
+    (dispatch [:set-active-panel :results-panel
+               nil
                        ; URL PARAMETERS ARE ALWAYS STRINGS! Parse as Integer because
                        ; we use the value as a location in a collection (nth [a b c d] "2")
-                       [:results/load-history title]]))
+               [:results/load-history title]]))
 
   (defroute "/regions" []
-            (dispatch [:set-active-panel :regions-panel]))
+    (dispatch [:set-active-panel :regions-panel]))
 
   (defroute "/mymine" []
-            (dispatch [:set-active-panel :mymine-panel]))
+    (dispatch [:set-active-panel :mymine-panel]))
 
   (defroute "/reportpage/:mine/:type/:id" [mine type id]
-            (dispatch [:set-active-panel :reportpage-panel
-                       {:type type :id id :mine mine}
-                       [:load-report mine type id]]))
+    (dispatch [:set-active-panel :reportpage-panel
+               {:type type :id id :mine mine}
+               [:load-report mine type id]]))
 
   ;; --------------------
 

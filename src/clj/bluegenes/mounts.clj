@@ -34,7 +34,6 @@
     db-spec
     (select-keys env [:db-subname :db-subprotocol :db-name :db-host :db-port :db-username :db-password])))
 
-
 (defn hikarify-db-spec
   "Re-key our found configuration variables to those recognized by Hikari
   https://github.com/tomekw/hikari-cp
@@ -54,6 +53,8 @@
 
 ; See config/[env]/config.edn
 ; This stateful binding becomes our database connection when (mount/start) is called from the bluegenes.server namespace
+
+
 (defstate db :start (let [db-config (gather-db-config env)]
                       (infof "Starting DB connection pool to //%s:%s/%s"
                              (:db-host db-config) (:db-port db-config) (:db-name db-config))

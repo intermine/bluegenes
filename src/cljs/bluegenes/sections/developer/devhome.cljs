@@ -1,9 +1,9 @@
-(ns bluegenes.sections.developer.devhome
+(ns bluegenes.pages.developer.devhome
   (:require [re-frame.core :as re-frame :refer [subscribe dispatch]]
-            [bluegenes.sections.developer.events :as events]
-            [bluegenes.sections.developer.subs :as subs]
-            [bluegenes.sections.developer.icons :as icons]
-            [bluegenes.sections.developer.tools :as tools]
+            [bluegenes.pages.developer.events :as events]
+            [bluegenes.pages.developer.subs :as subs]
+            [bluegenes.pages.developer.icons :as icons]
+            [bluegenes.pages.developer.tools :as tools]
             [bluegenes.persistence :as persistence]
             [accountant.core :refer [navigate!]]))
 
@@ -75,4 +75,4 @@
          (= @panel "tool-store")
          [tools/tool-store]
          (= @panel "icons")
-              [icons/iconview])])))
+         [icons/iconview])])))
