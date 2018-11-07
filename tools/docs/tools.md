@@ -10,12 +10,13 @@ Since BlueGenes tools are always JavaScript, we use npm (a popular JavaScript pa
 Tools that conform to the [tool API spec](tool-api.md) may be published in [npm](https://www.npmjs.com/) under the tag [bluegenes-intermine-tool](https://www.npmjs.com/search?q=keywords:bluegenes-intermine-tool). To install a package that is already published:
 
 ```bash
-# assuming you are in the root bluegenes directory
+# make a tools directory somewhere on your computer
+mkdir tools
 cd tools
 npm install --save some-tool-name-here
 ```
 
-This will install the tool into the `tools/node_modules/@intermine` directory, and save the tool to your package.json file. It will automatically be picked up and displayed in any relevant pages.
+This will install the tool into the `tools/node_modules/@intermine` directory, and save the tool to your package.json file. It will automatically be picked up and displayed in any relevant pages, so long as you tell InterMine where to look for the tools folder.
 
 #### Updating published tools
 
