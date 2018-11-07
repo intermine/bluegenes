@@ -70,6 +70,7 @@
   "Initialise all the tools on the page"
   []
   (let [toolses           (subscribe [::subs/tools-by-current-type])]
+    (.log js/console "%c@toolses" "color:mediumorchid;font-weight:bold;" (clj->js @toolses))
     (into [:div.tools]
           (map
            (fn [tool]

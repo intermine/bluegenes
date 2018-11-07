@@ -36,6 +36,7 @@
   "Display all tool types to the user."
   []
   (let [tools (subscribe [::subs/tools])]
+    (.log js/console "%c@tools" "color:mediumorchid;font-weight:bold;" (clj->js @tools))
     (into
      [:div.tool-list]
      (map
