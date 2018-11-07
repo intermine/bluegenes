@@ -4,18 +4,25 @@ The BlueGenes Tool API is designed to make it easy to run javascript-based tools
 
 ## Installing tools
 
-Since BlueGenes tools are always JavaScript, we use npm (a pipular JavaScript package manager) to manage the packages. You must have a recent version of npm and node installed. See our [requirements](https://github.com/intermine/bluegenes/blob/dev/README) for more info.
+Since BlueGenes tools are always JavaScript, we use npm (a popular JavaScript package manager) to manage the packages. You must have a recent version of npm and node installed. See our [requirements](https://github.com/intermine/bluegenes/blob/dev/README) for more info.
 
 ### Published tools
 Tools that conform to the [tool API spec](tool-api.md) may be published in [npm](https://www.npmjs.com/) under the tag [bluegenes-intermine-tool](https://www.npmjs.com/search?q=keywords:bluegenes-intermine-tool). To install a package that is already published:
 
 ```bash
-# assuming you are in the root bluegenes directory
+# make a tools directory somewhere on your computer
+mkdir tools
 cd tools
 npm install --save some-tool-name-here
 ```
 
-This will install the tool into the `tools/node_modules/@intermine` directory, and save the tool to your package.json file. It will automatically be picked up and displayed in any relevant pages.
+This will install the tool into the `tools/node_modules/@intermine` directory, and save the tool to your package.json file. 
+
+#### When launching BlueGenes via a JAR
+The tool folder will automatically be picked up and displayed in any relevant pages, so long as you [configure InterMine so it knows where to look for the tools folder](https://intermine.readthedocs.io/en/latest/webapp/blue-genes/).
+
+#### When working locally with a lein-compiled BlueGenes
+The default location for tools is the following path - you can modify it to elsewhere if you wish: https://github.com/yochannah/bluegenes/blob/tool-api-2018/config/defaults/config.edn#L3
 
 #### Updating published tools
 
