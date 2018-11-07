@@ -16,7 +16,7 @@ cd tools
 npm install --save some-tool-name-here
 ```
 
-This will install the tool into the `tools/node_modules/@intermine` directory, and save the tool to your package.json file. It will automatically be picked up and displayed in any relevant pages, so long as you tell InterMine where to look for the tools folder.
+This will install the tool into the `tools/node_modules/@intermine` directory, and save the tool to your package.json file. It will automatically be picked up and displayed in any relevant pages, so long as you [configure InterMine so it knows where to look for the tools folder](https://intermine.readthedocs.io/en/latest/webapp/blue-genes/).
 
 #### Updating published tools
 
