@@ -45,11 +45,21 @@
   "Return a list of the installed tools listed in the package.json file. "
   []
   (try
+<<<<<<< HEAD
     (println "tools config" tools-config)
     (let [packages (cheshire/parse-string (slurp tools-config) true)]
       (println packages)
       (println (keys (:dependencies packages)))
       (keys (:dependencies packages)))
+=======
+    (log "Looking for tool config file at: " tools-config)
+    (let [packages (cheshire/parse-string (slurp tools-config) true)
+          package-names (keys (:dependencies packages))]
+      (log "Tools located: ")
+      (log package-names)
+
+      package-names)
+>>>>>>> ca6f952... add some debugging comments
     (catch Exception e (str "Couldn't find tools at " tools-config (.getMessage e)))))
 
 (defn tools
