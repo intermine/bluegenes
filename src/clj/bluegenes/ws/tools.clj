@@ -16,9 +16,11 @@
    load tools relevant for a given report page."
   [tool path]
   (let [tool-name (subs (str tool) 1)
+        debug (log :info "|---- tool:" tool)
         path (join "/" [path tool-name])
         ;; this is the bluegenes-specific config.
         bluegenes-config-path (str path "/config.json")
+        debuggg (log :info "|------ config path:" bluegenes-config-path)
         config (cheshire/parse-string (slurp bluegenes-config-path) true)
         ;;this is the default npm package file
         package-path (str path "/package.json")
@@ -45,34 +47,24 @@
   "Return a list of the installed tools listed in the package.json file. "
   []
   (try
-<<<<<<< HEAD
-    (println "tools config" tools-config)
-    (let [packages (cheshire/parse-string (slurp tools-config) true)]
-      (println packages)
-      (println (keys (:dependencies packages)))
-      (keys (:dependencies packages)))
-=======
-    (log "Looking for tool config file at: " tools-config)
+    (log :info "|-- looking for tool config file at: " tools-config)
     (let [packages (cheshire/parse-string (slurp tools-config) true)
           package-names (keys (:dependencies packages))]
-      (log "Tools located: ")
-      (log package-names)
-
       package-names)
->>>>>>> ca6f952... add some debugging comments
     (catch Exception e (str "Couldn't find tools at " tools-config (.getMessage e)))))
 
 (defn tools
   "Format the list of tools as a REST response to our GET."
   [session]
-  (println "Tools folder: ")
-  (println (:bluegenes-tool-path env))
-  (let [res
+  (log :info "Tools folder: ")
+  (log :info "|--" (:bluegenes-tool-path env))
+  (let [installed-tools (installed-tools-list)
+        res
         {:tools
          (reduce
           (fn [tool-list newitem]
             (conj tool-list (get-tool-config newitem (:bluegenes-tool-path env))))
-          #{} (installed-tools-list))}]
+          #{} installed-tools)}]
     (response/ok res)))
 
 (defroutes routes
