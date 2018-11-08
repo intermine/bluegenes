@@ -1,14 +1,21 @@
 (ns bluegenes.ws.tools
   (:require [compojure.core :refer [GET POST defroutes]]
             [compojure.route :as route]
-            [clojure.string :refer [blank? join]]
+            [clojure.string :refer [blank? join ends-with?]]
             [cheshire.core :as cheshire]
             [config.core :refer [env]]
             [clojure.pprint :refer [pprint]]
             [ring.util.http-response :as response]
-            [clojure.java.io :as io]))
+            [clojure.java.io :as io]
+            [taoensso.timbre :as timbre :refer [log]]))
 
-(def tools-config (str (:bluegenes-tool-path env) "../package.json"))
+(def tool-path
+  "appends slash to the path if not present"
+  (if (ends-with? (:bluegenes-tool-path env) "/")
+    (:bluegenes-tool-path env)
+    (str (:bluegenes-tool-path env) "/")))
+
+(def tools-config (str tool-path "../package.json"))
 
 (defn get-tool-config
   "check tool folder for config and other relevant files and return as
@@ -51,22 +58,22 @@
     (let [packages (cheshire/parse-string (slurp tools-config) true)
           package-names (keys (:dependencies packages))]
       package-names)
-    (catch Exception e (str "Couldn't find tools at " tools-config (.getMessage e)))))
+    (catch Exception e (log :warn (str "Couldn't find tools at " tools-config (.getMessage e))))))
 
 (defn tools
   "Format the list of tools as a REST response to our GET."
   [session]
   (log :info "Tools folder: ")
-  (log :info "|--" (:bluegenes-tool-path env))
+  (log :info "|--" tool-path)
   (let [installed-tools (installed-tools-list)
         res
         {:tools
          (reduce
           (fn [tool-list newitem]
-            (conj tool-list (get-tool-config newitem (:bluegenes-tool-path env))))
+            (conj tool-list (get-tool-config newitem tool-path)))
           #{} installed-tools)}]
     (response/ok res)))
 
 (defroutes routes
   ;;returns all available tools installed in the /tools folder
-  (GET "/all" session (tools session)))
+           (GET "/all" session (tools session)))
