@@ -3,7 +3,7 @@
 (defproject org.intermine/bluegenes (:version props)
   :dependencies [; Clojure
                  [org.clojure/clojure "1.9.0"]
-                 [org.clojure/clojurescript "1.10.145"]
+                 [org.clojure/clojurescript "1.10.439"]
                  [org.clojure/core.async "0.3.443"]
 
                  ; MVC
