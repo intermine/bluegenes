@@ -80,6 +80,8 @@
                  [org.intermine/imcljs "0.6.1"]
                  [intermine/accountant-fragments "0.1.8"]]
 
+  :jvm-opts ["--add-modules" "java.xml.bind"]
+
   :deploy-repositories {"clojars" {:sign-releases false}}
 
   :plugins [[lein-cljsbuild "1.1.7"]
@@ -88,14 +90,14 @@
             [lein-pdo "0.1.1"]
             [lein-cljfmt "0.6.1"]]
 
-  :aliases {"dev" ["do" "clean"
-                   ["pdo" ["figwheel" "dev"]
-                    ["less" "auto"]
-                    ["run"]]]
-            "build" ["do" "clean"
-                     ["cljsbuild" "once" "min"]
-                     ["less" "once"]]
-            "prod" ["do" "build" ["pdo" ["run"]]]
+  :aliases {"dev"    ["do" "clean"
+                      ["pdo" ["figwheel" "dev"]
+                       ["less" "auto"]
+                       ["run"]]]
+            "build"  ["do" "clean"
+                      ["cljsbuild" "once" "min"]
+                      ["less" "once"]]
+            "prod"   ["do" "build" ["pdo" ["run"]]]
             "format" ["cljfmt" "fix"]}
 
   :min-lein-version "2.8.1"
@@ -106,57 +108,57 @@
                                     "resources/public/css"
                                     "test/js"]
 
-  :figwheel {:css-dirs ["resources/public/css"]
+  :figwheel {:css-dirs         ["resources/public/css"]
              ;:ring-handler bluegenes.handler/handler
              :reload-clj-files {:cljc true}}
 
   :less {:source-paths ["less"]
-         :target-path "resources/public/css"}
+         :target-path  "resources/public/css"}
 
-  :profiles {:dev {:dependencies [[binaryage/devtools "0.9.7"]]
-                   :resource-paths ["config/dev"]
-                   :plugins [[lein-figwheel "0.5.14"]
-                             [lein-doo "0.1.8"]]}
-             :prod {:dependencies []
-                    :resource-paths ["config/prod"]
-                    :plugins []}
+  :profiles {:dev     {:dependencies   [[binaryage/devtools "0.9.7"]]
+                       :resource-paths ["config/dev"]
+                       :plugins        [[lein-figwheel "0.5.14"]
+                                        [lein-doo "0.1.8"]]}
+             :prod    {:dependencies   []
+                       :resource-paths ["config/prod"]
+                       :plugins        []}
              :uberjar {:resource-paths ["config/prod"]
-                       :prep-tasks ["clean" ["less" "once"] ["cljsbuild" "once" "min"] "compile"]
-                       :aot :all}}
+                       :prep-tasks     ["clean" ["less" "once"] ["cljsbuild" "once" "min"] "compile"]
+                       :aot            :all}}
 
-  :cljsbuild {:builds {:dev {:source-paths ["src/cljs"]
-                             :figwheel {:on-jsload "bluegenes.core/mount-root"}
-                             :compiler {:main bluegenes.core
-                                        :optimizations :none
-                                        :output-to "resources/public/js/compiled/app.js"
-                                        :output-dir "resources/public/js/compiled"
-                                        :asset-path "js/compiled"
-                                        :source-map-timestamp true
-                                        :pretty-print true
-                                        :npm-deps {:highlight.js "9.12.0"}
-                                        :install-deps true
-                                        ;:parallel-build true
-                                        :preloads [devtools.preload
-                                                   re-frisk.preload]
-                                        :external-config {:devtools/config {:features-to-install :all}}
-                                        }}
+  :cljsbuild {:builds {:dev  {:source-paths ["src/cljs"]
+                              :figwheel     {:on-jsload "bluegenes.core/mount-root"}
+                              :compiler     {:main                 bluegenes.core
+                                             :optimizations        :none
+                                             :output-to            "resources/public/js/compiled/app.js"
+                                             :output-dir           "resources/public/js/compiled"
+                                             :asset-path           "js/compiled"
+                                             :source-map-timestamp true
+                                             :pretty-print         true
+                                             :npm-deps             {:highlight.js "9.12.0"}
+                                             :install-deps         true
+                                             ;:parallel-build true
+                                             :preloads             [devtools.preload
+                                                                    re-frisk.preload]
+                                             :external-config      {:devtools/config {:features-to-install :all}}
+                                             }}
 
-                       :min {:source-paths ["src/cljs"]
-                             :jar true
-                             :compiler {:main bluegenes.core
-                                        :output-to "resources/public/js/compiled/app.js"
-                                        ;:output-dir "resources/public/js/compiled"
-                                        :optimizations :advanced
-                                        :npm-deps {:highlight.js "9.12.0"}
-                                        :install-deps true
-                                        :closure-defines {goog.DEBUG false}
-                                        :pretty-print false}}
+                       :min  {:source-paths ["src/cljs"]
+                              :jar          true
+                              :compiler     {:main            bluegenes.core
+                                             :output-to       "resources/public/js/compiled/app.js"
+                                             ;:output-dir "resources/public/js/compiled"
+                                             :optimizations   :advanced
+                                             :npm-deps        {:highlight.js "9.12.0"}
+                                             :install-deps    true
+                                             :closure-defines {goog.DEBUG false}
+                                             :pretty-print    false}}
 
                        :test {:source-paths ["src/cljs" "test/cljs"]
-                              :compiler {:output-to "resources/public/js/test/test.js"
-                                         :output-dir "resources/public/js/test"
-                                         :main bluegenes.runner
-                                         :optimizations :none}}}}
+                              :compiler     {:output-to     "resources/public/js/test/test.js"
+                                             :output-dir    "resources/public/js/test"
+                                             :main          bluegenes.runner
+                                             :optimizations :none}}}}
 
 
   :main bluegenes.core
