@@ -7,13 +7,15 @@
             [clojure.pprint :refer [pprint]]
             [ring.util.http-response :as response]
             [clojure.java.io :as io]
-            [taoensso.timbre :as timbre :refer [log]]))
+            [taoensso.timbre :as timbre :refer [log warn]]))
 
 (def tool-path
   "appends slash to the path if not present"
-  (if (ends-with? (:bluegenes-tool-path env) "/")
-    (:bluegenes-tool-path env)
-    (str (:bluegenes-tool-path env) "/")))
+  (if-let [the-tools (:bluegenes-tool-path env)]
+    (if (ends-with? the-tools "/")
+    the-tools
+    (str the-tools "/"))
+    (warn "No BlueGenes tool path found")))
 
 (def tools-config (str tool-path "../package.json"))
 
