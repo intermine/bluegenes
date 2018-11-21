@@ -199,10 +199,10 @@ code(s).
 **/
 function buildVisualOutput(terms) {
   var namespaces = Object.keys(terms),
-    termUI = "<div>";
+    termUI = "<div class='namespaces'>";
   //loop through the namespaces and create a header for each namespace
   namespaces.map(function(namespace) {
-    termUI = termUI + "<div><h3>" + namespace + "</h3> <ul>";
+    termUI = termUI + "<div class='namespace'><h3>" + namespace + "</h3> <ul>";
     //loop through the terms in each namespace
     terms[namespace].map(function(result) {
       //create a new list entry for each GO term.
@@ -249,14 +249,62 @@ function resultsToNamespaceBuckets(response) {
 
 ##### Goodness, that's ugly! Let's make it look a little nicer.
 
-//CSS
+_Note: This section assumes some basic familiarity with [CSS](https://developer.mozilla.org/en-US/docs/Learn/CSS/Introduction_to_CSS) and [LESS](http://lesscss.org/). You can use CSS frameworks like Bootstrap if you prefer (Bootstrap 3 is on the window), but you'll still need to follow this guide and namespace + compile your CSS._
 
+Head over to `src/style.less`. You'll notice that there have been a few lines pre-populated on your behalf - it might look something like this: 
+
+```less
+.bluegenesToolGOTerms {
+  // put all your css classes inside this block. Keeping them
+  // nested under the tool name prevents your styles from
+  // leaking out and affecting other elements by accident.
+
+  // If you want to learn more about LESS, visit lesscss.org.
+
+  //to build your css, run `lessc src/style.css dist/style.css --clean-css`
+  // in your terminal
+}
+
+```
+
+Nest all your css inside the main code block, between the two curly brackets `{}` - this ensures that _your_ css won't affect bluegenes or other tools by accident. 
+
+We've added a few minimal style rules here to show the GO terms in a column layout: 
+
+```less
+.bluegenesToolGOTerms {
+  // put all your css classes inside this block. Keeping them
+  // nested under the tool name prevents your styles from
+  // leaking out and affecting other elements by accident.
+  // If you want to learn more about LESS, visit lesscss.org.
+  //to build your css, run `lessc src/style.css dist/style.css --clean-css`
+  // in your terminal
+  .namespaces {
+    display: flex;
+    flex-wrap:wrap;
+
+    .namespace {
+      margin: 1em;
+      max-width:30%;
+      h3 {text-align:center;}
+    }
+
+    .evidencecode {
+      margin: 0.2em;
+    }
+  }
+}
+```
+
+In order for the less to affect the page, we need to compile it into CSS. In your console, run 
+
+```bash
+npm run less
+```
+
+Now, if you refresh your demo.html page, you should see the new css applied! You can also look at your compiled CSS if you wish - it's in `dist/style.css`
 
 //TODO:
 
-- explain signature, importing other packages, imtables dependencies
-- config json & how to use it to convert to an im-tables friendly request
-- namespacing css and importing external css
-- bundling
 - releasing on npm.
 - testing on bluegenes
