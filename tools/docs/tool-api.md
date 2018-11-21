@@ -35,9 +35,9 @@ Put all of your prod-ready bundled files in here. Ideally this should be no more
 
 ### src
 
-Where do the bundled files come from? Probably the src directory. Ensure that:
+Where do the bundled files come from? Probably the src directory. This is the folder you'll be doing most of your work in.
 
-####index.js
+#### index.js
 
 This is the preferred entry point to build dist/bundle.js. May import external libraries or node modules if needed. [See bluegenesProtVista example ](https://github.com/intermine/bluegenesProtVista/tree/master/src). Make sure to export an object that matches your tool name and has a main method - e.g. for bluegenesProtVista, there is an exposed method called `bluegenesProtvista.main()`.
 
