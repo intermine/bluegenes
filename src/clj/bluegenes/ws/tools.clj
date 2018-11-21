@@ -60,7 +60,8 @@
     (let [packages (cheshire/parse-string (slurp tools-config) true)
           package-names (keys (:dependencies packages))]
       package-names)
-    (catch Exception e (log :warn (str "Couldn't find tools at " tools-config (.getMessage e))))))
+    (catch Exception e (log :warn
+                            (str "Couldn't find tools at " tools-config (.getMessage e) "- please run `npm init -y` in the tools directory and install your tools again.")))))
 
 (defn tools
   "Format the list of tools as a REST response to our GET."
