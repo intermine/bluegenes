@@ -27,7 +27,7 @@ The default location for tools is the following path - you can modify it to else
 
 #### Updating published tools
 
-If a tool's npm package is updated, all you need to do in order to pull the updates is run `npm update` from the `bluegenes/tools` folder, and all your packages will be updated.
+If a tool's npm package is updated, all you need to do in order to pull the updates is run `npm update` from your tools folder, and all your packages will be updated.
 
 ### Development tools
 
