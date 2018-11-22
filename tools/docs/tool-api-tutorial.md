@@ -302,9 +302,12 @@ In order for the less to affect the page, we need to compile it into CSS. In you
 npm run less
 ```
 
-Now, if you refresh your demo.html page, you should see the new css applied! You can also look at your compiled CSS if you wish - it's in `dist/style.css`
+Now, if you refresh your demo.html page, you should see the new css applied! You can also look at your compiled CSS if you wish - it's in `dist/style.css`.
 
-//TODO:
+### Releasing your tool and using it in BlueGenes. 
 
-- releasing on npm.
-- testing on bluegenes
+At this point, you should have a basic functional tool that consumes InterMine data and looks nice when you visit http://localhost:3456 - well done! So you'll probably want to test it in BlueGenes now, right? You have two ways to do this:
+
+- for tools under development, like this one, the easiest thing to do is [use npm link to install your new tool](tools.md#development-tools) in the bluegenes tool folder.  
+- for tools that are release ready (perhaps because you've tested them via the npm link method above, you can [release the tool on npm](https://docs.npmjs.com/cli/publish). This will make the tool available for others. To install a tool that's released via NPM, see our [installing published tools guide](tools.md#published-tools).
+
