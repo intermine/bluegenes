@@ -152,7 +152,7 @@ In your console, you'll need to bundle your js file. To do so, run `npm run buil
 
 ##### Making something display on the screen...
 
-White screens are boring. Let's output our results by iterating through them, sorting by namespace,  and printing to the screen. In the demo below, we've used a quick and easy echnique of building up the HTML using strings; we wouldn't recommend this for any large applications but for a small demo tool it's sufficient - a framework would definitely be overkill!
+White screens are boring. Let's output our results by iterating through them, sorting by namespace,  and printing to the screen. In the demo below, we've used a quick and easy technique of building up the HTML using strings; we wouldn't recommend this for any large applications but for a small demo tool it's sufficient - a framework would definitely be overkill!
 
 Here's the same code as before, but expanded to output the results visually in the HTML. In particular, note how we've set `el.innerHTML = <someHTMLHere>` - this is how we get our work to display in BlueGenes.
 
