@@ -36,7 +36,7 @@ Optionally, to test your tool:
 
 - [A local BlueGenes install](https://github.com/intermine/bluegenes/blob/dev/docs/getting-started.md)
 
-We'll expect a basic familiarity with programming and
+We'll expect a basic familiarity with programming - specifically [JavaScript](https://developer.mozilla.org/en-US/docs/Glossary/JavaScript), [LESS](http://lesscss.org/)/[CSS](https://developer.mozilla.org/en-US/docs/Web/CSS), and to a lesser degree the [DOM](https://developer.mozilla.org/en-US/docs/Web/API/Document_Object_Model/Introduction).
 
 ## Generate your tool scaffold
 
