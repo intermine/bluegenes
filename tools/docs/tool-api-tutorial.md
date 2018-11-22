@@ -54,9 +54,11 @@ Brilliant! You'll only need to install the generator once.
 
 ### Generate a new project: The wizard
 
-In the parent folder where you'd like your project to live, make a new folder with your preferred name (perhaps something like `~/projects/myBluegenesTool`), and then run:
+In the parent folder where you'd like your project to live, we need to make a new folder with your preferred name (perhaps something like `~/projects/myBluegenesTool`), and then generate a new tool scaffold.
 
 ```
+mkdir myBluegenesTool
+cd myBluegenesTool
 yo @intermine/bluegenes-tool
 ```
 
