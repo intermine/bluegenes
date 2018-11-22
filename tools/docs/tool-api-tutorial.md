@@ -148,7 +148,7 @@ Okay, now that we have our sample data set up and some code, let's test if it wo
 In your console, you'll need to bundle your js file. To do so, run `npm run build`. You should notice that we now have a folder called `dist` which contains a file: `bundle.js`. How can we inspect to see if it is working or not? Well, we've included a handy little server for just this purpose! To test it out, run `npm run dev` and then navigate to
 [http://localhost:3456](http://localhost:3456). If everything went well, you should see a white screen, and your query results logged to the [javascript console](https://www.digitalocean.com/community/tutorials/how-to-use-the-javascript-developer-console). Great! It should look roughly like this:
 
-![output of console log, showing an array of GO terms associated with the Gene we searched for.](/img/inspected-console.png)
+![output of console log, showing an array of GO terms associated with the Gene we searched for.](img/console-log-preview-tutorial.png)
 
 ##### Making something display on the screen...
 
@@ -253,7 +253,7 @@ function resultsToNamespaceBuckets(response) {
 
 _Note: This section assumes some basic familiarity with [CSS](https://developer.mozilla.org/en-US/docs/Learn/CSS/Introduction_to_CSS) and [LESS](http://lesscss.org/). You can use CSS frameworks like Bootstrap if you prefer (Bootstrap 3 is on the window), but you'll still need to follow this guide and namespace + compile your CSS._
 
-Head over to `src/style.less`. You'll notice that there have been a few lines pre-populated on your behalf - it might look something like this: 
+Head over to `src/style.less`. You'll notice that there have been a few lines pre-populated on your behalf - it might look something like this:
 
 ```less
 .bluegenesToolGOTerms {
@@ -269,9 +269,9 @@ Head over to `src/style.less`. You'll notice that there have been a few lines pr
 
 ```
 
-Nest all your css inside the main code block, between the two curly brackets `{}` - this ensures that _your_ css won't affect bluegenes or other tools by accident. 
+Nest all your css inside the main code block, between the two curly brackets `{}` - this ensures that _your_ css won't affect bluegenes or other tools by accident.
 
-We've added a few minimal style rules here to show the GO terms in a column layout: 
+We've added a few minimal style rules here to show the GO terms in a column layout:
 
 ```less
 .bluegenesToolGOTerms {
@@ -298,7 +298,7 @@ We've added a few minimal style rules here to show the GO terms in a column layo
 }
 ```
 
-In order for the less to affect the page, we need to compile it into CSS. In your console, run 
+In order for the less to affect the page, we need to compile it into CSS. In your console, run
 
 ```bash
 npm run less
@@ -306,10 +306,9 @@ npm run less
 
 Now, if you refresh your demo.html page, you should see the new css applied! You can also look at your compiled CSS if you wish - it's in `dist/style.css`.
 
-### Releasing your tool and using it in BlueGenes. 
+### Releasing your tool and using it in BlueGenes.
 
 At this point, you should have a basic functional tool that consumes InterMine data and looks nice when you visit http://localhost:3456 - well done! So you'll probably want to test it in BlueGenes now, right? You have two ways to do this:
 
 - for tools under development, like this one, the easiest thing to do is [use npm link to install your new tool](tools.md#development-tools) in the bluegenes tool folder.  
 - for tools that are release ready (perhaps because you've tested them via the npm link method above, you can [release the tool on npm](https://docs.npmjs.com/cli/publish). This will make the tool available for others. To install a tool that's released via NPM, see our [installing published tools guide](tools.md#published-tools).
-
