@@ -23,8 +23,7 @@
   (let [current-mine (subscribe [:current-mine])
         mines (subscribe [:mines])
         minelink (:root (:service @current-mine))
-        url (if missing-http?- (str "http://" minelink) minelink)
-        x (.log js/console "%c@mines" "color:mediumorchid;font-weight:bold;" (clj->js @mines))]
+        url (if missing-http?- (str "http://" minelink) minelink)]
     (fn []
       [:div.panel.container [:h3 "Current mine: "]
        [:p (:name @current-mine) " at "
