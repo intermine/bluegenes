@@ -90,8 +90,8 @@
       display: flex;
       align-items: center;
       padding: @spacer 0;
+      background-color: @content-color-background;
 
-      background-color:@content-color-background;
       p {
         margin: 0;
       }
@@ -207,6 +207,29 @@
             margin: @spacer/6;
           }
         }
+      }
+    }
+  }
+
+  .mine-choice {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-gap: 10px;
+    grid-auto-rows: minmax(2em, auto);
+
+    label {
+      padding: 2px 4px 0 2px;
+      color: @body-foreground-color;
+
+      input {
+        margin-right: 2px;
+      }
+
+      &.checked {
+        border-bottom: solid 3px @highlight-color;
+        border-radius: 2px;
+        background: rgba(0, 0, 0, 0.07);
+        color: @body-foreground-color;
       }
     }
   }

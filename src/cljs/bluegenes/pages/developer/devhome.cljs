@@ -5,6 +5,8 @@
             [bluegenes.pages.developer.icons :as icons]
             [bluegenes.pages.developer.tools :as tools]
             [bluegenes.persistence :as persistence]
+            [clojure.string :refer [blank?]]
+            [imcljs.internal.utils :as utils :refer [missing-http?-]]
             [accountant.core :refer [navigate!]]))
 
 (defn nav []
@@ -20,7 +22,9 @@
 (defn mine-config []
   (let [current-mine (subscribe [:current-mine])
         mines (subscribe [:mines])
-        url (str "http://" (:root (:service @current-mine)))]
+        minelink (:root (:service @current-mine))
+        url (if missing-http?- (str "http://" minelink) minelink)
+        x (.log js/console "%c@mines" "color:mediumorchid;font-weight:bold;" (clj->js @mines))]
     (fn []
       [:div.panel.container [:h3 "Current mine: "]
        [:p (:name @current-mine) " at "
@@ -32,6 +36,7 @@
                              (dispatch [:set-active-mine (keyword (aget e "target" "value"))]))
                 :value     "select-one"}]
               (map (fn [[id details]]
+                     (let [mine-name (if (blank? (:name details)) id (:name details))]
                      [:label
                       {:class (cond (= id (:id @current-mine)) "checked")}
                       [:input
@@ -39,8 +44,8 @@
                         :name           "urlradios"
                         :id             id
                         :defaultChecked (= id (:id @current-mine))
-                        :value          id}] (:common details)]) @(subscribe [:mines])))
-        [:button.btn.btn-primary.btn-raised
+                        :value          id}] mine-name])) @(subscribe [:mines]))
+)        [:button.btn.btn-primary.btn-raised
          {:on-click (fn [e] (.preventDefault e))} "Save"]]])))
 
 (defn version-number []
