@@ -242,7 +242,7 @@
  (fn [db [_ mine-kw model]]
    (-> db
        (assoc-in [:mines mine-kw :service :model] model)
-       (assoc-in [:mines mine-kw :default-object-types] (preferred-fields model)))))
+       (assoc-in [:mines mine-kw :default-object-types] (sort (preferred-fields model))))))
 
 (reg-event-fx
  :assets/fetch-model
