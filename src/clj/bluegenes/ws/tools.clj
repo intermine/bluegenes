@@ -13,8 +13,8 @@
   "appends slash to the path if not present"
   (if-let [the-tools (:bluegenes-tool-path env)]
     (if (ends-with? the-tools "/")
-    the-tools
-    (str the-tools "/"))
+      the-tools
+      (str the-tools "/"))
     (warn "No BlueGenes tool path found")))
 
 (def tools-config (str tool-path "../package.json"))
@@ -79,4 +79,4 @@
 
 (defroutes routes
   ;;returns all available tools installed in the /tools folder
-           (GET "/all" session (tools session)))
+  (GET "/all" session (tools session)))

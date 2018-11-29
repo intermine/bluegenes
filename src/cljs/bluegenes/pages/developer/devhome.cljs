@@ -36,16 +36,15 @@
                 :value     "select-one"}]
               (map (fn [[id details]]
                      (let [mine-name (if (blank? (:name details)) id (:name details))]
-                     [:label
-                      {:class (cond (= id (:id @current-mine)) "checked")}
-                      [:input
-                       {:type           "radio"
-                        :name           "urlradios"
-                        :id             id
-                        :defaultChecked (= id (:id @current-mine))
-                        :value          id}] mine-name])) @(subscribe [:mines]))
-)        [:button.btn.btn-primary.btn-raised
-         {:on-click (fn [e] (.preventDefault e))} "Save"]]])))
+                       [:label
+                        {:class (cond (= id (:id @current-mine)) "checked")}
+                        [:input
+                         {:type           "radio"
+                          :name           "urlradios"
+                          :id             id
+                          :defaultChecked (= id (:id @current-mine))
+                          :value          id}] mine-name])) @(subscribe [:mines])))        [:button.btn.btn-primary.btn-raised
+                                                                                            {:on-click (fn [e] (.preventDefault e))} "Save"]]])))
 
 (defn version-number []
   [:div.panel.container
