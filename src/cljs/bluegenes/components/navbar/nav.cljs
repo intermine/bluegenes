@@ -86,7 +86,7 @@
                             (if (= :default id)
                               (clojure.string/join " - " [(:name details) "Default"])
                               (:name details))]]) @(subscribe [:mines])))
-             [:li.special [:a {:on-click #(navigate! "/debug")} ">_ Developer"]])])))
+             [:li.special [:a {:on-click #(navigate! "/debug/main")} ">_ Developer"]])])))
 
 (defn logged-in []
   (let [identity (subscribe [:bluegenes.subs.auth/identity])]

@@ -1,10 +1,13 @@
-(def props {:version "0.9.4-SNAPSHOT"})
+(def props {:version "0.9.9-SNAPSHOT"})
 
 (defproject org.intermine/bluegenes (:version props)
+  :licence "LGPL-2.1-only"
+  :description "Bluegenes is a Clojure-powered user interface for InterMine, the biological data warehouse"
+  :url "http://www.intermine.org"
   :dependencies [; Clojure
                  [org.clojure/clojure "1.9.0"]
                  [org.clojure/clojurescript "1.10.145"]
-                 [org.clojure/core.async "0.3.443"]
+                 [org.clojure/core.async "0.4.474"]
 
                  ; MVC
                  [re-frame "0.10.2"]
@@ -32,6 +35,7 @@
                  [cheshire "5.8.0"]
                  [metosin/ring-http-response "0.9.0"]
                  [ring-middleware-format "0.7.2"]
+
 
                  ; Dev tools
                  [re-frisk "0.5.0"]
@@ -114,13 +118,13 @@
          :target-path "resources/public/css"}
 
   :profiles {:dev {:dependencies [[binaryage/devtools "0.9.7"]]
-                   :resource-paths ["config/dev"]
+                   :resource-paths ["config/dev" "tools" "config/defaults"]
                    :plugins [[lein-figwheel "0.5.14"]
                              [lein-doo "0.1.8"]]}
              :prod {:dependencies []
-                    :resource-paths ["config/prod"]
+                    :resource-paths ["config/prod" "tools"  "config/defaults"]
                     :plugins []}
-             :uberjar {:resource-paths ["config/prod"]
+             :uberjar {:resource-paths ["config/prod" "config/defaults"]
                        :prep-tasks ["clean" ["less" "once"] ["cljsbuild" "once" "min"] "compile"]
                        :aot :all}}
 

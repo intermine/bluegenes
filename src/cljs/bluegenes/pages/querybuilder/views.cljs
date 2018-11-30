@@ -179,7 +179,7 @@
                                    :lists @lists
                                    :code (:code con)
                                    :on-remove (fn [] (dispatch [:qb/enhance-query-remove-constraint path idx]))
-                                   ;:possible-values (when (some? (:possible-values properties)) (map :item (:possible-values properties)))
+                                   :possible-values (when (some? (:possible-values properties)) (map :item (:possible-values properties)))
                                    :typeahead? true
                                    :value (or (:value con) (:values con))
                                    :op (:op con)

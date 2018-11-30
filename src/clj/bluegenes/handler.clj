@@ -1,6 +1,5 @@
 (ns bluegenes.handler
-  (:require [compojure.core :refer [GET defroutes]]
-            [bluegenes.routes :as routes]
+  (:require [bluegenes.routes :as routes]
             [ring.util.response :refer [resource-response]]
             [ring.middleware.json :refer [wrap-json-response wrap-json-params]]
             [ring.middleware.params :refer [wrap-params]]
@@ -16,11 +15,4 @@
                  ; Add session functionality to the Ring requests
                  wrap-session
                  ; Accept and parse request parameters in various formats
-                 (wrap-restful-format :formats [:json :json-kw :transit-msgpack :transit-json])
-                 ; The rest are mostly replaced by wrap-restful-format but are being left for historical purposes:
-                 ;wrap-params
-                 ;wrap-restful-format
-                 ;wrap-json-response
-                 ;wrap-keyword-params
-                 ;wrap-params
-))
+                 (wrap-restful-format :formats [:json :json-kw :transit-msgpack :transit-json])))

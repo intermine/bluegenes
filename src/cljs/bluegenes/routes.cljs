@@ -20,8 +20,10 @@
   (defroute "/" []
     (dispatch [:set-active-panel :home-panel]))
 
-  (defroute "/debug" []
-    (dispatch [:set-active-panel :debug-panel]))
+  (defroute "/debug/:panel" [panel]
+    (dispatch [:set-active-panel :debug-panel
+               nil
+               [:bluegenes.pages.developer.events/panel panel]]))
 
   (defroute "/help" []
     (dispatch [:set-active-panel :help-panel]))

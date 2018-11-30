@@ -1,6 +1,18 @@
 (ns bluegenes.pages.reportpage.subs
   (:require [re-frame.core :refer [reg-sub]]
-            [imcljs.path :as im-path]))
+            [imcljs.path :as im-path]
+            [clojure.walk :refer [postwalk postwalk-demo]]))
+
+(reg-sub
+ ::tools-by-current-type
+ (fn [db [_]]
+   (let [tool-type (get-in db [:panel-params :type])]
+     (get-in db [:tools :classes tool-type]))))
+
+(reg-sub
+ ::all-tools
+ (fn [db]
+   (get-in db [:tools :all])))
 
 (reg-sub ::a-table
          (fn [db [_ location]]
@@ -68,8 +80,21 @@
                   ; And return just the vals
                   (map
 
-
-
                    last)))))
 
+(reg-sub ::current-templates
+         :<- [::current-mine]
+         :<- [::templates]
+         (fn [[current-mine current-templates]]
+           (get current-templates current-mine)))
 
+(reg-sub ::non-empty-collections-and-references
+         :<- [:current-model]
+         :<- [:panel-params]
+         :<- [:report]
+         (fn [[model params]]
+           (let [collections (vals (get-in model [:classes (keyword (:type params)) :collections]))
+                 references (vals (get-in model [:classes (keyword (:type params)) :references]))
+                 non-empty-collections (filter (fn [c] (> (get-in model [:classes (keyword (:referencedType c)) :count]) 0)) collections)
+                 non-empty-references (filter (fn [c] (> (get-in model [:classes (keyword (:referencedType c)) :count]) 0)) references)]
+             (concat non-empty-references non-empty-collections))))

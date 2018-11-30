@@ -5,8 +5,10 @@
 /resources/public/js/min
 /resources/public/vendor
 /resources/public/css
-/resources/public/tools
+/resources/public/tools/*
+/tools/bluegenes**
 config/**/*.edn
+!config/defaults/config.edn
 .lein-failures
 out
 .idea

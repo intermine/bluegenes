@@ -1,4 +1,4 @@
-(ns bluegenes.sections.mymine.views.browser
+(ns bluegenes.pages.mymine.views.browser
   (:require [re-frame.core :refer [subscribe dispatch]]
             [reagent.core :as r]
             [oops.core :refer [oget ocall]]

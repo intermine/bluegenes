@@ -8,6 +8,7 @@
             [bluegenes.pages.reportpage.components.minelinks :as minelinks]
             [accountant.core :refer [navigate!]]
             [bluegenes.pages.reportpage.subs :as subs]
+            [bluegenes.pages.reportpage.components.tools :as tools]
             [im-tables.views.core :as im-table]
             [imcljs.path :as im-path]))
 
@@ -32,6 +33,47 @@
 
 (def clj-name name)
 
+(defn collections-and-references [service current-mine-name object-type id]
+  (let [summary-fields (subscribe [:current-summary-fields])
+        nonempty-collections-references (subscribe [::subs/non-empty-collections-and-references])]
+    (into [:div]
+          (map (fn [{:keys [name referencedType displayName] :as x}]
+                 ^{:key (str id (:name x))}
+                 [tbl {:loc [:report-page id (:name x)]
+                       :service (:service @service)
+                       :title displayName
+                       :query {:from object-type
+                               :select (map (partial str object-type "." (:name x) ".") (map strip-class (get @summary-fields (keyword referencedType))))
+                               :where [{:path (str object-type ".id")
+                                        :op "="
+                                        :value id}]}
+                       :settings {:pagination {:limit 5}
+                                  :links {:vocab {:mine (clj-name (or @current-mine-name ""))}
+                                          :url (fn [vocab]
+                                                 (str "#/reportpage/"
+                                                      (:mine vocab) "/"
+                                                      (:class vocab) "/"
+                                                      (:objectId vocab)))}}}])
+               @nonempty-collections-references))))
+
+(defn templates-for-entity [service current-mine-name id]
+  (let [runnable-templates (subscribe [::subs/runnable-templates])]
+    (into [:div]
+          (map (fn [{:keys [name title] :as t}]
+                 (let [key nil]
+                   [tbl {:loc [:report-page id (:name t)]
+                         :service (:service @service)
+                         :title title
+                         :query t
+                         :settings {:pagination {:limit 5}
+                                    :links {:vocab {:mine (clj-name (or @current-mine-name ""))}
+                                            :url (fn [vocab]
+                                                   (str "#/reportpage/"
+                                                        (:mine vocab) "/"
+                                                        (:class vocab) "/"
+                                                        (:objectId vocab)))}}}]))
+               @runnable-templates))))
+
 (defn main []
   (let [params (subscribe [:panel-params])
         report (subscribe [:report])
@@ -40,9 +82,7 @@
         service (subscribe [:current-mine])
         model (subscribe [:current-model])
         current-mine-name (subscribe [:current-mine-name])
-        fetching-report? (subscribe [:fetching-report?])
-        summary-fields (subscribe [:current-summary-fields])
-        runnable-templates (subscribe [::subs/runnable-templates])]
+        fetching-report? (subscribe [:fetching-report?])]
     (fn []
       [:div.container.report
        (let [; TODO Move the following heavy lifting to the events and subs:
@@ -50,7 +90,6 @@
              references (vals (get-in @model [:classes (keyword (:type @params)) :references]))
              non-empty-collections (filter (fn [c] (> (get-in @model [:classes (keyword (:referencedType c)) :count]) 0)) collections)
              non-empty-references (filter (fn [c] (> (get-in @model [:classes (keyword (:referencedType c)) :count]) 0)) references)]
-
          (let [{:keys [type id]} @params]
            [:div
             ; Only show the body of the report when the summary has loaded
@@ -61,35 +100,6 @@
                (when (= "Gene" (:type @params)) [minelinks/main (:id @params)])
                (when (:summary @report)
                  [:div.report-body
-                  (into [:div]
-                        (map (fn [{:keys [name title] :as t}]
-                               (let [key nil]
-                                 [tbl {:loc [:report-page id name]
-                                       :service (:service @service)
-                                       :title title
-                                       :query t
-                                       :settings {:pagination {:limit 5}
-                                                  :links {:vocab {:mine (clj-name (or @current-mine-name ""))}
-                                                          :url (fn [vocab] (str "#/reportpage/"
-                                                                                (:mine vocab) "/"
-                                                                                (:class vocab) "/"
-                                                                                (:objectId vocab)))}}}]))
-                             @runnable-templates))
-                  (into [:div]
-                        (map (fn [{:keys [name referencedType displayName] :as x}]
-                               (let [key (str id name)]
-                                 ^{:key key} [tbl {:loc [:report-page id name]
-                                                   :service (:service @service)
-                                                   :title displayName
-                                                   :query {:from type
-                                                           :select (map (partial str type "." name ".") (map strip-class (get @summary-fields (keyword referencedType))))
-                                                           :where [{:path (str type ".id")
-                                                                    :op "="
-                                                                    :value id}]}
-                                                   :settings {:pagination {:limit 5}
-                                                              :links {:vocab {:mine (clj-name (or @current-mine-name ""))}
-                                                                      :url (fn [vocab] (str "#/reportpage/"
-                                                                                            (:mine vocab) "/"
-                                                                                            (:class vocab) "/"
-                                                                                            (:objectId vocab)))}}}]))
-                             (concat non-empty-references non-empty-collections)))])])]))])))
+                  [tools/main]
+                  [collections-and-references service current-mine-name type id]
+                  [templates-for-entity service current-mine-name id]])])]))])))

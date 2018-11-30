@@ -20,14 +20,14 @@
   [:style
    "#wrappy{display:flex;justify-content:center;align-items:center;height:90vh;width:100%;flex-direction:column;font-family:sans-serif;font-size:2em;color:#999}#loader{flex-grow:1;display:flex;align-items:center;justify-content:center}.loader-organism{width:40px;height:0;display:block;border:12px solid #eee;border-radius:20px;opacity:.75;margin-right:-24px;animation-timing-function:ease-in;position:relative;animation-duration:2.8s;animation-name:pulse;animation-iteration-count:infinite}.worm{animation-delay:.2s}.zebra{animation-delay:.4s}.human{animation-delay:.6s}.yeast{animation-delay:.8s}.rat{animation-delay:1s}.mouse{animation-delay:1.2s}.fly{animation-delay:1.4s}@keyframes pulse{0%,100%{border-color:#3f51b5}15%{border-color:#9c27b0}30%{border-color:#e91e63}45%{border-color:#ff5722}60%{border-color:#ffc107}75%{border-color:#8bc34a}90%{border-color:#00bcd4}}\n    "])
 
-; The <head> of the landing page
 (defn head []
   [:head
    loader-style
    [:title "InterMine 2.0 BlueGenes"]
-   ; CSS:
-   (include-css "https://cdnjs.cloudflare.com/ajax/libs/gridlex/2.2.0/gridlex.min.css")
-   (include-css "http://cdn.intermine.org/js/intermine/im-tables/2.0.0/main.sandboxed.css")
+   (include-css
+    "https://cdnjs.cloudflare.com/ajax/libs/gridlex/2.2.0/gridlex.min.css")
+   (include-css
+    "http://cdn.intermine.org/js/intermine/im-tables/2.0.0/main.sandboxed.css")
    (include-css "css/site.css")
    (include-css "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css")
    ; Meta data:
