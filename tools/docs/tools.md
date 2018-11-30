@@ -4,7 +4,7 @@ The BlueGenes Tool API is designed to make it easy to run javascript-based tools
 
 ## Installing tools
 
-Since BlueGenes tools are always JavaScript, we use npm (a popular JavaScript package manager) to manage the packages. You must have a recent version of npm and node installed. See our [requirements](https://github.com/intermine/bluegenes/blob/dev/README) for more info.
+Since BlueGenes tools are always JavaScript, we use npm (a popular JavaScript package manager) to manage the packages. You must have a recent version of npm and node installed. See our [requirements](https://github.com/intermine/bluegenes/blob/dev/docs/getting-started.md#system-requirements) for more info.
 
 ### Published tools
 Tools that conform to the [tool API spec](tool-api.md) may be published in [npm](https://www.npmjs.com/) under the tag [bluegenes-intermine-tool](https://www.npmjs.com/search?q=keywords:bluegenes-intermine-tool). To install a package that is already published:
