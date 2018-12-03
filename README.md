@@ -22,6 +22,10 @@ BlueGenes is designed to make searching and analysing genomic data easy. It's po
 
 In all cases, you may also wish to see the [docs](docs/README.md) and [BlueGenes config instructions](docs/configuring-bluegenes.md)
 
+### Contributing to BlueGenes
+
+Wow, you're awesome! Check out our [contributing guidelines](https://github.com/intermine/bluegenes/blob/dev/CONTRIBUTING.md)
+
 ### Further help needed?
 
 - If you think the issue is related to InterMine or its webservices, check out the [InterMine documentation](http://intermine.readthedocs.io/en/latest/about/contact-us/)
