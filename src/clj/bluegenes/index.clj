@@ -23,12 +23,13 @@
 (defn head []
   [:head
    loader-style
-   [:title "InterMine 2.0 BlueGenes"]
-   (include-css
-    "https://cdnjs.cloudflare.com/ajax/libs/gridlex/2.2.0/gridlex.min.css")
-   (include-css
-    "http://cdn.intermine.org/js/intermine/im-tables/2.0.0/main.sandboxed.css")
+   (include-css "https://cdnjs.cloudflare.com/ajax/libs/gridlex/2.2.0/gridlex.min.css")
+   (include-css "http://cdn.intermine.org/js/intermine/im-tables/2.0.0/main.sandboxed.css")
+   (include-css "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css")
+   (include-css "https://cdn.jsdelivr.net/npm/bootstrap-material-design@4.1.1/dist/css/bootstrap-material-design.min.css")
    (include-css "css/site.css")
+
+
    (include-css "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css")
    ; Meta data:
    [:meta {:charset "utf-8"}]
