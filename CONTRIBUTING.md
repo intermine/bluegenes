@@ -2,7 +2,7 @@ PRs and Contributions are extremely welcome! The BlueGenes project follows Inter
 
 ## In general, please note:
 
- - New contributor? Try looking for [issues](https://github.com/intermine/bluegenes/issues) labelled first-timers-only, help wanted, bootcamp, or beginner. 
+ - New contributor? Try looking for [issues](https://github.com/intermine/bluegenes/issues) labelled first-timers-only, help wanted, bootcamp, or beginner. We also have a [bootcamp](https://github.com/yochannah/clojure-bootcamp) set of tutorials to help ease you into working with Clojure. 
  - All contributions must be substantial. Fixing a typo is acceptable, arbitrarily PRing a whitespace or README format change is not.
  - If you're not sure where to start, feel free to contact [Yo Yehudi](https://github.com/yochannah/) for advice - or visit the [InterMine Contact page](http://intermine.org/contact/) and email, chat, tweet, or join the dev mailing list.
  
