@@ -25,6 +25,10 @@ The tool folder will automatically be picked up and displayed in any relevant pa
 #### When working locally with a lein-compiled BlueGenes
 The default location for tools is the following path - you can modify it to elsewhere if you wish: https://github.com/yochannah/bluegenes/blob/tool-api-2018/config/defaults/config.edn#L3
 
+#### Dokku-based deployments
+
+If you're laundching BlueGenes via Dokku, we recommend mounting the tools in a folder outside the container, using [dokku:storage](https://github.com/dokku/dokku/blob/master/docs/advanced-usage/persistent-storage.md). This allows you to install and update tools without having to re-start the container, and ensures that the tools persist even if the container is restarted or redeployed. 
+
 #### Updating published tools
 
 If a tool's npm package is updated, all you need to do in order to pull the updates is run `npm update` from your tools folder, and all your packages will be updated.
