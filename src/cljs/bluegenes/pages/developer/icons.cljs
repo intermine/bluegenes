@@ -9,13 +9,7 @@
     [:svg.icon.icon-intermine [:use {:xlinkHref "#icon-intermine"}]]]
    [:div.demo
     [:code ".icon-2x"]
-    [:svg.icon.icon-2x.icon-intermine [:use {:xlinkHref "#icon-intermine"}]]]
-   [:div.demo
-    [:code ".icon-3x"]
-    [:svg.icon.icon-3x.icon-intermine [:use {:xlinkHref "#icon-intermine"}]]]
-   [:div.demo
-    [:code ".icon-4x"]
-    [:svg.icon.icon-4x.icon-intermine [:use {:xlinkHref "#icon-intermine"}]]]])
+    [:svg.icon.icon-2x.icon-intermine [:use {:xlinkHref "#icon-intermine"}]]]])
 
 (defn iconview []
   [:div
