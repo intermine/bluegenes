@@ -1,5 +1,4 @@
 @import "variables";
-@import "../node_modules/bootstrap/less/variables";
 
 
 select.form-control {
@@ -19,10 +18,6 @@ select.form-control {
 .popover, .tooltip-inner {
     background: white;
     color: @body-foreground-color;
-}
-
-.padme {
-    padding: 20px 0;
 }
 
 .nav-pills > li {
@@ -61,50 +56,7 @@ select.form-control {
     background-color: transparent;
 }
 
-.btn-primary.btn-outline {
-    color: @btn-primary-bg;
-
-    &:hover {
-        background-color: @btn-primary-bg;
-        border-color: @btn-primary-border;
-    }
-}
-
-.btn-success.btn-outline {
-    color: @btn-success-bg;
-
-    &:hover {
-        background-color: @btn-success-bg;
-        border-color: @btn-success-border;
-    }
-}
-
-.btn-info.btn-outline {
-    color: @btn-info-bg;
-
-    &:hover {
-        background-color: @btn-info-bg;
-        border-color: @btn-info-border;
-    }
-}
-
-.btn-warning.btn-outline {
-    color: @btn-warning-bg;
-
-    &:hover {
-        background-color: @btn-warning-bg;
-        border-color: @btn-warning-border;
-    }
-}
-
-.btn-danger.btn-outline {
-    color: @btn-danger-bg;
-
-    &:hover {
-        background-color: @btn-danger-bg;
-        border-color: @btn-danger-border;
-    }
-}
+.btn-primary {background-color:none;}
 
 .btn-danger.btn-outline:hover,
 .btn-info.btn-outline:hover,
@@ -123,26 +75,6 @@ select.form-control {
     &:hover {
         background-color: #fff;
     }
-}
-
-.btn-primary.btn-outline-inverse:hover {
-    color: @brand-primary;
-}
-
-.btn-success.btn-outline-inverse:hover {
-    color: @brand-success;
-}
-
-.btn-info.btn-outline-inverse:hover {
-    color: @brand-info;
-}
-
-.btn-warning.btn-outline-inverse:hover {
-    color: @brand-warning;
-}
-
-.btn-danger.btn-outline-inverse:hover {
-    color: @brand-danger;
 }
 
 .dropdown-menu {
