@@ -137,6 +137,17 @@
      [:div.feature-tree-container
       {:class (if @results "shrinkified")} [feature-types-tree]]]))
 
+(defn matches-regex?
+  [v regex]
+  (boolean (re-matches regex v)))
+
+(defn is-valid?
+  [v]
+  (if (nil? v)
+    false
+    (let [regexp (clojure.string/join "--" (split v #"\n"))]
+      (matches-regex? regexp #"([A-Za-z0-9\.]+(:)[0-9]+((\.\.)|-)[0-9]+(--))*([A-Za-z0-9\.]+(:)[0-9]+((\.\.)|-)[0-9]+)"))))
+
 (defn input-section
   "Entire UI input section / top half of the region search"
   []
@@ -151,8 +162,10 @@
        {:disabled (or
                    (= "" @to-search)
                    (= nil @to-search)
+                   (not (is-valid? @to-search))
                    (empty? (filter (fn [[name enabled?]] enabled?) (:feature-types @settings))))
-        :on-click (fn [e] (dispatch [:regions/run-query])
+        :on-click (fn [e]
+                    (dispatch [:regions/run-query])
                     (ocall (oget e "target") "blur"))
         :title "Enter something into the 'Regions to search' box or click on [Show me an example], then click here! :)"}
        "Search"]]
