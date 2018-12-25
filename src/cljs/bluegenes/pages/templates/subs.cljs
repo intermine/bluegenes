@@ -63,7 +63,7 @@
                        (if category
                          (some? (some (fn [tag] (filter-pred tag category)) (:tags details)))
                          true))]
-     (filter (partial template-contains-string? text-filter) (filter filter-fn templates)))))
+     (sort-by (comp :rank second) < (filter (partial template-contains-string? text-filter) (filter filter-fn templates))))))
 
 (reg-sub
  :selected-template-name
