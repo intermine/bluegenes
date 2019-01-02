@@ -1,4 +1,4 @@
-(ns bluegenes.pages.home.circles
+(ns bluegenes.pages.home.views
   (:require [re-frame.core :as re-frame]
             [bluegenes.components.search.typeahead :as search]
             [accountant.core :refer [navigate!]]))
@@ -32,12 +32,13 @@
    [:div [:a {:on-click #(navigate! "/help")} "Tour"]
     [:a {:on-click #(navigate! "/help")} "Docs/Help"]]])
 
-(defn main-panel []
+(defn main []
   (let [active-panel (re-frame/subscribe [:active-panel])]
     (fn []
-      [:div.home.circles
+      [:div.approot
+       [:div.home.circles
        [searchbox]
        [:div.features
         [lists]
         [templates]
-        [help]]])))
+        [help]]]])))

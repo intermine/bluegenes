@@ -23,11 +23,11 @@
 (defn head []
   [:head
    loader-style
+   [:title "InterMine 2.0 BlueGenes"]
    (include-css "https://cdnjs.cloudflare.com/ajax/libs/gridlex/2.2.0/gridlex.min.css")
    (include-css "http://cdn.intermine.org/js/intermine/im-tables/2.0.0/main.sandboxed.css")
    (include-css "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css")
    (include-css "css/site.css")
-
    (include-css "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css")
    ; Meta data:
    [:meta {:charset "utf-8"}]
@@ -43,10 +43,10 @@
   ; Javascript:
    [:link {:rel "shortcut icon" :href "https://raw.githubusercontent.com/intermine/design-materials/f5f00be4/logos/intermine/fav32x32.png" :type "image/png"}]
    [:script {:src "http://cdn.intermine.org/js/intermine/imjs/3.15.0/im.min.js"}]
-   [:script {:crossorigin "anonymous",
-             :integrity "sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s=",
+   [:script {:crossorigin "anonymous"
+             :integrity "sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s="
              :src "https://code.jquery.com/jquery-3.1.0.min.js"}]
-   [:script {:crossorigin "anonymous",
+   [:script {:crossorigin "anonymous"
              :src "https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"}]
    [:script {:src "https://apis.google.com/js/api.js"}]])
 
