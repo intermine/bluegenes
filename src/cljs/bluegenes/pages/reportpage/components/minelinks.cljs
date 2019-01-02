@@ -38,7 +38,8 @@
         number-to-show 5
         num-homies (count homologues)]  (fn []
                                           (if @showing-all?
-                                            (homie-list homologues url)
+                                            (conj (homie-list homologues url)
+                                                  (cond (> num-homies number-to-show) [:li {:on-click (fn [] (reset! showing-all? false))} [:a.show-more "Show less"]]))
                                             (conj (homie-list (take number-to-show homologues) url)
         ;;only add a show more link if there are more than 5.
                                                   (cond (> num-homies number-to-show) [:li {:on-click (fn [] (reset! showing-all? true))} [:a.show-more "Show " (- (count homologues) number-to-show) " more"]]))))))

@@ -575,14 +575,15 @@
                 (trigger-context-menu (assoc dets :im-obj-type "list"))
                 {:on-click (fn []
                              (dispatch [::evts/set-context-menu-target file]))})
-         [:div.col-1.shrink [checkbox im-obj-id]]
          [:div.col-7 (merge {} (draggable file))
-          [:div [ico im-obj-type]
+          [:div [checkbox im-obj-id] [ico im-obj-type]
            [:a {:on-click (fn [e]
                             (.stopPropagation e)
                             (dispatch [::evts/view-list-results (assoc dets :source @source)]))} name]
            (when-not authorized
-             [:svg.icon.icon-globe {:style {:fill "#939393"}} [:use {:xlinkHref "#icon-globe"}]])]]
+             [:svg.icon.icon-globe {:style {:fill "#939393"}} [:use {:xlinkHref "#icon-globe"}]])]
+          [:div.description-text
+           description]]
          [:div.col-2 [tag-container @hierarchy-trail]]
          [:div.col-1 {:class (str "tag-type type-" type)} type]
          [:div.col-1.list-size size]]))))

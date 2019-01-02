@@ -74,3 +74,10 @@
  :results/historical-queries
  (fn [db]
    (sort-by (comp :last-executed second) > (seq (get-in db [:results :queries])))))
+
+(reg-sub
+ :results/current-list
+ (fn [db]
+   (let [current-list (get-in db [:assets :lists (get db :current-mine)])
+         list-title (get-in db [:results :query :title])]
+     (->> current-list (filter #(= list-title (:title %))) first))))
