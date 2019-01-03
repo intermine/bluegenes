@@ -7,10 +7,13 @@
 @lightish-grey: #ccc;
 
 .im-table {
-    .btn .fa {margin-right: @spacer/4}
+  .btn {border:0;}
+    .btn .fa {margin-right: @spacer/4; margin-top:-2px}
     .btn-group {
         margin: 0;
-
+        display:flex;
+        justify-content:center;
+        align-items:center;
         button {
             padding: 3px 5px;
         }
