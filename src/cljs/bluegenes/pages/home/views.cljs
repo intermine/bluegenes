@@ -37,8 +37,8 @@
     (fn []
       [:div.approot
        [:div.home.circles
-       [searchbox]
-       [:div.features
-        [lists]
-        [templates]
-        [help]]]])))
+        [searchbox]
+        [:div.features
+         [lists]
+         [templates]
+         [help]]]])))
