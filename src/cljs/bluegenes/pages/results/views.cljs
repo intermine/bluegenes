@@ -55,26 +55,33 @@
                   @historical-queries))])))
 
 (defn main []
-  (let [are-there-results? (subscribe [:results/are-there-results?])]
+  (let [are-there-results? (subscribe [:results/are-there-results?])
+        current-list (subscribe [:results/current-list])]
     (fn []
-      (if @are-there-results?
+      (let [{:keys [description authorized name type size timestamp]} @current-list]
+        (if @are-there-results?
         ;;show results
-        [:div.container-fluid.results
-         {:style {:width "100%"}}
-         [:div.row
-          [:div.col-sm-2
-           [query-history]]
-          [:div.col-sm-7
-           {:style {:background-color "white"}}
-           [tables/main [:results :table]]]
-          [:div.col-sm-3
-           [enrichment/enrich]]]
-         #_[:div.results-and-enrichment
-            [:div.col-md-8.col-sm-12.panel
+          [:div.container-fluid.results
+           {:style {:width "100%"}}
+           [:div.row
+            [:div.col-sm-2
+             [query-history]]
+            [:div.col-sm-7
+             {:style {:background-color "white"}}
+             [tables/main [:results :table]]
+             (if (> (count description) 0)
+               [:div.description-div
+                {:style {:background-color "#D2CEBF"  :padding "10px" :overflow "auto"}}
+                [:b "Description: "]
+                description])]
+            [:div.col-sm-3
+             [enrichment/enrich]]]
+           #_[:div.results-and-enrichment
+              [:div.col-md-8.col-sm-12.panel
              ;;[:results :fortable] is the key where the imtables data (appdb) are stored.
 ]
-            [:div.col-md-4.col-sm-12]]]
+              [:div.col-md-4.col-sm-12]]]
         ;;oh noes, somehow we made it here with noresults. Fail elegantly, not just console errors.
 
 
-        [no-results]))))
+          [no-results])))))

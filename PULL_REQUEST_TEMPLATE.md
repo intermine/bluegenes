@@ -10,7 +10,7 @@
 
 Checked the following pages load results successfully and allow you to proceed to the results or report page:
 
-- [ ] ID resolver + results preview
+- [ ] Upload page resolves IDs as expected
 - [ ] Templates execute and show results
 - [ ] Templates allow you to select lists AND type in identifiers
 - [ ] Search (dropdown preview version)

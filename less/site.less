@@ -1,37 +1,29 @@
-@import "../node_modules/bootstrap/less/bootstrap";
 @import "../node_modules/bootstrap-material-design/less/bootstrap-material-design";
 @import "../node_modules/bootstrap/less/navs";
-@import "json-html";
-@import "components/icons";
-@import "components/progressbar";
+@import "overrides";
+@import "variables";
 @import "components/report/summary";
 @import "components/results";
 @import "components/enrichment";
-@import "variables";
-@import "simple-sidebar";
 @import "components/querybuilder";
 @import "components/idresolver";
 @import "components/home";
 @import "components/loader";
-@import "components/tooltip";
 @import "components/search";
 @import "components/templates";
 @import "components/alerts";
 @import "components/login";
 @import "components/toggle";
-@import "saved-data";
-@import "developer";
-@import "overrides";
+@import "components/mymine";
 @import "components/navbar";
+@import "components/regions";
 @import "layouts/input-group";
 @import "layouts/header";
-@import "components/regions";
-@import "components/toast";
+@import "developer";
 @import "im-tables";
 @import "im-tables-overrides";
-@import "components/mymine";
 @import "datatype-colors";
-@import "animations";
+@import "components/icons";
 @import url(https:fonts.googleapis.com/css?family=Roboto:400,700,300);
 
 body {
@@ -74,7 +66,6 @@ main {
   display: flex;
   flex-grow: 1;
   justify-content: center;
-  // margin-top: @spacer; //this margin directly offsets the annoying scrollbars that we were getting with a 100% page height and sticky header
 }
 //smaller screens:
 @media (max-width:539px) {
@@ -106,11 +97,6 @@ a:hover {
 
 .up-shadow {
   box-shadow: 0 -2px 5px -1px rgba(0, 0, 0, 0.33);
-}
-
-.panel {
-  // padding: 15px;
-  // .down-shadow;
 }
 
 div.logged-in {
@@ -157,12 +143,12 @@ footer {
   display: flex;
   border-top: solid 1px #ccc;
   margin-bottom: 0;
-  margin-left: -@spacer;
-  margin-right: -@spacer;
+  box-sizing:border-box;
   box-shadow: -1px -1px 1px 1px rgba(0, 0, 0, 0.1);
 
   div {
     display: flex;
+    flex-wrap:wrap;
     justify-content: center;
     flex-grow: 1;
 
@@ -226,14 +212,6 @@ td.skipped {
   background: #d0efff;
 }
 
-.pad-right-5 {
-  padding-right: 5px;
-}
-
-.pad-left-5 {
-  padding-left: 5px;
-}
-
 .btn-xxs {
   padding: 2px;
   font-size: 10px;
@@ -248,27 +226,6 @@ td.skipped {
 }
 //this is the best class name in the world.
 
-.LORD_FADER {
-  /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#000000+0,000000+100&0+0,0.65+100 */
-  background: -moz-linear-gradient(top, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.33) 100%);
-  /* FF3.6-15 */
-  background: -webkit-linear-gradient(top, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.33) 100%);
-  /* Chrome10-25,Safari5.1-6 */
-  background: linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.33) 100%);
-  /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
-  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr=  '#00000000', endColorstr='#a6000000', GradientType=0);
-  /* IE6-9 */
-  position: fixed;
-  width: inherit;
-  bottom: 0;
-  right: 0;
-  height: 75px;
-  opacity: 1;
-  text-align: center;
-  color: black;
-  pointer-events: none;
-}
-
 .form-control,
 .form-group .form-control {
   padding: 5px;
@@ -276,6 +233,9 @@ td.skipped {
   background: white;
   border-radius: 5px;
   border: 1px solid #d6d6d6;
+  &::placeholder {
+    line-height:normal;
+  }
 }
 
 input.form-control:focus {
@@ -385,35 +345,12 @@ button.btn {
   display: flex;
   align-items: center;
   justify-content: center;
+  border:0;
+  background-color:none;
 
   svg {
     margin-right: 0.5em;
   }
-}
-
-.icon(@icon-size) {
-  vertical-align: top;
-  margin-top: 1px;
-  display: inline-block;
-  width: @icon-size;
-  height: @icon-size; //  fill: @link-color;
-  margin: 0 @icon-size/2;
-}
-
-.icon {
-  .icon(1em);
-}
-
-.icon-2x {
-  .icon(2em);
-}
-
-.icon-3x {
-  .icon(3em);
-}
-
-.icon-4x {
-  .icon(4em);
 }
 
 .dropdown-mixed-content {
@@ -472,4 +409,8 @@ button.btn {
 .no-gutter > [class*="col-"] {
   padding-right: 5px;
   padding-left: 5px;
+}
+
+#csscompiling {
+  display: none;
 }

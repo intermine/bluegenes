@@ -134,10 +134,10 @@
                      {:on-click (fn [] (dispatch [:qb/enhance-query-add-summary-views [root-class]]))}
                      [:span.label-button
                       "Summary"]]
-                    [:button.btn.btn-primary.btn-slim
+                    [:button.btn.btn-default.btn-slim
                      {:on-click (fn [] (dispatch [:qb/expand-all]))}
                      "Expand to Selection"]
-                    [:button.btn.btn-primary.btn-slim
+                    [:button.btn.btn-slim
                      {:on-click (fn [] (dispatch [:qb/collapse-all]))}
                      "Collapse All"]]]]
              (concat
@@ -258,7 +258,7 @@
        [:button.btn.btn-primary.btn-raised
         {:on-click (fn [] (dispatch [:qb/export-query]))}
         (str "Show All " (when-let [c (:iTotalRecords @results-preview)] (str c " ")) "Rows")]
-       [:button.btn.btn-danger
+       [:button.btn
         {:on-click (fn [] (dispatch [:qb/enhance-query-clear-query]))}
         "Clear Query"]])))
 
@@ -367,10 +367,10 @@
                           [:div.container-fluid
                            [:h4 "Model Browser"]
                            #_[:div.btn-toolbar
-                              [:button.btn.btn-primary.btn-slim
+                              [:button.btn.btn-slim
                                {:on-click (fn [] (dispatch [:qb/expand-all]))}
                                "Expand to Query"]
-                              [:button.btn.btn-primary.btn-slim
+                              [:button.btn.btn-slim
                                {:on-click (fn [] (dispatch [:qb/collapse-all]))}
                                "Collapse All"]]
                            [:div
