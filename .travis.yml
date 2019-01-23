@@ -1,6 +1,7 @@
 language: generic
 sudo: required
 
+# Install lein - required to build the project
 before_script:
   - wget https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein -O /tmp/lein
   - chmod +x /tmp/lein
@@ -8,6 +9,21 @@ before_script:
   - lein cljfmt check
 
 script:
+  # setup dependencies
   - npm install
+  # Build CSS
   - lein less once
+  # ensure a minified build completes without error
   - lein cljsbuild once min
+  # build API docs
+  - lein codox
+
+# Deploys build API docs:
+deploy:
+  provider: pages
+  skip-cleanup: true
+  github-token: $GITHUB_TOKEN  # Set in the settings page of your repository, as a secure variable
+  keep-history: true
+  local-dir: target/doc
+  on:
+    branch: dev
