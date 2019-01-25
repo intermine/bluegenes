@@ -45,12 +45,14 @@
           [:label "Email Address"]
           [:input.form-control
            {:type "text"
+            :id "email"
             :value (:username @credentials)
             :on-change (partial update-form credentials :username)}]]
          [:div.form-group
           [:label "Password"]
           [:input.form-control
            {:type "password"
+            :id "password"
             :value (:password @credentials)
             :on-change (partial update-form credentials :password)
             :on-key-up (fn [k]
