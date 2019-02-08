@@ -104,7 +104,6 @@
             "format" ["cljfmt" "fix"]}
 
   :min-lein-version "2.8.1"
-  :jvm-opts ["--add-modules" "java.xml.bind"]  
 
   :source-paths ["src/clj" "src/cljs" "src/cljc" "src/workers" "script/"]
 
@@ -128,7 +127,8 @@
                     :plugins []}
              :uberjar {:resource-paths ["config/prod" "config/defaults"]
                        :prep-tasks ["clean" ["less" "once"] ["cljsbuild" "once" "min"] "compile"]
-                       :aot :all}}
+                       :aot :all}
+             :java9 {  :jvm-opts ["--add-modules" "java.xml.bind"]}}
 
   :cljsbuild {:builds {:dev {:source-paths ["src/cljs"]
                              :figwheel {:on-jsload "bluegenes.core/mount-root"}
