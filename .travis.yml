@@ -1,4 +1,4 @@
-language: generic
+language: java
 jdk: openjdk9
 sudo: required
 
