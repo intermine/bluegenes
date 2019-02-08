@@ -91,7 +91,7 @@
       :reagent-render
       (fn []
         [:div.dropdown
-         [:input.form-control.input-lg.square
+         [:input.typeahead-search
           {:type         "text"
            :value        @search-term
            :placeholder  "Search"

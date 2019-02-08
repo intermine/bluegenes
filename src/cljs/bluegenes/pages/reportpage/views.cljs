@@ -74,6 +74,12 @@
                                                         (:objectId vocab)))}}}]))
                @runnable-templates))))
 
+(defn top-scroll []
+  [:div.top-scroll
+   {:on-click #(.scrollTo js/window 0 0)
+    :title "Scroll to top"}
+   [:span.top-arrow]])
+
 (defn main []
   (let [params (subscribe [:panel-params])
         report (subscribe [:report])
@@ -85,6 +91,7 @@
         fetching-report? (subscribe [:fetching-report?])]
     (fn []
       [:div.container.report
+       [top-scroll]
        (let [; TODO Move the following heavy lifting to the events and subs:
              collections (vals (get-in @model [:classes (keyword (:type @params)) :collections]))
              references (vals (get-in @model [:classes (keyword (:type @params)) :references]))

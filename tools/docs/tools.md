@@ -4,7 +4,7 @@ The BlueGenes Tool API is designed to make it easy to run javascript-based tools
 
 ## Installing tools
 
-Since BlueGenes tools are always JavaScript, we use npm (a popular JavaScript package manager) to manage the packages. You must have a recent version of npm and node installed. See our [requirements](https://github.com/intermine/bluegenes/blob/dev/README) for more info.
+Since BlueGenes tools are always JavaScript, we use npm (a popular JavaScript package manager) to manage the packages. You must have a recent version of npm and node installed. See our [requirements](https://github.com/intermine/bluegenes/blob/dev/docs/getting-started.md#system-requirements) for more info.
 
 ### Published tools
 Tools that conform to the [tool API spec](tool-api.md) may be published in [npm](https://www.npmjs.com/) under the tag [bluegenes-intermine-tool](https://www.npmjs.com/search?q=keywords:bluegenes-intermine-tool). To install a package that is already published:
@@ -24,6 +24,10 @@ The tool folder will automatically be picked up and displayed in any relevant pa
 
 #### When working locally with a lein-compiled BlueGenes
 The default location for tools is the following path - you can modify it to elsewhere if you wish: https://github.com/yochannah/bluegenes/blob/tool-api-2018/config/defaults/config.edn#L3
+
+#### Dokku-based deployments
+
+If you're laundching BlueGenes via Dokku, we recommend mounting the tools in a folder outside the container, using [dokku:storage](https://github.com/dokku/dokku/blob/master/docs/advanced-usage/persistent-storage.md). This allows you to install and update tools without having to re-start the container, and ensures that the tools persist even if the container is restarted or redeployed. 
 
 #### Updating published tools
 

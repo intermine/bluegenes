@@ -85,9 +85,10 @@
                  [intermine/accountant-fragments "0.1.8"]]
 
   :deploy-repositories {"clojars" {:sign-releases false}}
-
+  :codox {:language :clojurescript}
   :plugins [[lein-cljsbuild "1.1.7"]
             [lein-less "1.7.5"]
+            [lein-codox "0.10.5"]
             [lein-ancient "0.6.14"]
             [lein-pdo "0.1.1"]
             [lein-cljfmt "0.6.1"]]

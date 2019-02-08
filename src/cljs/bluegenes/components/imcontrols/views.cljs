@@ -19,7 +19,7 @@ Example usage:
   (let [organisms (subscribe [:cache/organisms])]
     (fn [{:keys [selected-value on-change]}]
       [:div.btn-group.organism-dropdown
-       [:button.btn.btn-primary.dropdown-toggle
+       [:button.btn.dropdown-toggle
         {:data-toggle "dropdown"}
         [:span (if selected-value (str selected-value " ") "All Organisms ") [:span.caret]]]
        (-> [:ul.dropdown-menu]
