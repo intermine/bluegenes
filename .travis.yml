@@ -1,4 +1,5 @@
 language: generic
+jdk: openjdk9
 sudo: required
 
 # Install lein - required to build the project
