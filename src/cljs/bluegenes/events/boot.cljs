@@ -130,10 +130,10 @@
                         :thinking? false
                         :identity provided-identity
                         :message nil
-                        :error? false)
+                        :error? false))
                  ; Store our token (important for when fetching assets in the boot-flow above
                  ;(assoc-in [:mines (:id @(subscribe [:current-mine])) :service :token] (:token provided-identity))
-)
+
          state (persistence/get-state!)
           ;;if InterMine's passed in defaultmine settings, apply these first.
          intermine-defaults (init-defaults-from-intermine)

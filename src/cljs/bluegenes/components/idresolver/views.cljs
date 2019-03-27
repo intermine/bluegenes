@@ -902,7 +902,6 @@
            [wizard]
            #_[input-div]
             ;[stats]
-           (cond (> result-count 0) [preview result-count])
+           (cond (> result-count 0) [preview result-count])]))})))
             ;[selected]
             ;[debugger]
-]))})))
