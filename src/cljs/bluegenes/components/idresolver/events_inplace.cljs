@@ -191,9 +191,9 @@
                                       :op "ONE OF"
                                       :values ids}]}}]
      {:db db
-      :dispatch [:save-data results]})))
+      :dispatch [:save-data results]
        ;:navigate "saved-data"
-
+})))
 
 (defn pull-ids-from-idresolver
   "Returns IDs from the idresolver data set. straight matches have an id at a lower level than the converted and duplicate types so we need to do some deep digging. Right now if the user doesn't choose an option for the duplicate, we automatically serve up the first one in all future lists."

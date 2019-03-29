@@ -170,7 +170,8 @@
 
   :repositories [
                  ["clojars"
-                  {:url "https://clojars.org/repo"}]])
+                  {:url "https://clojars.org/repo"
                    ;; How often should this repository be checked for
                    ;; snapshot updates? (:daily, :always, or :never)
                    ;:update :always
+}]])
