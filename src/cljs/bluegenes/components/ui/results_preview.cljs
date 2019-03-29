@@ -31,13 +31,13 @@
        [:tbody
         (if
          (< (:iTotalRecords query-results) 1)
-         [:tr
-          [:td {:col-span (count (:columnHeaders query-results))}
-           [:h4 "Query returned no results"]]]
-         (doall (map-indexed
-                 (fn [idx r]
-                   ^{:key idx} [table-row r])
-                 (:results query-results))))
+          [:tr
+           [:td {:col-span (count (:columnHeaders query-results))}
+            [:h4 "Query returned no results"]]
+           (doall (map-indexed
+                   (fn [idx r]
+                     ^{:key idx} [table-row r])
+                   (:results query-results)))])
         (if (and (not hide-count?) (> (:iTotalRecords query-results) 5))
           [:tr
            [:td

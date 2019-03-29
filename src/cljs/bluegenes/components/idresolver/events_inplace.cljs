@@ -71,7 +71,7 @@
                                                 (cond->
                                                  {:identifiers (if (seq ids) ids [ids])
                                                   :type object-type}
-                                                 (not= organism :any) (assoc :extra organism)))]
+                                                  (not= organism :any) (assoc :extra organism)))]
      (go (dispatch [:handle-id (<! job)])))))
 
 (reg-event-fx
@@ -301,7 +301,7 @@
            ;sets example to any type configured as a fallback
           (assoc-in db example-keys any-example-type)
            ;if there's a default type, set the example to it instead.
-          use-default? (assoc-in example-keys object-type-default))
+           use-default? (assoc-in example-keys object-type-default))
      :text (if use-default? example-text-default any-example-text)}))
 
 (reg-event-fx
