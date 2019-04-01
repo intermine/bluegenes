@@ -1,4 +1,3 @@
 {
  ;;where tools are installed. Make sure this is an absolute path.
- :bluegenes-tool-path "/intermine/tools/node_modules"
- }
+ :bluegenes-tool-path "/intermine/tools/node_modules"}

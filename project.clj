@@ -143,8 +143,8 @@
                                         ;:parallel-build true
                                         :preloads [devtools.preload
                                                    re-frisk.preload]
-                                        :external-config {:devtools/config {:features-to-install :all}}
-                                        }}
+                                        :external-config {:devtools/config {:features-to-install :all}}}}
+
 
                        :min {:source-paths ["src/cljs"]
                              :jar true
@@ -174,4 +174,4 @@
                    ;; How often should this repository be checked for
                    ;; snapshot updates? (:daily, :always, or :never)
                    ;:update :always
-                   }]])
+}]])
