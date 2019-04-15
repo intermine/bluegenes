@@ -1,4 +1,5 @@
-language: generic
+language: java
+jdk: openjdk9
 sudo: required
 
 # Install lein - required to build the project
@@ -12,11 +13,11 @@ script:
   # setup dependencies
   - npm install
   # Build CSS
-  - lein less once
+  - lein with-profile +java9 less once
   # ensure a minified build completes without error
-  - lein cljsbuild once min
+  - lein with-profile +java9 cljsbuild once min
   # build API docs
-  - lein codox
+  - lein with-profile +java9 codox
 
 # Deploys build API docs:
 deploy:
