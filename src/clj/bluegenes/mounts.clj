@@ -4,7 +4,7 @@
             [config.core :refer [env]]
             [clojure.java.jdbc :as jdbc]
             [taoensso.timbre :as timbre :refer [infof]]
-            [clojure.string :refer [split replace]]
+            [clojure.string :as string :refer [split]]
             [clojure.set :refer [rename-keys]])
   (:import [java.net URI]))
 
@@ -15,7 +15,7 @@
     ; Parse the URL into parts parse-properties-uri is private, work around: reference by symbol!
     (let [{:keys [subname subprotocol user username password]} (#'jdbc/parse-properties-uri (URI. database-url))]
       ; Split the URL into [host:port dn-name]
-      (let [[host-and-port name] (-> subname (replace #"//" "") (split #"/"))]
+      (let [[host-and-port name] (-> subname (string/replace #"//" "") (split #"/"))]
         ; Parse a port (which might not be present
         (let [[host port] (split host-and-port #":")]
           {:db-subname subname

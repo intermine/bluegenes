@@ -1,7 +1,7 @@
 You can run bluegenes locally for development purposes. Here's what the local setup should look like.
 
 ## System Requirements
-* Java 1.6+
+* Java 6+
 * [Leiningen 2.5+](https://leiningen.org/)
 * [node 7+][nodejs]  (you can check your version using `node -v`). We recommend installing node using [nvm](https://github.com/creationix/nvm)
 * **Required:** The InterMine you point BlueGenes at *must* be running InterMine 1.8 or later; ideally 2.0.
@@ -38,8 +38,17 @@ lein figwheel dev
 ### Start the web server:
 
 In another terminal, run the following
+
+If you have **Java 8** or lower:  
+
 ```
 lein with-profile +dev run
+```
+
+**Java 9+**:  
+
+```bash
+lein with-profile +java9 figwheel
 ```
 
 Then visit http://localhost:5000/ (or whichever port you specific in config.edn)
@@ -51,7 +60,7 @@ lein clean
 lein doo phantom test once
 ```
 
-The above command assumes that you have [phantomjs](https://www.npmjs.com/package/phantomjs) installed. However, please note that [doo](https://github.com/bensu/doo) can be configured to run cljs.test in many other JS environments (chrome, ie, safari, opera, slimer, node, rhino, or nashorn).
+The above command assumes you will use [phantomjs](https://www.npmjs.com/package/phantomjs) (already declared as a Node.js development dependency). However, please note that [doo](https://github.com/bensu/doo) can be configured to run cljs.test in many other JS environments (chrome, ie, safari, opera, slimer, node, rhino, or nashorn).
 
 ## What next?
 

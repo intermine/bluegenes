@@ -18,8 +18,8 @@
                      :output-to            "resources/public/js/compiled/app.js"
                      :output-dir           "resources/public/js/compiled/out"
                      :asset-path           "js/compiled/out"
-                     :source-map-timestamp true
-                     }}
+                     :source-map-timestamp true}}
+
 
      {:id           "min"
       :source-paths ["src/cljs"]
@@ -30,14 +30,14 @@
                                        "externs/imtables.js"]
                      :optimizations   :advanced
                      :closure-defines {"goog.DEBUG" false}
-                     :pretty-print    false
-                     }}
+                     :pretty-print    false}}
+
      {:id           "test"
       :source-paths ["src/cljs" "test/cljs"]
       :compiler     {:output-to     "resources/public/js/compiled/test.js"
                      :main          "bluegenes.runner"
-                     :optimizations :none}}
-     ]})
+                     :optimizations :none}}]})
+
 
 (defrecord Figwheel []
   component/Lifecycle
@@ -50,16 +50,16 @@
     (ra/stop-figwheel!)
     config))
 
-    (defn api [request]
+(defn api [request]
     ;  (wrap-json-response ;;turns a clojure response into json
     ;   (wrap-params       ;;reads the parameters of requesrs.
          (routes/routes request));))
 
-    (def system
-      (atom
-       (component/system-map
-        :app-server (jetty-server {:app {:handler (wrap-json-response (wrap-params api))}, :port 3449})
-        :figwheel   (map->Figwheel figwheel-config))))
+(def system
+  (atom
+   (component/system-map
+    :app-server (jetty-server {:app {:handler (wrap-json-response (wrap-params api))}, :port 3449})
+    :figwheel   (map->Figwheel figwheel-config))))
 
 (defn start []
   (swap! system component/start))

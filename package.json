@@ -22,5 +22,7 @@
     "bootstrap-material-design": "https://github.com/intermine/bootstrap-material-design.git#im-0.0.2",
     "highlight.js": "^9.12.0"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "phantomjs": "^2.1.7"
+  }
 }
