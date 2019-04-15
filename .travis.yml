@@ -8,6 +8,7 @@ before_script:
   - chmod +x /tmp/lein
   - export PATH=$PATH:/tmp/lein
   - lein cljfmt check
+  - gem install awesome_bot
 
 script:
   # setup dependencies
@@ -16,6 +17,8 @@ script:
   - lein with-profile +java9 less once
   # ensure a minified build completes without error
   - lein with-profile +java9 cljsbuild once min
+  # check for the links in the documentation
+  - awesome_bot docs/*.md --allow-dupe --allow-redirect -w localhost
   # build API docs
   - lein with-profile +java9 codox
 
