@@ -814,11 +814,11 @@
                 (when (> notFound 0) [:div.bar.bar-danger {:style {:flex (* 100 (/ notFound all))}} (str notFound " Not Found")])]]]]
 
             (when (not= duplicates 0)
+              (dispatch [::evts/update-option :review-tab :issues])
               [:div.alert.alert-warning
                [:h4 [:i.fa.fa-exclamation-triangle] (str " " duplicates " of your identifiers resolved to more than one " (:type @resolution-response))]
                [:p "Please select which objects you want to keep from the "
                 [:span.label.label-warning
-                 {:on-click (fn [] (reset! tab :issues))}
                  [:i.fa.fa-fw.fa-exclamation-triangle] (str " Ambiguous (" duplicates ")")]
                 " tab"]])]
 
