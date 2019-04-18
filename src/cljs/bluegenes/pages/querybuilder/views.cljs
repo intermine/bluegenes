@@ -7,6 +7,7 @@
             [clojure.string :as str :refer [starts-with? ends-with?]]
             [bluegenes.utils :refer [uncamel]]
             [bluegenes.components.ui.constraint :refer [constraint]]
+            [bluegenes.components.bootstrap :refer [popover tooltip]]
             [imcljs.path :as im-path]
             [cljs.reader :refer [read]]
             [imcljs.query :refer [->xml]]
@@ -154,7 +155,7 @@
         [:li.tree.haschildren
          [:div.flexmex
           [:span.lab {:class (if (im-path/class? model (join "." path)) "qb-class" "qb-attribute")}
-           [:span.qb-label {:style {:margin-left 5}} [:a (uncamel k)]]
+           [:span.qb-label {:style {:margin-left 5}} [tooltip {:on-click #(dispatch [:qb/expand-path path]) :title (str "Show " (uncamel k) " in the model browser")} [:a  (uncamel k)]]]
            (when-let [s (:subclass properties)] [:span.label.label-default (uncamel s)])
            [:svg.icon.icon-bin
             {:on-click (if (> (count path) 1)
