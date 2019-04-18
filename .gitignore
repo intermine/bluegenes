@@ -7,6 +7,7 @@
 /resources/public/css
 /resources/public/tools/*
 /tools/bluegenes**
+/cypress
 config/**/*.edn
 !config/defaults/config.edn
 .lein-failures
@@ -19,3 +20,4 @@ node_modules
 .DS_Store
 pom.xml
 package-lock.json
+prepros.cfg
