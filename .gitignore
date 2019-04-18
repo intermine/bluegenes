@@ -7,7 +7,10 @@
 /resources/public/css
 /resources/public/tools/*
 /tools/bluegenes**
-/cypress
+/cypress/screenshots
+/cypress/plugins
+/cypress/videos
+/cypress/support
 config/**/*.edn
 !config/defaults/config.edn
 .lein-failures
