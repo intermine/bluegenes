@@ -53,7 +53,7 @@ describe("UI Test", function() {
     cy.get("@getData").should(xhr => {
       expect(xhr.status).to.equal(200);
     });
-    cy.get("select[class=form-control]").select("!=");
+    cy.get("select.constraint-chooser:first").select("!=");
   });
 
   it("Perform a region search using existing example", function() {

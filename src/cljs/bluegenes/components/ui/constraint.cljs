@@ -179,7 +179,7 @@
     (let [path-class (im-path/class model path)
           any-lists-with-class? (some? (some (fn [list] (= path-class (keyword (:type list)))) lists))
           disable-lists? (and lists (not any-lists-with-class?))]
-      (into [:select.form-control
+      (into [:select.form-control.constraint-chooser
              {:disabled disabled
               :class (when disabled "disabled")
               :value op
