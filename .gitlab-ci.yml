@@ -20,20 +20,31 @@ before_script:
   # required for cypress tests
   - apt-get install xvfb libgtk2.0-0 libnotify-dev libgconf-2-4 libnss3 libxss1 libasound2 -y
 
-
-test:
+check-format:
   script:
     # Check formatting
     - lein cljfmt check
 
+build:
+  script:
     # setup dependencies
     - npm install
     # Build CSS
     - lein less once
     # ensure a minified build completes without error
     - lein cljsbuild once min
+
+ui-testing:
+  script:
     # run UI tests using Cypress
     - npx cypress run
+  artifacts:
+    paths:
+    - cypress/*
+    expire_in: 1 week
+
+docs:
+  script:
     # build API docs
     - lein codox
     # check for the links in the documentation
