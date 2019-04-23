@@ -3,7 +3,7 @@ image: node:11.14.0
 # Install lein - required to build the project
 before_script:
   - apt-get update -y
-  - apt-get install default-jre postgresql-client -y
+  - apt-get install default-jre -y
   - wget https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein
   - chmod a+x lein
   - export LEIN_ROOT=1
