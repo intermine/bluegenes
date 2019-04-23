@@ -1,6 +1,21 @@
 # Ruby is required for awesome_bot
 image: ruby:2.6
 
+# to cache both npm modules and Cypress binary we use environment variables
+# to point at the folders we can list as paths in "cache" job settings
+variables:
+  npm_config_cache: "$CI_PROJECT_DIR/.npm"
+CYPRESS_CACHE_FOLDER: "$CI_PROJECT_DIR/cache/Cypress"
+
+# cache using branch name
+# https://gitlab.com/help/ci/caching/index.md
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - .npm
+    - cache/Cypress
+    - node_modules
+
 before_script:
   # Java install
   - apt-get update -y
@@ -32,11 +47,6 @@ build:
     - lein less once
     # ensure a minified build completes without error
     - lein cljsbuild once min
-  artifacts:
-    paths:
-    - node_modules
-    - /root/.cache/Cypress
-    expire_in: 1 week
 
 ui-testing:
   stage: test
@@ -45,9 +55,11 @@ ui-testing:
     - cypress install
     - npx cypress run
   artifacts:
+    when: always
     paths:
-    - cypress/*
-    expire_in: 1 week
+      - cypress/videos/**/*.mp4
+      - cypress/screenshots/**/*.png
+    expire_in: 1 day
 
 
 check-format:
