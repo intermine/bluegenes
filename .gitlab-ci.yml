@@ -9,7 +9,7 @@ before_script:
   - curl -sL https://deb.nodesource.com/setup_11.x | bash -
   - apt-get install -y nodejs
   # Lein install
-  - wget https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein
+  - wget https://github.com/technomancy/leiningen/blob/2.8.3/bin/lein
   - chmod a+x lein
   - export LEIN_ROOT=1
   - PATH=$PATH:.
