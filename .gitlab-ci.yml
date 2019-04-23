@@ -1,7 +1,6 @@
 # Ruby is required for awesome_bot
 image: ruby:2.6
 
-
 before_script:
   # Java install
   - apt-get update -y
@@ -20,10 +19,9 @@ before_script:
   # required for cypress tests
   - apt-get install xvfb libgtk2.0-0 libnotify-dev libgconf-2-4 libnss3 libxss1 libasound2 -y
 
-  stages:
+stages:
   - build
   - test
-
 
 build:
   stage: build
