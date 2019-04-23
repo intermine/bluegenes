@@ -29,7 +29,7 @@
                  [clj-http "3.7.0"]
                  [cljs-http "0.1.44"]
                  [compojure "1.6.0"]
-                 [ring "1.6.3"]
+                 [ring "1.7.1"]
                  [ring/ring-defaults "0.3.1"]
                  [ring/ring-json "0.4.0" :exclusions [cheshire.core]]
                  [cheshire "5.8.0"]
