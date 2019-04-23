@@ -42,6 +42,7 @@ ui-testing:
   stage: test
   script:
     # run UI tests using Cypress
+    - cypress install
     - npx cypress run
   artifacts:
     paths:
