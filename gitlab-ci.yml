@@ -1,0 +1,23 @@
+# Install lein - required to build the project
+before_script:
+  - wget https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein -O /tmp/lein
+  - chmod +x /tmp/lein
+  - export PATH=$PATH:/tmp/lein
+  - lein cljfmt check
+  - lein with-profile +dev run &
+  - gem install awesome_bot
+
+test:
+  script:
+    # setup dependencies
+    - npm install
+    # Build CSS
+    - lein less once
+    # ensure a minified build completes without error
+    - lein cljsbuild once min
+    # run UI tests using Cypress
+    - npx cypress run
+    # build API docs
+    - lein codox
+    # check for the links in the documentation
+    - awesome_bot docs/*.md --allow-dupe --allow-redirect -w localhost
