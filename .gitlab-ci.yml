@@ -15,7 +15,10 @@ before_script:
   - export LEIN_ROOT=1
   - PATH=$PATH:.
   - lein with-profile +dev run &
+  # Link Checker
   - gem install awesome_bot
+  # required for cypress tests
+  - apt-get install xvfb
 
 
 test:
