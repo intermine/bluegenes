@@ -8,6 +8,8 @@ before_script:
   # NPM/node install
   - curl -sL https://deb.nodesource.com/setup_11.x | bash -
   - apt-get install -y nodejs
+  # required for cypress tests
+  - apt-get install xvfb libgtk2.0-0 libnotify-dev libgconf-2-4 libnss3 libxss1 libasound2 -y
   # Lein install
   - wget https://raw.githubusercontent.com/technomancy/leiningen/2.8.3/bin/lein
   - chmod a+x lein
@@ -16,8 +18,6 @@ before_script:
   - lein with-profile +dev run &
   # Link Checker
   - gem install awesome_bot
-  # required for cypress tests
-  - apt-get install xvfb libgtk2.0-0 libnotify-dev libgconf-2-4 libnss3 libxss1 libasound2 -y
 
 stages:
   - build
