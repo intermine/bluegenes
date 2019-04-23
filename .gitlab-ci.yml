@@ -1,19 +1,28 @@
-image: node:11.14.0
+# Ruby is required for awesome_bot
+image: ruby:2.6
 
-# Install lein - required to build the project
+
 before_script:
+  # Java install
   - apt-get update -y
   - apt-get install default-jre -y
+  # NPM/node install
+  - curl -sL https://deb.nodesource.com/setup_11.x | bash -
+  - apt-get install -y nodejs
+  # Lein install
   - wget https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein
   - chmod a+x lein
   - export LEIN_ROOT=1
   - PATH=$PATH:.
-  - lein cljfmt check
   - lein with-profile +dev run &
   - gem install awesome_bot
 
+
 test:
   script:
+    # Check formatting
+    - lein cljfmt check
+
     # setup dependencies
     - npm install
     # Build CSS
