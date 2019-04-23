@@ -1,3 +1,5 @@
+image: node:11.14.0
+
 # Install lein - required to build the project
 before_script:
   - apt-get update -y
