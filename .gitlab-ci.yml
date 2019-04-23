@@ -1,8 +1,11 @@
 # Install lein - required to build the project
 before_script:
-  - wget https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein -O /tmp/lein
-  - chmod +x lein
-  - export PATH=$PATH:lein
+  - apt-get update -y
+  - apt-get install default-jre postgresql-client -y
+  - wget https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein
+  - chmod a+x lein
+  - export LEIN_ROOT=1
+  - PATH=$PATH:.
   - lein cljfmt check
   - lein with-profile +dev run &
   - gem install awesome_bot
