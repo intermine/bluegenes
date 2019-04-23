@@ -36,6 +36,11 @@ build:
     paths:
     - node_modules
     expire_in: 1 week
+  cache:
+    key: "%CI_COMMIT_REF_SLUG%"
+    paths:
+      - node_modules
+      - /root/.cache/Cypress
 
 ui-testing:
   stage: test
