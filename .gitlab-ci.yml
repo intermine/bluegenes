@@ -1,8 +1,8 @@
 # Install lein - required to build the project
 before_script:
   - wget https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein -O /tmp/lein
-  - chmod +x /tmp/lein
-  - export PATH=$PATH:/tmp/lein
+  - chmod +x lein
+  - export PATH=$PATH:lein
   - lein cljfmt check
   - lein with-profile +dev run &
   - gem install awesome_bot
