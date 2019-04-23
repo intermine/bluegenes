@@ -32,6 +32,10 @@ build:
     - lein less once
     # ensure a minified build completes without error
     - lein cljsbuild once min
+  artifacts:
+    paths:
+    - node_modules
+    expire_in: 1 week
 
 ui-testing:
   stage: test
