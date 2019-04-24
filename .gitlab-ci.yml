@@ -1,6 +1,3 @@
-# Ruby is required for awesome_bot
-image: ruby:2.6
-
 # to cache both npm modules and Cypress binary we use environment variables
 # to point at the folders we can list as paths in "cache" job settings
 variables:
@@ -52,7 +49,7 @@ ui-testing:
   stage: test
   script:
     # run UI tests using Cypress
-    - cypress install
+    - ./node_modules/.bin/cypress install
     - $(npm bin)/cypress run
   artifacts:
     when: always
@@ -69,6 +66,8 @@ check-format:
     - lein cljfmt check
 
 docs:
+  # Ruby is required for awesome_bot
+  image: ruby:2.6
   stage: test
   script:
     # build API docs
