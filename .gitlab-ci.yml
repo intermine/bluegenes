@@ -45,6 +45,10 @@ build-and-ui-test:
     # ensure a minified build completes without error
     - lein cljsbuild once min
     # run UI tests using Cypress
+    # Getting cypress to run in a different stage made me nearly die inside
+    # And then I gave up, because transferring the install files from the
+    # build stage to the test starge was difficult and also we need a running
+    # server on localhost:5000
     - ./node_modules/.bin/cypress install
     - $(npm bin)/cypress run
   artifacts:
