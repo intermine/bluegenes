@@ -81,7 +81,7 @@
 
                  ; Intermine Assets
                  [org.intermine/im-tables "0.8.1"]
-                 [org.intermine/imcljs "0.6.1"]
+                 [org.intermine/imcljs "0.7.0"]
                  [intermine/accountant-fragments "0.1.8"]]
 
   :deploy-repositories {"clojars" {:sign-releases false}}
