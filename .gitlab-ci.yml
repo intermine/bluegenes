@@ -52,9 +52,8 @@ ui-testing:
   stage: test
   script:
     # run UI tests using Cypress
-    - npm install cypress
     - cypress install
-    - npx cypress run
+    - $(npm bin)/cypress run
   artifacts:
     when: always
     paths:
