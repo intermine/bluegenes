@@ -35,7 +35,7 @@ stages:
   - build
   - test
 
-build:
+build-and-ui-test:
   stage: build
   script:
     # setup dependencies
@@ -44,10 +44,6 @@ build:
     - lein less once
     # ensure a minified build completes without error
     - lein cljsbuild once min
-
-ui-testing:
-  stage: test
-  script:
     # run UI tests using Cypress
     - ./node_modules/.bin/cypress install
     - $(npm bin)/cypress run
