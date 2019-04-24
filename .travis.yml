@@ -4,6 +4,7 @@ sudo: required
 
 # Install lein - required to build the project
 before_script:
+  - export BLUEGENES_DEFAULT_SERVICE_ROOT="http://www.flymine.org/flymine"
   - wget https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein -O /tmp/lein
   - chmod +x /tmp/lein
   - export PATH=$PATH:/tmp/lein
