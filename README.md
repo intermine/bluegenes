@@ -2,7 +2,7 @@
 
 # BlueGenes
 
-[![Build Status](https://travis-ci.org/intermine/bluegenes.svg?branch=dev)](https://travis-ci.org/intermine/bluegenes)
+Travis: [![Build Status](https://travis-ci.org/intermine/bluegenes.svg?branch=dev)](https://travis-ci.org/intermine/bluegenes) GitLab: [![pipeline status](https://gitlab.com/yochannah/bluegenes/badges/dev/pipeline.svg)](https://gitlab.com/yochannah/bluegenes/commits/dev)
 
 ## About
 BlueGenes is designed to make searching and analysing genomic data easy. It's powered by [InterMine](http://intermine.org/) web services, meaning that the data from over 30 InterMines worldwide can be accessed from the same familiar interface.
