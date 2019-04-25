@@ -44,7 +44,7 @@ Example usage:
                :on-change (fn [e] (on-change (oget e :target :value)))}]
              (concat
               [[:option {:value ""} "Any"]
-               [:option {:value "_"} ""]]
+               [:option {:value "_" :disabled true} "---"]]
               (map (fn [{short-name :shortName}]
                      [:option {:value short-name} short-name]) @organisms)))])))
 
@@ -59,20 +59,20 @@ Example usage:
       (let [{default-types :default-object-types
              class-keys :class-keys} @current-mine]
         [:div.form-group
-         (into [:select.form-control
-                {:value (or value (-> default-types first name))
-                 :on-change (fn [e] (on-change (oget e :target :value)))}]
-               (concat
+         [:select.form-control
+          {:value (or value (-> default-types first name))
+           :on-change (fn [e] (on-change (oget e :target :value)))}
+          (into [:optgroup {:label "Popular"}]
                 (map (fn [[class-kw {:keys [name displayName]}]]
                        [:option {:value name} displayName])
-                     (sort-classes (select-keys (:classes @model) default-types)))
-                (concat [[:option {:value "_"} ""]])
+                     (sort-classes (select-keys (:classes @model) default-types))))
+          (into [:optgroup {:label "All classes"}]
                 (map (fn [[class-kw {:keys [name displayName]}]]
                        [:option {:value name} displayName])
                      (sort-classes
                       (apply dissoc
                              (cond-> (:classes @model)
-                               qualified? (select-keys (keys class-keys))) default-types)))))]))))
+                               qualified? (select-keys (keys class-keys))) default-types))))]]))))
 
 (defn object-type-dropdown []
   (let [display-names @(subscribe [:model])]
