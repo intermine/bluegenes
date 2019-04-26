@@ -18,12 +18,11 @@
     ; The in-place resolver is currently disabled, but the events and subs
     ; are kept in place to prevent runtime errors such as dereferencing
     ; nonexistent subscriptions
-            [bluegenes.components.idresolver.subs-inplace]
+            [bluegenes.components.idresolver.subs]
             [bluegenes.components.idresolver.events-inplace]))
 
 ;;; TODOS:
 
-;We need to handler more than X results :D right now 1000 results would ALL show on screen. Eep.
 
 
 (def separators (set ",; "))
@@ -38,7 +37,9 @@
   (let [selected-organism (subscribe [:idresolver/selected-organism])]
     [:div [:label "Organism"]
      [im-controls/organism-dropdown
-      {:selected-value (if (some? @selected-organism) @selected-organism "Any")
+      {:selected-value (if (some? @selected-organism)
+                         @selected-organism
+                         "Any")
        :on-change (fn [organism]
                     (dispatch [:idresolver/set-selected-organism organism]))}]]))
 
@@ -209,13 +210,6 @@
               :MATCH [:span.id-item (:input i)]
               [:span.id-item (:input i)])]]))})))
 
-(defn input-items []
-  (let [bank (subscribe [:idresolver/bank])]
-    (fn []
-      (into [:div.input-items]
-            (map (fn [i]
-                   ^{:key (:input i)} [input-item i]) (reverse @bank))))))
-
 (defn parse-files [files]
   (dotimes [i (.-length files)]
     (let [rdr (js/FileReader.)
@@ -309,76 +303,6 @@
        ;;this input isn't visible, but don't worry, clicking on the label is still accessible. Even the MDN says it's ok. True story.
        "browse for a file"]]
      [file-manager]]))
-
-(defn input-div []
-  (let [drag-state (reagent/atom false)]
-    (fn []
-      [:div.resolvey
-       [:div#dropzone1
-        {:on-drop (partial handle-drop-over drag-state)
-         :on-click (fn [evt]
-                     (.preventDefault evt)
-                     (.stopPropagation evt)
-                     (dispatch [:idresolver/clear-selected])
-                     (.focus (sel1 :#identifierinput)))
-         :on-drag-over (partial handle-drag-over drag-state)
-         :on-drag-leave (fn [] (reset! drag-state false))
-         :on-drag-end (fn [] (reset! drag-state false))
-         :on-drag-exit (fn [] (reset! drag-state false))}
-        [:div.eenput
-         {:class (if @drag-state "dragging")}
-         [:div.idresolver
-          [:div.type-and-organism
-           [organism-selection]
-           [object-type-selection]]
-          [input-items]
-          [input-box]
-          [controls]]
-         [drag-and-drop-prompt]]]])))
-
-(defn stats []
-  (let [bank (subscribe [:idresolver/bank])
-        no-matches (subscribe [:idresolver/results-no-matches])
-        matches (subscribe [:idresolver/results-matches])
-        type-converted (subscribe [:idresolver/results-type-converted])
-        duplicates (subscribe [:idresolver/results-duplicates])
-        other (subscribe [:idresolver/results-other])]
-    (fn []
-      ;;goodness gracious this could use a refactor
-      [:div.legend
-       [:h3 "Legend & Stats:"]
-       [:div.results
-        [:div.MATCH {:tab-index -5}
-         [:div.type-head [get-icon :MATCH]
-          [:span.title "Matches"]
-          [:svg.icon.icon-question [:use {:xlinkHref "#icon-question"}]]]
-         [:div.details [:span.count (count @matches)]
-          [:p "The input you entered was successfully matched to a known ID"]]]
-
-        [:div.TYPE_CONVERTED {:tab-index -4}
-         [:div.type-head [get-icon :TYPE_CONVERTED]
-          [:span.title "Converted"]
-          [:svg.icon.icon-question [:use {:xlinkHref "#icon-question"}]]]
-         [:div.details [:span.count (count @type-converted)]
-          [:p "Input protein IDs resolved to gene (or vice versa)"]]]
-        [:div.OTHER {:tab-index -2}
-         [:div.type-head [get-icon :OTHER]
-          [:span.title "Synonyms"]
-          [:svg.icon.icon-question [:use {:xlinkHref "#icon-question"}]]]
-         [:div.details [:span.count (count @other)]
-          [:p "The ID you input matches an old synonym of an ID. We've used the most up-to-date one instead."]]]
-        [:div.DUPLICATE {:tab-index -3}
-         [:div.type-head [get-icon :DUPLICATE]
-          [:span.title "Partial\u00A0Match"]
-          [:svg.icon.icon-question [:use {:xlinkHref "#icon-question"}]]]
-         [:div.details [:span.count (count @duplicates)]
-          [:p "The ID you input matched more than one item. Click on the down arrow beside IDs with this icon to fix this."]]]
-        [:div.UNRESOLVED {:tab-index -1}
-         [:div.type-head [get-icon :UNRESOLVED]
-          [:span.title "Not\u00A0Found"]
-          [:svg.icon.icon-question [:use {:xlinkHref "#icon-question"}]]]
-         [:div.details [:span.count (count @no-matches)]
-          [:p "The ID provided isn't one that's known for your chosen organism"]]]]])))
 
 (defn debugger []
   (let [everything (subscribe [:idresolver/everything])]
@@ -540,51 +464,12 @@
              "Example"]
             [:button.btn.btn-default.btn-raised
              {:on-click (fn [] (dispatch [::evts/reset]))}
-             #_(str "Upload" (when @files (str " " (count @files) " file" (when (> (count @files) 1) "s"))))
              "Reset"]
             [:button.btn.btn-primary.btn-raised
              {:on-click (fn [] (dispatch [::evts/parse-staged-files @files @textbox-identifiers @options]))
               :disabled (when (and (nil? @files) (nil? @textbox-identifiers)) true)}
-             #_(str "Upload" (when @files (str " " (count @files) " file" (when (> (count @files) 1) "s"))))
              "Continue"
-             [:i.fa.fa-chevron-right {:style {:padding-left "5px"}}]]]]]
-
-         #_[:div.row
-            [:div.col-sm-6 [select-type-option type]]
-            [:div.col-sm-6 [select-organism-option organism disable-organism?]]]
-         #_[:div.row
-            [:div.col-sm-6 [case-sensitive-option case-sensitive]]]
-         #_[:div.row
-            [:div.col-sm-8 [:div.form-group
-                            {:style {:height "100%"}}
-                            [:label "Enter identifiers"]
-                            [:textarea.form-control
-                             {:on-change (fn [e] (dispatch [::evts/update-textbox-identifiers (oget e :target :value)]))
-                              :value @textbox-identifiers
-                              :class (when @files "disabled")
-                              :spellCheck false
-                              :disabled @files
-                              :style {:height "100%"} :rows 5}]]]
-            [:div.col-sm-4 [file-manager]]]
-
-         #_[:div.row
-            [:div.col-sm-12.clear-fix
-             [:div.btn-toolbar.pull-left
-              [:button.btn.btn-default.btn-raised
-               {:on-click (fn [] (dispatch [::evts/load-example]))}
-               "Example"]]
-
-             [:div.btn-toolbar.pull-right
-              [:button.btn.btn-default.btn-raised
-               {:on-click (fn [] (dispatch [::evts/reset]))}
-               #_(str "Upload" (when @files (str " " (count @files) " file" (when (> (count @files) 1) "s"))))
-               "Reset"]
-              [:button.btn.btn-primary.btn-raised
-               {:on-click (fn [] (dispatch [::evts/parse-staged-files @files @textbox-identifiers @options]))
-                :disabled (when (and (nil? @files) (nil? @textbox-identifiers)) true)}
-               #_(str "Upload" (when @files (str " " (count @files) " file" (when (> (count @files) 1) "s"))))
-               "Continue"
-               [:i.fa.fa-chevron-right {:style {:padding-left "5px"}}]]]]]]))))
+             [:i.fa.fa-chevron-right {:style {:padding-left "5px"}}]]]]]]))))
 
 (defn paginator []
   (fn [pager results]
@@ -889,20 +774,7 @@
                                (dispatch [::evts/reset])))
       :reagent-render
       (fn []
-        (let [bank (subscribe [:idresolver/bank])
-              no-matches (subscribe [:idresolver/results-no-matches])
-              result-count (- (count @bank) (count @no-matches))]
           [:div.container.idresolverupload
-           #_[:div.headerwithguidance
-              [:a.guidance
-               {:on-click
-                (fn []
-                  (dispatch [:idresolver/example splitter]))} "[Show me an example]"]]
-            ;[cont]
            [wizard]
-           #_[input-div]
-            ;[stats]
-           (cond (> result-count 0) [preview result-count])
-            ;[selected]
-            ;[debugger]
-]))})))
+           
+])})))
