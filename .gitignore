@@ -12,6 +12,7 @@
 /cypress/plugins
 /cypress/videos
 /cypress/support
+/cypress/fixtures
 config/**/*.edn
 !config/defaults/config.edn
 .lein-failures
