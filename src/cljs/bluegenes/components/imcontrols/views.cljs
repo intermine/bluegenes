@@ -36,12 +36,14 @@ Example usage:
   (let [organisms        (subscribe [:cache/organisms])
         default-organism (subscribe [:mine-default-organism])]
     (fn [{:keys [value on-change disabled class]}]
-      [:div.form-group
+      [:div.form-group.organism-selector
        (into [:select.form-control
               {:value (if disabled "" (or value @default-organism ""))
                :disabled disabled
                :class class
-               :on-change (fn [e] (on-change (oget e :target :value)))}]
+               :on-change (fn [e]
+                            (.log js/console "%ce (oget e :target :value)" "border-bottom: solid gold 1px" e (oget e :target :value))
+                            (on-change (oget e :target :value)))}]
              (concat
               [[:option {:value ""} "Any"]
                [:option {:value "_" :disabled true} "---"]]

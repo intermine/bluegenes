@@ -13,16 +13,9 @@
             [bluegenes.components.idresolver.subs :as subs]
             [oops.core :refer [oget oget+ ocall]]
             [accountant.core :refer [navigate!]]
-            [imcljs.path :as path]
-    ; TODO - reinstate (combine) the in-place id resolver
-    ; The in-place resolver is currently disabled, but the events and subs
-    ; are kept in place to prevent runtime errors such as dereferencing
-    ; nonexistent subscriptions
-            [bluegenes.components.idresolver.subs]
-            [bluegenes.components.idresolver.events-inplace]))
+            [imcljs.path :as path]))
 
 ;;; TODOS:
-
 
 
 (def separators (set ",; "))
@@ -768,13 +761,12 @@
 (defn main []
   (let [options (subscribe [::subs/stage-options])]
     (reagent/create-class
-     {:component-did-mount (fn [e]
-                             (attach-body-events)
-                             (when (nil? (:type @options))
-                               (dispatch [::evts/reset])))
+     {:component-did-mount
+      (fn [e]
+        (attach-body-events)
+        (when (nil? (:type @options))
+          (dispatch [::evts/reset])))
       :reagent-render
       (fn []
-          [:div.container.idresolverupload
-           [wizard]
-           
-])})))
+        [:div.container.idresolverupload
+         [wizard]])})))
