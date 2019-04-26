@@ -24,30 +24,6 @@
 
 (def allowed-number-of-results [5 10 20 50 100 250 500])
 
-(defn organism-selection
-  "UI component allowing user to choose which organisms to search. Defaults to all."
-  []
-  (let [selected-organism (subscribe [:idresolver/selected-organism])]
-    [:div [:label "Organism"]
-     [im-controls/organism-dropdown
-      {:selected-value (if (some? @selected-organism)
-                         @selected-organism
-                         "Any")
-       :on-change (fn [organism]
-                    (dispatch [:idresolver/set-selected-organism organism]))}]]))
-
-(defn object-type-selection
-  "UI component allowing user to choose which object type to search. Defaults to the first one configured for a mine."
-  []
-  (let [selected-object-type (subscribe [:idresolver/selected-object-type])
-        values (subscribe [:idresolver/object-types])]
-    [:div [:label "Type"]
-     [im-controls/object-type-dropdown
-      {:values @values
-       :selected-value @selected-object-type
-       :on-change (fn [object-type]
-                    (dispatch [:idresolver/set-selected-object-type object-type]))}]]))
-
 (defn splitter "Splits a string on any one of a set of strings."
   [string]
   (->> (clojure.string/split string (re-pattern (str "[" (reduce str separators) "\\r?\\n]")))
