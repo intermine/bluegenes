@@ -95,7 +95,7 @@
       :component-did-mount (fn [this] (.focus (reagent/dom-node this)))})))
 
 (defn organism-identifier
-  "Sometimes the ambiguity we're resolving with duplicate ids is the sme symbol from two similar organisms, so we'll need to ass organism name where known."
+  "Sometimes the ambiguity we're resolving with duplicate ids is the same symbol from two similar organisms, so we'll need to add organism name where known."
   [summary]
   (if (:organism.name summary)
     (str " (" (:organism.name summary) ")")
@@ -334,7 +334,8 @@
       {:value organism
        :disabled disable-organism?
        :class (when disable-organism? "disabled")
-       :on-change (fn [organism] (dispatch [::evts/update-option :organism organism]))}]]))
+       :on-change (fn [organism]
+                    (dispatch [::evts/update-option :organism organism]))}]]))
 
 (defn select-type-option []
   (let [model (subscribe [:current-model])]
@@ -365,7 +366,6 @@
     (fn []
       (let [{:keys [organism type case-sensitive disable-organism?]} @options]
         [:div
-
          [:h2 {:style {:margin "0"
                        :margin-bottom "10px"}}
           "Create a new list"]
@@ -385,12 +385,6 @@
              [:li "Separate identifiers by a comma, space, tab or new line"]
              [:li "Qualify any identifiers that contain whitespace with double quotes like so: \"even skipped\""]]]]]
 
-         #_[:div.alert.alert-info
-            [:p " Select the type of list to create and then enter your identifiers or upload them from a file."]
-            [:ul
-             [:li "Separate identifiers by a comma, space, tab or new line."]
-             [:li "Qualify any identifiers that contain whitespace with double quotes like so: \"even skipped\"."]]]
-
          [:div.row
           [:div.col-sm-4
            [select-type-option type]
@@ -399,16 +393,21 @@
           [:div.col-sm-8
 
            [:ul.nav.nav-tabs
-            [:li {:class (cond-> ""
-                           (= @tab nil) (str " active")
-                           @files (str "disabled"))
-                  :on-click (fn [] (when-not @files (dispatch [::evts/update-option :upload-tab nil])))
+            [:li {:class
+                  (cond-> ""
+                    (= @tab nil) (str " active")
+                    @files (str "disabled"))
+                  :on-click (fn []
+                              (when-not @files
+                                (dispatch [::evts/update-option :upload-tab nil])))
                   :disabled true}
              [:a [:i.fa.fa-font] " Free Text"]]
             [:li {:class (cond-> ""
                            (= @tab :file) (str " active")
                            @textbox-identifiers (str "disabled"))
-                  :on-click (fn [] (when-not @textbox-identifiers (dispatch [::evts/update-option :upload-tab :file])))
+                  :on-click (fn []
+                              (when-not @textbox-identifiers (dispatch
+                                                              [::evts/update-option :upload-tab :file])))
                   :disabled true}
              [:a [:i.fa.fa-upload] " File Upload"]]]
 
@@ -740,8 +739,7 @@
      {:component-did-mount
       (fn [e]
         (attach-body-events)
-        (when (nil? (:type @options))
-          (dispatch [::evts/reset])))
+        (dispatch [::evts/reset]))
       :reagent-render
       (fn []
         [:div.container.idresolverupload

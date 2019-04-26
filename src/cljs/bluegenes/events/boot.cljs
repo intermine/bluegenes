@@ -182,6 +182,10 @@
  :finished-loading-assets
  (fn [{db :db}]
    {:db (assoc db :fetching-assets? false)
+    ;; fetch-organisms doesn't always load before it is needed.
+    ;; for example on a fresh load of the id resolver, I sometimes end up with
+    ;; no organisms when I initialise the component. I have a workaround
+    ;; so it doesn't matter in this case, but it is something to be aware of.
     :dispatch-n [[:cache/fetch-organisms]
                  [:regions/select-all-feature-types]]}))
 

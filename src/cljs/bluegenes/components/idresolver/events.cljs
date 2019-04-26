@@ -116,6 +116,7 @@
 (reg-event-db
  ::update-type
  (fn [db [_ model value]]
+   ;; why are we disabling organism?
    (let [disable-organism? (when
                             (not= value "_")
                              (not (contains?
@@ -206,10 +207,30 @@
                                       :op "IN"
                                       :value list-name}]}}]]})))
 
+(defn validate-default-organism [db mine-details]
+  " this handles the fact that a mine could be misconfigured
+    and might return an organism that isn't present
+    in the list. Learned from the school of hard knocks, aka
+    beta humanmine"
+
+  (let [default-organism (:default-organism mine-details)
+        all-organisms (get-in db [:cache :organisms])
+        all-organism-shortnames
+        (reduce (fn [new-vector single-organism]
+                  (conj new-vector (:shortName single-organism)))
+                #{} all-organisms)]
+    (if (contains? all-organism-shortnames default-organism)
+      ;;return the default if it exists in the dropdown
+      default-organism
+      ;;if the default isn't preset, we default to "all", which is equivalent to
+      ;;sending a blank string for the organism value
+      "")))
+
 (reg-event-db
  ::reset
  (fn [db [_ example-type example-text]]
-   (let [mine-details (get-in db [:mines (get db :current-mine)])]
+   (let [mine-details (get-in db [:mines (get db :current-mine)])
+         organism (validate-default-organism db mine-details)]
      (assoc db :idresolver
             {:stage {:files nil
                      :textbox example-text
@@ -217,7 +238,7 @@
                                :type (or example-type
                                          (-> mine-details
                                              :default-object-types first name))
-                               :organism (-> mine-details :default-organism)}
+                               :organism organism}
                      :status nil
                      :flags nil}
              :response nil}))))
