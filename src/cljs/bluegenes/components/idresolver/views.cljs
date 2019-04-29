@@ -427,9 +427,15 @@
 
            [:div.btn-toolbar.pull-left]
            [:div.btn-toolbar.pull-right
-            [:button.btn.btn-default.btn-raised
-             {:on-click (fn [] (dispatch [::evts/load-example]))}
-             "Example"]
+            (let [example? (subscribe [::subs/example?])]
+              ;; if we don't have example text available, don't show the
+              ;; example button, but do log to the console that there's a problm
+              (if @example?
+                [:button.btn.btn-default.btn-raised
+                 {:on-click (fn [] (dispatch [::evts/load-example]))}
+                 "Example"]
+                (.debug js/console
+                        "No example button available due to missing or misconfigured example in the InterMine properties")))
             [:button.btn.btn-default.btn-raised
              {:on-click (fn [] (dispatch [::evts/reset]))}
              "Reset"]

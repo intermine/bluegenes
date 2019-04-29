@@ -64,3 +64,11 @@
       :duplicates (count DUPLICATE)
       :converted (count TYPE_CONVERTED)
       :other (count OTHER)})))
+
+;;if the example doesn't exist, we don't want to show the "example"
+;; button to users. 
+(reg-sub
+ ::example?
+ (fn [db]
+   (let [current-mine (get db :current-mine)]
+     (some? (get-in db [:mines current-mine :idresolver-example])))))
