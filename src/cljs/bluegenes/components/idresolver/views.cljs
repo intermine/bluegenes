@@ -222,13 +222,13 @@
 (defn file []
   (fn [js-File]
     (let [file (obj->clj js-File)]
-      [:div.file
-       [:span.file-name (:name file)]
-       [:span.file-size (bytes->size (:size file))]
-       [:a
-        {:on-click (fn [] (dispatch [::evts/unstage-file js-File]))}
-        [:svg.icon.icon-close
-         [:use {:xlinkHref "#icon-close"}]]]])))
+      [:tr.file
+       [:td.file-name (:name file)]
+       [:td.file-size (bytes->size (:size file))]
+       [:td.remove-file [:a
+                         {:on-click (fn [] (dispatch [::evts/unstage-file js-File]))}
+                         [:svg.icon.icon-close
+                          [:use {:xlinkHref "#icon-close"}]]]]])))
 
 (defn file-manager []
   (let [files (subscribe [::subs/staged-files])
@@ -252,27 +252,18 @@
        [:div.form-group.file-list
         (when @files
           (into
-           [:div.files]
+           [:table.files
+            [:thead
+             [:tr
+              [:th "File name"]
+              [:th "Size"]
+              [:th] ; don't need a heading for remove button
+]]]
            (map (fn [js-File] [file js-File]) @files)))
         [:button.btn.btn-default.btn-raised
          {:on-click (fn [] (-> @upload-elem js/$ (ocall :click)))
           :disabled @textbox-identifiers}
          (if @files "Add more files" "Browse")]]])))
-
-(defn drag-and-drop-prompt []
-  (fn []
-    [:div.upload-file
-     [:svg.icon.icon-file [:use {:xlinkHref "#icon-file"}]]
-     [:p "All your identifiers in a text file? Try dragging and dropping it here, or "
-      [:label.browseforfile {:on-click (fn [e] (.stopPropagation e))} ;;otherwise it focuses on the typeable input
-       [:input
-        {:type "file"
-         :multiple true
-         :on-click (fn [e] (.stopPropagation e)) ;;otherwise we just end up focusing on the input on the left/top.
-         :on-change (fn [e] (dispatch [::evts/stage-files (oget e :target :files)]))}]
-       ;;this input isn't visible, but don't worry, clicking on the label is still accessible. Even the MDN says it's ok. True story.
-       "browse for a file"]]
-     [file-manager]]))
 
 (defn debugger []
   (let [everything (subscribe [:idresolver/everything])]
@@ -447,22 +438,24 @@
           rows-in-view (take (:show @pager)
                              (drop (* (:show @pager)
                                       (:page @pager)) results))]
-      [:div.form-inline.paginator
-       [:div.form-group
-        [:div.btn-toolbar
-         [:button.btn.btn-default
-          {:on-click (fn [] (swap! pager update
-                                   :page (comp (partial max 0) dec)))
-           :disabled (< (:page @pager) 1)}
-          [:svg.icon.icon-circle-right
-           [:use {:xlinkHref "#icon-circle-right"}]]]
-         [:button.btn.btn-default
-          {:on-click (fn [] (swap! pager update
-                                   :page (comp (partial min (dec pages)) inc)))
-           :disabled (= (:page @pager) (dec pages))}
-          [:svg.icon.icon-circle-right
-           [:use {:xlinkHref "#icon-circle-right"}]]]]]
-       [:div.form-groupw
+      [:div.paginator
+       [:div.previous-next-buttons
+        [:button.btn.btn-default.previous-button
+         {:on-click (fn [] (swap! pager update
+                                  :page (comp (partial max 0) dec)))
+          :disabled (< (:page @pager) 1)}
+         [:svg.icon.icon-circle-left
+          [:use {:xlinkHref "#icon-circle-left"}]]
+         "Previous"]
+        [:button.btn.btn-default.next-button
+         {:on-click (fn [] (swap! pager update
+                                  :page (comp (partial min (dec pages)) inc)))
+          :disabled (= (:page @pager) (dec pages))}
+         "Next"
+
+         [:svg.icon.icon-circle-right
+          [:use {:xlinkHref "#icon-circle-right"}]]]]
+       [:div.results-count
         [:label "Show"]
         (into
          [:select.form-control
@@ -481,7 +474,7 @@
                                  allowed-number-of-results)))]
             (take to-show allowed-number-of-results))))
         [:label "results on page "]]
-       [:div.form-group
+       [:div.page-selector
         (into
          [:select.form-control
           {:on-change
@@ -734,7 +727,7 @@
 
            (when (not= duplicates 0)
              (dispatch [::evts/update-option :review-tab :issues])
-             [:div.alert.alert-warning
+             [:div.alert.alert-warning.guidance
               [:h4 [:svg.icon.icon-info
                     [:use {:xlinkHref "#icon-info"}]]
                (str " " duplicates " of your identifiers resolved to more than one "
@@ -745,23 +738,20 @@
                  [:use {:xlinkHref "#icon-duplicate"}]]
                 (str " Ambiguous (" duplicates ")")]
                " tab"]])
-
-           [:div.row
-            [:div.col-sm-12
-             [:div.form-group
-              [:label "List Name"]
-              [:input.form-control.input-lg
-               {:type "text"
-                :value @list-name
-                :on-change (fn [e]
-                             (dispatch
-                              [::evts/update-list-name
-                               (oget e :target :value)]))}]]
-             [:button.btn.btn-primary.pull-right.btn-lg.btn-raised
-              {:on-click (fn [] (dispatch [::evts/save-list]))}
-              [:svg.icon.icon-floppy-disk
-               [:use {:xlinkHref "#icon-floppy-disk"}]]
-              "Save List"]]]
+           [:div.save-list
+            [:label "List Name"
+             [:input
+              {:type "text"
+               :value @list-name
+               :on-change (fn [e]
+                            (dispatch
+                             [::evts/update-list-name
+                              (oget e :target :value)]))}]]
+            [:button.cta
+             {:on-click (fn [] (dispatch [::evts/save-list]))}
+             [:svg.icon.icon-floppy-disk
+              [:use {:xlinkHref "#icon-floppy-disk"}]]
+             "Save List"]]
 
            [:ul.nav.nav-tabs.id-resolver-tabs
             (when (> matches 0)
@@ -771,21 +761,21 @@
                 (fn []
                   (dispatch
                    [::evts/update-option :review-tab :matches]))}
-               [:a [:span.label.label-success
-                    [:svg.icon.icon-checkmark
-                     [:use {:xlinkHref "#icon-checkmark"}]]
-                    (str " Matches ("
-                         (- matches converted) ")")]]])
+               [:a.matches.all-ok
+                [:svg.icon.icon-checkmark
+                 [:use {:xlinkHref "#icon-checkmark"}]]
+                (str " Matches ("
+                     (- matches converted) ")")]])
             (when (> converted 0)
               [:li
                {:class (when (= @tab :converted) "active")
                 :on-click
                 (fn [] (dispatch
                         [::evts/update-option :review-tab :converted]))}
-               [:a [:span.label.label-success
-                    [:svg.icon.icon-converted
-                     [:use {:xlinkHref "#icon-converted"}]]
-                    (str "Converted (" converted ")")]]])
+               [:a.converted.all-ok
+                [:svg.icon.icon-converted
+                 [:use {:xlinkHref "#icon-converted"}]]
+                (str "Converted (" converted ")")]])
             (when (> other 0)
               [:li
                {:class (when (= @tab :other) "active")
@@ -793,30 +783,30 @@
                 (fn []
                   (dispatch
                    [::evts/update-option :review-tab :other]))}
-               [:a [:span.label.label-success
-                    [:svg.icon.icon-info
-                     [:use {:xlinkHref "#icon-info"}]]
-                    (str "Synonyms (" other ")")]]])
+               [:a.synonyms.all-ok
+                [:svg.icon.icon-info
+                 [:use {:xlinkHref "#icon-info"}]]
+                (str "Synonyms (" other ")")]])
             (when (> duplicates 0)
               [:li
                {:class (when (= @tab :issues) "active")
                 :on-click (fn []
                             (dispatch
                              [::evts/update-option :review-tab :issues]))}
-               [:a [:span.label.label-warning
-                    [:svg.icon.icon-duplicate
-                     [:use {:xlinkHref "#icon-duplicate"}]]
-                    (str " Ambiguous (" duplicates ")")]]])
+               [:a.ambiguous.needs-attention
+                [:svg.icon.icon-duplicate
+                 [:use {:xlinkHref "#icon-duplicate"}]]
+                (str " Ambiguous (" duplicates ")")]])
             (when (> notFound 0)
               [:li
                {:class (when (= @tab :notFound) "active")
                 :on-click
                 (fn [] (dispatch
                         [::evts/update-option :review-tab :notFound]))}
-               [:a [:span.label.label-danger
-                    [:svg.icon.icon-wondering
-                     [:use {:xlinkHref "#icon-wondering"}]]
-                    (str "Not Found (" notFound ")")]]])]
+               [:a.error.not-found
+                [:svg.icon.icon-wondering
+                 [:use {:xlinkHref "#icon-wondering"}]]
+                (str "Not Found (" notFound ")")]])]
            [:div.table-container
             (case @tab
               :issues [review-table (:type @resolution-response) (-> @resolution-response :matches :DUPLICATE)]
