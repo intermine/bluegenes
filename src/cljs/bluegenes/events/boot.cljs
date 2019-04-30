@@ -13,13 +13,13 @@
   is queued until all of the assets (data model, lists, templates etc) are fetched.
   When finished, an event called :finished-loading-assets is dispatch which tells BlueGenes
   it can continue routing."
-  [db ident]
+  [db ident current-mine]
   ; First things first...
   {:first-dispatch (if ident
                      ; If we have an identity (and therefore a token) then store it
-                     [:authentication/store-token (get db :current-mine) (:token ident)]
+                     [:authentication/store-token current-mine (:token ident)]
                      ; Otherwise go fetch an anonymous token
-                     [:authentication/fetch-anonymous-token (get db :current-mine)])
+                     [:authentication/fetch-anonymous-token current-mine])
    :rules [; When the store-token event has been dispatched then fetch the assets.
            ; We wait for the token because some assets need a token for private data (lists, queries)
            {:when :seen?
@@ -124,7 +124,7 @@
                  ; Merge the various mine configurations from mines.cljc
                 (assoc :mines default-mines/mines)
                  ; Add :default key to :mines list so that it's not later pruned from local storage
-                (assoc-in [:mines :default] {})
+                (assoc-in [:mines :default] (init-defaults-from-intermine))
                  ; Store the user's identity map provided by the server via the client constructor
                 (update :auth assoc
                         :thinking? false
@@ -155,7 +155,7 @@
                ;;we had assets in localstorage. We'll still load the fresh ones in the background in case they changed, but we can make do with these for now.
                    :fetching-assets? false)
          ; Boot the application asynchronously
-        :async-flow (boot-flow db provided-identity)
+        :async-flow (boot-flow db provided-identity current-mine)
          ; Register an event sniffer for im-tables
         :forward-events (im-tables-events-forwarder)}
        {:db (assoc db
@@ -163,7 +163,7 @@
                    :mines all-mines
                    :fetching-assets? true)
          ; Boot the application asynchronously
-        :async-flow (boot-flow db provided-identity)
+        :async-flow (boot-flow db provided-identity current-mine)
          ; Register an event sniffer for im-tables
         :forward-events (im-tables-events-forwarder)}))))
 
@@ -176,7 +176,7 @@
  :reboot
  (fn [{db :db}]
    {:db (remove-stateful-keys-from-db db)
-    :async-flow (boot-flow db nil)}))
+    :async-flow (boot-flow db nil (get db :current-mine))}))
 
 (reg-event-fx
  :finished-loading-assets
