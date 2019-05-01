@@ -15,10 +15,13 @@
 (reg-sub
  :templates
  (fn [db _]
-   (let [template-packages (reduce (fn [total [mine-kw templates]]
-                                     (doall (reduce (fn [t [name query]]
-                                                      (assoc t (keyword mine-kw name) query)) total templates)))
-                                   {} (seq (get-in db [:assets :templates])))]
+   (let [template-packages
+         (reduce
+          (fn [total [mine-kw templates]]
+            (doall (reduce
+                    (fn [t [name query]]
+                      (assoc t (keyword mine-kw name) query)) total templates)))
+          {} (seq (get-in db [:assets :templates])))]
      template-packages)))
 
 (reg-sub
@@ -59,11 +62,28 @@
  :<- [:template-chooser/text-filter]
  (fn [[templates category text-filter]]
    (let [filter-pred (fn [tag category] (= tag (str "im:aspect:" category)))
-         filter-fn   (fn [[id details]]
-                       (if category
-                         (some? (some (fn [tag] (filter-pred tag category)) (:tags details)))
-                         true))]
-     (filter (partial template-contains-string? text-filter) (filter filter-fn templates)))))
+         filter-fn
+         (fn [[id details]]
+           (if category
+             (some? (some (fn [tag] (filter-pred tag category))
+                          (:tags details)))
+             true))]
+     (sort-by
+      (fn [[template-name template-details]]
+        (let [rank (:rank template-details)]
+          ;; Template ranks come back as strings, either "unranked", or
+          ;; integers that have become stringy, e.g. "12". If we don't parse
+          ;; them into ints, the order becomes 1, 11, 12, 2, 23, 25, 3, etc.
+          ;; but we also need to handle the genuine strings, which become NaN
+          ;; when we try to parse them.
+          (if (.isNaN js/Number rank)
+            ;; unranked == last please.
+            ;; I sincerely hope we never have 100k templates
+            99999
+            ;; if it's a number, just return it.
+            rank)))
+      < (filter (partial template-contains-string? text-filter)
+                (filter filter-fn templates))))))
 
 (reg-sub
  :selected-template-name
