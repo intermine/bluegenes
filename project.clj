@@ -30,11 +30,11 @@
                  [cljs-http "0.1.44"]
                  [compojure "1.6.0"]
                  [ring "1.7.1"]
-                 [ring/ring-defaults "0.3.1"]
+                 [ring/ring-defaults "0.3.2"]
                  [ring/ring-json "0.4.0" :exclusions [cheshire.core]]
                  [cheshire "5.8.0"]
-                 [metosin/ring-http-response "0.9.0"]
-                 [ring-middleware-format "0.7.2"]
+                 [metosin/ring-http-response "0.9.1"]
+                 [ring-middleware-format "0.7.4"]
 
 
                  ; Dev tools
