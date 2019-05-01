@@ -30,9 +30,7 @@ Check out our [contributing guidelines](https://github.com/intermine/bluegenes/b
 
 [Building locally (for both Dev and Production builds)](docs/building.md).
 
-[FIX_THIS_BROKEN_LINK]
-- **BlueGenes as built into InterMine 2.0** If you have upgraded to InterMine 2.0 (the Gradle release), see the [instructions to launch a BlueGenes target](https://intermine.readthedocs.io/en/intermine-2.0/system-requirements/software/gradle/index.html#deploy-blue-genes).
-[FIX_THIS_BROKEN_LINK]
+- **BlueGenes as built into InterMine 2.0** If you have upgraded to InterMine 2.0 (the Gradle release), see the [instructions to launch a BlueGenes target](https://intermine.readthedocs.io/en/latest/system-requirements/software/gradle/index.html#deploy-blue-genes).
 
 In all cases, you may also wish to see the [docs](docs/README.md) and [BlueGenes config instructions](docs/configuring.md)
 
