@@ -1,80 +1,62 @@
 # Local build
 
-You can run bluegenes locally for development purposes. Here's what the local setup should look like.
-
 ## System Requirements
-* Java 6+
-* [Leiningen 2.5+](https://leiningen.org/)
-* [node 7+][nodejs]  (you can check your version using `node -v`). We recommend installing node using [nvm](https://github.com/creationix/nvm)
-* **Required:** The InterMine you point BlueGenes at *must* be running InterMine 1.8 or later; ideally 2.0.
 
-### Download dependencies.
+* OpenJDK, version 8 (only until we make our software compatible with OpenJDK 11)
+* Latest [Leiningen](https://leiningen.org/)
+* Latest supported [nodejs](https://nodejs.org/).  You can check your version using `node -v`). We recommend installing node using [nvm](https://github.com/creationix/nvm)
+* Latest supported [npm](https://www.npmjs.com/)
+* InterMine version 1.8+ (version 2.0 recommended)
+
+## Download NPM dependencies
 
 ```
 npm install
 ```
 
-### Compile the CSS
+## Compile the CSS
 
-We use [less](http://lesscss.org/) to write our styles. In order to run BlueGenes you'll need to compile the less, using
+We use [less](http://lesscss.org/) to write our styles.
 
+If you only want the CSS to be uploaded once, run:
 
-```
-lein less once
-```
+    lein less once
 
-_Or_, if you'll be making lots of style edits and don't want to type `lein less once` every time you make a change, you can automatically recompile the css file whenever it changes, using:
+Note: in this case you will have to manually recompile the CSS files after each change.
 
-```
-lein less auto
-```
+If you will be changing the CSS files continuously, you can automatically recompile the CSS files after each change using:
 
-Note that you won't see a prompt telling you when it's complete if you use `lein less auto` - but the browser page will automatically refresh so you'll know when it's done.
+    lein less auto
 
-###
+Note: even that you will not see a prompt telling you when it's complete, the browser page will automatically refresh.
 
 
-### Start the process to reload code changes in the browser:
+## Make Leiningen reload code changes in the browser
 
-```
-lein figwheel dev
-```
+    lein figwheel dev
 
-### Start the web server:
 
-In another terminal, run the following
+## Start the web server
 
-If you have **Java 8** or lower:  
+If you have OpenJDK 8:
 
-```
-lein with-profile +dev run
-```
+    lein with-profile +dev run
 
-**Java 9+**:  
+If you have OpenJDK 9:
 
-```bash
-lein with-profile +java9 figwheel
-```
+    lein with-profile +java9 figwheel
 
-Then visit http://localhost:5000/ (or whichever port you specific in config.edn)
 
-### Run tests:
+By default, the web server will be started on http://localhost:5000/. To change this value, edit the corresponding `config.edn`.
 
-```
-lein clean
-lein doo phantom test once
-```
+
+## Running tests
+
+
+    lein clean
+    lein doo phantom test once
 
 The above command assumes you will use [phantomjs](https://www.npmjs.com/package/phantomjs) (already declared as a Node.js development dependency). However, please note that [doo](https://github.com/bensu/doo) can be configured to run cljs.test in many other JS environments (chrome, ie, safari, opera, slimer, node, rhino, or nashorn).
-
-## What next?
-
-Once you're happy with any edits you've made, you probably want to check that it all works the same in a minified prod build. See [production builds](production-builds.md) for info on deploying and testing a minified build.
-
-
-[lein]: https://github.com/technomancy/leiningen
-[npm]: https://www.npmjs.com/
-[nodejs]: https://nodejs.org/
 
 
 
