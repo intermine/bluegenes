@@ -1,68 +1,75 @@
 @body-background-color: #f7f7f7;
 @body-foreground-color: #444444;
 @link-color: #000;
-
 //Bits you want to draw the eye to - usually y 1-2 items per page, pls
 @highlight-color: #039BE5;
 @highlight-color-text: #fff;
 @cta-color: @highlight-color;
 @cta-color-text: @body-background-color;
-
 //possibly defunct?
 @selectedColor: #3F51B5;
 @selectedColorText: @body-background-color;
 @notice-me: #F57F17;
-
 //for stripy tables
 @stripe-color: #f6f6f6;
 @light-contrast: #e2e2e2;
-
 @navbar-color: #505050;
 @navbar-color-text: #fff;
-
 //for pages ares that need to be brought forward from the background. Assume same colour text as normal.
 @content-color-background: #fff;
 @content-color-text: @body-foreground-color;
-
 //to provide common styles.
 //please never pad manually, use multiples / divisons of @spacer instead.
 @border-radius: 2px;
 @spacer: 1em;
-
 //useful breakpoint:
 @tiny-screen: 800px;
 @even-tinier-screen: 600px;
 
 .dark-text {
-    color: rgba(0, 0, 0, 0.87);
-    text-shadow: 1px 1px 1px rgba(255, 255, 255, 0.4);
+  color: rgba(0, 0, 0, 0.87);
+  text-shadow: 1px 1px 1px rgba(255, 255, 255, 0.4);
 }
 
 .border-radius {
-    border-radius: @border-radius;
+  border-radius: @border-radius;
 }
 
 .button-color {
-    background: @highlight-color;
+  background: @highlight-color;
+  color: @cta-color-text;
+  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.4);
+
+  .icon {
     color: @cta-color-text;
-    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.4);
+    fill: @cta-color-text;
+  }
+}
+
+.button-style {
+  .button-color;
+  .border-radius;
+  padding:@spacer @spacer*2;
+  font-size:@spacer*1.1;
+  font-weight:bold;
+
 }
 
 .transitions {
-    transition: all 0.5s ease;
+  transition: all 0.5s ease;
 }
 
 .box-shadow {
-    box-shadow: 1px 1px 1px rgba(0, 0, 0, 0.15);
+  box-shadow: 1px 1px 1px rgba(0, 0, 0, 0.15);
 }
 
 .header-styles {
-    h1,
-    h2,
-    h3,
-    h4,
-    h5,
-    h6 {
-        border-bottom: solid 1px @highlight-color;
-    }
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    border-bottom: solid 1px @highlight-color;
+  }
 }

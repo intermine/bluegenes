@@ -30,11 +30,11 @@
                  [cljs-http "0.1.44"]
                  [compojure "1.6.0"]
                  [ring "1.7.1"]
-                 [ring/ring-defaults "0.3.1"]
+                 [ring/ring-defaults "0.3.2"]
                  [ring/ring-json "0.4.0" :exclusions [cheshire.core]]
                  [cheshire "5.8.0"]
-                 [metosin/ring-http-response "0.9.0"]
-                 [ring-middleware-format "0.7.2"]
+                 [metosin/ring-http-response "0.9.1"]
+                 [ring-middleware-format "0.7.4"]
 
 
                  ; Dev tools
@@ -88,6 +88,7 @@
   :codox {:language :clojurescript}
   :plugins [[lein-cljsbuild "1.1.7"]
             [lein-less "1.7.5"]
+            [org.clojure/core.unify "0.5.7"]
             [lein-codox "0.10.5"]
             [lein-ancient "0.6.14"]
             [lein-pdo "0.1.1"]
