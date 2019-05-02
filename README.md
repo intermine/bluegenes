@@ -35,9 +35,9 @@ Check out our [contributing guidelines](https://github.com/intermine/bluegenes/b
 
 ## Need further help?
 
-- If you think the issue is related to InterMine or its webservices, check out the [InterMine documentation](http://intermine.readthedocs.io/en/latest/about/contact-us/)
+- Regarding InterMine- and InterMine webservices-related problems, check out the [InterMine documentation](http://intermine.readthedocs.io/en/latest/about/contact-us/)
 - Email our [dev list](http://intermine.readthedocs.io/en/latest/support/mailing-list/)
-- Pop by and say hi in our [chat](http://chat.intermine.org) during UK office hours
+- [Chat with us](http://chat.intermine.org) during UK office hours
 
 
 ## License
