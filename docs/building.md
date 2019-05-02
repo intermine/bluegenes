@@ -8,11 +8,11 @@
 * Latest supported [npm](https://www.npmjs.com/)
 * InterMine version 1.8+ (version 2.0 recommended)
 
+
 ## Download NPM dependencies
 
-```
-npm install
-```
+    npm install
+
 
 ## Compile the CSS
 
@@ -52,7 +52,6 @@ By default, the web server will be started on http://localhost:5000/. To change 
 
 ## Running tests
 
-
     lein clean
     lein doo phantom test once
 
@@ -64,14 +63,13 @@ The above command assumes you will use [phantomjs](https://www.npmjs.com/package
 
 ## Testing a minified instance before deploying:
 
-Most of the time, we develop with uncompressed files - it's faster for hot reloads. But for production, we want things to be extra fast on load and we don't hot-reload changes, so it's better to present minified files that have had all un-necessary code stripped. Clojure uses Google Closure tools (yup, Clojure uses Closure) to minify things.
+Most of the time, we develop with uncompressed files - it's faster for hot reloads. But for production, we want things to be extra fast on load and we don't hot-reload changes, so it's better to present minified files that have had all un-necessary code stripped. Clojure uses Google Closure tools (yes, Clojure uses Closure) to minify things.
 
 Sometimes the Closure compiler is overzealous and removes something we actually wanted to keep. To check what your work looks like in a minified build, run this in the terminal (I'd recommend closing any existing lein run / lein figwheel sessions first).
 
     lein cljsbuild once min + lein run
 
-
-OR there is also a shortcut - you could just say this for the same results
+There is also a shortcut:
 
     lein prod
 
@@ -79,6 +77,7 @@ OR there is also a shortcut - you could just say this for the same results
 ## Deploying your build
 
 One of the easiest ways to deploy the prod minified version is to set up [Dokku](http://dokku.viewdocs.io/dokku/) on your intended server. You can also use BlueGenes with [heroku](https://www.heroku.com/).
+
 
 ### Minified deployment using dokku
 Once dokku is configured on your remote host, all you need to do to deploy a minified build is add the server as a remote and push to it:
@@ -99,8 +98,8 @@ Then, to start the application, execute the jar and pass in a [`config.edn` file
 
     java -jar -Dconfig="config/prod/config.edn" target/bluegenes.jar
 
-
 (For security reasons, the `config.edn` file used to execute the jar can be located anywhere, including your home directory.)
+
 
 ### Launching your uberjar with InterMine
 
