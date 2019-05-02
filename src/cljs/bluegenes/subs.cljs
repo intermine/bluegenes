@@ -14,6 +14,11 @@
  (fn [db]
    (:name db)))
 
+   (reg-sub
+    :registry
+    (fn [db]
+      (:registry db)))
+
 (reg-sub
  :short-name
  (fn [db]
