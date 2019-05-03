@@ -14,10 +14,10 @@
  (fn [db]
    (:name db)))
 
-   (reg-sub
-    :registry
-    (fn [db]
-      (:registry db)))
+(reg-sub
+ :registry
+ (fn [db]
+   (:registry db)))
 
 (reg-sub
  :short-name
@@ -27,13 +27,13 @@
 (reg-sub
  :mine-url
  (fn [db]
-   (let [mine-name (:mine-name db)
+   (let [mine-name (:current-mine db)
          url       (:url (:mine (mine-name (:mines db))))]
      (str "http://" url))))
 
 (reg-sub :mine-default-organism
          (fn [db]
-           (let [mine-name (:mine-name db)
+           (let [mine-name (:current-mine db)
                  organism  (:abbrev (mine-name (:mines db)))]
              organism)))
 
@@ -44,7 +44,7 @@
 (reg-sub
  :mine-name
  (fn [db] 7
-   (:mine-name db)))
+   (:current-mine db)))
 
 (reg-sub
  :current-mine-name

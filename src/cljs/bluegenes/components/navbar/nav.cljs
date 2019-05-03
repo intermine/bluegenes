@@ -80,7 +80,7 @@
   "Output a single mine in the mine picker"
   [:li
    {:on-click (fn [e]
-                (dispatch [:set-active-mine (keyword (:id details))]))
+                (dispatch [:set-active-mine details]))
     :class (cond current-mine? "active")
     :title (:description details)}
    [:a (if current-mine?

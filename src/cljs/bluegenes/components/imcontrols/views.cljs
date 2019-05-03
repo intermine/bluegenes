@@ -42,7 +42,6 @@ Example usage:
                :disabled disabled
                :class class
                :on-change (fn [e]
-                            (.log js/console "%ce (oget e :target :value)" "border-bottom: solid gold 1px" e (oget e :target :value))
                             (on-change (oget e :target :value)))}]
              (concat
               [[:option {:value ""} "Any"]
@@ -57,24 +56,30 @@ Example usage:
   (let [model        (subscribe [:current-model])
         current-mine (subscribe [:current-mine])]
     (fn [{:keys [value on-change qualified?]}]
-      ; when qualified? is true, only show intermine object types that have class keys
+      ; when qualified? is true, only show intermine object types
+      ; that have class keys
       (let [{default-types :default-object-types
              class-keys :class-keys} @current-mine]
         [:div.form-group
          [:select.form-control
           {:value (or value (-> default-types first name))
            :on-change (fn [e] (on-change (oget e :target :value)))}
-          (into [:optgroup {:label "Popular"}]
-                (map (fn [[class-kw {:keys [name displayName]}]]
-                       [:option {:value name} displayName])
-                     (sort-classes (select-keys (:classes @model) default-types))))
-          (into [:optgroup {:label "All classes"}]
-                (map (fn [[class-kw {:keys [name displayName]}]]
-                       [:option {:value name} displayName])
-                     (sort-classes
-                      (apply dissoc
-                             (cond-> (:classes @model)
-                               qualified? (select-keys (keys class-keys))) default-types))))]]))))
+          (into
+           [:optgroup {:label "Popular"}]
+           (map
+            (fn [[class-kw {:keys [name displayName]}]]
+              [:option {:value name} displayName])
+            (sort-classes (select-keys (:classes @model) default-types))))
+          (into
+           [:optgroup {:label "All classes"}]
+           (map
+            (fn [[class-kw {:keys [name displayName]}]]
+              [:option {:value name} displayName])
+            (sort-classes
+             (apply dissoc
+                    (cond-> (:classes @model)
+                      qualified? (select-keys (keys class-keys)))
+                    default-types))))]]))))
 
 (defn object-type-dropdown []
   (let [display-names @(subscribe [:model])]
@@ -82,7 +87,10 @@ Example usage:
       [:div.btn-group.object-type-dropdown
        [:button.btn.btn-primary.dropdown-toggle
         {:data-toggle "dropdown"}
-        [:span (if selected-value (str (get-in display-names [selected-value :displayName]) " ") "Select a type") [:span.caret]]]
+        [:span (if selected-value
+                 (str (get-in display-names [selected-value :displayName])
+                      " ") "Select a type")
+         [:span.caret]]]
        (-> [:ul.dropdown-menu]
            (into (map (fn [value]
                         [:li [:a
