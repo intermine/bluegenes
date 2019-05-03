@@ -89,6 +89,13 @@
     (:name details)
     (cond current-mine? " (current)")]])
 
+(defn mine-entry-current [details]
+  "Output a single mine in the mine picker"
+  [:li
+   [:a [mine-icon details]
+    [:img {:src (:logo (:images details))}]
+    (:name details) " (current)"]])
+
 (defn settings []
   "output the settings menu and mine picker"
   (let [current-mine (subscribe [:current-mine])]
@@ -99,9 +106,9 @@
        (conj
         (into
          [:ul.dropdown-menu
-          [mine-entry @current-mine true]]
+          [mine-entry-current @current-mine]]
          (map (fn [[id details]]
-                [mine-entry details false]) @(subscribe [:registry])))
+                [mine-entry details]) @(subscribe [:registry])))
         [:li.special
          [:a {:on-click #(navigate! "/debug/main")} ">_ Developer"]])])))
 
