@@ -25,8 +25,7 @@
   The dangerouslysetInnerHTML comment is intentional as a hidden iframe looks
   mega spooky to anyone inspecting source. Please don't remove the comment unless it's because we've got better auth working!!"
   [current-mine]
-  (let [link (str "//"
-                  (get-in @current-mine [:mine :url]) "/createAccount.do")]
+  (let [link (str (get-in @current-mine [:service :root]) "/createAccount.do")]
     [:div.register
      [:div.sneaky-iframe-fix-see-comment
       {:dangerouslySetInnerHTML {:__html (str "<!-- InterMine automatically redirects to the homepage unless you have a session (sigh) - but we want the user to go to the registration page. So we're loading the page in an iframe the user can't see, to bootstrap the session :/ -->")}}]
@@ -73,22 +72,44 @@
            [mine-icon @current-mine]
            "Sign In"]]
          (when error?
-           [:div.alert.alert-danger.error-box "Invalid username or password"])]))))
+           [:div.alert.alert-danger.error-box
+            "Invalid username or password"])]))))
+
+(defn mine-entry [details current-mine?]
+  "Output a single mine in the mine picker"
+  [:li
+   {:on-click (fn [e]
+                (dispatch [:set-active-mine details]))
+    :class (cond current-mine? "active")
+    :title (:description details)}
+   [:a (if current-mine?
+         [mine-icon details]
+         [:img {:src (:logo (:images details))}])
+    (:name details)
+    (cond current-mine? " (current)")]])
+
+(defn mine-entry-current [details]
+  "Output a single mine in the mine picker"
+  [:li
+   [:a [mine-icon details]
+    [:img {:src (:logo (:images details))}]
+    (:name details) " (current)"]])
 
 (defn settings []
+  "output the settings menu and mine picker"
   (let [current-mine (subscribe [:current-mine])]
     (fn []
       [:li.dropdown.mine-settings.secondary-nav
-       [:a.dropdown-toggle {:data-toggle "dropdown" :role "button"} [:svg.icon.icon-cog [:use {:xlinkHref "#icon-cog"}]]]
-       (conj (into [:ul.dropdown-menu]
-                   (map (fn [[id details]]
-                          [:li {:on-click (fn [e] (dispatch [:set-active-mine (keyword id)]))
-                                :class (cond (= id (:id @current-mine)) "active")}
-                           [:a [mine-icon details]
-                            (if (= :default id)
-                              (clojure.string/join " - " [(:name details) "Default"])
-                              (:name details))]]) @(subscribe [:mines])))
-             [:li.special [:a {:on-click #(navigate! "/debug/main")} ">_ Developer"]])])))
+       [:a.dropdown-toggle {:data-toggle "dropdown" :role "button"}
+        [:svg.icon.icon-cog [:use {:xlinkHref "#icon-cog"}]]]
+       (conj
+        (into
+         [:ul.dropdown-menu
+          [mine-entry-current @current-mine]]
+         (map (fn [[id details]]
+                [mine-entry details]) @(subscribe [:registry])))
+        [:li.special
+         [:a {:on-click #(navigate! "/debug/main")} ">_ Developer"]])])))
 
 (defn logged-in []
   (let [identity (subscribe [:bluegenes.subs.auth/identity])]
