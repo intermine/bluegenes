@@ -66,20 +66,19 @@
    (let [new-mine-keyword (keyword (:namespace new-mine))
          in-mine-list? (get-in db [:mines new-mine-keyword])]
 
-
-   {:db
-    (cond->
-     (assoc db :current-mine new-mine-keyword)
-      (not keep-existing?) (assoc-in [:assets] {})
-      (not in-mine-list?)
-     (assoc-in [:mines new-mine-keyword]
-               {:service {:root (:url new-mine)}
-                :name (:name new-mine)
-                :id new-mine-keyword}))
-    :dispatch-n (list
-                 [:reboot]
-                 [:set-active-panel :home-panel])
-    :visual-navbar-minechange []})))
+     {:db
+      (cond->
+       (assoc db :current-mine new-mine-keyword)
+        (not keep-existing?) (assoc-in [:assets] {})
+        (not in-mine-list?)
+        (assoc-in [:mines new-mine-keyword]
+                  {:service {:root (:url new-mine)}
+                   :name (:name new-mine)
+                   :id new-mine-keyword}))
+      :dispatch-n (list
+                   [:reboot]
+                   [:set-active-panel :home-panel])
+      :visual-navbar-minechange []})))
 
 (reg-event-db
  :handle-suggestions
