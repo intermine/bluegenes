@@ -25,8 +25,7 @@
   The dangerouslysetInnerHTML comment is intentional as a hidden iframe looks
   mega spooky to anyone inspecting source. Please don't remove the comment unless it's because we've got better auth working!!"
   [current-mine]
-  (let [link (str "//"
-                  (get-in @current-mine [:mine :url]) "/createAccount.do")]
+  (let [link (str (get-in @current-mine [:service :root]) "/createAccount.do")]
     [:div.register
      [:div.sneaky-iframe-fix-see-comment
       {:dangerouslySetInnerHTML {:__html (str "<!-- InterMine automatically redirects to the homepage unless you have a session (sigh) - but we want the user to go to the registration page. So we're loading the page in an iframe the user can't see, to bootstrap the session :/ -->")}}]
