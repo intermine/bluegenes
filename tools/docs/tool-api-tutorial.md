@@ -69,10 +69,11 @@ This will walk you through a few questions in a step-by-step wizard. We'll walk 
 2. **Thanks! Now, give me a human name for the project - e.g. "Protein Feature Viewer"** - a nice friendly name for humans to read - spaces are allowed. Let's call ours "GO Terms"
 3. **Fabulous. Which report pages do you expect this tool to work for, e.g. "Gene" or "Protein"? Separate with commas and put * for all.** This needs to be an InterMine class or classes. Since GO stands for Gene Ontology, let's enter `Gene`, to show this tool on all gene report pages.
 4. **Awesome. What type of InterMine data can you work with?** - Right now, you should only select `id` - the tool API as of version 1 only supports the report page. Selecting id means that the tool will be passed the id of a single InterMine entity - e.g. a protein might be represented by the ID 4815162342.
-5. **What's your name?** Hopefully you know the answer to this one! ;) This is important for package.json, which we will automatically generate you.
-6. **Your email** As above - it's useful for package.json.
-7. **Your website**  As above - it's useful for package.json.
-8. **Which license do you want to use?** we're pre-provided a few licences to choose from. Whichever you choose, remember that InterMine is LGPL 2.1, meaning it can be taken into private repositories. This is _not_ compatible with viral licences like GPL. For your tool, LGPL, MIT, or Apache might be good choices that are compatible with LGPL.
+5. **Initialise with React and Babel? This will allow you to use React and ECMAscript 2015+ features.** - You can select yes if you want to get a react - babel boilerplate setup ready and wish to use ES2015+ features by editing babel config later. Just select no if you're planning to write plain Javascript which is OK if your tool doesn't make complex layouts and not going to have large chunks of code.
+6. **What's your name?** Hopefully you know the answer to this one! ;) This is important for package.json, which we will automatically generate you.
+7. **Your email** As above - it's useful for package.json.
+8. **Your website**  As above - it's useful for package.json.
+9. **Which license do you want to use?** we're pre-provided a few licences to choose from. Whichever you choose, remember that InterMine is LGPL 2.1, meaning it can be taken into private repositories. This is _not_ compatible with viral licences like GPL. For your tool, LGPL, MIT, or Apache might be good choices that are compatible with LGPL.
 
 Once you select a licence, the yeoman installer should set up your repository and all the files within based on the responses you gave to the wizard. This may take a minute or two.
 
