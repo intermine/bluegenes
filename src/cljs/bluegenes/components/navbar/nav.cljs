@@ -9,7 +9,7 @@
 (defn mine-icon
   "returns the icon set for a specific mine, or a default.
    Pass it the entire set of mine details, e.g.
-   @(subscribe [:current-mine])."
+   (subscribe [:current-mine])."
   [mine]
   (let [icon (:icon mine)]
     [:svg.icon.logo {:class icon}
