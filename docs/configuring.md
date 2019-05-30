@@ -28,9 +28,9 @@ Open `src/cljs/bluegenes/db.cljs` and edit the `:current-mine` hashmap value to 
 Please note that you will have to recompile the application for the changes to take effect (see below). Also, may need to clear your local storage for the `:default-mine` to take effect. You can do this by visiting the web application, clicking the cog on the top right, selecting Debug, and then clicking the button to delete local storage.
 
 
-## Google Analytics
+## Analytics (optional)
 
-If you wish to track pages hits, set up [Google analytics](https://analytics.google.com/analytics/web/#embed/report-home/a76615855w155408876p157084577/) for your domain, then add your google analytics id to your config.edn files (mentioned above) or environment variables. This is completely optional.
+For now, the only supported statistics service is [Google analytics](https://analytics.google.com/). If you wish to use this service, configure your domain and then add your Google Analytics ID to your `config.edn` files or environment variables.
 
 ```clojure
   {:google-analytics "UA-12345678-9"}
