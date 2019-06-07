@@ -10,7 +10,7 @@
                  [org.clojure/core.async "0.4.474"]
 
                  ; MVC
-                 [re-frame "0.10.2"]
+                 [re-frame "0.10.6"]
                  [day8.re-frame/http-fx "0.1.4"]
                  [day8.re-frame/async-flow-fx "0.0.8"]
                  [day8.re-frame/forward-events-fx "0.0.5"]
@@ -119,7 +119,8 @@
   :less {:source-paths ["less"]
          :target-path "resources/public/css"}
 
-  :profiles {:dev {:dependencies [[binaryage/devtools "0.9.7"]]
+  :profiles {:dev {:dependencies [[binaryage/devtools "0.9.7"]
+                                  [day8.re-frame/re-frame-10x "0.3.7"]]
                    :resource-paths ["config/dev" "tools" "config/defaults"]
                    :plugins [[lein-figwheel "0.5.14"]
                              [lein-doo "0.1.8"]]}
@@ -143,8 +144,10 @@
                                         :npm-deps {:highlight.js "9.12.0"}
                                         :install-deps true
                                         ;:parallel-build true
+                                        :closure-defines {"re_frame.trace.trace_enabled_QMARK_" true}
                                         :preloads [devtools.preload
-                                                   re-frisk.preload]
+                                                   re-frisk.preload
+                                                   day8.re-frame-10x.preload]
                                         :external-config {:devtools/config {:features-to-install :all}}}}
 
 
@@ -172,8 +175,8 @@
 
   :repositories [
                  ["clojars"
-                  {:url "https://clojars.org/repo"
+                  {:url "https://clojars.org/repo"}]])
                    ;; How often should this repository be checked for
                    ;; snapshot updates? (:daily, :always, or :never)
                    ;:update :always
-}]])
+
