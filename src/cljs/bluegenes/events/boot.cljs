@@ -58,7 +58,7 @@
                          ; Set a flag that all assets are fetched (unqueues URL routing)
                          [:finished-loading-assets]
                          ; use the registry to fetch other InterMines
-                         [::registry/load-other-mines]
+                         [:registry/fetch-registry]
                          ; Save the current state to local storage
                          [:save-state]]
             :halt? true}]})

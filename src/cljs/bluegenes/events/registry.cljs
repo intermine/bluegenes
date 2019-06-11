@@ -1,6 +1,5 @@
 (ns bluegenes.events.registry
   (:require [re-frame.core :refer [reg-event-db reg-event-fx subscribe]]
-            [bluegenes.db :as db]
             [imcljs.fetch :as fetch]))
 
 ;; this is not crazy to hardcode. The consequences of a mine that is lower than
@@ -11,14 +10,14 @@
 
 (reg-event-fx
  ;; these are the intermines we'll allow users to switch to
- ::load-other-mines
+ :registry/fetch-registry
  (fn [{db :db}]
-   {:im-chan
-    {:chan (fetch/registry false)
-     :on-success [::success-fetch-registry]}}))
+   {:db db
+    :im-chan {:chan (fetch/registry false)
+              :on-success [:registry/success-fetch-registry]}}))
 
 (reg-event-db
- ::success-fetch-registry
+ :registry/success-fetch-registry
  (fn [db [_ mines]]
    (let [registry-mines-response (js->clj mines :keywordize-keys true)
          ;; extricate the mines from the deeply nested response object
