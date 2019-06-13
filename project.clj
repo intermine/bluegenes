@@ -19,7 +19,7 @@
                  [cljsjs/react-with-addons "15.6.1-0"]
                  [hiccup "1.0.5"]
                  [prismatic/dommy "1.1.0"]
-                 [secretary "1.2.3"]
+                 [clj-commons/secretary "1.2.4"]
                  [servant "0.1.5"]
                  [json-html "0.4.4"]
 
