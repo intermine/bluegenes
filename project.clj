@@ -6,7 +6,7 @@
   :url "http://www.intermine.org"
   :dependencies [; Clojure
                  [org.clojure/clojure "1.9.0"]
-                 [org.clojure/clojurescript "1.10.145"]
+                 [org.clojure/clojurescript "1.10.520"]
                  [org.clojure/core.async "0.4.474"]
 
                  ; MVC
@@ -35,7 +35,6 @@
                  [cheshire "5.8.0"]
                  [metosin/ring-http-response "0.9.1"]
                  [ring-middleware-format "0.7.4"]
-
 
                  ; Dev tools
                  [re-frisk "0.5.0"]
@@ -82,7 +81,8 @@
                  ; Intermine Assets
                  [org.intermine/im-tables "0.8.1"]
                  [org.intermine/imcljs "0.7.0"]
-                 [intermine/accountant-fragments "0.1.8"]]
+                 [intermine/accountant-fragments "0.1.8"]
+                 [org.intermine/bluegenes-tool-store "0.0.1-SNAPSHOT"]]
 
   :deploy-repositories {"clojars" {:sign-releases false}}
   :codox {:language :clojurescript}
