@@ -25,7 +25,7 @@
              ;; when running uberjar or clojar targets,
              ;; and make the jars about a million megabytes too big.
 
-  (files "/tools" {:root (:bluegenes-tool-path env)})
+  (files "/tools" {:root (:bluegenes-tool-path env), :allow-symlinks? true})
 
   (GET "/version" [] (response {:version "0.1.0"}))
 
