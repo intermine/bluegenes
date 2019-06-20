@@ -13,8 +13,15 @@
 
     npm install
 
+## Running a dev environment
 
-## Compile the CSS
+You can start a complete developer environment with automatic compilation of Less CSS and hot-reloading of code changes by running:
+
+    lein dev
+
+However, all the output will be thrown into one terminal. If you wish to keep the processes separate, you can start them each individually by following the instructions below.
+
+### Compile the CSS
 
 We use [less](http://lesscss.org/) to write our styles.
 
@@ -31,12 +38,12 @@ If you will be changing the CSS files continuously, you can automatically recomp
 Note: even that you will not see a prompt telling you when it's complete, the browser page will automatically refresh.
 
 
-## Make Leiningen reload code changes in the browser
+### Make Leiningen reload code changes in the browser
 
     lein figwheel dev
 
 
-## Start the web server
+### Start the web server
 
 If you have OpenJDK 8:
 
