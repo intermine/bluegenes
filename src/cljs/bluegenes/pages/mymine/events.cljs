@@ -10,7 +10,8 @@
             [bluegenes.pages.mymine.subs :as subs]
             [oops.core :refer [ocall]]
             [clojure.walk :as walk]
-            [cljs-uuid-utils.core :refer [make-random-uuid]]))
+            [cljs-uuid-utils.core :refer [make-random-uuid]]
+            [bluegenes.route :as route]))
 
 (defn dissoc-in
   "Dissociates an entry from a nested associative structure returning a new
@@ -639,8 +640,8 @@
  (fn [{db :db} [_ {:keys [type name title source]}]]
    (let [summary-fields (get-in db [:assets :summary-fields source (keyword type)])]
      {:db db
-      :dispatch [:results/history+
-                 {:source source
-                  :type :query
-                  :value (build-list-query type summary-fields name title)}]
-      :navigate "/results"})))
+      :dispatch-n [[:results/history+
+                    {:source source
+                     :type :query
+                     :value (build-list-query type summary-fields name title)}]
+                   [::route/navigate ::route/results]]})))

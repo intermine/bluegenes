@@ -2,9 +2,9 @@
   (:require [re-frame.core :refer [subscribe dispatch]]
             [reagent.core :as reagent]
             [bluegenes.components.search.typeahead :as search]
-            [accountant.core :refer [navigate!]]
             [oops.core :refer [oget]]
-            [bluegenes.components.progress_bar :as progress-bar]))
+            [bluegenes.components.progress_bar :as progress-bar]
+            [bluegenes.route :as route]))
 
 (defn mine-icon
   "returns the icon set for a specific mine, or a default.
@@ -109,7 +109,8 @@
          (map (fn [[id details]]
                 [mine-entry details]) @(subscribe [:registry])))
         [:li.special
-         [:a {:on-click #(navigate! "/debug/main")} ">_ Developer"]])])))
+         [:a {:href (route/href ::route/debug {:panel "main"})}
+          ">_ Developer"]])])))
 
 (defn logged-in []
   (let [identity (subscribe [:bluegenes.subs.auth/identity])]
@@ -144,26 +145,41 @@
     (fn []
       [:nav#bluegenes-main-nav.main-nav
        [:ul
-        [:li.minename.primary-nav {:on-click #(navigate! "/")}
+        [:li.minename.primary-nav
+         {:on-click #(dispatch [::route/navigate ::route/home])}
          [active-mine-logo]
          [:span.long-name (:name @current-mine)]]
-        [:li.homelink.primary-nav.larger-screen-only {:class (if (panel-is :home-panel) "active")} [:a {:on-click #(navigate! "/")} "Home"]]
-        [:li.primary-nav {:class (if (panel-is :upload-panel) "active")}
-         [:a {:on-click #(navigate! "/upload/input")}
+        [:li.homelink.primary-nav.larger-screen-only
+         {:class (if (panel-is :home-panel) "active")}
+         [:a {:href (route/href ::route/home)}
+          "Home"]]
+        [:li.primary-nav {:class (when (panel-is :upload-panel) "active")}
+         [:a {:href (route/href ::route/upload-step {:step "input"})}
           [:svg.icon.icon-upload.extra-tiny-screen [:use {:xlinkHref "#icon-upload"}]]
           [:span..long-name.larger-screen-only "Upload"]]]
-        [:li.primary-nav {:class (if (panel-is :mymine-panel) "active")}
-         [:a {:on-click #(navigate! "/mymine")}
+        [:li.primary-nav {:class (when (panel-is :mymine-panel) "active")}
+         [:a {:href (route/href ::route/mymine)}
           [:svg.icon.icon-cog [:use {:xlinkHref "#icon-my-data"}]]
           [:span "My\u00A0Data"]]]
-        [:li.primary-nav {:class (if (panel-is :templates-panel) "active")} [:a {:on-click #(navigate! "/templates")} "Templates"]]
+        [:li.primary-nav {:class (when (panel-is :templates-panel) "active")}
+         [:a {:href (route/href ::route/templates)}
+          "Templates"]]
         ;;don't show region search for mines that have no example configured
-        (cond (:regionsearch-example @current-mine)
-              [:li {:class (if (panel-is :regions-panel) "active")} [:a {:on-click #(navigate! "/regions")} "Regions"]])
-        [:li.primary-nav {:class (if (panel-is :querybuilder-panel) "active")} [:a {:on-click #(navigate! "/querybuilder")} "Query\u00A0Builder"]]
+        (when (:regionsearch-example @current-mine)
+          [:li {:class (when (panel-is :regions-panel) "active")}
+           [:a {:href (route/href ::route/regions)}
+            "Regions"]])
+        [:li.primary-nav {:class (when (panel-is :querybuilder-panel) "active")}
+         [:a {:href (route/href ::route/querybuilder)}
+          "Query\u00A0Builder"]]
         [:li.secondary-nav.search [search/main]]
-        (cond (not (panel-is :search-panel)) [:li.secondary-nav.search-mini [:a {:on-click #(navigate! "/search")} [:svg.icon.icon-search [:use {:xlinkHref "#icon-search"}]]]])
-        [:li.secondary-nav.larger-screen-only [:a {:on-click #(navigate! "/help")} [:svg.icon.icon-question [:use {:xlinkHref "#icon-question"}]]]]
+        (when-not (panel-is :search-panel)
+          [:li.secondary-nav.search-mini
+           [:a {:href (route/href ::route/search)}
+            [:svg.icon.icon-search [:use {:xlinkHref "#icon-search"}]]]])
+        [:li.secondary-nav.larger-screen-only
+         [:a {:href (route/href ::route/help)}
+          [:svg.icon.icon-question [:use {:xlinkHref "#icon-question"}]]]]
         [settings]
         [user]]
        [progress-bar/main]])))

@@ -1,19 +1,22 @@
 (ns bluegenes.components.search.typeahead
   (:require [reagent.core :as reagent]
             [re-frame.core :as re-frame :refer [subscribe dispatch]]
-            [accountant.core :refer [navigate!]]
-            [dommy.core :as dommy :refer-macros [sel sel1]]))
+            [dommy.core :as dommy :refer-macros [sel sel1]]
+            [bluegenes.route :as route]))
 
 (defn navigate-to-report
   "Navigate to the report page for the given item and reset the UI"
   [item]
   (let [current-mine (subscribe [:current-mine])]
     (dispatch [:search/reset-selection])
-    (navigate! (str "/reportpage/" (name (:id @current-mine)) "/" (:type item) "/" (:id item)))))
+    (dispatch [::route/navigate ::route/report {:mine (name (:id @current-mine))
+                                                :type (:type item)
+                                                :id (:id item)}])))
 
 (defn navigate-to-full-results
-  "Navigate to the full results page. duh." []
-  (navigate! "/search")
+  "Navigate to the full results page. duh."
+  []
+  (dispatch [::route/navigate ::route/search])
   (cond
     (some? @(subscribe [:search-term]))
     (dispatch [:search/full-search])))

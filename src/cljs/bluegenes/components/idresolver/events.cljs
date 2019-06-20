@@ -7,7 +7,8 @@
             [imcljs.path :as path]
             [cljs-time.core :as time]
             [cljs-time.format :as time-format]
-            [clojure.string :as string]))
+            [clojure.string :as string]
+            [bluegenes.route :as route]))
 
 (reg-event-db
  ::stage-files
@@ -37,10 +38,10 @@
                   ; After creating multipart params for files,
                   ; create one for text
                   ; if there's a value
-                 (not (string/blank? text))
-                 (conj ["text" text])
-                  ; And also a param for the case sensitive option
-                 true (conj ["caseSensitive" (:case-sensitive options)]))
+                (not (string/blank? text))
+                (conj ["text" text])
+                 ; And also a param for the case sensitive option
+                true (conj ["caseSensitive" (:case-sensitive options)]))
                :on-success [::store-parsed-response options]}}))
 
 (reg-event-fx
@@ -68,7 +69,7 @@
                         :type (:type options)
                         :extra (:organism options)})
                 :on-success [::store-identifiers]}
-      :navigate "/upload/save"})))
+      :dispatch [::route/navigate ::route/upload-step {:step "save"}]})))
 
 (def time-formatter (time-format/formatter "dd MMM yyyy HH:mm:ss"))
 
@@ -119,9 +120,9 @@
    ;; why are we disabling organism?
    (let [disable-organism? (when
                             (not= value "_")
-                             (not (contains?
-                                   (path/relationships model value)
-                                   :organism)))
+                            (not (contains?
+                                  (path/relationships model value)
+                                  :organism)))
          mine-details      (get-in db [:mines (get db :current-mine)])]
      (if disable-organism?
        (update-in db [:idresolver :stage :options]
@@ -192,8 +193,6 @@
                  [:assets :summary-fields
                   (get db :current-mine) (keyword object-type)])]
      {:db db
-                   ; Navigate to the List Analysis page
-                   ;:navigate "results"
       :dispatch-n [; Re-fetch our lists so that it shows in MyMine
                    [:assets/fetch-lists]
                                 ; Show the list results in the List Analysis page

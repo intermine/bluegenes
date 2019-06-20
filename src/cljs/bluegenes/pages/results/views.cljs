@@ -8,11 +8,11 @@
             [bluegenes.components.bootstrap :refer [popover tooltip]]
             [clojure.string :refer [split]]
             [oops.core :refer [oget oget+ ocall oset!]]
-            [accountant.core :as accountant]
             [json-html.core :as json-html]
             [im-tables.views.core :as tables]
             [cljs-time.format :as time-format]
-            [cljs-time.coerce :as time-coerce]))
+            [cljs-time.coerce :as time-coerce]
+            [bluegenes.route :as route]))
 
 (def custom-time-formatter (time-format/formatter "dd MMM, yy HH:mm"))
 
@@ -30,14 +30,17 @@
               (fn [idx {{title :title} :value}]
                 (let [adjusted-title (if (not= idx @history-index) (adjust-str-to-length 20 title) title)]
                   [:div {:class (if (= @history-index idx) "active")
-                         :on-click #(accountant/navigate! (str "/results/" idx))}
+                         :on-click #(dispatch [::route/navigate
+                                               ::route/results-title
+                                               {:title idx}])}
                    [tooltip
                     {:title title}
                     adjusted-title]])) @history))])))
 
 (defn no-results []
   [:div "Hmmm. There are no results. How did this happen? Whoopsie! "
-   [:a {:on-click #(accountant/navigate! "/")} "There's no place like home."]])
+   [:a {:href (route/href ::route/home)}
+    "There's no place like home."]])
 
 (defn query-history []
   (let [historical-queries (subscribe [:results/historical-queries])
@@ -49,7 +52,9 @@
              (map (fn [[title {:keys [source value last-executed]}]]
                     [:li.history-item
                      {:class (when (= title @current-query) "active")
-                      :on-click #(accountant/navigate! (str "/results/" title))}
+                      :on-click #(dispatch [::route/navigate
+                                            ::route/results-title
+                                            {:title title}])}
                      [:div.title title]
                      [:div.time (time-format/unparse custom-time-formatter (time-coerce/from-long last-executed))]])
                   @historical-queries))])))
@@ -77,9 +82,9 @@
             [:div.col-sm-3
              [enrichment/enrich]]]
            #_[:div.results-and-enrichment
-              [:div.col-md-8.col-sm-12.panel
+              [:div.col-md-8.col-sm-12.panel]
              ;;[:results :fortable] is the key where the imtables data (appdb) are stored.
-]
+
               [:div.col-md-4.col-sm-12]]]
         ;;oh noes, somehow we made it here with noresults. Fail elegantly, not just console errors.
 

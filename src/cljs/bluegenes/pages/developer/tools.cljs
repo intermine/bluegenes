@@ -1,8 +1,7 @@
 (ns bluegenes.pages.developer.tools
   (:require [re-frame.core :as re-frame :refer [subscribe dispatch]]
             [bluegenes.pages.developer.events :as events]
-            [bluegenes.pages.developer.subs :as subs]
-            [accountant.core :refer [navigate!]]))
+            [bluegenes.pages.developer.subs :as subs]))
 
 (def page-types {:report-page "Report page"
                  :list-results-page "List results page"})

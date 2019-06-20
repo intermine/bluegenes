@@ -19,7 +19,7 @@
                  [cljsjs/react-with-addons "15.6.1-0"]
                  [hiccup "1.0.5"]
                  [prismatic/dommy "1.1.0"]
-                 [secretary "1.2.3"]
+                 [metosin/reitit "0.3.9"]
                  [servant "0.1.5"]
                  [json-html "0.4.4"]
 
@@ -81,8 +81,7 @@
 
                  ; Intermine Assets
                  [org.intermine/im-tables "0.8.1"]
-                 [org.intermine/imcljs "0.7.0"]
-                 [intermine/accountant-fragments "0.1.8"]]
+                 [org.intermine/imcljs "0.7.0"]]
 
   :deploy-repositories {"clojars" {:sign-releases false}}
   :codox {:language :clojurescript}

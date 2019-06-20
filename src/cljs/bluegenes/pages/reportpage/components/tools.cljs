@@ -1,6 +1,5 @@
 (ns bluegenes.pages.reportpage.components.tools
   (:require [re-frame.core :refer [subscribe dispatch]]
-            [accountant.core :refer [navigate!]]
             [oops.core :refer [ocall+ oapply oget oget+ oset!]]
             [bluegenes.pages.reportpage.subs :as subs]))
 

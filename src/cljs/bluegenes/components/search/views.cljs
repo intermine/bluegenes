@@ -4,7 +4,6 @@
             [bluegenes.components.loader :refer [loader]]
             [bluegenes.components.search.resultrow :as resulthandler]
             [bluegenes.components.search.filters :as filters]
-            [accountant.core :refer [navigate!]]
             [re-frame.core :as re-frame :refer [subscribe dispatch]]
             [oops.core :refer [ocall oget]]))
 

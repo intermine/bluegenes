@@ -18,6 +18,7 @@
             [bluegenes.pages.querybuilder.events]
             [bluegenes.effects]
             [bluegenes.persistence :as persistence]
+            [bluegenes.route :as route]
             [imcljs.fetch :as fetch]
             [imcljs.path :as im-path]
             [clojure.string :refer [join split]]
@@ -69,7 +70,7 @@
      {:db
       (cond->
        (assoc db :current-mine new-mine-keyword)
-        (not keep-existing?) (assoc-in [:assets] {})
+       (not keep-existing?) (assoc-in [:assets] {})
         (not in-mine-list?)
         (assoc-in [:mines new-mine-keyword]
                   {:service {:root (:url new-mine)}
@@ -77,7 +78,7 @@
                    :id new-mine-keyword}))
       :dispatch-n (list
                    [:reboot]
-                   [:set-active-panel :home-panel])
+                   [::route/navigate ::route/home])
       :visual-navbar-minechange []})))
 
 (reg-event-db

@@ -16,8 +16,8 @@
             [bluegenes.pages.results.views :as results]
             [bluegenes.pages.regions.views :as regions]
             [bluegenes.pages.help.views :as help]
-            [accountant.core :refer [navigate!]]
-            [oops.core :refer [ocall oapply oget oset!]]))
+            [oops.core :refer [ocall oapply oget oset!]]
+            [bluegenes.route :as route]))
 
 ;; about
 
@@ -36,7 +36,8 @@
       [:a {:href "http://chat.intermine.org/" :target "_blank"} "Chat"]
       [:a {:href "https://intermineorg.wordpress.com/"} "Blog"]
       [:a {:href "https://github.com/intermine/" :target "_blank"} "GitHub"]
-      [:a {:on-click #(navigate! "/help")} [:svg.icon.icon-question [:use {:xlinkHref "#icon-question"}]] " Help"]]
+      [:a {:href (route/href ::route/help)}
+       [:svg.icon.icon-question [:use {:xlinkHref "#icon-question"}]] " Help"]]
      [:div [:p "Funded by:"]
       [:a {:href "http://www.wellcome.ac.uk/" :target "_blank"} "Wellcome Trust"]
       [:a {:href "https://www.nih.gov/" :target "_blank"} "NIH"]]]))

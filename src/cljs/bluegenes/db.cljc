@@ -3,6 +3,7 @@
 (def default-db
   {;;events/boot.cljs auto-selects the first mine available if current-mine
    ;;doesn't exist for any reason.
+   :current-route nil
    :current-mine :flymine-beta
    :quicksearch-selected-index -1 ;;this defaults to select all in the quicksearch
    :results {:history []}

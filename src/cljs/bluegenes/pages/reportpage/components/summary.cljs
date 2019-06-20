@@ -1,6 +1,5 @@
 (ns bluegenes.pages.reportpage.components.summary
-  (:require [re-frame.core :refer [subscribe dispatch]]
-            [accountant.core :refer [navigate!]]))
+  (:require [re-frame.core :refer [subscribe dispatch]]))
 
 (defn field []
   (fn [k v]

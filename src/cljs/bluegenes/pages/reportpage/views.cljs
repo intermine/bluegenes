@@ -5,7 +5,6 @@
             [bluegenes.components.table :as table]
             [bluegenes.components.lighttable :as lighttable]
             [bluegenes.components.loader :refer [loader]]
-            [accountant.core :refer [navigate!]]
             [bluegenes.pages.reportpage.subs :as subs]
             [bluegenes.pages.reportpage.components.tools :as tools]
             [im-tables.views.core :as im-table]

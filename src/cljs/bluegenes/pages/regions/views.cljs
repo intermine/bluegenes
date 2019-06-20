@@ -10,7 +10,6 @@
             [bluegenes.components.imcontrols.views :as im-controls]
             [bluegenes.components.bootstrap :refer [popover tooltip]]
             [clojure.string :refer [split]]
-            [accountant.core :refer [navigate!]]
             [oops.core :refer [oget ocall]]))
 
 (def css-transition-group

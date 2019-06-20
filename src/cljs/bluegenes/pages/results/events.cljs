@@ -6,10 +6,10 @@
             [imcljs.path :as path]
             [imcljs.query :as q]
             [bluegenes.interceptors :refer [clear-tooltips]]
-            [accountant.core :as accountant]
             [bluegenes.interceptors :refer [abort-spec]]
             [cljs-time.core :as time]
-            [cljs-time.coerce :as time-coerce]))
+            [cljs-time.coerce :as time-coerce]
+            [bluegenes.route :as route]))
 
 (comment
   "To automatically display some results in this section (the Results / List Analysis page),
@@ -71,7 +71,7 @@
             (assoc-in [:results :queries (:title value)]
                       (assoc package :last-executed (time-coerce/to-long (time/now)))))
      ; By navigating to the URL below, the :results/load-index (directly below) event is fired;
-    :navigate (str "/results/" (:title value))}))
+    :dispatch [::route/navigate ::route/results-title {:title value}]}))
 
 
 ; Load one package at a particular index from the list analysis history collection
