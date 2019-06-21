@@ -64,21 +64,21 @@
 (reg-event-fx
  :set-active-mine
  (fn [{:keys [db]} [_ new-mine keep-existing?]]
-   (let [new-mine-keyword (keyword (:namespace new-mine))
+   (let [new-mine-keyword (cond-> new-mine
+                                  (map? new-mine)
+                                  (-> :namespace keyword))
          in-mine-list? (get-in db [:mines new-mine-keyword])]
 
      {:db
       (cond->
-       (assoc db :current-mine new-mine-keyword)
-       (not keep-existing?) (assoc-in [:assets] {})
+        (assoc db :current-mine new-mine-keyword)
+        (not keep-existing?) (assoc-in [:assets] {})
         (not in-mine-list?)
         (assoc-in [:mines new-mine-keyword]
                   {:service {:root (:url new-mine)}
                    :name (:name new-mine)
                    :id new-mine-keyword}))
-      :dispatch-n (list
-                   [:reboot]
-                   [::route/navigate ::route/home])
+      :dispatch [:reboot]
       :visual-navbar-minechange []})))
 
 (reg-event-db

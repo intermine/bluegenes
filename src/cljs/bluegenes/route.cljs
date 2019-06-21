@@ -1,9 +1,9 @@
 (ns bluegenes.route
-  (:require [re-frame.core :refer [dispatch reg-sub reg-event-db reg-event-fx reg-fx]]
+  (:require [re-frame.core :refer [subscribe dispatch reg-sub reg-event-db reg-event-fx reg-fx]]
             [oops.core :refer [ocall]]
             [reitit.core :as r]
             [reitit.coercion :as rc]
-            [reitit.coercion.spec :as rss]
+            [reitit.coercion.spec :as rcs]
             [reitit.frontend :as rf]
             [reitit.frontend.controllers :as rfc]
             [reitit.frontend.easy :as rfe]))
@@ -17,8 +17,8 @@
  ::navigate
  (fn [db [_ route & [params query]]]
    {::navigate! {:k route
-                 :params params
-                 :query query}}))
+                 :query query
+                 :params (update params :mine #(or % (:current-mine db)))}}))
 
 (reg-event-db
  ::navigated
@@ -53,7 +53,8 @@
   ([k params]
    (href k params nil))
   ([k params query]
-   (rfe/href k params query)))
+   (let [current-mine (subscribe [:current-mine-name])]
+     (rfe/href k (update params :mine #(or % @current-mine)) query))))
 
 ;; The majority of the routes fire a `:set-active-panel` but ours is slightly
 ;; different from what's in the re-frame boilerplate. Our `:set-active-panel`
@@ -72,83 +73,91 @@
 ;; for all our routes. Doing this would fix the discrepancy we currently have
 ;; between `:set-active-panel` and the router events.
 (def routes
-  [["/"
-    {:name ::home
-     :controllers
-     [{:start #(dispatch [:set-active-panel :home-panel])}]}]
-   ["/debug/:panel"
-    {:name ::debug
-     :controllers
-     [{:parameters {:path [:panel]}
-       :start (fn [{{:keys [panel]} :path}]
-                (dispatch [:set-active-panel :debug-panel
+  ["/"
+   [":mine"
+    {:controllers
+     [{:parameters {:path [:mine]}
+       :start (fn [{{:keys [mine]} :path}]
+                (dispatch [:set-active-mine mine]))}]}
+    [""
+     {:name ::home
+      :controllers
+      [{:start #(dispatch [:set-active-panel :home-panel])}]}]
+    ["/debug/:panel"
+     {:name ::debug
+      :controllers
+      [{:parameters {:path [:panel]}
+        :start (fn [{{:keys [panel]} :path}]
+                 (dispatch [:set-active-panel :debug-panel
+                            nil
+                            [:bluegenes.pages.developer.events/panel panel]]))}]}]
+    ["/help"
+     {:name ::help
+      :controllers
+      [{:start #(dispatch [:set-active-panel :help-panel])}]}]
+    ["/templates"
+     {:name ::templates
+      :controllers
+      [{:start #(dispatch [:set-active-panel :templates-panel])}]}]
+    ["/upload"
+     [""
+      {:name ::upload
+       :controllers
+       [{:start #(dispatch [:set-active-panel :upload-panel])}]}]
+     ["/:step"
+      {:name ::upload-step
+       :controllers
+       [{:parameters {:path [:step]}
+         :start (fn [{{:keys [step]} :path}]
+                  (dispatch [:set-active-panel :upload-panel
+                             {:step (keyword step)}]))}]}]]
+    ["/explore"
+     {:name ::explore
+      :controllers
+      [{:start #(dispatch [:set-active-panel :explore-panel])}]}]
+    ["/search"
+     {:name ::search
+      :controllers
+      [{:start #(dispatch [:set-active-panel :search-panel])}]}]
+    ["/querybuilder"
+     {:name ::querybuilder
+      :controllers
+      [{:start #(dispatch [:set-active-panel :querybuilder-panel
                            nil
-                           [:bluegenes.pages.developer.events/panel panel]]))}]}]
-   ["/help"
-    {:name ::help
-     :controllers
-     [{:start #(dispatch [:set-active-panel :help-panel])}]}]
-   ["/templates"
-    {:name ::templates
-     :controllers
-     [{:start #(dispatch [:set-active-panel :templates-panel])}]}]
-   ["/upload"
-    {:name ::upload
-     :controllers
-     [{:start #(dispatch [:set-active-panel :upload-panel])}]}]
-   ["/upload/:step"
-    {:name ::upload-step
-     :controllers
-     [{:parameters {:path [:step]}
-       :start (fn [{{:keys [step]} :path}]
-                (dispatch [:set-active-panel :upload-panel
-                           {:step (keyword step)}]))}]}]
-   ["/explore"
-    {:name ::explore
-     :controllers
-     [{:start #(dispatch [:set-active-panel :explore-panel])}]}]
-   ["/search"
-    {:name ::search
-     :controllers
-     [{:start #(dispatch [:set-active-panel :search-panel])}]}]
-   ["/querybuilder"
-    {:name ::querybuilder
-     :controllers
-     [{:start #(dispatch [:set-active-panel :querybuilder-panel
-                          nil
-                          [:qb/make-tree]])}]}]
-   ["/results"
-    {:name ::results
-     :controllers
-     [{:start #(dispatch [:set-active-panel :results-panel
-                          nil
-                          [:results/load-history 0]])}]}]
-   ["/results/:title"
-    {:name ::results-title
-     :controllers
-     [{:parameters {:path [:title]}
-       :start (fn [{{:keys [title]} :path}]
-                (dispatch [:set-active-panel :results-panel
-                           nil
-                           ; URL PARAMETERS ARE ALWAYS STRINGS! Parse as Integer because
-                           ; we use the value as a location in a collection (nth [a b c d] "2")
-                           [:results/load-history title]]))}]}]
-   ["/regions"
-    {:name ::regions
-     :controllers
-     [{:start #(dispatch [:set-active-panel :regions-panel])}]}]
-   ["/mymine"
-    {:name ::mymine
-     :controllers
-     [{:start #(dispatch [:set-active-panel :mymine-panel])}]}]
-   ["/reportpage/:mine/:type/:id"
-    {:name ::report
-     :controllers
-     [{:parameters {:path [:mine :type :id]}
-       :start (fn [{{:keys [mine type id]} :path}]
-                (dispatch [:set-active-panel :reportpage-panel
-                           {:type type :id id :mine mine}
-                           [:load-report mine type id]]))}]}]])
+                           [:qb/make-tree]])}]}]
+    ["/results"
+     [""
+      {:name ::results
+       :controllers
+       [{:start #(dispatch [:set-active-panel :results-panel
+                            nil
+                            [:results/load-history 0]])}]}]
+     ["/:title"
+      {:name ::results-title
+       :controllers
+       [{:parameters {:path [:title]}
+         :start (fn [{{:keys [title]} :path}]
+                  (dispatch [:set-active-panel :results-panel
+                             nil
+                             ; URL PARAMETERS ARE ALWAYS STRINGS! Parse as Integer because
+                             ; we use the value as a location in a collection (nth [a b c d] "2")
+                             [:results/load-history title]]))}]}]]
+    ["/regions"
+     {:name ::regions
+      :controllers
+      [{:start #(dispatch [:set-active-panel :regions-panel])}]}]
+    ["/mymine"
+     {:name ::mymine
+      :controllers
+      [{:start #(dispatch [:set-active-panel :mymine-panel])}]}]
+    ["/report/:type/:id"
+     {:name ::report
+      :controllers
+      [{:parameters {:path [:mine :type :id]}
+        :start (fn [{{:keys [mine type id]} :path}]
+                 (dispatch [:set-active-panel :reportpage-panel
+                            {:type type :id id :mine mine}
+                            [:load-report mine type id]]))}]}]]])
 ;; You can do initialisations by adding a :start function to :controllers.
 ;; :start (fn [& params] (js/console.log "Entering page"))
 ;; Teardowns can also be done by using the :stop key.
@@ -161,7 +170,7 @@
 (def router
   (rf/router
    routes
-   {:data {:coercion rss/coercion}}))
+   {:data {:coercion rcs/coercion}}))
 
 (defn init-routes! []
   (rfe/start!

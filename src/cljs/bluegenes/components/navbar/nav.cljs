@@ -78,13 +78,15 @@
 (defn mine-entry [details current-mine?]
   "Output a single mine in the mine picker"
   [:li
-   {:on-click (fn [e]
-                (dispatch [:set-active-mine details]))
+   {:on-click #(dispatch [::route/navigate
+                          ::route/home
+                          {:mine (-> details :namespace keyword)}])
     :class (cond current-mine? "active")
     :title (:description details)}
-   [:a (if current-mine?
-         [mine-icon details]
-         [:img {:src (:logo (:images details))}])
+   [:a
+    (if current-mine?
+       [mine-icon details]
+       [:img {:src (:logo (:images details))}])
     (:name details)
     (cond current-mine? " (current)")]])
 

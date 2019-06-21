@@ -55,7 +55,9 @@
                   {:on-change
                    (fn [e]
                      (dispatch
-                      [:set-active-mine details]))
+                       [::route/navigate
+                        ::route/home
+                        {:mine (-> details :namespace keyword)}]))
                    :type           "radio"
                    :name           "urlradios"
                    :id             id
