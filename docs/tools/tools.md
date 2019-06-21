@@ -37,28 +37,7 @@ If a tool's npm package is updated, all you need to do in order to pull the upda
 
 If your tool is under development, you'll need to mimic it living in the `tools/node_modules/@intermine` directory. Your tool should comply with the [tool API guidelines](tool-api.md).
 
-1. In the folder where **your tool** is being developed, type `npm link`. This tells npm on your system that you have a local node package at this location.
-2. In the bluegenes tool folder (which might be `bluegenes/tools`) type `npm link your-package-name` where your-package-name is the name defined for your package in its package.json. This creates a symbolic link to your package using [npm link](https://docs.npmjs.com/cli/link), so any updates you make in your package will automatically be mirrored in BlueGenes.
-3. BlueGenes looks in your package.json to figure out which tools to show. Open package.json in the tools folder, and tell it to look for the latest version of your package. That might look something like this: 
-
-```json
-{
-  "name": "tools",
-  "version": "1.0.0",
-  "description": "Tool API",
-  "dependencies": {
-    "my-awesome-new-tool-here": "latest", <---- Add a line that looks like this!!
-    "@intermine/bluegenes-cytoscape-interaction-network-viewer": "^1.1.0",
-    "@intermine/bluegenes-protvista": "^1.1.1"
-  },
-  "devDependencies": {},
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "Yo Yehudi",
-  "license": "ISC"
-}
-```
+You can do this by running `npm install --save /path/to/my/tool` inside the BlueGenes *tools* folder, putting in the appropriate path to the tool you're developing. This should create a symbolic link in the *node_modules* directory (nested under *@intermine*) to your package, and add it as a relative file path to *package.json*. Any changes you make to the tool in its own directory will automatically apply to BlueGenes (although you'll probably have to refresh your browser to load the new JS bundle).
 
 ## Creating new tools
 
