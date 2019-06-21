@@ -4,7 +4,7 @@
             [imcljs.fetch :as fetch]
             [bluegenes.persistence :as persistence]
             [bluegenes.events.webproperties]
-            [bluegenes.events.registry]))
+            [bluegenes.events.registry :as registry]))
 
 (defn boot-flow
   "Produces a set of re-frame instructions that load all of InterMine's assets into BlueGenes
