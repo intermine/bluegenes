@@ -96,7 +96,7 @@
        :service {:root serviceRoot}}
       {:id :default
        :name nil
-       :service {:root "flymine.org/flymine"
+       :service {:root "http://www.flymine.org/flymine"
                  :token nil}})))
 
 ;; Boot the application.
