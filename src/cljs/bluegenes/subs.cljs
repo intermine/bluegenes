@@ -2,7 +2,6 @@
   (:require-macros [reagent.ratom :refer [reaction]])
   (:require [re-frame.core :refer [reg-sub]]
             [bluegenes.pages.results.enrichment.subs]
-            [bluegenes.mines :as mines]
             [clojure.string :refer [split]]
             [bluegenes.pages.querybuilder.subs]
             [bluegenes.components.search.subs]

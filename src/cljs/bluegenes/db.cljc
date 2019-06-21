@@ -1,9 +1,8 @@
 (ns bluegenes.db)
 
 (def default-db
-  {;;events/boot.cljs auto-selects the first mine available if current-mine
-   ;;doesn't exist for any reason.
-   :current-mine :flymine-beta
+  {:current-mine :default
+   :fetching-assets? true
    :quicksearch-selected-index -1 ;;this defaults to select all in the quicksearch
    :results {:history []}
    :search {:selected-results #{}}

@@ -1,7 +1,6 @@
 (ns bluegenes.events.boot
   (:require [re-frame.core :refer [reg-event-db reg-event-fx subscribe]]
             [bluegenes.db :as db]
-            [bluegenes.mines :as default-mines]
             [imcljs.fetch :as fetch]
             [bluegenes.persistence :as persistence]
             [bluegenes.events.webproperties]
@@ -84,103 +83,62 @@
       {:markup [:span (str "Saved list to My Data: " listName)]
        :style "success"}]]}))
 
-(defn get-current-mines
-  "This method is implemented for robust updates. It ensures that local-storage
-   client-cached mine entries are deleted if the mine entry is removed
-   from mines.cljc. Goes hand in hand with get-active mine to ensure that
-   we still have an active mine to select"
-  [state-mines config-mines]
-  (let [good-mines (set (keys config-mines))]
-    (doall
-     (reduce
-      (fn [new-mine-list [mine-name details]]
-        (if (contains? good-mines mine-name)
-          (assoc new-mine-list mine-name details))) {} state-mines))))
+(defn init-mine-defaults
+  "If this bluegenes instance is coupled with InterMine, load the intermine's
+  config directly from env variables passed to bluegenes. Otherwise, create a
+  default mine config."
+  []
+  (let [{:keys [serviceRoot mineName] :as serverVars}
+        (:intermineDefaults (js->clj js/serverVars :keywordize-keys true))]
+    (if (seq serverVars)
+      {:id :default
+       :name mineName
+       :service {:root serviceRoot}}
+      {:id :default
+       :name nil
+       :service {:root "http://www.flymine.org/flymine"
+                 :token nil}})))
 
-(defn get-active-mine
-  "Return the current mine if it still exists after a config update, OR
-   - return the default (env variable) mine, OR
-   - just return the first one if the ID doesn't exist for some reason"
-  [all-mines mine-name]
-  (let [mine-names (set (keys all-mines))
-        mine-default (:default mine-names)
-        backup-mine (if mine-default mine-default (first mine-names))]
-    (if (contains? mine-names mine-name)
-      mine-name
-      (do
-        (.info js/console "your chosen intermine doesn't exist so we've auto-selected this mine for you:" backup-mine)
-        backup-mine))))
-
-(defn init-defaults-from-intermine
-  "If this bluegenes instance is coupled with InterMine, load the intermine's config directly from env variables passed to bluegenes. Otherwise, fail gracefully." []
-  (let [mine-defaults (:intermineDefaults
-                       (js->clj js/serverVars :keywordize-keys true))]
-    (if mine-defaults
-      {:default {:id :default
-                 :service {:root (:serviceRoot mine-defaults)}
-                 :name (:mineName mine-defaults)}}
-      {})))
-
-(defn deep-merge
-  "Recursively merges maps. If keys are not maps, the last value wins."
-  [& vals]
-  (if (every? map? vals)
-    (apply merge-with deep-merge vals)
-    (last vals)))
-
-; Boot the application.
+;; Boot the application.
 (reg-event-fx
  :boot
- (fn [world [_ provided-identity]]
+ (fn [_world [_ provided-identity]]
    (let [db
          (-> db/default-db
-              ; Merge the various mine configurations from mines.cljc
-             (assoc :mines default-mines/mines)
-              ; Add :default key to :mines list so that it's not later
-              ;pruned from local storage
-             (assoc-in [:mines :default] (init-defaults-from-intermine))
-              ; Store the user's identity map provided by the server
-              ; via the client constructor
-             (update :auth assoc
+             ;; Add default mine, either as is configured when attached to an
+             ;; InterMine instance, or as an empty placeholder.
+             (assoc-in [:mines :default] (init-mine-defaults))
+             ;; Store the user's identity map provided by the server
+             ;; via the client constructor
+             (update :auth
+                     assoc
                      :thinking? false
                      :identity provided-identity
                      :message nil
                      :error? false))
-         state (persistence/get-state!)
-          ;;if InterMine's passed in defaultmine settings, apply these first.
-         intermine-defaults (init-defaults-from-intermine)
-         has-state? (seq state)
-          ;; prune out old mines from localstorage that
-          ;; aren't part of the app anymore
-         good-state-mines (get-current-mines (:mines state) (:mines db))
-          ;;make sure we have all current localstorage mines and all new ones (if any)
-          ; WARNING - Deep merge can be expensive for deeply nested maps
-         all-mines (deep-merge default-mines/mines good-state-mines intermine-defaults)
-         current-mine (get-active-mine all-mines (:current-mine state))]
-
-      ; Do not use data from local storage if the client version in local storage
-      ; is not the same as the current client version
-     (if (and has-state? (= bluegenes.core/version (:version state)))
-       {:db (assoc db
-                   :current-mine current-mine
-                   :mines all-mines
-                   :assets (:assets state)
-               ;; we had assets in localstorage.
-               ;; We'll still load the fresh ones in the background in case they
-               ;; changed, but we can make do with these for now.
-                   :fetching-assets? false)
-         ; Boot the application asynchronously
-        :async-flow (boot-flow db provided-identity current-mine)
-         ; Register an event sniffer for im-tables
-        :forward-events (im-tables-events-forwarder)}
-       {:db (assoc db
-                   :current-mine current-mine
-                   :mines all-mines
-                   :fetching-assets? true)
-         ; Boot the application asynchronously
-        :async-flow (boot-flow db provided-identity current-mine)
-         ; Register an event sniffer for im-tables
-        :forward-events (im-tables-events-forwarder)}))))
+         ;; Get data previously persisted to local storage.
+         {:keys [current-mine mines assets version] :as state}
+         (persistence/get-state!)
+         ;; We always want `init-mine-defaults` to override the :default mine
+         ;; saved in local storage, as a coupled intermine instance should
+         ;; always take priority.
+         updated-mines (assoc mines :default (init-mine-defaults))]
+     {:db (cond-> db
+            ;; Only use data from local storage if it's non-empty and the
+            ;; client version matches.
+            (and (seq state)
+                 (= bluegenes.core/version version))
+            (assoc :current-mine current-mine
+                   :mines updated-mines
+                   :assets assets
+                   ;; we had assets in localstorage.
+                   ;; We'll still load the fresh ones in the background in case they
+                   ;; changed, but we can make do with these for now.
+                   :fetching-assets? false))
+      ;; Boot the application asynchronously
+      :async-flow (boot-flow db provided-identity current-mine)
+      ;; Register an event sniffer for im-tables
+      :forward-events (im-tables-events-forwarder)})))
 
 (defn remove-stateful-keys-from-db
   "Any tools / components that have mine-specific state should lose that
