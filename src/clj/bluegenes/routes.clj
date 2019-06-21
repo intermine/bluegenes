@@ -4,7 +4,6 @@
             [bluegenes.index :as index]
             [ring.util.response :refer [response]]
             [bluegenes.ws.auth :as auth]
-            [bluegenes.ws.tools :as tools]
             [config.core :refer [env]]
             [bluegenes.ws.mymine :as mymine]
             [bluegenes.ws.ids :as ids]))
@@ -20,10 +19,12 @@
              ;;serve compiled files, i.e. js, css, from the resources folder
   (resources "/")
 
+
              ;; serve all tool files in bluegenes/tools automatically.
              ;; they can't go in the resource folder b/c then they get jarred
              ;; when running uberjar or clojar targets,
              ;; and make the jars about a million megabytes too big.
+
 
   (files "/tools" {:root (:bluegenes-tool-path env), :allow-symlinks? true})
 
@@ -32,6 +33,5 @@
            ; Anything within this route is the API web service:
   (context "/api" []
     (context "/auth" [] auth/routes)
-    (context "/tools" [] tools/routes)
     (context "/mymine" [] mymine/routes)
     (context "/ids" [] ids/routes)))
