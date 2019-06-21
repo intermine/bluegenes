@@ -137,7 +137,7 @@
                                         :optimizations :none
                                         :output-to "resources/public/js/compiled/app.js"
                                         :output-dir "resources/public/js/compiled"
-                                        :asset-path "js/compiled"
+                                        :asset-path "/js/compiled"
                                         :source-map-timestamp true
                                         :pretty-print true
                                         :npm-deps {:highlight.js "9.12.0"}
