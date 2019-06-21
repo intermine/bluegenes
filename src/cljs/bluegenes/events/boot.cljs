@@ -101,44 +101,44 @@
 
 ;; Boot the application.
 (reg-event-fx
-  :boot
-  (fn [_world [_ provided-identity]]
-    (let [db
-          (-> db/default-db
-              ;; Add default mine, either as is configured when attached to an
-              ;; InterMine instance, or as an empty placeholder.
-              (assoc-in [:mines :default] (init-mine-defaults))
-              ;; Store the user's identity map provided by the server
-              ;; via the client constructor
-              (update :auth
-                      assoc
-                      :thinking? false
-                      :identity provided-identity
-                      :message nil
-                      :error? false))
-          ;; Get data previously persisted to local storage.
-          {:keys [current-mine mines assets version] :as state}
-          (persistence/get-state!)
-          ;; We always want `init-mine-defaults` to override the :default mine
-          ;; saved in local storage, as a coupled intermine instance should
-          ;; always take priority.
-          updated-mines (assoc mines :default (init-mine-defaults))]
-      {:db (cond-> db
-                   ;; Only use data from local storage if it's non-empty and the
-                   ;; client version matches.
-                   (and (seq state)
-                        (= bluegenes.core/version version))
-                   (assoc :current-mine current-mine
-                          :mines updated-mines
-                          :assets assets
-                          ;; we had assets in localstorage.
-                          ;; We'll still load the fresh ones in the background in case they
-                          ;; changed, but we can make do with these for now.
-                          :fetching-assets? false))
-       ;; Boot the application asynchronously
-       :async-flow (boot-flow db provided-identity current-mine)
-       ;; Register an event sniffer for im-tables
-       :forward-events (im-tables-events-forwarder)})))
+ :boot
+ (fn [_world [_ provided-identity]]
+   (let [db
+         (-> db/default-db
+             ;; Add default mine, either as is configured when attached to an
+             ;; InterMine instance, or as an empty placeholder.
+             (assoc-in [:mines :default] (init-mine-defaults))
+             ;; Store the user's identity map provided by the server
+             ;; via the client constructor
+             (update :auth
+                     assoc
+                     :thinking? false
+                     :identity provided-identity
+                     :message nil
+                     :error? false))
+         ;; Get data previously persisted to local storage.
+         {:keys [current-mine mines assets version] :as state}
+         (persistence/get-state!)
+         ;; We always want `init-mine-defaults` to override the :default mine
+         ;; saved in local storage, as a coupled intermine instance should
+         ;; always take priority.
+         updated-mines (assoc mines :default (init-mine-defaults))]
+     {:db (cond-> db
+            ;; Only use data from local storage if it's non-empty and the
+            ;; client version matches.
+            (and (seq state)
+                 (= bluegenes.core/version version))
+            (assoc :current-mine current-mine
+                   :mines updated-mines
+                   :assets assets
+                   ;; we had assets in localstorage.
+                   ;; We'll still load the fresh ones in the background in case they
+                   ;; changed, but we can make do with these for now.
+                   :fetching-assets? false))
+      ;; Boot the application asynchronously
+      :async-flow (boot-flow db provided-identity current-mine)
+      ;; Register an event sniffer for im-tables
+      :forward-events (im-tables-events-forwarder)})))
 
 (defn remove-stateful-keys-from-db
   "Any tools / components that have mine-specific state should lose that
