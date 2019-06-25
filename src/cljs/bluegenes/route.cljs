@@ -15,7 +15,7 @@
 
 (reg-event-fx
  ::navigate
- (fn [db [_ route & [params query]]]
+ (fn [{db :db} [_ route & [params query]]]
    {::navigate! {:k route
                  :query query
                  :params (update params :mine #(or % (:current-mine db)))}}))
@@ -23,11 +23,6 @@
 (reg-event-db
  ::navigated
  (fn [db [_ new-match]]
-   ;;; Put side-effects you want to run on every page load/change here!
-   ;; Make sure there are no hanging popovers.
-   (ocall (js/$ ".popover") "remove")
-   ;; Track the page (new-match has :data, so use anything from `routes`).
-   (js/ga "send" "pageview" (:template new-match))
    (let [old-match   (:current-route db)
          controllers (rfc/apply-controllers (:controllers old-match) new-match)]
      (assoc db :current-route (assoc new-match :controllers controllers)))))
@@ -78,7 +73,7 @@
     {:controllers
      [{:parameters {:path [:mine]}
        :start (fn [{{:keys [mine]} :path}]
-                (dispatch [:set-active-mine mine]))}]}
+                (dispatch [:init-mine mine]))}]}
     [""
      {:name ::home
       :controllers
@@ -164,8 +159,17 @@
 ;; :stop  (fn [& params] (js/console.log "Leaving page"))])
 
 (defn on-navigate [new-match]
-  (when new-match
-    (dispatch [::navigated new-match])))
+  ;; - Put side-effects you want to run on every page load/change here!
+  ;; Make sure there are no hanging popovers.
+  (ocall (js/$ ".popover") "remove")
+  ;; Track the page (new-match has :data, so can use anything from `routes`).
+  (js/ga "send" "pageview" (:path new-match))
+  ;; - Handle actual navigation.
+  (if new-match
+    (dispatch [::navigated new-match])
+    ;; We end up here when the URL path is empty, so we'll init default mine.
+    ;; (Usually `:init-mine` would be dispatched by the `/:mine` controller.)
+    (dispatch [:init-mine :default])))
 
 (def router
   (rf/router

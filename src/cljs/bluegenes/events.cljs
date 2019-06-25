@@ -23,7 +23,8 @@
             [imcljs.path :as im-path]
             [clojure.string :refer [join split]]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
-            [imcljs.fetch :as fetch]))
+            [imcljs.fetch :as fetch]
+            [bluegenes.events.registry :as registry]))
 
 ; Change the main panel to a new view
 (reg-event-fx
@@ -39,15 +40,13 @@
 (reg-event-fx
  :set-active-panel
  (fn [{db :db} [_ active-panel panel-params evt]]
-   (cond-> {:db db}
-     (:fetching-assets? db) ; If we're fetching assets then save the panel change for later
-     (assoc :forward-events {:register :coordinator1
-                             :events #{:finished-loading-assets}
-                             :dispatch-to [:do-active-panel active-panel panel-params evt]})
-     (not (:fetching-assets? db)) ; Otherwise dispatch it now (and the optional attached event)
-     (assoc :dispatch-n
-            (cond-> [[:do-active-panel active-panel panel-params evt]]
-              evt (conj evt))))))
+   (if (:fetching-assets? db)
+     ;; If we're fetching assets then save the panel change for later.
+     {:forward-events {:register ::set-active-panel-coordinator
+                       :events #{:finished-loading-assets}
+                       :dispatch-to [:do-active-panel active-panel panel-params evt]}}
+     ;; Otherwise dispatch it now.
+     {:dispatch [:do-active-panel active-panel panel-params evt]})))
 
 (reg-event-fx
  :save-state
@@ -61,19 +60,51 @@
      (persistence/persist! (assoc saved-keys :version bluegenes.core/version))
      {:db db})))
 
+(defn add-mine-to-db [db mine keep-existing?]
+  (let [mine-kw (keyword mine)
+        mine-m (get-in db [:registry mine-kw])
+        in-mine-list? (map? (get-in db [:mines mine-kw]))]
+    (cond-> (assoc db :current-mine mine-kw)
+            (not keep-existing?) (assoc-in [:assets] {})
+            (not in-mine-list?) (assoc-in [:mines mine-kw]
+                                          {:service {:root (:url mine-m)}
+                                           :name (:name mine-m)
+                                           :id mine-kw}))))
+
+;; This event handler doesn't do anything, as it exists only for `async-flow` to
+;; observe so it knows that `:init-mine` has successfully completed.
+(reg-event-fx
+ :success-init-mine
+ (fn [_ _] {}))
+
+;; This is for setting :current-mine based on the URL path. As opposed to
+;; :set-active-mine, it won't reset assets and :reboot, since this will happen
+;; before BlueGenes is initialised, by code in `bluegenes.route`.
+(reg-event-fx
+ :init-mine
+ (fn [{db :db} [_ mine]]
+   (if (or (= :default (keyword mine))
+           (map? (:registry db)))
+     ;; Add mine to db if it's :default or we have the registry downloaded.
+     {:db (add-mine-to-db db mine true)
+      :dispatch [:success-init-mine]}
+     ;; If it's not :default and we don't have the registry, try again later!
+     {:forward-events
+      {:register ::init-mine-coordinator
+       :events #{::registry/success-fetch-registry}
+       :dispatch-to [:init-mine mine]}})))
+
 (reg-event-fx
  :set-active-mine
- (fn [{:keys [db]} [_ new-mine keep-existing?]]
-   (let [new-mine-kw (keyword new-mine)
-         new-mine-m (get-in db [:registry new-mine-kw])
-         in-mine-list? (map? (get-in db [:mines new-mine-kw]))]
-     {:db
-      (cond-> (assoc db :current-mine new-mine-kw)
-              (not keep-existing?) (assoc-in [:assets] {})
-              (not in-mine-list?) (assoc-in [:mines new-mine-kw]
-                                            {:service {:root (:url new-mine-m)}
-                                             :name (:name new-mine-m)
-                                             :id new-mine-kw}))
+ (fn [{db :db} [_ new-mine keep-existing?]]
+   (cond
+     (:fetching-assets? db) {:forward-events
+                             {:register ::set-active-mine-coordinator
+                              :events #{:finished-loading-assets}
+                              :dispatch-to [:set-active-mine new-mine keep-existing?]}}
+     (= (:current-mine db) (keyword new-mine)) {}
+     :else
+     {:db (add-mine-to-db db new-mine keep-existing?)
       :dispatch [:reboot]
       :visual-navbar-minechange []})))
 
