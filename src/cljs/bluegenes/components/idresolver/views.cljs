@@ -821,21 +821,13 @@
       [:h4.breadcrumbs
        [:ol.breadcrumb
         [:li
-         {:class (when (or (= view nil) (= view :input)) "active")
-          :on-click #(when @response
-                       (dispatch [::route/navigate
-                                  ::route/upload-step
-                                  {:step "input"}]))}
-         [:a [:svg.icon.icon-upload
-              [:use {:xlinkHref "#icon-upload"}]] "Upload"]]
-        [:li.disabled
-         {:class (when (= view :save) "active")
-          :on-click #(when @response
-                       (dispatch [::route/navigate
-                                  ::route/upload-step
-                                  {:step "save"}]))}
+         {:class (when (or (= view nil) (= view :input)) "active")}
+         [:a {:href (route/href ::route/upload-step {:step "input"})}
+          [:svg.icon.icon-upload
+           [:use {:xlinkHref "#icon-upload"}]] "Upload"]]
+        [:li.disabled {:class (when (= view :save) "active")}
          (if @response
-           [:a
+           [:a {:href (route/href ::route/upload-step {:step "save"})}
             [:svg.icon.icon-floppy-disk
              [:use {:xlinkHref "#icon-floppy-disk"}]]
             "Save"]

@@ -8,6 +8,26 @@
             [reitit.frontend.controllers :as rfc]
             [reitit.frontend.easy :as rfe]))
 
+;; # Quickstart guide:
+;; (aka. I just want to route something but don't want to read all this code!)
+;; - Don't forget to import the route namespace!
+;; ```
+;; (require '[bluegenes.route :as route])
+;; ```
+;; - Href
+;; ```
+;; [:a {:href (route/href ::route/upload-step {:step "save"})} "My anchor"]
+;; ```
+;; - Dispatch (for on-click and event handlers)
+;; ```
+;; (dispatch [::route/navigate ::route/upload-step {:step "save"}])
+;; ```
+;; ## Order of arguments: `route params query`
+;; Only route is required, the rest are optional. Although you will get a
+;; warning if you use a route that expects params, without specifying params.
+;; Note that the `:mine` param is an exception to this, since it's the parent
+;; of all routes, so it gets injected automatically from db if not specified.
+
 ;; Based on the official reitit frontend-re-frame example: (2019.06.18)
 ;; https://github.com/metosin/reitit/tree/master/examples/frontend-re-frame
 

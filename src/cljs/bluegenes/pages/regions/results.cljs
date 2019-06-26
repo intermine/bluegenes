@@ -60,19 +60,18 @@
   (let [model (subscribe [:model])
         current-mine (subscribe [:current-mine])
         the-type (get-in @model [(keyword class) :displayName])]
-    [:div.grid-3_xs-3.single-feature
-     {:on-click #(dispatch [::route/navigate
-                            ::route/report
-                            {:mine (name (:id @current-mine))
-                             :type class
-                             :id objectId}])}
-     [:div.col {:style {:word-wrap "break-word"}}
-      primaryIdentifier]
-     [:div.col the-type]
-     [:div.col (str
-                (get-in chromosomeLocation [:locatedOn :primaryIdentifier])
-                ":"  (:start chromosomeLocation)
-                ".." (:end chromosomeLocation))]]))
+    [:a {:href (route/href ::route/report
+                           {:mine (name (:id @current-mine))
+                            :type class
+                            :id objectId})}
+     [:div.grid-3_xs-3.single-feature
+      [:div.col {:style {:word-wrap "break-word"}}
+       primaryIdentifier]
+      [:div.col the-type]
+      [:div.col (str
+                  (get-in chromosomeLocation [:locatedOn :primaryIdentifier])
+                  ":"  (:start chromosomeLocation)
+                  ".." (:end chromosomeLocation))]]]))
 
 ; Results table
 (defn result-table

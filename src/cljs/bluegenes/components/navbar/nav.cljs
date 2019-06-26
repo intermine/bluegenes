@@ -78,17 +78,14 @@
 (defn mine-entry [details current-mine?]
   "Output a single mine in the mine picker"
   [:li
-   {:on-click #(dispatch [::route/navigate
-                          ::route/home
-                          {:mine (-> details :namespace keyword)}])
-    :class (cond current-mine? "active")
+   {:class (when current-mine? "active")
     :title (:description details)}
-   [:a
+   [:a {:href (route/href ::route/home {:mine (-> details :namespace keyword)})}
     (if current-mine?
        [mine-icon details]
        [:img {:src (:logo (:images details))}])
     (:name details)
-    (cond current-mine? " (current)")]])
+    (when current-mine? " (current)")]])
 
 (defn mine-entry-current [details]
   "Output a single mine in the mine picker"
@@ -148,9 +145,9 @@
       [:nav#bluegenes-main-nav.main-nav
        [:ul
         [:li.minename.primary-nav
-         {:on-click #(dispatch [::route/navigate ::route/home])}
-         [active-mine-logo]
-         [:span.long-name (:name @current-mine)]]
+         [:a {:href (route/href ::route/home)}
+          [active-mine-logo]
+          [:span.long-name (:name @current-mine)]]]
         [:li.homelink.primary-nav.larger-screen-only
          {:class (if (panel-is :home-panel) "active")}
          [:a {:href (route/href ::route/home)}
