@@ -16,10 +16,11 @@
 (defn navigate-to-full-results
   "Navigate to the full results page. duh."
   []
-  (dispatch [::route/navigate ::route/search])
-  (cond
-    (some? @(subscribe [:search-term]))
-    (dispatch [:search/full-search])))
+  (let [term @(subscribe [:search-term])
+        evt [::route/navigate ::route/search]]
+    (dispatch (cond-> evt (some? term) (into [nil {:keyword term}])))
+    (when (some? term)
+      (dispatch [:search/full-search term]))))
 
 (defn suggestion
   "The UI element and behaviour for a single suggestion in the dropdown" []

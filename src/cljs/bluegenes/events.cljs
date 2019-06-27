@@ -119,11 +119,12 @@
  (fn [{db :db} [_ term]]
    (let [connection (get-in db [:mines (get db :current-mine) :service])
          suggest-chan (fetch/quicksearch connection term {:size 5})]
-     (if-let [c (:search-term-channel db)] (close! c))
-     {:db (-> db
-              (assoc :search-term-channel suggest-chan)
-              (assoc :search-term term))
-      :suggest {:c suggest-chan :search-term term :source (get db :current-mine)}})))
+     (when-let [c (:search-term-channel db)]
+       (close! c))
+     {:db (assoc db :search-term-channel suggest-chan :search-term term)
+      :suggest {:c suggest-chan
+                :search-term term
+                :source (get db :current-mine)}})))
 
 (reg-event-db
  :cache/store-organisms

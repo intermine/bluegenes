@@ -133,7 +133,11 @@
     ["/search"
      {:name ::search
       :controllers
-      [{:start #(dispatch [:set-active-panel :search-panel])}]}]
+      [{:parameters {:query [:keyword]}
+        :start (fn [{{:keys [keyword]} :query}]
+                 (dispatch [:set-active-panel :search-panel
+                            nil
+                            [:search/full-search keyword]]))}]}]
     ["/querybuilder"
      {:name ::querybuilder
       :controllers

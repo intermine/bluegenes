@@ -53,30 +53,31 @@
  :search/save-results
  (fn [db [_ {:keys [results facets] :as response}]]
    (if (some? (:active-filter (:search-results db)))
-      ;;if we're returning a filter result, leave the old facets intact.
-     (-> (assoc-in db [:search-results :results] results)
-         (assoc-in [:search-results :loading?] false))
-      ;;if we're returning a non-filtered result, add new facets to the atom
-     (assoc db :search-results
-            {:results results
+     ;;if we're returning a filter result, leave the old facets intact.
+     (update db :search-results assoc
+             :results results
+             :loading? false)
+     ;;if we're returning a non-filtered result, add new facets to the atom
+     (update db :search-results assoc
+             :results results
              :loading? false
              :highlight-results (:highlight-results (:search-results db))
              :facets {:organisms (sort-by-value (:organism.shortName facets))
-                      :category (sort-by-value (:Category facets))}}))))
+                      :category (sort-by-value (:Category facets))}))))
 
 (reg-event-fx
  :search/full-search
- (fn [{db :db}]
+ (fn [{db :db} [_ search-term]]
    (let [active-filter (:active-filter (:search-results db))
          connection    (get-in db [:mines (get db :current-mine) :service])]
-
-     (-> {:db db}
-         (assoc :im-chan {:chan (fetch/quicksearch connection
-                                                   (:search-term db)
-                                                   {:facet_Category active-filter})
-                          :on-success [:search/save-results]})
-         (assoc-in [:db :search-results :loading?] true)
-         (cond-> (some? active-filter) (update-in db [:db :search-results] dissoc :results)))
+     {:db (-> db
+              (assoc :search-term search-term)
+              (update :search-results assoc :loading? true :keyword search-term)
+              (cond-> (some? active-filter) (update :search-results dissoc :results)))
+      :im-chan {:chan (fetch/quicksearch connection
+                                         search-term
+                                         {:facet_Category active-filter})
+                :on-success [:search/save-results]}}
 
      #_(if (some? active-filter)
           ;;just turn on the loader
@@ -111,14 +112,14 @@
  :load-more-results-if-needed
   ;;output the results we have client side alredy (ie if a non-filtered search returns 100 results due to a limit, but indicates that there are 132 proteins in total, we'll show all the proteins we have when we filter down to just proteins, so the user might not even notice that we're fetching the rest in the background.)
   ;;while the remote results are loading. Good for slow connections.
- (fn [search-results]
-   (let [results                        (:results search-results)
-         filter                         (:active-filter search-results)
-         filtered-result-count          (get (:category (:facets search-results)) filter)
-         more-filtered-results-to-show? (< (count-current-results results filter) filtered-result-count)
-         more-results-than-max?         (<= (count-current-results results filter) max-results)]
-     (cond (and more-filtered-results-to-show? more-results-than-max?)
-           (dispatch [:search/full-search])))))
+  (fn [{:keys [results active-filter facets keyword]}]
+    (let [filtered-result-count          (get (:category facets) active-filter)
+          more-filtered-results-to-show? (< (count-current-results results active-filter)
+                                            filtered-result-count)
+          more-results-than-max?         (<= (count-current-results results active-filter)
+                                             max-results)]
+      (cond (and more-filtered-results-to-show? more-results-than-max?)
+            (dispatch [:search/full-search keyword])))))
 
 (reg-event-fx
  :search/set-active-filter
@@ -131,8 +132,8 @@
 (reg-event-fx
  :search/remove-active-filter
  (fn [{:keys [db]}]
-   {:db (assoc db :search-results (dissoc (:search-results db) :active-filter))
-    :dispatch [:search/full-search]}))
+   {:db (update db :search-results dissoc :active-filter)
+    :dispatch [:search/full-search (-> db :search-results :keyword)]}))
 
 (reg-event-fx
  :search/to-results

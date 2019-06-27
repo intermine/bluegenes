@@ -39,6 +39,11 @@
    (:loading? (:search-results db))))
 
 (reg-sub
+ :search/keyword
+ (fn [db _]
+   (:keyword (:search-results db))))
+
+(reg-sub
  :search/am-i-selected?
  (fn [db [_ result]]
    (let [selected-results (get-in db [:search :selected-results])]
