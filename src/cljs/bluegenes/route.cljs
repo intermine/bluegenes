@@ -144,23 +144,14 @@
       [{:start #(dispatch [:set-active-panel :querybuilder-panel
                            nil
                            [:qb/make-tree]])}]}]
-    ["/results"
-     [""
-      {:name ::results
-       :controllers
-       [{:start #(dispatch [:set-active-panel :results-panel
+    ["/results/:title"
+     {:name ::results
+      :controllers
+      [{:parameters {:path [:title]}
+        :start (fn [{{:keys [title]} :path}]
+                 (dispatch [:set-active-panel :results-panel
                             nil
-                            [:results/load-history 0]])}]}]
-     ["/:title"
-      {:name ::results-title
-       :controllers
-       [{:parameters {:path [:title]}
-         :start (fn [{{:keys [title]} :path}]
-                  (dispatch [:set-active-panel :results-panel
-                             nil
-                             ; URL PARAMETERS ARE ALWAYS STRINGS! Parse as Integer because
-                             ; we use the value as a location in a collection (nth [a b c d] "2")
-                             [:results/load-history title]]))}]}]]
+                            [:results/load-history title]]))}]}]
     ["/regions"
      {:name ::regions
       :controllers

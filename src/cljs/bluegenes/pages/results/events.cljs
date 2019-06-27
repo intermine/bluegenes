@@ -71,7 +71,7 @@
             (assoc-in [:results :queries (:title value)]
                       (assoc package :last-executed (time-coerce/to-long (time/now)))))
      ; By navigating to the URL below, the :results/load-index (directly below) event is fired;
-    :dispatch [::route/navigate ::route/results-title {:title value}]}))
+    :dispatch [::route/navigate ::route/results {:title (:title value)}]}))
 
 
 ; Load one package at a particular index from the list analysis history collection

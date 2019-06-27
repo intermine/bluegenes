@@ -640,8 +640,7 @@
  (fn [{db :db} [_ {:keys [type name title source]}]]
    (let [summary-fields (get-in db [:assets :summary-fields source (keyword type)])]
      {:db db
-      :dispatch-n [[:results/history+
-                    {:source source
-                     :type :query
-                     :value (build-list-query type summary-fields name title)}]
-                   [::route/navigate ::route/results]]})))
+      :dispatch [:results/history+
+                 {:source source
+                  :type :query
+                  :value (build-list-query type summary-fields name title)}]})))

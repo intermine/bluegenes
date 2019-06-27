@@ -30,9 +30,7 @@
               (fn [idx {{title :title} :value}]
                 (let [adjusted-title (if (not= idx @history-index) (adjust-str-to-length 20 title) title)]
                   [:div {:class (if (= @history-index idx) "active")
-                         :on-click #(dispatch [::route/navigate
-                                               ::route/results-title
-                                               {:title idx}])}
+                         :on-click #(dispatch [::route/navigate ::route/results {:title idx}])}
                    [tooltip
                     {:title title}
                     adjusted-title]])) @history))])))
@@ -52,9 +50,7 @@
              (map (fn [[title {:keys [source value last-executed]}]]
                     [:li.history-item
                      {:class (when (= title @current-query) "active")
-                      :on-click #(dispatch [::route/navigate
-                                            ::route/results-title
-                                            {:title title}])}
+                      :on-click #(dispatch [::route/navigate ::route/results {:title title}])}
                      [:div.title title]
                      [:div.time (time-format/unparse custom-time-formatter (time-coerce/from-long last-executed))]])
                   @historical-queries))])))
