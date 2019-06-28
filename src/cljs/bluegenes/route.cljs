@@ -47,6 +47,38 @@
          controllers (rfc/apply-controllers (:controllers old-match) new-match)]
      (assoc db :current-route (assoc new-match :controllers controllers)))))
 
+;; The use-case of fetching lists only by name isn't used elsewhere, and is
+;; surprisingly difficult. So we have our own biga$$ event handler right here.
+(reg-event-fx
+ ::view-list
+ (fn [{db :db} [_ list-name]]
+   (let [current-mine (:current-mine db)
+         queries (get-in db [:results :queries])]
+     (if (contains? queries list-name)
+       ;; We've already queried it so cut the bull$#!|. (Something else ran
+       ;; `:results/history+`, so we skip right to `:results/load-history`.)
+       {:dispatch [:results/load-history list-name]}
+       (let [lists (get-in db [:assets :lists current-mine])
+             ;; Get data from the assets list map of the same name.
+             {:keys [type name title]} (first (filter #(= (:name %) list-name) lists))
+             ;; Get summary fields from assets.
+             summary-fields (get-in db [:assets :summary-fields current-mine (keyword type)])]
+         ;; Now we can build our query for use with `:results/history+`.
+         {:dispatch [:results/history+
+                     {:source current-mine
+                      :type :query
+                      :value {:title title
+                              :from type
+                              :select summary-fields
+                              :where [{:path type
+                                       :op "IN"
+                                       :value name}]}}
+                     true] ; This is so we don't dispatch a route navigation.
+          ;; We have to run `:results/load-history` after `:results/history+` completes.
+          :forward-events {:register ::view-list-coordinator
+                           :events #{:results/history+}
+                           :dispatch-to [:results/load-history list-name]}})))))
+
 ;;; Subscriptions ;;;
 
 (reg-sub
@@ -144,14 +176,14 @@
       [{:start #(dispatch [:set-active-panel :querybuilder-panel
                            nil
                            [:qb/make-tree]])}]}]
-    ["/results/:title"
-     {:name ::results
+    ["/list/:title"
+     {:name ::list
       :controllers
       [{:parameters {:path [:title]}
         :start (fn [{{:keys [title]} :path}]
                  (dispatch [:set-active-panel :results-panel
                             nil
-                            [:results/load-history title]]))}]}]
+                            [::view-list title]]))}]}]
     ["/regions"
      {:name ::regions
       :controllers
