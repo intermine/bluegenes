@@ -82,8 +82,8 @@
     :title (:description details)}
    [:a {:href (route/href ::route/home {:mine (-> details :namespace keyword)})}
     (if current-mine?
-       [mine-icon details]
-       [:img {:src (:logo (:images details))}])
+      [mine-icon details]
+      [:img {:src (:logo (:images details))}])
     (:name details)
     (when current-mine? " (current)")]])
 

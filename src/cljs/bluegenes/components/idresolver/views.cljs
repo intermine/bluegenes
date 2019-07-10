@@ -845,7 +845,7 @@
        [:div.wizard-body
         (case
          (:step @panel-params)
-         :save [review-step]
+          :save [review-step]
           [upload-step])]])))
 
 (defn main []

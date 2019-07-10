@@ -69,9 +69,9 @@
        primaryIdentifier]
       [:div.col the-type]
       [:div.col (str
-                  (get-in chromosomeLocation [:locatedOn :primaryIdentifier])
-                  ":"  (:start chromosomeLocation)
-                  ".." (:end chromosomeLocation))]]]))
+                 (get-in chromosomeLocation [:locatedOn :primaryIdentifier])
+                 ":"  (:start chromosomeLocation)
+                 ".." (:end chromosomeLocation))]]]))
 
 ; Results table
 (defn result-table

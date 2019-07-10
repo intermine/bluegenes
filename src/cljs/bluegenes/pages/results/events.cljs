@@ -72,9 +72,9 @@
                               (assoc package
                                      :last-executed
                                      (time-coerce/to-long (time/now)))))}
-           (not no-route?)
+     (not no-route?)
            ;; Our route runs `:results/load-history`.
-           (assoc :dispatch [::route/navigate ::route/list {:title (:title value)}]))))
+     (assoc :dispatch [::route/navigate ::route/list {:title (:title value)}]))))
 
 
 ; Load one package at a particular index from the list analysis history collection
@@ -94,7 +94,7 @@
        ;; The query result doesn't exist. Fail gracefully!
        (do
          (.error js/console
-           (str "[:results/load-history] The list titled " title " does not exist in db."))
+                 (str "[:results/load-history] The list titled " title " does not exist in db."))
          {})
        ; Store the values in app-db.
        ; TODO - 99% of this can be factored out by passing the package to the :enrichment/enrich and parsing it there

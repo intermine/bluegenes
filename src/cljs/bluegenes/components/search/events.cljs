@@ -112,14 +112,14 @@
  :load-more-results-if-needed
   ;;output the results we have client side alredy (ie if a non-filtered search returns 100 results due to a limit, but indicates that there are 132 proteins in total, we'll show all the proteins we have when we filter down to just proteins, so the user might not even notice that we're fetching the rest in the background.)
   ;;while the remote results are loading. Good for slow connections.
-  (fn [{:keys [results active-filter facets keyword]}]
-    (let [filtered-result-count          (get (:category facets) active-filter)
-          more-filtered-results-to-show? (< (count-current-results results active-filter)
-                                            filtered-result-count)
-          more-results-than-max?         (<= (count-current-results results active-filter)
-                                             max-results)]
-      (cond (and more-filtered-results-to-show? more-results-than-max?)
-            (dispatch [:search/full-search keyword])))))
+ (fn [{:keys [results active-filter facets keyword]}]
+   (let [filtered-result-count          (get (:category facets) active-filter)
+         more-filtered-results-to-show? (< (count-current-results results active-filter)
+                                           filtered-result-count)
+         more-results-than-max?         (<= (count-current-results results active-filter)
+                                            max-results)]
+     (cond (and more-filtered-results-to-show? more-results-than-max?)
+           (dispatch [:search/full-search keyword])))))
 
 (reg-event-fx
  :search/set-active-filter

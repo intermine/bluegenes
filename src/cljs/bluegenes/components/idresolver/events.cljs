@@ -38,10 +38,10 @@
                   ; After creating multipart params for files,
                   ; create one for text
                   ; if there's a value
-                (not (string/blank? text))
-                (conj ["text" text])
+                 (not (string/blank? text))
+                 (conj ["text" text])
                  ; And also a param for the case sensitive option
-                true (conj ["caseSensitive" (:case-sensitive options)]))
+                 true (conj ["caseSensitive" (:case-sensitive options)]))
                :on-success [::store-parsed-response options]}}))
 
 (reg-event-fx
@@ -120,9 +120,9 @@
    ;; why are we disabling organism?
    (let [disable-organism? (when
                             (not= value "_")
-                            (not (contains?
-                                  (path/relationships model value)
-                                  :organism)))
+                             (not (contains?
+                                   (path/relationships model value)
+                                   :organism)))
          mine-details      (get-in db [:mines (get db :current-mine)])]
      (if disable-organism?
        (update-in db [:idresolver :stage :options]

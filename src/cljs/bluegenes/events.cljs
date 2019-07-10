@@ -65,11 +65,11 @@
         mine-m (get-in db [:registry mine-kw])
         in-mine-list? (map? (get-in db [:mines mine-kw]))]
     (cond-> (assoc db :current-mine mine-kw)
-            (not keep-existing?) (assoc-in [:assets] {})
-            (not in-mine-list?) (assoc-in [:mines mine-kw]
-                                          {:service {:root (:url mine-m)}
-                                           :name (:name mine-m)
-                                           :id mine-kw}))))
+      (not keep-existing?) (assoc-in [:assets] {})
+      (not in-mine-list?) (assoc-in [:mines mine-kw]
+                                    {:service {:root (:url mine-m)}
+                                     :name (:name mine-m)
+                                     :id mine-kw}))))
 
 ;; This event handler doesn't do anything, as it exists only for `async-flow` to
 ;; observe so it knows that `:init-mine` has successfully completed.

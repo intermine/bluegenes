@@ -55,9 +55,9 @@
                   {:on-change
                    (fn [e]
                      (dispatch
-                       [::route/navigate
-                        ::route/home
-                        {:mine (-> details :namespace keyword)}]))
+                      [::route/navigate
+                       ::route/home
+                       {:mine (-> details :namespace keyword)}]))
                    :type           "radio"
                    :name           "urlradios"
                    :id             id

@@ -89,4 +89,4 @@
 
 (defn main []
   (let [search-term @(subscribe [:search-term])]
-   [search-form search-term]))
+    [search-form search-term]))
