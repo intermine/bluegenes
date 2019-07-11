@@ -59,12 +59,15 @@ By default, the web server will be started on http://localhost:5000/. To change 
 
 ## Running tests
 
-    lein clean
-    lein doo phantom test once
+Make sure BlueGenes is running by using `lein dev` or `lein prod`. (Preferably make sure they pass in *prod*, but *dev* can be useful for stack traces.)
 
-The above command assumes you will use [phantomjs](https://www.npmjs.com/package/phantomjs) (already declared as a Node.js development dependency). However, please note that [doo](https://github.com/bensu/doo) can be configured to run cljs.test in many other JS environments (chrome, ie, safari, opera, slimer, node, rhino, or nashorn).
+Run all the Cypress tests:
 
+    npx cypress run
 
+Cypress also has a really useful interface for debugging failing tests:
+
+    DEBUG=cypress:* npx cypress open
 
 # Production Builds
 

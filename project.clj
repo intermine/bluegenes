@@ -160,14 +160,7 @@
                                         :npm-deps {:highlight.js "9.12.0"}
                                         :install-deps true
                                         :closure-defines {goog.DEBUG false}
-                                        :pretty-print false}}
-
-                       :test {:source-paths ["src/cljs" "test/cljs"]
-                              :compiler {:output-to "resources/public/js/test/test.js"
-                                         :output-dir "resources/public/js/test"
-                                         :main bluegenes.runner
-                                         :optimizations :none}}}}
-
+                                        :pretty-print false}}}}
 
   :main bluegenes.core
 
