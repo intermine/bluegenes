@@ -43,17 +43,12 @@
  :<- [:lists/text-filter]
  :<- [:lists/flag-filters]
  :<- [:lists/sort-order]
- (fn [[all-lists text-filter flag-filters sort-order] _]
-    ; Our lists are in a source map {:flymine '(list1 list2 list) :humanmine '(list1 list2 list)}
-    ; so create a flattened collection where each list has a :source key
-   (let [all-lists-with-source
-         (reduce (fn [total [mine-kw lists]]
-                   (apply conj total (map (fn [list] (assoc list :source mine-kw)) lists)))
-                 [] all-lists)]
-      ; Then apply any filters set by the user
-     (cond->> all-lists-with-source
+ :<- [:current-mine-name]
+ (fn [[all-lists text-filter flag-filters sort-order current-mine-kw] _]
+     ;; Apply any filters set by the user.
+     (cond->> (get all-lists current-mine-kw)
        text-filter (filter (partial has-text? text-filter))
        (some? (:authorized flag-filters)) (filter #(= (:authorized %) (:authorized flag-filters)))
        (some? (:favourite flag-filters)) (filter (partial tag-check? (:favourite flag-filters) "im:favourite"))
-               ;true (sort (apply comp (map build-comparer sort-order)))
-       true (sort-by :timestamp >)))))
+       ;true (sort (apply comp (map build-comparer sort-order)))
+       true (sort-by :timestamp >))))
