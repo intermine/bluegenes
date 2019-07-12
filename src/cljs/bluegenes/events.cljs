@@ -77,36 +77,33 @@
  :success-init-mine
  (fn [_ _] {}))
 
-;; This is for setting :current-mine based on the URL path. As opposed to
-;; :set-active-mine, it won't reset assets and :reboot, since this will happen
-;; before BlueGenes is initialised, by code in `bluegenes.route`.
+;; This is for setting `:current-mine` based on the URL path. Depending on
+;; `:fetching-assets?`, it will either change mine and continue if it's in the
+;; middle of the `:boot` process, or `:reboot` if it's not.
 (reg-event-fx
  :init-mine
  (fn [{db :db} [_ mine]]
-   (if (or (= :default (keyword mine))
-           (map? (:registry db)))
-     ;; Add mine to db if it's :default or we have the registry downloaded.
-     {:db (add-mine-to-db db mine true)
-      :dispatch [:success-init-mine]}
-     ;; If it's not :default and we don't have the registry, try again later!
-     {:forward-events
-      {:register ::init-mine-coordinator
-       :events #{::registry/success-fetch-registry}
-       :dispatch-to [:init-mine mine]}})))
-
-(reg-event-fx
- :set-active-mine
- (fn [{db :db} [_ new-mine keep-existing?]]
    (cond
-     (:fetching-assets? db) {:forward-events
-                             {:register ::set-active-mine-coordinator
-                              :events #{:finished-loading-assets}
-                              :dispatch-to [:set-active-mine new-mine keep-existing?]}}
-     (= (:current-mine db) (keyword new-mine)) {}
-     :else
-     {:db (add-mine-to-db db new-mine keep-existing?)
-      :dispatch [:reboot]
-      :visual-navbar-minechange []})))
+     ;; `:reboot` instead if we're not initialising. We need this to properly
+     ;; handle when `:init-mine` is dispatched by switching mines post-boot.
+     (not (:fetching-assets? db)) {:dispatch [:reboot]
+                                   :visual-navbar-minechange []
+                                   ;; The route controller won't dispatch
+                                   ;; again, so we have to dispatch ourselves
+                                   ;; during the boot process.
+                                   :forward-events
+                                   {:register ::init-mine-reboot-coordinator
+                                    :events #{::registry/load-other-mines}
+                                    :dispatch-to [:init-mine mine]}}
+     ;; Add mine to db if it's :default or we have the registry downloaded.
+     (or (= :default (keyword mine))
+         (map? (:registry db))) {:db (add-mine-to-db db mine true)
+                                 :dispatch [:success-init-mine]}
+     ;; If it's not :default and we don't have the registry, try again later!
+     :else {:forward-events
+            {:register ::init-mine-coordinator
+             :events #{::registry/success-fetch-registry}
+             :dispatch-to [:init-mine mine]}})))
 
 (reg-event-db
  :handle-suggestions

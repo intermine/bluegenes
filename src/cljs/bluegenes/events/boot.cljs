@@ -147,7 +147,7 @@
 (reg-event-fx
  :reboot
  (fn [{db :db}]
-   {:db (remove-stateful-keys-from-db db)
+   {:db (assoc (remove-stateful-keys-from-db db) :fetching-assets? true)
     :async-flow (boot-flow)}))
 
 (reg-event-fx
