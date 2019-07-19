@@ -30,18 +30,8 @@
   (reagent/render [views/main-panel]
                   (ocall js/document "getElementById" "app")))
 
-;; TODO replace or delete this function depending on needs with reitit
-#_(defn navigate-to-deep-links []
-    (let [url (oget js/window "location" "hash")
-          hashless-path (last (clojure.string/split url #"#"))]
-      (cond (> (count url) 2) ;; if there is more than #/ in the url, navigate there
-            (if (= (first hashless-path) "/")
-              (navigate! hashless-path)
-              (navigate! (str "/" hashless-path))))))
-
 (defn ^:export init [identity]
   (re-frame/dispatch-sync [:boot (js->clj identity :keywordize-keys true)])
-  #_(navigate-to-deep-links)
   ;(dev-setup)
   ; Initialize our bootstrap dropdowns
   (ocall (js/$ ".dropdown-toggle") :dropdown)
