@@ -40,6 +40,8 @@
                  :query query
                  :params (update params :mine #(or % (:current-mine db)))}}))
 
+;; This event handler is for internal use by router.
+;; Do not dispatch unless you know what you're doing!
 (reg-event-db
  ::navigated
  (fn [db [_ new-match]]
@@ -88,6 +90,8 @@
 
 ;;; Effects ;;;
 
+;; You should dispatch `::navigate` (defined above) instead of using this
+;; effect directly. Such is the way of re-frame!
 (reg-fx
  ::navigate!
  (fn [{:keys [k params query]}]
