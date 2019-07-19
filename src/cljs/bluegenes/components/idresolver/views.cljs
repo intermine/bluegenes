@@ -12,8 +12,8 @@
             [bluegenes.components.idresolver.events :as evts]
             [bluegenes.components.idresolver.subs :as subs]
             [oops.core :refer [oget oget+ ocall]]
-            [accountant.core :refer [navigate!]]
-            [imcljs.path :as path]))
+            [imcljs.path :as path]
+            [bluegenes.route :as route]))
 
 ;;; TODOS:
 
@@ -257,8 +257,8 @@
              [:tr
               [:th "File name"]
               [:th "Size"]
-              [:th] ; don't need a heading for remove button
-]]]
+              [:th]]]] ; don't need a heading for remove button
+
            (map (fn [js-File] [file js-File]) @files)))
         [:button.btn.btn-default.btn-raised
          {:on-click (fn [] (-> @upload-elem js/$ (ocall :click)))
@@ -821,15 +821,13 @@
       [:h4.breadcrumbs
        [:ol.breadcrumb
         [:li
-         {:class (when (or (= view nil) (= view :input)) "active")
-          :on-click (fn [] (when @response (navigate! "/upload/input")))}
-         [:a [:svg.icon.icon-upload
-              [:use {:xlinkHref "#icon-upload"}]] "Upload"]]
-        [:li.disabled
-         {:class (when (= view :save) "active")
-          :on-click (fn [] (when @response (navigate! "/upload/save")))}
+         {:class (when (or (= view nil) (= view :input)) "active")}
+         [:a {:href (route/href ::route/upload-step {:step "input"})}
+          [:svg.icon.icon-upload
+           [:use {:xlinkHref "#icon-upload"}]] "Upload"]]
+        [:li.disabled {:class (when (= view :save) "active")}
          (if @response
-           [:a
+           [:a {:href (route/href ::route/upload-step {:step "save"})}
             [:svg.icon.icon-floppy-disk
              [:use {:xlinkHref "#icon-floppy-disk"}]]
             "Save"]

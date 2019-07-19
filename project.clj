@@ -19,7 +19,7 @@
                  [cljsjs/react-with-addons "15.6.1-0"]
                  [hiccup "1.0.5"]
                  [prismatic/dommy "1.1.0"]
-                 [clj-commons/secretary "1.2.4"]
+                 [metosin/reitit "0.3.9"]
                  [servant "0.1.5"]
                  [json-html "0.4.4"]
 
@@ -81,7 +81,6 @@
                  ; Intermine Assets
                  [org.intermine/im-tables "0.8.1"]
                  [org.intermine/imcljs "0.7.0"]
-                 [intermine/accountant-fragments "0.1.8"]
                  [org.intermine/bluegenes-tool-store "0.0.1-SNAPSHOT"]]
 
   :deploy-repositories {"clojars" {:sign-releases false}}
@@ -138,7 +137,7 @@
                                         :optimizations :none
                                         :output-to "resources/public/js/compiled/app.js"
                                         :output-dir "resources/public/js/compiled"
-                                        :asset-path "js/compiled"
+                                        :asset-path "/js/compiled"
                                         :source-map-timestamp true
                                         :pretty-print true
                                         :npm-deps {:highlight.js "9.12.0"}

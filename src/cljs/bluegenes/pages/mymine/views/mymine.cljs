@@ -10,7 +10,8 @@
             [bluegenes.pages.mymine.subs :as subs]
             [inflections.core :as inf]
             [bluegenes.pages.mymine.views.modals :as modals]
-            [bluegenes.pages.mymine.views.contextmenu :as m])
+            [bluegenes.pages.mymine.views.contextmenu :as m]
+            [bluegenes.route :as route])
 
   (:import
    (goog.i18n NumberFormat)
@@ -552,9 +553,7 @@
          [:td [checkbox im-obj-id]]
          [:td (merge {} (draggable file))
           [:div [ico im-obj-type]
-           [:a {:on-click (fn [e]
-                            (.stopPropagation e)
-                            (dispatch [::evts/view-list-results (assoc dets :source @source)]))}
+           [:a {:href (route/href ::route/list {:title (:title dets)})}
             name (when-not authorized
                    [:svg.icon.icon-lock [:use {:xlinkHref "#icon-lock"}]])]]]
          [:td  [tag-container @hierarchy-trail]]
@@ -577,9 +576,8 @@
                              (dispatch [::evts/set-context-menu-target file]))})
          [:div.col-7 (merge {} (draggable file))
           [:div [checkbox im-obj-id] [ico im-obj-type]
-           [:a {:on-click (fn [e]
-                            (.stopPropagation e)
-                            (dispatch [::evts/view-list-results (assoc dets :source @source)]))} name]
+           [:a {:href (route/href ::route/list {:title (:title dets)})}
+            name]
            (when-not authorized
              [:svg.icon.icon-globe {:style {:fill "#939393"}} [:use {:xlinkHref "#icon-globe"}]])]
           [:div.description-text
@@ -630,15 +628,28 @@
           [list-operations]
           (when @show-selected-pane?
             [:div.top.shrink
-             (into [:div [:h3 "Selected items with other tags"]] (map-indexed (fn [idx x]
-                                                                                ^{:key (str "selected" (or (:entry-id x) (str (:im-obj-type x) (:im-obj-id x))))} [row (assoc x :index idx)]) @selected-items-not-in-view))])
+             (into [:div [:h3 "Selected items with other tags"]]
+                   (map-indexed (fn [idx x]
+                                  ^{:key
+                                    (str "selected"
+                                         (or (:entry-id x)
+                                             (str (:im-obj-type x)
+                                                  (:im-obj-id x))))}
+                                  [row (assoc x :index idx)])
+                                @selected-items-not-in-view))])
           [:div.bottom
             ; TODO - remove tags
            #_[breadcrumb @cursor-trail]
            (let [just-files (not-empty (filter (comp (partial not= "tag") :im-obj-type) @cursor-items))]
              (if just-files
-               (into [:div] (map-indexed (fn [idx x]
-                                           ^{:key (str (or (:entry-id x) (str (:im-obj-type x) (:im-obj-id x))))} [row (assoc x :index idx)]) @cursor-items))
+               (into [:div]
+                     (map-indexed (fn [idx x]
+                                    ^{:key
+                                      (str (or (:entry-id x)
+                                               (str (:im-obj-type x)
+                                                    (:im-obj-id x))))}
+                                    [row (assoc x :index idx)])
+                                  @cursor-items))
                #_[:table.table.mymine-table
                   [:thead
                    [:tr

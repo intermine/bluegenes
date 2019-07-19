@@ -6,19 +6,19 @@
             [bluegenes.pages.developer.tools :as tools]
             [bluegenes.persistence :as persistence]
             [clojure.string :refer [blank?]]
-            [accountant.core :refer [navigate!]]))
+            [bluegenes.route :as route]))
 
 (defn nav []
   "Buttons to choose which mine you're using."
   [:ul.dev-navigation
-   [:li [:a {:on-click #(navigate! "/debug/main")}
+   [:li [:a {:href (route/href ::route/debug {:panel "main"})}
          [:svg.icon.icon-cog
           [:use {:xlinkHref "#icon-cog"}]] "Debug Console"]]
    [:li
-    [:a {:on-click #(navigate! "/debug/tool-store")}
+    [:a {:href (route/href ::route/debug {:panel "tool-store"})}
      [:svg.icon.icon-star-full
       [:use {:xlinkHref "#icon-star-full"}]] "Tool 'App Store'"]]
-   [:li [:a {:on-click #(navigate! "/debug/icons")}
+   [:li [:a {:href (route/href ::route/debug {:panel "icons"})}
          [:svg.icon.icon-intermine
           [:use {:xlinkHref "#icon-intermine"}]] "Icons"]]])
 
@@ -55,7 +55,9 @@
                   {:on-change
                    (fn [e]
                      (dispatch
-                      [:set-active-mine details]))
+                      [::route/navigate
+                       ::route/home
+                       {:mine (-> details :namespace keyword)}]))
                    :type           "radio"
                    :name           "urlradios"
                    :id             id

@@ -4,7 +4,8 @@
             [imcljs.fetch :as fetch]
             [bluegenes.persistence :as persistence]
             [bluegenes.events.webproperties]
-            [bluegenes.events.registry :as registry]))
+            [bluegenes.events.registry :as registry]
+            [bluegenes.route :as route]))
 
 (defn boot-flow
   "Produces a set of re-frame instructions that load all of InterMine's assets into BlueGenes
@@ -13,32 +14,28 @@
   is queued until all of the assets (data model, lists, templates etc) are fetched.
   When finished, an event called :finished-loading-assets is dispatch which tells BlueGenes
   it can continue routing."
-  [db ident current-mine]
-  ; First things first...
-  {:first-dispatch
-   (if ident
-     ; If we have an identity (and therefore a token) then store it
-     [:authentication/store-token current-mine (:token ident)]
-     ; Otherwise go fetch an anonymous token
-     [:authentication/fetch-anonymous-token current-mine])
-   :rules [; When the store-token event has been dispatched then fetch the assets.
-           ; We wait for the token because some assets need a token for private data (lists, queries)
+  []
+  {:first-dispatch [::registry/load-other-mines]
+   ;; We first dispatch ::registry/load-other-mines as some of the events below
+   ;; are reliant on registry being downloaded if a non-default mine is chosen
+   ;; (notably :init-mine), in which case they'll wait until it's available.
+   :rules [;; Wait for init-mine as it may update the `:current-mine` in our db.
+           {:when :seen?
+            :events :success-init-mine
+            :dispatch [:authentication/init]}
+           ;; Wait for token as some assets need it for private data (eg. lists, queries).
            {:when :seen?
             :events :authentication/store-token
-            :dispatch-n
-            [[:assets/fetch-web-properties]
-             [:assets/fetch-model]
-             [:assets/fetch-lists]
-             [:assets/fetch-class-keys]
-             [:assets/fetch-templates]
-             [:assets/fetch-widgets]
-             [:assets/fetch-summary-fields]
-             [:assets/fetch-intermine-version]
-             [:assets/fetch-web-service-version]
-                         ; If we have an identity then fetch the MyMine tags
-                         ; TODO - remove tags
-             #_(when ident [:bluegenes.pages.mymine.events/fetch-tree])]}
-           ; When we've seen all of the events that indicating our assets have been fetched successfully...
+            :dispatch-n [[:assets/fetch-web-properties]
+                         [:assets/fetch-model]
+                         [:assets/fetch-lists]
+                         [:assets/fetch-class-keys]
+                         [:assets/fetch-templates]
+                         [:assets/fetch-widgets]
+                         [:assets/fetch-summary-fields]
+                         [:assets/fetch-intermine-version]
+                         [:assets/fetch-web-service-version]]}
+           ;; Wait for all events that indicate our assets have been fetched successfully.
            {:when :seen-all-of?
             :events [:assets/success-fetch-model
                      :assets/success-fetch-web-properties
@@ -49,16 +46,14 @@
                      :assets/success-fetch-widgets
                      :assets/success-fetch-intermine-version
                      :assets/success-fetch-web-service-version]
-            ; Then finished setting up BlueGenes
-            :dispatch-n [; Verify InterMine web service version
+            ;; Now finish setting up BlueGenes!
+            :dispatch-n [;; Verify InterMine web service version.
                          [:verify-web-service-version]
-                         ; Start Google Analytics
+                         ;; Start Google Analytics.
                          [:start-analytics]
-                         ; Set a flag that all assets are fetched (unqueues URL routing)
+                         ;; Set a flag indicating all assets are fetched.
                          [:finished-loading-assets]
-                         ; use the registry to fetch other InterMines
-                         [::registry/load-other-mines]
-                         ; Save the current state to local storage
+                         ;; Save the current state to local storage.
                          [:save-state]]
             :halt? true}]})
 
@@ -131,12 +126,14 @@
             (assoc :current-mine current-mine
                    :mines updated-mines
                    :assets assets
-                   ;; we had assets in localstorage.
-                   ;; We'll still load the fresh ones in the background in case they
-                   ;; changed, but we can make do with these for now.
-                   :fetching-assets? false))
+                   ;; This needs to be true so we can block `:set-active-panel`
+                   ;; event until we have `:finished-loading-assets`, as some
+                   ;; routes might attempt to build a query which is dependent
+                   ;; on `db :assets :summary-fields` before it gets populated
+                   ;; by `:assets/success-fetch-summary-fields`.
+                   :fetching-assets? true))
       ;; Boot the application asynchronously
-      :async-flow (boot-flow db provided-identity current-mine)
+      :async-flow (boot-flow)
       ;; Register an event sniffer for im-tables
       :forward-events (im-tables-events-forwarder)})))
 
@@ -151,7 +148,7 @@
  :reboot
  (fn [{db :db}]
    {:db (remove-stateful-keys-from-db db)
-    :async-flow (boot-flow db nil (get db :current-mine))}))
+    :async-flow (boot-flow)}))
 
 (reg-event-fx
  :finished-loading-assets
@@ -198,21 +195,33 @@
                  {:enabled? analytics-enabled?
                   :analytics-id analytics-id})})))
 
+;; Figure out how we're going to initialise authentication.
+(reg-event-fx
+ :authentication/init
+ (fn [{db :db} _]
+   (let [has-identity? (map? (get-in db [:auth :identity]))]
+     {:dispatch (if has-identity?
+                  [:authentication/store-token]
+                  [:authentication/fetch-anonymous-token])})))
+
 ; Store an authentication token for a given mine
 (reg-event-db
  :authentication/store-token
- (fn [db [_ mine-kw token]]
-   (assoc-in db [:mines mine-kw :service :token] token)))
+ (fn [db _]
+   (let [mine-kw (:current-mine db)
+         token (get-in db [:auth :identity :token])]
+     (assoc-in db [:mines mine-kw :service :token] token))))
 
 ; Fetch an anonymous token for a given mine
 (reg-event-fx
  :authentication/fetch-anonymous-token
- (fn [{db :db} [_ mine-kw]]
-    ;;re-use mine-kw if the mine exists, otherwise use default mine
-   (let [mine-name (if (contains? (get db :mines) mine-kw) mine-kw :default)
+ (fn [{db :db} _]
+   (let [mine-kw (:current-mine db)
+         ;; Re-use mine-kw if the mine exists, otherwise use default mine.
+         mine-name (if (contains? (get db :mines) mine-kw) mine-kw :default)
          mine (dissoc (get-in db [:mines mine-name :service]) :token)]
      {:db db
-      :im-chan {:on-success [:authentication/store-token mine-name]
+      :im-chan {:on-success [:authentication/store-token]
                 :chan (fetch/session mine)}})))
 
 ; Fetch model

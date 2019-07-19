@@ -10,12 +10,6 @@
 
 ; Define the top level URL routes for the server
 (defroutes routes
-  (GET "/" req
-             ; The user might have an active session. Pass their identity to the client to automatically
-             ; log the user into the application:
-
-    (index/index (:identity (:session req))))
-
              ;;serve compiled files, i.e. js, css, from the resources folder
   (resources "/")
 
@@ -34,4 +28,11 @@
   (context "/api" []
     (context "/auth" [] auth/routes)
     (context "/mymine" [] mymine/routes)
-    (context "/ids" [] ids/routes)))
+    (context "/ids" [] ids/routes))
+
+  (GET "*" req
+             ; The user might have an active session. Pass their identity to the client to automatically
+             ; log the user into the application:
+
+    (index/index (:identity (:session req)))))
+

@@ -1,3 +1,13 @@
+// There is a bug triggered by the combination of reitit and cypress:
+// https://github.com/metosin/reitit/pull/301
+// Until the above PR gets merged, we ignore uncaught exceptions containing the
+// false positive error to keep CI going.
+Cypress.on('uncaught:exception', (err, runnable) => {
+  expect(err.message).to.include('is not ISeqable')
+
+  return false;
+});
+
 describe("UI Test", function() {
   beforeEach(function() {
     cy.visit("/");
@@ -32,18 +42,6 @@ describe("UI Test", function() {
   });
 
   it("Templates allow you to select lists and type in identifiers", function() {
-    cy.on('uncaught:exception', (err, runnable) => {
-      expect(err.message).to.include('No protocol method IAssociative.-assoc defined for type boolean')
-
-      // using mocha's async done callback to finish
-      // this test so we prove that an uncaught exception
-      // was thrown
-      done()
-
-      // return false to prevent the error from
-      // failing this test
-      return false
-    });
     cy.server();
     cy.route("POST", "*/service/query/results/tablerows").as("getData");
     cy.get("#bluegenes-main-nav").within(() => {

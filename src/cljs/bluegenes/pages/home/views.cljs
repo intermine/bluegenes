@@ -1,7 +1,7 @@
 (ns bluegenes.pages.home.views
   (:require [re-frame.core :as re-frame]
             [bluegenes.components.search.typeahead :as search]
-            [accountant.core :refer [navigate!]]))
+            [bluegenes.route :as route]))
 
 (defn searchbox []
   [:div.search
@@ -13,24 +13,34 @@
 (defn lists []
   [:div.feature.lists
    [:h3 "Lists"]
-   [:div.piccie [:a {:on-click #(navigate! "/upload")} [:svg.icon.icon-summary [:use {:xlinkHref "#icon-summary"}]]]]
-   [:div [:a {:on-click #(navigate! "/mymine")} "View"]
-    [:a {:on-click #(navigate! "/upload")} "Upload"]]])
+   [:div.piccie [:a {:href (route/href ::route/upload)}
+                 [:svg.icon.icon-summary [:use {:xlinkHref "#icon-summary"}]]]]
+   [:div
+    [:a {:href (route/href ::route/mymine)}
+     "View"]
+    [:a {:href (route/href ::route/upload)}
+     "Upload"]]])
 
 (defn templates []
   [:div.feature.templates
    [:h3 "Templates"]
    [:div.piccie
-    [:a {:on-click #(navigate! "/templates")} [:svg.icon.icon-search [:use {:xlinkHref "#icon-search"}]]]]
-   [:div [:a {:on-click #(navigate! "/templates")} "Browse"]]])
+    [:a {:href (route/href ::route/templates)}
+     [:svg.icon.icon-search [:use {:xlinkHref "#icon-search"}]]]]
+   [:div
+    [:a {:href (route/href ::route/templates)}
+     "Browse"]]])
 
 (defn help []
   [:div.feature.help
    [:h3 "Help"]
-   [:div.piccie [:a {:on-click #(navigate! "/help")}
+   [:div.piccie [:a {:href (route/href ::route/help)}
                  [:svg.icon.icon-summary [:use {:xlinkHref "#icon-eh"}]]]]
-   [:div [:a {:on-click #(navigate! "/help")} "Tour"]
-    [:a {:on-click #(navigate! "/help")} "Docs/Help"]]])
+   [:div
+    [:a {:href (route/href ::route/help)}
+     "Tour"]
+    [:a {:href (route/href ::route/help)}
+     "Docs/Help"]]])
 
 (defn main []
   (let [active-panel (re-frame/subscribe [:active-panel])]

@@ -4,9 +4,9 @@
             [bluegenes.components.loader :refer [loader]]
             [bluegenes.components.search.resultrow :as resulthandler]
             [bluegenes.components.search.filters :as filters]
-            [accountant.core :refer [navigate!]]
             [re-frame.core :as re-frame :refer [subscribe dispatch]]
-            [oops.core :refer [ocall oget]]))
+            [oops.core :refer [ocall oget]]
+            [bluegenes.route :as route]))
 
 ;;;;TODO: abstract away from IMJS.
 ;;;;NOTES: This was refactored from bluegenes but might contain some legacy weird. If so I apologise.
@@ -34,14 +34,14 @@
   "Visual component: outputs the number of results shown."
   [:small " Displaying " (count-current-results) " of " (count-total-results @(subscribe [:search/full-results])) " results"])
 
-(defn results-display [search-term]
+(defn results-display []
   "Iterate through results and output one row per result using result-row to format. Filtered results aren't output. "
   (let [all-results    (subscribe [:search/full-results])
         active-filter? (subscribe [:search/active-filter])
         some-selected? (subscribe [:search/some-selected?])]
     [:div.results
      [:div.search-header
-      [:h4 "Results for '" @(subscribe [:search-term]) "'" [results-count]]
+      [:h4 "Results for '" @(subscribe [:search/keyword]) "'" [results-count]]
 
       (cond (and @active-filter? @some-selected?)
             [:a.cta {:on-click (fn [e]
@@ -60,21 +60,17 @@
 
 (defn input-new-term []
   [:div
-   (let [new-term (reagent/atom nil)]
-     [:form.searchform {:on-submit
-                        (fn [evt]
-                          (ocall evt :preventDefault) ;;don't submit the form, that just makes a redirect
-                          (cond (some? @new-term)
-                                (do
-                                  (re-frame/dispatch [:search/set-search-term @new-term])
-                                  (dispatch [:search/full-search]))))}
-      [:input {:placeholder "Type a new search term here"
-               :on-change
-               (fn [e]
-                 (let [input-val (oget e "target" "value")]
-
-                   (cond (not (clojure.string/blank? input-val))
-                         (reset! new-term input-val))))}]
+   (let [search-term @(subscribe [:search-term])]
+     [:form.searchform
+      {:on-submit
+       (fn [evt]
+         (ocall evt :preventDefault) ;;don't submit the form, that just makes a redirect
+         (when (some? search-term)
+           (dispatch [::route/navigate ::route/search nil {:keyword search-term}])))}
+      [:input {:type "text"
+               :value search-term
+               :placeholder "Type a new search term here"
+               :on-change #(dispatch [:search/set-search-term (-> % .-target .-value)])}]
       [:button "Search"]])])
 
 (defn search-form [search-term]
@@ -85,18 +81,12 @@
      [input-new-term]
      (if (some? (:results @results))
        [:div.response
-        [filters/facet-display results @search-term]
-        [results-display search-term]]
+        [filters/facet-display results search-term]
+        [results-display]]
        [:div.noresponse
         [:svg.icon.icon-info [:use {:xlinkHref "#icon-info"}]] "Try searching for something in the search box above - perhaps a gene, a protein, or a GO Term."])
      (cond @loading? [:div.noresponse [loader "results"]])]))
 
 (defn main []
-  (let [global-search-term (re-frame/subscribe [:search-term])]
-    (reagent/create-class
-     {:reagent-render
-      (fn render []
-        [search-form global-search-term])
-      :component-will-mount (fn [this]
-                              (cond (some? @global-search-term)
-                                    (dispatch [:search/full-search])))})))
+  (let [search-term @(subscribe [:search-term])]
+    [search-form search-term]))

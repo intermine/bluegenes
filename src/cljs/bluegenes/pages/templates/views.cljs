@@ -1,7 +1,6 @@
 (ns bluegenes.pages.templates.views
   (:require [reagent.core :as reagent]
             [re-frame.core :refer [subscribe dispatch]]
-            [accountant.core :refer [navigate!]]
             [clojure.string :refer [split join blank?]]
             [json-html.core :as json-html]
             [bluegenes.components.lighttable :as lighttable]

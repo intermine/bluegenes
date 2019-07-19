@@ -1,7 +1,6 @@
 (ns bluegenes.effects
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [re-frame.core :refer [dispatch subscribe reg-fx]]
-            [accountant.core :as accountant]
             [cljs.core.async :refer [<! close!]]
             [cljs-http.client :as http]))
 
@@ -16,9 +15,6 @@
    (if (= "" search-term)
      (dispatch [:handle-suggestions nil])
      (go (dispatch [:handle-suggestions (<! c)])))))
-
-; Navigates the browser to the given url and adds an entry to the HTML5 History
-(reg-fx :navigate (fn [url] (accountant/navigate! url)))
 
 "The :im-chan side effect is used to read a value from a channel that represents an HTTP request
 and dispatches events depending on the status of that request's response."

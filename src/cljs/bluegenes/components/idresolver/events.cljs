@@ -7,7 +7,8 @@
             [imcljs.path :as path]
             [cljs-time.core :as time]
             [cljs-time.format :as time-format]
-            [clojure.string :as string]))
+            [clojure.string :as string]
+            [bluegenes.route :as route]))
 
 (reg-event-db
  ::stage-files
@@ -39,7 +40,7 @@
                   ; if there's a value
                  (not (string/blank? text))
                  (conj ["text" text])
-                  ; And also a param for the case sensitive option
+                 ; And also a param for the case sensitive option
                  true (conj ["caseSensitive" (:case-sensitive options)]))
                :on-success [::store-parsed-response options]}}))
 
@@ -68,7 +69,7 @@
                         :type (:type options)
                         :extra (:organism options)})
                 :on-success [::store-identifiers]}
-      :navigate "/upload/save"})))
+      :dispatch [::route/navigate ::route/upload-step {:step "save"}]})))
 
 (def time-formatter (time-format/formatter "dd MMM yyyy HH:mm:ss"))
 
@@ -192,8 +193,6 @@
                  [:assets :summary-fields
                   (get db :current-mine) (keyword object-type)])]
      {:db db
-                   ; Navigate to the List Analysis page
-                   ;:navigate "results"
       :dispatch-n [; Re-fetch our lists so that it shows in MyMine
                    [:assets/fetch-lists]
                                 ; Show the list results in the List Analysis page

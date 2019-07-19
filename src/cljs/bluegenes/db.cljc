@@ -1,7 +1,8 @@
 (ns bluegenes.db)
 
 (def default-db
-  {:current-mine :default
+  {:current-route nil
+   :current-mine :default
    :fetching-assets? true
    :quicksearch-selected-index -1 ;;this defaults to select all in the quicksearch
    :results {:history []}

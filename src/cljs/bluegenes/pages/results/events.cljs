@@ -6,10 +6,10 @@
             [imcljs.path :as path]
             [imcljs.query :as q]
             [bluegenes.interceptors :refer [clear-tooltips]]
-            [accountant.core :as accountant]
             [bluegenes.interceptors :refer [abort-spec]]
             [cljs-time.core :as time]
-            [cljs-time.coerce :as time-coerce]))
+            [cljs-time.coerce :as time-coerce]
+            [bluegenes.route :as route]))
 
 (comment
   "To automatically display some results in this section (the Results / List Analysis page),
@@ -65,13 +65,16 @@
 (reg-event-fx
  :results/history+
  (abort-spec bluegenes.specs/im-package)
- (fn [{db :db} [_ {:keys [source value type] :as package}]]
-   {:db (-> db
-            (update-in [:results :history] conj package)
-            (assoc-in [:results :queries (:title value)]
-                      (assoc package :last-executed (time-coerce/to-long (time/now)))))
-     ; By navigating to the URL below, the :results/load-index (directly below) event is fired;
-    :navigate (str "/results/" (:title value))}))
+ (fn [{db :db} [_ {:keys [source value type] :as package} no-route?]]
+   (cond-> {:db (-> db
+                    (update-in [:results :history] conj package)
+                    (assoc-in [:results :queries (:title value)]
+                              (assoc package
+                                     :last-executed
+                                     (time-coerce/to-long (time/now)))))}
+     (not no-route?)
+           ;; Our route runs `:results/load-history`.
+     (assoc :dispatch [::route/navigate ::route/list {:title (:title value)}]))))
 
 
 ; Load one package at a particular index from the list analysis history collection
@@ -87,27 +90,36 @@
          model (get-in db [:mines source :service :model])
          mine-name (get-in db [:mines source])
          service (get-in db [:mines source :service])]
-      ; Store the values in app-db.
-      ; TODO - 99% of this can be factored out by passing the package to the :enrichment/enrich and parsing it there
-     {:db (update db :results assoc
-                  :table nil
-                  :query value
-                  :package package
-                   ; The index is used to highlight breadcrumbs
-                  :history-index title
-                  :query-parts (q/group-views-by-class model value)
-                   ; Clear the enrichment results before loading any new ones
-                  :enrichment-results nil)
-      :dispatch-n [; Fire the enrichment event (see the TODO above)
-                   [:enrichment/enrich]
-                   [:im-tables/load [:results :table] {:service service
-                                                       :query value
-                                                       :settings {:pagination {:limit 10}
-                                                                  :links {:vocab {:mine (name source)}
-                                                                          :url (fn [vocab] (str "#/reportpage/"
-                                                                                                (:mine vocab) "/"
-                                                                                                (:class vocab) "/"
-                                                                                                (:objectId vocab)))}}}]]})))
+     (if (nil? package)
+       ;; The query result doesn't exist. Fail gracefully!
+       (do
+         (.error js/console
+                 (str "[:results/load-history] The list titled " title " does not exist in db."))
+         {})
+       ; Store the values in app-db.
+       ; TODO - 99% of this can be factored out by passing the package to the :enrichment/enrich and parsing it there
+       {:db (update db :results assoc
+                    :table nil
+                    :query value
+                    :package package
+                     ; The index is used to highlight breadcrumbs
+                    :history-index title
+                    :query-parts (q/group-views-by-class model value)
+                     ; Clear the enrichment results before loading any new ones
+                    :enrichment-results nil)
+        :dispatch-n [; Fire the enrichment event (see the TODO above)
+                     [:enrichment/enrich]
+                     [:im-tables/load
+                      [:results :table]
+                      {:service service
+                       :query value
+                       :settings {:pagination {:limit 10}
+                                  :links {:vocab {:mine (name source)}
+                                          :url (fn [vocab]
+                                                 (str "#/reportpage/"
+                                                      (:mine vocab) "/"
+                                                      (:class vocab) "/"
+                                                      (:objectId vocab)))}}}]]}))))
 
 (reg-event-fx
  :fetch-ids-from-query

@@ -10,7 +10,8 @@
             [bluegenes.pages.mymine.subs :as subs]
             [oops.core :refer [ocall]]
             [clojure.walk :as walk]
-            [cljs-uuid-utils.core :refer [make-random-uuid]]))
+            [cljs-uuid-utils.core :refer [make-random-uuid]]
+            [bluegenes.route :as route]))
 
 (defn dissoc-in
   "Dissociates an entry from a nested associative structure returning a new
@@ -153,12 +154,13 @@
  ::fetch-one-list-success
  (fn [{db :db} [_ trail parent-id {:keys [id name] :as list-details}]]
    (cond-> {:dispatch [:assets/fetch-lists]}
-     (and trail (not (keyword? (first trail)))) (assoc :db (update-in db [:mymine :tree]
-                                                                      update-in (parent-container trail)
-                                                                      update :children assoc
-                                                                      id (assoc list-details
-                                                                                :file-type :list
-                                                                                :label name)))
+     (and trail (not (keyword? (first trail))))
+     (assoc :db (update-in db [:mymine :tree]
+                           update-in (parent-container trail)
+                           update :children assoc
+                           id (assoc list-details
+                                     :file-type :list
+                                     :label name)))
      parent-id (assoc ::fx/http {:method :post
                                  :transit-params {:im-obj-type "list"
                                                   :im-obj-id id
@@ -625,22 +627,3 @@
                   {:db (assoc-in db [:mymine :entries] new-entries)
                    :dispatch-n [[::rederive]
                                 [::set-cursor parent-tag]]})))
-
-(defn build-list-query [type summary-fields name title]
-  {:title title
-   :from type
-   :select summary-fields
-   :where [{:path type
-            :op "IN"
-            :value name}]})
-
-(reg-event-fx
- ::view-list-results
- (fn [{db :db} [_ {:keys [type name title source]}]]
-   (let [summary-fields (get-in db [:assets :summary-fields source (keyword type)])]
-     {:db db
-      :dispatch [:results/history+
-                 {:source source
-                  :type :query
-                  :value (build-list-query type summary-fields name title)}]
-      :navigate "/results"})))

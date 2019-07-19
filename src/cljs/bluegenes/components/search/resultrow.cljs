@@ -1,8 +1,8 @@
 (ns bluegenes.components.search.resultrow
   (:require [re-frame.core :as re-frame :refer [subscribe dispatch]]
-            [accountant.core :refer [navigate!]]
             [reagent.core :as reagent]
-            [oops.core :refer [ocall oget oget+]]))
+            [oops.core :refer [ocall oget oget+]]
+            [bluegenes.route :as route]))
 
 (defn is-selected? [result selected-result]
   "returns true if 'result' is selected"
@@ -21,7 +21,9 @@
 (defn set-selected! [row-data elem]
   "selects an item and navigates there. "
   (let [current-mine (subscribe [:current-mine])]
-    (navigate! (str "/reportpage/" (name (:id @current-mine)) "/" (:type (:result row-data)) "/" (:id (:result row-data))))))
+    (dispatch [::route/navigate ::route/report {:mine (name (:id @current-mine))
+                                                :type (:type (:result row-data))
+                                                :id (:id (:result row-data))}])))
 
 (defn row-structure [row-data contents]
   "This method abstracts away most of the common components for all the result-row baby methods."
