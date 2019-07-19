@@ -46,9 +46,9 @@
  :<- [:current-mine-name]
  (fn [[all-lists text-filter flag-filters sort-order current-mine-kw] _]
      ;; Apply any filters set by the user.
-     (cond->> (get all-lists current-mine-kw)
-       text-filter (filter (partial has-text? text-filter))
-       (some? (:authorized flag-filters)) (filter #(= (:authorized %) (:authorized flag-filters)))
-       (some? (:favourite flag-filters)) (filter (partial tag-check? (:favourite flag-filters) "im:favourite"))
+   (cond->> (get all-lists current-mine-kw)
+     text-filter (filter (partial has-text? text-filter))
+     (some? (:authorized flag-filters)) (filter #(= (:authorized %) (:authorized flag-filters)))
+     (some? (:favourite flag-filters)) (filter (partial tag-check? (:favourite flag-filters) "im:favourite"))
        ;true (sort (apply comp (map build-comparer sort-order)))
-       true (sort-by :timestamp >))))
+     true (sort-by :timestamp >))))
