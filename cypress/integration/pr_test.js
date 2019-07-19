@@ -63,7 +63,7 @@ describe("UI Test", function() {
     cy.get("@getData").should(xhr => {
       expect(xhr.status).to.equal(200);
     });
-    cy.get("select.constraint-chooser:first").select("!=");
+    cy.get("select.constraint-chooser").eq(1).select("!=");
   });
 
   it("Perform a region search using existing example", function() {
