@@ -1,6 +1,6 @@
 # Bluegenes Tool API Spec
 
-BlueGenes is built in Clojure and ClojureScript, but we don't want to re-write all existing browser data vis and analysis tools, so we've built a way to integrate JavaScript tools into report pages.
+BlueGenes is built in Clojure and ClojureScript, but we don't want to re-write all existing browser data vis and analysis tools, so we've built a way to integrate JavaScript tools into our pages.
 
 You can take existing JavaScript biology applications and provide a wrapper for them, allowing them to interact with BlueGenes.
 
@@ -98,11 +98,11 @@ This file provides bluegenes-specific config info. Some further config info is d
 
 ##### Currently supported in BlueGenes:
 * id: a single database id  
+* list: a single list name
 
 ##### Planned for the future:
 
 * ids: multiple database ids  
-* list: a single list name  
 * lists: multiple list names  
 * records: a raw result from POSTing to /query/results with format "jsonobjects"  
 * rows: a raw result from POSTing to /query/results with format "json"  

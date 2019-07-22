@@ -100,14 +100,14 @@
        ; Store the values in app-db.
        ; TODO - 99% of this can be factored out by passing the package to the :enrichment/enrich and parsing it there
        {:db (-> (update db :results assoc
-                       :table nil
-                       :query value
-                       :package package
+                        :table nil
+                        :query value
+                        :package package
                         ; The index is used to highlight breadcrumbs
-                       :history-index title
-                       :query-parts (q/group-views-by-class model value)
+                        :history-index title
+                        :query-parts (q/group-views-by-class model value)
                         ; Clear the enrichment results before loading any new ones
-                       :enrichment-results nil)
+                        :enrichment-results nil)
                 (assoc :panel-params {:type (:from value)
                                       :format "list"
                                       :id title}))
