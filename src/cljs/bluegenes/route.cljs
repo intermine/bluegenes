@@ -202,7 +202,7 @@
       [{:parameters {:path [:mine :type :id]}
         :start (fn [{{:keys [mine type id]} :path}]
                  (dispatch [:set-active-panel :reportpage-panel
-                            {:type type :id id :mine mine}
+                            {:type type, :id id, :format "id", :mine mine}
                             [:load-report mine type id]]))}]}]]])
 ;; You can do initialisations by adding a :start function to :controllers.
 ;; :start (fn [& params] (js/console.log "Entering page"))

@@ -12,7 +12,8 @@
             [im-tables.views.core :as tables]
             [cljs-time.format :as time-format]
             [cljs-time.coerce :as time-coerce]
-            [bluegenes.route :as route]))
+            [bluegenes.route :as route]
+            [bluegenes.components.tools.views :as tools]))
 
 (def custom-time-formatter (time-format/formatter "dd MMM, yy HH:mm"))
 
@@ -68,13 +69,16 @@
             [:div.col-sm-2
              [query-history]]
             [:div.col-sm-7
-             {:style {:background-color "white"}}
-             [tables/main [:results :table]]
-             (if (> (count description) 0)
-               [:div.description-div
-                {:style {:background-color "#D2CEBF"  :padding "10px" :overflow "auto"}}
-                [:b "Description: "]
-                description])]
+             [:div
+              {:style {:background-color "white"}}
+              [tables/main [:results :table]]
+              (when (> (count description) 0)
+                [:div.description-div
+                 {:style {:background-color "#D2CEBF"  :padding "10px" :overflow "auto"}}
+                 [:b "Description: "]
+                 description])]
+             [:div
+              [tools/main]]]
             [:div.col-sm-3
              [enrichment/enrich]]]
            #_[:div.results-and-enrichment

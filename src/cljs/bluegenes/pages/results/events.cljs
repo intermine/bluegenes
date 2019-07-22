@@ -9,7 +9,8 @@
             [bluegenes.interceptors :refer [abort-spec]]
             [cljs-time.core :as time]
             [cljs-time.coerce :as time-coerce]
-            [bluegenes.route :as route]))
+            [bluegenes.route :as route]
+            [bluegenes.components.tools.events :as tools]))
 
 (comment
   "To automatically display some results in this section (the Results / List Analysis page),
@@ -98,16 +99,20 @@
          {})
        ; Store the values in app-db.
        ; TODO - 99% of this can be factored out by passing the package to the :enrichment/enrich and parsing it there
-       {:db (update db :results assoc
-                    :table nil
-                    :query value
-                    :package package
-                     ; The index is used to highlight breadcrumbs
-                    :history-index title
-                    :query-parts (q/group-views-by-class model value)
-                     ; Clear the enrichment results before loading any new ones
-                    :enrichment-results nil)
+       {:db (-> (update db :results assoc
+                       :table nil
+                       :query value
+                       :package package
+                        ; The index is used to highlight breadcrumbs
+                       :history-index title
+                       :query-parts (q/group-views-by-class model value)
+                        ; Clear the enrichment results before loading any new ones
+                       :enrichment-results nil)
+                (assoc :panel-params {:type (:from value)
+                                      :format "list"
+                                      :id title}))
         :dispatch-n [; Fire the enrichment event (see the TODO above)
+                     [::tools/fetch-tools]
                      [:enrichment/enrich]
                      [:im-tables/load
                       [:results :table]

@@ -5,8 +5,8 @@
             [bluegenes.components.table :as table]
             [bluegenes.components.lighttable :as lighttable]
             [bluegenes.components.loader :refer [loader]]
+            [bluegenes.components.tools.views :as tools]
             [bluegenes.pages.reportpage.subs :as subs]
-            [bluegenes.pages.reportpage.components.tools :as tools]
             [im-tables.views.core :as im-table]
             [imcljs.path :as im-path]))
 

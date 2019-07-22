@@ -1,7 +1,7 @@
-(ns bluegenes.pages.reportpage.components.tools
+(ns bluegenes.components.tools.views
   (:require [re-frame.core :refer [subscribe dispatch]]
             [oops.core :refer [ocall+ oapply oget oget+ oset!]]
-            [bluegenes.pages.reportpage.subs :as subs]))
+            [bluegenes.components.tools.subs :as subs]))
 
 ;;fixes the inability to iterate over html vector-like things
 (extend-type js/HTMLCollection
@@ -13,8 +13,7 @@
   []
   (let [package-details (subscribe [:panel-params])
         package {:class (:type @package-details)
-        ;;we'll need to reformat deep links if we want this to not be hardcoded.
-                 :format "id"
+                 :format (:format @package-details)
                  :value (:id @package-details)}]
     (clj->js package)))
 
@@ -68,7 +67,7 @@
 (defn main
   "Initialise all the tools on the page"
   []
-  (let [toolses           (subscribe [::subs/tools-by-current-type])]
+  (let [toolses           (subscribe [::subs/suitable-tools])]
     (.log js/console "%c@toolses" "color:mediumorchid;font-weight:bold;" (clj->js @toolses))
     (into [:div.tools]
           (map
