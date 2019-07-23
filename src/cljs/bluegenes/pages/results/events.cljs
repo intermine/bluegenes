@@ -2,6 +2,7 @@
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [re-frame.core :refer [reg-event-db reg-event-fx reg-fx dispatch subscribe]]
             [cljs.core.async :refer [put! chan <! close!]]
+            [clojure.string :as s]
             [imcljs.fetch :as fetch]
             [imcljs.path :as path]
             [imcljs.query :as q]
@@ -78,9 +79,15 @@
      (assoc :dispatch [::route/navigate ::route/list {:title (:title value)}]))))
 
 
+
+(defn read-origin
+  "Read the origin class from a query, and infer it if it's missing."
+  [query]
+  (if-let [origin (:from query)]
+    origin
+    (first (s/split (first (:select query)) #"\."))))
+
 ; Load one package at a particular index from the list analysis history collection
-
-
 (reg-event-fx
  :results/load-history
  [(clear-tooltips)] ; This clears any existing tooltips on the screen when the event fires
@@ -108,7 +115,7 @@
                         :query-parts (q/group-views-by-class model value)
                         ; Clear the enrichment results before loading any new ones
                         :enrichment-results nil)
-                (assoc :panel-params {:type (:from value)
+                (assoc :panel-params {:type (read-origin value)
                                       :format "list"
                                       :id title}))
         :dispatch-n [; Fire the enrichment event (see the TODO above)
