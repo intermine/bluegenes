@@ -78,8 +78,6 @@
            ;; Our route runs `:results/load-history`.
      (assoc :dispatch [::route/navigate ::route/list {:title (:title value)}]))))
 
-
-
 (defn read-origin
   "Read the origin class from a query, and infer it if it's missing."
   [query]

@@ -1,12 +1,37 @@
 (ns bluegenes.components.tools.views
   (:require [re-frame.core :refer [subscribe dispatch]]
             [oops.core :refer [ocall+ oapply oget oget+ oset!]]
-            [bluegenes.components.tools.subs :as subs]))
+            [bluegenes.components.tools.events :as events]
+            [bluegenes.components.tools.subs :as subs]
+            [bluegenes.route :as route]))
 
 ;;fixes the inability to iterate over html vector-like things
 (extend-type js/HTMLCollection
   ISeqable
   (-seq [array] (array-seq array 0)))
+
+(defmulti navigate
+  "Can be used from JS like this:
+      navigate('report', {type: 'Gene', id: 1018204}, 'humanmine');
+      navigate('query', myQueryObj, 'flymine');
+  Note that the third argument specifying the mine namespace is optional."
+  (fn [target data mine] (keyword target)))
+
+(defmethod navigate :report [_ report-data mine]
+  (let [{:keys [type id]} (js->clj report-data :keywordize-keys true)
+        source (keyword mine)]
+    (dispatch [::route/navigate ::route/report {:type type, :id id, :mine source}])))
+
+(defmethod navigate :query [_ query-data mine]
+  (let [query (js->clj query-data :keywordize-keys true)
+        source (or (keyword mine)
+                   @(subscribe [:current-mine-name]))]
+    (dispatch [::events/navigate-query query source])))
+
+(defn navigate_
+  "JS can't call `navigate` if we pass it the multimethod directly, so wrap it!"
+  [target data mine]
+  (navigate target data mine))
 
 (defn create-package
   "Format the arguments for a tool api compliant tool, such that a tool knows what to display"
@@ -26,7 +51,7 @@
         service (clj->js (:service @(subscribe [:current-mine])))
         package (create-package)
         config (clj->js (:config tool))]
-    (ocall+ js/window (str (get-in tool [:names :cljs]) ".main") el service package nil config)))
+    (ocall+ js/window (str (get-in tool [:names :cljs]) ".main") el service package nil config navigate_)))
 
 (defn fetch-script
   ;; inspired by https://stackoverflow.com/a/31374433/1542891

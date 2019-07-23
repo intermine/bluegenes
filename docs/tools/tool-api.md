@@ -44,7 +44,7 @@ This is the preferred entry point to build dist/bundle.js. May import external l
 The signature of the main method should look have the following signature:
 
 ```javascript
-var myApp.main = function(el, service, imEntity, state, config) {
+var myApp.main = function(el, service, imEntity, state, config, navigate) {
   // code to initialise your app here
 }
 ```
@@ -74,6 +74,19 @@ An object representing the data passed to the app, e.g.:
 ```
 
 To see a full example, look at how the method is called in [bluegenesProtVista's ui demo file](https://github.com/intermine/bluegenesProtVista/blob/master/demo.html) and how [index.js uses the values passed to it](https://github.com/intermine/bluegenesProtVista/blob/master/src/index.js)
+
+**navigate**
+
+A function you can call to make BlueGenes navigate to a specific page.
+
+```javascript
+// Navigate to a report page.
+navigate("report", {type: "Gene", id: 1018204});
+// Run a query and open the page showing the results.
+navigate("query", myQueryObj);
+```
+
+You can optionally specify a third argument with the namespace of a mine (e.g. `"humanmine"`).
 
 #### style.less
 This is the preferred entry point to build dist/styles.css.  If your tool has a stylesheet already, make sure to import the styles and wrap them in a parent class to ensure the styles are sandboxed and don't leak into another file. See [bluegenesProtVista's less file for an example](https://github.com/intermine/bluegenesProtVista/blob/master/src/style.less) and [the css it compiled to](https://github.com/intermine/bluegenesProtVista/blob/master/dist/style.css).

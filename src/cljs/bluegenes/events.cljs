@@ -86,7 +86,8 @@
    (cond
      ;; `:reboot` instead if we're not initialising. We need this to properly
      ;; handle when `:init-mine` is dispatched by switching mines post-boot.
-     (not (:fetching-assets? db)) {:dispatch [:reboot]
+     (not (:fetching-assets? db)) {:db (assoc db :fetching-assets? true)
+                                   :dispatch [:reboot]
                                    :visual-navbar-minechange []
                                    ;; The route controller won't dispatch
                                    ;; again, so we have to dispatch ourselves
