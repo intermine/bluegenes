@@ -42,10 +42,10 @@
  (fn [{db :db} [_ active-panel panel-params evt]]
    (let [evt [:do-active-panel active-panel panel-params evt]]
      (if (:fetching-assets? db)
-      ;; If we're fetching assets then save the panel change for later.
-      {:db (update db :dispatch-after-boot (fnil conj []) evt)}
-      ;; Otherwise dispatch it now.
-      {:dispatch evt}))))
+       ;; If we're fetching assets then save the panel change for later.
+       {:db (update db :dispatch-after-boot (fnil conj []) evt)}
+       ;; Otherwise dispatch it now.
+       {:dispatch evt}))))
 
 (reg-event-fx
  :save-state
@@ -59,51 +59,36 @@
      (persistence/persist! (assoc saved-keys :version bluegenes.core/version))
      {:db db})))
 
-(defn add-mine-to-db [db mine keep-existing?]
-  (let [mine-kw (keyword mine)
-        mine-m (get-in db [:registry mine-kw])
-        in-mine-list? (map? (get-in db [:mines mine-kw]))]
-    (cond-> (assoc db :current-mine mine-kw)
-      (not keep-existing?) (assoc-in [:assets] {})
-      (not in-mine-list?) (assoc-in [:mines mine-kw]
-                                    {:service {:root (:url mine-m)}
-                                     :name (:name mine-m)
-                                     :id mine-kw}))))
-
-;; This event handler doesn't do anything, as it exists only for `async-flow` to
-;; observe so it knows that `:init-mine` has successfully completed.
+;; There are lots of things that orchestrate the process of switching mines:
+;; :bluegenes.events.registry/success-fetch-registry
+;;   Makes sure that mine service data is populated. It can be empty in the
+;;   case of a fresh boot where a non-default mine is selected.
+;; bluegenes.events.boot/wait-for-registry?
+;;   Makes sure that the async boot-flow waits for the above event when
+;;   necessary, before proceeding with events that may require the data.
+;; :set-current-mine
+;;   Sets current-mine, fills in mine service data when it's available from the
+;;   registry, and makes sure to reboot when mine is switched after booting.
 (reg-event-fx
- :success-init-mine
- (fn [_ _] {}))
-
-;; This is for setting `:current-mine` based on the URL path. Depending on
-;; `:fetching-assets?`, it will either change mine and continue if it's in the
-;; middle of the `:boot` process, or `:reboot` if it's not.
-(reg-event-fx
- :init-mine
+ :set-current-mine
  (fn [{db :db} [_ mine]]
-   (cond
-     ;; `:reboot` instead if we're not initialising. We need this to properly
-     ;; handle when `:init-mine` is dispatched by switching mines post-boot.
-     (not (:fetching-assets? db)) {:db (assoc db :fetching-assets? true)
-                                   :dispatch [:reboot]
-                                   :visual-navbar-minechange []
-                                   ;; The route controller won't dispatch
-                                   ;; again, so we have to dispatch ourselves
-                                   ;; during the boot process.
-                                   :forward-events
-                                   {:register ::init-mine-reboot-coordinator
-                                    :events #{::registry/load-other-mines}
-                                    :dispatch-to [:init-mine mine]}}
-     ;; Add mine to db if it's :default or we have the registry downloaded.
-     (or (= :default (keyword mine))
-         (map? (:registry db))) {:db (add-mine-to-db db mine true)
-                                 :dispatch [:success-init-mine]}
-     ;; If it's not :default and we don't have the registry, try again later!
-     :else {:forward-events
-            {:register ::init-mine-coordinator
-             :events #{::registry/success-fetch-registry}
-             :dispatch-to [:init-mine mine]}})))
+   (let [mine-kw         (keyword mine)
+         different-mine? (not= mine-kw (:current-mine db))
+         done-booting?   (not (:fetching-assets? db))
+         in-registry?    (contains? (:registry db) mine-kw)
+         mine-m          (get-in db [:registry mine-kw])]
+     (if different-mine?
+       (cond-> {:db (assoc db :current-mine mine-kw)
+                :visual-navbar-minechange []}
+         ;; This does not run for the `:default` mine, as it isn't part of the
+         ;; registry. This is good as we don't want to overwrite it anyways.
+         in-registry?  (assoc-in [:db :mines mine-kw]
+                                 {:service {:root (:url mine-m)}
+                                  :name (:name mine-m)
+                                  :id mine-kw})
+         done-booting? (-> (assoc-in [:db :fetching-assets?] true)
+                           (assoc :dispatch [:reboot])))
+       {}))))
 
 (reg-event-db
  :handle-suggestions

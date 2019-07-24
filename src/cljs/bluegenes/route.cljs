@@ -127,7 +127,7 @@
     {:controllers
      [{:parameters {:path [:mine]}
        :start (fn [{{:keys [mine]} :path}]
-                (dispatch [:init-mine mine]))}]}
+                (dispatch [:set-current-mine mine]))}]}
     [""
      {:name ::home
       :controllers
@@ -216,9 +216,9 @@
   ;; - Handle actual navigation.
   (if new-match
     (dispatch [::navigated new-match])
-    ;; We end up here when the URL path is empty, so we'll init default mine.
-    ;; (Usually `:init-mine` would be dispatched by the `/:mine` controller.)
-    (dispatch [:init-mine :default])))
+    ;; We end up here when the URL path is empty, so we'll set default mine.
+    ;; (Usually this would be dispatched by the `/:mine` controller.)
+    (dispatch [:set-current-mine :default])))
 
 (def router
   (rf/router
