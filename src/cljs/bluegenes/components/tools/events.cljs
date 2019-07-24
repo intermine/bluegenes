@@ -23,8 +23,6 @@
          history+ [:results/history+ {:source source, :type :query, :value query}]
          new-source? (not= source (:current-mine db))]
      {:dispatch (if new-source? navigate history+)
-      ;; Use :forward-events since [:results :queries] is cleared when switching mines.
-      :forward-events (when new-source?
-                        {:register ::navigate-query-coordinator
-                         :events #{:finished-loading-assets}
-                         :dispatch-to (conj history+ true)})})))
+      ;; Use :dispatch-after-boot since [:results :queries] is cleared when switching mines.
+      :db (cond-> db
+            new-source? (update :dispatch-after-boot (fnil conj []) (conj history+ true)))})))

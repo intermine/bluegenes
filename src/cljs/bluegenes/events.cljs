@@ -40,13 +40,12 @@
 (reg-event-fx
  :set-active-panel
  (fn [{db :db} [_ active-panel panel-params evt]]
-   (if (:fetching-assets? db)
-     ;; If we're fetching assets then save the panel change for later.
-     {:forward-events {:register ::set-active-panel-coordinator
-                       :events #{:finished-loading-assets}
-                       :dispatch-to [:do-active-panel active-panel panel-params evt]}}
-     ;; Otherwise dispatch it now.
-     {:dispatch [:do-active-panel active-panel panel-params evt]})))
+   (let [evt [:do-active-panel active-panel panel-params evt]]
+     (if (:fetching-assets? db)
+      ;; If we're fetching assets then save the panel change for later.
+      {:db (update db :dispatch-after-boot (fnil conj []) evt)}
+      ;; Otherwise dispatch it now.
+      {:dispatch evt}))))
 
 (reg-event-fx
  :save-state

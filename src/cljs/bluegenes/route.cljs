@@ -66,20 +66,18 @@
              ;; Get summary fields from assets.
              summary-fields (get-in db [:assets :summary-fields current-mine (keyword type)])]
          ;; Now we can build our query for use with `:results/history+`.
-         {:dispatch [:results/history+
-                     {:source current-mine
-                      :type :query
-                      :value {:title title
-                              :from type
-                              :select summary-fields
-                              :where [{:path type
-                                       :op "IN"
-                                       :value name}]}}
-                     true] ; This is so we don't dispatch a route navigation.
-          ;; We have to run `:results/load-history` after `:results/history+` completes.
-          :forward-events {:register ::view-list-coordinator
-                           :events #{:results/history+}
-                           :dispatch-to [:results/load-history list-name]}})))))
+         {:dispatch-n [[:results/history+
+                        {:source current-mine
+                         :type :query
+                         :value {:title title
+                                 :from type
+                                 :select summary-fields
+                                 :where [{:path type
+                                          :op "IN"
+                                          :value name}]}}
+                        true] ; This is so we don't dispatch a route navigation.
+                       ;; Hence, we need to dispatch `:results/load-history` manually.
+                       [:results/load-history list-name]]})))))
 
 ;;; Subscriptions ;;;
 

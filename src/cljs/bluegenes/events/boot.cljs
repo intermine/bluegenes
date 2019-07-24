@@ -54,7 +54,13 @@
                          ;; Set a flag indicating all assets are fetched.
                          [:finished-loading-assets]
                          ;; Save the current state to local storage.
-                         [:save-state]]
+                         [:save-state]
+                         ;; fetch-organisms doesn't always load before it is needed.
+                         ;; for example on a fresh load of the id resolver, I sometimes end up with
+                         ;; no organisms when I initialise the component. I have a workaround
+                         ;; so it doesn't matter in this case, but it is something to be aware of.
+                         [:cache/fetch-organisms]
+                         [:regions/select-all-feature-types]]
             :halt? true}]})
 
 (defn im-tables-events-forwarder
@@ -153,13 +159,10 @@
 (reg-event-fx
  :finished-loading-assets
  (fn [{db :db}]
-   {:db (assoc db :fetching-assets? false)
-    ;; fetch-organisms doesn't always load before it is needed.
-    ;; for example on a fresh load of the id resolver, I sometimes end up with
-    ;; no organisms when I initialise the component. I have a workaround
-    ;; so it doesn't matter in this case, but it is something to be aware of.
-    :dispatch-n [[:cache/fetch-organisms]
-                 [:regions/select-all-feature-types]]}))
+   {:db (-> db
+            (dissoc :dispatch-after-boot)
+            (assoc :fetching-assets? false))
+    :dispatch-n (get db :dispatch-after-boot)}))
 
 (reg-event-fx
  :verify-web-service-version
