@@ -164,7 +164,7 @@
    drosophila IDs are no longer valid when using humanmine."
   [db]
   ;; Perhaps we should consider settings `:assets` to `{}` here as well?
-  (dissoc db :regions :idresolver :results :qb))
+  (dissoc db :regions :idresolver :results :qb :suggestion-results))
 
 (reg-event-fx
  :reboot

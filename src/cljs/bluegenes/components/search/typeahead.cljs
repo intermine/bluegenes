@@ -86,12 +86,13 @@
   (reagent/create-class
    (let [results     (subscribe [:suggestion-results])
          search-term (subscribe [:search-term])]
-     {:component-did-mount (fn [e]
-                             (let [node (reagent/dom-node e)]
-                               (-> node
-                                   (sel1 :input)
-                                   (dommy/listen! :focus (fn [] (dommy/add-class! node :open)))
-                                   (dommy/listen! :blur (fn [] (dommy/remove-class! node :open))))))
+     {:component-did-mount
+      (fn [e]
+        (let [node (reagent/dom-node e)]
+          (-> node
+              (sel1 :input)
+              (dommy/listen! :focus (fn [] (dommy/add-class! node :open)))
+              (dommy/listen! :blur (fn [] (dommy/remove-class! node :open))))))
       :reagent-render
       (fn []
         [:div.dropdown
@@ -100,15 +101,22 @@
            :value        @search-term
            :placeholder  "Search"
            :on-change    #(dispatch [:bounce-search (-> % .-target .-value)])
-                                 ;Navigate to the main search results page if the user presses enter.
+           ;; Navigate to the main search results page if the user presses enter.
            :on-key-press (fn [e] (monitor-enter-key e))
-                                 ; Why is this separate from on-key-press, you ask? arrow keys don't trigger keypress events apparent. what meanies.
-           :on-key-up    (fn [e] (monitor-arrow-keys e))}]
-         (if (> (count @results) 0)
+           ;; Why is this separate from on-key-press, you ask?
+           ;; Arrow keys don't trigger keypress events apparently. What meanies.
+           :on-key-up    (fn [e] (monitor-arrow-keys e))
+           :on-focus     #(when (nil? @results)
+                            ;; Results is nil when it has been cleared after switching mines.
+                            ;; (If there really are no suggestions, it would be an empty vector.)
+                            (dispatch [:bounce-search (-> % .-target .-value)]))}]
+         (when (> (count @results) 0)
            [:div.dropdown-menu.quicksearch
             [show-all-results]
             (into [:div.list-group]
-
-                  (map-indexed (fn [index result] (let [active-selection (subscribe [:quicksearch-selected-index])
-                                                        is-active?       (= index @active-selection)]
-                                                    [suggestion result is-active?])) @results))])])})))
+                  (map-indexed
+                    (fn [index result]
+                      (let [active-selection (subscribe [:quicksearch-selected-index])
+                            is-active?       (= index @active-selection)]
+                        [suggestion result is-active?]))
+                    @results))])])})))
