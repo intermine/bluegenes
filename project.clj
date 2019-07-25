@@ -5,73 +5,74 @@
   :description "Bluegenes is a Clojure-powered user interface for InterMine, the biological data warehouse"
   :url "http://www.intermine.org"
   :dependencies [; Clojure
-                 [org.clojure/clojure "1.9.0"]
+                 [org.clojure/clojure "1.10.1"]
                  [org.clojure/clojurescript "1.10.520"]
-                 [org.clojure/core.async "0.4.474"]
+                 [org.clojure/core.async "0.4.500"]
 
                  ; MVC
-                 [re-frame "0.10.6"]
-                 [day8.re-frame/http-fx "0.1.4"]
-                 [day8.re-frame/async-flow-fx "0.0.8"]
-                 [day8.re-frame/forward-events-fx "0.0.5"]
+                 [re-frame "0.10.8"]
+                 [day8.re-frame/http-fx "0.1.6"]
+                 [day8.re-frame/async-flow-fx "0.1.0"]
+                 [day8.re-frame/forward-events-fx "0.0.6"]
                  [day8.re-frame/undo "0.3.2"]
-                 [reagent "0.7.0" :exclusions [cljsjs/react]]
-                 [cljsjs/react-with-addons "15.6.1-0"]
+                 [reagent "0.8.1"]
+                 [cljsjs/react-transition-group "1.2.0-0"
+                  :exclusions [cljsjs/react cljsjs/react-dom]]
                  [hiccup "1.0.5"]
                  [prismatic/dommy "1.1.0"]
                  [metosin/reitit "0.3.9"]
                  [servant "0.1.5"]
-                 [json-html "0.4.4"]
+                 [json-html "0.4.5"]
 
                  [figwheel-sidecar "0.5.14"]
 
                  ; HTTP
-                 [clj-http "3.7.0"]
-                 [cljs-http "0.1.44"]
-                 [compojure "1.6.0"]
+                 [clj-http "3.10.0"]
+                 [cljs-http "0.1.46"]
+                 [compojure "1.6.1"]
                  [ring "1.7.1"]
                  [ring/ring-defaults "0.3.2"]
                  [ring/ring-json "0.4.0" :exclusions [cheshire.core]]
-                 [cheshire "5.8.0"]
+                 [cheshire "5.8.1"]
                  [metosin/ring-http-response "0.9.1"]
                  [ring-middleware-format "0.7.4"]
 
                  ; Dev tools
-                 [re-frisk "0.5.0"]
+                 [re-frisk "0.5.4.1"]
 
                  ; Build tools
                  [yogthos/config "0.9"]
 
                  ; Utility libraries
-                 [com.cognitect/transit-cljs "0.8.243"]
+                 [com.cognitect/transit-cljs "0.8.256"]
                  [com.lucasbradstreet/cljs-uuid-utils "1.0.2"]
-                 [com.andrewmcveigh/cljs-time "0.5.1"]
-                 [com.taoensso/carmine "2.16.0"]
-                 [inflections "0.13.0"]
-                 [fipp "0.6.10"]
-                 [binaryage/oops "0.5.6"]
-                 [inflections "0.13.0"]
+                 [com.andrewmcveigh/cljs-time "0.5.2"]
+                 [com.taoensso/carmine "2.19.1"]
+                 [inflections "0.13.2"]
+                 [fipp "0.6.18"]
+                 [binaryage/oops "0.7.0"]
+                 [inflections "0.13.2"]
                  [cljsjs/google-analytics "2015.04.13-0"]
 
                  ; Database
-                 [org.clojure/java.jdbc "0.7.3"]
-                 [org.postgresql/postgresql "42.1.4"]
+                 [org.clojure/java.jdbc "0.7.9"]
+                 [org.postgresql/postgresql "42.2.6"]
                  [hikari-cp "1.8.1"]
-                 [migratus "1.0.0"]
-                 [com.layerware/hugsql "0.4.8"]
+                 [migratus "1.2.4"]
+                 [com.layerware/hugsql "0.4.9"]
                  [postgre-types "0.0.4"]
 
                  ; Components
-                 [mount "0.1.11"]
+                 [mount "0.1.16"]
 
                  ; Logging
                  [com.taoensso/timbre "4.10.0"]
-                 [com.fzakaria/slf4j-timbre "0.3.7"]
+                 [com.fzakaria/slf4j-timbre "0.3.14"]
 
                  ; Security
-                 [buddy/buddy-auth "2.1.0"]
+                 [buddy/buddy-auth "2.2.0"]
                  [buddy/buddy-sign "2.2.0"]
-                 [buddy/buddy-hashers "1.3.0"]
+                 [buddy/buddy-hashers "1.4.0"]
 
                  [com.cemerick/friend "0.2.3"]
                  [clojusc/friend-oauth2 "0.2.0"]
@@ -79,7 +80,7 @@
 
 
                  ; Intermine Assets
-                 [org.intermine/im-tables "0.8.1"]
+                 [org.intermine/im-tables "0.8.2"]
                  [org.intermine/imcljs "0.7.0"]
                  [org.intermine/bluegenes-tool-store "0.0.1-SNAPSHOT"]]
 
@@ -89,7 +90,7 @@
             [lein-less "1.7.5"]
             [org.clojure/core.unify "0.5.7"]
             [lein-codox "0.10.5"]
-            [lein-ancient "0.6.14"]
+            [lein-ancient "0.6.15"]
             [lein-pdo "0.1.1"]
             [lein-cljfmt "0.6.1"]]
 
@@ -118,8 +119,8 @@
   :less {:source-paths ["less"]
          :target-path "resources/public/css"}
 
-  :profiles {:dev {:dependencies [[binaryage/devtools "0.9.7"]
-                                  [day8.re-frame/re-frame-10x "0.3.7"]]
+  :profiles {:dev {:dependencies [[binaryage/devtools "0.9.10"]
+                                  [day8.re-frame/re-frame-10x "0.4.2"]]
                    :resource-paths ["config/dev" "tools" "config/defaults"]
                    :plugins [[lein-figwheel "0.5.14"]
                              [lein-doo "0.1.8"]]}
@@ -140,8 +141,6 @@
                                         :asset-path "/js/compiled"
                                         :source-map-timestamp true
                                         :pretty-print true
-                                        :npm-deps {:highlight.js "9.12.0"}
-                                        :install-deps true
                                         ;:parallel-build true
                                         :closure-defines {"re_frame.trace.trace_enabled_QMARK_" true}
                                         :preloads [devtools.preload
@@ -156,8 +155,6 @@
                                         :output-to "resources/public/js/compiled/app.js"
                                         ;:output-dir "resources/public/js/compiled"
                                         :optimizations :advanced
-                                        :npm-deps {:highlight.js "9.12.0"}
-                                        :install-deps true
                                         :closure-defines {goog.DEBUG false}
                                         :pretty-print false}}}}
 
