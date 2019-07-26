@@ -115,8 +115,8 @@
             [show-all-results]
             (into [:div.list-group]
                   (map-indexed
-                    (fn [index result]
-                      (let [active-selection (subscribe [:quicksearch-selected-index])
-                            is-active?       (= index @active-selection)]
-                        [suggestion result is-active?]))
-                    @results))])])})))
+                   (fn [index result]
+                     (let [active-selection (subscribe [:quicksearch-selected-index])
+                           is-active?       (= index @active-selection)]
+                       [suggestion result is-active?]))
+                   @results))])])})))

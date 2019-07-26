@@ -1,12 +1,10 @@
 (ns bluegenes.routes
   (:require [compojure.core :refer [GET defroutes context]]
-            [compojure.route :refer [resources files]]
-            [bluegenes.index :as index]
+            [compojure.route :refer [resources]]
             [ring.util.response :refer [response]]
             [bluegenes.ws.auth :as auth]
-            [config.core :refer [env]]
-            [bluegenes.ws.mymine :as mymine]
-            [bluegenes.ws.ids :as ids]))
+            [bluegenes.ws.ids :as ids]
+            [bluegenes.index :as index]))
 
 ; Define the top level URL routes for the server
 (defroutes routes
@@ -18,7 +16,6 @@
   ; Anything within this route is the API web service:
   (context "/api" []
     (context "/auth" [] auth/routes)
-    (context "/mymine" [] mymine/routes)
     (context "/ids" [] ids/routes))
 
   (GET "*" req

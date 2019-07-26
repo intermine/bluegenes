@@ -54,17 +54,6 @@
                  [inflections "0.13.2"]
                  [cljsjs/google-analytics "2015.04.13-0"]
 
-                 ; Database
-                 [org.clojure/java.jdbc "0.7.9"]
-                 [org.postgresql/postgresql "42.2.6"]
-                 [hikari-cp "1.8.1"]
-                 [migratus "1.2.4"]
-                 [com.layerware/hugsql "0.4.9"]
-                 [postgre-types "0.0.4"]
-
-                 ; Components
-                 [mount "0.1.16"]
-
                  ; Logging
                  [com.taoensso/timbre "4.10.0"]
                  [com.fzakaria/slf4j-timbre "0.3.14"]
@@ -82,7 +71,7 @@
                  ; Intermine Assets
                  [org.intermine/im-tables "0.8.2"]
                  [org.intermine/imcljs "0.7.0"]
-                 [org.intermine/bluegenes-tool-store "0.0.1-SNAPSHOT"]]
+                 [org.intermine/bluegenes-tool-store "0.1.0"]]
 
   :deploy-repositories {"clojars" {:sign-releases false}}
   :codox {:language :clojurescript}
