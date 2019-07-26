@@ -160,13 +160,7 @@
                            update :children assoc
                            id (assoc list-details
                                      :file-type :list
-                                     :label name)))
-     parent-id (assoc ::fx/http {:method :post
-                                 :transit-params {:im-obj-type "list"
-                                                  :im-obj-id id
-                                                  :parent-id parent-id}
-                                 :on-success [::success-store-tag]
-                                 :uri "/api/mymine/entries"}))))
+                                     :label name))))))
 
 (reg-event-fx
  ::fetch-one-list
@@ -415,16 +409,7 @@
  (fn [{db :db} [_ parent-id m]]
    (let [focus (get-in db [:mymine :focus])]
      {:dispatch-n [[::clear-checked]
-                   [:assets/fetch-lists]]
-      ::fx/http {:method :post
-                 :transit-params {:im-obj-type "list"
-                                  :im-obj-id (:listId m)
-                                  :parent-id parent-id}
-                 :on-success [::success-store-tag]
-                 :uri "/api/mymine/entries"}})))
-
-
-
+                   [:assets/fetch-lists]]})))
 
 
 ;;;;;;;;;;  Tag tree operations
@@ -447,136 +432,6 @@
 
 ;;;;;;;;;;; IO Operations
 
-
-(reg-event-fx ::store-tag []
-              (fn [{db :db} [_ label]]
-                (let [context-menu-target (get-in db [:mymine :context-menu-target])
-                      mine-id (get-in db [:current-mine])]
-                  {:db db
-                   ::fx/http {:method :post
-                              :transit-params {:im-obj-type "tag"
-                                               :parent-id (:entry-id context-menu-target)
-                                               :label label
-                                               :mine (name mine-id)
-                                               :open? true}
-                              :on-success [::success-store-tag]
-                              :uri "/api/mymine/entries"}})))
-
-(reg-fx ::rederive-tags
-        (fn [tags]
-
-          (println "rederiving" (count tags))
-
-          ; Clear all known derivations
-          (doseq [{:keys [entry-id parent-id]} tags]
-            (doseq [ancestor (ancestors (keyword "tag" entry-id))]
-              (underive (keyword "tag" entry-id) ancestor)))
-
-          ; Rederive tags
-          (doseq [{:keys [entry-id parent-id]} tags]
-            (when (and entry-id parent-id)
-              (derive
-               (keyword "tag" entry-id)
-               (keyword "tag" parent-id))))))
-
-(reg-event-db ::rederive
-              (fn [db [_]]
-                (let [hierarchy (reduce (fn [h {:keys [entry-id parent-id]}]
-                                          (if (and entry-id parent-id)
-                                            (derive h
-                                                    (keyword "tag" entry-id)
-                                                    (keyword "tag" parent-id))
-                                            h))
-                                        (make-hierarchy) (get-in db [:mymine :entries]))]
-                  (update-in db [:mymine] assoc :hierarchy hierarchy))))
-
-(reg-event-fx ::success-store-tag
-              (fn [{db :db} [_ new-tags]]
-                (let [new-db (update-in db [:mymine :entries] #(apply conj % new-tags))]
-                  {:db new-db
-                   :dispatch [::rederive]})))
-
-(reg-event-fx ::delete-tag []
-              (fn [{db :db} [_ label]]
-                (let [context-menu-target (get-in db [:mymine :context-menu-target])]
-                  {:db db
-                   ::fx/http {:method :delete
-                              :on-success [::success-delete-tag]
-                              :uri (str "/api/mymine/entries/" (:entry-id context-menu-target))}})))
-
-(defn isa-filter [root-id entry]
-  (if-let [entry-id (:entry-id entry)]
-    (do
-      (isa? (keyword "tag" entry-id) (keyword "tag" root-id)))
-    false))
-
-(reg-event-fx ::success-delete-tag
-              ; Postgres returns a collection consisting of one deleted id
-              ; hence the destructuring
-              (fn [{db :db} [_ [{entry-id :entry-id}]]]
-                ; Remove any mymine entries that were derived from this entry
-                {:db (update-in db [:mymine :entries] #(remove (partial isa-filter entry-id) %))
-                 :dispatch [::rederive]}))
-
-(reg-event-fx ::rename-tag []
-              (fn [{db :db} [_ label]]
-                (let [context-menu-target (get-in db [:mymine :context-menu-target])]
-                  {:db db
-                   ::fx/http {:method :post
-                              :on-success [::success-rename-tag]
-                              :uri (str "/api/mymine/entries/"
-                                        (:entry-id context-menu-target)
-                                        "/rename/"
-                                        label)}})))
-
-(reg-event-db ::success-rename-tag
-              (fn [db [_ [{entry-id :entry-id :as response}]]]
-                ; Update the appropriate entry
-                (update-in db [:mymine :entries]
-                           #(map (fn [e] (if (= entry-id (:entry-id e)) response e)) %))))
-
-(reg-event-fx ::fetch-tree []
-              (fn [{db :db}]
-                (let [current-mine (name (get-in db [:current-mine]))]
-                  {:db db
-                   ::fx/http {:method :get
-                              :on-success [::echo-tree]
-                              :uri (str "/api/mymine/entries/" current-mine)}})))
-
-(defn toggle-open [entries entry-id status]
-  (map (fn [e] (if (= (:entry-id e) entry-id)
-                 (assoc e :open status)
-                 e)) entries))
-
-(reg-event-fx ::toggle-tag-open []
-              (fn [{db :db} [_ entry-id status]]
-                {:db (update-in db [:mymine :entries] toggle-open entry-id status)
-                 ::fx/http {:method :post
-                            :uri (str "/api/mymine/entries/" entry-id "/open/" status)}}))
-
-(reg-event-db ::set-cursor
-              (fn [db [_ entry]]
-                (assoc-in db [:mymine :cursor] entry)))
-
-(defn keywordize-value
-  "Recursively keywordize a value for a given key in a map
-  (keywordize-filetypes {:one {:type folder :children {:three {:type file}}}
-                         :two {:type file}}
-  => {:one {:type :folder :children {:three {:type :file}}
-      :two {:type :file}}"
-  [m kw]
-  (walk/postwalk #(if (and (map? %) (contains? % :file-type)) (update % kw keyword) %) m))
-
-(reg-event-db ::echo-tree
-              (fn [db [_ response]]
-                (let [hierarchy (reduce (fn [h {:keys [entry-id parent-id]} response]
-                                          (if (and entry-id parent-id)
-                                            (derive h
-                                                    (keyword "tag" entry-id)
-                                                    (keyword "tag" parent-id))
-                                            h))
-                                        (make-hierarchy) response)]
-                  (update-in db [:mymine] assoc :entries response :hierarchy hierarchy))))
 
 (reg-event-db ::dragging
               (fn [db [_ tag]]
@@ -603,27 +458,4 @@
                             (keyword "tag" (:entry-id dropping))
                             (keyword "tag" (:entry-id dragging))) noop
                       (not= "tag" (:im-obj-type dropping)) noop
-                      (nil? dragging-id)
-                      (assoc noop ::fx/http {:method :post
-                                             :transit-params (assoc dragging :parent-id dropping-id :mine current-mine)
-                                             :on-success [::success-store-tag]
-                                             :uri "/api/mymine/entries"})
-                      (and (not= dragging-id dropping-id))
-                      (assoc noop ::fx/http {:method :post
-                                             :on-success [::success-move-entry]
-                                             :uri (str "/api/mymine/entries/"
-                                                       dragging-id
-                                                       "/move/"
-                                                       dropping-id)})
                       :else noop)))))
-
-(reg-event-fx ::success-move-entry
-              (fn [{db :db} [_ [{:keys [entry-id parent-id] :as item}]]]
-                (let [new-entries (map (fn [e]
-                                         (if (= entry-id (:entry-id e))
-                                           (assoc e :parent-id parent-id)
-                                           e)) (get-in db [:mymine :entries]))
-                      parent-tag (first (filter (comp #{parent-id} :entry-id) new-entries))]
-                  {:db (assoc-in db [:mymine :entries] new-entries)
-                   :dispatch-n [[::rederive]
-                                [::set-cursor parent-tag]]})))
