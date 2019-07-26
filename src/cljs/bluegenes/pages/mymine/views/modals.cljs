@@ -179,49 +179,6 @@
 (defn dispatch-edit [location key value]
   (dispatch [::evts/rename-tag value]))
 
-(def not-blank? (complement s/blank?))
-
-(defn modal-delete-folder []
-  (let [input-dom-node (r/atom nil)
-        modal-dom-node (r/atom nil)]
-    (r/create-class
-     {:component-did-mount (fn [this]
-                              ; When modal is closed, clear the context menu target. This prevents the modal
-                              ; from retamaining prior state that was cancelled / dismissed
-                             (ocall (js/$ (r/dom-node this))
-                                    :on "hidden.bs.modal"
-                                    (fn [] (dispatch [::evts/set-context-menu-target nil])))
-                             #_(ocall (js/$ (r/dom-node this))
-                                      :on "shown.bs.modal"
-                                      (fn [] (ocall @input-dom-node :select))))
-      :reagent-render (fn [{:keys [file-type label trail]}]
-                        [:div#myMineDeleteFolderModal.modal.fade
-                         {:tab-index "-1" ; Allows "escape" key to work.... for some reason
-                          :role "dialog"
-                          :ref (fn [e] (when e (reset! modal-dom-node (js/$ e))))} ; Get a handle on our
-                         [:div.modal-dialog
-                          [:div.modal-content
-                           [:div.modal-header [:h2 "Are you sure you want to remove this tag from all associated items?"]]
-                           [:div.modal-body [:p "Items will not be deleted"]
-                            #_[:input.form-control
-                               {:ref (fn [e] (when e (do (oset! e :value "") (reset! input-dom-node (js/$ e)))))
-                                :type "text"
-                                :on-key-up (fn [evt]
-                                             (case (oget evt :keyCode)
-                                               13 (do ; Detect "Return
-                                                    (dispatch [::evts/delete-folder trail])
-                                                    (ocall @modal-dom-node :modal "hide"))
-                                               nil))}]]
-                           [:div.modal-footer
-                            [:div.btn-toolbar.pull-right
-                             [:button.btn.btn-default
-                              {:data-dismiss "modal"}
-                              "Cancel"]
-                             [:button.btn.btn-success.btn-raised
-                              {:data-dismiss "modal"
-                               :on-click (fn [] (dispatch [::evts/delete-tag trail]))}
-                              "Remove Tag"]]]]]])})))
-
 (defn modal-delete-item []
   (let [input-dom-node (r/atom nil)
         modal-dom-node (r/atom nil)
@@ -244,16 +201,7 @@
                          [:div.modal-dialog
                           [:div.modal-content
                            [:div.modal-header [:h2 "Are you sure you want to delete this item?"]]
-                           [:div.modal-body [:p "This action cannot be undone"]
-                            #_[:input.form-control
-                               {:ref (fn [e] (when e (do (oset! e :value "") (reset! input-dom-node (js/$ e)))))
-                                :type "text"
-                                :on-key-up (fn [evt]
-                                             (case (oget evt :keyCode)
-                                               13 (do ; Detect "Return
-                                                    (dispatch [::evts/delete-folder trail])
-                                                    (ocall @modal-dom-node :modal "hide"))
-                                               nil))}]]
+                           [:div.modal-body [:p "This action cannot be undone"]]
                            [:div.modal-footer
                             [:div.btn-toolbar.pull-right
                              [:button.btn.btn-default
@@ -263,52 +211,6 @@
                               {:data-dismiss "modal"
                                :on-click (fn [] (dispatch [::evts/delete name]))}
                               "Delete List"]]]]]])})))
-
-(defn modal-new-folder []
-  (let [input-dom-node (r/atom nil)
-        modal-dom-node (r/atom nil)
-        menu-details (subscribe [::subs/menu-details])]
-    (r/create-class
-     {:component-did-mount (fn [this]
-                              ; When modal is closed, clear the context menu target. This prevents the modal
-                              ; from retamaining prior state that was cancelled / dismissed
-                             (ocall (js/$ (r/dom-node this))
-                                    :on "hidden.bs.modal"
-                                    (fn [] (dispatch [::evts/set-context-menu-target nil])))
-                             (ocall (js/$ (r/dom-node this))
-                                    :on "shown.bs.modal"
-                                    (fn [] (ocall @input-dom-node :select))))
-      :reagent-render (fn [{:keys [file-type label trail]}]
-
-                        (let [{:keys [file-type label trail]} @menu-details]
-                          [:div#myMineNewFolderModal.modal.fade
-                           {:tab-index "-1" ; Allows "escape" key to work.... for some reason
-                            :role "dialog"
-                            :ref (fn [e] (when e (reset! modal-dom-node (js/$ e))))} ; Get a handle on our
-                           [:div.modal-dialog
-                            [:div.modal-content
-                             [:div.modal-header [:h2 "New Tag"]]
-                             [:div.modal-body [:p "Please enter a new name for the tag"]
-                              [:input.form-control
-                               {:ref (fn [e] (when e (do (oset! e :value "") (reset! input-dom-node (js/$ e)))))
-                                :type "text"
-                                :on-key-up (fn [evt]
-                                             (case (oget evt :keyCode)
-                                               13 (when (not-blank? (ocall @input-dom-node :val))
-                                                    (do ; Detect "Return
-                                                      (dispatch [::evts/store-tag (ocall @input-dom-node :val)])
-                                                      (ocall @modal-dom-node :modal "hide")))
-                                               nil))}]]
-                             [:div.modal-footer
-                              [:div.btn-toolbar.pull-right
-                               [:button.btn.btn-default
-                                {:data-dismiss "modal"}
-                                "Cancel"]
-                               [:button.btn.btn-success.btn-raised
-                                {:data-dismiss "modal"
-                                 :on-click (fn [] (when (not-blank? (ocall @input-dom-node :val))
-                                                    (dispatch [::evts/store-tag (ocall @input-dom-node :val)])))}
-                                "OK"]]]]]]))})))
 
 (defn modal-copy []
   (let [input-dom-node (r/atom nil)

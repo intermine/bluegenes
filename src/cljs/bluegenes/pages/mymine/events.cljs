@@ -1,144 +1,19 @@
 (ns bluegenes.pages.mymine.events
-  (:require-macros [cljs.core.async.macros :refer [go go-loop]])
-  (:require [re-frame.core :refer [reg-event-db reg-event-db reg-event-fx reg-fx subscribe]]
-            [cljs.core.async :refer [<!]]
+  (:require [re-frame.core :refer [reg-event-db reg-event-db reg-event-fx subscribe]]
             [imcljs.send :as send]
             [imcljs.fetch :as fetch]
             [imcljs.save :as save]
-            [bluegenes.effects :as fx]
-            [clojure.string :as s]
-            [bluegenes.pages.mymine.subs :as subs]
-            [oops.core :refer [ocall]]
-            [clojure.walk :as walk]
-            [cljs-uuid-utils.core :refer [make-random-uuid]]
-            [bluegenes.route :as route]))
-
-(defn dissoc-in
-  "Dissociates an entry from a nested associative structure returning a new
-  nested structure. keys is a sequence of keys. Any empty maps that result
-  will not be present in the new structure."
-  [m [k & ks :as keys]]
-  (if ks
-    (if-let [nextmap (get m k)]
-      (let [newmap (dissoc-in nextmap ks)]
-        (if (seq newmap)
-          (assoc m k newmap)
-          (dissoc m k)))
-      m)
-    (dissoc m k)))
-
-(defn parent-folder
-  "Find the location of the parent folder for a given path"
-  ([tree path]
-   (parent-folder tree path []))
-  ([tree [head children-key & remaining] trail]
-    ; If the root of the tree if a folder
-   (if (-> (get tree head) :file-type (= :folder))
-     ; Recur with subtree, remaining path, and keys to location
-     (recur (get-in tree [head children-key]) remaining (vec (conj trail head)))
-     ; No more folders in path, return the trail through the tree with :children in between
-     (interpose :children trail))))
-
-(defn in-or-out [haystack needle]
-  (if (some? (some #{needle} haystack))
-    (remove #{needle} haystack)
-    (conj haystack needle)))
-
-(defn in? [haystack needle]
-  (some? (some #{needle} haystack)))
-
-(reg-event-db
- ::toggle-folder-open
- (fn [db [_ location-trail]]
-   (update-in db [:mymine :tree] update-in location-trail update :open not)))
-
-(defn snowball
-  "Makes a growing collection like the following:
-  (snowball [1 2 3 4 5])
-  => [[1] [1 2] [1 2 3] [1 2 3 4] [1 2 3 4 5]]"
-  [coll]
-  (if (seqable? coll)
-    (reduce (fn [total next] (conj total (vec (conj (last total) next)))) [] coll)
-    [coll]))
+            [clojure.string :as s]))
 
 (reg-event-db
  ::set-action-target
  (fn [db [_ path-vec]]
    (assoc-in db [:mymine :action-target] path-vec)))
 
-(reg-event-db
- ::set-focus
- (fn [db [_ location-trail expand?]]
-   (cond-> db
-            ; Set the focus to the current location in the tree
-     true (assoc-in [:mymine :focus] location-trail)
-            ; If we're told to expand then make sure all parent folders are open
-     expand? (update-in [:mymine :tree]
-                        (fn [tree]
-                          (reduce (fn [total next]
-                                    (if (not= (last next) :children)
-                                      (update-in total next assoc :open true)
-                                      total))
-                                  tree (butlast (snowball location-trail))))))))
-
-(reg-event-db
- ::update-value
- (fn [db [_ location-trail key value]]
-
-   (let [action-target (get-in db [:mymine :action-target])]
-     (update-in db [:mymine :tree] update-in action-target assoc key value :editing? false))))
-
-(reg-event-db
- ::new-folder
- (fn [db [_ location-trail name]]
-   (let [action-target (not-empty (get-in db [:mymine :action-target]))
-         uuid (keyword (str "tag-" (str (make-random-uuid))))]
-     (if-not action-target
-       (-> db (assoc-in [:mymine :tree uuid] {:label name :file-type :folder}))
-       (-> db
-            ; Assocation the new folder into the tree
-           (update-in [:mymine :tree] update-in (or location-trail []) update :children assoc uuid {:label name :file-type :folder})
-            ; Open the parent
-           (update-in [:mymine :tree] update-in (or location-trail []) assoc :open true)
-            ;
-           (assoc-in [:mymine :focus] (if (nil? location-trail) [uuid] (conj (vec location-trail) :children uuid))))))))
-
 (defn parent-container [path]
   (if (= (last (butlast path)) :children)
     (recur (butlast path))
     (butlast path)))
-
-(reg-event-db
- ::delete-folder
- (fn [db [_ location-trail name]]
-   (let [action-target (not-empty (get-in db [:mymine :action-target]))]
-     (-> db
-          ; Dissoc the folder
-         (update-in [:mymine :tree] dissoc-in action-target)
-         (assoc-in [:mymine :focus] (parent-container action-target))))))
-
-(reg-event-db
- ::toggle-selected
- (fn [db [_ location-trail options {:keys [id file-type] :as selected}]]
-   (let [db (assoc-in db [:mymine :details] (select-keys selected [:id :file-type]))]
-     (cond
-       (:force? options) (assoc-in db [:mymine :selected] #{location-trail})
-       (:single? options) (if (in? (get-in db [:mymine :selected]) location-trail)
-                            (assoc-in db [:mymine :selected] #{})
-                            (assoc-in db [:mymine :selected] #{location-trail}))))
-   #_(if (:reset? options)
-       (assoc-in db [:mymine :selected] #{[location-trail]})
-       (update-in db [:mymine :selected] in-or-out location-trail))
-   #_(update-in db [:mymine :selected] in-or-out location-trail)))
-
-(reg-event-db
- ::toggle-sort
- (fn [db [_ key type direction]]
-   (if (= key (get-in db [:mymine :sort-by :key]))
-      ; If the key being toggled is the key being set then change the sort direction
-     (-> db (update-in [:mymine :sort-by :asc?] not) (assoc-in [:mymine :sort-by :type] type))
-      ; Otherwise it's a new column so set the key and a default sort direction
-     (assoc-in db [:mymine :sort-by] {:key key :type type :asc? true}))))
 
 (reg-event-db
  ::drag-start
@@ -238,11 +113,6 @@
 ;;;; END TODO
 
 (reg-event-fx
- ::delete-success
- (fn [{db :db} [_ trail response]]
-   {:dispatch [:assets/fetch-lists trail response]}))
-
-(reg-event-fx
  ::rename-list
  (fn [{db :db} [_ old-list-name new-list-name]]
    (let [service (get-in db [:mines (get db :current-mine) :service])]
@@ -259,53 +129,9 @@
                 :on-failure [::delete-failure]}})))
 
 (reg-event-db
- ::drag-over-old
- (fn [db [_ trail]]
-   (assoc-in db [:mymine :dragging-over] trail)))
-
-(reg-event-db
- ::drag-end
- (fn [db [_ trail]]
-   (assoc-in db [:mymine :dragging-over] nil)))
-
-(reg-event-db
  ::set-context-menu-target
  (fn [db [_ entity]]
    (update-in db [:mymine] assoc :context-menu-target entity)))
-
-(reg-event-fx
- ::drop
- (fn [{db :db} [_ trail]]
-   (let [{:keys [dragging dragging-over dragging-node]} (:mymine db)]
-     (let [tree (get-in db [:mymine :tree])
-           drop-parent-folder (parent-folder tree dragging-over)
-           drag-type (:file-type (get-in tree dragging))
-           drop-type (:file-type (get-in tree dragging-over))
-           dragging-id (keyword (str (name (:file-type dragging-node)) "-" (:id dragging-node)))]
-        ; Don't do anything if we're moving something into the same folder
-       (cond
-         (= dragging dragging-over) {:db db :dispatch [::drag-end]} ; File was moved onto itself. Ignore.
-          ;(and (= :folder drag-type) (= :folder drag-type)) db
-         :else (do
-                 {:db (update-in db [:mymine :tree]
-                                 #(-> %
-                                       ; Remove this node from the tree
-                                      (dissoc-in (:trail dragging-node))
-                                       ; Re-associate to the new location
-                                      (update-in drop-parent-folder assoc-in [:children dragging-id] (select-keys dragging-node [:file-type :id]))))
-                   ; Reselect the item at its new location
-                  :dispatch-n [[::drag-end]]}))))))
-;[::toggle-selected (concat drop-parent-folder [:children (last dragging)]) {:force? true}]
-
-
-(reg-event-db
- ::op-select-item
- (fn [db [_ id]]
-   (update-in db [:mymine :list-operations :selected]
-              (fn [s]
-                (if (some? (some #{id} s)) ; If the item id has already been selected...
-                  (remove #{id} s) ; ... then remove it
-                  (conj s id)))))) ; ... otherwise add it
 
 (defn toggle-set [coll k]
   (let [s (set coll)]
@@ -398,40 +224,12 @@
  (fn [db]
    (assoc-in db [:mymine :checked] #{})))
 
-(reg-event-db
- ::set-menu-target
- (fn [db [_ file-details]]
-   (update-in db [:mymine] assoc
-              :menu-file-details file-details)))
-
 (reg-event-fx
  ::lo-success
  (fn [{db :db} [_ parent-id m]]
    (let [focus (get-in db [:mymine :focus])]
      {:dispatch-n [[::clear-checked]
                    [:assets/fetch-lists]]})))
-
-
-;;;;;;;;;;  Tag tree operations
-
-
-(defn dissoc-nested-keys
-  "Recursively dissociate keys from a deep map
-  (dissoc-nested-keys
-      {:a {:x {:b {:c {}}}}, :d {:e {:x {:g {}}}, :h {}}}
-      #{:x :h})
-  => {:a {}, :d {:e {}}}"
-  [m key-col]
-  (walk/postwalk #(if (map? %) (apply dissoc % key-col) %) m))
-
-(reg-event-db
- ::remove-ids-from-tree
- (fn [db [_ list-ids]]
-   (update-in db [:mymine :tree] dissoc-nested-keys list-ids)))
-
-
-;;;;;;;;;;; IO Operations
-
 
 (reg-event-db ::dragging
               (fn [db [_ tag]]
