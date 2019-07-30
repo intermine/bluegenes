@@ -125,11 +125,11 @@
                        :query value
                        :settings {:pagination {:limit 10}
                                   :links {:vocab {:mine (name source)}
-                                          :url (fn [vocab]
-                                                 (str "#/reportpage/"
-                                                      (:mine vocab) "/"
-                                                      (:class vocab) "/"
-                                                      (:objectId vocab)))}}}]]}))))
+                                          :url (fn [{:keys [mine class objectId] :as vocab}]
+                                                 (route/href ::route/report
+                                                             {:mine mine
+                                                              :type class
+                                                              :id objectId}))}}}]]}))))
 
 (reg-event-fx
  :fetch-ids-from-query
