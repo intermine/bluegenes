@@ -78,13 +78,6 @@
            ;; Our route runs `:results/load-history`.
      (assoc :dispatch [::route/navigate ::route/list {:title (:title value)}]))))
 
-(defn read-origin
-  "Read the origin class from a query, and infer it if it's missing."
-  [query]
-  (if-let [origin (:from query)]
-    origin
-    (first (s/split (first (:select query)) #"\."))))
-
 ; Load one package at a particular index from the list analysis history collection
 (reg-event-fx
  :results/load-history
@@ -104,20 +97,18 @@
          {})
        ; Store the values in app-db.
        ; TODO - 99% of this can be factored out by passing the package to the :enrichment/enrich and parsing it there
-       {:db (-> (update db :results assoc
-                        :table nil
-                        :query value
-                        :package package
-                        ; The index is used to highlight breadcrumbs
-                        :history-index title
-                        :query-parts (q/group-views-by-class model value)
-                        ; Clear the enrichment results before loading any new ones
-                        :enrichment-results nil)
-                (assoc :panel-params {:type (read-origin value)
-                                      :format "list"
-                                      :id title}))
-        :dispatch-n [; Fire the enrichment event (see the TODO above)
-                     [::tools/fetch-tools]
+       {:db (update db :results assoc
+                    :table nil
+                    :query value
+                    :package package
+                    ; The index is used to highlight breadcrumbs
+                    :history-index title
+                    :query-parts (q/group-views-by-class model value)
+                    ; Clear the enrichment results before loading any new ones
+                    :enrichment-results nil)
+        :dispatch-n [;; Fetch IDs to build tool entity, and then our tools.
+                     [:fetch-ids-tool-entity]
+                     ; Fire the enrichment event (see the TODO above)
                      [:enrichment/enrich]
                      [:im-tables/load
                       [:results :table]
@@ -132,13 +123,31 @@
                                                               :id objectId}))}}}]]}))))
 
 (reg-event-fx
- :fetch-ids-from-query
- (fn [world [_ service query what-to-enrich]]
-   {:im-chan {:chan (fetch/rows service query)
-              :on-success [:success-fetch-ids]}}))
+ :fetch-ids-tool-entity
+ (fn [{db :db} _]
+   (let [{:keys [source value]} (get-in db [:results :package])
+         service (get-in db [:mines source :service])
+         query (assoc value :select ["Gene.id"])]
+     {:im-chan {:chan (fetch/rows service query)
+                :on-success [:success-fetch-ids-tool-entity]}})))
 
 (reg-event-fx
- :success-fetch-ids
+ :success-fetch-ids-tool-entity
+ (fn [{db :db} [_ {:keys [rootClass results]}]]
+   (let [entity {:class rootClass
+                 :format "ids"
+                 :value (reduce into results)}]
+     {:db (assoc-in db [:tools :entity] entity)
+      :dispatch [::tools/fetch-tools]})))
+
+(reg-event-fx
+ :fetch-enrichment-ids-from-query
+ (fn [world [_ service query what-to-enrich]]
+   {:im-chan {:chan (fetch/rows service query)
+              :on-success [:success-fetch-enrichment-ids-from-query]}}))
+
+(reg-event-fx
+ :success-fetch-enrichment-ids-from-query
  (fn [{db :db} [_ results]]
    {:db (assoc-in db [:results :ids-to-enrich] (flatten (:results results)))
     :dispatch [:enrichment/run-all-enrichment-queries]}))

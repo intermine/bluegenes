@@ -26,8 +26,12 @@
 (reg-event-fx
  :load-report
  (fn [{db :db} [_ mine type id]]
-   {:db (-> db
-            (assoc :fetching-report? true)
-            (dissoc :report))
-    :dispatch-n [[::tools/fetch-tools]
-                 [:fetch-report (keyword mine) type id]]}))
+   (let [entity {:class type
+                 :format "id"
+                 :value id}]
+     {:db (-> db
+              (assoc :fetching-report? true)
+              (dissoc :report)
+              (assoc-in [:tools :entity] entity))
+      :dispatch-n [[::tools/fetch-tools]
+                   [:fetch-report (keyword mine) type id]]})))

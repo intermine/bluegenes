@@ -1,5 +1,5 @@
 (ns bluegenes.utils
-  (:require [clojure.string :refer [blank? join split capitalize]]))
+  (:require [clojure.string :refer [blank? join split capitalize split]]))
 
 (defn uncamel
   "Uncamel case a string. Example: thisIsAString -> This is a string"
@@ -10,3 +10,10 @@
       (join " " $)
       (capitalize $))
     s))
+
+(defn read-origin
+  "Read the origin class from a query, and infer it if it's missing."
+  [query]
+  (if-let [origin (:from query)]
+    origin
+    (first (split (first (:select query)) #"\."))))

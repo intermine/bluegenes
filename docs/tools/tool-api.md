@@ -97,7 +97,7 @@ This file provides bluegenes-specific config info. Some further config info is d
 
 ```json
 {
-  "accepts": ["id", "ids", "list", "lists", "records", "rows"],
+  "accepts": ["id", "ids", "records", "rows"],
   "classes": ["Gene", "Protein", "*"],
   "columnMapping" : {"Protein" : {"id" : "primaryAccession"}},
   "files" : {
@@ -111,12 +111,10 @@ This file provides bluegenes-specific config info. Some further config info is d
 
 ##### Currently supported in BlueGenes:
 * id: a single database id  
-* list: a single list name
+* ids: multiple database ids
 
 ##### Planned for the future:
 
-* ids: multiple database ids  
-* lists: multiple list names  
 * records: a raw result from POSTing to /query/results with format "jsonobjects"  
 * rows: a raw result from POSTing to /query/results with format "json"  
 

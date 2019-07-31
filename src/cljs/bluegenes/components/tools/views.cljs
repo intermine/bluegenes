@@ -33,15 +33,6 @@
   [target data mine]
   (navigate target data mine))
 
-(defn create-package
-  "Format the arguments for a tool api compliant tool, such that a tool knows what to display"
-  []
-  (let [package-details (subscribe [:panel-params])
-        package {:class (:type @package-details)
-                 :format (:format @package-details)
-                 :value (:id @package-details)}]
-    (clj->js package)))
-
 (defn run-script
   "Executes a tool-api compliant main method to initialise a tool"
   [tool tool-id]
@@ -49,9 +40,10 @@
   ;;package-name(el, service, package, state, config)
   (let [el (.getElementById js/document tool-id)
         service (clj->js (:service @(subscribe [:current-mine])))
-        package (create-package)
-        config (clj->js (:config tool))]
-    (ocall+ js/window (str (get-in tool [:names :cljs]) ".main") el service package nil config navigate_)))
+        package (clj->js @(subscribe [::subs/entity]))
+        config (clj->js (:config tool))
+        main (str (get-in tool [:names :cljs]) ".main")]
+    (ocall+ js/window main el service package nil config navigate_)))
 
 (defn fetch-script
   ;; inspired by https://stackoverflow.com/a/31374433/1542891
