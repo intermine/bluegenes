@@ -144,7 +144,8 @@
                                         :output-to "resources/public/js/compiled/app.js"
                                         ;:output-dir "resources/public/js/compiled"
                                         :optimizations :advanced
-                                        :closure-defines {goog.DEBUG false}
+                                        :closure-defines {goog.DEBUG false
+                                                          bluegenes.core/version ~(:version props)}
                                         :pretty-print false}}}}
 
   :main bluegenes.core
