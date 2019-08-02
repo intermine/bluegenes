@@ -66,20 +66,18 @@
              ;; Get summary fields from assets.
              summary-fields (get-in db [:assets :summary-fields current-mine (keyword type)])]
          ;; Now we can build our query for use with `:results/history+`.
-         {:dispatch [:results/history+
-                     {:source current-mine
-                      :type :query
-                      :value {:title title
-                              :from type
-                              :select summary-fields
-                              :where [{:path type
-                                       :op "IN"
-                                       :value name}]}}
-                     true] ; This is so we don't dispatch a route navigation.
-          ;; We have to run `:results/load-history` after `:results/history+` completes.
-          :forward-events {:register ::view-list-coordinator
-                           :events #{:results/history+}
-                           :dispatch-to [:results/load-history list-name]}})))))
+         {:dispatch-n [[:results/history+
+                        {:source current-mine
+                         :type :query
+                         :value {:title title
+                                 :from type
+                                 :select summary-fields
+                                 :where [{:path type
+                                          :op "IN"
+                                          :value name}]}}
+                        true] ; This is so we don't dispatch a route navigation.
+                       ;; Hence, we need to dispatch `:results/load-history` manually.
+                       [:results/load-history list-name]]})))))
 
 ;;; Subscriptions ;;;
 
@@ -129,7 +127,7 @@
     {:controllers
      [{:parameters {:path [:mine]}
        :start (fn [{{:keys [mine]} :path}]
-                (dispatch [:init-mine mine]))}]}
+                (dispatch [:set-current-mine mine]))}]}
     [""
      {:name ::home
       :controllers
@@ -202,7 +200,7 @@
       [{:parameters {:path [:mine :type :id]}
         :start (fn [{{:keys [mine type id]} :path}]
                  (dispatch [:set-active-panel :reportpage-panel
-                            {:type type :id id :mine mine}
+                            {:type type, :id id, :format "id", :mine mine}
                             [:load-report mine type id]]))}]}]]])
 ;; You can do initialisations by adding a :start function to :controllers.
 ;; :start (fn [& params] (js/console.log "Entering page"))
@@ -218,9 +216,9 @@
   ;; - Handle actual navigation.
   (if new-match
     (dispatch [::navigated new-match])
-    ;; We end up here when the URL path is empty, so we'll init default mine.
-    ;; (Usually `:init-mine` would be dispatched by the `/:mine` controller.)
-    (dispatch [:init-mine :default])))
+    ;; We end up here when the URL path is empty, so we'll set default mine.
+    ;; (Usually this would be dispatched by the `/:mine` controller.)
+    (dispatch [:set-current-mine :default])))
 
 (def router
   (rf/router

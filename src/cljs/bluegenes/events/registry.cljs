@@ -31,5 +31,15 @@
             (if (>= (.parseInt js/window (:api_version mine) 10) min-intermine-version)
               (assoc new-map (keyword (:namespace mine)) mine)
               new-map))
-          {} registry-mines)]
-     (assoc-in db [:registry] registry-mines-map))))
+          {} registry-mines)
+         current-mine (:current-mine db)
+         mine-m (get registry-mines-map current-mine)]
+     (-> db
+         (assoc :registry registry-mines-map)
+         ;; Fill in the mine details if it's missing.
+         ;; (This usually happens when we change to a non-default mine.)
+         (cond-> (nil? (get-in db [:mines current-mine]))
+           (assoc-in [:mines current-mine]
+                     {:service {:root (:url mine-m)}
+                      :name (:name mine-m)
+                      :id current-mine}))))))

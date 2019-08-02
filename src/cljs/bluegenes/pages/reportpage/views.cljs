@@ -5,10 +5,11 @@
             [bluegenes.components.table :as table]
             [bluegenes.components.lighttable :as lighttable]
             [bluegenes.components.loader :refer [loader]]
+            [bluegenes.components.tools.views :as tools]
             [bluegenes.pages.reportpage.subs :as subs]
-            [bluegenes.pages.reportpage.components.tools :as tools]
             [im-tables.views.core :as im-table]
-            [imcljs.path :as im-path]))
+            [imcljs.path :as im-path]
+            [bluegenes.route :as route]))
 
 (defn tbl [{:keys [loc]}]
   (let [data (subscribe [::subs/a-table loc])]
@@ -47,11 +48,11 @@
                                         :value id}]}
                        :settings {:pagination {:limit 5}
                                   :links {:vocab {:mine (clj-name (or @current-mine-name ""))}
-                                          :url (fn [vocab]
-                                                 (str "#/reportpage/"
-                                                      (:mine vocab) "/"
-                                                      (:class vocab) "/"
-                                                      (:objectId vocab)))}}}])
+                                          :url (fn [{:keys [mine class objectId] :as vocab}]
+                                                 (route/href ::route/report
+                                                             {:mine mine
+                                                              :type class
+                                                              :id objectId}))}}}])
                @nonempty-collections-references))))
 
 (defn templates-for-entity [service current-mine-name id]
@@ -65,11 +66,11 @@
                          :query t
                          :settings {:pagination {:limit 5}
                                     :links {:vocab {:mine (clj-name (or @current-mine-name ""))}
-                                            :url (fn [vocab]
-                                                   (str "#/reportpage/"
-                                                        (:mine vocab) "/"
-                                                        (:class vocab) "/"
-                                                        (:objectId vocab)))}}}]))
+                                            :url (fn [{:keys [mine class objectId] :as vocab}]
+                                                   (route/href ::route/report
+                                                               {:mine mine
+                                                                :type class
+                                                                :id objectId}))}}}]))
                @runnable-templates))))
 
 (defn top-scroll []

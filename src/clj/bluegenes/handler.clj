@@ -12,7 +12,7 @@
             [bluegenes-tool-store.core :as tool]))
 
 (def combined-routes
-  (routes routes/routes tool/routes))
+  (routes tool/routes routes/routes))
 
 (def handler (-> #'combined-routes
                  ; Watch changes to the .clj and hot reload them

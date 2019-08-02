@@ -15,7 +15,7 @@
 
 
 (def css-transition-group
-  (reagent/adapt-react-class js/React.addons.CSSTransitionGroup))
+  (reagent/adapt-react-class js/ReactTransitionGroup.CSSTransitionGroup))
 
 (def sidebar-hover (reagent/atom false))
 
@@ -60,21 +60,23 @@
                         (on-click identifier))}]
           matches]
          [:div.col-xs-7
-
           (let [summary-value @(subscribe [:enrichment/a-summary-values identifier])]
             [poppable
              {:data (if summary-value
                       [popover-table @(subscribe [:enrichment/a-summary-values identifier])]
                       [:span "Loading"])
-              :children [:a {:on-click (fn []
-                                         (dispatch [:results/history+ {:source @current-mine
-                                                                       :type :query
-                                                                       :value (assoc
-                                                                               (build-matches-query
-                                                                                (:pathQuery details)
-                                                                                (:pathConstraint details)
-                                                                                identifier)
-                                                                               :title identifier)}]))} description]}])]
+              :children [:a {:on-click
+                             (fn []
+                               (dispatch [:results/history+
+                                          {:source @current-mine
+                                           :type :query
+                                           :value (assoc (build-matches-query
+                                                          (:pathQuery details)
+                                                          (:pathConstraint details)
+                                                          identifier)
+                                                         :title
+                                                         identifier)}]))}
+                         description]}])]
          [:div.col-xs-3 [:span {:style {:font-size "0.8em"}} (.toExponential p-value 6)]]]]])))
 
 (defn has-text?

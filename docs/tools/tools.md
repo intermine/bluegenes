@@ -45,6 +45,5 @@ You can create your own tools in JavaScript or any language that compiles to Jav
 
 ## Roadmap
 
-Currently tools are only supported in report pages. Some of the planned work: 
- - Longer term we would like to add support for tools in list results pages.
+Some of the planned work:
  - Support for global variables and events (i.e. for javascript libraries that aren't modern enough to export a single module). 

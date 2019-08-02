@@ -27,7 +27,7 @@
                  @categories)))))
 
 (def css-transition-group
-  (reagent/adapt-react-class js/React.addons.CSSTransitionGroup))
+  (reagent/adapt-react-class js/ReactTransitionGroup.CSSTransitionGroup))
 
 (defn results-count-text [results-preview]
   (if (< (:iTotalRecords @results-preview) 1)

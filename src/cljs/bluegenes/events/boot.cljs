@@ -14,48 +14,59 @@
   is queued until all of the assets (data model, lists, templates etc) are fetched.
   When finished, an event called :finished-loading-assets is dispatch which tells BlueGenes
   it can continue routing."
-  []
-  {:first-dispatch [::registry/load-other-mines]
-   ;; We first dispatch ::registry/load-other-mines as some of the events below
-   ;; are reliant on registry being downloaded if a non-default mine is chosen
-   ;; (notably :init-mine), in which case they'll wait until it's available.
-   :rules [;; Wait for init-mine as it may update the `:current-mine` in our db.
-           {:when :seen?
-            :events :success-init-mine
-            :dispatch [:authentication/init]}
-           ;; Wait for token as some assets need it for private data (eg. lists, queries).
-           {:when :seen?
-            :events :authentication/store-token
-            :dispatch-n [[:assets/fetch-web-properties]
-                         [:assets/fetch-model]
-                         [:assets/fetch-lists]
-                         [:assets/fetch-class-keys]
-                         [:assets/fetch-templates]
-                         [:assets/fetch-widgets]
-                         [:assets/fetch-summary-fields]
-                         [:assets/fetch-intermine-version]
-                         [:assets/fetch-web-service-version]]}
-           ;; Wait for all events that indicate our assets have been fetched successfully.
-           {:when :seen-all-of?
-            :events [:assets/success-fetch-model
-                     :assets/success-fetch-web-properties
-                     :assets/success-fetch-lists
-                     :assets/success-fetch-class-keys
-                     :assets/success-fetch-templates
-                     :assets/success-fetch-summary-fields
-                     :assets/success-fetch-widgets
-                     :assets/success-fetch-intermine-version
-                     :assets/success-fetch-web-service-version]
-            ;; Now finish setting up BlueGenes!
-            :dispatch-n [;; Verify InterMine web service version.
-                         [:verify-web-service-version]
-                         ;; Start Google Analytics.
-                         [:start-analytics]
-                         ;; Set a flag indicating all assets are fetched.
-                         [:finished-loading-assets]
-                         ;; Save the current state to local storage.
-                         [:save-state]]
-            :halt? true}]})
+  [wait-registry?]
+  ;; wait-registry? is to indicate that the current mine requries data from the
+  ;; registry, which isn't present (usually because it is a fresh boot).
+  {:first-dispatch (if wait-registry?
+                     [::registry/load-other-mines]
+                     [:authentication/init])
+   :rules (filterv
+           some?
+           [(when wait-registry?
+              {:when :seen?
+               :events ::registry/success-fetch-registry
+               :dispatch [:authentication/init]})
+            ;; Wait for token as some assets need it for private data (eg. lists, queries).
+            {:when :seen?
+             :events :authentication/store-token
+             :dispatch-n [[:assets/fetch-web-properties]
+                          [:assets/fetch-model]
+                          [:assets/fetch-lists]
+                          [:assets/fetch-class-keys]
+                          [:assets/fetch-templates]
+                          [:assets/fetch-widgets]
+                          [:assets/fetch-summary-fields]
+                          [:assets/fetch-intermine-version]
+                          [:assets/fetch-web-service-version]]}
+            ;; Wait for all events that indicate our assets have been fetched successfully.
+            {:when :seen-all-of?
+             :events [:assets/success-fetch-model
+                      :assets/success-fetch-web-properties
+                      :assets/success-fetch-lists
+                      :assets/success-fetch-class-keys
+                      :assets/success-fetch-templates
+                      :assets/success-fetch-summary-fields
+                      :assets/success-fetch-widgets
+                      :assets/success-fetch-intermine-version
+                      :assets/success-fetch-web-service-version]
+             ;; Now finish setting up BlueGenes!
+             :dispatch-n (cond->
+                          [;; Verify InterMine web service version.
+                           [:verify-web-service-version]
+                           ;; Start Google Analytics.
+                           [:start-analytics]
+                           ;; Set a flag indicating all assets are fetched.
+                           [:finished-loading-assets]
+                           ;; Save the current state to local storage.
+                           [:save-state]
+                           ;; fetch-organisms doesn't always load before it is needed.
+                           ;; for example on a fresh load of the id resolver, I sometimes end up with
+                           ;; no organisms when I initialise the component. I have a workaround
+                           ;; so it doesn't matter in this case, but it is something to be aware of.
+                           [:cache/fetch-organisms]
+                           [:regions/select-all-feature-types]]
+                           (not wait-registry?) (conj [::registry/load-other-mines]))
+             :halt? true}])})
 
 (defn im-tables-events-forwarder
   "Creates instructions for listening in on im-tables events.
@@ -94,11 +105,20 @@
        :service {:root "http://www.flymine.org/flymine"
                  :token nil}})))
 
+(defn wait-for-registry?
+  [db]
+  (let [current-mine (:current-mine db)
+        default? (= current-mine :default)
+        ;; There might exist a scenario where it would be better to check for
+        ;; the mine to be present in :mines instead of the registry.
+        in-registry? (contains? (:registry db) current-mine)]
+    (not (or default? in-registry?))))
+
 ;; Boot the application.
 (reg-event-fx
  :boot
  (fn [_world [_ provided-identity]]
-   (let [db
+   (let [init-db
          (-> db/default-db
              ;; Add default mine, either as is configured when attached to an
              ;; InterMine instance, or as an empty placeholder.
@@ -117,23 +137,24 @@
          ;; We always want `init-mine-defaults` to override the :default mine
          ;; saved in local storage, as a coupled intermine instance should
          ;; always take priority.
-         updated-mines (assoc mines :default (init-mine-defaults))]
-     {:db (cond-> db
-            ;; Only use data from local storage if it's non-empty and the
-            ;; client version matches.
-            (and (seq state)
-                 (= bluegenes.core/version version))
-            (assoc :current-mine current-mine
-                   :mines updated-mines
-                   :assets assets
-                   ;; This needs to be true so we can block `:set-active-panel`
-                   ;; event until we have `:finished-loading-assets`, as some
-                   ;; routes might attempt to build a query which is dependent
-                   ;; on `db :assets :summary-fields` before it gets populated
-                   ;; by `:assets/success-fetch-summary-fields`.
-                   :fetching-assets? true))
+         updated-mines (assoc mines :default (init-mine-defaults))
+         db (cond-> init-db
+              ;; Only use data from local storage if it's non-empty and the
+              ;; client version matches.
+              (and (seq state)
+                   (= bluegenes.core/version version))
+              (assoc :current-mine current-mine
+                     :mines updated-mines
+                     :assets assets
+                     ;; This needs to be true so we can block `:set-active-panel`
+                     ;; event until we have `:finished-loading-assets`, as some
+                     ;; routes might attempt to build a query which is dependent
+                     ;; on `db :assets :summary-fields` before it gets populated
+                     ;; by `:assets/success-fetch-summary-fields`.
+                     :fetching-assets? true))]
+     {:db db
       ;; Boot the application asynchronously
-      :async-flow (boot-flow)
+      :async-flow (boot-flow (wait-for-registry? db))
       ;; Register an event sniffer for im-tables
       :forward-events (im-tables-events-forwarder)})))
 
@@ -142,24 +163,23 @@
    state if we switch mines. For example, in list upload (ID Resolver),
    drosophila IDs are no longer valid when using humanmine."
   [db]
-  (dissoc db :regions :idresolver :results :qb))
+  ;; Perhaps we should consider settings `:assets` to `{}` here as well?
+  (dissoc db :regions :idresolver :results :qb :suggestion-results))
 
 (reg-event-fx
  :reboot
  (fn [{db :db}]
-   {:db (assoc (remove-stateful-keys-from-db db) :fetching-assets? true)
-    :async-flow (boot-flow)}))
+   {:db (remove-stateful-keys-from-db db)
+    :async-flow (boot-flow (wait-for-registry? db))}))
 
 (reg-event-fx
  :finished-loading-assets
  (fn [{db :db}]
-   {:db (assoc db :fetching-assets? false)
-    ;; fetch-organisms doesn't always load before it is needed.
-    ;; for example on a fresh load of the id resolver, I sometimes end up with
-    ;; no organisms when I initialise the component. I have a workaround
-    ;; so it doesn't matter in this case, but it is something to be aware of.
-    :dispatch-n [[:cache/fetch-organisms]
-                 [:regions/select-all-feature-types]]}))
+   (let [dispatch-after-boot (:dispatch-after-boot db)]
+     (cond-> {:db (-> db
+                      (dissoc :dispatch-after-boot)
+                      (assoc :fetching-assets? false))}
+       (some? dispatch-after-boot) (assoc :dispatch-n dispatch-after-boot)))))
 
 (reg-event-fx
  :verify-web-service-version

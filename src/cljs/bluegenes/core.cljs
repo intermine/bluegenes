@@ -11,6 +11,7 @@
             [bluegenes.config :as config]
             [bluegenes.pages.templates.core]
             [cljsjs.google-analytics]
+            [cljsjs.react-transition-group]
             [oops.core :refer [oget oset! ocall oapply ocall! oapply!
                                oget+ oset!+ ocall+ oapply+ ocall!+ oapply!+]]))
 

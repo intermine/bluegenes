@@ -13,7 +13,7 @@
             [oops.core :refer [oget ocall]]))
 
 (def css-transition-group
-  (reagent/adapt-react-class js/React.addons.CSSTransitionGroup))
+  (reagent/adapt-react-class js/ReactTransitionGroup.CSSTransitionGroup))
 
 (defn ex
   "Generate example region search input based on pre-configured per-mine settings"

@@ -1,22 +1,37 @@
-(ns bluegenes.pages.reportpage.components.tools
+(ns bluegenes.components.tools.views
   (:require [re-frame.core :refer [subscribe dispatch]]
             [oops.core :refer [ocall+ oapply oget oget+ oset!]]
-            [bluegenes.pages.reportpage.subs :as subs]))
+            [bluegenes.components.tools.events :as events]
+            [bluegenes.components.tools.subs :as subs]
+            [bluegenes.route :as route]))
 
 ;;fixes the inability to iterate over html vector-like things
 (extend-type js/HTMLCollection
   ISeqable
   (-seq [array] (array-seq array 0)))
 
-(defn create-package
-  "Format the arguments for a tool api compliant tool, such that a tool knows what to display"
-  []
-  (let [package-details (subscribe [:panel-params])
-        package {:class (:type @package-details)
-        ;;we'll need to reformat deep links if we want this to not be hardcoded.
-                 :format "id"
-                 :value (:id @package-details)}]
-    (clj->js package)))
+(defmulti navigate
+  "Can be used from JS like this:
+      navigate('report', {type: 'Gene', id: 1018204}, 'humanmine');
+      navigate('query', myQueryObj, 'flymine');
+  Note that the third argument specifying the mine namespace is optional."
+  (fn [target data mine] (keyword target)))
+
+(defmethod navigate :report [_ report-data mine]
+  (let [{:keys [type id]} (js->clj report-data :keywordize-keys true)
+        source (keyword mine)]
+    (dispatch [::route/navigate ::route/report {:type type, :id id, :mine source}])))
+
+(defmethod navigate :query [_ query-data mine]
+  (let [query (js->clj query-data :keywordize-keys true)
+        source (or (keyword mine)
+                   @(subscribe [:current-mine-name]))]
+    (dispatch [::events/navigate-query query source])))
+
+(defn navigate_
+  "JS can't call `navigate` if we pass it the multimethod directly, so wrap it!"
+  [target data mine]
+  (navigate target data mine))
 
 (defn run-script
   "Executes a tool-api compliant main method to initialise a tool"
@@ -25,9 +40,10 @@
   ;;package-name(el, service, package, state, config)
   (let [el (.getElementById js/document tool-id)
         service (clj->js (:service @(subscribe [:current-mine])))
-        package (create-package)
-        config (clj->js (:config tool))]
-    (ocall+ js/window (str (get-in tool [:names :cljs]) ".main") el service package nil config)))
+        package (clj->js @(subscribe [::subs/entity]))
+        config (clj->js (:config tool))
+        main (str (get-in tool [:names :cljs]) ".main")]
+    (ocall+ js/window main el service package nil config navigate_)))
 
 (defn fetch-script
   ;; inspired by https://stackoverflow.com/a/31374433/1542891
@@ -68,7 +84,7 @@
 (defn main
   "Initialise all the tools on the page"
   []
-  (let [toolses           (subscribe [::subs/tools-by-current-type])]
+  (let [toolses           (subscribe [::subs/suitable-tools])]
     (.log js/console "%c@toolses" "color:mediumorchid;font-weight:bold;" (clj->js @toolses))
     (into [:div.tools]
           (map
