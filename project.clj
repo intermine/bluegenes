@@ -23,6 +23,7 @@
                  [metosin/reitit "0.3.9"]
                  [servant "0.1.5"]
                  [json-html "0.4.5"]
+                 [markdown-to-hiccup "0.6.2"]
 
                  [figwheel-sidecar "0.5.14"]
 
@@ -71,7 +72,7 @@
                  ; Intermine Assets
                  [org.intermine/im-tables "0.8.2"]
                  [org.intermine/imcljs "0.7.0"]
-                 [org.intermine/bluegenes-tool-store "0.1.0"]]
+                 [org.intermine/bluegenes-tool-store "0.2.0-ALPHA"]]
 
   :deploy-repositories {"clojars" {:sign-releases false}}
   :codox {:language :clojurescript}

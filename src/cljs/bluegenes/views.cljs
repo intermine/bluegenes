@@ -74,5 +74,4 @@
        [nav/main]
        [:main [show-panel @active-panel]]
        [footer]
-       [alerts/invalid-token-alert]
-       [alerts/messages]])))
+       [alerts/main]])))

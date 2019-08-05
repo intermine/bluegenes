@@ -87,16 +87,13 @@
 (defn debug-panel []
   (fn []
     (let [panel (subscribe [::subs/panel])]
-      [:div.developer
+      [:div.developer.container
        [nav]
-       (cond
-         (= @panel "main")
-         [:div
-          [:h1 "Debug console"]
-          [mine-config]
-          [localstorage-destroyer]
-          [version-number]]
-         (= @panel "tool-store")
-         [tools/tool-store]
-         (= @panel "icons")
-         [icons/iconview])])))
+       (case @panel
+         "main" [:div
+                 [:h1 "Debug console"]
+                 [mine-config]
+                 [localstorage-destroyer]
+                 [version-number]]
+         "tool-store" [tools/tool-store]
+         "icons" [icons/iconview])])))

@@ -171,7 +171,6 @@
    (assoc-in db [:mines :flymine-beta :service :token] "faketoken")))
 
 (reg-event-db
- ;; IS THIS USED?
  :messages/add
  (fn [db [_ {:keys [markup style]}]]
    (let [id (gensym)]
