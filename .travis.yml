@@ -10,13 +10,10 @@ before_script:
   - export PATH=$PATH:/tmp/lein
   # check code is well formatted
   - lein cljfmt check
-  #start server
-  - lein with-profile +java9 run &
   # install link validator bot for docs
   - gem install awesome_bot
   # install cypress dependencies
   - sudo apt-get install xvfb libgtk2.0-0 libnotify-dev libgconf-2-4 libnss3 libxss1 libasound2 -y
-
 
 script:
   # setup dependencies
@@ -25,6 +22,8 @@ script:
   - lein with-profile +java9 less once
   # ensure a minified build completes without error
   - lein with-profile +java9 cljsbuild once min
+  # start server
+  - lein with-profile +java9 run &
   # run UI tests using Cypress
   - npx cypress run
   # check for the links in the documentation
