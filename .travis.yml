@@ -8,12 +8,17 @@ before_script:
   - wget https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein -O /tmp/lein
   - chmod +x /tmp/lein
   - export PATH=$PATH:/tmp/lein
+  # make several attempts at downloading dependencies
+  - travis_retry lein deps
   # check code is well formatted
   - lein cljfmt check
+  # start server
+  - lein with-profile +java9 run &
   # install link validator bot for docs
   - gem install awesome_bot
   # install cypress dependencies
   - sudo apt-get install xvfb libgtk2.0-0 libnotify-dev libgconf-2-4 libnss3 libxss1 libasound2 -y
+
 
 script:
   # setup dependencies
@@ -21,10 +26,7 @@ script:
   # Build CSS
   - lein with-profile +java9 less once
   # ensure a minified build completes without error
-  # we retry as sometimes travis fails to download all dependencies
-  - travis_retry lein with-profile +java9 cljsbuild once min
-  # start server
-  - lein with-profile +java9 run &
+  - lein with-profile +java9 cljsbuild once min
   # run UI tests using Cypress
   - npx cypress run
   # check for the links in the documentation
