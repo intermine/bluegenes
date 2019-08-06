@@ -56,7 +56,7 @@
                :identity nil
                :error? false
                :message nil)
-   :dispatch [:boot]})
+   :dispatch [:reboot]})
 
 (reg-event-fx ::login login-fn)
 (reg-event-fx ::login-success login-success-fn)

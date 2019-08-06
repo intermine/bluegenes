@@ -166,11 +166,6 @@
    (assoc db :invalid-tokens? true)))
 
 (reg-event-db
- :scramble-tokens
- (fn [db]
-   (assoc-in db [:mines :flymine-beta :service :token] "faketoken")))
-
-(reg-event-db
  ;; IS THIS USED?
  :messages/add
  (fn [db [_ {:keys [markup style]}]]
@@ -185,6 +180,3 @@
  :messages/remove
  (fn [db [_ id]]
    (update db :messages dissoc id)))
-
-(defn ^:export scrambleTokens []
-  (dispatch [:scramble-tokens]))

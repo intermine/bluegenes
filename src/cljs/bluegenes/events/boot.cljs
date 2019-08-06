@@ -164,7 +164,9 @@
    drosophila IDs are no longer valid when using humanmine."
   [db]
   ;; Perhaps we should consider settings `:assets` to `{}` here as well?
-  (dissoc db :regions :idresolver :results :qb :suggestion-results))
+  (dissoc db :regions :idresolver :results :qb
+          :suggestion-results ; Avoid showing old results belonging to previous mine.
+          :invalid-tokens?))  ; Clear invalid-token-alert.
 
 (reg-event-fx
  :reboot

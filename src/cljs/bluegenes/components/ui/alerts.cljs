@@ -1,19 +1,19 @@
 (ns bluegenes.components.ui.alerts
-  (:require [re-frame.core :refer [subscribe dispatch dispatch-sync]]
+  (:require [re-frame.core :refer [subscribe dispatch]]
             [reagent.core :as r]))
 
 (defn invalid-token-alert []
   (let [invalid-tokens? (subscribe [:invalid-tokens?])]
-    (fn []
-      (if @invalid-tokens?
-        [:div.alert-container
-         [:div.alert.alert-danger
-          [:h3 "Debug: Your token has expired"]
-          [:p "It's likely that a remote InterMine server restarted and lost your anonymous token. Please refresh your browser to obtain a new one."]
-          [:button.btn.btn-default.btn-raised.pull-right
-           {:on-click (fn [] (dispatch-sync [:boot]))} "Refresh"]
-          [:div.clearfix]]]
-        [:span]))))
+    (if @invalid-tokens?
+      [:div.alert-container
+       [:div.alert.alert-danger
+        [:h3 "Debug: Your token has expired"]
+        [:p "It's likely that a remote InterMine server restarted and lost your anonymous token. Please refresh your browser to obtain a new one."]
+        [:button.btn.btn-default.btn-raised.pull-right
+         {:on-click #(dispatch [:reboot])}
+         "Refresh"]
+        [:div.clearfix]]]
+      [:span])))
 
 (defn message
   "A message component that dismisses itself after 5 seconds
