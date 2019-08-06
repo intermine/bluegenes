@@ -21,7 +21,8 @@ script:
   # Build CSS
   - lein with-profile +java9 less once
   # ensure a minified build completes without error
-  - lein with-profile +java9 cljsbuild once min
+  # we retry as sometimes travis fails to download all dependencies
+  - travis_retry lein with-profile +java9 cljsbuild once min
   # start server
   - lein with-profile +java9 run &
   # run UI tests using Cypress
