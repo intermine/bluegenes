@@ -56,7 +56,15 @@
       (doall (let [active-results (filter (fn [result] (is-active-result? result)) (:results @all-results))]
                (for [result active-results]
                  ^{:key (:id result)}
-                 [resulthandler/result-row {:result result :search-term @(subscribe [:search-term])}])))]]))
+                 [resulthandler/result-row {:result result :search-term @(subscribe [:search-term])}])))]
+
+     (when (and (zero? (count-current-results))
+                (pos? (count-total-results @(subscribe [:search/full-results]))))
+      [:div.empty-results
+       "No results available with active filters. "
+       [:a {:on-click #(dispatch [:search/remove-active-filter])}
+        "Click here"]
+       " to clear the filters."])]))
 
 (defn input-new-term []
   [:div

@@ -49,35 +49,61 @@
                                   [(get result-map key1) key1])))
         result-map))
 
-(reg-event-db
+(reg-event-fx
  :search/save-results
- (fn [db [_ {:keys [results facets] :as response}]]
-   (if (some? (:active-filter (:search-results db)))
-     ;;if we're returning a filter result, leave the old facets intact.
-     (update db :search-results assoc
-             :results results
-             :loading? false)
-     ;;if we're returning a non-filtered result, add new facets to the atom
-     (update db :search-results assoc
-             :results results
-             :loading? false
-             :highlight-results (:highlight-results (:search-results db))
-             :facets {:organisms (sort-by-value (:organism.shortName facets))
-                      :category (sort-by-value (:Category facets))}))))
+ (fn [{db :db} [_
+                {:keys [new-search? active-filter? facets-only?] :as predm}
+                {:keys [results facets]}]]
+   (cond
+     facets-only?
+     ;; We did a search *after* getting the results for a filter, so we want to
+     ;; only add the facets.
+     {:db (update db :search-results assoc
+                  :facets {:organisms (sort-by-value (:organism.shortName facets))
+                           :category (sort-by-value (:Category facets))})}
+
+     (and new-search? active-filter?)
+     ;; We had a filter activated when we performed a new search, so we want to
+     ;; fetch the data with `facets-only?` to trigger the clause above.
+     {:db (update db :search-results assoc
+                  :results results
+                  :loading? false)
+      :im-chan {:chan (fetch/quicksearch (get-in db [:mines (get db :current-mine) :service])
+                                         (get-in db [:search-results :keyword]))
+                :on-success [:search/save-results (assoc predm :facets-only? true)]}}
+
+     active-filter?
+     ;; We fetched the results for activating a filter, so leave the old facets intact.
+     {:db (update db :search-results assoc
+                  :results results
+                  :loading? false)}
+
+     :else
+     ;; We fetched the results for a new plain search.
+     {:db (update db :search-results assoc
+                  :results results
+                  :loading? false
+                  :highlight-results (:highlight-results (:search-results db))
+                  :facets {:organisms (sort-by-value (:organism.shortName facets))
+                           :category (sort-by-value (:Category facets))})})))
 
 (reg-event-fx
  :search/full-search
  (fn [{db :db} [_ search-term]]
-   (let [active-filter (:active-filter (:search-results db))
-         connection    (get-in db [:mines (get db :current-mine) :service])]
+   (let [active-filter (some-> db :search-results :active-filter name)
+         connection    (get-in db [:mines (get db :current-mine) :service])
+         new-search?   (not= search-term (get-in db [:search-results :keyword]))]
      {:db (-> db
               (assoc :search-term search-term)
-              (update :search-results assoc :loading? true :keyword search-term)
-              (cond-> (some? active-filter) (update :search-results dissoc :results)))
+              (assoc-in [:search-results :keyword] search-term)
+              (cond-> new-search?
+                (-> (update :search-results dissoc :results)
+                    (assoc-in [:search-results :loading?] true))))
       :im-chan {:chan (fetch/quicksearch connection
                                          search-term
                                          {:facet_Category active-filter})
-                :on-success [:search/save-results]}}
+                :on-success [:search/save-results {:new-search? new-search?
+                                                   :active-filter? (some? active-filter)}]}}
 
      #_(if (some? active-filter)
           ;;just turn on the loader
@@ -98,7 +124,7 @@
 (defn is-active-result? [result active-filter]
   "returns true is the result should be considered 'active' - e.g. if there is no filter at all, or if the result matches the active filter type."
   (or
-   (= active-filter (oget result "type"))
+   (= active-filter (:type result))
    (nil? active-filter)))
 
 (defn count-current-results [results filter]
@@ -141,15 +167,15 @@
    (let [object-type    (get-in db [:search-results :active-filter])
          ids            (reduce (fn [result-ids result] (conj result-ids (oget result :id))) [] (get-in db [:search :selected-results]))
          current-mine   (:current-mine db)
-         summary-fields (get-in db [:assets :summary-fields current-mine (keyword object-type)])]
+         summary-fields (get-in db [:assets :summary-fields current-mine object-type])]
      {:db db
       :dispatch [:results/history+
                  {:source current-mine
                   :type :query
                   :value {:title "Search Results"
-                          :from object-type
+                          :from (name object-type)
                           :select summary-fields
-                          :where [{:path (str object-type ".id")
+                          :where [{:path (str (name object-type) ".id")
                                    :op "ONE OF"
                                    :values ids}]}}]})))
 

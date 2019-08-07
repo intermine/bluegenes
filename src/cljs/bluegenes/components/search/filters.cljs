@@ -23,7 +23,8 @@
   [:div.active
    [:h5 "Active filters: "]
    (if (some? active-filter)
-     [:div.active-filter active-filter]
+     [:div.active-filter active-filter
+      [remove-filter active-filter]]
      [:div "None"])])
 
 (defn controls []
