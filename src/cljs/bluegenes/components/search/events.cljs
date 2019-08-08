@@ -1,10 +1,6 @@
 (ns bluegenes.components.search.events
-  (:require-macros [cljs.core.async.macros :refer [go go-loop]])
-  (:require [re-frame.core :as re-frame :refer [reg-event-db reg-event-fx reg-fx dispatch subscribe]]
-            [oops.core :refer [ocall oget]]
-            [bluegenes.db :as db]
-            [imcljs.fetch :as fetch]
-            [bluegenes.effects :as fx]))
+  (:require [re-frame.core :as re-frame :refer [reg-event-db reg-event-fx]]
+            [imcljs.fetch :as fetch]))
 
 (def max-results 99) ;;todo - this is only used in a cond right now, won't modify number of results returned. IMJS was being tricky;
 
@@ -15,12 +11,10 @@
 
 (defn circular-index-finder
   "Returns the index of a result item, such that going down at the bottom loops to the top and vice versa. Element -1 is 'show all'"
-  [direction]
-  (let [result-index  (subscribe [:quicksearch-selected-index])
-        results-count (count @(subscribe [:suggestion-results]))
-        next-number   (if (= direction :next)
-                        (inc @result-index)
-                        (dec @result-index))
+  [direction result-index results-count]
+  (let [next-number   (if (= direction :next)
+                        (inc result-index)
+                        (dec result-index))
         looped-number (cond
                         (>= next-number results-count)
                         ;;if we go past the end, loop to the start
@@ -34,16 +28,20 @@
 
 (reg-event-db
  :search/move-selection
- (fn [db [_ direction-to-move]]
-   (assoc db :quicksearch-selected-index (circular-index-finder direction-to-move))))
+ (fn [{result-index :quicksearch-selected-index, results :suggestion-results, :as db}
+      [_ direction]]
+   (assoc db
+          :quicksearch-selected-index
+          (circular-index-finder direction result-index (count results)))))
 
 (reg-event-db
  :search/reset-selection
- (fn [db [_ direction-to-move]]
+ (fn [db _]
    (assoc db :quicksearch-selected-index -1)))
 
-(defn sort-by-value [result-map]
+(defn sort-by-value
   "Sort map results by their values. Used to order the category maps correctly"
+  [result-map]
   (into (sorted-map-by (fn [key1 key2]
                          (compare [(get result-map key2) key2]
                                   [(get result-map key1) key1])))
@@ -102,58 +100,38 @@
       :im-chan {:chan (fetch/quicksearch connection
                                          search-term
                                          {:facet_Category active-filter})
-                :on-success [:search/save-results {:new-search? new-search?
-                                                   :active-filter? (some? active-filter)}]}}
+                :on-success [:search/save-results
+                             {:new-search? new-search?
+                              :active-filter? (some? active-filter)}]}})))
 
-     #_(if (some? active-filter)
-          ;;just turn on the loader
-         {:db (assoc-in db [:search-results :loading?] true)}
-          ;;hide the old results and turn on the loader
-         (let [resultless-db (assoc db :search-results (dissoc (:search-results db) :results))]
-           {:db (assoc-in resultless-db [:search-results :loading?] true)})))))
-
-(reg-event-db ::major-success
-              (fn [db [_ response]]
-                (js/console.log "response" response)
-                db))
-
-(reg-event-db :search/reset-quicksearch
-              (fn [db]
-                (assoc db :suggestion-results nil)))
-
-(defn is-active-result? [result active-filter]
-  "returns true is the result should be considered 'active' - e.g. if there is no filter at all, or if the result matches the active filter type."
-  (or
-   (= active-filter (:type result))
-   (nil? active-filter)))
-
-(defn count-current-results [results filter]
-  "returns number of results currently shown, taking into account result limits nd filters"
+(defn count-current-results
+  "returns number of results currently shown, taking into account result limits and filters"
+  [results active-filter]
   (count
-   (remove
-    (fn [result]
-      (not (is-active-result? result filter))) results)))
-
-(reg-fx
- :load-more-results-if-needed
-  ;;output the results we have client side alredy (ie if a non-filtered search returns 100 results due to a limit, but indicates that there are 132 proteins in total, we'll show all the proteins we have when we filter down to just proteins, so the user might not even notice that we're fetching the rest in the background.)
-  ;;while the remote results are loading. Good for slow connections.
- (fn [{:keys [results active-filter facets keyword]}]
-   (let [filtered-result-count          (get (:category facets) active-filter)
-         more-filtered-results-to-show? (< (count-current-results results active-filter)
-                                           filtered-result-count)
-         more-results-than-max?         (<= (count-current-results results active-filter)
-                                            max-results)]
-     (cond (and more-filtered-results-to-show? more-results-than-max?)
-           (dispatch [:search/full-search keyword])))))
+   (if active-filter
+     (filter #(= (:type %) active-filter) results)
+     results)))
 
 (reg-event-fx
  :search/set-active-filter
- (fn [{:keys [db]} [_ filter]]
-   (let [new-db (-> (assoc-in db [:search-results :active-filter] filter)
-                    (assoc-in [:search :selected-results] #{}))]
-     {:db new-db
-      :load-more-results-if-needed (:search-results new-db)})))
+ (fn [{db :db} [_ filter-name]]
+   (let [new-db (-> db
+                    (assoc-in [:search-results :active-filter] filter-name)
+                    (assoc-in [:search :selected-results] #{}))
+         {:keys [results active-filter facets keyword]} (:search-results new-db)
+         filtered-result-count          (get (:category facets) active-filter)
+         active-results-count           (count-current-results results active-filter)
+         more-filtered-results-to-show? (< active-results-count filtered-result-count)
+         more-results-than-max?         (<= active-results-count max-results)]
+     (cond-> {:db new-db}
+       (and more-filtered-results-to-show? more-results-than-max?)
+       ;; output the results we have client side alredy (ie if a non-filtered
+       ;; search returns 100 results due to a limit, but indicates that there
+       ;; are 132 proteins in total, we'll show all the proteins we have when we
+       ;; filter down to just proteins, so the user might not even notice that
+       ;; we're fetching the rest in the background.) while the remote results
+       ;; are loading. Good for slow connections.
+       (assoc :dispatch [:search/full-search keyword])))))
 
 (reg-event-fx
  :search/remove-active-filter
@@ -165,11 +143,10 @@
  :search/to-results
  (fn [{:keys [db]}]
    (let [object-type    (get-in db [:search-results :active-filter])
-         ids            (reduce (fn [result-ids result] (conj result-ids (oget result :id))) [] (get-in db [:search :selected-results]))
+         ids            (mapv :id (get-in db [:search :selected-results]))
          current-mine   (:current-mine db)
          summary-fields (get-in db [:assets :summary-fields current-mine object-type])]
-     {:db db
-      :dispatch [:results/history+
+     {:dispatch [:results/history+
                  {:source current-mine
                   :type :query
                   :value {:title "Search Results"
@@ -179,9 +156,10 @@
                                    :op "ONE OF"
                                    :values ids}]}}]})))
 
-(reg-event-db :search/highlight-results
-              (fn [db [_ highlight?]]
-                (assoc-in db [:search-results :highlight-results] highlight?)))
+(reg-event-db
+ :search/highlight-results
+ (fn [db [_ highlight?]]
+   (assoc-in db [:search-results :highlight-results] highlight?)))
 
 (reg-event-db
  :search/select-result

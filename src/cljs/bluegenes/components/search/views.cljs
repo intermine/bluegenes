@@ -1,47 +1,33 @@
 (ns bluegenes.components.search.views
-  (:require [reagent.core :as reagent]
-            [clojure.string :as str]
-            [bluegenes.components.loader :refer [loader]]
+  (:require [bluegenes.components.loader :refer [loader]]
             [bluegenes.components.search.resultrow :as resulthandler]
             [bluegenes.components.search.filters :as filters]
             [re-frame.core :as re-frame :refer [subscribe dispatch]]
-            [oops.core :refer [ocall oget]]
+            [oops.core :refer [ocall]]
             [bluegenes.route :as route]))
 
 ;;;;TODO: abstract away from IMJS.
 ;;;;NOTES: This was refactored from bluegenes but might contain some legacy weird. If so I apologise.
 
-(defn is-active-result? [result]
-  "returns true is the result should be considered 'active' - e.g. if there is no filter at all, or if the result matches the active filter type."
-  (if-let [af (:active-filter @(subscribe [:search/full-results]))]
-    (or
-     (= (name (:active-filter @(subscribe [:search/full-results]))) (:type result))
-     (nil? (:active-filter @(subscribe [:search/full-results]))))
-    true))
-
-(defn count-total-results [state]
-  "returns total number of results by summing the number of results per category. This includes any results on the server beyond the number that were returned"
-  (reduce + (vals (:category (:facets state)))))
-
-(defn count-current-results []
-  "returns number of results currently shown, taking into account result limits nd filters"
-  (count
-   (remove
-    (fn [result]
-      (not (is-active-result? result))) (:results @(subscribe [:search/full-results])))))
-
-(defn results-count []
+(defn results-count
   "Visual component: outputs the number of results shown."
-  [:small " Displaying " (count-current-results) " of " (count-total-results @(subscribe [:search/full-results])) " results"])
+  []
+  (let [active-count @(subscribe [:search/active-results-count])
+        total-count  @(subscribe [:search/total-results-count])]
+    [:small " Displaying " active-count  " of " total-count " results"]))
 
-(defn results-display []
+(defn results-display
   "Iterate through results and output one row per result using result-row to format. Filtered results aren't output. "
-  (let [all-results    (subscribe [:search/full-results])
-        active-filter? (subscribe [:search/active-filter])
-        some-selected? (subscribe [:search/some-selected?])]
+  []
+  (let [active-results  (subscribe [:search/active-results])
+        active-filter?  (subscribe [:search/active-filter])
+        some-selected?  (subscribe [:search/some-selected?])
+        search-keyword  (subscribe [:search/keyword])
+        search-term     (subscribe [:search-term])
+        empty-filter?   (subscribe [:search/empty-filter?])]
     [:div.results
      [:div.search-header
-      [:h4 "Results for '" @(subscribe [:search/keyword]) "'" [results-count]]
+      [:h4 "Results for '" @search-keyword "'" [results-count]]
 
       (cond (and @active-filter? @some-selected?)
             [:a.cta {:on-click (fn [e]
@@ -53,18 +39,16 @@
      ; [:div [:label "Select all" [:input {:type "checkbox"
      ;                  :on-click (dispatch [:search/select-all])}]]]
      [:form
-      (doall (let [active-results (filter (fn [result] (is-active-result? result)) (:results @all-results))]
-               (for [result active-results]
-                 ^{:key (:id result)}
-                 [resulthandler/result-row {:result result :search-term @(subscribe [:search-term])}])))]
+      (doall (for [result @active-results]
+               ^{:key (:id result)}
+               [resulthandler/result-row {:result result :search-term @search-term}]))]
 
-     (when (and (zero? (count-current-results))
-                (pos? (count-total-results @(subscribe [:search/full-results]))))
-      [:div.empty-results
-       "No results available with active filters. "
-       [:a {:on-click #(dispatch [:search/remove-active-filter])}
-        "Click here"]
-       " to clear the filters."])]))
+     (when @empty-filter?
+       [:div.empty-results
+        "No results available with active filters. "
+        [:a {:on-click #(dispatch [:search/remove-active-filter])}
+         "Click here"]
+        " to clear the filters."])]))
 
 (defn input-new-term []
   [:div
@@ -81,8 +65,9 @@
                :on-change #(dispatch [:search/set-search-term (-> % .-target .-value)])}]
       [:button "Search"]])])
 
-(defn search-form [search-term]
+(defn search-form
   "Visual form component which handles submit and change"
+  [search-term]
   (let [results  (subscribe [:search/full-results])
         loading? (subscribe [:search/loading?])]
     [:div.search-fullscreen

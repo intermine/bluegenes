@@ -1,7 +1,5 @@
 (ns bluegenes.components.search.subs
-  (:require-macros [reagent.ratom :refer [reaction]])
-  (:require [re-frame.core :as re-frame :refer [reg-sub]]
-            [oops.core :refer [ocall oget oget+]]))
+  (:require [re-frame.core :refer [reg-sub]]))
 
 (reg-sub
  :search-term
@@ -25,29 +23,27 @@
 
 (reg-sub
  :search/active-filter
- (fn [db _]
-   (:active-filter (:search-results db))))
+ :<- [:search/full-results]
+ (fn [full-results]
+   (:active-filter full-results)))
 
 (reg-sub
  :search/highlight?
- (fn [db _]
-   (:highlight-results (:search-results db))))
+ :<- [:search/full-results]
+ (fn [full-results]
+   (:highlight-results full-results)))
 
 (reg-sub
  :search/loading?
- (fn [db _]
-   (:loading? (:search-results db))))
+ :<- [:search/full-results]
+ (fn [full-results]
+   (:loading? full-results)))
 
 (reg-sub
  :search/keyword
- (fn [db _]
-   (:keyword (:search-results db))))
-
-(reg-sub
- :search/am-i-selected?
- (fn [db [_ result]]
-   (let [selected-results (get-in db [:search :selected-results])]
-     (contains? selected-results result))))
+ :<- [:search/full-results]
+ (fn [full-results]
+   (:keyword full-results)))
 
 (reg-sub
  :search/all-selected
@@ -55,6 +51,45 @@
    (get-in db [:search :selected-results])))
 
 (reg-sub
+ :search/am-i-selected?
+ :<- [:search/all-selected]
+ (fn [all-selected [_ result]]
+   (contains? all-selected result)))
+
+(reg-sub
  :search/some-selected?
- (fn [db _]
-   (> (count (get-in db [:search :selected-results])) 0)))
+ :<- [:search/all-selected]
+ (fn [all-selected _]
+   (some? (seq all-selected))))
+
+(reg-sub
+ :search/total-results-count
+ ;; total number of results by summing the number of results per category. This
+ ;; includes any results on the server beyond the number that were returned
+ :<- [:search/full-results]
+ (fn [full-results]
+   (reduce + (vals (:category (:facets full-results))))))
+
+(reg-sub
+ :search/active-results
+ ;; results currently shown, taking into account result limits and filters.
+ :<- [:search/full-results]
+ :<- [:search/active-filter]
+ (fn [[{:keys [results]} active-filter]]
+   (if active-filter
+     (filter #(= (:type %) (name active-filter)) results)
+     results)))
+
+(reg-sub
+ :search/active-results-count
+ :<- [:search/active-results]
+ (fn [active-results]
+   (count active-results)))
+
+(reg-sub
+ :search/empty-filter?
+ :<- [:search/total-results-count]
+ :<- [:search/active-results-count]
+ (fn [[total-results current-results]]
+   (and (zero? current-results)
+        (pos? total-results))))

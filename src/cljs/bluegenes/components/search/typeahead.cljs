@@ -1,17 +1,14 @@
 (ns bluegenes.components.search.typeahead
   (:require [reagent.core :as reagent]
             [re-frame.core :as re-frame :refer [subscribe dispatch]]
-            [dommy.core :as dommy :refer-macros [sel sel1]]
+            [dommy.core :as dommy :refer-macros [sel1]]
             [bluegenes.route :as route]))
 
 (defn navigate-to-report
   "Navigate to the report page for the given item and reset the UI"
-  [item]
-  (let [current-mine (subscribe [:current-mine])]
-    (dispatch [:search/reset-selection])
-    (dispatch [::route/navigate ::route/report {:mine (name (:id @current-mine))
-                                                :type (:type item)
-                                                :id (:id item)}])))
+  [{:keys [type id] :as _item}]
+  (dispatch [:search/reset-selection])
+  (dispatch [::route/navigate ::route/report {:type type, :id id}]))
 
 (defn navigate-to-full-results
   "Navigate to the full results page. duh."
@@ -23,7 +20,8 @@
       (dispatch [:search/full-search term]))))
 
 (defn suggestion
-  "The UI element and behaviour for a single suggestion in the dropdown" []
+  "The UI element and behaviour for a single suggestion in the dropdown"
+  []
   (let [search-term (subscribe [:search-term])]
     (fn [item is-active?]
       (let [info   (clojure.string/join " " (interpose ", " (vals (:fields item))))
@@ -61,9 +59,9 @@
         (.blur (. e -target))))))
 
 (defn monitor-arrow-keys
-  "Navigate the dropdown suggestions if the user presses up or down" [e]
-  (let [keycode (.-key e)
-        input   (.. e -target -value)]
+  "Navigate the dropdown suggestions if the user presses up or down"
+  [e]
+  (let [keycode (.-key e)]
     (cond
       (= keycode "ArrowUp")
       (dispatch [:search/move-selection :prev])
@@ -71,7 +69,8 @@
       (dispatch [:search/move-selection :next]))))
 
 (defn show-all-results
-  "UI element within the dropdown to show all results." []
+  "UI element within the dropdown to show all results."
+  []
   (let [active-selection (subscribe [:quicksearch-selected-index])
         is-active?       (= -1 @active-selection)]
     [:div.show-all.list-group
