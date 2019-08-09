@@ -75,8 +75,9 @@
            [:div.alert.alert-danger.error-box
             "Invalid username or password"])]))))
 
-(defn mine-entry [details current-mine?]
+(defn mine-entry
   "Output a single mine in the mine picker"
+  [details current-mine?]
   [:li
    {:class (when current-mine? "active")
     :title (:description details)}
@@ -87,15 +88,17 @@
     (:name details)
     (when current-mine? " (current)")]])
 
-(defn mine-entry-current [details]
+(defn mine-entry-current
   "Output a single mine in the mine picker"
+  [details]
   [:li
    [:a [mine-icon details]
     [:img {:src (:logo (:images details))}]
     (:name details) " (current)"]])
 
-(defn settings []
+(defn settings
   "output the settings menu and mine picker"
+  []
   (let [current-mine (subscribe [:current-mine])]
     (fn []
       [:li.dropdown.mine-settings.secondary-nav

@@ -76,16 +76,19 @@
          different-mine? (not= mine-kw (:current-mine db))
          done-booting?   (not (:fetching-assets? db))
          in-registry?    (contains? (:registry db) mine-kw)
+         in-mines?       (contains? (:mines db) mine-kw)
          mine-m          (get-in db [:registry mine-kw])]
      (if different-mine?
        (cond-> {:db (assoc db :current-mine mine-kw)
                 :visual-navbar-minechange []}
          ;; This does not run for the `:default` mine, as it isn't part of the
          ;; registry. This is good as we don't want to overwrite it anyways.
-         in-registry?  (assoc-in [:db :mines mine-kw]
-                                 {:service {:root (:url mine-m)}
-                                  :name (:name mine-m)
-                                  :id mine-kw})
+         (and in-registry?
+              (not in-mines?)) (assoc-in [:db :mines mine-kw]
+                                         {:service {:root (:url mine-m)}
+                                          :name (:name mine-m)
+                                          :id mine-kw})
+         ;; We need to make sure to :reboot when switching mines.
          done-booting? (-> (assoc-in [:db :fetching-assets?] true)
                            (assoc :dispatch [:reboot])))
        {}))))
@@ -161,9 +164,25 @@
        {:dispatch [:cache/store-possible-values (get mine :id) path false]}))))
 
 (reg-event-db
- :flag-invalid-tokens
+ :flag-invalid-token
  (fn [db]
-   (assoc db :invalid-tokens? true)))
+   (assoc db :invalid-token? true)))
+
+(reg-event-fx
+ :clear-invalid-token
+ (fn [{db :db}]
+   {:db (-> db
+            ;; Clear any auth/identity present if the user has logged in.
+            (update-in [:mines (:current-mine db)] dissoc :auth)
+            ;; Clear the invalid token flag.
+            (dissoc :invalid-token?))
+    ;; Fetch a new anonymous token.
+    :dispatch [:authentication/init]}))
+
+(reg-event-db
+ :scramble-tokens
+ (fn [db]
+   (assoc-in db [:mines (:current-mine db) :service :token] "faketoken")))
 
 (reg-event-db
  ;; IS THIS USED?
@@ -180,3 +199,6 @@
  :messages/remove
  (fn [db [_ id]]
    (update db :messages dissoc id)))
+
+(defn ^:export scrambleTokens []
+  (dispatch [:scramble-tokens]))

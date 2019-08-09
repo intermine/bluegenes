@@ -117,20 +117,21 @@
 ;; Boot the application.
 (reg-event-fx
  :boot
- (fn [_world [_ provided-identity]]
-   (let [init-db
+ (fn [_world _]
+   (let [;; We have to set the db current-mine using `window.location` as the
+         ;; router won't have dispatched `:set-current-mine` before later on.
+         selected-mine (-> (.. js/window -location -pathname)
+                           (clojure.string/split #"/")
+                           second
+                           keyword)
+         init-db
          (-> db/default-db
              ;; Add default mine, either as is configured when attached to an
              ;; InterMine instance, or as an empty placeholder.
              (assoc-in [:mines :default] (init-mine-defaults))
-             ;; Store the user's identity map provided by the server
-             ;; via the client constructor
-             (update :auth
-                     assoc
-                     :thinking? false
-                     :identity provided-identity
-                     :message nil
-                     :error? false))
+             ;; Note that the final value of current-mine will have the
+             ;; following order of priority: pathname > localstorage > :default
+             (assoc :current-mine (or selected-mine :default)))
          ;; Get data previously persisted to local storage.
          {:keys [current-mine mines assets version] :as state}
          (persistence/get-state!)
@@ -143,7 +144,7 @@
               ;; client version matches.
               (and (seq state)
                    (= bluegenes.core/version version))
-              (assoc :current-mine current-mine
+              (assoc :current-mine (or selected-mine current-mine)
                      :mines updated-mines
                      :assets assets
                      ;; This needs to be true so we can block `:set-active-panel`
@@ -166,12 +167,12 @@
   ;; Perhaps we should consider settings `:assets` to `{}` here as well?
   (dissoc db :regions :idresolver :results :qb
           :suggestion-results ; Avoid showing old results belonging to previous mine.
-          :invalid-tokens?))  ; Clear invalid-token-alert.
+          :invalid-token?))  ; Clear invalid-token-alert.
 
 (reg-event-fx
  :reboot
  (fn [{db :db}]
-   {:db (remove-stateful-keys-from-db db)
+   {:db (assoc (remove-stateful-keys-from-db db) :fetching-assets? true)
     :async-flow (boot-flow (wait-for-registry? db))}))
 
 (reg-event-fx
@@ -221,30 +222,19 @@
 (reg-event-fx
  :authentication/init
  (fn [{db :db} _]
-   (let [has-identity? (map? (get-in db [:auth :identity]))]
-     {:dispatch (if has-identity?
-                  [:authentication/store-token]
-                  [:authentication/fetch-anonymous-token])})))
+   (if-let [auth-token (get-in db [:mines (:current-mine db) :auth :identity :token])]
+     {:dispatch [:authentication/store-token auth-token]}
+     (let [service (get-in db [:mines (:current-mine db) :service])]
+       {:im-chan {:on-success [:authentication/store-token]
+                  :chan (fetch/session service)}}))))
 
-; Store an authentication token for a given mine
+;; Store an authentication token for a given mine.
 (reg-event-db
  :authentication/store-token
- (fn [db _]
-   (let [mine-kw (:current-mine db)
-         token (get-in db [:auth :identity :token])]
-     (assoc-in db [:mines mine-kw :service :token] token))))
-
-; Fetch an anonymous token for a given mine
-(reg-event-fx
- :authentication/fetch-anonymous-token
- (fn [{db :db} _]
-   (let [mine-kw (:current-mine db)
-         ;; Re-use mine-kw if the mine exists, otherwise use default mine.
-         mine-name (if (contains? (get db :mines) mine-kw) mine-kw :default)
-         mine (dissoc (get-in db [:mines mine-name :service]) :token)]
-     {:db db
-      :im-chan {:on-success [:authentication/store-token]
-                :chan (fetch/session mine)}})))
+ (fn [db [_ token]]
+   (when (nil? token)
+     (.warn js/console "No token available. Nil token will be initialised."))
+   (assoc-in db [:mines (:current-mine db) :service :token] token)))
 
 ; Fetch model
 (def preferred-tag "im:preferredBagType")

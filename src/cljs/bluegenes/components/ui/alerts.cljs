@@ -3,14 +3,14 @@
             [reagent.core :as r]))
 
 (defn invalid-token-alert []
-  (let [invalid-tokens? (subscribe [:invalid-tokens?])]
-    (if @invalid-tokens?
+  (let [invalid-token? (subscribe [:invalid-token?])]
+    (if @invalid-token?
       [:div.alert-container
        [:div.alert.alert-danger
         [:h3 "Debug: Your token has expired"]
         [:p "It's likely that a remote InterMine server restarted and lost your anonymous token. Please refresh your browser to obtain a new one."]
         [:button.btn.btn-default.btn-raised.pull-right
-         {:on-click #(dispatch [:reboot])}
+         {:on-click #(dispatch [:clear-invalid-token])}
          "Refresh"]
         [:div.clearfix]]]
       [:span])))

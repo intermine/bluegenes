@@ -154,9 +154,9 @@
    (get-in current-mine [:possible-values path])))
 
 (reg-sub
- :invalid-tokens?
+ :invalid-token?
  (fn [db]
-   (get db :invalid-tokens?)))
+   (get db :invalid-token?)))
 
 (reg-sub
  :messages

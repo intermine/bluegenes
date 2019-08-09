@@ -77,20 +77,15 @@
     [:div.clearfix]]])
 
 (defn index
-  "Hiccup markup that generates the landing page and loads the necessary assets.
-  A user might optionally have their identity already stored in a session."
-  [identity]
-  ; Generate a JSON representation of the user's identity (name, tokens, etc)
-  (let [json-identity (json/generate-string identity)]
-    (html5
-     (head)
-     [:body
-      (css-compiler)
-      (loader)
-      [:div#app]
-       ; Bust the cache by using the project's version number as a URL parameter
-      [:script {:src (str "/js/compiled/app.js?v=" (version))}]
-       ; Call the constructor of the bluegenes client and pass in the user's optional identity as an object
-      [:script (str "bluegenes.core.init(" json-identity
-
-                    ");")]])))
+  "Hiccup markup that generates the landing page and loads the necessary assets."
+  []
+  (html5
+   (head)
+   [:body
+    (css-compiler)
+    (loader)
+    [:div#app]
+     ; Bust the cache by using the project's version number as a URL parameter
+    [:script {:src (str "/js/compiled/app.js?v=" (version))}]
+     ; Call the constructor of the bluegenes client and pass in the user's optional identity as an object
+    [:script "bluegenes.core.init();"]]))

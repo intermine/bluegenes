@@ -31,7 +31,7 @@ and dispatches events depending on the status of that request's response."
             (go
               (let [{:keys [statusCode] :as response} (<! chan)]
                 (if (and statusCode (= statusCode 401))
-                  (dispatch [:flag-invalid-tokens])
+                  (dispatch [:flag-invalid-token])
                   (dispatch (conj on-success response))))))))
 
 (defn http-fxfn
