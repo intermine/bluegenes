@@ -77,21 +77,20 @@
 
 (defn mine-entry
   "Output a single mine in the mine picker"
-  [details current-mine?]
+  [mine-key details]
   [:li
-   {:class (when current-mine? "active")
-    :title (:description details)}
-   [:a {:href (route/href ::route/home {:mine (-> details :namespace keyword)})}
-    (if current-mine?
-      [mine-icon details]
-      [:img {:src (:logo (:images details))}])
-    (:name details)
-    (when current-mine? " (current)")]])
+   {:title (:description details)}
+   [:a {:href (route/href ::route/home {:mine mine-key})}
+    [:img {:src (:logo (:images details))}]
+    (str (:name details)
+         (when (= mine-key :default)
+           " (default)"))]])
 
 (defn mine-entry-current
   "Output a single mine in the mine picker"
   [details]
   [:li
+   {:title (:description details)}
    [:a [mine-icon details]
     [:img {:src (:logo (:images details))}]
     (:name details) " (current)"]])
@@ -99,20 +98,23 @@
 (defn settings
   "output the settings menu and mine picker"
   []
-  (let [current-mine (subscribe [:current-mine])]
-    (fn []
-      [:li.dropdown.mine-settings.secondary-nav
-       [:a.dropdown-toggle {:data-toggle "dropdown" :role "button"}
-        [:svg.icon.icon-cog [:use {:xlinkHref "#icon-cog"}]]]
-       (conj
-        (into
-         [:ul.dropdown-menu
-          [mine-entry-current @current-mine]]
-         (map (fn [[id details]]
-                [mine-entry details]) @(subscribe [:registry])))
-        [:li.special
-         [:a {:href (route/href ::route/debug {:panel "main"})}
-          ">_ Developer"]])])))
+  (let [current-mine-name     @(subscribe [:current-mine-name])
+        registry-with-default @(subscribe [:registry-with-default])]
+    [:li.dropdown.mine-settings.secondary-nav
+     [:a.dropdown-toggle {:data-toggle "dropdown" :role "button"}
+      [:svg.icon.icon-cog [:use {:xlinkHref "#icon-cog"}]]]
+     (conj
+      (into
+       [:ul.dropdown-menu
+        [mine-entry-current (get registry-with-default current-mine-name)]]
+       (map (fn [[mine-key details]]
+              ^{:key mine-key}
+              [mine-entry mine-key details])
+            (sort-by (comp :name val)
+                     (dissoc registry-with-default current-mine-name))))
+      [:li.special
+       [:a {:href (route/href ::route/debug {:panel "main"})}
+        ">_ Developer"]])]))
 
 (defn logged-in []
   (let [identity (subscribe [:bluegenes.subs.auth/identity])]
