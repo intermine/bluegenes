@@ -22,10 +22,28 @@
    (:search-results db)))
 
 (reg-sub
- :search/active-filter
+ :search/results
  :<- [:search/full-results]
  (fn [full-results]
-   (:active-filter full-results)))
+   (:results full-results)))
+
+(reg-sub
+ :search/facets-results
+ :<- [:search/full-results]
+ (fn [full-results]
+   (:facets full-results)))
+
+(reg-sub
+ :search/active-filters
+ :<- [:search/full-results]
+ (fn [full-results]
+   (:active-filters full-results)))
+
+(reg-sub
+ :search/active-filter?
+ :<- [:search/active-filters]
+ (fn [filters]
+   (some? (seq filters))))
 
 (reg-sub
  :search/highlight?
@@ -64,32 +82,31 @@
 
 (reg-sub
  :search/total-results-count
- ;; total number of results by summing the number of results per category. This
- ;; includes any results on the server beyond the number that were returned
  :<- [:search/full-results]
  (fn [full-results]
-   (reduce + (vals (:category (:facets full-results))))))
+   (:count full-results)))
 
 (reg-sub
- :search/active-results
- ;; results currently shown, taking into account result limits and filters.
- :<- [:search/full-results]
- :<- [:search/active-filter]
- (fn [[{:keys [results]} active-filter]]
-   (if active-filter
-     (filter #(= (:type %) (name active-filter)) results)
-     results)))
-
-(reg-sub
- :search/active-results-count
- :<- [:search/active-results]
- (fn [active-results]
-   (count active-results)))
+ :search/results-count
+ :<- [:search/results]
+ (fn [results]
+   (count results)))
 
 (reg-sub
  :search/empty-filter?
- :<- [:search/total-results-count]
- :<- [:search/active-results-count]
- (fn [[total-results current-results]]
-   (and (zero? current-results)
-        (pos? total-results))))
+ :<- [:search/results-count]
+ (fn [current-results]
+   (zero? current-results)))
+
+(reg-sub
+ :search/facet-names
+ :<- [:search/facets-results]
+ (fn [facets]
+   (filter #(some? (seq (facets %))) (keys facets))))
+
+(reg-sub
+ :search/facet
+ ;; A seq of the specified facet as MapEntry's in order of descending amounts.
+ :<- [:search/facets-results]
+ (fn [facets [_ facet-kw]]
+   (sort-by val > (get facets facet-kw))))

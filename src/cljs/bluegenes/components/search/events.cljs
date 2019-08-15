@@ -39,58 +39,91 @@
  (fn [db _]
    (assoc db :quicksearch-selected-index -1)))
 
-(defn sort-by-value
-  "Sort map results by their values. Used to order the category maps correctly"
-  [result-map]
-  (into (sorted-map-by (fn [key1 key2]
-                         (compare [(get result-map key2) key2]
-                                  [(get result-map key1) key1])))
-        result-map))
+(defn merge-filtered-facets
+  "Sometimes we want to update our facets based on the currently active filter.
+  When activating a filter, we want to keep our old facet for that filter, but
+  update the other ones. This is achieved by calling this function normally.
+  If we perform a new search with a filter active, we want to replace our old
+  filtered facet, but keep the other ones. Specify the `:fresh` key for this."
+  [filters old-facets facets & {:keys [fresh]}]
+  (if fresh
+    (let [new-facets (->> filters keys (select-keys facets))]
+      (merge old-facets new-facets))
+    (let [keep-facets (->> filters keys (select-keys old-facets))]
+      (merge facets keep-facets))))
+
+(reg-event-db
+ :search/save-facets
+ (fn [db [_ {:keys [facets]}]]
+   (let [{filters :active-filters, old-facets :facets} (:search-results db)
+         new-facets (merge-filtered-facets filters old-facets facets :fresh true)]
+     (assoc-in db [:search-results :facets] new-facets))))
 
 (reg-event-fx
  :search/save-results
  (fn [{db :db} [_
-                {:keys [new-search? active-filter? facets-only?] :as predm}
-                {:keys [results facets]}]]
-   (cond
-     facets-only?
-     ;; We did a search *after* getting the results for a filter, so we want to
-     ;; only add the facets.
-     {:db (update db :search-results assoc
-                  :facets {:organisms (sort-by-value (:organism.shortName facets))
-                           :category (sort-by-value (:Category facets))})}
+                {:keys [new-search? active-filter? removed-filter?]}
+                {:keys [results facets totalHits]}]]
+   (let [db (assoc-in db [:search-results :count] totalHits)
+         service (get-in db [:mines (get db :current-mine) :service])
+         search-term (get-in db [:search-results :keyword])]
+     (cond
+       (and new-search? active-filter?)
+       ;; We had a filter activated when we performed a new search, so we want
+       ;; to search again and only update the facets.  The reason for this is
+       ;; that when doing a search with a filter activated, you will only get
+       ;; the facets for that filter. To properly populate the facet list for
+       ;; the new keyword, you will have to perform a regular search as well.
+       {:db (update db :search-results assoc
+                    :results results
+                    :loading? false
+                    :facets facets)
+        :im-chan {:chan (fetch/quicksearch service search-term {:size 0})
+                  :on-success [:search/save-facets]}}
 
-     (and new-search? active-filter?)
-     ;; We had a filter activated when we performed a new search, so we want to
-     ;; fetch the data with `facets-only?` to trigger the clause above.
-     {:db (update db :search-results assoc
-                  :results results
-                  :loading? false)
-      :im-chan {:chan (fetch/quicksearch (get-in db [:mines (get db :current-mine) :service])
-                                         (get-in db [:search-results :keyword]))
-                :on-success [:search/save-results (assoc predm :facets-only? true)]}}
+       active-filter?
+       ;; We fetched the results for activating a filter, so leave the old
+       ;; facet intact for the active filter, but update the other ones.
+       (let [{filters :active-filters, old-facets :facets} (:search-results db)
+             new-facets (merge-filtered-facets filters old-facets facets)]
+         (cond-> {:db (update db :search-results assoc
+                              :results results
+                              :loading? false
+                              :facets new-facets)}
+           ;; If we just removed a filter, we also need to do an empty search
+           ;; to get the correct facets for the activated filters.
+           removed-filter? (assoc :im-chan
+                                  {:chan (fetch/quicksearch service search-term {:size 0})
+                                   :on-success [:search/save-facets]})))
 
-     active-filter?
-     ;; We fetched the results for activating a filter, so leave the old facets intact.
-     {:db (update db :search-results assoc
-                  :results results
-                  :loading? false)}
+       :else
+       ;; We fetched the results for a new plain search.
+       {:db (update db :search-results assoc
+                    :results results
+                    :loading? false
+                    :highlight-results (:highlight-results (:search-results db))
+                    :facets facets)}))))
 
-     :else
-     ;; We fetched the results for a new plain search.
-     {:db (update db :search-results assoc
-                  :results results
-                  :loading? false
-                  :highlight-results (:highlight-results (:search-results db))
-                  :facets {:organisms (sort-by-value (:organism.shortName facets))
-                           :category (sort-by-value (:Category facets))})})))
+(defn active-filters->facet-query
+  "To create the map that becomes the query strings we pass to our endpoint, we
+  simply have to prepend `facet_` to the keys of our active filter map and turn
+  the values into strings."
+  [filters]
+  (reduce-kv
+   (fn [m k v]
+     (assoc m
+            (->> k name (str "facet_") keyword)
+            (name v)))
+   {}
+   filters))
 
 (reg-event-fx
  :search/full-search
- (fn [{db :db} [_ search-term]]
-   (let [active-filter (some-> db :search-results :active-filter name)
-         connection    (get-in db [:mines (get db :current-mine) :service])
-         new-search?   (not= search-term (get-in db [:search-results :keyword]))]
+ (fn [{db :db} [_ search-term removed-filter?]]
+   (let [filters         (get-in db [:search-results :active-filters])
+         connection      (get-in db [:mines (get db :current-mine) :service])
+         new-search?     (not= search-term (get-in db [:search-results :keyword]))
+         active-filters? (some? (seq filters))]
      {:db (-> db
               (assoc :search-term search-term)
               (assoc-in [:search-results :keyword] search-term)
@@ -99,52 +132,42 @@
                     (assoc-in [:search-results :loading?] true))))
       :im-chan {:chan (fetch/quicksearch connection
                                          search-term
-                                         {:facet_Category active-filter})
+                                         (when active-filters?
+                                           (active-filters->facet-query filters)))
                 :on-success [:search/save-results
                              {:new-search? new-search?
-                              :active-filter? (some? active-filter)}]}})))
-
-(defn count-current-results
-  "returns number of results currently shown, taking into account result limits and filters"
-  [results active-filter]
-  (count
-   (if active-filter
-     (filter #(= (:type %) active-filter) results)
-     results)))
+                              :active-filter? active-filters?
+                              :removed-filter? removed-filter?}]}})))
 
 (reg-event-fx
  :search/set-active-filter
- (fn [{db :db} [_ filter-name]]
-   (let [new-db (-> db
-                    (assoc-in [:search-results :active-filter] filter-name)
-                    (assoc-in [:search :selected-results] #{}))
-         {:keys [results active-filter facets keyword]} (:search-results new-db)
-         filtered-result-count          (get (:category facets) active-filter)
-         active-results-count           (count-current-results results active-filter)
-         more-filtered-results-to-show? (< active-results-count filtered-result-count)
-         more-results-than-max?         (<= active-results-count max-results)]
-     (cond-> {:db new-db}
-       (and more-filtered-results-to-show? more-results-than-max?)
-       ;; output the results we have client side alredy (ie if a non-filtered
-       ;; search returns 100 results due to a limit, but indicates that there
-       ;; are 132 proteins in total, we'll show all the proteins we have when we
-       ;; filter down to just proteins, so the user might not even notice that
-       ;; we're fetching the rest in the background.) while the remote results
-       ;; are loading. Good for slow connections.
-       (assoc :dispatch [:search/full-search keyword])))))
+ (fn [{db :db} [_ facet-name filter-name]]
+   ;; There used to be code here that checked whether all the results of the
+   ;; filter were already present in the results, and therefore didn't actually
+   ;; trigger a request. Now that we have added more filters however, it's not
+   ;; practical to take this into our own hands, so we just gotta take what the
+   ;; server gives us.
+   {:db (-> db
+            (assoc-in [:search-results :active-filters facet-name] filter-name)
+            (assoc-in [:search :selected-results] #{}))
+    :dispatch [:search/full-search (get-in db [:search-results :keyword])]}))
 
 (reg-event-fx
  :search/remove-active-filter
- (fn [{:keys [db]}]
-   {:db (update db :search-results dissoc :active-filter)
-    :dispatch [:search/full-search (-> db :search-results :keyword)]}))
+ (fn [{:keys [db]} [_ facet]]
+   {:db (if facet
+          (update-in db [:search-results :active-filters] dissoc facet)
+          ;; Clear the entire active-filters map if no facet specified.
+          (assoc-in db [:search-results :active-filters] {}))
+    :dispatch [:search/full-search (-> db :search-results :keyword) true]}))
 
 (reg-event-fx
  :search/to-results
  (fn [{:keys [db]}]
-   (let [object-type    (get-in db [:search-results :active-filter])
-         ids            (mapv :id (get-in db [:search :selected-results]))
-         current-mine   (:current-mine db)
+   (let [filters      (get-in db [:search-results :active-filters])
+         object-type  (:Category filters :Gene)
+         ids          (mapv :id (get-in db [:search :selected-results]))
+         current-mine (:current-mine db)
          summary-fields (get-in db [:assets :summary-fields current-mine object-type])]
      {:dispatch [:results/history+
                  {:source current-mine
@@ -152,9 +175,16 @@
                   :value {:title "Search Results"
                           :from (name object-type)
                           :select summary-fields
-                          :where [{:path (str (name object-type) ".id")
-                                   :op "ONE OF"
-                                   :values ids}]}}]})))
+                          :where (into [{:path (str (name object-type) ".id")
+                                         :op "ONE OF"
+                                         :values ids}]
+                                       ;; All active filters except :Category
+                                       ;; are to be regarded as constraints.
+                                       (map (fn [[facet filt]]
+                                              {:path facet
+                                               :op "="
+                                               :values filt})
+                                            (dissoc filters :Category)))}}]})))
 
 (reg-event-db
  :search/highlight-results

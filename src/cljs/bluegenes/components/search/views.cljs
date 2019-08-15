@@ -12,15 +12,15 @@
 (defn results-count
   "Visual component: outputs the number of results shown."
   []
-  (let [active-count @(subscribe [:search/active-results-count])
-        total-count  @(subscribe [:search/total-results-count])]
-    [:small " Displaying " active-count  " of " total-count " results"]))
+  (let [results-count @(subscribe [:search/results-count])
+        total-count   @(subscribe [:search/total-results-count])]
+    [:small " Displaying " results-count  " of " total-count " results"]))
 
 (defn results-display
   "Iterate through results and output one row per result using result-row to format. Filtered results aren't output. "
   []
-  (let [active-results  (subscribe [:search/active-results])
-        active-filter?  (subscribe [:search/active-filter])
+  (let [results         (subscribe [:search/results])
+        active-filter?  (subscribe [:search/active-filter?])
         some-selected?  (subscribe [:search/some-selected?])
         search-keyword  (subscribe [:search/keyword])
         search-term     (subscribe [:search-term])
@@ -39,13 +39,13 @@
      ; [:div [:label "Select all" [:input {:type "checkbox"
      ;                  :on-click (dispatch [:search/select-all])}]]]
      [:form
-      (doall (for [result @active-results]
+      (doall (for [result @results]
                ^{:key (:id result)}
                [resulthandler/result-row {:result result :search-term @search-term}]))]
 
      (when @empty-filter?
        [:div.empty-results
-        "No results available with active filters. "
+        "You might not be getting any results due to your active filters. "
         [:a {:on-click #(dispatch [:search/remove-active-filter])}
          "Click here"]
         " to clear the filters."])]))
