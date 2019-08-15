@@ -46,6 +46,12 @@
    (some? (seq filters))))
 
 (reg-sub
+ :search/category-filter?
+ :<- [:search/active-filters]
+ (fn [filters]
+   (some? (:Category filters))))
+
+(reg-sub
  :search/highlight?
  :<- [:search/full-results]
  (fn [full-results]

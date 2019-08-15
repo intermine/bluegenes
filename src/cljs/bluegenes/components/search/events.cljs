@@ -175,16 +175,9 @@
                   :value {:title "Search Results"
                           :from (name object-type)
                           :select summary-fields
-                          :where (into [{:path (str (name object-type) ".id")
-                                         :op "ONE OF"
-                                         :values ids}]
-                                       ;; All active filters except :Category
-                                       ;; are to be regarded as constraints.
-                                       (map (fn [[facet filt]]
-                                              {:path facet
-                                               :op "="
-                                               :values filt})
-                                            (dissoc filters :Category)))}}]})))
+                          :where [{:path (str (name object-type) ".id")
+                                   :op "ONE OF"
+                                   :values ids}]}}]})))
 
 (reg-event-db
  :search/highlight-results

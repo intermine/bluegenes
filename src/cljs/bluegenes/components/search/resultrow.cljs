@@ -22,13 +22,13 @@
   "This method abstracts away most of the common components for all the result-row baby methods."
   [row-data contents]
   (let [{:keys [id type] :as result} (:result row-data)
-        active-filter? (subscribe [:search/active-filter?])
-        selected?      (subscribe [:search/am-i-selected? id])]
+        category-filter? (subscribe [:search/category-filter?])
+        selected?        (subscribe [:search/am-i-selected? id])]
     ;;Todo: Add a conditional row highlight on selected rows.
     [:div.result
      {:on-click #(dispatch [::route/navigate ::route/report {:type type :id id}])
       :class (if @selected? "selected")}
-     (when @active-filter?
+     (when @category-filter?
        [result-selection-control result])
      [:span.result-type {:class (str "type-" type)} type]
      (contents)]))
