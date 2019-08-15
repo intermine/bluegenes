@@ -1,17 +1,21 @@
 (ns bluegenes.components.search.resultrow
   (:require [re-frame.core :as re-frame :refer [subscribe dispatch]]
-            [oops.core :refer [ocall]]
+            [oops.core :refer [ocall oget]]
             [bluegenes.route :as route]))
 
 (defn result-selection-control
   "UI control suggesting to the user that there is only one result selectable at any one time; there's no actual form functionality here."
   [result]
-  (let [selected? (subscribe [:search/am-i-selected? result])]
+  (let [selected? @(subscribe [:search/am-i-selected? result])]
     [:input {:type "checkbox"
-             :on-click (fn [e] (ocall e :stopPropagation)
-                         (if @selected?
-                           (dispatch [:search/deselect-result result])
-                           (dispatch [:search/select-result result])))
+             :on-change (fn [e]
+                          (if (oget e :target :checked)
+                            (dispatch [:search/select-result result])
+                            (dispatch [:search/deselect-result result])))
+             ;; on-change is the React idiomatic way to handle interaction, but
+             ;; for some reason calling stopPropagation in there doesn't work!
+             :on-click #(ocall % :stopPropagation)
+             :checked selected?
              :name "keyword-search"}]))
 
 (defn row-structure
