@@ -43,12 +43,17 @@
                ^{:key (:id result)}
                [resulthandler/result-row {:result result :search-term @search-term}]))]
 
-     (when @empty-filter?
+     (cond
+       @empty-filter?
        [:div.empty-results
         "You might not be getting any results due to your active filters. "
         [:a {:on-click #(dispatch [:search/remove-active-filter])}
          "Click here"]
-        " to clear the filters."])]))
+        " to clear the filters."]
+
+       (zero? (count @results))
+       [:div.empty-results
+        "No results found. "])]))
 
 (defn input-new-term []
   [:div

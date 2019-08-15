@@ -101,8 +101,9 @@
 (reg-sub
  :search/empty-filter?
  :<- [:search/results-count]
- (fn [current-results]
-   (zero? current-results)))
+ :<- [:search/active-filter?]
+ (fn [[results-count active-filter?]]
+   (and (zero? results-count) active-filter?)))
 
 (reg-sub
  :search/facet-names
