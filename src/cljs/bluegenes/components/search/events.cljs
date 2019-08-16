@@ -1,8 +1,12 @@
 (ns bluegenes.components.search.events
-  (:require [re-frame.core :as re-frame :refer [reg-event-db reg-event-fx]]
-            [imcljs.fetch :as fetch]))
+  (:require [re-frame.core :refer [dispatch reg-event-db reg-event-fx]]
+            [imcljs.fetch :as fetch]
+            [oops.core :refer [oget]]
+            [goog.functions :refer [rateLimit]]))
 
-(def max-results 99) ;;todo - this is only used in a cond right now, won't modify number of results returned. IMJS was being tricky;
+(def results-batch-size
+  "The amount of results we should fetch at a time."
+  50)
 
 (reg-event-db
  :search/set-search-term
@@ -117,6 +121,15 @@
    {}
    filters))
 
+;; Dispatched when you enter the search page.
+(reg-event-fx
+ :search/begin-search
+ (fn [{db :db} [_ search-term]]
+   (let [new-search? (not= search-term (get-in db [:search-results :keyword]))]
+     (if new-search?
+       {:dispatch [:search/full-search search-term]}
+       {}))))
+
 (reg-event-fx
  :search/full-search
  (fn [{db :db} [_ search-term removed-filter?]]
@@ -132,8 +145,10 @@
                     (assoc-in [:search-results :loading?] true))))
       :im-chan {:chan (fetch/quicksearch connection
                                          search-term
-                                         (when active-filters?
-                                           (active-filters->facet-query filters)))
+                                         (merge
+                                           {:size results-batch-size}
+                                           (when active-filters?
+                                             (active-filters->facet-query filters))))
                 :on-success [:search/save-results
                              {:new-search? new-search?
                               :active-filter? active-filters?
@@ -193,3 +208,70 @@
  :search/deselect-result
  (fn [db [_ result]]
    (update-in db [:search :selected-results] disj result)))
+
+(declare scrolled-past?)
+
+(reg-event-fx
+ :search/save-more-results
+ (fn [{db :db} [_ {:keys [results]}]]
+   ;; You may think it very sneaky to dispatch an event from a setTimeout
+   ;; callback, but this is to counter very eager scrollers whom sit at the
+   ;; bottom of the page before rateLimit has a chance to reset. This means we
+   ;; need to check their scroll position once we're sure the results have been
+   ;; added to the DOM, lest we keep them waiting for the rest of their lives!
+   (js/setTimeout (fn []
+                    (when (scrolled-past?)
+                      (dispatch [:search/more-results])))
+                  1000)
+   {:db (-> db
+            (assoc-in [:search-results :loading-more?] false)
+            (update-in [:search-results :results] into results))}))
+
+(reg-event-fx
+ :search/more-results
+ (fn [{db :db} [_]]
+   (let [{filters :active-filters, results :results, loading-more? :loading-more?
+          total :count, search-term :keyword} (:search-results db)
+         connection (get-in db [:mines (get db :current-mine) :service])]
+     (if (and (< (count results) total)
+              (not loading-more?))
+       {:db (assoc-in db [:search-results :loading-more?] true)
+        :im-chan {:chan (fetch/quicksearch connection
+                                           search-term
+                                           (merge
+                                             {:size results-batch-size
+                                              :start (* (int (/ (count results)
+                                                                results-batch-size))
+                                                        results-batch-size)}
+                                             (when (some? (seq filters))
+                                               (active-filters->facet-query filters))))
+                  :on-success [:search/save-more-results]}}
+       {}))))
+
+(defn scrolled-past?
+  "Whether the user has scrolled past the point where we want to load more."
+  []
+  (let [scroll (.-scrollY js/window)
+        height (- (oget js/document :body :scrollHeight) (.-innerHeight js/window))
+        offset 500]
+    (> (+ scroll offset) height)))
+
+(let [limited-dispatch (rateLimit #(dispatch [:search/more-results]) 1000)]
+  (defn endless-scroll
+    "Load more results when the user has scrolled far enough down the page.
+    Use rateLimit to only dispatch the event once for an interval."
+    [_e]
+    (when (scrolled-past?)
+      (limited-dispatch))))
+
+(reg-event-fx
+ :search/start-endless-scroll
+ (fn [_ [_]]
+   (.addEventListener js/window "scroll" endless-scroll)
+   {}))
+
+(reg-event-fx
+ :search/stop-endless-scroll
+ (fn [_ [_]]
+   (.removeEventListener js/window "scroll" endless-scroll)
+   {}))

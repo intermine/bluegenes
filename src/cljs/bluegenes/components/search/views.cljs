@@ -9,13 +9,6 @@
 ;;;;TODO: abstract away from IMJS.
 ;;;;NOTES: This was refactored from bluegenes but might contain some legacy weird. If so I apologise.
 
-(defn results-count
-  "Visual component: outputs the number of results shown."
-  []
-  (let [results-count @(subscribe [:search/results-count])
-        total-count   @(subscribe [:search/total-results-count])]
-    [:small " Displaying " results-count  " of " total-count " results"]))
-
 (defn results-display
   "Iterate through results and output one row per result using result-row to format. Filtered results aren't output. "
   []
@@ -24,10 +17,11 @@
         some-selected?  (subscribe [:search/some-selected?])
         search-keyword  (subscribe [:search/keyword])
         search-term     (subscribe [:search-term])
-        empty-filter?   (subscribe [:search/empty-filter?])]
+        empty-filter?   (subscribe [:search/empty-filter?])
+        total-count     (subscribe [:search/total-results-count])]
     [:div.results
      [:div.search-header
-      [:h4 "Results for '" @search-keyword "'" [results-count]]
+      [:h4 (str @total-count " results for '" @search-keyword "'")]
 
       (cond (and @active-filter? @some-selected?)
             [:a.cta {:on-click (fn [e]
