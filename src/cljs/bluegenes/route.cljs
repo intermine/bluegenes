@@ -169,11 +169,11 @@
       :controllers
       [{:parameters {:query [:keyword]}
         :start (fn [{{:keys [keyword]} :query}]
-                 (dispatch [:search/start-endless-scroll])
+                 (dispatch [:search/start-scroll-handling])
                  (dispatch [:set-active-panel :search-panel
                             nil
                             [:search/begin-search keyword]]))
-        :stop #(dispatch [:search/stop-endless-scroll])}]}]
+        :stop #(dispatch [:search/stop-scroll-handling])}]}]
     ["/querybuilder"
      {:name ::querybuilder
       :controllers

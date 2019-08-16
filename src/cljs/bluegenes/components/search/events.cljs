@@ -127,7 +127,10 @@
  (fn [{db :db} [_ search-term]]
    (let [new-search? (not= search-term (get-in db [:search-results :keyword]))]
      (if new-search?
-       {:dispatch [:search/full-search search-term]}
+       ;; By throwing the scroll information out of the window, we're making
+       ;; sure the previous scroll position can't be restored. Mwuhahahaha!
+       {:db (update db :search-results dissoc :scroll)
+        :dispatch [:search/full-search search-term]}
        {}))))
 
 (reg-event-fx
@@ -146,9 +149,9 @@
       :im-chan {:chan (fetch/quicksearch connection
                                          search-term
                                          (merge
-                                           {:size results-batch-size}
-                                           (when active-filters?
-                                             (active-filters->facet-query filters))))
+                                          {:size results-batch-size}
+                                          (when active-filters?
+                                            (active-filters->facet-query filters))))
                 :on-success [:search/save-results
                              {:new-search? new-search?
                               :active-filter? active-filters?
@@ -239,12 +242,12 @@
         :im-chan {:chan (fetch/quicksearch connection
                                            search-term
                                            (merge
-                                             {:size results-batch-size
-                                              :start (* (int (/ (count results)
-                                                                results-batch-size))
-                                                        results-batch-size)}
-                                             (when (some? (seq filters))
-                                               (active-filters->facet-query filters))))
+                                            {:size results-batch-size
+                                             :start (* (int (/ (count results)
+                                                               results-batch-size))
+                                                       results-batch-size)}
+                                            (when (some? (seq filters))
+                                              (active-filters->facet-query filters))))
                   :on-success [:search/save-more-results]}}
        {}))))
 
@@ -257,21 +260,35 @@
     (> (+ scroll offset) height)))
 
 (let [limited-dispatch (rateLimit #(dispatch [:search/more-results]) 1000)]
-  (defn endless-scroll
+  (defn endless-scroll-handler
     "Load more results when the user has scrolled far enough down the page.
     Use rateLimit to only dispatch the event once for an interval."
     [_e]
     (when (scrolled-past?)
       (limited-dispatch))))
 
+(reg-event-db
+ :search/save-scroll-position
+ (fn [db [_ scroll]]
+   (assoc-in db [:search-results :scroll] scroll)))
+
 (reg-event-fx
- :search/start-endless-scroll
+ :search/restore-scroll-position
+ (fn [{db :db} [_]]
+   (let [scroll (get-in db [:search-results :scroll])]
+     (when (number? scroll)
+       (.scrollTo js/window 0 scroll))
+     {})))
+
+(reg-event-fx
+ :search/start-scroll-handling
  (fn [_ [_]]
-   (.addEventListener js/window "scroll" endless-scroll)
+   (.addEventListener js/window "scroll" endless-scroll-handler)
    {}))
 
 (reg-event-fx
- :search/stop-endless-scroll
+ :search/stop-scroll-handling
  (fn [_ [_]]
-   (.removeEventListener js/window "scroll" endless-scroll)
+   (.removeEventListener js/window "scroll" endless-scroll-handler)
+   (dispatch [:search/save-scroll-position (.-scrollY js/window)])
    {}))

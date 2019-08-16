@@ -40,12 +40,12 @@
 (reg-event-fx
  :set-active-panel
  (fn [{db :db} [_ active-panel panel-params evt]]
-   (let [evt [:do-active-panel active-panel panel-params evt]]
+   (let [event [:do-active-panel active-panel panel-params evt]]
      (if (:fetching-assets? db)
        ;; If we're fetching assets then save the panel change for later.
-       {:db (update db :dispatch-after-boot (fnil conj []) evt)}
+       {:db (update db :dispatch-after-boot (fnil conj []) event)}
        ;; Otherwise dispatch it now.
-       {:dispatch evt}))))
+       {:dispatch event}))))
 
 (reg-event-fx
  :save-state

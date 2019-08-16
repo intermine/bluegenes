@@ -4,7 +4,8 @@
             [bluegenes.components.search.filters :as filters]
             [re-frame.core :as re-frame :refer [subscribe dispatch]]
             [oops.core :refer [ocall]]
-            [bluegenes.route :as route]))
+            [bluegenes.route :as route]
+            [reagent.core :as reagent]))
 
 ;;;;TODO: abstract away from IMJS.
 ;;;;NOTES: This was refactored from bluegenes but might contain some legacy weird. If so I apologise.
@@ -19,35 +20,41 @@
         search-term     (subscribe [:search-term])
         empty-filter?   (subscribe [:search/empty-filter?])
         total-count     (subscribe [:search/total-results-count])]
-    [:div.results
-     [:div.search-header
-      [:h4 (str @total-count " results for '" @search-keyword "'")]
+    (reagent/create-class
+     {:component-did-mount
+      (fn [_c]
+        (dispatch [:search/restore-scroll-position]))
+      :reagent-render
+      (fn []
+        [:div.results
+         [:div.search-header
+          [:h4 (str @total-count " results for '" @search-keyword "'")]
 
-      (cond (and @active-filter? @some-selected?)
-            [:a.cta {:on-click (fn [e]
-                                 (ocall e :preventDefault)
-                                 (dispatch [:search/to-results]))}
-             "View selected results in a table"])]
-     ;;TODO: Does this even make sense? Only implement if we figure out a good behaviour
-     ;; select all search results seems odd, as does the whole page.
-     ; [:div [:label "Select all" [:input {:type "checkbox"
-     ;                  :on-click (dispatch [:search/select-all])}]]]
-     [:form
-      (doall (for [result @results]
-               ^{:key (:id result)}
-               [resulthandler/result-row {:result result :search-term @search-term}]))]
+          (cond (and @active-filter? @some-selected?)
+                [:a.cta {:on-click (fn [e]
+                                     (ocall e :preventDefault)
+                                     (dispatch [:search/to-results]))}
+                 "View selected results in a table"])]
+          ;;TODO: Does this even make sense? Only implement if we figure out a good behaviour
+          ;; select all search results seems odd, as does the whole page.
+          ; [:div [:label "Select all" [:input {:type "checkbox"
+          ;                  :on-click (dispatch [:search/select-all])}]]]
+         [:form
+          (doall (for [result @results]
+                   ^{:key (:id result)}
+                   [resulthandler/result-row {:result result :search-term @search-term}]))]
 
-     (cond
-       @empty-filter?
-       [:div.empty-results
-        "You might not be getting any results due to your active filters. "
-        [:a {:on-click #(dispatch [:search/remove-active-filter])}
-         "Click here"]
-        " to clear the filters."]
+         (cond
+           @empty-filter?
+           [:div.empty-results
+            "You might not be getting any results due to your active filters. "
+            [:a {:on-click #(dispatch [:search/remove-active-filter])}
+             "Click here"]
+            " to clear the filters."]
 
-       (zero? (count @results))
-       [:div.empty-results
-        "No results found. "])]))
+           (zero? (count @results))
+           [:div.empty-results
+            "No results found. "])])})))
 
 (defn input-new-term []
   [:div
