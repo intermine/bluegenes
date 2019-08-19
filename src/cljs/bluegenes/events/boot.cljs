@@ -92,18 +92,20 @@
 (defn init-mine-defaults
   "If this bluegenes instance is coupled with InterMine, load the intermine's
   config directly from env variables passed to bluegenes. Otherwise, create a
-  default mine config."
-  []
+  default mine config.
+  You can specify `:token my-token` if you want to reuse an existing token."
+  [& {:keys [token]}]
   (let [{:keys [serviceRoot mineName] :as serverVars}
         (:intermineDefaults (js->clj js/serverVars :keywordize-keys true))]
     (if (seq serverVars)
       {:id :default
        :name mineName
-       :service {:root serviceRoot}}
+       :service {:root serviceRoot
+                 :token token}}
       {:id :default
        :name nil
        :service {:root "http://www.flymine.org/flymine"
-                 :token nil}})))
+                 :token token}})))
 
 (defn wait-for-registry?
   [db]
@@ -138,7 +140,11 @@
          ;; We always want `init-mine-defaults` to override the :default mine
          ;; saved in local storage, as a coupled intermine instance should
          ;; always take priority.
-         updated-mines (assoc mines :default (init-mine-defaults))
+         persisted-default-token (get-in state [:mines :default :service :token])
+         ;; The token for :default mine is a special case. The persisted map
+         ;; for :default will always be overwritten, so we pass it to
+         ;; init-mine-defaults here to put it back in there.
+         updated-mines (assoc mines :default (init-mine-defaults :token persisted-default-token))
          db (cond-> init-db
               ;; Only use data from local storage if it's non-empty and the
               ;; client version matches.
@@ -222,19 +228,40 @@
 (reg-event-fx
  :authentication/init
  (fn [{db :db} _]
-   (if-let [auth-token (get-in db [:mines (:current-mine db) :auth :identity :token])]
-     {:dispatch [:authentication/store-token auth-token]}
-     (let [service (get-in db [:mines (:current-mine db) :service])]
-       {:im-chan {:on-success [:authentication/store-token]
-                  :chan (fetch/session service)}}))))
+   (let [current-mine (:current-mine db)
+         login (persistence/get-login!)
+         ;; Add any persisted login identities to their respective mines.
+         db (reduce (fn [db [mine-kw identity]]
+                      (assoc-in db [:mines mine-kw :auth :identity] identity))
+                    db login)]
+     (if-let [auth-token (get-in db [:mines current-mine :auth :identity :token])]
+       ;; The user has logged in previously. Re-use their identity!
+       {:db db
+        :dispatch [:authentication/store-token auth-token]}
+       (let [{:keys [token] :as service} (get-in db [:mines current-mine :service])]
+         (if (some? token)
+           ;; Use previously persisted anonymous token.
+           {:db db
+            :dispatch [:authentication/store-token nil true]}
+           ;; Get new anonymous token.
+           {:db db
+            :im-chan {:chan (fetch/session service)
+                      :on-success [:authentication/store-token]}}))))))
+
 
 ;; Store an authentication token for a given mine.
+
+
 (reg-event-db
  :authentication/store-token
- (fn [db [_ token]]
-   (when (nil? token)
-     (.warn js/console "No token available. Nil token will be initialised."))
-   (assoc-in db [:mines (:current-mine db) :service :token] token)))
+ (fn [db [_ token skip?]]
+   (if skip?
+     ;; This means tokens have been persisted, so we turn the event handler
+     ;; into a noop just so it gets observed for our boot-flow to progress.
+     db
+     (do (when (nil? token)
+           (.warn js/console "No token available. Nil token will be initialised."))
+         (assoc-in db [:mines (:current-mine db) :service :token] token)))))
 
 ; Fetch model
 (def preferred-tag "im:preferredBagType")

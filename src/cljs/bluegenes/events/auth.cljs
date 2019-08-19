@@ -24,14 +24,16 @@
  ;; Store a user's identity and assoc their token to the service of the current mine,
  ;; then (re)fetch the user's lists and their MyMine labels
  (fn [{db :db} [_ {:keys [token] :as identity}]]
-   {:db (-> db
-            (update-in [:mines (:current-mine db) :auth] assoc
-                       :thinking? false
-                       :identity identity
-                       :message nil
-                       :error? false)
-            (assoc-in [:mines (:current-mine db) :service :token] token))
-    :dispatch [:assets/fetch-lists]}))
+   (let [current-mine (:current-mine db)]
+     {:db (-> db
+              (update-in [:mines current-mine :auth] assoc
+                         :thinking? false
+                         :identity identity
+                         :message nil
+                         :error? false)
+              (assoc-in [:mines current-mine :service :token] token))
+      :dispatch-n [[:save-login current-mine identity]
+                   [:assets/fetch-lists]]})))
 
 (reg-event-db
  ::login-failure
@@ -58,9 +60,13 @@
  ::logout-success
  ;; Clear the user's identity and reboot the application
  (fn [{db :db} [_ _response]]
-   {:db (update-in db [:mines (:current-mine db) :auth] assoc
-                   :thinking? false
-                   :identity nil
-                   :error? false
-                   :message nil)
-    :dispatch [:reboot]}))
+   (let [current-mine (:current-mine db)]
+     {:db (-> db
+              (update-in [:mines current-mine :auth] assoc
+                         :thinking? false
+                         :identity nil
+                         :error? false
+                         :message nil)
+              (assoc-in [:mines current-mine :service :token] nil))
+      :dispatch-n [[:remove-login current-mine]
+                   [:reboot]]})))

@@ -52,6 +52,24 @@
                         (js/localStorage.getItem "bluegenes/state"))
                 paths)))
 
+;; It's possible to merge these login functions with the state functions above,
+;; but then you should also refactor the legacy presumptions that are still
+;; present in the state functions. I think this task should be saved for the
+;; time we actually need to rework the entire state-persisting code.
+(defn persist-login!
+  "Saves the login data to localStorage.
+  Please dispatch `:save-login` event instead of using this directly."
+  [login]
+  (js/localStorage.setItem "bluegenes/login" (to-transit login))
+  login)
+
+(defn get-login!
+  "Loads the login data from localStorage.
+  Should return a map from mine keyword to identity map."
+  []
+  (t/read (t/reader :json)
+          (js/localStorage.getItem "bluegenes/login")))
+
 (defn merge-state-from-file [state file]
   (merge state (t/read (t/reader :json) file)))
 

@@ -59,6 +59,20 @@
      (persistence/persist! (assoc saved-keys :version bluegenes.core/version))
      {:db db})))
 
+(reg-event-fx
+ :save-login
+ (fn [_ [_ mine-kw identity]]
+   (let [login (persistence/get-login!)]
+     (persistence/persist-login! (assoc login mine-kw identity))
+     {})))
+
+(reg-event-fx
+ :remove-login
+ (fn [_ [_ mine-kw]]
+   (let [login (persistence/get-login!)]
+     (persistence/persist-login! (dissoc login mine-kw))
+     {})))
+
 ;; There are lots of things that orchestrate the process of switching mines:
 ;; :bluegenes.events.registry/success-fetch-registry
 ;;   Makes sure that mine service data is populated. It can be empty in the
@@ -176,8 +190,11 @@
             (update-in [:mines (:current-mine db)] dissoc :auth)
             ;; Clear the invalid token flag.
             (dissoc :invalid-token?))
-    ;; Fetch a new anonymous token.
-    :dispatch [:authentication/init]}))
+    :dispatch (if (:fetching-assets? db)
+                ;; We were in the middle of booting; reboot!
+                [:reboot]
+                ;; Fetch a new anonymous token.
+                [:authentication/init])}))
 
 (reg-event-db
  :scramble-tokens
