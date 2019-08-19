@@ -33,11 +33,12 @@
      [:span.result-type {:class (str "type-" type)} type]
      (contents)]))
 
-(defn wrap-term [broken-string term]
+(defn wrap-term
   "Joins an array of terms which have already been broken on [term] adding a highlight class as we go.
   So given the search term 'bob' and the string 'I love bob the builder', we'll return something like
   '[:span I love [:span.searchterm 'bob'] the builder]'.
   TODO: If we know ways to refactor this, let's do so. It's verrry slow."
+  [broken-string term]
   [:span
    ;; iterate over the string arrays, and wrap span.searchterm around the terms.
    ;; don't do it for the last string, otherwise we end up with random extra
@@ -53,8 +54,9 @@
    ;;finally, we need to output the last term, without appending anything to it.
    [:span (last broken-string)]])
 
-(defn show [row-data selector]
+(defn show
   "Helper: fetch a result from the data model, adding a highlight if the setting is enabled."
+  [row-data selector]
   (let [row        (:fields (:result row-data))
         string     (get row (keyword selector))
         term       (:search-term row-data)

@@ -64,6 +64,9 @@
        (fn [evt]
          (ocall evt :preventDefault) ;;don't submit the form, that just makes a redirect
          (when (some? search-term)
+           ;; Set :suggestion-results to nil to force a :bounce-search next
+           ;; time we try to show suggestions, to avoid outdated results.
+           (dispatch [:handle-suggestions])
            (dispatch [::route/navigate ::route/search nil {:keyword search-term}])))}
       [:input {:type "text"
                :value search-term

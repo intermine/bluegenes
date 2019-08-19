@@ -2,7 +2,8 @@
   (:require [reagent.core :as reagent]
             [re-frame.core :as re-frame :refer [subscribe dispatch]]
             [dommy.core :as dommy :refer-macros [sel1]]
-            [bluegenes.route :as route]))
+            [bluegenes.route :as route]
+            [oops.core :refer [oget]]))
 
 (defn navigate-to-report
   "Navigate to the report page for the given item and reset the UI"
@@ -99,16 +100,18 @@
           {:type         "text"
            :value        @search-term
            :placeholder  "Search"
-           :on-change    #(dispatch [:bounce-search (-> % .-target .-value)])
+           :on-change    (fn [e] (dispatch [:bounce-search (oget e :target :value)]))
            ;; Navigate to the main search results page if the user presses enter.
            :on-key-press (fn [e] (monitor-enter-key e))
            ;; Why is this separate from on-key-press, you ask?
            ;; Arrow keys don't trigger keypress events apparently. What meanies.
            :on-key-up    (fn [e] (monitor-arrow-keys e))
-           :on-focus     #(when (nil? @results)
-                            ;; Results is nil when it has been cleared after switching mines.
-                            ;; (If there really are no suggestions, it would be an empty vector.)
-                            (dispatch [:bounce-search (-> % .-target .-value)]))}]
+           :on-focus     (fn [e]
+                           ;; Results is nil when it has been cleared after
+                           ;; switching mines. (If there really are no
+                           ;; suggestions, it would be an empty vector.)
+                           (when (nil? @results)
+                             (dispatch [:bounce-search (oget e :target :value)])))}]
          (when (> (count @results) 0)
            [:div.dropdown-menu.quicksearch
             [show-all-results]
