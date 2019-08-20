@@ -24,8 +24,6 @@
                  [servant "0.1.5"]
                  [json-html "0.4.5"]
 
-                 [figwheel-sidecar "0.5.14"]
-
                  ; HTTP
                  [clj-http "3.10.0"]
                  [cljs-http "0.1.46"]
@@ -36,9 +34,6 @@
                  [cheshire "5.8.1"]
                  [metosin/ring-http-response "0.9.1"]
                  [ring-middleware-format "0.7.4"]
-
-                 ; Dev tools
-                 [re-frisk "0.5.4.1"]
 
                  ; Build tools
                  [yogthos/config "0.9"]
@@ -108,11 +103,16 @@
   :less {:source-paths ["less"]
          :target-path "resources/public/css"}
 
+  :repl-options {:nrepl-middleware [cider.piggieback/wrap-cljs-repl]}
+
   :profiles {:dev {:dependencies [[binaryage/devtools "0.9.10"]
-                                  [day8.re-frame/re-frame-10x "0.4.2"]]
+                                  [day8.re-frame/re-frame-10x "0.4.2"]
+                                  [figwheel-sidecar "0.5.19"]
+                                  [cider/piggieback "0.4.1"]]
                    :resource-paths ["config/dev" "tools" "config/defaults"]
-                   :plugins [[lein-figwheel "0.5.14"]
-                             [lein-doo "0.1.8"]]}
+                   :plugins [[lein-figwheel "0.5.19"]
+                             [lein-doo "0.1.8"]]
+                   :source-paths ["env/dev"]}
              :prod {:dependencies []
                     :resource-paths ["config/prod" "tools"  "config/defaults"]
                     :plugins []}
