@@ -26,3 +26,5 @@ node_modules
 pom.xml
 package-lock.json
 prepros.cfg
+/env/
+/.clj-kondo/
