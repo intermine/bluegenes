@@ -1,14 +1,51 @@
 (ns bluegenes.effects
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
-  (:require [re-frame.core :refer [dispatch subscribe reg-fx]]
+  (:require [re-frame.core :refer [dispatch subscribe reg-fx reg-cofx]]
             [cljs.core.async :refer [<! close!]]
-            [cljs-http.client :as http]))
+            [cljs-http.client :as http]
+            [cognitect.transit :as t]))
+
+;; Cofx and fx which you use from event handlers to read/write to localStorage.
+
+(reg-cofx
+ :local-store
+ (fn [coeffects key]
+   (let [key (str key)
+         value (t/read (t/reader :json) (.getItem js/localStorage key))]
+     (assoc coeffects :local-store value))))
+
+(reg-fx
+ :persist
+ (fn [[key value]]
+   (let [key (str key)]
+     (if (some? value)
+       (.setItem js/localStorage key (t/write (t/writer :json-verbose) value))
+       ;; Specifying `nil` as value removes the key instead.
+       (.removeItem js/localStorage key)))))
+
+;; Examples (we do not endorse storing your cats in localStorage)
+
+(comment
+  (reg-event-fx
+   :read-cats
+   [(inject-cofx :local-store :my-cats)]
+   (fn [{db :db, my-cats :local-store} [_]]
+     {:db (update db :cat-park into my-cats)})))
+
+(comment
+  (reg-event-fx
+   :write-cats
+   (fn [_ [_ my-cats]]
+     {:persist [:my-cats my-cats]})))
+
 
 ;; See bottom of namespace for effect registrations and examples  on how to use them
 
 ; Handles the I/O of the quicksearch results used for autosuggesting
 ; values in the main search box
 ; TODO: This can easily be retired by using the :im-chan effect below
+
+
 (reg-fx
  :suggest
  (fn [{:keys [c search-term source]}]

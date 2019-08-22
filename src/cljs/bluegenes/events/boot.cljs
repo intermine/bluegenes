@@ -1,8 +1,7 @@
 (ns bluegenes.events.boot
-  (:require [re-frame.core :refer [reg-event-db reg-event-fx subscribe]]
+  (:require [re-frame.core :refer [reg-event-db reg-event-fx subscribe inject-cofx]]
             [bluegenes.db :as db]
             [imcljs.fetch :as fetch]
-            [bluegenes.persistence :as persistence]
             [bluegenes.events.webproperties]
             [bluegenes.events.registry :as registry]
             [bluegenes.route :as route]))
@@ -119,7 +118,8 @@
 ;; Boot the application.
 (reg-event-fx
  :boot
- (fn [_world _]
+ [(inject-cofx :local-store :bluegenes/state)]
+ (fn [cofx _]
    (let [;; We have to set the db current-mine using `window.location` as the
          ;; router won't have dispatched `:set-current-mine` before later on.
          selected-mine (-> (.. js/window -location -pathname)
@@ -135,8 +135,7 @@
              ;; following order of priority: pathname > localstorage > :default
              (assoc :current-mine (or selected-mine :default)))
          ;; Get data previously persisted to local storage.
-         {:keys [current-mine mines assets version] :as state}
-         (persistence/get-state!)
+         {:keys [current-mine mines assets version] :as state} (:local-store cofx)
          ;; We always want `init-mine-defaults` to override the :default mine
          ;; saved in local storage, as a coupled intermine instance should
          ;; always take priority.
@@ -227,9 +226,9 @@
 ;; Figure out how we're going to initialise authentication.
 (reg-event-fx
  :authentication/init
- (fn [{db :db} _]
+ [(inject-cofx :local-store :bluegenes/login)]
+ (fn [{db :db, login :local-store} _]
    (let [current-mine (:current-mine db)
-         login (persistence/get-login!)
          ;; Add any persisted login identities to their respective mines.
          db (reduce (fn [db [mine-kw identity]]
                       (assoc-in db [:mines mine-kw :auth :identity] identity))
