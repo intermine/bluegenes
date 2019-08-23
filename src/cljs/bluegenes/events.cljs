@@ -195,11 +195,7 @@
               ;; Clear the invalid token flag.
               (dissoc :invalid-token?))
       :persist [:bluegenes/login (dissoc login current-mine)]
-      :dispatch (if (:fetching-assets? db)
-                  ;; We were in the middle of booting; reboot!
-                  [:reboot]
-                  ;; Fetch a new anonymous token.
-                  [:authentication/init])})))
+      :dispatch [:reboot]})))
 
 (reg-event-db
  :scramble-tokens
