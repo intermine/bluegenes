@@ -185,16 +185,19 @@
 (reg-event-fx
  :clear-invalid-token
  (fn [{db :db}]
-   {:db (-> db
-            ;; Clear any auth/identity present if the user has logged in.
-            (update-in [:mines (:current-mine db)] dissoc :auth)
-            ;; Clear the invalid token flag.
-            (dissoc :invalid-token?))
-    :dispatch (if (:fetching-assets? db)
-                ;; We were in the middle of booting; reboot!
-                [:reboot]
-                ;; Fetch a new anonymous token.
-                [:authentication/init])}))
+   (let [current-mine (:current-mine db)]
+     {:db (-> db
+              ;; Set token to nil so we fetch a new one.
+              (assoc-in [:mines current-mine :service :token] nil)
+              ;; Clear any auth/identity present if the user has logged in.
+              (update-in [:mines current-mine] dissoc :auth)
+              ;; Clear the invalid token flag.
+              (dissoc :invalid-token?))
+      :dispatch (if (:fetching-assets? db)
+                  ;; We were in the middle of booting; reboot!
+                  [:reboot]
+                  ;; Fetch a new anonymous token.
+                  [:authentication/init])})))
 
 (reg-event-db
  :scramble-tokens
