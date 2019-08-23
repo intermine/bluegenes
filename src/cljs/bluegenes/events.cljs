@@ -184,7 +184,8 @@
 
 (reg-event-fx
  :clear-invalid-token
- (fn [{db :db}]
+ [(inject-cofx :local-store :bluegenes/login)]
+ (fn [{db :db, login :local-store} [_]]
    (let [current-mine (:current-mine db)]
      {:db (-> db
               ;; Set token to nil so we fetch a new one.
@@ -193,6 +194,7 @@
               (update-in [:mines current-mine] dissoc :auth)
               ;; Clear the invalid token flag.
               (dissoc :invalid-token?))
+      :persist [:bluegenes/login (dissoc login current-mine)]
       :dispatch (if (:fetching-assets? db)
                   ;; We were in the middle of booting; reboot!
                   [:reboot]
