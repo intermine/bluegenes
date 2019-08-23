@@ -1,6 +1,6 @@
 (ns bluegenes.events
   (:require-macros [cljs.core.async.macros :refer [go]])
-  (:require [re-frame.core :as re-frame :refer [reg-event-db reg-fx reg-event-fx dispatch subscribe]]
+  (:require [re-frame.core :as re-frame :refer [reg-event-db reg-fx reg-event-fx dispatch subscribe inject-cofx]]
             [im-tables.events]
             [bluegenes.events.boot]
             [bluegenes.events.auth]
@@ -17,7 +17,6 @@
             [bluegenes.pages.reportpage.events]
             [bluegenes.pages.querybuilder.events]
             [bluegenes.effects]
-            [bluegenes.persistence :as persistence]
             [bluegenes.route :as route]
             [imcljs.fetch :as fetch]
             [imcljs.path :as im-path]
@@ -49,15 +48,30 @@
 
 (reg-event-fx
  :save-state
- (fn [{:keys [db]}]
-    ;;So this saves assets and current mine to the db. We don't do any complex caching right now - every boot or mine change, these will be loaded afresh and applied on top. It *does* mean that the assets can be used before they are loaded.
-    ;;why isn't there caching? because it gets very complex deciding what and when to expire, so it's not really a minimum use case feature.
+ (fn [{db :db}]
+   ;; So this saves assets and current mine to the db. We don't do any complex
+   ;; caching right now - every boot or mine change, these will be loaded
+   ;; afresh and applied on top. It *does* mean that the assets can be used
+   ;; before they are loaded.  why isn't there caching? because it gets very
+   ;; complex deciding what and when to expire, so it's not really a minimum
+   ;; use case feature.
    (let [saved-keys (select-keys db [:current-mine :mines :assets])]
-      ; Attach the client version to the saved state. This will be checked
-      ; the next time the client boots to make sure the local storage data
-      ; and the client version number are aligned.
-     (persistence/persist! (assoc saved-keys :version bluegenes.core/version))
-     {:db db})))
+     ;; Attach the client version to the saved state. This will be checked
+     ;; the next time the client boots to make sure the local storage data
+     ;; and the client version number are aligned.
+     {:persist [:bluegenes/state (assoc saved-keys :version bluegenes.core/version)]})))
+
+(reg-event-fx
+ :save-login
+ [(inject-cofx :local-store :bluegenes/login)]
+ (fn [{login :local-store} [_ mine-kw identity]]
+   {:persist [:bluegenes/login (assoc login mine-kw identity)]}))
+
+(reg-event-fx
+ :remove-login
+ [(inject-cofx :local-store :bluegenes/login)]
+ (fn [{login :local-store} [_ mine-kw]]
+   {:persist [:bluegenes/login (dissoc login mine-kw)]}))
 
 ;; There are lots of things that orchestrate the process of switching mines:
 ;; :bluegenes.events.registry/success-fetch-registry
@@ -76,16 +90,19 @@
          different-mine? (not= mine-kw (:current-mine db))
          done-booting?   (not (:fetching-assets? db))
          in-registry?    (contains? (:registry db) mine-kw)
+         in-mines?       (contains? (:mines db) mine-kw)
          mine-m          (get-in db [:registry mine-kw])]
      (if different-mine?
        (cond-> {:db (assoc db :current-mine mine-kw)
                 :visual-navbar-minechange []}
          ;; This does not run for the `:default` mine, as it isn't part of the
          ;; registry. This is good as we don't want to overwrite it anyways.
-         in-registry?  (assoc-in [:db :mines mine-kw]
-                                 {:service {:root (:url mine-m)}
-                                  :name (:name mine-m)
-                                  :id mine-kw})
+         (and in-registry?
+              (not in-mines?)) (assoc-in [:db :mines mine-kw]
+                                         {:service {:root (:url mine-m)}
+                                          :name (:name mine-m)
+                                          :id mine-kw})
+         ;; We need to make sure to :reboot when switching mines.
          done-booting? (-> (assoc-in [:db :fetching-assets?] true)
                            (assoc :dispatch [:reboot])))
        {}))))
@@ -161,14 +178,29 @@
        {:dispatch [:cache/store-possible-values (get mine :id) path false]}))))
 
 (reg-event-db
- :flag-invalid-tokens
+ :flag-invalid-token
  (fn [db]
-   (assoc db :invalid-tokens? true)))
+   (assoc db :invalid-token? true)))
+
+(reg-event-fx
+ :clear-invalid-token
+ [(inject-cofx :local-store :bluegenes/login)]
+ (fn [{db :db, login :local-store} [_]]
+   (let [current-mine (:current-mine db)]
+     {:db (-> db
+              ;; Set token to nil so we fetch a new one.
+              (assoc-in [:mines current-mine :service :token] nil)
+              ;; Clear any auth/identity present if the user has logged in.
+              (update-in [:mines current-mine] dissoc :auth)
+              ;; Clear the invalid token flag.
+              (dissoc :invalid-token?))
+      :persist [:bluegenes/login (dissoc login current-mine)]
+      :dispatch [:reboot]})))
 
 (reg-event-db
  :scramble-tokens
  (fn [db]
-   (assoc-in db [:mines :flymine-beta :service :token] "faketoken")))
+   (assoc-in db [:mines (:current-mine db) :service :token] "faketoken")))
 
 (reg-event-db
  ;; IS THIS USED?

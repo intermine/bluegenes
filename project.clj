@@ -60,7 +60,7 @@
 
                  [com.cemerick/friend "0.2.3"]
                  [clojusc/friend-oauth2 "0.2.0"]
-                 [com.cemerick/url "0.1.1"]
+                 [lambdaisland/uri "1.1.0"]
 
 
                  ; Intermine Assets

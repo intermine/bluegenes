@@ -66,6 +66,54 @@ describe("UI Test", function() {
     cy.get("select.constraint-chooser").eq(1).select("!=");
   });
 
+  it("Gives suggestion results when typing in search", function() {
+    cy.get(".home .search").within(() => {
+      cy.get("input[class=typeahead-search]").type("eve");
+      cy.get(".quicksearch-result").should("have.length", 5);
+    });
+  });
+
+  it("Opens the search page to show search results", function() {
+    cy.get(".home .search").within(() => {
+      cy.get("input[class=typeahead-search]").type("eve{enter}");
+    });
+    cy.url().should("include", "/search");
+
+    cy.get(".results").within(() => {
+      cy.get(".result").should("have.length.of.at.least", 10)
+    });
+  });
+
+  it("Saves the list from an upload and deletes it", function() {
+    var listName = "Automated CI test list ".concat(Number(new Date()));
+
+    cy.contains("Upload").click();
+    cy.contains("Example").click();
+    cy.get("button")
+      .contains("Continue")
+      .click();
+    cy.get(".save-list input")
+      .clear()
+      .type(listName, { delay: 50 });
+
+    cy.server();
+    cy.route("POST", "*/service/query/tolist").as("tolist");
+
+    cy.get("button")
+      .contains("Save List")
+      .click();
+
+    cy.wait("@tolist");
+
+    cy.contains("Data") .click();
+    cy.contains(listName);
+    cy.contains(listName).parent().within(() => {
+      cy.get("input[type=checkbox]").check();
+    });
+    cy.contains("Delete").click();
+    cy.contains(listName).should("not.exist");
+  });
+
   it("Perform a region search using existing example", function() {
     cy.server();
     cy.route("POST", "*/service/query/results").as("getData");
