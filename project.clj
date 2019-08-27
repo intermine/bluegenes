@@ -86,11 +86,14 @@
                      ["cljsbuild" "once" "min"]
                      ["less" "once"]]
             "prod" ["do" "build" ["pdo" ["run"]]]
-            "format" ["cljfmt" "fix"]}
+            "format" ["cljfmt" "fix"]
+            "kaocha" ["with-profile" "+kaocha" "run" "-m" "kaocha.runner"]}
 
   :min-lein-version "2.8.1"
 
   :source-paths ["src/clj" "src/cljs" "src/cljc" "src/workers" "script/"]
+
+  :test-paths ["test/cljs"]
 
   :clean-targets ^{:protect false} ["resources/public/js/compiled" "target"
                                     "resources/public/css"
@@ -111,8 +114,10 @@
                                   [cider/piggieback "0.4.1"]]
                    :resource-paths ["config/dev" "tools" "config/defaults"]
                    :plugins [[lein-figwheel "0.5.19"]
-                             [lein-doo "0.1.8"]]
-                   :source-paths ["env/dev"]}
+                             [lein-doo "0.1.8"]]}
+             :kaocha {:dependencies [[lambdaisland/kaocha "0.0-529"]
+                                     [lambdaisland/kaocha-cljs "0.0-40"]]}
+             :repl {:source-paths ["env/dev"]}
              :prod {:dependencies []
                     :resource-paths ["config/prod" "tools"  "config/defaults"]
                     :plugins []}

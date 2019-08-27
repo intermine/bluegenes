@@ -41,6 +41,8 @@ build-and-ui-test:
   script:
     # setup dependencies
     - npm install
+    # Run unit tests
+    - lein kaocha
     # Build CSS
     - lein less once
     # ensure a minified build completes without error

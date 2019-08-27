@@ -59,6 +59,12 @@ By default, the web server will be started on http://localhost:5000/. To change 
 
 ## Running tests
 
+### Unit tests
+
+    lein kaocha
+
+### Cypress integration tests
+
 Make sure BlueGenes is running by using `lein dev` or `lein prod`. (Preferably make sure they pass in *prod*, but *dev* can be useful for stack traces.)
 
 Run all the Cypress tests:

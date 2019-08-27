@@ -23,6 +23,8 @@ before_script:
 script:
   # setup dependencies
   - npm install
+  # Run unit tests
+  - lein kaocha
   # Build CSS
   - lein with-profile +java9 less once
   # ensure a minified build completes without error
