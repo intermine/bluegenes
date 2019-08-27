@@ -1,17 +1,15 @@
 (ns bluegenes.components.search.typeahead
   (:require [reagent.core :as reagent]
             [re-frame.core :as re-frame :refer [subscribe dispatch]]
-            [dommy.core :as dommy :refer-macros [sel sel1]]
-            [bluegenes.route :as route]))
+            [dommy.core :as dommy :refer-macros [sel1]]
+            [bluegenes.route :as route]
+            [oops.core :refer [oget]]))
 
 (defn navigate-to-report
   "Navigate to the report page for the given item and reset the UI"
-  [item]
-  (let [current-mine (subscribe [:current-mine])]
-    (dispatch [:search/reset-selection])
-    (dispatch [::route/navigate ::route/report {:mine (name (:id @current-mine))
-                                                :type (:type item)
-                                                :id (:id item)}])))
+  [{:keys [type id] :as _item}]
+  (dispatch [:search/reset-selection])
+  (dispatch [::route/navigate ::route/report {:type type, :id id}]))
 
 (defn navigate-to-full-results
   "Navigate to the full results page. duh."
@@ -23,7 +21,8 @@
       (dispatch [:search/full-search term]))))
 
 (defn suggestion
-  "The UI element and behaviour for a single suggestion in the dropdown" []
+  "The UI element and behaviour for a single suggestion in the dropdown"
+  []
   (let [search-term (subscribe [:search-term])]
     (fn [item is-active?]
       (let [info   (clojure.string/join " " (interpose ", " (vals (:fields item))))
@@ -61,9 +60,9 @@
         (.blur (. e -target))))))
 
 (defn monitor-arrow-keys
-  "Navigate the dropdown suggestions if the user presses up or down" [e]
-  (let [keycode (.-key e)
-        input   (.. e -target -value)]
+  "Navigate the dropdown suggestions if the user presses up or down"
+  [e]
+  (let [keycode (.-key e)]
     (cond
       (= keycode "ArrowUp")
       (dispatch [:search/move-selection :prev])
@@ -71,7 +70,8 @@
       (dispatch [:search/move-selection :next]))))
 
 (defn show-all-results
-  "UI element within the dropdown to show all results." []
+  "UI element within the dropdown to show all results."
+  []
   (let [active-selection (subscribe [:quicksearch-selected-index])
         is-active?       (= -1 @active-selection)]
     [:div.show-all.list-group
@@ -100,16 +100,18 @@
           {:type         "text"
            :value        @search-term
            :placeholder  "Search"
-           :on-change    #(dispatch [:bounce-search (-> % .-target .-value)])
+           :on-change    (fn [e] (dispatch [:bounce-search (oget e :target :value)]))
            ;; Navigate to the main search results page if the user presses enter.
            :on-key-press (fn [e] (monitor-enter-key e))
            ;; Why is this separate from on-key-press, you ask?
            ;; Arrow keys don't trigger keypress events apparently. What meanies.
            :on-key-up    (fn [e] (monitor-arrow-keys e))
-           :on-focus     #(when (nil? @results)
-                            ;; Results is nil when it has been cleared after switching mines.
-                            ;; (If there really are no suggestions, it would be an empty vector.)
-                            (dispatch [:bounce-search (-> % .-target .-value)]))}]
+           :on-focus     (fn [e]
+                           ;; Results is nil when it has been cleared after
+                           ;; switching mines. (If there really are no
+                           ;; suggestions, it would be an empty vector.)
+                           (when (nil? @results)
+                             (dispatch [:bounce-search (oget e :target :value)])))}]
          (when (> (count @results) 0)
            [:div.dropdown-menu.quicksearch
             [show-all-results]
