@@ -1,5 +1,5 @@
 (ns bluegenes.events-test
-  (:require [cljs.test :refer-macros [deftest is testing]]
+  (:require [cljs.test :refer-macros [deftest is testing use-fixtures]]
             [cljs.core.async :refer [chan put!]]
             [re-frame.core :as rf]
             [day8.re-frame.test :refer-macros [run-test-sync run-test-async wait-for]]
@@ -29,7 +29,10 @@
 ;; https://clojurescript.org/tools/testing
 ;; https://clojure.github.io/clojure/clojure.test-api.html
 
-(def ^:private stubbed-storage (atom nil))
+(def ^:private stubbed-storage
+  "A fixture will reset this atom to nil after every test, so mutate and read
+  it to your heart's content when writing tests for local storage changes."
+  (atom nil))
 
 (defn- stub-local-storage
   "Stub the local-storage effect and coeffect to use an atom instead of the
@@ -60,32 +63,46 @@
       (put! c v)
       c)))
 
+(use-fixtures :each
+  {:after (fn []
+            (when (some? @stubbed-storage)
+              (reset! stubbed-storage nil)))})
+
 (deftest new-anonymous-token
   (run-test-async
-    (stub-local-storage)
-    (with-redefs [fetch/session (stub-fetch-fn "stubbed-token")]
-      (rf/dispatch-sync [:authentication/init])
-      (wait-for [:authentication/store-token]
-        (testing "fetch token when none present"
-          (let [token @(rf/subscribe [:active-token])]
-            (is (= "stubbed-token" token))))))))
+   (stub-local-storage)
+   (with-redefs [fetch/session (stub-fetch-fn "stubbed-token")]
+     (rf/dispatch-sync [:authentication/init])
+     (wait-for [:authentication/store-token]
+       (testing "fetch token when none present"
+         (let [token @(rf/subscribe [:active-token])]
+           (is (= "stubbed-token" token))))))))
 
 (deftest reuse-anonymous-token
   (run-test-sync
-    (stub-local-storage)
-    (rf/dispatch [:authentication/store-token "existing-token"])
-    (rf/dispatch [:authentication/init])
-    (testing "reuse token when present"
-      (let [token @(rf/subscribe [:active-token])]
-        (is (= "existing-token" token))))))
+   (stub-local-storage)
+   (rf/dispatch [:authentication/store-token "existing-token"])
+   (rf/dispatch [:authentication/init])
+   (testing "reuse token when present"
+     (let [token @(rf/subscribe [:active-token])]
+       (is (= "existing-token" token))))))
 
 (deftest reuse-login-token
   (run-test-sync
-    (stub-local-storage)
-    (with-redefs [fetch/lists (stub-fetch-fn [])]
-      (rf/dispatch [:bluegenes.events.auth/login-success
-                    {:token "login-token"}])
-      (rf/dispatch [:authentication/init])
-      (testing "prioritise login token"
-        (let [token @(rf/subscribe [:active-token])]
-          (is (= "login-token" token)))))))
+   (stub-local-storage)
+   (with-redefs [fetch/lists (stub-fetch-fn [])]
+     (rf/dispatch [:bluegenes.events.auth/login-success
+                   {:token "login-token"}])
+     (rf/dispatch [:authentication/init])
+     (testing "prioritise login token"
+       (let [token @(rf/subscribe [:active-token])]
+         (is (= "login-token" token)))))))
+
+(deftest reuse-persisted-login-token
+  (run-test-sync
+   (stub-local-storage)
+   (rf/dispatch [:save-login nil {:token "persisted-token"}])
+   (rf/dispatch [:authentication/init])
+   (testing "use persisted login token"
+     (let [token @(rf/subscribe [:active-token])]
+       (is (= "persisted-token" token))))))
