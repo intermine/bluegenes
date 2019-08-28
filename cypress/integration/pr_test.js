@@ -154,4 +154,38 @@ describe("UI Test", function() {
     });
     cy.contains("demo@intermine.org");
   });
+
+  it("Successfully clears invalid anonymous token using dialog", function() {
+    cy.server();
+    cy.route("GET", "*/service/search?*").as("getSearch");
+
+    cy.window().then(win => {
+      win.bluegenes.events.scrambleTokens();
+    });
+
+    cy.get(".home .search").within(() => {
+      cy.get("input[class=typeahead-search]").type("zen{enter}");
+    });
+
+    cy.wait("@getSearch");
+    cy.get("@getSearch").should(xhr => {
+      expect(xhr.status).to.equal(401);
+    });
+
+    cy.route("GET", "*/service/session?*").as("getSession");
+
+    cy.contains("Refresh").click();
+
+    cy.wait("@getSession");
+
+    cy.contains("Home").click();
+    cy.get(".home .search").within(() => {
+      cy.get("input[class=typeahead-search]").clear().type("adh{enter}");
+    });
+
+    cy.wait("@getSearch");
+    cy.get("@getSearch").should(xhr => {
+      expect(xhr.status).to.equal(200);
+    });
+  });
 });
