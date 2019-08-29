@@ -94,7 +94,7 @@ describe("UI Test", function() {
       .click();
     cy.get(".save-list input")
       .clear()
-      .type(listName, { delay: 50 });
+      .type(listName, { delay: 100 });
 
     cy.server();
     cy.route("POST", "*/service/query/tolist").as("tolist");
@@ -103,6 +103,7 @@ describe("UI Test", function() {
       .contains("Save List")
       .click();
 
+    cy.wait(1000);
     cy.wait("@tolist");
 
     cy.contains("Data") .click();
@@ -164,7 +165,7 @@ describe("UI Test", function() {
     });
 
     cy.get(".home .search").within(() => {
-      cy.get("input[class=typeahead-search]").type("zen{enter}");
+      cy.get("input[class=typeahead-search]").type("zen{enter}", { delay: 100 });
     });
 
     cy.wait("@getSearch");
@@ -176,11 +177,12 @@ describe("UI Test", function() {
 
     cy.contains("Refresh").click();
 
+    cy.wait(1000);
     cy.wait("@getSession");
 
     cy.contains("Home").click();
     cy.get(".home .search").within(() => {
-      cy.get("input[class=typeahead-search]").clear().type("adh{enter}");
+      cy.get("input[class=typeahead-search]").clear().type("adh{enter}", { delay: 100 });
     });
 
     cy.wait("@getSearch");

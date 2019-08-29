@@ -1,5 +1,5 @@
 #kaocha/v1
 {:tests [{:id :unit-cljs
           :type :kaocha.type/cljs
-          :cljs/repl-env cljs.repl.node/repl-env
+          :cljs/repl-env cljs.repl.browser/repl-env
           :cljs/timeout 60000}]}
