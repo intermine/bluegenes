@@ -1,4 +1,4 @@
-(def props {:version "0.9.9-SNAPSHOT"})
+(def props {:version "0.9.10"})
 
 (defproject org.intermine/bluegenes (:version props)
   :licence "LGPL-2.1-only"
@@ -65,7 +65,7 @@
 
 
                  ; Intermine Assets
-                 [org.intermine/im-tables "0.8.2"]
+                 [org.intermine/im-tables "0.8.3"]
                  [org.intermine/imcljs "0.7.0"]
                  [org.intermine/bluegenes-tool-store "0.1.0"]]
 
