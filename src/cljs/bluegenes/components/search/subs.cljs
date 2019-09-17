@@ -1,7 +1,5 @@
 (ns bluegenes.components.search.subs
-  (:require-macros [reagent.ratom :refer [reaction]])
-  (:require [re-frame.core :as re-frame :refer [reg-sub]]
-            [oops.core :refer [ocall oget oget+]]))
+  (:require [re-frame.core :refer [reg-sub]]))
 
 (reg-sub
  :search-term
@@ -24,30 +22,52 @@
    (:search-results db)))
 
 (reg-sub
- :search/active-filter
- (fn [db _]
-   (:active-filter (:search-results db))))
+ :search/results
+ :<- [:search/full-results]
+ (fn [full-results]
+   (:results full-results)))
+
+(reg-sub
+ :search/facets-results
+ :<- [:search/full-results]
+ (fn [full-results]
+   (:facets full-results)))
+
+(reg-sub
+ :search/active-filters
+ :<- [:search/full-results]
+ (fn [full-results]
+   (:active-filters full-results)))
+
+(reg-sub
+ :search/active-filter?
+ :<- [:search/active-filters]
+ (fn [filters]
+   (some? (seq filters))))
+
+(reg-sub
+ :search/category-filter?
+ :<- [:search/active-filters]
+ (fn [filters]
+   (some? (:Category filters))))
 
 (reg-sub
  :search/highlight?
- (fn [db _]
-   (:highlight-results (:search-results db))))
+ :<- [:search/full-results]
+ (fn [full-results]
+   (:highlight-results full-results)))
 
 (reg-sub
  :search/loading?
- (fn [db _]
-   (:loading? (:search-results db))))
+ :<- [:search/full-results]
+ (fn [full-results]
+   (:loading? full-results)))
 
 (reg-sub
  :search/keyword
- (fn [db _]
-   (:keyword (:search-results db))))
-
-(reg-sub
- :search/am-i-selected?
- (fn [db [_ result]]
-   (let [selected-results (get-in db [:search :selected-results])]
-     (contains? selected-results result))))
+ :<- [:search/full-results]
+ (fn [full-results]
+   (:keyword full-results)))
 
 (reg-sub
  :search/all-selected
@@ -55,6 +75,45 @@
    (get-in db [:search :selected-results])))
 
 (reg-sub
+ :search/am-i-selected?
+ :<- [:search/all-selected]
+ (fn [all-selected [_ result]]
+   (contains? all-selected result)))
+
+(reg-sub
  :search/some-selected?
- (fn [db _]
-   (> (count (get-in db [:search :selected-results])) 0)))
+ :<- [:search/all-selected]
+ (fn [all-selected _]
+   (some? (seq all-selected))))
+
+(reg-sub
+ :search/total-results-count
+ :<- [:search/full-results]
+ (fn [full-results]
+   (:count full-results)))
+
+(reg-sub
+ :search/results-count
+ :<- [:search/results]
+ (fn [results]
+   (count results)))
+
+(reg-sub
+ :search/empty-filter?
+ :<- [:search/results-count]
+ :<- [:search/active-filter?]
+ (fn [[results-count active-filter?]]
+   (and (zero? results-count) active-filter?)))
+
+(reg-sub
+ :search/facet-names
+ :<- [:search/facets-results]
+ (fn [facets]
+   (filter #(some? (seq (facets %))) (keys facets))))
+
+(reg-sub
+ :search/facet
+ ;; A seq of the specified facet as MapEntry's in order of descending amounts.
+ :<- [:search/facets-results]
+ (fn [facets [_ facet-kw]]
+   (sort-by val > (get facets facet-kw))))

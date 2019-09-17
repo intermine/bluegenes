@@ -1,12 +1,12 @@
 (ns bluegenes.components.search.events
-  (:require-macros [cljs.core.async.macros :refer [go go-loop]])
-  (:require [re-frame.core :as re-frame :refer [reg-event-db reg-event-fx reg-fx dispatch subscribe]]
-            [oops.core :refer [ocall oget]]
-            [bluegenes.db :as db]
+  (:require [re-frame.core :refer [dispatch reg-event-db reg-event-fx]]
             [imcljs.fetch :as fetch]
-            [bluegenes.effects :as fx]))
+            [oops.core :refer [oget]]
+            [goog.functions :refer [rateLimit]]))
 
-(def max-results 99) ;;todo - this is only used in a cond right now, won't modify number of results returned. IMJS was being tricky;
+(def results-batch-size
+  "The amount of results we should fetch at a time."
+  50)
 
 (reg-event-db
  :search/set-search-term
@@ -15,12 +15,10 @@
 
 (defn circular-index-finder
   "Returns the index of a result item, such that going down at the bottom loops to the top and vice versa. Element -1 is 'show all'"
-  [direction]
-  (let [result-index  (subscribe [:quicksearch-selected-index])
-        results-count (count @(subscribe [:suggestion-results]))
-        next-number   (if (= direction :next)
-                        (inc @result-index)
-                        (dec @result-index))
+  [direction result-index results-count]
+  (let [next-number   (if (= direction :next)
+                        (inc result-index)
+                        (dec result-index))
         looped-number (cond
                         (>= next-number results-count)
                         ;;if we go past the end, loop to the start
@@ -34,128 +32,175 @@
 
 (reg-event-db
  :search/move-selection
- (fn [db [_ direction-to-move]]
-   (assoc db :quicksearch-selected-index (circular-index-finder direction-to-move))))
+ (fn [{result-index :quicksearch-selected-index, results :suggestion-results, :as db}
+      [_ direction]]
+   (assoc db
+          :quicksearch-selected-index
+          (circular-index-finder direction result-index (count results)))))
 
 (reg-event-db
  :search/reset-selection
- (fn [db [_ direction-to-move]]
+ (fn [db _]
    (assoc db :quicksearch-selected-index -1)))
 
-(defn sort-by-value [result-map]
-  "Sort map results by their values. Used to order the category maps correctly"
-  (into (sorted-map-by (fn [key1 key2]
-                         (compare [(get result-map key2) key2]
-                                  [(get result-map key1) key1])))
-        result-map))
+(defn merge-filtered-facets
+  "Sometimes we want to update our facets based on the currently active filter.
+  When activating a filter, we want to keep our old facet for that filter, but
+  update the other ones. This is achieved by calling this function normally.
+  If we perform a new search with a filter active, we want to replace our old
+  filtered facet, but keep the other ones. Specify the `:fresh` key for this."
+  [filters old-facets facets & {:keys [fresh]}]
+  (if fresh
+    (let [new-facets (->> filters keys (select-keys facets))]
+      (merge old-facets new-facets))
+    (let [keep-facets (->> filters keys (select-keys old-facets))]
+      (merge facets keep-facets))))
 
 (reg-event-db
+ :search/save-facets
+ (fn [db [_ {:keys [facets]}]]
+   (let [{filters :active-filters, old-facets :facets} (:search-results db)
+         new-facets (merge-filtered-facets filters old-facets facets :fresh true)]
+     (assoc-in db [:search-results :facets] new-facets))))
+
+(reg-event-fx
  :search/save-results
- (fn [db [_ {:keys [results facets] :as response}]]
-   (if (some? (:active-filter (:search-results db)))
-     ;;if we're returning a filter result, leave the old facets intact.
-     (update db :search-results assoc
-             :results results
-             :loading? false)
-     ;;if we're returning a non-filtered result, add new facets to the atom
-     (update db :search-results assoc
-             :results results
-             :loading? false
-             :highlight-results (:highlight-results (:search-results db))
-             :facets {:organisms (sort-by-value (:organism.shortName facets))
-                      :category (sort-by-value (:Category facets))}))))
+ (fn [{db :db} [_
+                {:keys [new-search? active-filter? removed-filter?]}
+                {:keys [results facets totalHits]}]]
+   (let [db (assoc-in db [:search-results :count] totalHits)
+         service (get-in db [:mines (get db :current-mine) :service])
+         search-term (get-in db [:search-results :keyword])]
+     (cond
+       (and new-search? active-filter?)
+       ;; We had a filter activated when we performed a new search, so we want
+       ;; to search again and only update the facets.  The reason for this is
+       ;; that when doing a search with a filter activated, you will only get
+       ;; the facets for that filter. To properly populate the facet list for
+       ;; the new keyword, you will have to perform a regular search as well.
+       {:db (update db :search-results assoc
+                    :results results
+                    :loading? false
+                    :facets facets)
+        :im-chan {:chan (fetch/quicksearch service search-term {:size 0})
+                  :on-success [:search/save-facets]}}
+
+       active-filter?
+       ;; We fetched the results for activating a filter, so leave the old
+       ;; facet intact for the active filter, but update the other ones.
+       (let [{filters :active-filters, old-facets :facets} (:search-results db)
+             new-facets (merge-filtered-facets filters old-facets facets)]
+         (cond-> {:db (update db :search-results assoc
+                              :results results
+                              :loading? false
+                              :facets new-facets)}
+           ;; If we just removed a filter, we also need to do an empty search
+           ;; to get the correct facets for the activated filters.
+           removed-filter? (assoc :im-chan
+                                  {:chan (fetch/quicksearch service search-term {:size 0})
+                                   :on-success [:search/save-facets]})))
+
+       :else
+       ;; We fetched the results for a new plain search.
+       {:db (update db :search-results assoc
+                    :results results
+                    :loading? false
+                    :highlight-results (:highlight-results (:search-results db))
+                    :facets facets)}))))
+
+(defn active-filters->facet-query
+  "To create the map that becomes the query strings we pass to our endpoint, we
+  simply have to prepend `facet_` to the keys of our active filter map and turn
+  the values into strings."
+  [filters]
+  (reduce-kv
+   (fn [m k v]
+     (assoc m
+            (->> k name (str "facet_") keyword)
+            (name v)))
+   {}
+   filters))
+
+;; Dispatched when you enter the search page.
+(reg-event-fx
+ :search/begin-search
+ (fn [{db :db} [_ search-term]]
+   (let [new-search? (not= search-term (get-in db [:search-results :keyword]))]
+     (if new-search?
+       ;; By throwing the scroll information out of the window, we're making
+       ;; sure the previous scroll position can't be restored. Mwuhahahaha!
+       {:db (update db :search-results dissoc :scroll)
+        :dispatch [:search/full-search search-term]}
+       {}))))
 
 (reg-event-fx
  :search/full-search
- (fn [{db :db} [_ search-term]]
-   (let [active-filter (:active-filter (:search-results db))
-         connection    (get-in db [:mines (get db :current-mine) :service])]
+ (fn [{db :db} [_ search-term removed-filter?]]
+   (let [filters         (get-in db [:search-results :active-filters])
+         connection      (get-in db [:mines (get db :current-mine) :service])
+         new-search?     (not= search-term (get-in db [:search-results :keyword]))
+         active-filters? (some? (seq filters))]
      {:db (-> db
               (assoc :search-term search-term)
-              (update :search-results assoc :loading? true :keyword search-term)
-              (cond-> (some? active-filter) (update :search-results dissoc :results)))
+              (assoc-in [:search-results :keyword] search-term)
+              (cond-> new-search?
+                (-> (update :search-results dissoc :results)
+                    (assoc-in [:search-results :loading?] true))))
       :im-chan {:chan (fetch/quicksearch connection
                                          search-term
-                                         {:facet_Category active-filter})
-                :on-success [:search/save-results]}}
-
-     #_(if (some? active-filter)
-          ;;just turn on the loader
-         {:db (assoc-in db [:search-results :loading?] true)}
-          ;;hide the old results and turn on the loader
-         (let [resultless-db (assoc db :search-results (dissoc (:search-results db) :results))]
-           {:db (assoc-in resultless-db [:search-results :loading?] true)})))))
-
-(reg-event-db ::major-success
-              (fn [db [_ response]]
-                (js/console.log "response" response)
-                db))
-
-(reg-event-db :search/reset-quicksearch
-              (fn [db]
-                (assoc db :suggestion-results nil)))
-
-(defn is-active-result? [result active-filter]
-  "returns true is the result should be considered 'active' - e.g. if there is no filter at all, or if the result matches the active filter type."
-  (or
-   (= active-filter (oget result "type"))
-   (nil? active-filter)))
-
-(defn count-current-results [results filter]
-  "returns number of results currently shown, taking into account result limits nd filters"
-  (count
-   (remove
-    (fn [result]
-      (not (is-active-result? result filter))) results)))
-
-(reg-fx
- :load-more-results-if-needed
-  ;;output the results we have client side alredy (ie if a non-filtered search returns 100 results due to a limit, but indicates that there are 132 proteins in total, we'll show all the proteins we have when we filter down to just proteins, so the user might not even notice that we're fetching the rest in the background.)
-  ;;while the remote results are loading. Good for slow connections.
- (fn [{:keys [results active-filter facets keyword]}]
-   (let [filtered-result-count          (get (:category facets) active-filter)
-         more-filtered-results-to-show? (< (count-current-results results active-filter)
-                                           filtered-result-count)
-         more-results-than-max?         (<= (count-current-results results active-filter)
-                                            max-results)]
-     (cond (and more-filtered-results-to-show? more-results-than-max?)
-           (dispatch [:search/full-search keyword])))))
+                                         (merge
+                                          {:size results-batch-size}
+                                          (when active-filters?
+                                            (active-filters->facet-query filters))))
+                :on-success [:search/save-results
+                             {:new-search? new-search?
+                              :active-filter? active-filters?
+                              :removed-filter? removed-filter?}]}})))
 
 (reg-event-fx
  :search/set-active-filter
- (fn [{:keys [db]} [_ filter]]
-   (let [new-db (-> (assoc-in db [:search-results :active-filter] filter)
-                    (assoc-in [:search :selected-results] #{}))]
-     {:db new-db
-      :load-more-results-if-needed (:search-results new-db)})))
+ (fn [{db :db} [_ facet-name filter-name]]
+   ;; There used to be code here that checked whether all the results of the
+   ;; filter were already present in the results, and therefore didn't actually
+   ;; trigger a request. Now that we have added more filters however, it's not
+   ;; practical to take this into our own hands, so we just gotta take what the
+   ;; server gives us.
+   {:db (-> db
+            (assoc-in [:search-results :active-filters facet-name] filter-name)
+            (assoc-in [:search :selected-results] #{}))
+    :dispatch [:search/full-search (get-in db [:search-results :keyword])]}))
 
 (reg-event-fx
  :search/remove-active-filter
- (fn [{:keys [db]}]
-   {:db (update db :search-results dissoc :active-filter)
-    :dispatch [:search/full-search (-> db :search-results :keyword)]}))
+ (fn [{:keys [db]} [_ facet]]
+   {:db (if facet
+          (update-in db [:search-results :active-filters] dissoc facet)
+          ;; Clear the entire active-filters map if no facet specified.
+          (assoc-in db [:search-results :active-filters] {}))
+    :dispatch [:search/full-search (-> db :search-results :keyword) true]}))
 
 (reg-event-fx
  :search/to-results
  (fn [{:keys [db]}]
-   (let [object-type    (get-in db [:search-results :active-filter])
-         ids            (reduce (fn [result-ids result] (conj result-ids (oget result :id))) [] (get-in db [:search :selected-results]))
-         current-mine   (:current-mine db)
-         summary-fields (get-in db [:assets :summary-fields current-mine (keyword object-type)])]
-     {:db db
-      :dispatch [:results/history+
+   (let [filters      (get-in db [:search-results :active-filters])
+         object-type  (:Category filters :Gene)
+         ids          (mapv :id (get-in db [:search :selected-results]))
+         current-mine (:current-mine db)
+         summary-fields (get-in db [:assets :summary-fields current-mine object-type])]
+     {:dispatch [:results/history+
                  {:source current-mine
                   :type :query
                   :value {:title "Search Results"
-                          :from object-type
+                          :from (name object-type)
                           :select summary-fields
-                          :where [{:path (str object-type ".id")
+                          :where [{:path (str (name object-type) ".id")
                                    :op "ONE OF"
                                    :values ids}]}}]})))
 
-(reg-event-db :search/highlight-results
-              (fn [db [_ highlight?]]
-                (assoc-in db [:search-results :highlight-results] highlight?)))
+(reg-event-db
+ :search/highlight-results
+ (fn [db [_ highlight?]]
+   (assoc-in db [:search-results :highlight-results] highlight?)))
 
 (reg-event-db
  :search/select-result
@@ -166,3 +211,84 @@
  :search/deselect-result
  (fn [db [_ result]]
    (update-in db [:search :selected-results] disj result)))
+
+(declare scrolled-past?)
+
+(reg-event-fx
+ :search/save-more-results
+ (fn [{db :db} [_ {:keys [results]}]]
+   ;; You may think it very sneaky to dispatch an event from a setTimeout
+   ;; callback, but this is to counter very eager scrollers whom sit at the
+   ;; bottom of the page before rateLimit has a chance to reset. This means we
+   ;; need to check their scroll position once we're sure the results have been
+   ;; added to the DOM, lest we keep them waiting for the rest of their lives!
+   (js/setTimeout (fn []
+                    (when (scrolled-past?)
+                      (dispatch [:search/more-results])))
+                  1000)
+   {:db (-> db
+            (assoc-in [:search-results :loading-more?] false)
+            (update-in [:search-results :results] into results))}))
+
+(reg-event-fx
+ :search/more-results
+ (fn [{db :db} [_]]
+   (let [{filters :active-filters, results :results, loading-more? :loading-more?
+          total :count, search-term :keyword} (:search-results db)
+         connection (get-in db [:mines (get db :current-mine) :service])]
+     (if (and (< (count results) total)
+              (not loading-more?))
+       {:db (assoc-in db [:search-results :loading-more?] true)
+        :im-chan {:chan (fetch/quicksearch connection
+                                           search-term
+                                           (merge
+                                            {:size results-batch-size
+                                             :start (* (int (/ (count results)
+                                                               results-batch-size))
+                                                       results-batch-size)}
+                                            (when (some? (seq filters))
+                                              (active-filters->facet-query filters))))
+                  :on-success [:search/save-more-results]}}
+       {}))))
+
+(defn scrolled-past?
+  "Whether the user has scrolled past the point where we want to load more."
+  []
+  (let [scroll (.-scrollY js/window)
+        height (- (oget js/document :body :scrollHeight) (.-innerHeight js/window))
+        offset 500]
+    (> (+ scroll offset) height)))
+
+(let [limited-dispatch (rateLimit #(dispatch [:search/more-results]) 1000)]
+  (defn endless-scroll-handler
+    "Load more results when the user has scrolled far enough down the page.
+    Use rateLimit to only dispatch the event once for an interval."
+    [_e]
+    (when (scrolled-past?)
+      (limited-dispatch))))
+
+(reg-event-db
+ :search/save-scroll-position
+ (fn [db [_ scroll]]
+   (assoc-in db [:search-results :scroll] scroll)))
+
+(reg-event-fx
+ :search/restore-scroll-position
+ (fn [{db :db} [_]]
+   (let [scroll (get-in db [:search-results :scroll])]
+     (when (number? scroll)
+       (.scrollTo js/window 0 scroll))
+     {})))
+
+(reg-event-fx
+ :search/start-scroll-handling
+ (fn [_ [_]]
+   (.addEventListener js/window "scroll" endless-scroll-handler)
+   {}))
+
+(reg-event-fx
+ :search/stop-scroll-handling
+ (fn [_ [_]]
+   (.removeEventListener js/window "scroll" endless-scroll-handler)
+   (dispatch [:search/save-scroll-position (.-scrollY js/window)])
+   {}))

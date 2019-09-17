@@ -31,8 +31,8 @@
   (reagent/render [views/main-panel]
                   (ocall js/document "getElementById" "app")))
 
-(defn ^:export init [identity]
-  (re-frame/dispatch-sync [:boot (js->clj identity :keywordize-keys true)])
+(defn ^:export init []
+  (re-frame/dispatch-sync [:boot])
   ;(dev-setup)
   ; Initialize our bootstrap dropdowns
   (ocall (js/$ ".dropdown-toggle") :dropdown)

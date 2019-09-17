@@ -17,3 +17,12 @@
   (if-let [origin (:from query)]
     origin
     (first (split (first (:select query)) #"\."))))
+
+(defn kw->str
+  [kw]
+  (if (keyword? kw)
+    (str (namespace kw)
+         (when (namespace kw) "/")
+         (name kw))
+    (do (assert (string? kw) "This function takes only a keyword or string.")
+        kw)))

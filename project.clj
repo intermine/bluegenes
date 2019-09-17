@@ -1,4 +1,4 @@
-(def props {:version "0.9.9-SNAPSHOT"})
+(def props {:version "0.9.10"})
 
 (defproject org.intermine/bluegenes (:version props)
   :licence "LGPL-2.1-only"
@@ -60,11 +60,11 @@
 
                  [com.cemerick/friend "0.2.3"]
                  [clojusc/friend-oauth2 "0.2.0"]
-                 [com.cemerick/url "0.1.1"]
+                 [lambdaisland/uri "1.1.0"]
 
 
                  ; Intermine Assets
-                 [org.intermine/im-tables "0.8.2"]
+                 [org.intermine/im-tables "0.8.3"]
                  [org.intermine/imcljs "0.7.0"]
                  [org.intermine/bluegenes-tool-store "0.1.0"]]
 
@@ -111,8 +111,8 @@
                                   [cider/piggieback "0.4.1"]]
                    :resource-paths ["config/dev" "tools" "config/defaults"]
                    :plugins [[lein-figwheel "0.5.19"]
-                             [lein-doo "0.1.8"]]
-                   :source-paths ["env/dev"]}
+                             [lein-doo "0.1.8"]]}
+             :repl {:source-paths ["env/dev"]}
              :prod {:dependencies []
                     :resource-paths ["config/prod" "tools"  "config/defaults"]
                     :plugins []}

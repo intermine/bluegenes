@@ -14,7 +14,7 @@
   "Ring handler for handling authentication. Attempts to authenticate with the
   IM server (via web services) by fetching a token. If successful, return
   the token and store it in the session."
-  [{{username :username password :password service :service mine-id :mine-id} :params :as req}]
+  [{{:keys [username password service mine-id]} :params :as _req}]
   ; clj-http throws exceptions for 'bad' responses:
   (try
     ; Try to fetch a token from the InterMine server web service
@@ -28,7 +28,7 @@
        (response/ok whoami-with-token)
        (assoc :session {:identity whoami-with-token})))
     (catch Exception e
-      (let [{status :status body :body :as error} (ex-data e)]
+      (let [{:keys [status body] :as error} (ex-data e)]
         ; Parse the body of the bad request sent back from the IM server
         (let [json-response (cheshire/parse-string body)]
           (case status

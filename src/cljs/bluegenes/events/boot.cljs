@@ -1,8 +1,7 @@
 (ns bluegenes.events.boot
-  (:require [re-frame.core :refer [reg-event-db reg-event-fx subscribe]]
+  (:require [re-frame.core :refer [reg-event-db reg-event-fx subscribe inject-cofx]]
             [bluegenes.db :as db]
             [imcljs.fetch :as fetch]
-            [bluegenes.persistence :as persistence]
             [bluegenes.events.webproperties]
             [bluegenes.events.registry :as registry]
             [bluegenes.route :as route]))
@@ -92,18 +91,20 @@
 (defn init-mine-defaults
   "If this bluegenes instance is coupled with InterMine, load the intermine's
   config directly from env variables passed to bluegenes. Otherwise, create a
-  default mine config."
-  []
+  default mine config.
+  You can specify `:token my-token` if you want to reuse an existing token."
+  [& {:keys [token]}]
   (let [{:keys [serviceRoot mineName] :as serverVars}
         (:intermineDefaults (js->clj js/serverVars :keywordize-keys true))]
     (if (seq serverVars)
       {:id :default
        :name mineName
-       :service {:root serviceRoot}}
+       :service {:root serviceRoot
+                 :token token}}
       {:id :default
        :name nil
        :service {:root "http://www.flymine.org/flymine"
-                 :token nil}})))
+                 :token token}})))
 
 (defn wait-for-registry?
   [db]
@@ -117,33 +118,38 @@
 ;; Boot the application.
 (reg-event-fx
  :boot
- (fn [_world [_ provided-identity]]
-   (let [init-db
+ [(inject-cofx :local-store :bluegenes/state)]
+ (fn [cofx _]
+   (let [;; We have to set the db current-mine using `window.location` as the
+         ;; router won't have dispatched `:set-current-mine` before later on.
+         selected-mine (-> (.. js/window -location -pathname)
+                           (clojure.string/split #"/")
+                           second
+                           keyword)
+         init-db
          (-> db/default-db
              ;; Add default mine, either as is configured when attached to an
              ;; InterMine instance, or as an empty placeholder.
              (assoc-in [:mines :default] (init-mine-defaults))
-             ;; Store the user's identity map provided by the server
-             ;; via the client constructor
-             (update :auth
-                     assoc
-                     :thinking? false
-                     :identity provided-identity
-                     :message nil
-                     :error? false))
+             ;; Note that the final value of current-mine will have the
+             ;; following order of priority: pathname > localstorage > :default
+             (assoc :current-mine (or selected-mine :default)))
          ;; Get data previously persisted to local storage.
-         {:keys [current-mine mines assets version] :as state}
-         (persistence/get-state!)
+         {:keys [current-mine mines assets version] :as state} (:local-store cofx)
          ;; We always want `init-mine-defaults` to override the :default mine
          ;; saved in local storage, as a coupled intermine instance should
          ;; always take priority.
-         updated-mines (assoc mines :default (init-mine-defaults))
+         persisted-default-token (get-in state [:mines :default :service :token])
+         ;; The token for :default mine is a special case. The persisted map
+         ;; for :default will always be overwritten, so we pass it to
+         ;; init-mine-defaults here to put it back in there.
+         updated-mines (assoc mines :default (init-mine-defaults :token persisted-default-token))
          db (cond-> init-db
               ;; Only use data from local storage if it's non-empty and the
               ;; client version matches.
               (and (seq state)
                    (= bluegenes.core/version version))
-              (assoc :current-mine current-mine
+              (assoc :current-mine (or selected-mine current-mine)
                      :mines updated-mines
                      :assets assets
                      ;; This needs to be true so we can block `:set-active-panel`
@@ -164,12 +170,14 @@
    drosophila IDs are no longer valid when using humanmine."
   [db]
   ;; Perhaps we should consider settings `:assets` to `{}` here as well?
-  (dissoc db :regions :idresolver :results :qb :suggestion-results))
+  (dissoc db :regions :idresolver :results :qb
+          :suggestion-results ; Avoid showing old results belonging to previous mine.
+          :invalid-token?))  ; Clear invalid-token-alert.
 
 (reg-event-fx
  :reboot
  (fn [{db :db}]
-   {:db (remove-stateful-keys-from-db db)
+   {:db (assoc (remove-stateful-keys-from-db db) :fetching-assets? true)
     :async-flow (boot-flow (wait-for-registry? db))}))
 
 (reg-event-fx
@@ -218,31 +226,41 @@
 ;; Figure out how we're going to initialise authentication.
 (reg-event-fx
  :authentication/init
- (fn [{db :db} _]
-   (let [has-identity? (map? (get-in db [:auth :identity]))]
-     {:dispatch (if has-identity?
-                  [:authentication/store-token]
-                  [:authentication/fetch-anonymous-token])})))
+ [(inject-cofx :local-store :bluegenes/login)]
+ (fn [{db :db, login :local-store} _]
+   (let [current-mine (:current-mine db)
+         ;; Add any persisted login identities to their respective mines.
+         db (reduce (fn [db [mine-kw identity]]
+                      (assoc-in db [:mines mine-kw :auth :identity] identity))
+                    db login)]
+     (if-let [auth-token (get-in db [:mines current-mine :auth :identity :token])]
+       ;; The user has logged in previously. Re-use their identity!
+       {:db db
+        :dispatch [:authentication/store-token auth-token]}
+       (let [{:keys [token] :as service} (get-in db [:mines current-mine :service])]
+         (if (some? token)
+           ;; Use previously persisted anonymous token.
+           {:db db
+            :dispatch [:authentication/store-token nil true]}
+           ;; Get new anonymous token.
+           {:db db
+            :im-chan {:chan (fetch/session service)
+                      :on-success [:authentication/store-token]}}))))))
 
-; Store an authentication token for a given mine
+
+;; Store an authentication token for a given mine.
+
+
 (reg-event-db
  :authentication/store-token
- (fn [db _]
-   (let [mine-kw (:current-mine db)
-         token (get-in db [:auth :identity :token])]
-     (assoc-in db [:mines mine-kw :service :token] token))))
-
-; Fetch an anonymous token for a given mine
-(reg-event-fx
- :authentication/fetch-anonymous-token
- (fn [{db :db} _]
-   (let [mine-kw (:current-mine db)
-         ;; Re-use mine-kw if the mine exists, otherwise use default mine.
-         mine-name (if (contains? (get db :mines) mine-kw) mine-kw :default)
-         mine (dissoc (get-in db [:mines mine-name :service]) :token)]
-     {:db db
-      :im-chan {:on-success [:authentication/store-token]
-                :chan (fetch/session mine)}})))
+ (fn [db [_ token skip?]]
+   (if skip?
+     ;; This means tokens have been persisted, so we turn the event handler
+     ;; into a noop just so it gets observed for our boot-flow to progress.
+     db
+     (do (when (nil? token)
+           (.warn js/console "No token available. Nil token will be initialised."))
+         (assoc-in db [:mines (:current-mine db) :service :token] token)))))
 
 ; Fetch model
 (def preferred-tag "im:preferredBagType")
