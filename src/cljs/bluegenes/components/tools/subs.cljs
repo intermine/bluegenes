@@ -15,11 +15,11 @@
  ::suitable-tools
  :<- [::all-tools]
  :<- [::entity]
- :<- [:current-summary-fields]
- (fn [[tools entity fields]]
+ :<- [:model]
+ (fn [[tools entity model]]
    (let [{:keys [format class]} entity]
      (filter (fn [{{:keys [accepts classes depends]} :config :as _tool}]
                (and (contains? (set accepts) format)
                     (contains? (set classes) class)
-                    (every? #(contains? fields %) (map keyword depends))))
+                    (every? #(contains? model %) (map keyword depends))))
              tools))))
