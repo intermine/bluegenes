@@ -1,5 +1,5 @@
 (ns bluegenes.components.ui.alerts
-  (:require [re-frame.core :refer [subscribe dispatch dispatch-sync]]
+  (:require [re-frame.core :refer [subscribe dispatch]]
             [reagent.core :as r]))
 
 (defn npm-working-alert []
@@ -10,17 +10,17 @@
         [:span "An NPM tool operation is in progress..."]]])))
 
 (defn invalid-token-alert []
-  (let [invalid-tokens? (subscribe [:invalid-tokens?])]
-    (fn []
-      (if @invalid-tokens?
-        [:div.alert-container
-         [:div.alert.alert-danger
-          [:h3 "Debug: Your token has expired"]
-          [:p "It's likely that a remote InterMine server restarted and lost your anonymous token. Please refresh your browser to obtain a new one."]
-          [:button.btn.btn-default.btn-raised.pull-right
-           {:on-click (fn [] (dispatch-sync [:boot]))} "Refresh"]
-          [:div.clearfix]]]
-        [:span]))))
+  (let [invalid-token? (subscribe [:invalid-token?])]
+    (if @invalid-token?
+      [:div.alert-container
+       [:div.alert.alert-danger
+        [:h3 "Debug: Your token has expired"]
+        [:p "It's likely that a remote InterMine server restarted and lost your anonymous token. Please refresh your browser to obtain a new one."]
+        [:button.btn.btn-default.btn-raised.pull-right
+         {:on-click #(dispatch [:clear-invalid-token])}
+         "Refresh"]
+        [:div.clearfix]]]
+      [:span])))
 
 (defn message
   "A message component that dismisses itself after 5 seconds

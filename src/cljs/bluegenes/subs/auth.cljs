@@ -3,13 +3,15 @@
 
 (reg-sub
  ::auth
- (fn [db]
-   (get-in db [:auth])))
+ :<- [:current-mine]
+ (fn [current-mine]
+   (:auth current-mine)))
 
 (reg-sub
  ::identity
- (fn [db]
-   (get-in db [:auth :identity])))
+ :<- [::auth]
+ (fn [auth]
+   (:identity auth)))
 
 (reg-sub
  ::authenticated?

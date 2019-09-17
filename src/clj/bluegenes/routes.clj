@@ -18,8 +18,4 @@
     (context "/auth" [] auth/routes)
     (context "/ids" [] ids/routes))
 
-  (GET "*" req
-    ; The user might have an active session. Pass their identity to the client
-    ; to automatically log the user into the application:
-
-    (index/index (:identity (:session req)))))
+  (GET "*" [] (index/index)))

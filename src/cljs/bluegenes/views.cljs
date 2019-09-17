@@ -44,24 +44,20 @@
 
 ;; main
 
-
-(defmulti panels identity)
-(defmethod panels :home-panel [] [home/main])
-(defmethod panels :debug-panel [panel] [dev/debug-panel])
-(defmethod panels :templates-panel [] [templates/main])
-(defmethod panels :reportpage-panel [] [reportpage/main])
-(defmethod panels :upload-panel [] [idresolver/main])
-(defmethod panels :search-panel [] [search/main])
-(defmethod panels :results-panel [] [results/main])
-(defmethod panels :regions-panel [] [regions/main])
-(defmethod panels :mymine-panel [] [mymine/main])
-(defmethod panels :help-panel [] [help/main])
-(defmethod panels :querybuilder-panel [] [qb/main])
-(defmethod panels :default [] [home/main])
-
-(defn show-panel
-  [panel-name]
-  [panels panel-name])
+(defn show-panel [panel-name]
+  [(case panel-name
+     :home-panel         home/main
+     :debug-panel        dev/debug-panel
+     :templates-panel    templates/main
+     :reportpage-panel   reportpage/main
+     :upload-panel       idresolver/main
+     :search-panel       search/main
+     :results-panel      results/main
+     :regions-panel      regions/main
+     :mymine-panel       mymine/main
+     :help-panel         help/main
+     :querybuilder-panel qb/main
+     home/main)])
 
 (defn main-panel []
   (let [active-panel (re-frame/subscribe [:active-panel])

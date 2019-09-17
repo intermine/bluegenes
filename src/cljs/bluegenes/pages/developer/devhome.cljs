@@ -4,7 +4,6 @@
             [bluegenes.pages.developer.subs :as subs]
             [bluegenes.pages.developer.icons :as icons]
             [bluegenes.pages.developer.tools :as tools]
-            [bluegenes.persistence :as persistence]
             [clojure.string :refer [blank?]]
             [bluegenes.route :as route]))
 
@@ -80,7 +79,10 @@
        {:on-click
         (fn [e]
           (.preventDefault e)
-          (persistence/destroy!)
+          ;; The usual way you'd destroy state is with an event handler
+          ;; specifically for this, but since this is a "debugging" feature,
+          ;; and we want to reload the page after, will just do it directly.
+          (.removeItem js/localStorage ":bluegenes/state")
           (.reload js/document.location true))}
        "Delete bluegenes localstorage... for now."]]]))
 
