@@ -1,5 +1,5 @@
 (ns bluegenes.pages.developer.events
-  (:require [re-frame.core :refer [reg-event-fx]]
+  (:require [re-frame.core :refer [reg-event-fx reg-event-db]]
             [bluegenes.components.tools.events :as tools]
             [bluegenes.effects :as fx]))
 
@@ -74,11 +74,12 @@
      {:db (assoc-in db [:tools :npm-working?] true)
       ::fx/http request})))
 
-(reg-event-fx
+(reg-event-db
  ::success-tool
- (fn [{db :db} _]
-   {:dispatch [::tools/fetch-tools]
-    :db (assoc-in db [:tools :npm-working?] false)}))
+ (fn [db [_ {:keys [tools]}]]
+   (update db :tools assoc
+           :npm-working? false
+           :installed tools)))
 
 ;; This handler is primarily for the scenario where a different user is
 ;; performing some tool npm operation, causing the backend to reject this
