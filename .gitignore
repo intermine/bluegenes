@@ -7,7 +7,6 @@
 /resources/public/vendor
 /resources/public/css
 /resources/public/tools/*
-/tools/bluegenes**
 /cypress/screenshots
 /cypress/plugins
 /cypress/videos
@@ -28,3 +27,4 @@ package-lock.json
 prepros.cfg
 /env/
 /.clj-kondo/
+/tools/
