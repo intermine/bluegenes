@@ -66,9 +66,11 @@ and dispatches events depending on the status of that request's response."
               ; Swap the old value for the new value
               (swap! previous-requests assoc abort chan))
             (go
-              (let [{:keys [statusCode] :as response} (<! chan)]
-                (if (and statusCode (= statusCode 401))
-                  (dispatch [:flag-invalid-token])
+              (let [{:keys [statusCode status] :as response} (<! chan)]
+                (if (or (= statusCode 401) (= status 401))
+                  (if on-failure
+                    (dispatch (conj on-failure response))
+                    (dispatch [:flag-invalid-token]))
                   (dispatch (conj on-success response))))))))
 
 (defn http-fxfn

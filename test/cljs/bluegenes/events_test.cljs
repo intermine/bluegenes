@@ -5,7 +5,8 @@
             [day8.re-frame.test :refer-macros [run-test-sync run-test-async wait-for]]
             [bluegenes.events]
             [bluegenes.subs]
-            [imcljs.fetch :as fetch]))
+            [imcljs.fetch :as fetch]
+            [imcljs.auth :as auth]))
 
 ;; ## Tips on writing re-frame unit tests for the novice
 ;;
@@ -63,15 +64,28 @@
       (put! c v)
       c)))
 
+(def ^:private stubbed-variables
+  (atom '()))
+
+(rf/reg-event-db
+ :clear-db
+ (fn [_db] {}))
+
 (use-fixtures :each
-  {:after (fn []
-            (when (some? @stubbed-storage)
-              (reset! stubbed-storage nil)))})
+  {:before (fn []
+             (when (some? @stubbed-storage)
+               (reset! stubbed-storage nil))
+             (when-let [vars (seq @stubbed-variables)]
+               (doseq [restore-fn vars]
+                 (restore-fn))
+               (reset! stubbed-variables '()))
+             (rf/dispatch-sync [:clear-db]))})
 
 (deftest new-anonymous-token
   (run-test-async
    (stub-local-storage)
-   (with-redefs [fetch/session (stub-fetch-fn "stubbed-token")]
+   (with-redefs [fetch/session  (stub-fetch-fn "stubbed-token")
+                 auth/who-am-i? (stub-fetch-fn {})]
      (rf/dispatch-sync [:authentication/init])
      (wait-for [:authentication/store-token]
        (testing "fetch token when none present"
@@ -82,15 +96,17 @@
   (run-test-sync
    (stub-local-storage)
    (rf/dispatch [:authentication/store-token "existing-token"])
-   (rf/dispatch [:authentication/init])
-   (testing "reuse token when present"
-     (let [token @(rf/subscribe [:active-token])]
-       (is (= "existing-token" token))))))
+   (with-redefs [auth/who-am-i? (stub-fetch-fn {})]
+     (rf/dispatch [:authentication/init])
+     (testing "reuse token when present"
+       (let [token @(rf/subscribe [:active-token])]
+         (is (= "existing-token" token)))))))
 
 (deftest reuse-login-token
   (run-test-sync
    (stub-local-storage)
-   (with-redefs [fetch/lists (stub-fetch-fn [])]
+   (with-redefs [fetch/lists    (stub-fetch-fn [])
+                 auth/who-am-i? (stub-fetch-fn {})]
      (rf/dispatch [:bluegenes.events.auth/login-success
                    {:token "login-token"}])
      (rf/dispatch [:authentication/init])
@@ -99,10 +115,46 @@
          (is (= "login-token" token)))))))
 
 (deftest reuse-persisted-login-token
-  (run-test-sync
+  (run-test-async
    (stub-local-storage)
-   (rf/dispatch [:save-login nil {:token "persisted-token"}])
-   (rf/dispatch [:authentication/init])
-   (testing "use persisted login token"
-     (let [token @(rf/subscribe [:active-token])]
-       (is (= "persisted-token" token))))))
+   (rf/dispatch-sync [:save-login nil {:token "persisted-token"}])
+   (with-redefs [auth/who-am-i? (stub-fetch-fn {})]
+     (rf/dispatch-sync [:authentication/init])
+     (wait-for [:authentication/store-token]
+       (testing "use persisted login token"
+         (let [token @(rf/subscribe [:active-token])]
+           (is (= "persisted-token" token))))))))
+
+(deftest replace-invalid-token
+  (run-test-async
+   (stub-local-storage)
+   (let [orig-fn fetch/session]
+     (set! fetch/session (stub-fetch-fn "valid-token"))
+     (swap! stubbed-variables conj #(set! fetch/session orig-fn)))
+   (rf/dispatch-sync [:authentication/store-token "invalid-token"])
+   (with-redefs [auth/who-am-i? (stub-fetch-fn {:statusCode 401})]
+     (rf/dispatch-sync [:authentication/init])
+     (wait-for [:authentication/store-token]
+       (testing "replace token when invalid"
+         (let [token @(rf/subscribe [:active-token])]
+           (is (= "valid-token" token))))))))
+
+(deftest clear-invalid-login-token
+  (run-test-async
+   (stub-local-storage)
+   (let [orig-fn fetch/session]
+     (set! fetch/session (stub-fetch-fn "anon-token"))
+     (swap! stubbed-variables conj #(set! fetch/session orig-fn)))
+   (rf/dispatch-sync [:save-login nil {:token "login-token"}])
+   (with-redefs [auth/who-am-i? (stub-fetch-fn {:statusCode 401})]
+     (rf/dispatch-sync [:authentication/init])
+     (wait-for [:authentication/store-token]
+       (testing "clear login when invalid"
+         (let [authenticated? @(rf/subscribe [:bluegenes.subs.auth/authenticated?])]
+           (is (= false authenticated?))))
+       (testing "replace token with new anonymous token"
+         (let [token @(rf/subscribe [:active-token])]
+           (is (= "anon-token" token))))
+       (testing "remove invalid login from localstorage"
+         (let [login (get @stubbed-storage ":bluegenes/login")]
+           (is (empty? login))))))))
