@@ -261,8 +261,8 @@
      (cond-> {:im-chan {:chan (fetch/session (get-in db [:mines current-mine :service]))
                         :on-success [:authentication/store-token]}}
        clear-login? (->
-                        (assoc :db (update-in db [:mines current-mine] dissoc :auth))
-                        (assoc :dispatch [:remove-login current-mine]))))))
+                     (assoc :db (update-in db [:mines current-mine] dissoc :auth))
+                     (assoc :dispatch [:remove-login current-mine]))))))
 
 ;; Store an authentication token for a given mine.
 (reg-event-db
