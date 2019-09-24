@@ -52,8 +52,8 @@
 
 ;; This will be used to clear app-db between test runs.
 (rf/reg-event-db
-  :clear-db
-  (fn [_db] {}))
+ :clear-db
+ (fn [_db] {}))
 
 (def fixtures
   "Necessary fixtures to use the exports from this namespace.
@@ -64,6 +64,6 @@
                (reset! stubbed-storage nil))
              (when-let [vars (seq @stubbed-variables)]
                (doseq [restore-fn vars]
-                      (restore-fn))
+                 (restore-fn))
                (reset! stubbed-variables '()))
              (rf/dispatch-sync [:clear-db]))})
