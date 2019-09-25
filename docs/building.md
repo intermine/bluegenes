@@ -59,6 +59,20 @@ By default, the web server will be started on http://localhost:5000/. To change 
 
 ## Running tests
 
+### Unit tests
+
+You can run the ClojureScript unit tests by invoking the test runner kaocha.
+
+    lein kaocha
+
+Kaocha also has a watch mode that's useful when editing the tests.
+
+    lein kaocha --watch
+
+If you need something faster, evaluating `(cljs.test/run-tests)` from a connected editor would be even better. Although with async tests, you'll need some way of [having your editor report the results](https://clojurescript.org/tools/testing#detecting-test-completion-success).
+
+### Cypress integration tests
+
 Make sure BlueGenes is running by using `lein dev` or `lein prod`. (Preferably make sure they pass in *prod*, but *dev* can be useful for stack traces.)
 
 Run all the Cypress tests:

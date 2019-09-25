@@ -28,3 +28,4 @@ package-lock.json
 prepros.cfg
 /env/
 /.clj-kondo/
+/.cljs_node_repl/

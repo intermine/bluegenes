@@ -48,6 +48,7 @@
                  [binaryage/oops "0.7.0"]
                  [inflections "0.13.2"]
                  [cljsjs/google-analytics "2015.04.13-0"]
+                 [day8.re-frame/test "0.1.5"]
 
                  ; Logging
                  [com.taoensso/timbre "4.10.0"]
@@ -78,6 +79,8 @@
             [lein-pdo "0.1.1"]
             [lein-cljfmt "0.6.1"]]
 
+  :cljfmt {:indents {wait-for [[:inner 0]]}}
+
   :aliases {"dev" ["do" "clean"
                    ["pdo" ["figwheel" "dev"]
                     ["less" "auto"]
@@ -86,11 +89,14 @@
                      ["cljsbuild" "once" "min"]
                      ["less" "once"]]
             "prod" ["do" "build" ["pdo" ["run"]]]
-            "format" ["cljfmt" "fix"]}
+            "format" ["cljfmt" "fix"]
+            "kaocha" ["with-profile" "+kaocha" "run" "-m" "kaocha.runner"]}
 
   :min-lein-version "2.8.1"
 
   :source-paths ["src/clj" "src/cljs" "src/cljc" "src/workers" "script/"]
+
+  :test-paths ["test/cljs"]
 
   :clean-targets ^{:protect false} ["resources/public/js/compiled" "target"
                                     "resources/public/css"
@@ -112,6 +118,8 @@
                    :resource-paths ["config/dev" "tools" "config/defaults"]
                    :plugins [[lein-figwheel "0.5.19"]
                              [lein-doo "0.1.8"]]}
+             :kaocha {:dependencies [[lambdaisland/kaocha "0.0-541"]
+                                     [lambdaisland/kaocha-cljs "0.0-59"]]}
              :repl {:source-paths ["env/dev"]}
              :prod {:dependencies []
                     :resource-paths ["config/prod" "tools"  "config/defaults"]

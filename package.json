@@ -18,7 +18,10 @@
   "dependencies": {
     "@cljs-oss/module-deps": "^1.1.1",
     "bootstrap": "^3.3.7",
-    "bootstrap-material-design": "git+https://github.com/intermine/bootstrap-material-design.git#im-0.0.2"
+    "bootstrap-material-design": "git+https://github.com/intermine/bootstrap-material-design.git#im-0.0.2",
+    "isomorphic-ws": "^4.0.1",
+    "ws": "^7.1.2",
+    "xmlhttprequest": "^1.8.0"
   },
   "devDependencies": {
     "cypress": "^3.4.0"
