@@ -5,7 +5,8 @@
             [imcljs.auth :as auth]
             [bluegenes.events.webproperties]
             [bluegenes.events.registry :as registry]
-            [bluegenes.route :as route]))
+            [bluegenes.route :as route]
+            [oops.core :refer [oget]]))
 
 (defn boot-flow
   "Produces a set of re-frame instructions that load all of InterMine's assets into BlueGenes
@@ -95,9 +96,9 @@
   default mine config.
   You can specify `:token my-token` if you want to reuse an existing token."
   [& {:keys [token]}]
-  (let [{:keys [serviceRoot mineName] :as serverVars}
-        (:intermineDefaults (js->clj js/serverVars :keywordize-keys true))]
-    (if (seq serverVars)
+  (let [serviceRoot (oget js/serverVars :serviceRoot)
+        mineName    (oget js/serverVars :mineName)]
+    (if serviceRoot
       {:id :default
        :name mineName
        :service {:root serviceRoot
@@ -207,8 +208,7 @@
 (reg-event-fx
  :start-analytics
  (fn [{db :db}]
-   (let [analytics-id (:googleAnalytics
-                       (js->clj js/serverVars :keywordize-keys true))
+   (let [analytics-id (oget js/serverVars :googleAnalytics)
          analytics-enabled? (not (clojure.string/blank? analytics-id))]
      (if analytics-enabled?
         ;;set tracker up if we have a tracking id
