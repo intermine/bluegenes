@@ -264,12 +264,18 @@
                      (assoc :dispatch [:remove-login current-mine]))))))
 
 ;; Store an authentication token for a given mine.
-(reg-event-db
+(reg-event-fx
  :authentication/store-token
- (fn [db [_ token]]
-   (when (nil? token)
-     (.warn js/console "No token available. Nil token will be initialised."))
-   (assoc-in db [:mines (:current-mine db) :service :token] token)))
+ (fn [{db :db} [_ token]]
+   (let [current-mine (:current-mine db)]
+     (cond-> {:db (assoc-in db [:mines current-mine :service :token] token)}
+       (nil? token)
+       (assoc :dispatch
+              (let [service-root (get-in db [:mines current-mine :service :root])]
+                [:messages/add
+                 {:markup [:span (str "Failed to acquire token. It's likely that you have no connection to the InterMine instance at \"" service-root "\".")]
+                  :style "danger"
+                  :timeout 0}]))))))
 
 ; Fetch model
 (def preferred-tag "im:preferredBagType")
