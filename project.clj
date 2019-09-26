@@ -89,6 +89,7 @@
                      ["cljsbuild" "once" "min"]
                      ["less" "once"]]
             "prod" ["do" "build" ["pdo" ["run"]]]
+            "deploy" ["with-profile" "+uberjar" "deploy"]
             "format" ["cljfmt" "fix"]
             "kaocha" ["with-profile" "+kaocha" "run" "-m" "kaocha.runner"]}
 
