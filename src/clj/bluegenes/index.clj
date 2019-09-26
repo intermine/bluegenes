@@ -1,7 +1,7 @@
 (ns bluegenes.index
   (:require [hiccup.page :refer [include-js include-css html5]]
             [config.core :refer [env]]
-            [cheshire.core :as json]))
+            [cheshire.core :refer [generate-string]]))
 
 ;; Hello dear maker of the internet. You want to edit *this* file for prod,
 ;; NOT resources/public/index.html.
@@ -40,11 +40,11 @@
    [:meta {:content "width=device-width, initial-scale=1", :name "viewport"}]
    ;;outputting clj-based vars for use in the cljs:
    [:script
-    (str "var serverVars = {"
-         (when-let [s (:google-analytics env)]               (str "googleAnalytics: '" s "',"))
-         (when-let [s (:bluegenes-default-service-root env)] (str "serviceRoot: '" s "',"))
-         (when-let [s (:bluegenes-default-mine-name env)]    (str "mineName: '" s "',"))
-         "};")]
+    (str "var serverVars="
+         (generate-string {:googleAnalytics (:google-analytics env)
+                           :serviceRoot     (:bluegenes-default-service-root env)
+                           :mineName        (:bluegenes-default-mine-name env)})
+         ";")]
   ; Javascript:
    [:link {:rel "shortcut icon" :href "https://raw.githubusercontent.com/intermine/design-materials/f5f00be4/logos/intermine/fav32x32.png" :type "image/png"}]
    [:script {:src "http://cdn.intermine.org/js/intermine/imjs/3.15.0/im.min.js"}]

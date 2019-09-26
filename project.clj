@@ -49,6 +49,7 @@
                  [inflections "0.13.2"]
                  [cljsjs/google-analytics "2015.04.13-0"]
                  [day8.re-frame/test "0.1.5"]
+                 [cljs-bean "1.4.0"]
 
                  ; Logging
                  [com.taoensso/timbre "4.10.0"]
