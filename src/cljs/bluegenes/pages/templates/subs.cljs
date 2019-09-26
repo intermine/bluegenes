@@ -15,14 +15,7 @@
 (reg-sub
  :templates
  (fn [db _]
-   (let [template-packages
-         (reduce
-          (fn [total [mine-kw templates]]
-            (doall (reduce
-                    (fn [t [name query]]
-                      (assoc t (keyword mine-kw name) query)) total templates)))
-          {} (seq (get-in db [:assets :templates])))]
-     template-packages)))
+   (get-in db [:assets :templates (:current-mine db)])))
 
 (reg-sub
  :template-chooser/count
