@@ -96,8 +96,8 @@
   default mine config.
   You can specify `:token my-token` if you want to reuse an existing token."
   [& {:keys [token]}]
-  (let [serviceRoot (oget js/serverVars :serviceRoot)
-        mineName    (oget js/serverVars :mineName)]
+  (let [serviceRoot (oget js/serverVars :?serviceRoot)
+        mineName    (oget js/serverVars :?mineName)]
     (if serviceRoot
       {:id :default
        :name mineName
@@ -208,7 +208,7 @@
 (reg-event-fx
  :start-analytics
  (fn [{db :db}]
-   (let [analytics-id (oget js/serverVars :googleAnalytics)
+   (let [analytics-id (oget js/serverVars :?googleAnalytics)
          analytics-enabled? (not (clojure.string/blank? analytics-id))]
      (if analytics-enabled?
         ;;set tracker up if we have a tracking id
