@@ -5,7 +5,8 @@
             [imcljs.auth :as auth]
             [bluegenes.events.webproperties]
             [bluegenes.events.registry :as registry]
-            [bluegenes.route :as route]))
+            [bluegenes.route :as route]
+            [cljs-bean.core :refer [->clj]]))
 
 (defn boot-flow
   "Produces a set of re-frame instructions that load all of InterMine's assets into BlueGenes
@@ -95,9 +96,8 @@
   default mine config.
   You can specify `:token my-token` if you want to reuse an existing token."
   [& {:keys [token]}]
-  (let [{:keys [serviceRoot mineName] :as serverVars}
-        (:intermineDefaults (js->clj js/serverVars :keywordize-keys true))]
-    (if (seq serverVars)
+  (let [{:keys [serviceRoot mineName]} (->clj js/serverVars)]
+    (if serviceRoot
       {:id :default
        :name mineName
        :service {:root serviceRoot
@@ -207,8 +207,7 @@
 (reg-event-fx
  :start-analytics
  (fn [{db :db}]
-   (let [analytics-id (:googleAnalytics
-                       (js->clj js/serverVars :keywordize-keys true))
+   (let [analytics-id (:googleAnalytics (->clj js/serverVars))
          analytics-enabled? (not (clojure.string/blank? analytics-id))]
      (if analytics-enabled?
         ;;set tracker up if we have a tracking id
@@ -265,12 +264,18 @@
                      (assoc :dispatch [:remove-login current-mine]))))))
 
 ;; Store an authentication token for a given mine.
-(reg-event-db
+(reg-event-fx
  :authentication/store-token
- (fn [db [_ token]]
-   (when (nil? token)
-     (.warn js/console "No token available. Nil token will be initialised."))
-   (assoc-in db [:mines (:current-mine db) :service :token] token)))
+ (fn [{db :db} [_ token]]
+   (let [current-mine (:current-mine db)]
+     (cond-> {:db (assoc-in db [:mines current-mine :service :token] token)}
+       (nil? token)
+       (assoc :dispatch
+              (let [service-root (get-in db [:mines current-mine :service :root])]
+                [:messages/add
+                 {:markup [:span (str "Failed to acquire token. It's likely that you have no connection to the InterMine instance at \"" service-root "\".")]
+                  :style "danger"
+                  :timeout 0}]))))))
 
 ; Fetch model
 (def preferred-tag "im:preferredBagType")
