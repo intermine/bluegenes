@@ -83,13 +83,14 @@
   :cljfmt {:indents {wait-for [[:inner 0]]}}
 
   :aliases {"dev" ["do" "clean"
-                   ["pdo" ["figwheel" "dev"]
-                    ["less" "auto"]
-                    ["run"]]]
+                   ["less" "once"]
+                   ["trampoline" "run"]
+                   ["trampoline" "figwheel" "dev"]]
             "build" ["do" "clean"
-                     ["cljsbuild" "once" "min"]
-                     ["less" "once"]]
-            "prod" ["do" "build" ["pdo" ["run"]]]
+                     ["less" "once"]
+                     ["cljsbuild" "once" "min"]]
+            "prod" ["do" "build"
+                    ["with-profile" "prod" "run"]]
             "deploy" ["with-profile" "+uberjar" "deploy"]
             "format" ["cljfmt" "fix"]
             "kaocha" ["with-profile" "+kaocha" "run" "-m" "kaocha.runner"]}
@@ -123,13 +124,11 @@
              :kaocha {:dependencies [[lambdaisland/kaocha "0.0-541"]
                                      [lambdaisland/kaocha-cljs "0.0-59"]]}
              :repl {:source-paths ["env/dev"]}
-             :prod {:dependencies []
-                    :resource-paths ["config/prod" "tools"  "config/defaults"]
-                    :plugins []}
+             :prod {:resource-paths ["config/prod" "tools" "config/defaults"]}
              :uberjar {:resource-paths ["config/prod" "config/defaults"]
-                       :prep-tasks ["clean" ["less" "once"] ["cljsbuild" "once" "min"] "compile"]
+                       :prep-tasks ["build" "compile"]
                        :aot :all}
-             :java9 {  :jvm-opts ["--add-modules" "java.xml.bind"]}}
+             :java9 {:jvm-opts ["--add-modules" "java.xml.bind"]}}
 
   :cljsbuild {:builds {:dev {:source-paths ["src/cljs"]
                              :figwheel {:on-jsload "bluegenes.core/mount-root"}
