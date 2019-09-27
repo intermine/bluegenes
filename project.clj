@@ -83,17 +83,21 @@
   :cljfmt {:indents {wait-for [[:inner 0]]}}
 
   :aliases {"dev" ["do" "clean"
-                   ["less" "once"]
-                   ["trampoline" "run"]
-                   ["trampoline" "figwheel" "dev"]]
+                   ["pdo"
+                    ["less" "auto"]
+                    ["run"]]]
+            "repl" ["do" "clean"
+                    ["pdo"
+                     ["less" "auto"]
+                     ["repl"]]]
             "build" ["do" "clean"
                      ["less" "once"]
-                     ["cljsbuild" "once" "min"]]
+                     ["with-profile" "prod" "cljsbuild" "once" "min"]]
             "prod" ["do" "build"
                     ["with-profile" "prod" "run"]]
-            "deploy" ["with-profile" "+uberjar" "deploy"]
+            "deploy" ["with-profile" "+uberjar" "deploy" "clojars"]
             "format" ["cljfmt" "fix"]
-            "kaocha" ["with-profile" "+kaocha" "run" "-m" "kaocha.runner"]}
+            "kaocha" ["with-profile" "kaocha" "run" "-m" "kaocha.runner"]}
 
   :min-lein-version "2.8.1"
 
@@ -112,7 +116,8 @@
   :less {:source-paths ["less"]
          :target-path "resources/public/css"}
 
-  :repl-options {:nrepl-middleware [cider.piggieback/wrap-cljs-repl]}
+  :repl-options {:nrepl-middleware [cider.piggieback/wrap-cljs-repl]
+                 :init (-main)}
 
   :profiles {:dev {:dependencies [[binaryage/devtools "0.9.10"]
                                   [day8.re-frame/re-frame-10x "0.4.2"]
@@ -120,10 +125,11 @@
                                   [cider/piggieback "0.4.1"]]
                    :resource-paths ["config/dev" "tools" "config/defaults"]
                    :plugins [[lein-figwheel "0.5.19"]
-                             [lein-doo "0.1.8"]]}
+                             [lein-doo "0.1.8"]]
+                   :source-paths ["dev"]}
              :kaocha {:dependencies [[lambdaisland/kaocha "0.0-541"]
                                      [lambdaisland/kaocha-cljs "0.0-59"]]}
-             :repl {:source-paths ["env/dev"]}
+             :repl {:source-paths ["dev"]}
              :prod {:resource-paths ["config/prod" "tools" "config/defaults"]}
              :uberjar {:resource-paths ["config/prod" "config/defaults"]
                        :prep-tasks ["build" "compile"]
