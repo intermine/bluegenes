@@ -8,10 +8,22 @@
 * Latest supported [npm](https://www.npmjs.com/)
 * InterMine version 1.8+ (version 2.0 recommended)
 
-
 ## Download NPM dependencies
 
     npm install
+
+## Quickstart
+
+These commands are explained in more depth below, but if you know what you want here's a quick reference of the most useful ones.
+
+    lein dev         # start dev server with hot-reloading
+    lein repl        # start dev server with hot-reloading and nrepl
+    lein prod        # start prod server
+    lein deploy      # build prod release and deploy to clojars
+
+    lein format      # run cljfmt to fix code indentation
+    lein kaocha      # run unit tests
+    npx cypress run  # run cypress ui tests
 
 ## Running a dev environment
 
@@ -40,8 +52,10 @@ Note: even that you will not see a prompt telling you when it's complete, the br
 
 ### Make Leiningen reload code changes in the browser
 
+
     lein figwheel dev
 
+Note: if you use `lein run` or any alias calling it like `dev` or `repl`, Figwheel will be started automatically.
 
 ### Start the web server
 
@@ -91,9 +105,10 @@ Most of the time, we develop with uncompressed files - it's faster for hot reloa
 
 Sometimes the Closure compiler is overzealous and removes something we actually wanted to keep. To check what your work looks like in a minified build, run this in the terminal (I'd recommend closing any existing lein run / lein figwheel sessions first).
 
-    lein cljsbuild once min + lein run
+    lein with-profile prod cljsbuild once min
+    lein with-profile prod run
 
-There is also a shortcut:
+There is also a shortcut that in addition cleans and compiles CSS.
 
     lein prod
 
@@ -138,11 +153,9 @@ Official BlueGenes releases can be deployed to [Clojars](https://clojars.org/), 
 
 When deploying BlueGenes to Clojars, the JAR file should include all compiled assets: this includes JavaScript, less, and vendor libraries. This allows other projects to include BlueGenes as a dependency and deploy the client and server without needing to compile BlueGenes.
 
-To deploy a compiled JAR to clojars, include the `uberjar` profile when running the `lein deploy clojars` command:
+To deploy a compiled JAR to Clojars, simply use the `deploy` alias which automatically includes the `uberjar` profile and targets Clojars.
 
-    $ lein with-profile +uberjar deploy clojars
-
-
+    $ lein deploy
 
 # Troubleshooting
 
