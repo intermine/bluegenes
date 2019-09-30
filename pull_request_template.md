@@ -1,6 +1,6 @@
 This text can be deleted when you are ready to make the pull request: 
 
-For each PR, please the following, if appropriate: 
+For each PR, please add the following, if appropriate: 
 
 - a brief description of what you have done
 - what issues it addresses, if any
