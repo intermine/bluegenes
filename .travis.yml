@@ -1,10 +1,15 @@
 language: java
 jdk: openjdk9
 sudo: required
+env:
+  global:
+    - BLUEGENES_DEFAULT_SERVICE_ROOT="http://localhost:8080/biotestmine"
 
-# Install lein - required to build the project
 before_script:
-  - export BLUEGENES_DEFAULT_SERVICE_ROOT="http://www.flymine.org/flymine"
+  # Setup biotestmine to test against
+  - git clone --single-branch --branch 'feature/support-biotestmine' --depth 1 https://github.com/uosl/ci-scripts.git server
+  - bash server/init-biotestmine.sh
+  # Install lein - required to build the project
   - wget https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein -O /tmp/lein
   - chmod +x /tmp/lein
   - export PATH=$PATH:/tmp/lein
