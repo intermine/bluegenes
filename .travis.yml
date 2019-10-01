@@ -1,6 +1,6 @@
 language: java
-sudo: required
-jdk: openjdk9
+sudo: true
+jdk: openjdk8
 services: postgresql
 env:
   global:
@@ -19,7 +19,7 @@ before_script:
   # check code is well formatted
   - lein cljfmt check
   # start server
-  - lein with-profile +java9 run &
+  - lein with-profile prod run &
   # install link validator bot for docs
   - gem install awesome_bot
   # install cypress dependencies
@@ -32,15 +32,15 @@ script:
   # Run unit tests
   - lein kaocha
   # Build CSS
-  - lein with-profile +java9 less once
+  - lein with-profile prod less once
   # ensure a minified build completes without error
-  - lein with-profile +java9 cljsbuild once min
+  - lein with-profile prod cljsbuild once min
   # run UI tests using Cypress
   - npx cypress run
   # check for the links in the documentation
   - awesome_bot docs/*.md --allow-dupe --allow-redirect -w localhost
   # build API docs
-  - lein with-profile +java9 codox
+  - lein with-profile prod codox
 
 # Deploys build API docs:
 deploy:
