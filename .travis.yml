@@ -8,8 +8,8 @@ env:
 
 before_script:
   # Setup biotestmine to test against
-  - git clone --single-branch --branch 'feature/support-biotestmine' --depth 1 https://github.com/uosl/ci-scripts.git server
-  - (cd server && bash init-biotestmine.sh)
+  - git clone git@github.com:intermine/ci-scripts.git
+  - (cd ci-scripts && bash init-biotestmine.sh)
   # Install lein - required to build the project
   - wget https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein -O /tmp/lein
   - chmod +x /tmp/lein

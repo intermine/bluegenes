@@ -117,7 +117,8 @@
          :target-path "resources/public/css"}
 
   :repl-options {:nrepl-middleware [cider.piggieback/wrap-cljs-repl]
-                 :init (-main)}
+                 :init (-main)
+                 :timeout 120000}
 
   :profiles {:dev {:dependencies [[binaryage/devtools "0.9.10"]
                                   [day8.re-frame/re-frame-10x "0.4.2"]
