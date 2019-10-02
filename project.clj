@@ -48,6 +48,8 @@
                  [binaryage/oops "0.7.0"]
                  [inflections "0.13.2"]
                  [cljsjs/google-analytics "2015.04.13-0"]
+                 [day8.re-frame/test "0.1.5"]
+                 [cljs-bean "1.4.0"]
 
                  ; Logging
                  [com.taoensso/timbre "4.10.0"]
@@ -65,7 +67,7 @@
 
                  ; Intermine Assets
                  [org.intermine/im-tables "0.8.3"]
-                 [org.intermine/imcljs "0.7.0"]
+                 [org.intermine/imcljs "1.0.0"]
                  [org.intermine/bluegenes-tool-store "0.1.0"]]
 
   :deploy-repositories {"clojars" {:sign-releases false}}
@@ -78,19 +80,30 @@
             [lein-pdo "0.1.1"]
             [lein-cljfmt "0.6.1"]]
 
+  :cljfmt {:indents {wait-for [[:inner 0]]}}
+
   :aliases {"dev" ["do" "clean"
-                   ["pdo" ["figwheel" "dev"]
+                   ["pdo"
                     ["less" "auto"]
                     ["run"]]]
+            "repl" ["do" "clean"
+                    ["pdo"
+                     ["less" "auto"]
+                     ["repl"]]]
             "build" ["do" "clean"
-                     ["cljsbuild" "once" "min"]
-                     ["less" "once"]]
-            "prod" ["do" "build" ["pdo" ["run"]]]
-            "format" ["cljfmt" "fix"]}
+                     ["less" "once"]
+                     ["with-profile" "prod" "cljsbuild" "once" "min"]]
+            "prod" ["do" "build"
+                    ["with-profile" "prod" "run"]]
+            "deploy" ["with-profile" "+uberjar" "deploy" "clojars"]
+            "format" ["cljfmt" "fix"]
+            "kaocha" ["with-profile" "kaocha" "run" "-m" "kaocha.runner"]}
 
   :min-lein-version "2.8.1"
 
   :source-paths ["src/clj" "src/cljs" "src/cljc" "src/workers" "script/"]
+
+  :test-paths ["test/cljs"]
 
   :clean-targets ^{:protect false} ["resources/public/js/compiled" "target"
                                     "resources/public/css"
@@ -103,7 +116,9 @@
   :less {:source-paths ["less"]
          :target-path "resources/public/css"}
 
-  :repl-options {:nrepl-middleware [cider.piggieback/wrap-cljs-repl]}
+  :repl-options {:nrepl-middleware [cider.piggieback/wrap-cljs-repl]
+                 :init (-main)
+                 :timeout 120000}
 
   :profiles {:dev {:dependencies [[binaryage/devtools "0.9.10"]
                                   [day8.re-frame/re-frame-10x "0.4.2"]
@@ -111,15 +126,16 @@
                                   [cider/piggieback "0.4.1"]]
                    :resource-paths ["config/dev" "tools" "config/defaults"]
                    :plugins [[lein-figwheel "0.5.19"]
-                             [lein-doo "0.1.8"]]}
-             :repl {:source-paths ["env/dev"]}
-             :prod {:dependencies []
-                    :resource-paths ["config/prod" "tools"  "config/defaults"]
-                    :plugins []}
+                             [lein-doo "0.1.8"]]
+                   :source-paths ["dev"]}
+             :kaocha {:dependencies [[lambdaisland/kaocha "0.0-541"]
+                                     [lambdaisland/kaocha-cljs "0.0-59"]]}
+             :repl {:source-paths ["dev"]}
+             :prod {:resource-paths ["config/prod" "tools" "config/defaults"]}
              :uberjar {:resource-paths ["config/prod" "config/defaults"]
-                       :prep-tasks ["clean" ["less" "once"] ["cljsbuild" "once" "min"] "compile"]
+                       :prep-tasks ["build" "compile"]
                        :aot :all}
-             :java9 {  :jvm-opts ["--add-modules" "java.xml.bind"]}}
+             :java9 {:jvm-opts ["--add-modules" "java.xml.bind"]}}
 
   :cljsbuild {:builds {:dev {:source-paths ["src/cljs"]
                              :figwheel {:on-jsload "bluegenes.core/mount-root"}

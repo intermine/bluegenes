@@ -15,14 +15,7 @@
 (reg-sub
  :templates
  (fn [db _]
-   (let [template-packages
-         (reduce
-          (fn [total [mine-kw templates]]
-            (doall (reduce
-                    (fn [t [name query]]
-                      (assoc t (keyword mine-kw name) query)) total templates)))
-          {} (seq (get-in db [:assets :templates])))]
-     template-packages)))
+   (get-in db [:assets :templates (:current-mine db)])))
 
 (reg-sub
  :template-chooser/count
@@ -99,10 +92,6 @@
  :selected-template
  (fn [db _]
    (get-in db [:components :template-chooser :selected-template])))
-
-(def ns->kw (comp keyword (fnil namespace :nil)))
-(def name->kw (comp keyword name))
-(def ns->vec (juxt ns->kw name->kw))
 
 (reg-sub
  :selected-template-category

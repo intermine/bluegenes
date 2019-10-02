@@ -54,7 +54,7 @@ describe("UI Test", function() {
         .should("be.gt", 0);
     });
     cy.get("div[class=template-list]").within(() => {
-      cy.get(":nth-child(2) > .col")
+      cy.get(":nth-child(3) > .col")
         .find("button")
         .contains("View >>")
         .click({ force: true });
@@ -63,19 +63,19 @@ describe("UI Test", function() {
     cy.get("@getData").should(xhr => {
       expect(xhr.status).to.equal(200);
     });
-    cy.get("select.constraint-chooser").eq(1).select("!=");
+    cy.get("select.constraint-chooser").select("!=");
   });
 
   it("Gives suggestion results when typing in search", function() {
     cy.get(".home .search").within(() => {
-      cy.get("input[class=typeahead-search]").type("eve");
+      cy.get("input[class=typeahead-search]").type("mal*");
       cy.get(".quicksearch-result").should("have.length", 5);
     });
   });
 
   it("Opens the search page to show search results", function() {
     cy.get(".home .search").within(() => {
-      cy.get("input[class=typeahead-search]").type("eve{enter}");
+      cy.get("input[class=typeahead-search]").type("mal*{enter}");
     });
     cy.url().should("include", "/search");
 
@@ -89,12 +89,13 @@ describe("UI Test", function() {
 
     cy.contains("Upload").click();
     cy.contains("Example").click();
+    cy.get("textarea").type(",ABRA,GBP,RIF,SERA,OAT,PCNA", { delay: 100 });
     cy.get("button")
       .contains("Continue")
       .click();
     cy.get(".save-list input")
       .clear()
-      .type(listName, { delay: 50 });
+      .type(listName, { delay: 100 });
 
     cy.server();
     cy.route("POST", "*/service/query/tolist").as("tolist");
@@ -103,6 +104,7 @@ describe("UI Test", function() {
       .contains("Save List")
       .click();
 
+    cy.wait(1000);
     cy.wait("@tolist");
 
     cy.contains("Data") .click();
@@ -153,5 +155,40 @@ describe("UI Test", function() {
       expect(xhr.status).to.equal(200);
     });
     cy.contains("demo@intermine.org");
+  });
+
+  it("Successfully clears invalid anonymous token using dialog", function() {
+    cy.server();
+    cy.route("GET", "*/service/search?*").as("getSearch");
+
+    cy.window().then(win => {
+      win.bluegenes.events.scrambleTokens();
+    });
+
+    cy.get(".home .search").within(() => {
+      cy.get("input[class=typeahead-search]").type("zen{enter}", { delay: 100 });
+    });
+
+    cy.wait("@getSearch");
+    cy.get("@getSearch").should(xhr => {
+      expect(xhr.status).to.equal(401);
+    });
+
+    cy.route("GET", "*/service/session?*").as("getSession");
+
+    cy.contains("Refresh").click();
+
+    cy.wait(1000);
+    cy.wait("@getSession");
+
+    cy.contains("Home").click();
+    cy.get(".home .search").within(() => {
+      cy.get("input[class=typeahead-search]").clear().type("adh{enter}", { delay: 100 });
+    });
+
+    cy.wait("@getSearch");
+    cy.get("@getSearch").should(xhr => {
+      expect(xhr.status).to.equal(200);
+    });
   });
 });

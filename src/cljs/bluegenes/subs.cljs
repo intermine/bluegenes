@@ -179,6 +179,12 @@
    (get-in db [:mines (get db :current-mine)])))
 
 (reg-sub
+ :active-token
+ :<- [:current-mine]
+ (fn [current-mine]
+   (get-in current-mine [:service :token])))
+
+(reg-sub
  :version
  (fn [db [_ mine-keyword]]
    (get-in db [:assets :intermine-version mine-keyword])))

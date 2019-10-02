@@ -2,9 +2,11 @@
   (:require [re-frame.core :refer [reg-event-db reg-event-fx subscribe inject-cofx]]
             [bluegenes.db :as db]
             [imcljs.fetch :as fetch]
+            [imcljs.auth :as auth]
             [bluegenes.events.webproperties]
             [bluegenes.events.registry :as registry]
-            [bluegenes.route :as route]))
+            [bluegenes.route :as route]
+            [cljs-bean.core :refer [->clj]]))
 
 (defn boot-flow
   "Produces a set of re-frame instructions that load all of InterMine's assets into BlueGenes
@@ -49,22 +51,22 @@
                       :assets/success-fetch-intermine-version
                       :assets/success-fetch-web-service-version]
              ;; Now finish setting up BlueGenes!
-             :dispatch-n (cond->
-                          [;; Verify InterMine web service version.
-                           [:verify-web-service-version]
-                           ;; Start Google Analytics.
-                           [:start-analytics]
-                           ;; Set a flag indicating all assets are fetched.
-                           [:finished-loading-assets]
-                           ;; Save the current state to local storage.
-                           [:save-state]
-                           ;; fetch-organisms doesn't always load before it is needed.
-                           ;; for example on a fresh load of the id resolver, I sometimes end up with
-                           ;; no organisms when I initialise the component. I have a workaround
-                           ;; so it doesn't matter in this case, but it is something to be aware of.
-                           [:cache/fetch-organisms]
-                           [:regions/select-all-feature-types]]
-                           (not wait-registry?) (conj [::registry/load-other-mines]))
+             :dispatch-n
+             (cond-> [;; Verify InterMine web service version.
+                      [:verify-web-service-version]
+                      ;; Start Google Analytics.
+                      [:start-analytics]
+                      ;; Set a flag indicating all assets are fetched.
+                      [:finished-loading-assets]
+                      ;; Save the current state to local storage.
+                      [:save-state]
+                      ;; fetch-organisms doesn't always load before it is needed.
+                      ;; for example on a fresh load of the id resolver, I sometimes end up with
+                      ;; no organisms when I initialise the component. I have a workaround
+                      ;; so it doesn't matter in this case, but it is something to be aware of.
+                      [:cache/fetch-organisms]
+                      [:regions/select-all-feature-types]]
+               (not wait-registry?) (conj [::registry/load-other-mines]))
              :halt? true}])})
 
 (defn im-tables-events-forwarder
@@ -94,9 +96,8 @@
   default mine config.
   You can specify `:token my-token` if you want to reuse an existing token."
   [& {:keys [token]}]
-  (let [{:keys [serviceRoot mineName] :as serverVars}
-        (:intermineDefaults (js->clj js/serverVars :keywordize-keys true))]
-    (if (seq serverVars)
+  (let [{:keys [serviceRoot mineName]} (->clj js/serverVars)]
+    (if serviceRoot
       {:id :default
        :name mineName
        :service {:root serviceRoot
@@ -206,8 +207,7 @@
 (reg-event-fx
  :start-analytics
  (fn [{db :db}]
-   (let [analytics-id (:googleAnalytics
-                       (js->clj js/serverVars :keywordize-keys true))
+   (let [analytics-id (:googleAnalytics (->clj js/serverVars))
          analytics-enabled? (not (clojure.string/blank? analytics-id))]
      (if analytics-enabled?
         ;;set tracker up if we have a tracking id
@@ -224,43 +224,58 @@
                   :analytics-id analytics-id})})))
 
 ;; Figure out how we're going to initialise authentication.
+;; There are 3 different cases we need to handle:
+;; - The user has logged in previously => Re-use their identity!
+;; - The user has a previously persisted anonymous token => Re-use that token!
+;; - The user has no persisted token => Get a new one!
+;; In the first 2 cases, we also have to make sure the token is still valid, so
+;; we use the who-am-i? service for this.
 (reg-event-fx
  :authentication/init
  [(inject-cofx :local-store :bluegenes/login)]
  (fn [{db :db, login :local-store} _]
    (let [current-mine (:current-mine db)
          ;; Add any persisted login identities to their respective mines.
-         db (reduce (fn [db [mine-kw identity]]
-                      (assoc-in db [:mines mine-kw :auth :identity] identity))
-                    db login)]
-     (if-let [auth-token (get-in db [:mines current-mine :auth :identity :token])]
-       ;; The user has logged in previously. Re-use their identity!
-       {:db db
-        :dispatch [:authentication/store-token auth-token]}
-       (let [{:keys [token] :as service} (get-in db [:mines current-mine :service])]
-         (if (some? token)
-           ;; Use previously persisted anonymous token.
-           {:db db
-            :dispatch [:authentication/store-token nil true]}
-           ;; Get new anonymous token.
-           {:db db
-            :im-chan {:chan (fetch/session service)
-                      :on-success [:authentication/store-token]}}))))))
+         db+logins  (reduce (fn [new-db [mine-kw identity]]
+                              (assoc-in new-db [:mines mine-kw :auth :identity] identity))
+                            db login)
+         auth-token (get-in db+logins [:mines current-mine :auth :identity :token])
+         service    (get-in db+logins [:mines current-mine :service])
+         anon-token (:token service)
+         token      (or auth-token anon-token)]
+     {:db db+logins
+      :im-chan (if token
+                 {:chan (auth/who-am-i? service token)
+                  :on-success [:authentication/store-token token]
+                  :on-failure [:authentication/invalid-token (boolean auth-token)]}
+                 {:chan (fetch/session service)
+                  :on-success [:authentication/store-token]})})))
 
+;; The token has likely expired, so we fetch a new one.
+;; We also clear the login token if it had expired.
+(reg-event-fx
+ :authentication/invalid-token
+ (fn [{db :db} [_ clear-login?]]
+   (let [current-mine (:current-mine db)]
+     (cond-> {:im-chan {:chan (fetch/session (get-in db [:mines current-mine :service]))
+                        :on-success [:authentication/store-token]}}
+       clear-login? (->
+                     (assoc :db (update-in db [:mines current-mine] dissoc :auth))
+                     (assoc :dispatch [:remove-login current-mine]))))))
 
 ;; Store an authentication token for a given mine.
-
-
-(reg-event-db
+(reg-event-fx
  :authentication/store-token
- (fn [db [_ token skip?]]
-   (if skip?
-     ;; This means tokens have been persisted, so we turn the event handler
-     ;; into a noop just so it gets observed for our boot-flow to progress.
-     db
-     (do (when (nil? token)
-           (.warn js/console "No token available. Nil token will be initialised."))
-         (assoc-in db [:mines (:current-mine db) :service :token] token)))))
+ (fn [{db :db} [_ token]]
+   (let [current-mine (:current-mine db)]
+     (cond-> {:db (assoc-in db [:mines current-mine :service :token] token)}
+       (nil? token)
+       (assoc :dispatch
+              (let [service-root (get-in db [:mines current-mine :service :root])]
+                [:messages/add
+                 {:markup [:span (str "Failed to acquire token. It's likely that you have no connection to the InterMine instance at \"" service-root "\".")]
+                  :style "danger"
+                  :timeout 0}]))))))
 
 ; Fetch model
 (def preferred-tag "im:preferredBagType")

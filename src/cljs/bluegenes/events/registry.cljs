@@ -18,10 +18,8 @@
 
 (reg-event-fx
  ::success-fetch-registry
- (fn [{db :db} [_ res]]
-   (let [;; extricate the mines from the deeply nested response object
-         mines (get-in res [:body :instances])
-         ;; they *were* in an array, but a map would be easier to reference mines
+ (fn [{db :db} [_ mines]]
+   (let [;; they *were* in an array, but a map would be easier to reference mines
          registry (into {} (comp (filter #(>= (js/parseInt (:api_version %) 10)
                                               min-intermine-version))
                                  (map (juxt (comp keyword :namespace) identity)))

@@ -245,8 +245,10 @@
 (reg-event-fx
  ::load-example
  (fn [{db :db} [_]]
-   (let [[t e] (first
-                (seq
-                 (get-in db [:mines
-                             (get db :current-mine) :idresolver-example])))]
-     {:dispatch [::reset (name t) e]})))
+   (let [ids (get-in db [:mines (:current-mine db) :idresolver-example])
+         ;; Prioritise getting a :Gene example, but if it doesn't exist,
+         ;; just fall back to taking the first example.
+         [class-type example] (if-let [gene-example (:Gene ids)]
+                                [:Gene gene-example]
+                                (first ids))]
+     {:dispatch [::reset (name class-type) example]})))

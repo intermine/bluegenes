@@ -203,15 +203,13 @@
    (assoc-in db [:mines (:current-mine db) :service :token] "faketoken")))
 
 (reg-event-db
- ;; IS THIS USED?
  :messages/add
- (fn [db [_ {:keys [markup style]}]]
-   (let [id (gensym)]
-     (assoc-in db [:messages id]
-               {:markup markup
-                :id id
-                :style style
-                :when (.getTime (js/Date.))}))))
+ (fn [db [_ props]]
+   (let [id (gensym)
+         msg (assoc props
+                    :id id
+                    :when (.getTime (js/Date.)))]
+     (assoc-in db [:messages id] msg))))
 
 (reg-event-db
  :messages/remove
