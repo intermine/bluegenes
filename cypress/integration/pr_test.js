@@ -54,7 +54,7 @@ describe("UI Test", function() {
         .should("be.gt", 0);
     });
     cy.get("div[class=template-list]").within(() => {
-      cy.get(":nth-child(2) > .col")
+      cy.get(":nth-child(3) > .col")
         .find("button")
         .contains("View >>")
         .click({ force: true });
@@ -63,19 +63,19 @@ describe("UI Test", function() {
     cy.get("@getData").should(xhr => {
       expect(xhr.status).to.equal(200);
     });
-    cy.get("select.constraint-chooser").eq(1).select("!=");
+    cy.get("select.constraint-chooser").select("!=");
   });
 
   it("Gives suggestion results when typing in search", function() {
     cy.get(".home .search").within(() => {
-      cy.get("input[class=typeahead-search]").type("eve");
+      cy.get("input[class=typeahead-search]").type("mal*");
       cy.get(".quicksearch-result").should("have.length", 5);
     });
   });
 
   it("Opens the search page to show search results", function() {
     cy.get(".home .search").within(() => {
-      cy.get("input[class=typeahead-search]").type("eve{enter}");
+      cy.get("input[class=typeahead-search]").type("mal*{enter}");
     });
     cy.url().should("include", "/search");
 
@@ -89,6 +89,7 @@ describe("UI Test", function() {
 
     cy.contains("Upload").click();
     cy.contains("Example").click();
+    cy.get("textarea").type(",ABRA,GBP,RIF,SERA,OAT,PCNA", { delay: 100 });
     cy.get("button")
       .contains("Continue")
       .click();
