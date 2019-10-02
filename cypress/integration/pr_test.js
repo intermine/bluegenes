@@ -112,7 +112,14 @@ describe("UI Test", function() {
     cy.contains(listName).parent().within(() => {
       cy.get("input[type=checkbox]").check();
     });
+
+    cy.route("DELETE", "*/service/lists*").as("deletelist");
+
     cy.contains("Delete").click();
+
+    cy.wait(1000);
+    cy.wait("@deletelist");
+
     cy.contains(listName).should("not.exist");
   });
 
