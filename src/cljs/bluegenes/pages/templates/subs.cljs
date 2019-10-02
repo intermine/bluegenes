@@ -93,10 +93,6 @@
  (fn [db _]
    (get-in db [:components :template-chooser :selected-template])))
 
-(def ns->kw (comp keyword (fnil namespace :nil)))
-(def name->kw (comp keyword name))
-(def ns->vec (juxt ns->kw name->kw))
-
 (reg-sub
  :selected-template-category
  (fn [db _]

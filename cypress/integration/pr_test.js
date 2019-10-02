@@ -68,14 +68,14 @@ describe("UI Test", function() {
 
   it("Gives suggestion results when typing in search", function() {
     cy.get(".home .search").within(() => {
-      cy.get("input[class=typeahead-search]").type("eve");
+      cy.get("input[class=typeahead-search]").type("mal*");
       cy.get(".quicksearch-result").should("have.length", 5);
     });
   });
 
   it("Opens the search page to show search results", function() {
     cy.get(".home .search").within(() => {
-      cy.get("input[class=typeahead-search]").type("eve{enter}");
+      cy.get("input[class=typeahead-search]").type("mal*{enter}");
     });
     cy.url().should("include", "/search");
 
@@ -89,6 +89,7 @@ describe("UI Test", function() {
 
     cy.contains("Upload").click();
     cy.contains("Example").click();
+    cy.get("textarea").type(",ABRA,GBP,RIF,SERA,OAT,PCNA", { delay: 100 });
     cy.get("button")
       .contains("Continue")
       .click();
