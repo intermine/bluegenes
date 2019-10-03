@@ -119,11 +119,16 @@ One of the easiest ways to deploy the prod minified version is to set up [Dokku]
 
 
 ### Minified deployment using dokku
-Once dokku is configured on your remote host, all you need to do to deploy a minified build is add the server as a remote and push to it:
 
-    git remote add my-awesome-server bluegenes@my-awesome-server.git
-    git push my-awesome-server master
+Once dokku is configured on your remote host, you'll need to add your public key, create a remote for your host and push to it:
 
+    # On your dokku host
+    sudo dokku ssh-keys:add your-user /path/to/your/public/key
+    # On your dev computer
+    git remote add dokku dokku@your-host:bluegenes
+    git push dokku master
+
+If you want to deploy a different branch, you can use `git push dokku dev:master` (replace *dev* with the branch you wish to deploy from).
 
 ### Uberjar
 
@@ -156,6 +161,16 @@ When deploying BlueGenes to Clojars, the JAR file should include all compiled as
 To deploy a compiled JAR to Clojars, simply use the `deploy` alias which automatically includes the `uberjar` profile and targets Clojars.
 
     $ lein deploy
+
+### Releasing a new version
+
+The release process is a combination of the above commands, with some additional steps. Generally, you'll want to do the following.
+
+1. Update the version number in **project.clj**.
+1. Commit this change and tag it using `git tag -a v1.0.0 -m "Release v1.0.0"`, replacing *1.0.0* with your version number.
+1. Push your commit and tag using `git push origin` followed by `git push origin v1.0.0` (again replace *1.0.0* with your version number). Make sure that you push to the intermine repository, not just your fork!
+1. Deploy a new uberjar to Clojars with `lein deploy`.
+1. Deploy the latest release to dokku with `git push dokku dev:master`.
 
 # Troubleshooting
 
