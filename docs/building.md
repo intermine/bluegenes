@@ -17,7 +17,7 @@
 These commands are explained in more depth below, but if you know what you want here's a quick reference of the most useful ones.
 
     lein dev         # start dev server with hot-reloading
-    lein repl        # start dev server with hot-reloading and nrepl
+    lein repl        # start dev server with hot-reloading and nrepl (no clean or css)
     lein prod        # start prod server
     lein deploy      # build prod release and deploy to clojars
 
