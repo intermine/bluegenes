@@ -1,4 +1,4 @@
-(def props {:version "0.9.10"})
+(def props {:version "0.9.11"})
 
 (defproject org.intermine/bluegenes (:version props)
   :licence "LGPL-2.1-only"
