@@ -1,10 +1,12 @@
 (ns bluegenes.pages.reportpage.events
-  (:require [re-frame.core :as re-frame :refer [reg-event-db reg-event-fx reg-fx dispatch subscribe]]
+  (:require [re-frame.core :as re-frame :refer [reg-event-db reg-event-fx]]
             [imcljs.fetch :as fetch]
-            [bluegenes.components.tools.events :as tools]))
+            [bluegenes.components.tools.events :as tools]
+            [bluegenes.effects :refer [document-title]]))
 
 (reg-event-db
  :handle-report-summary
+ [document-title]
  (fn [db [_ summary]]
    (-> db
        (assoc-in [:report :summary] summary)
