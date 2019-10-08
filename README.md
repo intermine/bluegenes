@@ -2,7 +2,7 @@
 
 # BlueGenes
 
-Travis: [![Build Status](https://travis-ci.org/intermine/bluegenes.svg?branch=dev)](https://travis-ci.org/intermine/bluegenes) GitLab: [![pipeline status](https://gitlab.com/yochannah/bluegenes/badges/dev/pipeline.svg)](https://gitlab.com/yochannah/bluegenes/commits/dev)
+Travis: [![Build Status](https://travis-ci.org/intermine/bluegenes.svg?branch=dev)](https://travis-ci.org/intermine/bluegenes) GitLab: [![pipeline status](https://gitlab.com/intermine/bluegenes/badges/dev/pipeline.svg)](https://gitlab.com/intermine/bluegenes/commits/dev)
 
 _An InterMine Web-based GUI_
 
