@@ -86,10 +86,6 @@
                    ["pdo"
                     ["less" "auto"]
                     ["run"]]]
-            "repl" ["do" "clean"
-                    ["pdo"
-                     ["less" "auto"]
-                     ["repl"]]]
             "build" ["do" "clean"
                      ["less" "once"]
                      ["with-profile" "prod" "cljsbuild" "once" "min"]]

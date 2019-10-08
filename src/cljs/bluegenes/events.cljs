@@ -91,6 +91,7 @@
    (let [mine-kw         (keyword mine)
          different-mine? (not= mine-kw (:current-mine db))
          done-booting?   (not (:fetching-assets? db))
+         not-home?       (not= (:active-panel db) :home-panel)
          in-registry?    (contains? (:registry db) mine-kw)
          in-mines?       (contains? (:mines db) mine-kw)
          mine-m          (get-in db [:registry mine-kw])]
@@ -104,6 +105,9 @@
                                          {:service {:root (:url mine-m)}
                                           :name (:name mine-m)
                                           :id mine-kw})
+         not-home?     (update :db assoc
+                               :active-panel :home-panel
+                               :panel-params nil)
          ;; We need to make sure to :reboot when switching mines.
          done-booting? (-> (assoc-in [:db :fetching-assets?] true)
                            (assoc :dispatch [:reboot])))
