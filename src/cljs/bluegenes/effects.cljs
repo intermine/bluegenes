@@ -1,9 +1,10 @@
 (ns bluegenes.effects
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
-  (:require [re-frame.core :refer [dispatch subscribe reg-fx reg-cofx]]
+  (:require [re-frame.core :as rf :refer [dispatch subscribe reg-fx reg-cofx]]
             [cljs.core.async :refer [<! close!]]
             [cljs-http.client :as http]
-            [cognitect.transit :as t]))
+            [cognitect.transit :as t]
+            [bluegenes.titles :refer [db->title]]))
 
 ;; Cofx and fx which you use from event handlers to read/write to localStorage.
 
@@ -38,6 +39,30 @@
    (fn [_ [_ my-cats]]
      {:persist [:my-cats my-cats]})))
 
+;; Interceptor and effect to set the title of the web page.
+
+(def document-title
+  "Interceptor that updates the document title based on db."
+  (rf/->interceptor
+   :id :document-title
+   :after (fn [context]
+            (let [db (get-in context [:effects :db])
+                  title (db->title db)]
+              (assoc-in context [:effects :document-title] title)))))
+
+(reg-fx
+ :document-title
+ (fn [title]
+   (set! (.-title js/document) title)))
+
+(comment
+  "To update the document title, add the interceptor to any event that may
+  update the db and warrant a change in the title. Make sure to place it
+  innermost if there are multiple interceptors (ie. `[foo document-title]`)."
+  (reg-event-fx
+   :my-event
+   [document-title]
+   (fn [] ...)))
 
 ;; See bottom of namespace for effect registrations and examples  on how to use them
 

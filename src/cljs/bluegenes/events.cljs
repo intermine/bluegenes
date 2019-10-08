@@ -16,7 +16,7 @@
             [bluegenes.components.search.events :as search-full]
             [bluegenes.pages.reportpage.events]
             [bluegenes.pages.querybuilder.events]
-            [bluegenes.effects]
+            [bluegenes.effects :refer [document-title]]
             [bluegenes.route :as route]
             [imcljs.fetch :as fetch]
             [imcljs.path :as im-path]
@@ -28,6 +28,7 @@
 ; Change the main panel to a new view
 (reg-event-fx
  :do-active-panel
+ [document-title]
  (fn [{db :db} [_ active-panel panel-params evt]]
    (cond-> {:db (assoc db
                        :active-panel active-panel
@@ -85,6 +86,7 @@
 ;;   registry, and makes sure to reboot when mine is switched after booting.
 (reg-event-fx
  :set-current-mine
+ [document-title]
  (fn [{db :db} [_ mine]]
    (let [mine-kw         (keyword mine)
          different-mine? (not= mine-kw (:current-mine db))
