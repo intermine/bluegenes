@@ -3,6 +3,8 @@
 variables:
   npm_config_cache: "$CI_PROJECT_DIR/.npm"
   CYPRESS_CACHE_FOLDER: "$CI_PROJECT_DIR/cache/Cypress"
+  POSTGRES_USER: postgres
+  POSTGRES_PASSWORD: ""
 
 # cache using branch name
 # https://gitlab.com/help/ci/caching/index.md
@@ -13,22 +15,29 @@ cache:
     - cache/Cypress
     - node_modules
 
+services:
+  - postgres:latest
+
 before_script:
   # Java install
   - apt-get update -y
-  - apt-get install default-jre -y
+  - apt-get install openjdk-8-jre -y
   # NPM/node install
   - curl -sL https://deb.nodesource.com/setup_11.x | bash -
   - apt-get install -y nodejs
   # required for cypress tests
   - apt-get install xvfb libgtk2.0-0 libnotify-dev libgconf-2-4 libnss3 libxss1 libasound2 -y
+  # Setup biotestmine to test against
+  - git clone https://github.com/intermine/ci-scripts
+  - (cd ci-scripts && bash init-biotestmine.sh)
   # Lein install
   - wget https://raw.githubusercontent.com/technomancy/leiningen/2.8.3/bin/lein
   - chmod a+x lein
   - export LEIN_ROOT=1
-  - export BLUEGENES_DEFAULT_SERVICE_ROOT="http://www.flymine.org/flymine"
+  - export BLUEGENES_DEFAULT_SERVICE_ROOT="http://localhost:8080/biotestmine"
   - PATH=$PATH:.
-  - lein with-profile +dev run &
+  - lein deps
+  - lein with-profile prod run &
   # Link Checker
   - gem install awesome_bot
 
@@ -44,9 +53,9 @@ build-and-ui-test:
     # Run unit tests
     - lein kaocha
     # Build CSS
-    - lein less once
+    - lein with-profile prod less once
     # ensure a minified build completes without error
-    - lein cljsbuild once min
+    - lein with-profile prod cljsbuild once min
     # run UI tests using Cypress
     # Getting cypress to run in a different stage made me nearly die inside
     # And then I gave up, because transferring the install files from the
@@ -74,6 +83,6 @@ docs:
   stage: test
   script:
     # build API docs
-    - lein codox
+    - lein with-profile prod codox
     # check for the links in the documentation
     - awesome_bot docs/*.md --allow-dupe --allow-redirect -w localhost
