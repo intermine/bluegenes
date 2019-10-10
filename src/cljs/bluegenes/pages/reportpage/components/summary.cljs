@@ -1,5 +1,6 @@
 (ns bluegenes.pages.reportpage.components.summary
-  (:require [re-frame.core :refer [subscribe dispatch]]))
+  (:require [re-frame.core :refer [subscribe dispatch]]
+            [bluegenes.pages.reportpage.subs :as subs]))
 
 (defn field []
   (fn [k v]
@@ -27,11 +28,20 @@
                                           new-vec)) [] (:views field-map))]
     (first identifier-columns)))
 
-(defn main []
-  (fn [field-map]
-    [:div.report-summary
-     [:div
-      [:h1 (str (:rootClass field-map) ": " (choose-title-column field-map))]]
-     (into [:div.fields] (map (fn [f v] [field f v])
-                              (:columnHeaders field-map)
-                              (first (:results field-map))))]))
+(defn fasta-entries []
+  (let [fasta               @(subscribe [::subs/fasta])
+        chromosome-location @(subscribe [::subs/chromosome-location])
+        fasta-length        @(subscribe [::subs/fasta-length])]
+    (when fasta
+      {"Chromosome location" chromosome-location
+       "FASTA length"        fasta-length})))
+
+(defn main [field-map]
+  [:div.report-summary
+   [:div
+    [:h1 (str (:rootClass field-map) ": " (choose-title-column field-map))]]
+   (let [entries (zipmap (:columnHeaders field-map)
+                         (first (:results field-map)))
+         all-entries (merge entries (fasta-entries))]
+     (into [:div.fields]
+           (map (fn [[f v]] [field f v]) all-entries)))])

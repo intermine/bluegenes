@@ -1,6 +1,7 @@
 (ns bluegenes.pages.reportpage.subs
   (:require [re-frame.core :refer [reg-sub]]
-            [imcljs.path :as im-path]))
+            [imcljs.path :as im-path]
+            [clojure.string :as string]))
 
 (reg-sub ::a-table
          (fn [db [_ location]]
@@ -86,3 +87,24 @@
                  non-empty-collections (filter (fn [c] (> (get-in model [:classes (keyword (:referencedType c)) :count]) 0)) collections)
                  non-empty-references (filter (fn [c] (> (get-in model [:classes (keyword (:referencedType c)) :count]) 0)) references)]
              (concat non-empty-references non-empty-collections))))
+
+(reg-sub
+ ::fasta
+ :<- [:report]
+ (fn [report]
+   (:fasta report)))
+
+(reg-sub
+ ::chromosome-location
+ :<- [::fasta]
+ (fn [fasta]
+   (second (string/split fasta #"[ \n]"))))
+
+(reg-sub
+ ::fasta-length
+ :<- [::fasta]
+ (fn [fasta]
+   (->> (string/split-lines fasta)
+        rest
+        (apply str)
+        count)))
