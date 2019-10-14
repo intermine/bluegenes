@@ -687,13 +687,16 @@
 
 (defn review-step []
   (let [resolution-response (subscribe [::subs/resolution-response])
+        in-progress? (subscribe [::subs/in-progress?])
         list-name (subscribe [::subs/list-name])
         stats (subscribe [::subs/stats])
         tab (subscribe [::subs/review-tab])]
     (fn []
       (let [{:keys [matches issues notFound converted duplicates all other]} @stats]
         (if (= nil @resolution-response)
-          [:div [loader]]
+          (if @in-progress?
+            [:div [loader]]
+            (dispatch [::route/navigate ::route/upload-step {:step "input"}]))
           [:div
            [:div.flex-progressbar
             [:div.title
@@ -843,8 +846,7 @@
       [:div.wizard
        [breadcrumbs (:step @panel-params)]
        [:div.wizard-body
-        (case
-         (:step @panel-params)
+        (case (:step @panel-params)
           :save [review-step]
           [upload-step])]])))
 

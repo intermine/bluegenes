@@ -91,12 +91,18 @@ and dispatches events depending on the status of that request's response."
               ; Swap the old value for the new value
               (swap! previous-requests assoc abort chan))
             (go
-              (let [{:keys [statusCode status] :as response} (<! chan)]
-                (if (or (= statusCode 401) (= status 401))
-                  (if on-failure
-                    (dispatch (conj on-failure response))
-                    (dispatch [:flag-invalid-token]))
-                  (dispatch (conj on-success response))))))))
+              (let [{:keys [statusCode status] :as response} (<! chan)
+                    ;; `statusCode` is part of the response body from InterMine.
+                    ;; `status` is part of the response map created by cljs-http.
+                    s (or statusCode status)]
+                (cond
+                  (< s 400) (dispatch (conj on-success response))
+                  (= s 401) (if on-failure
+                              (dispatch (conj on-failure response))
+                              (dispatch [:flag-invalid-token]))
+                  :else (if on-failure
+                          (dispatch (conj on-failure response))
+                          (.error js/console "Failed imcljs request" response))))))))
 
 (defn http-fxfn
   "The :http side effect is similar to :im-chan but is more generic and is used
