@@ -84,8 +84,8 @@
 
   :aliases {"dev" ["do" "clean"
                    ["pdo"
-                    ["less" "auto"]
-                    ["run"]]]
+                    ["trampoline" "less" "auto"]
+                    ["with-profile" "+repl" "run"]]]
             "build" ["do" "clean"
                      ["less" "once"]
                      ["with-profile" "prod" "cljsbuild" "once" "min"]]
@@ -122,8 +122,7 @@
                                   [cider/piggieback "0.4.1"]]
                    :resource-paths ["config/dev" "tools" "config/defaults"]
                    :plugins [[lein-figwheel "0.5.19"]
-                             [lein-doo "0.1.8"]]
-                   :source-paths ["dev"]}
+                             [lein-doo "0.1.8"]]}
              :kaocha {:dependencies [[lambdaisland/kaocha "0.0-541"]
                                      [lambdaisland/kaocha-cljs "0.0-59"]]}
              :repl {:source-paths ["dev"]}
