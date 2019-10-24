@@ -86,9 +86,9 @@
    (let [; Get the details of the current package
          {:keys [source type value] :as package} (get-in db [:results :queries title])
           ; Get the current model
-         model (get-in db [:mines source :service :model])
-         mine-name (get-in db [:mines source])
-         service (get-in db [:mines source :service])]
+         model          (get-in db [:mines source :service :model])
+         service        (get-in db [:mines source :service])
+         summary-fields (get-in db [:assets :summary-fields source])]
      (if (nil? package)
        ;; The query result doesn't exist. Fail gracefully!
        (do
@@ -112,7 +112,7 @@
                      [:enrichment/enrich]
                      [:im-tables/load
                       [:results :table]
-                      {:service service
+                      {:service (merge service {:summary-fields summary-fields})
                        :query value
                        :settings {:pagination {:limit 10}
                                   :links {:vocab {:mine (name source)}

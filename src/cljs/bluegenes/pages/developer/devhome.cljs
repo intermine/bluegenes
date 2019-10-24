@@ -86,6 +86,23 @@
           (.reload js/document.location true))}
        "Delete bluegenes localstorage... for now."]]]))
 
+(defn scrambled-eggs-and-token []
+  (let [token (subscribe [:active-token])]
+    (fn []
+      [:div.panel.container
+       [:h3 "Token"]
+       [:p "The current token for your current InterMine is:"]
+       [:pre @token]
+       [:p "Don't press the scramble token button unless you have been told to, or you're developing token-related code!"]
+       [:button.btn.btn-primary.btn-raised
+        {:type "button"
+         :on-click
+         (fn [e]
+           (.preventDefault e)
+           (.log js/console "%cscrambling dat token")
+           (dispatch [:scramble-tokens]))}
+        "Scramble token"]])))
+
 (defn debug-panel []
   (fn []
     (let [panel (subscribe [::subs/panel])]
@@ -96,6 +113,7 @@
                  [:h1 "Debug console"]
                  [mine-config]
                  [localstorage-destroyer]
+                 [scrambled-eggs-and-token]
                  [version-number]]
          "tool-store" [tools/tool-store]
          "icons" [icons/iconview])])))

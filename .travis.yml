@@ -1,10 +1,16 @@
 language: java
-jdk: openjdk9
-sudo: required
+sudo: true
+jdk: openjdk8
+services: postgresql
+env:
+  global:
+    - BLUEGENES_DEFAULT_SERVICE_ROOT="http://localhost:8080/biotestmine"
 
-# Install lein - required to build the project
 before_script:
-  - export BLUEGENES_DEFAULT_SERVICE_ROOT="http://www.flymine.org/flymine"
+  # Setup biotestmine to test against
+  - git clone https://github.com/intermine/ci-scripts
+  - (cd ci-scripts && bash init-biotestmine.sh)
+  # Install lein - required to build the project
   - wget https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein -O /tmp/lein
   - chmod +x /tmp/lein
   - export PATH=$PATH:/tmp/lein
@@ -13,7 +19,7 @@ before_script:
   # check code is well formatted
   - lein cljfmt check
   # start server
-  - lein with-profile +java9 run &
+  - lein with-profile prod run &
   # install link validator bot for docs
   - gem install awesome_bot
   # install cypress dependencies
@@ -23,16 +29,18 @@ before_script:
 script:
   # setup dependencies
   - npm install
+  # Run unit tests
+  - lein kaocha
   # Build CSS
-  - lein with-profile +java9 less once
+  - lein with-profile prod less once
   # ensure a minified build completes without error
-  - lein with-profile +java9 cljsbuild once min
+  - lein with-profile prod cljsbuild once min
   # run UI tests using Cypress
   - npx cypress run
   # check for the links in the documentation
   - awesome_bot docs/*.md --allow-dupe --allow-redirect -w localhost
   # build API docs
-  - lein with-profile +java9 codox
+  - lein with-profile prod codox
 
 # Deploys build API docs:
 deploy:

@@ -1,7 +1,6 @@
 (ns bluegenes.core
   (:require [reagent.core :as reagent]
             [re-frame.core :as re-frame]
-            [re-frisk.core :refer [enable-re-frisk!]]
             [bluegenes.utils]
             [im-tables.core]
             [bluegenes.events]
@@ -22,7 +21,6 @@
 ;(defn dev-setup []
 ;  (when config/debug?
 ;    (devtools/install!)
-;    (enable-re-frisk!)
 ;    (println "dev mode")))
 
 (defn mount-root []

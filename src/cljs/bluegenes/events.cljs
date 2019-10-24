@@ -16,7 +16,7 @@
             [bluegenes.components.search.events :as search-full]
             [bluegenes.pages.reportpage.events]
             [bluegenes.pages.querybuilder.events]
-            [bluegenes.effects]
+            [bluegenes.effects :refer [document-title]]
             [bluegenes.route :as route]
             [imcljs.fetch :as fetch]
             [imcljs.path :as im-path]
@@ -28,6 +28,7 @@
 ; Change the main panel to a new view
 (reg-event-fx
  :do-active-panel
+ [document-title]
  (fn [{db :db} [_ active-panel panel-params evt]]
    (cond-> {:db (assoc db
                        :active-panel active-panel
@@ -85,10 +86,12 @@
 ;;   registry, and makes sure to reboot when mine is switched after booting.
 (reg-event-fx
  :set-current-mine
+ [document-title]
  (fn [{db :db} [_ mine]]
    (let [mine-kw         (keyword mine)
          different-mine? (not= mine-kw (:current-mine db))
          done-booting?   (not (:fetching-assets? db))
+         not-home?       (not= (:active-panel db) :home-panel)
          in-registry?    (contains? (:registry db) mine-kw)
          in-mines?       (contains? (:mines db) mine-kw)
          mine-m          (get-in db [:registry mine-kw])]
@@ -102,6 +105,9 @@
                                          {:service {:root (:url mine-m)}
                                           :name (:name mine-m)
                                           :id mine-kw})
+         not-home?     (update :db assoc
+                               :active-panel :home-panel
+                               :panel-params nil)
          ;; We need to make sure to :reboot when switching mines.
          done-booting? (-> (assoc-in [:db :fetching-assets?] true)
                            (assoc :dispatch [:reboot])))
@@ -204,13 +210,12 @@
 
 (reg-event-db
  :messages/add
- (fn [db [_ {:keys [markup style]}]]
-   (let [id (gensym)]
-     (assoc-in db [:messages id]
-               {:markup markup
-                :id id
-                :style style
-                :when (.getTime (js/Date.))}))))
+ (fn [db [_ props]]
+   (let [id (gensym)
+         msg (assoc props
+                    :id id
+                    :when (.getTime (js/Date.)))]
+     (assoc-in db [:messages id] msg))))
 
 (reg-event-db
  :messages/remove

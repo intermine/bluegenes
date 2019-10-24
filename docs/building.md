@@ -8,10 +8,22 @@
 * Latest supported [npm](https://www.npmjs.com/)
 * InterMine version 1.8+ (version 2.0 recommended)
 
-
 ## Download NPM dependencies
 
     npm install
+
+## Quickstart
+
+These commands are explained in more depth below, but if you know what you want here's a quick reference of the most useful ones.
+
+    lein dev         # start dev server with hot-reloading
+    lein repl        # start dev server with hot-reloading and nrepl (no clean or css)
+    lein prod        # start prod server
+    lein deploy      # build prod release and deploy to clojars
+
+    lein format      # run cljfmt to fix code indentation
+    lein kaocha      # run unit tests
+    npx cypress run  # run cypress ui tests
 
 ## Running a dev environment
 
@@ -40,8 +52,10 @@ Note: even that you will not see a prompt telling you when it's complete, the br
 
 ### Make Leiningen reload code changes in the browser
 
+
     lein figwheel dev
 
+Note: if you use `lein run` or any alias calling it like `dev` or `repl`, Figwheel will be started automatically.
 
 ### Start the web server
 
@@ -58,6 +72,20 @@ By default, the web server will be started on http://localhost:5000/. To change 
 
 
 ## Running tests
+
+### Unit tests
+
+You can run the ClojureScript unit tests by invoking the test runner kaocha.
+
+    lein kaocha
+
+Kaocha also has a watch mode that's useful when editing the tests.
+
+    lein kaocha --watch
+
+If you need something faster, evaluating `(cljs.test/run-tests)` from a connected editor would be even better. Although with async tests, you'll need some way of [having your editor report the results](https://clojurescript.org/tools/testing#detecting-test-completion-success).
+
+### Cypress integration tests
 
 Make sure BlueGenes is running by using `lein dev` or `lein prod`. (Preferably make sure they pass in *prod*, but *dev* can be useful for stack traces.)
 
@@ -77,9 +105,10 @@ Most of the time, we develop with uncompressed files - it's faster for hot reloa
 
 Sometimes the Closure compiler is overzealous and removes something we actually wanted to keep. To check what your work looks like in a minified build, run this in the terminal (I'd recommend closing any existing lein run / lein figwheel sessions first).
 
-    lein cljsbuild once min + lein run
+    lein with-profile prod cljsbuild once min
+    lein with-profile prod run
 
-There is also a shortcut:
+There is also a shortcut that in addition cleans and compiles CSS.
 
     lein prod
 
@@ -90,11 +119,16 @@ One of the easiest ways to deploy the prod minified version is to set up [Dokku]
 
 
 ### Minified deployment using dokku
-Once dokku is configured on your remote host, all you need to do to deploy a minified build is add the server as a remote and push to it:
 
-    git remote add my-awesome-server bluegenes@my-awesome-server.git
-    git push my-awesome-server master
+Once dokku is configured on your remote host, you'll need to add your public key, create a remote for your host and push to it:
 
+    # On your dokku host
+    sudo dokku ssh-keys:add your-user /path/to/your/public/key
+    # On your dev computer
+    git remote add dokku dokku@your-host:bluegenes
+    git push dokku master
+
+If you want to deploy a different branch, you can use `git push dokku dev:master` (replace *dev* with the branch you wish to deploy from).
 
 ### Uberjar
 
@@ -124,11 +158,19 @@ Official BlueGenes releases can be deployed to [Clojars](https://clojars.org/), 
 
 When deploying BlueGenes to Clojars, the JAR file should include all compiled assets: this includes JavaScript, less, and vendor libraries. This allows other projects to include BlueGenes as a dependency and deploy the client and server without needing to compile BlueGenes.
 
-To deploy a compiled JAR to clojars, include the `uberjar` profile when running the `lein deploy clojars` command:
+To deploy a compiled JAR to Clojars, simply use the `deploy` alias which automatically includes the `uberjar` profile and targets Clojars.
 
-    $ lein with-profile +uberjar deploy clojars
+    $ lein deploy
 
+### Releasing a new version
 
+The release process is a combination of the above commands, with some additional steps. Generally, you'll want to do the following.
+
+1. Update the version number in **project.clj**.
+1. Commit this change and tag it using `git tag -a v1.0.0 -m "Release v1.0.0"`, replacing *1.0.0* with your version number.
+1. Push your commit and tag using `git push origin` followed by `git push origin v1.0.0` (again replace *1.0.0* with your version number). Make sure that you push to the intermine repository, not just your fork!
+1. Deploy a new uberjar to Clojars with `lein deploy`.
+1. Deploy the latest release to dokku with `git push dokku dev:master`.
 
 # Troubleshooting
 

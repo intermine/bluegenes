@@ -2,7 +2,8 @@
   (:require [re-frame.core :refer [dispatch reg-event-db reg-event-fx]]
             [imcljs.fetch :as fetch]
             [oops.core :refer [oget]]
-            [goog.functions :refer [rateLimit]]))
+            [goog.functions :refer [rateLimit]]
+            [bluegenes.effects :refer [document-title]]))
 
 (def results-batch-size
   "The amount of results we should fetch at a time."
@@ -135,6 +136,7 @@
 
 (reg-event-fx
  :search/full-search
+ [document-title]
  (fn [{db :db} [_ search-term removed-filter?]]
    (let [filters         (get-in db [:search-results :active-filters])
          connection      (get-in db [:mines (get db :current-mine) :service])

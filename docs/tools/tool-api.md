@@ -100,6 +100,7 @@ This file provides bluegenes-specific config info. Some further config info is d
   "accepts": ["id", "ids", "records", "rows"],
   "classes": ["Gene", "Protein", "*"],
   "columnMapping" : {"Protein" : {"id" : "primaryAccession"}},
+  "depends": ["AtlasExpression", "ProteinAtlasExpression"],
   "files" : {
     "css" : "dist/style.css",
     "js" : "dist/bundle.js"
@@ -124,6 +125,7 @@ Plurality (i.e. id vs ids) will help to determine which context a tool can appea
 
 **columnMapping** is an important way to specify (or override) which columns should be passed to the tool by BlueGenes. As an example, for a gene tool, you might want to pass a symbol, OR a primaryIdentifier, or even secondaryIdentifier - and this might change depending in the InterMine that is fuelling the BlueGenes. Set a default likely value here, and in the future individual bluegenes administrators can override it if needed.
 
+**depends** lets you specify any class names in the InterMine instance's model that your tool depends on. This is useful if you're querying for a non-standard path that is only present in a specific InterMine instance. Any instances which don't have the class name in their model, will not attempt to run your tool, and will instead list it as unsupported.
 
 **files** - one file each for css and js, please. This should be the file bundled/built with all dependencies except/ imjs if needed. CSS is optional if the tool has no styles.
 

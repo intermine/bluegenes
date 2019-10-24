@@ -1,7 +1,7 @@
 (ns bluegenes.index
   (:require [hiccup.page :refer [include-js include-css html5]]
             [config.core :refer [env]]
-            [cheshire.core :as json]))
+            [cheshire.core :refer [generate-string]]))
 
 ;; Hello dear maker of the internet. You want to edit *this* file for prod,
 ;; NOT resources/public/index.html.
@@ -30,7 +30,7 @@
    css-compiling-style
    [:title "InterMine 2.0 BlueGenes"]
    (include-css "https://cdnjs.cloudflare.com/ajax/libs/gridlex/2.2.0/gridlex.min.css")
-   (include-css "http://cdn.intermine.org/js/intermine/im-tables/2.0.0/main.sandboxed.css")
+   (include-css "https://cdn.intermine.org/js/intermine/im-tables/2.0.0/main.sandboxed.css")
    (include-css "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css")
    (include-css "/css/site.css")
    (include-css "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css")
@@ -40,16 +40,14 @@
    [:meta {:content "width=device-width, initial-scale=1", :name "viewport"}]
    ;;outputting clj-based vars for use in the cljs:
    [:script
-    "var serverVars={googleAnalytics :'" (:google-analytics env) "'"
-    (when (:bluegenes-default-service-root env)
-      (str ", intermineDefaults: {"
-           "serviceRoot:'"  (:bluegenes-default-service-root env) "',"
-           "mineName: '" (:bluegenes-default-mine-name env)  "'"
-           "}"))
-    "};"]
+    (str "var serverVars="
+         (generate-string {:googleAnalytics (:google-analytics env)
+                           :serviceRoot     (:bluegenes-default-service-root env)
+                           :mineName        (:bluegenes-default-mine-name env)})
+         ";")]
   ; Javascript:
    [:link {:rel "shortcut icon" :href "https://raw.githubusercontent.com/intermine/design-materials/f5f00be4/logos/intermine/fav32x32.png" :type "image/png"}]
-   [:script {:src "http://cdn.intermine.org/js/intermine/imjs/3.15.0/im.min.js"}]
+   [:script {:src "https://cdn.intermine.org/js/intermine/imjs/3.15.0/im.min.js"}]
    [:script {:crossorigin "anonymous"
              :integrity "sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s="
              :src "https://code.jquery.com/jquery-3.1.0.min.js"}]

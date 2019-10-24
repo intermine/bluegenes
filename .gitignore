@@ -20,6 +20,7 @@ out
 *.iml
 node_modules
 .lein-repl-history
+.rebel_readline_history
 .nrepl-port
 .DS_Store
 pom.xml
@@ -28,3 +29,4 @@ prepros.cfg
 /env/
 /.clj-kondo/
 /tools/
+/.cljs_node_repl/

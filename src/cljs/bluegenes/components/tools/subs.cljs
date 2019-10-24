@@ -31,8 +31,11 @@
  ::suitable-tools
  :<- [::installed-tools]
  :<- [::entity]
- (fn [[tools entity]]
+ :<- [:model]
+ (fn [[tools entity model]]
    (let [{:keys [format class]} entity]
-     (filter #(and (contains? (set (get-in % [:config :accepts])) format)
-                   (contains? (set (get-in % [:config :classes])) class))
+     (filter (fn [{{:keys [accepts classes depends]} :config :as _tool}]
+               (and (contains? (set accepts) format)
+                    (contains? (set classes) class)
+                    (every? #(contains? model %) (map keyword depends))))
              tools))))
