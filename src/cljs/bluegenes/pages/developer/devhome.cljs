@@ -103,6 +103,13 @@
            (dispatch [:scramble-tokens]))}
         "Scramble token"]])))
 
+(defn tool-api-path []
+  (let [tools-path @(subscribe [::subs/tools-path])]
+    [:div.panel.container
+     [:h3 "Tools path"]
+     [:p "The path where your BlueGenes tools are installed on the server is:"]
+     [:pre tools-path]]))
+
 (defn debug-panel []
   (fn []
     (let [panel (subscribe [::subs/panel])]
@@ -114,6 +121,7 @@
                  [mine-config]
                  [localstorage-destroyer]
                  [scrambled-eggs-and-token]
+                 [tool-api-path]
                  [version-number]]
          "tool-store" [tools/tool-store]
          "icons" [icons/iconview])])))

@@ -6,10 +6,14 @@
 (reg-event-fx
  ::panel
  (fn [{db :db} [_ panel-name]]
-   (cond-> {:db (assoc db :debug-panel panel-name)}
-     (= panel-name "tool-store")
-     (assoc :dispatch-n [[::tools/fetch-tools]
-                         [::tools/fetch-npm-tools]]))))
+   (let [effects {:db (assoc db :debug-panel panel-name)}]
+     (case panel-name
+       "main"
+       (assoc effects :dispatch [::tools/fetch-tool-path])
+       "tool-store"
+       (assoc effects :dispatch-n [[::tools/fetch-tools]
+                                   [::tools/fetch-npm-tools]])
+       effects))))
 
 (reg-event-fx
  ::install-tool

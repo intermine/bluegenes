@@ -38,3 +38,15 @@
       ;; Use :dispatch-after-boot since [:results :queries] is cleared when switching mines.
       :db (cond-> db
             new-source? (update :dispatch-after-boot (fnil conj []) history+))})))
+
+(reg-event-fx
+ ::fetch-tool-path
+ (fn [_ [_]]
+   {::fx/http {:method :get
+               :uri "/api/tools/path"
+               :on-success [::success-fetch-tool-path]}}))
+
+(reg-event-db
+ ::success-fetch-tool-path
+ (fn [db [_ {:keys [path]}]]
+   (assoc-in db [:tools :path] path)))

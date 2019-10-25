@@ -10,3 +10,8 @@
  ::npm-working?
  (fn [db]
    (get-in db [:tools :npm-working?])))
+
+(reg-sub
+ ::tools-path
+ (fn [db]
+   (get-in db [:tools :path])))
