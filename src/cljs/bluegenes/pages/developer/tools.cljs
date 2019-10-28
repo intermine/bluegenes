@@ -39,6 +39,19 @@
          (map (fn [the-class]
                 [:li {:class (str "type-" the-class)} the-class]) classes))])
 
+(defn output-tool-depends
+  "Shows an alert if the current mine's model does not support this tool."
+  [depends]
+  (let [model       @(subscribe [:model])
+        mine-name   (:name @(subscribe [:current-mine]))
+        supported?  (every? #(contains? model %) (map keyword depends))
+        unsupported (remove #(contains? model (keyword %)) depends)]
+    (when-not supported?
+      [:div.tool-alert
+       [:p (str "This tool will not show on " mine-name " as it doesn't support: ")
+           (into [:<> (interpose " " (map #(vector :code %) unsupported))])
+           ". However, it may be shown for other mines."]])))
+
 (defn tool-description
   [text]
   (when (not-empty text)
@@ -62,6 +75,7 @@
          [:div.tool-no-preview "No tool preview available"])
        [:div.details
         [tool-description (get-in tool [:package :description])]
+        [output-tool-depends (get-in tool [:config :depends])]
         [output-tool-classes (get-in tool [:config :classes])]
         [output-tool-accepts (get-in tool [:config :accepts])]]
        [:div.tool-footer
