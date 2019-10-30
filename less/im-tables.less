@@ -511,6 +511,16 @@ github.com style (c) Vasily Polovnyov <vast@whiteants.net>
   color: #6495ed;
   text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.1);
 }
+.im-table .summary-toolbar .sort-icon.active-asc-sort::before {
+  background: linear-gradient(to bottom, #6495ed 40%, #333333 60%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.im-table .summary-toolbar .sort-icon.active-desc-sort::before {
+  background: linear-gradient(to top, #6495ed 40%, #333333 60%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
 .im-table .summary-toolbar > * {
   padding: 2px;
 }
