@@ -30,3 +30,5 @@ prepros.cfg
 /env/
 /.clj-kondo/
 /.cljs_node_repl/
+/.lsp/
+/*.jks
