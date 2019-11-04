@@ -1,6 +1,4 @@
-(def props {:version "0.9.11"})
-
-(defproject org.intermine/bluegenes (:version props)
+(defproject org.intermine/bluegenes "0.9.11"
   :licence "LGPL-2.1-only"
   :description "Bluegenes is a Clojure-powered user interface for InterMine, the biological data warehouse"
   :url "http://www.intermine.org"
@@ -102,7 +100,7 @@
   :test-paths ["test/cljs"]
 
   :clean-targets ^{:protect false} ["resources/public/js/compiled" "target"
-                                    "resources/public/css"
+                                    "out" "resources/public/css"
                                     "test/js"]
 
   :figwheel {:css-dirs ["resources/public/css"]
@@ -152,10 +150,9 @@
                              :jar true
                              :compiler {:main bluegenes.core
                                         :output-to "resources/public/js/compiled/app.js"
-                                        ;:output-dir "resources/public/js/compiled"
+                                        :fingerprint true
                                         :optimizations :advanced
-                                        :closure-defines {goog.DEBUG false
-                                                          bluegenes.core/version ~(:version props)}
+                                        :closure-defines {goog.DEBUG false}
                                         :pretty-print false}}}}
 
   :main bluegenes.core

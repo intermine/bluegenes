@@ -149,7 +149,7 @@
               ;; Only use data from local storage if it's non-empty and the
               ;; client version matches.
               (and (seq state)
-                   (= bluegenes.core/version version))
+                   (= version (:version (->clj js/serverVars))))
               (assoc :current-mine (or selected-mine current-mine)
                      :mines updated-mines
                      :assets assets
