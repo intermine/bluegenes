@@ -63,23 +63,23 @@
                   :on-unauthorised [::error-tool]
                   :on-error [::error-tool]}]})))
 
-;; # How we communicate tool npm operations to the user
-;;     SUB   :bluegenes.pages.developer.subs/npm-working?
-;; - Indicates that an npm operation is in progress and should complete
+;; # How we communicate tool operations to the user
+;;     SUB   :bluegenes.pages.developer.subs/tool-working?
+;; - Indicates that a tool operation is in progress and should complete
 ;;   shortly, at which point this will be set back to false.
 ;;     EVENT :bluegenes.pages.developer.events/tool-operation-busy-message
-;; - Shows an alert to inform the user that an npm operation is already in
+;; - Shows an alert to inform the user that a tool operation is already in
 ;;   progress and that they should wait and try again later.
 
-;; All tool npm operations should dispatch this event instead of `::fx/http`
+;; All tool operations should dispatch this event instead of `::fx/http`
 ;; directly, so we can stop the client from running additional operations while
 ;; one is already in progress.
 (reg-event-fx
  ::tool-operation
  (fn [{db :db} [_ request]]
-   (if (get-in db [:tools :npm-working?])
+   (if (get-in db [:tools :tool-working?])
      {:dispatch [::tool-operation-busy-message]}
-     {:db (assoc-in db [:tools :npm-working?] true)
+     {:db (assoc-in db [:tools :tool-working?] true)
       ::fx/http (update request :json-params assoc
                         ;; We don't use the current-mine, as the privilege
                         ;; check only runs on the configured default root.
@@ -90,16 +90,16 @@
  ::success-tool
  (fn [db [_ {:keys [tools]}]]
    (update db :tools assoc
-           :npm-working? false
+           :tool-working? false
            :installed tools)))
 
 ;; This is to handle two scenarios:
-;; 1. A different user is performing some tool npm operation, causing the
-;; backend to reject this user's request.  We won't know when the other user's
-;; operation completes, so we'll just have to set `:npm-working?` back to false
+;; 1. A different user is performing some tool operation, causing the backend
+;; to reject this user's request.  We won't know when the other user's
+;; operation completes, so we'll just have to set `:tool-working?` back to false
 ;; and alert our user.
 ;; 2. The current user's request was rejected by the backend as they don't have
-;; the privilege to change the tool store. We'll again set `:npm-working?` back
+;; the privilege to change the tool store. We'll again set `:tool-working?` back
 ;; to false and alert our user.
 (reg-event-fx
  ::error-tool
@@ -109,7 +109,7 @@
                :style "warning"
                :timeout 0}]]
      {:dispatch-n [msg [::tools/fetch-tools]]
-      :db (assoc-in db [:tools :npm-working?] false)})))
+      :db (assoc-in db [:tools :tool-working?] false)})))
 
 (reg-event-fx
  ::tool-operation-busy-message

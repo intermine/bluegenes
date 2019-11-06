@@ -7,9 +7,9 @@
    (get-in db [:debug-panel])))
 
 (reg-sub
- ::npm-working?
+ ::tool-working?
  (fn [db]
-   (get-in db [:tools :npm-working?])))
+   (get-in db [:tools :tool-working?])))
 
 (reg-sub
  ::tools-path

@@ -1,2 +1,2 @@
 {;; Where BlueGenes tools are installed.
- :bluegenes-tool-path "./tools/node_modules"}
+ :bluegenes-tool-path "./tools"}
