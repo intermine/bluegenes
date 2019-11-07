@@ -94,7 +94,8 @@
                     ["with-profile" "prod" "run"]]
             "deploy" ["with-profile" "+uberjar" "deploy" "clojars"]
             "format" ["cljfmt" "fix"]
-            "kaocha" ["with-profile" "kaocha" "run" "-m" "kaocha.runner"]}
+            "kaocha" ["with-profile" "kaocha" "run" "-m" "kaocha.runner"]
+            "tools" ["run" "-m" "bluegenes-tool-store.tools"]}
 
   :min-lein-version "2.8.1"
 
