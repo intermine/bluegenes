@@ -552,5 +552,21 @@
        "M16 17c-8.837 0-16-2.239-16-5v6c0 2.761 7.163 5 16 5s16-2.239 16-5v-6c0 2.761-7.163 5-16 5z"}]
      [:path
       {:d
+       "M16 26c-8.837 0-16-2.239-16-5v6c0 2.761 7.163 5 16 5s16-2.239 16-5v-6c0 2.761-7.163 5-16 5z"}]]
 
-       "M16 26c-8.837 0-16-2.239-16-5v6c0 2.761 7.163 5 16 5s16-2.239 16-5v-6c0 2.761-7.163 5-16 5z"}]]]])
+    [:symbol#icon-folder
+     {:viewBox "0 0 32 32"}
+     [:title "folder"]
+     [:path {:d "M14 4l4 4h14v22h-32v-26z"}]]
+
+    [:symbol#icon-folder-open
+      {:viewBox "0 0 32 32"}
+      [:title "folder-open"]
+      [:path {:d "M26 30l6-16h-26l-6 16zM4 12l-4 18v-26h9l4 4h13v4z"}]]
+
+    [:symbol#icon-folder-plus
+      {:viewBox "0 0 32 32"}
+      [:title "folder-plus"]
+      [:path
+       {:d
+        "M18 8l-4-4h-14v26h32v-22h-14zM22 22h-4v4h-4v-4h-4v-4h4v-4h4v4h4v4z"}]]]])

@@ -1,0 +1,117 @@
+@organize-node-bg: #DFE6ED;
+@organize-node-fg: #4B5C6B;
+@organize-branches: #788896;
+
+.organize-tree {
+    margin-bottom: 14px;
+    padding: 12px;
+
+    .top-level-list {
+        padding-inline-start: 0;
+    }
+
+    .list {
+        padding-inline-start: 26px;
+
+        & > .node-container:before {
+            content: "\a0";
+            padding: 0 4px;
+            position: absolute;
+            border-left: 2px dashed @organize-branches;
+            border-bottom: 2px dashed @organize-branches;
+            left: -14px;
+            height: 25.5px;
+        }
+
+        & > .node-container.node-middle:after {
+            content: "\a0";
+            padding: 0 4px;
+            position: absolute;
+            border-left: 2px dashed @organize-branches;
+            left: -14px;
+            bottom: 0;
+            height: ~"calc(100% - 25.5px)";
+        }
+    }
+
+    .node-container {
+        display: flex;
+        flex-direction: column;
+        position: relative;
+
+        &.node-fake .node {
+            opacity: 0.65;
+            border: 2px dashed #788896;
+            padding: 2px;
+        }
+
+        &.node-hide .node {
+            opacity: 0.65;
+            border: 2px dashed #788896;
+            padding: 2px;
+            color: transparent;
+            background-color: transparent;
+        }
+    }
+
+    .node-parent {
+        display: flex;
+    }
+
+    .node {
+        cursor: pointer;
+        padding: 4px;
+        color: @organize-node-fg;
+        background-color: @organize-node-bg;
+        margin-top: 10px;
+        height: 31px;
+
+        & * {
+            // Stop children from spamming dragenter and dragleave events.
+            // https://stackoverflow.com/a/18582960
+            pointer-events: none;
+        }
+
+        .icon {
+            fill: @organize-node-fg;
+            margin-left: 0;
+            margin-right: 12px;
+        }
+
+        .text {
+            font-size: 1.2em;
+            margin-right: 12px;
+        }
+
+        .drag-handle {
+            font-size: 1.0em;
+        }
+
+        &.root {
+            width: 200px;
+        }
+    }
+
+    .node-input {
+        display: flex;
+
+        .icon {
+            font-size: 2.0em;
+        }
+
+        .btn {
+            color: @organize-node-fg;
+        }
+
+        & > input,
+        & > button {
+            pointer-events: auto;
+        }
+    }
+
+    .form-control {
+        width: 250px;
+        border-radius: 2px;
+        border-width: 2px;
+    }
+}

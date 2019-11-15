@@ -93,6 +93,11 @@
                 operation-properties
                 {:on-click (fn [] (when (not cant-operate?) (dispatch [::evts/set-modal :subtract])))})
             "Subtract " [:svg.icon.icon-venn-difference.venn [:use {:xlinkHref "#icon-venn-difference"}]]]]
+          [:li
+           [:a {:data-toggle "modal"
+                :data-keyboard true
+                :data-target "#myMineOrganize"}
+            "Organize " [:svg.icon.icon-summary [:use {:xlinkHref "#icon-summary"}]]]]
 
           #_[:li {}
              [:a {:on-click (fn [] (dispatch [::evts/fetch-tree]))}
@@ -188,4 +193,5 @@
          [modals/modal-lo @context-menu-target]
          [modals/modal-lo-intersect @context-menu-target]
          [modals/modal-rename-list @context-menu-target]
+         [modals/modal-organize]
          [m/context-menu-container @context-menu-target]])})))
