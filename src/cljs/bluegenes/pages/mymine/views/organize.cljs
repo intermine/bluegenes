@@ -4,42 +4,44 @@
             [clojure.string :as string]
             [oops.core :refer [ocall oget]]))
 
+(def path-tag-prefix "bgpath")
+
 ;;;;;;;;;;;;;;;;;;;;
 ;; Tree Structure ;;
 ;;;;;;;;;;;;;;;;;;;;
 
-(def path-tag-prefix "bgpath")
-
 (defn read-path [tags]
   (let [re (re-pattern (str path-tag-prefix ":(.+)"))]
-    (->> tags
-         (some #(re-find re %))
-         second)))
+    (some-> (->> tags
+                 (some #(re-find re %))
+                 second)
+            (string/split #"\."))))
 
-;; TODO use select-keys to only grab keys you use
+(defn tree-path [path]
+  (apply concat [(when path [:folders])
+                 (interpose :folders path)
+                 [:lists]]))
+
 (defn lists->tree [lists]
-  (comment
-    "TODO" "Turn these examples into unit tests?"
-    "Although that would require it to be defined as it's own function."
-
-    (apply concat [nil (interpose :folders nil) [:lists]])
-    (apply concat [[:folders] (interpose :folders ["tfg"]) [:lists]])
-    (apply concat [[:folders] (interpose :folders ["tfg" "extra"]) [:lists]])
-
-    {:lists ["Z7 Special"]
-     :folders {"TFG" {:lists ["TFG Panel Blue"
-                              "TFG Panel Multi"]
-                      :folders {"more" {:lists ["TFG Panel Extra"]}}}}})
-
   (reduce (fn [tree {:keys [tags title] :as l}]
-            (let [path (some-> (read-path tags)
-                               (string/split #"\."))
-                  ks (apply concat [(when path [:folders])
-                                    (interpose :folders path)
-                                    [:lists]])]
-              (update-in tree ks assoc title l)))
+            (let [path (read-path tags)
+                  ks   (tree-path path)
+                  l'   (select-keys l [:tags :title :id])]
+              (update-in tree ks assoc title l')))
           {}
           lists))
+
+(defn tree->tags
+  ([tree] (tree->tags [] tree))
+  ([path tree]
+   (into {}
+         (concat
+           (map (fn [{:keys [title]}]
+                  [title (str path-tag-prefix ":" (string/join "." path))])
+                (vals (:lists tree)))
+           (map (fn [[k subtree]]
+                  (tree->tags (conj path k) subtree))
+                (:folders tree))))))
 
 ;;;;;;;;;;;
 ;; Logic ;;
