@@ -1,4 +1,4 @@
-(defproject org.intermine/bluegenes "0.9.11"
+(defproject org.intermine/bluegenes "0.9.12"
   :licence "LGPL-2.1-only"
   :description "Bluegenes is a Clojure-powered user interface for InterMine, the biological data warehouse"
   :url "http://www.intermine.org"
@@ -161,8 +161,13 @@
 
   :repositories [
                  ["clojars"
-                  {:url "https://clojars.org/repo"}]])
+                  {:url "https://clojars.org/repo"}]]
                    ;; How often should this repository be checked for
                    ;; snapshot updates? (:daily, :always, or :never)
                    ;:update :always
 
+  :release-tasks [["change" "version" "leiningen.release/bump-version"]
+                  ["change" "version" "leiningen.release/bump-version" "release"]
+                  ["vcs" "commit"]
+                  ["vcs" "tag" "--no-sign"]
+                  ["vcs" "push"]])
