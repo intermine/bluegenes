@@ -1,5 +1,6 @@
 (ns bluegenes.events.boot
   (:require [re-frame.core :refer [reg-event-db reg-event-fx subscribe inject-cofx]]
+            [clojure.string :as string]
             [bluegenes.db :as db]
             [imcljs.fetch :as fetch]
             [imcljs.auth :as auth]
@@ -65,7 +66,11 @@
                       ;; no organisms when I initialise the component. I have a workaround
                       ;; so it doesn't matter in this case, but it is something to be aware of.
                       [:cache/fetch-organisms]
-                      [:regions/select-all-feature-types]]
+                      [:regions/select-all-feature-types]
+                      ;; Handle any POST data passed from the backend. This is
+                      ;; usually done to pass data and open a specific page/result
+                      ;; from an external page.
+                      [:handle-link-in]]
                (not wait-registry?) (conj [::registry/load-other-mines]))
              :halt? true}])})
 
@@ -409,3 +414,19 @@
  :assets/success-fetch-web-service-version
  (fn [db [_ mine-kw version]]
    (assoc-in db [:assets :web-service-version mine-kw] version)))
+
+(reg-event-fx
+ :handle-link-in
+ (fn [{db :db} [_]]
+   (let [{:keys [regions features]} (:postData (->clj js/serverVars))]
+     (cond
+       regions {:dispatch-n (concat [[::route/navigate ::route/regions]
+                                     [:regions/set-to-search regions]
+                                     (when (not-empty features)
+                                       [:regions/deselect-all-feature-types])]
+                                    (map (fn [f]
+                                           [:regions/toggle-feature-type {:name f}])
+                                         (some-> (not-empty features)
+                                                 (string/split #",")))
+                                    [[:regions/run-query]])}
+       :else {}))))

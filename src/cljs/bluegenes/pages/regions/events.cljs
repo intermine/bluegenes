@@ -40,6 +40,8 @@
 (reg-event-db
  :regions/toggle-feature-type
  (fn [db [_ class]]
+   ;; If you're going to grab more properties out of `class`, make sure to
+   ;; check all uses of this event handler! (Some might not pass all.)
    (let [class-kw (keyword (:name class))
          m (get-in db [:mines (get db :current-mine) :service :model])
          descendants (keys (entity/extended-by m class-kw))

@@ -1,10 +1,11 @@
 (ns bluegenes.routes
-  (:require [compojure.core :refer [GET defroutes context]]
+  (:require [compojure.core :refer [GET POST defroutes context]]
             [compojure.route :refer [resources]]
             [ring.util.response :refer [response]]
             [bluegenes.ws.auth :as auth]
             [bluegenes.ws.ids :as ids]
-            [bluegenes.index :as index]))
+            [bluegenes.index :as index]
+            [ring.middleware.params :refer [wrap-params]]))
 
 ; Define the top level URL routes for the server
 (defroutes routes
@@ -18,4 +19,5 @@
     (context "/auth" [] auth/routes)
     (context "/ids" [] ids/routes))
 
-  (GET "*" [] (index/index)))
+  (GET "*" [] (index/index))
+  (wrap-params (POST "*" req (index/index req))))
