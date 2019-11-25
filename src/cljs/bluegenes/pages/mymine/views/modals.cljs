@@ -407,7 +407,7 @@
                               "Cancel"]
                              [:button.btn.btn-success.btn-raised
                               {:data-dismiss "modal"
-                               :on-click (fn [] (dispatch [::evts/rename-list name (ocall @input-dom-node :val)]))}
+                               :on-click #(dispatch [::evts/update-tags (organize/tree->tags (:tree @state))])}
                               "Save changes"]]]]]])})))
 
 (defn modal []

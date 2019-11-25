@@ -10,15 +10,21 @@
 ;; Tree Structure ;;
 ;;;;;;;;;;;;;;;;;;;;
 
+(defn extract-path-tag
+  "Takes a sequence of tags and returns the first tag starting with
+  `path-tag-prefix` and a colon, as a vector where the first element
+  is the full tag and the second only the path string."
+  [tags]
+  (let [re (re-pattern (str path-tag-prefix ":(.+)"))]
+    (some #(re-find re %) tags)))
+
 (defn read-path
   "Takes a sequence of tags and returns the first tag starting with
   `path-tag-prefix` and a colon, as a vector split at each '.' char."
   [tags]
-  (let [re (re-pattern (str path-tag-prefix ":(.+)"))]
-    (some-> (->> tags
-                 (some #(re-find re %))
-                 second)
-            (string/split #"\."))))
+  (some-> (extract-path-tag tags)
+          second
+          (string/split #"\.")))
 
 (defn tree-path
   "Takes a vector of strings and returns the corresponding tree path as a
@@ -47,7 +53,8 @@
    (into {}
          (concat
            (map (fn [{:keys [title]}]
-                  [title (str path-tag-prefix ":" (string/join "." path))])
+                  [title (when (not-empty path)
+                           (str path-tag-prefix ":" (string/join "." path)))])
                 (vals (:lists tree)))
            (map (fn [[k subtree]]
                   (tree->tags (conj path k) subtree))

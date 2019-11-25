@@ -3,7 +3,9 @@
             [imcljs.send :as send]
             [imcljs.fetch :as fetch]
             [imcljs.save :as save]
-            [clojure.string :as s]))
+            [clojure.string :as s]
+            [clojure.set :as core.set]
+            [bluegenes.pages.mymine.views.organize :as organize]))
 
 (reg-event-db
  ::set-action-target
@@ -109,6 +111,47 @@
      {:im-chan {:chan (save/im-list-copy service old-list-name new-list-name)
                 :on-success [:assets/fetch-lists]
                 :on-failure [::copy-failure]}})))
+
+;;;; END TODO
+
+;;;; START TODO
+;; display alert if any of the calls fail (reset error on start)
+;; we should tell the user to try to click "save changes" again
+;; when all tag events complete, (we need a way to keep track of this)
+;; the modal can safely close
+
+(reg-event-fx
+ ::update-tags
+ (fn [{db :db} [_ new-tags]]
+   (let [old-tags (->> (get-in db [:assets :lists (:current-mine db)])
+                       (reduce (fn [m {:keys [tags title]}]
+                                 (assoc m title (first (organize/extract-path-tag tags))))
+                               {}))]
+     ;; Compute the changes in the path tags for the lists, and generate the
+     ;; appropriate remove-tag and add-tag events.
+     (.log js/console {:dispatch-n (->> (core.set/difference (set new-tags) (set old-tags))
+                                        (map (fn [[title new-tag]]
+                                               (let [old-tag (get old-tags title)]
+                                                 [(when old-tag [::remove-tag title old-tag])
+                                                  (when new-tag [::add-tag title new-tag])])))
+                                        (apply concat))})
+     {})))
+
+(reg-event-fx
+ ::add-tag
+ (fn [{db :db} [_ list-name tags]]
+   (let [service (get-in db [:mines (get db :current-mine) :service])]
+     {:im-chan {:chan (save/im-list-add-tag service list-name tags)
+                :on-success "report that this is done"
+                :on-failure "alert"}})))
+(reg-event-fx
+ ::remove-tag
+ (fn [{db :db} [_ list-name tags]]
+   (let [service (get-in db [:mines (get db :current-mine) :service])]
+     ;; TODO replace with `save/im-list-remove-tag` once added
+     {:im-chan {:chan (save/im-list-add-tag service list-name tags)
+                :on-success "report that this is done"
+                :on-failure "alert"}})))
 
 ;;;; END TODO
 

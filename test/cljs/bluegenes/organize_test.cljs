@@ -7,6 +7,12 @@
   [& [s]]
   (str organize/path-tag-prefix ":" s))
 
+(deftest extract-path-tag
+  (is (= (organize/extract-path-tag ["idc" "im:public" (tag "foo.bar") "bgother:ignore"])
+         ["bgpath:foo.bar" "foo.bar"]))
+  (is (= (organize/extract-path-tag ["idc" "im:public" "bgother:ignore"])
+         nil)))
+
 (deftest read-path
   (is (= (organize/read-path ["idc" "im:public" (tag "foo.bar") "bgother:ignore"])
          ["foo" "bar"]))
@@ -38,7 +44,7 @@
 
   (deftest tree->tags
     (is (= (organize/tree->tags tree)
-           {"list-a" (tag)
+           {"list-a" nil
             "list-b" (tag "less")
             "list-c" (tag "less")
             "list-d" (tag "less.deeper")
