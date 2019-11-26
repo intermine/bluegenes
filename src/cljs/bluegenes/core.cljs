@@ -27,7 +27,11 @@
   (re-frame/clear-subscription-cache!)
   (route/init-routes!)
   (reagent/render [views/main-panel]
-                  (ocall js/document "getElementById" "app")))
+                  (ocall js/document "getElementById" "app"))
+  ;; Uncomment this code to keep modals open after figwheel reloads.
+  #_(-> (js/$ "#myMineOrganize") ; Replace with your modal id.
+        (.addClass "in")
+        (.css "display" "block")))
 
 (defn ^:export init []
   (re-frame/dispatch-sync [:boot])

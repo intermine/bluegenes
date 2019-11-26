@@ -91,8 +91,7 @@
                               :on-change (fn [evt] (reset! state (oget evt :target :value)))
                               :on-key-up (fn [evt]
                                            (case (oget evt :keyCode)
-                                             13 (when
-                                                 (not (s/blank? @state))
+                                             13 (when (not (s/blank? @state))
                                                   (do
                                                      ; Call the succeess function with the value of the target
                                                     (on-success @state)
@@ -124,8 +123,7 @@
                               :on-change (fn [evt] (reset! state (oget evt :target :value)))
                               :on-key-up (fn [evt]
                                            (case (oget evt :keyCode)
-                                             13 (when
-                                                 (not (s/blank? @state))
+                                             13 (when (not (s/blank? @state))
                                                   (do
                                                      ; Call the succeess function with the value of the target
                                                     (on-success @state)
@@ -242,7 +240,7 @@
                               :type "text"
                               :on-key-up (fn [evt]
                                            (case (oget evt :keyCode)
-                                             13 (do ; Detect "Return
+                                             13 (do ; Detect "Return"
                                                    ;(dispatch [::evts/copy trail (:name @dets) (ocall @input-dom-node :val)])
 
                                                   (ocall @modal-dom-node :modal "hide"))
@@ -286,7 +284,7 @@
                               :type "text"
                               :on-key-up (fn [evt]
                                            (case (oget evt :keyCode)
-                                             13 (do ; Detect "Return
+                                             13 (do ; Detect "Return"
                                                   (dispatch [::evts/lo-combine (ocall @input-dom-node :val)])
                                                   (ocall @modal-dom-node :modal "hide"))
                                              nil))}]]
@@ -328,7 +326,7 @@
                               :type "text"
                               :on-key-up (fn [evt]
                                            (case (oget evt :keyCode)
-                                             13 (do ; Detect "Return
+                                             13 (do ; Detect "Return"
                                                   (dispatch [::evts/lo-intersect (ocall @input-dom-node :val)])
                                                   (ocall @modal-dom-node :modal "hide"))
                                              nil))}]]
@@ -369,7 +367,7 @@
                               :type "text"
                               :on-key-up (fn [evt]
                                            (case (oget evt :keyCode)
-                                             13 (do ; Detect "Return
+                                             13 (do ; Detect "Return"
                                                   (dispatch [::evts/rename-list (ocall @input-dom-node :val)])
                                                   (ocall @modal-dom-node :modal "hide"))
                                              nil))}]]
@@ -437,7 +435,7 @@
                               :type "text"
                               :on-key-up (fn [evt]
                                            (case (oget evt :keyCode)
-                                             13 (do ; Detect "Return
+                                             13 (do ; Detect "Return"
                                                   (dispatch-edit trail :label (ocall @input-dom-node :val))
                                                   (ocall @modal-dom-node :modal "hide"))
                                              nil))}]]
