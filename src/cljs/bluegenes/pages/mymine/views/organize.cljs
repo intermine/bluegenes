@@ -91,6 +91,12 @@
   [p]
   (= p []))
 
+(defn folder-exists?
+  "Whether `folder-path` is a folder name already present in `path` in `tree`."
+  [tree folder-path path]
+  (contains? (get-in tree (conj path :folders))
+             (last folder-path)))
+
 (defn being-dragged?
   "Predicate for whether `path` is the target of `dragging`."
   [path dragging]
@@ -105,14 +111,17 @@
 
 (defn valid-drop?
   "Predicate for whether dropping paths `dragging` into `dropping` is a valid action."
-  [dragging dropping]
+  [tree dragging dropping]
   (let [dropping (if (list-path? dropping)
-                   (drop-last 2 dropping)
+                   ;; Works just like `(drop-last 2 dropping)`
+                   ;; except it doesn't return a seq.
+                   (subvec dropping 0 (max 0 (- (count dropping) 2)))
                    dropping)]
     (and dragging dropping
          (not= dragging dropping)
          (not (direct-parent-of? dropping dragging))
-         (not (child-of? dropping dragging)))))
+         (not (child-of? dropping dragging))
+         (not (folder-exists? tree dragging dropping)))))
 
 ;;;;;;;;;;;;;;;;;;;;;
 ;; Event Listeners ;;
@@ -147,7 +156,7 @@
    :on-drop       (fn [evt]
                     (ocall evt :stopPropagation)
                     (let [{:keys [dragging dropping]} (:drag @state)]
-                      (when (valid-drop? dragging dropping)
+                      (when (valid-drop? (:tree @state) dragging dropping)
                         (swap! state
                                (fn [{:keys [tree] :as prev-state}]
                                  (let [dropping (if (list-path? dropping)
@@ -183,9 +192,9 @@
   [state {:keys [title icon last? on-click path fake?]} & children]
   (let [{:keys [dragging dropping]} (:drag @state)
         drag? (and (being-dragged? path dragging)
-                   (not (valid-drop? dragging dropping)))
+                   (not (valid-drop? (:tree @state) dragging dropping)))
         drop? (and (being-dragged? path dragging)
-                   (valid-drop? dragging dropping))]
+                   (valid-drop? (:tree @state) dragging dropping))]
     (into [:li {:className (str "node-container"
                                 (when-not        last? " node-middle")
                                 (when (or fake? drag?) " node-fake")
@@ -260,7 +269,7 @@
                                 ;; a valid drop target.
                                 (when-let [{:keys [dragging dropping]} (:drag @state)]
                                   (when (and (being-dropped? path dropping)
-                                             (valid-drop? dragging dropping)
+                                             (valid-drop? (:tree @state) dragging dropping)
                                              (not (root-node? dropping)))
                                     {(last dragging)
                                      (assoc (get-in @state (into [:tree] dragging))
@@ -279,37 +288,53 @@
       (into (when top?
               (when-let [{:keys [dragging dropping]} (:drag @state)]
                (when (and (being-dropped? path dropping)
-                          (valid-drop? dragging dropping)
+                          (valid-drop? (:tree @state) dragging dropping)
                           (root-node? dropping))
                  [(map->node state path
                              [(last dragging)
                               (assoc (get-in @state (into [:tree] dragging))
                                      :fake? true)])]))))))
 
-
-;; TODO may only contain "letters, numbers, spaces, hyphens and colons.",
-;; "full stops" are technically permitted but we use them for nesting
-;; TODO also check that folder name doesn't already exist
 (defn new-folder
   "Input and button for creating a new folder."
   [state]
-  [:div.node-parent
-   [:div.node.node-input
-    [:svg.icon.icon-folder-plus [:use {:xlinkHref "#icon-folder-plus"}]]
-    [:input.form-control
-     {:type "text"
-      :placeholder "New folder"
-      :value (get-in @state [:inputs :folder])
-      :on-change (fn [evt] (swap! state assoc-in [:inputs :folder]
-                                  (oget evt :target :value)))}]
-    [:button.btn.btn-slim
-     {:type "button"
-      :on-click #(swap! state
-                        (fn [prev-state]
-                          (let [input (get-in prev-state [:inputs :folder])]
-                            (assoc-in prev-state [:tree :folders input]
-                                      {:folders {} :lists {}}))))}
-     "Add"]]])
+  (let [submit-fn
+        #(swap! state
+                (fn [prev-state]
+                  (let [input (some-> (get-in prev-state [:inputs :folder])
+                                      string/trim)
+                        ;; Full stops are technically permitted but we use them for nesting.
+                        valid? (re-matches #"[A-Za-z0-9 \-:]+" input)
+                        exists? (contains? (get-in prev-state [:tree :folders]) input)]
+                    (if (and valid? (not exists?))
+                      (-> prev-state
+                          (assoc-in [:tree :folders input]
+                                    {:folders {} :lists {}})
+                          (assoc-in [:inputs :folder] "")
+                          (assoc-in [:errors :folder] nil))
+                      (assoc-in prev-state [:errors :folder]
+                                (cond
+                                  (not valid?) "Folder names may only contain letters, numbers, spaces, hyphens and colons."
+                                  exists? (str input " already exists at the top level.")))))))]
+
+    [:div
+     [:div.node-parent
+      [:div.node-input
+       [:svg.icon.icon-folder-plus [:use {:xlinkHref "#icon-folder-plus"}]]
+       [:input.form-control
+        {:type "text"
+         :placeholder "New folder"
+         :value (get-in @state [:inputs :folder])
+         :on-change (fn [evt] (swap! state assoc-in [:inputs :folder]
+                                     (oget evt :target :value)))
+         :on-key-up (fn [evt] (when (= (oget evt :keyCode) 13)
+                                (submit-fn)))}]
+       [:button.btn.btn-slim
+        {:type "button"
+         :on-click submit-fn}
+        "Add"]]]
+     (when-let [err-msg (get-in @state [:errors :folder])]
+       [:p.error err-msg])]))
 
 ;; TODO make sure that this is only run when modal is open (? is this really a good idea)
 (defn main

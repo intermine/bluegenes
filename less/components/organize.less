@@ -1,3 +1,5 @@
+@import "../variables";
+
 @organize-node-bg: #DFE6ED;
 @organize-node-fg: #4B5C6B;
 @organize-branches: #788896;
@@ -94,18 +96,20 @@
 
     .node-input {
         display: flex;
+        padding: 4px;
+        margin-top: 10px;
+        color: @organize-node-fg;
+        background-color: @organize-node-bg;
 
         .icon {
+            fill: @organize-node-fg;
+            margin-left: 0;
+            margin-right: 12px;
             font-size: 2.0em;
         }
 
         .btn {
             color: @organize-node-fg;
-        }
-
-        & > input,
-        & > button {
-            pointer-events: auto;
         }
     }
 
@@ -113,5 +117,10 @@
         width: 250px;
         border-radius: 2px;
         border-width: 2px;
+    }
+
+    p.error {
+        margin-top: @spacer/2;
+        color: #a94442;
     }
 }

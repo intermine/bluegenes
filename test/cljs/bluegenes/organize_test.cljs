@@ -48,7 +48,65 @@
             "list-b" (tag "less")
             "list-c" (tag "less")
             "list-d" (tag "less.deeper")
-            "list-e" (tag "more")}))))
+            "list-e" (tag "more")})))
+
+  (deftest folder-exists?
+    (is (true? (organize/folder-exists? tree
+                                        [:folders "deeper"]
+                                        [:folders "less"])))
+    (is (false? (organize/folder-exists? tree
+                                         [:folders "deeper"]
+                                         [:folders "more"]))))
+
+  (deftest valid-drop?
+    (is (true? (organize/valid-drop? tree
+                 [:lists "Z7 Special"]
+                 [:folders "TFG" :folders "more" :lists "TFG Panel Extra"])))
+    (is (true? (organize/valid-drop? tree
+                 [:lists "Z7 Special"]
+                 [:folders "TFG" :folders "more"])))
+    (is (true? (organize/valid-drop? tree
+                 [:folders "TFG" :folders "more"]
+                 [:folders "TFG" :folders "less" :lists "TFG Panel Super"])))
+    (is (true? (organize/valid-drop? tree
+                 [:folders "TFG" :folders "less" :folders "more" :lists "Z7 Special"]
+                 [])))
+    (is (true? (organize/valid-drop? tree
+                 [:folders "TFG" :folders "foo"]
+                 [])))
+    (is (true? (organize/valid-drop? tree
+                 [:folders "deeper"]
+                 [:folders "more"])))
+    (is (false? (organize/valid-drop? tree
+                  [:folders "deeper"]
+                  [:folders "less"])))
+    (is (false? (organize/valid-drop? tree
+                  [:folders "deeper"]
+                  [:folders "less" :lists "list-b"])))
+    (is (false? (organize/valid-drop? tree
+                  [:folders "TFG" :lists "TFG Panel Multi"]
+                  [:folders "TFG" :lists "TFG Panel Blue"])))
+    (is (false? (organize/valid-drop? tree
+                  [:folders "less" :lists "TFG Panel Super"]
+                  [:folders "less"])))
+    (is (false? (organize/valid-drop? tree
+                  [:folders "TFG"]
+                  [])))
+    (is (false? (organize/valid-drop? tree
+                  [:lists "Z7 Special"]
+                  [])))
+    (is (false? (organize/valid-drop? tree
+                  [:folders "less"]
+                  [:lists "Z7 Special"])))
+    (is (false? (organize/valid-drop? tree
+                  [:folders "less"]
+                  [:folders "less" :folders "more"])))
+    (is (false? (organize/valid-drop? tree
+                  [:folders "less"]
+                  [:folders "less" :lists "TFG Panel Super"])))
+    (is (false? (organize/valid-drop? tree
+                  [:folders "less"]
+                  [:folders "less" :folders "more" :lists "TFG Panel Extra"])))))
 
 (deftest list-path?
   (is (false? (organize/list-path? [])))
@@ -98,44 +156,3 @@
                                       [:folders "less" :lists "foo"])))
   (is (false? (organize/being-dropped? [:folders "less"]
                                        [:folders "less" :folders "foo"]))))
-
-(deftest valid-drop?
-  (is (true? (organize/valid-drop?
-               [:lists "Z7 Special"]
-               [:folders "TFG" :folders "more" :lists "TFG Panel Extra"])))
-  (is (true? (organize/valid-drop?
-               [:lists "Z7 Special"]
-               [:folders "TFG" :folders "more"])))
-  (is (true? (organize/valid-drop?
-               [:folders "TFG" :folders "more"]
-               [:folders "TFG" :folders "less" :lists "TFG Panel Super"])))
-  (is (true? (organize/valid-drop?
-               [:folders "TFG" :folders "less" :folders "more" :lists "Z7 Special"]
-               [])))
-  (is (true? (organize/valid-drop?
-               [:folders "TFG" :folders "less"]
-               [])))
-  (is (false? (organize/valid-drop?
-                [:folders "TFG" :lists "TFG Panel Multi"]
-                [:folders "TFG" :lists "TFG Panel Blue"])))
-  (is (false? (organize/valid-drop?
-                [:folders "less" :lists "TFG Panel Super"]
-                [:folders "less"])))
-  (is (false? (organize/valid-drop?
-                [:folders "TFG"]
-                [])))
-  (is (false? (organize/valid-drop?
-                [:lists "Z7 Special"]
-                [])))
-  (is (false? (organize/valid-drop?
-                [:folders "less"]
-                [:lists "Z7 Special"])))
-  (is (false? (organize/valid-drop?
-                [:folders "less"]
-                [:folders "less" :folders "more"])))
-  (is (false? (organize/valid-drop?
-                [:folders "less"]
-                [:folders "less" :lists "TFG Panel Super"])))
-  (is (false? (organize/valid-drop?
-                [:folders "less"]
-                [:folders "less" :folders "more" :lists "TFG Panel Extra"]))))
