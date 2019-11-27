@@ -7,7 +7,8 @@
             [bluegenes.pages.mymine.subs :as subs]
             [bluegenes.pages.mymine.views.modals :as modals]
             [bluegenes.pages.mymine.views.contextmenu :as m]
-            [bluegenes.route :as route])
+            [bluegenes.route :as route]
+            [bluegenes.pages.mymine.views.organize :as organize])
   (:import
    (goog.i18n NumberFormat)
    (goog.i18n.NumberFormat Format)))
@@ -59,7 +60,6 @@
                                     :data-keyboard true
                                     :data-target "#myTestModal"}
                                    {})]
-
         [:nav.nav-list-operations
          [:ul
           [:li {:class (when cant-perform? "disabled")}
@@ -135,7 +135,36 @@
       "tag" [:svg.icon.icon-folder [:use {:xlinkHref "#icon-folder"}]]
       [:svg.icon.icon-folder [:use {:xlinkHref "#icon-spyglass"}]])))
 
-(defn row-list [{:keys [im-obj-id trail im-obj-type entry-id] :as file}]
+(declare level)
+(defn row-folder [title children nesting]
+  (let [open? (r/atom false)]
+    (fn []
+      [:div
+       [:div.grid.grid-middle
+        {:on-context-menu (fn [evt]
+                            ; Prevent the browser from showing its context menu
+                            (ocall evt :preventDefault)
+                            ; Stop evt propogation
+                            (ocall evt :stopPropagation))}
+        [:div.col-7
+         [:div.folder-row {:style {:margin-left (* nesting 30)}}
+          [:a.expand-folder {:on-click #(swap! open? not)
+                             :title (if @open? "collapse" "expand")}
+           (if @open?
+             [:svg.icon.icon-minus [:use {:xlinkHref "#icon-minus"}]]
+             [:svg.icon.icon-plus [:use {:xlinkHref "#icon-plus"}]])]
+          (if @open?
+            [:svg.icon.icon-folder-open [:use {:xlinkHref "#icon-folder-open"}]]
+            [:svg.icon.icon-folder [:use {:xlinkHref "#icon-folder"}]])
+          [:a {:on-click #(swap! open? not)} title]]]
+        [:div.col-1.tag-type "Folder"]
+        [:div.col-1.list-size
+         ;; Count total amount of lists and folders children.
+         (apply + (map (comp count keys) ((juxt :lists :folders) children)))]]
+       (when @open?
+         [level children (inc nesting)])])))
+
+(defn row-list [{:keys [im-obj-id trail im-obj-type entry-id] :as file} nesting]
   (let [details             (subscribe [::subs/one-list im-obj-id])
         context-menu-target (subscribe [::subs/context-menu-target])]
     (fn [{:keys []}]
@@ -147,7 +176,9 @@
                 {:on-click (fn []
                              (dispatch [::evts/set-context-menu-target file]))})
          [:div.col-7 (merge {} (draggable file))
-          [:div [checkbox im-obj-id] [ico im-obj-type]
+          [:div {:style {:margin-left (* nesting 30)}}
+           [checkbox im-obj-id]
+           [ico im-obj-type]
            [:a {:href (route/href ::route/list {:title (:title dets)})}
             name]
            (when-not authorized
@@ -163,10 +194,19 @@
       "list" [row-list item]
       [:div])))
 
+(defn level [{:keys [lists folders]} nesting]
+  (-> [:div.level]
+      (into (map (fn [[_ {:keys [id]}]]
+                   [row-list {:im-obj-type "list" :im-obj-id id} nesting])
+                 lists))
+      (into (map (fn [[title children]]
+                   [row-folder title children nesting])
+                 folders))))
+
 (defn main []
   (let [context-menu-target (subscribe [::subs/context-menu-target])
         modal-kw            (subscribe [::subs/modal])
-        items               (subscribe [::subs/untagged-items])]
+        lists               (subscribe [:lists/filtered-lists])]
     (r/create-class
      {:component-did-mount attach-hide-context-menu
       :reagent-render
@@ -175,14 +215,7 @@
          [:div.files
           [list-operations]
           [:div.bottom
-           (into [:div]
-                 (map-indexed (fn [idx x]
-                                ^{:key
-                                  (str (or (:entry-id x)
-                                           (str (:im-obj-type x)
-                                                (:im-obj-id x))))}
-                                [row (assoc x :index idx)])
-                              @items))]]
+           [level (organize/lists->tree @lists) 0]]]
           ;[checked-panel]]
 
          [modals/modal-list-operations @modal-kw]
