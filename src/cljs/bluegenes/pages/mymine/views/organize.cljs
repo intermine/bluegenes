@@ -52,13 +52,13 @@
   ([path tree]
    (into {}
          (concat
-           (map (fn [{:keys [title]}]
-                  [title (when (not-empty path)
-                           (str path-tag-prefix ":" (string/join "." path)))])
-                (vals (:lists tree)))
-           (map (fn [[k subtree]]
-                  (tree->tags (conj path k) subtree))
-                (:folders tree))))))
+          (map (fn [{:keys [title]}]
+                 [title (when (not-empty path)
+                          (str path-tag-prefix ":" (string/join "." path)))])
+               (vals (:lists tree)))
+          (map (fn [[k subtree]]
+                 (tree->tags (conj path k) subtree))
+               (:folders tree))))))
 
 ;;;;;;;;;;;
 ;; Logic ;;
@@ -214,8 +214,8 @@
   into the top level."
   [state]
   [:li.node-container.node-fake
-    [:div.node-parent (drop-events state [])
-     [:div.node.root (drag-events state [])]]])
+   [:div.node-parent (drop-events state [])
+    [:div.node.root (drag-events state [])]]])
 
 (defn list-node
   "Wrapper around node for lists."
@@ -239,7 +239,7 @@
                    :path path
                    :fake? (:fake? children)}
        (when (and @open? (not-empty children))
-           [level state path children])])))
+         [level state path children])])))
 
 (defn map->node
   "Takes a map corresponding to either a list or folder, as read from the tree,
@@ -275,9 +275,9 @@
                                      (assoc (get-in @state (into [:tree] dragging))
                                             :fake? true)})))]
               (map-indexed
-                (fn [i item]
-                  (map->node state path item :last? (= (inc i) (count items))))
-                items)))
+               (fn [i item]
+                 (map->node state path item :last? (= (inc i) (count items))))
+               items)))
       ;; Root target node for moving nested nodes into the top level.
       (into (when top?
               (when-let [{:keys [dragging]} (:drag @state)]
@@ -287,13 +287,13 @@
       ;; Placeholder node specifically for when the user hovers over the above root node.
       (into (when top?
               (when-let [{:keys [dragging dropping]} (:drag @state)]
-               (when (and (being-dropped? path dropping)
-                          (valid-drop? (:tree @state) dragging dropping)
-                          (root-node? dropping))
-                 [(map->node state path
-                             [(last dragging)
-                              (assoc (get-in @state (into [:tree] dragging))
-                                     :fake? true)])]))))))
+                (when (and (being-dropped? path dropping)
+                           (valid-drop? (:tree @state) dragging dropping)
+                           (root-node? dropping))
+                  [(map->node state path
+                              [(last dragging)
+                               (assoc (get-in @state (into [:tree] dragging))
+                                      :fake? true)])]))))))
 
 (defn new-folder
   "Input and button for creating a new folder."
