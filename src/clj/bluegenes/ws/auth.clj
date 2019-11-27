@@ -10,6 +10,16 @@
   (-> (response/ok {:success true})
       (assoc :session nil)))
 
+(defn login
+  "Login using the new login service, with fallback to basic auth."
+  [service username password]
+  (let [res (im-auth/login service username password)]
+    (if (= (:status res) 302)
+      ;; The InterMine instance doesn't support the new login service.
+      ;; Fall back to basic auth.
+      (im-auth/basic-auth service username password)
+      (get-in res [:output :token]))))
+
 (defn handle-auth
   "Ring handler for handling authentication. Attempts to authenticate with the
   IM server (via web services) by fetching a token. If successful, return
@@ -18,7 +28,7 @@
   ; clj-http throws exceptions for 'bad' responses:
   (try
     ; Try to fetch a token from the InterMine server web service
-    (let [token (im-auth/basic-auth service username password)
+    (let [token (login service username password)
           ; Use the the token to resolve the user's identity
           whoami (im-auth/who-am-i? (assoc service :token token) token)
           ; Build an identity map (token, mine-id, whoami information)
