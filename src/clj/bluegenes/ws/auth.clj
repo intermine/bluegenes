@@ -1,14 +1,22 @@
 (ns bluegenes.ws.auth
-  (:require [compojure.core :refer [GET POST defroutes]]
+  (:require [compojure.core :refer [POST defroutes]]
             [imcljs.auth :as im-auth]
             [cheshire.core :as cheshire]
             [ring.util.http-response :as response]))
 
 (defn logout
-  "Log the user out by clearing the session"
-  []
-  (-> (response/ok {:success true})
-      (assoc :session nil)))
+  "Log the user out by clearing the session. Also sends a request to the InterMine
+  instance to invalidate the token."
+  [{{:keys [service]} :params :as _req}]
+  (try
+    ;; Might throw if we're missing token (401) or if the InterMine instance
+    ;; is older and doesn't have the service implemented (invalid response).
+    (im-auth/logout service)
+    (-> (response/ok {:success true})
+        (assoc :session nil))
+    (catch Exception _
+      (-> (response/ok {:success true})
+          (assoc :session nil)))))
 
 (defn login
   "Login using the new login service, with fallback to basic auth."
@@ -48,5 +56,5 @@
                                  :error "Unable to reach remote server"})))))))
 
 (defroutes routes
-  (GET "/logout" session (logout))
+  (POST "/logout" session logout)
   (POST "/login" session handle-auth))

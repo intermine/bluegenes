@@ -50,11 +50,18 @@
  ::logout
  ;; Fire events to log out a user. This clears the Session on the server
  (fn [{db :db} [_]]
-   {:db (update-in db [:mines (:current-mine db) :auth] assoc
-                   :thinking? true)
-    ::fx/http {:uri "/api/auth/logout"
-               :method :get
-               :on-success [::logout-success]}}))
+   (let [current-mine (:current-mine db)]
+     {:db (update-in db [:mines current-mine :auth] assoc
+                     :thinking? true)
+      ::fx/http {:uri "/api/auth/logout"
+                 :method :post
+                 :on-success [::logout-success]
+                 ;; We don't really care if anything goes wrong.
+                 :on-failure [::logout-success]
+                 :on-unauthorised [::logout-success]
+                 :transit-params {:service (select-keys
+                                             (get-in db [:mines current-mine :service])
+                                             [:root :token])}}})))
 
 (reg-event-fx
  ::logout-success
