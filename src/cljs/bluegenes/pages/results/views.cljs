@@ -56,11 +56,55 @@
                      [:div.time (time-format/unparse custom-time-formatter (time-coerce/from-long last-executed))]])
                   @historical-queries))])))
 
+(defn description-input [_title initial-text]
+  (let [text (reagent/atom (or initial-text ""))
+        error (subscribe [:results/errors :description])
+        stop-editing #(dispatch [:description/edit false])]
+    (fn [title _initial-text]
+      [:div.description-edit
+       [:label "Description"]
+       [:textarea.form-control
+        {:rows 5
+         :placeholder "Describe the contents of this list."
+         :value @text
+         :ref #(.focus (js/$ %))
+         :on-change #(reset! text (oget % "target" "value"))}]
+       [:div.controls
+        [:button.btn
+         {:type "button"
+          :on-click stop-editing}
+         "Cancel"]
+        [:button.btn.btn-primary.btn-raised
+         {:type "button"
+          :on-click #(dispatch [:description/update title @text])}
+         "Save"]
+        (when-let [e @error] [:p.error e])]])))
+
+(defn description-box []
+  (let [editing? (subscribe [:description/editing?])
+        start-editing #(dispatch [:description/edit true])]
+    (fn [title description]
+      (if @editing?
+        [description-input title description]
+        (if (not-empty description)
+          [:div.description
+           [:b "Description: "]
+           description
+           [:button.btn.btn-slim {:type "button"
+                                  :on-click start-editing}
+            [:svg.icon.icon-edit [:use {:xlinkHref "#icon-edit"}]]
+            "Edit description"]]
+          [:div.description
+           [:button.btn.btn-slim {:type "button"
+                                  :on-click start-editing}
+            [:svg.icon.icon-edit [:use {:xlinkHref "#icon-edit"}]]
+            "Add description"]])))))
+
 (defn main []
   (let [are-there-results? (subscribe [:results/are-there-results?])
         current-list (subscribe [:results/current-list])]
     (fn []
-      (let [{:keys [description authorized name type size timestamp]} @current-list]
+      (let [{:keys [description authorized name type size timestamp] :as list} @current-list]
         (if @are-there-results?
         ;;show results
           [:div.container-fluid.results
@@ -72,11 +116,10 @@
              [:div
               {:style {:background-color "white"}}
               [tables/main [:results :table]]
-              (when (> (count description) 0)
-                [:div.description-div
-                 {:style {:background-color "#D2CEBF"  :padding "10px" :overflow "auto"}}
-                 [:b "Description: "]
-                 description])]
+              (when (and list authorized)
+                ;; Only show when results are for a list, not a query.
+                ;; And only when the user is authorized to edit it.
+                [description-box name description])]
              [:div
               [tools/main]]]
             [:div.col-sm-3

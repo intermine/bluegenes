@@ -6,6 +6,7 @@
             [imcljs.fetch :as fetch]
             [imcljs.path :as path]
             [imcljs.query :as q]
+            [imcljs.save :as save]
             [bluegenes.interceptors :refer [clear-tooltips]]
             [bluegenes.interceptors :refer [abort-spec]]
             [cljs-time.core :as time]
@@ -163,3 +164,43 @@
                         :enrichment-results
                         (keyword (:widget params))] nil)
       :enrichment/get-enrichment [(:widget params) enrichment-chan]})))
+
+(reg-event-db
+ :description/edit
+ (fn [db [_ state]]
+   (-> db
+       (assoc-in [:results :description :editing?] state)
+       (assoc-in [:results :errors :description] false))))
+
+(reg-event-fx
+ :description/update
+ (fn [{db :db} [_ list-name new-description]]
+   (let [service (get-in db [:mines (:current-mine db) :service])]
+     {:im-chan {:chan (save/im-list-update service list-name {:newDescription new-description})
+                :on-success [:description/update-success]
+                :on-failure [:description/update-failure]}})))
+
+(reg-event-fx
+ :description/update-success
+ (fn [{db :db} [_ {:keys [listDescription listName]}]]
+   {:dispatch [:description/edit false]
+    :db (update-in db [:assets :lists (:current-mine db)]
+                   (fn [lists]
+                     (let [index (first (keep-indexed (fn [i {:keys [name]}]
+                                                        (when (= name listName) i))
+                                                      lists))]
+                       (assoc-in lists [index :description] listDescription))))}))
+
+(reg-event-db
+ :description/update-failure
+ (fn [db [_ {:keys [status body] :as res}]]
+   (assoc-in db [:results :errors :description]
+             (cond
+               (string? body)
+               ;; Server returned HTML as it didn't understand the request.
+               "This feature is not supported in this version of InterMine."
+               (= status 400)
+               "You are not authorised to edit this description."
+               :else
+               (do (.error js/console "Failed imcljs request" res)
+                   "An error occured. Please check your connection and try again.")))))

@@ -81,3 +81,13 @@
    (let [current-list (get-in db [:assets :lists (get db :current-mine)])
          list-title (get-in db [:results :query :title])]
      (->> current-list (filter #(= list-title (:title %))) first))))
+
+(reg-sub
+ :results/errors
+ (fn [db [_ kw]]
+   (get-in db [:results :errors kw])))
+
+(reg-sub
+ :description/editing?
+ (fn [db]
+   (get-in db [:results :description :editing?])))
