@@ -6,6 +6,7 @@
             [bluegenes.components.search.subs]
             [bluegenes.subs.auth]
             [bluegenes.components.idresolver.subs]
+            [bluegenes.pages.profile.subs]
             [lambdaisland.uri :refer [uri]]))
 
 (reg-sub

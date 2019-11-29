@@ -123,6 +123,7 @@
       [:svg.icon.icon-cog [:use {:xlinkHref "#icon-user-circle"}]]
       [:span.long-name (str " " (:username @identity))]]
      [:ul.dropdown-menu
+      [:li [:a {:href (route/href ::route/profile)} "Profile"]]
       [:li [:a {:on-click #(dispatch [:bluegenes.events.auth/logout])} "Log Out"]]]]))
 
 (defn anonymous []

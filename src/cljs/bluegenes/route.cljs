@@ -132,6 +132,12 @@
      {:name ::home
       :controllers
       [{:start #(dispatch [:set-active-panel :home-panel])}]}]
+    ["/profile"
+     {:name ::profile
+      :controllers
+      [{:start #(dispatch [:set-active-panel :profile-panel
+                           nil
+                           [:bluegenes.pages.profile.events/clear-responses]])}]}]
     ["/debug/:panel"
      {:name ::debug
       :controllers
