@@ -5,6 +5,9 @@ services: postgresql
 env:
   global:
     - BLUEGENES_DEFAULT_SERVICE_ROOT="http://localhost:8080/biotestmine"
+    - CYPRESS_defaultCommandTimeout=60000
+    - CYPRESS_requestTimeout=60000
+    - CYPRESS_responseTimeout=60000
 
 before_script:
   # Setup biotestmine to test against
