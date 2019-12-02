@@ -22,7 +22,7 @@ before_script:
   # check code is well formatted
   - lein cljfmt check
   # start server
-  - lein with-profile prod run &
+  - lein trampoline with-profile prod run &
   # install link validator bot for docs
   - gem install awesome_bot
   # install cypress dependencies
