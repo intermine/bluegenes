@@ -32,4 +32,7 @@ workflows:
           requires:
             - setup_bluegenes
           executor: cypress_exec
-          wait-on: 'http://localhost:5000'
+          store_artifacts: true
+          post-steps:
+            - store_test_results:
+                path: cypress/results
