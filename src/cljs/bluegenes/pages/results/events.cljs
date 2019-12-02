@@ -182,14 +182,14 @@
 
 (reg-event-fx
  :description/update-success
- (fn [{db :db} [_ {:keys [listDescription listName]}]]
+ (fn [{db :db} [_ {list-name :name list-description :description}]]
    {:dispatch [:description/edit false]
     :db (update-in db [:assets :lists (:current-mine db)]
                    (fn [lists]
                      (let [index (first (keep-indexed (fn [i {:keys [name]}]
-                                                        (when (= name listName) i))
+                                                        (when (= name list-name) i))
                                                       lists))]
-                       (assoc-in lists [index :description] listDescription))))}))
+                       (assoc-in lists [index :description] list-description))))}))
 
 (reg-event-db
  :description/update-failure
