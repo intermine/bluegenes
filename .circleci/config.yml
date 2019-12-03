@@ -31,11 +31,9 @@ jobs:
 workflows:
   build:
     jobs:
-      - setup_bluegenes
       - cypress/run:
-          requires:
-            - setup_bluegenes
-          executor: bluegenes_exec
+          executor: cypress_exec
+          start: lein prod
           store_artifacts: true
           post-steps:
             - store_test_results:
