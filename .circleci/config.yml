@@ -11,7 +11,10 @@ executors:
     docker:
       - image: 'cypress/base:10'
       - image: 'circleci/clojure:openjdk-8-lein-2.9.1-node'
-        command: [lein, prod]
+        steps:
+          - checkout
+          - run: npm install
+          - run: lein prod
     environment:
       CYPRESS_defaultCommandTimeout: 60000
       CYPRESS_requestTimeout: 60000
