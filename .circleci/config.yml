@@ -2,7 +2,7 @@ version: 2.1
 executors:
   bluegenes_exec:
     docker:
-      - image: 'circleci/clojure:openjdk-8-lein-2.9.1-node'
+      - image: 'circleci/clojure:openjdk-8-lein-2.9.1-node-browsers'
     environment:
       BLUEGENES_DEFAULT_SERVICE_ROOT: "http://www.flymine.org/flymine"
       CYPRESS_defaultCommandTimeout: 60000
