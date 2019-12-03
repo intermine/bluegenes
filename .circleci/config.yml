@@ -33,7 +33,8 @@ workflows:
     jobs:
       - cypress/run:
           executor: cypress_exec
-          start: lein prod
+          build: 'wget https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein -O /tmp/lein && chmod +x /tmp/lein && export PATH=$PATH:/tmp/lein'
+          start: 'lein prod'
           store_artifacts: true
           post-steps:
             - store_test_results:
