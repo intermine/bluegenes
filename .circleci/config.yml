@@ -10,10 +10,15 @@ executors:
   cypress_exec:
     docker:
       - image: 'cypress/base:10'
+      - image: 'circleci/clojure:openjdk-8-lein-2.9.1-node'
+        command: |
+          npm install
+          lein prod
     environment:
       CYPRESS_defaultCommandTimeout: 60000
       CYPRESS_requestTimeout: 60000
       CYPRESS_responseTimeout: 60000
+      BLUEGENES_DEFAULT_SERVICE_ROOT: "http://www.flymine.org/flymine"
 jobs:
   setup_bluegenes:
     executor: bluegenes_exec
