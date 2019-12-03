@@ -18,8 +18,12 @@ jobs:
       - run: lein deps
       - run: lein with-profile prod less once
       - run: lein with-profile prod cljsbuild once min
-      - run: lein trampoline with-profile prod run &
+      - run:
+          name: Start BlueGenes server
+          command: lein with-profile prod run
+          background: true
       - run: lein kaocha
+      - run: npx wait-on http://localhost:5000
       - run: npx cypress run
 workflows:
   build_and_test:
