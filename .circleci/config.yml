@@ -1,6 +1,4 @@
 version: 2.1
-orbs:
-  cypress: cypress-io/cypress@1
 executors:
   bluegenes_exec:
     docker:
@@ -10,32 +8,20 @@ executors:
       CYPRESS_defaultCommandTimeout: 60000
       CYPRESS_requestTimeout: 60000
       CYPRESS_responseTimeout: 60000
-  cypress_exec:
-    docker:
-      - image: 'cypress/base:10'
-    environment:
-      CYPRESS_defaultCommandTimeout: 60000
-      CYPRESS_requestTimeout: 60000
-      CYPRESS_responseTimeout: 60000
-      BLUEGENES_DEFAULT_SERVICE_ROOT: "http://www.flymine.org/flymine"
 jobs:
   setup_bluegenes:
     executor: bluegenes_exec
     steps:
       - checkout
+      - run: npm ci
+      - run: lein cljfmt check
       - run: lein deps
-      - run: npm install
       - run: lein with-profile prod less once
       - run: lein with-profile prod cljsbuild once min
       - run: lein trampoline with-profile prod run &
+      - run: lein kaocha
+      - run: npx cypress run
 workflows:
-  build:
+  build_and_test:
     jobs:
-      - cypress/run:
-          executor: cypress_exec
-          build: 'wget https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein -O ~/lein && chmod +x ~/lein'
-          start: '~/lein prod'
-          store_artifacts: true
-          post-steps:
-            - store_test_results:
-                path: cypress/results
+      - setup_bluegenes
