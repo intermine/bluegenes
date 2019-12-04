@@ -60,8 +60,8 @@
                  :on-failure [::logout-success]
                  :on-unauthorised [::logout-success]
                  :transit-params {:service (select-keys
-                                             (get-in db [:mines current-mine :service])
-                                             [:root :token])}}})))
+                                            (get-in db [:mines current-mine :service])
+                                            [:root :token])}}})))
 
 (reg-event-fx
  ::logout-success
