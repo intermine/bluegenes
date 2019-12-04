@@ -3,7 +3,7 @@ executors:
   bluegenes_exec:
     docker:
       - image: 'circleci/clojure:openjdk-8-lein-2.9.1-node-browsers'
-      - image: 'circleci/postgres:9.6.16'
+      # TODO add biotestmine docker
     environment:
       BLUEGENES_DEFAULT_SERVICE_ROOT: "http://www.flymine.org/flymine"
       CYPRESS_defaultCommandTimeout: 60000
@@ -14,11 +14,18 @@ jobs:
     executor: bluegenes_exec
     steps:
       - checkout
-      - run:
-          name: Start biotestmine
-          command: (git clone https://github.com/intermine/ci-scripts && cd ci-scripts && bash init-biotestmine.sh)
-          background: true
+      - restore_cache:
+        keys:
+          - v1-deps-{{ .Branch }}-{{ checksum "package.json" }}
+          - v1-deps-{{ .Branch }}-{{ checksum "project.clj" }}
+          - v1-deps-{{ .Branch }}
+          - v1-deps
       - run: npm ci
+      - save_cache:
+        key: v1-deps-{{ .Branch }}-{{ checksum "package.json" }}
+        paths:
+          - ~/.npm
+          - ~/.cache
       - run: lein cljfmt check
       - run: lein deps
       - run: lein with-profile prod less once
@@ -28,7 +35,10 @@ jobs:
           command: lein with-profile prod run
           background: true
       - run: lein kaocha
-      - run: npx wait-on http://localhost:8080
+      - save_cache:
+        key: v1-deps-{{ .Branch }}-{{ checksum "project.clj" }}
+        paths:
+          - ~/.m2
       - run: npx wait-on http://localhost:5000
       - run: npx cypress run
 workflows:
