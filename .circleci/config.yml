@@ -1,4 +1,4 @@
-version: 2
+version: 2.1
 executors:
   bluegenes_exec:
     docker:
@@ -49,7 +49,6 @@ jobs:
     - store_artifacts:
         path: cypress/screenshots
 workflows:
-  version: 2
   build_and_test:
     jobs:
     - setup_bluegenes
