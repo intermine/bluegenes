@@ -1,9 +1,9 @@
-version: 2.1
+version: 2
 executors:
   bluegenes_exec:
     docker:
-      - image: 'circleci/clojure:openjdk-8-lein-2.9.1-node-browsers'
-      # TODO add biotestmine docker
+    - image: 'circleci/clojure:openjdk-8-lein-2.9.1-node-browsers'
+    # TODO add biotestmine docker
     environment:
       BLUEGENES_DEFAULT_SERVICE_ROOT: "http://www.flymine.org/flymine"
       CYPRESS_defaultCommandTimeout: 60000
@@ -13,35 +13,43 @@ jobs:
   setup_bluegenes:
     executor: bluegenes_exec
     steps:
-      - checkout
-      - restore_cache:
+    - checkout
+    - restore_cache:
         keys:
-          - v1-deps-{{ .Branch }}-{{ checksum "package.json" }}
-          - v1-deps-{{ .Branch }}-{{ checksum "project.clj" }}
-          - v1-deps-{{ .Branch }}
-          - v1-deps
-      - run: npm ci
-      - save_cache:
+        - v1-deps-{{ .Branch }}-{{ checksum "package.json" }}
+        - v1-deps-{{ .Branch }}-{{ checksum "project.clj" }}
+        - v1-deps-{{ .Branch }}
+        - v1-deps
+    - run: npm ci
+    - run: npx cypress verify
+    - save_cache:
         key: v1-deps-{{ .Branch }}-{{ checksum "package.json" }}
         paths:
-          - ~/.npm
-          - ~/.cache
-      - run: lein cljfmt check
-      - run: lein deps
-      - run: lein with-profile prod less once
-      - run: lein with-profile prod cljsbuild once min
-      - run:
-          name: Start BlueGenes server
-          command: lein with-profile prod run
-          background: true
-      - run: lein kaocha
-      - save_cache:
+        - ~/.npm
+        - ~/.cache
+    - run: lein cljfmt check
+    - run: lein deps
+    - run: lein with-profile prod less once
+    - run: lein with-profile prod cljsbuild once min
+    - run:
+        name: Start BlueGenes server
+        command: lein with-profile prod run
+        background: true
+    - run: lein kaocha
+    - save_cache:
         key: v1-deps-{{ .Branch }}-{{ checksum "project.clj" }}
         paths:
-          - ~/.m2
-      - run: npx wait-on http://localhost:5000
-      - run: npx cypress run
+        - ~/.m2
+    - run: npx wait-on http://localhost:5000
+    - run: npx cypress run
+    - store_test_results:
+        path: cypress/results
+    - store_artifacts:
+        path: cypress/videos
+    - store_artifacts:
+        path: cypress/screenshots
 workflows:
+  version: 2
   build_and_test:
     jobs:
-      - setup_bluegenes
+    - setup_bluegenes
