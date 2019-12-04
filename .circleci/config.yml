@@ -1,16 +1,11 @@
 version: 2.1
-orbs:
-  cypress: cypress-io/cypress@1
 executors:
   bluegenes_exec:
     docker:
-      - image: 'circleci/clojure:openjdk-8-lein-2.9.1-node'
+    - image: 'circleci/clojure:openjdk-8-lein-2.9.1-node-browsers'
+    # TODO add biotestmine docker
     environment:
       BLUEGENES_DEFAULT_SERVICE_ROOT: "http://www.flymine.org/flymine"
-  cypress_exec:
-    docker:
-      - image: 'cypress/base:10'
-    environment:
       CYPRESS_defaultCommandTimeout: 60000
       CYPRESS_requestTimeout: 60000
       CYPRESS_responseTimeout: 60000
@@ -18,21 +13,42 @@ jobs:
   setup_bluegenes:
     executor: bluegenes_exec
     steps:
-      - checkout
-      - run: lein deps
-      - run: npm install
-      - run: lein with-profile prod less once
-      - run: lein with-profile prod cljsbuild once min
-      - run: lein trampoline with-profile prod run &
+    - checkout
+    - restore_cache:
+        keys:
+        - v1-deps-{{ .Branch }}-{{ checksum "package.json" }}
+        - v1-deps-{{ .Branch }}-{{ checksum "project.clj" }}
+        - v1-deps-{{ .Branch }}
+        - v1-deps
+    - run: npm ci
+    - run: npx cypress verify
+    - save_cache:
+        key: v1-deps-{{ .Branch }}-{{ checksum "package.json" }}
+        paths:
+        - ~/.npm
+        - ~/.cache
+    - run: lein cljfmt check
+    - run: lein deps
+    - run: lein with-profile prod less once
+    - run: lein with-profile prod cljsbuild once min
+    - run:
+        name: Start BlueGenes server
+        command: lein with-profile prod run
+        background: true
+    - run: lein kaocha
+    - save_cache:
+        key: v1-deps-{{ .Branch }}-{{ checksum "project.clj" }}
+        paths:
+        - ~/.m2
+    - run: npx wait-on http://localhost:5000
+    - run: npx cypress run
+    - store_test_results:
+        path: cypress/results
+    - store_artifacts:
+        path: cypress/videos
+    - store_artifacts:
+        path: cypress/screenshots
 workflows:
-  build:
+  build_and_test:
     jobs:
-      - setup_bluegenes
-      - cypress/run:
-          requires:
-            - setup_bluegenes
-          executor: cypress_exec
-          store_artifacts: true
-          post-steps:
-            - store_test_results:
-                path: cypress/results
+    - setup_bluegenes
