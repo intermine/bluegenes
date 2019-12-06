@@ -1,7 +1,6 @@
 (ns bluegenes.core
   (:require [reagent.core :as reagent]
             [re-frame.core :as re-frame]
-            [re-frisk.core :refer [enable-re-frisk!]]
             [bluegenes.utils]
             [im-tables.core]
             [bluegenes.events]
@@ -15,14 +14,9 @@
             [oops.core :refer [oget oset! ocall oapply ocall! oapply!
                                oget+ oset!+ ocall+ oapply+ ocall!+ oapply!+]]))
 
-; When compiled with Advanced Compilation, bluegenes.core/version will be replaced
-; with (:version props) in project.clj
-(goog-define version "dev")
-
 ;(defn dev-setup []
 ;  (when config/debug?
 ;    (devtools/install!)
-;    (enable-re-frisk!)
 ;    (println "dev mode")))
 
 (defn mount-root []

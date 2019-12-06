@@ -39,7 +39,8 @@
           (map (fn [{:keys [name referencedType displayName] :as x}]
                  ^{:key (str id (:name x))}
                  [tbl {:loc [:report-page id (:name x)]
-                       :service (:service @service)
+                       :service (merge (:service @service)
+                                       {:summary-fields @summary-fields})
                        :title displayName
                        :query {:from object-type
                                :select (map (partial str object-type "." (:name x) ".") (map strip-class (get @summary-fields (keyword referencedType))))
@@ -56,12 +57,14 @@
                @nonempty-collections-references))))
 
 (defn templates-for-entity [service current-mine-name id]
-  (let [runnable-templates (subscribe [::subs/runnable-templates])]
+  (let [runnable-templates (subscribe [::subs/runnable-templates])
+        summary-fields     (subscribe [:current-summary-fields])]
     (into [:div]
           (map (fn [{:keys [name title] :as t}]
                  (let [key nil]
                    [tbl {:loc [:report-page id (:name t)]
-                         :service (:service @service)
+                         :service (merge (:service @service)
+                                         {:summary-fields @summary-fields})
                          :title title
                          :query t
                          :settings {:pagination {:limit 5}

@@ -1,6 +1,4 @@
-(def props {:version "0.9.11"})
-
-(defproject org.intermine/bluegenes (:version props)
+(defproject org.intermine/bluegenes "0.9.12"
   :licence "LGPL-2.1-only"
   :description "Bluegenes is a Clojure-powered user interface for InterMine, the biological data warehouse"
   :url "http://www.intermine.org"
@@ -66,8 +64,8 @@
 
 
                  ; Intermine Assets
-                 [org.intermine/im-tables "0.8.3"]
-                 [org.intermine/imcljs "1.0.1"]
+                 [org.intermine/im-tables "0.9.0"]
+                 [org.intermine/imcljs "1.0.2"]
                  [org.intermine/bluegenes-tool-store "0.1.0"]]
 
   :deploy-repositories {"clojars" {:sign-releases false}}
@@ -84,8 +82,8 @@
 
   :aliases {"dev" ["do" "clean"
                    ["pdo"
-                    ["less" "auto"]
-                    ["run"]]]
+                    ["trampoline" "less" "auto"]
+                    ["with-profile" "+repl" "run"]]]
             "build" ["do" "clean"
                      ["less" "once"]
                      ["with-profile" "prod" "cljsbuild" "once" "min"]]
@@ -102,7 +100,7 @@
   :test-paths ["test/cljs"]
 
   :clean-targets ^{:protect false} ["resources/public/js/compiled" "target"
-                                    "resources/public/css"
+                                    "out" "resources/public/css"
                                     "test/js"]
 
   :figwheel {:css-dirs ["resources/public/css"]
@@ -117,14 +115,13 @@
                  :timeout 120000}
 
   :profiles {:dev {:dependencies [[binaryage/devtools "0.9.10"]
-                                  [day8.re-frame/re-frame-10x "0.4.2"]
+                                  [day8.re-frame/re-frame-10x "0.4.4"]
                                   [day8.re-frame/tracing "0.5.1"]
                                   [figwheel-sidecar "0.5.19"]
                                   [cider/piggieback "0.4.1"]]
                    :resource-paths ["config/dev" "tools" "config/defaults"]
                    :plugins [[lein-figwheel "0.5.19"]
-                             [lein-doo "0.1.8"]]
-                   :source-paths ["dev"]}
+                             [lein-doo "0.1.8"]]}
              :kaocha {:dependencies [[lambdaisland/kaocha "0.0-541"]
                                      [lambdaisland/kaocha-cljs "0.0-59"]]}
              :repl {:source-paths ["dev"]}
@@ -155,10 +152,9 @@
                              :jar true
                              :compiler {:main bluegenes.core
                                         :output-to "resources/public/js/compiled/app.js"
-                                        ;:output-dir "resources/public/js/compiled"
+                                        :fingerprint true
                                         :optimizations :advanced
-                                        :closure-defines {goog.DEBUG false
-                                                          bluegenes.core/version ~(:version props)}
+                                        :closure-defines {goog.DEBUG false}
                                         :pretty-print false}}}}
 
   :main bluegenes.core
@@ -167,8 +163,13 @@
 
   :repositories [
                  ["clojars"
-                  {:url "https://clojars.org/repo"}]])
+                  {:url "https://clojars.org/repo"}]]
                    ;; How often should this repository be checked for
                    ;; snapshot updates? (:daily, :always, or :never)
                    ;:update :always
 
+  :release-tasks [["change" "version" "leiningen.release/bump-version"]
+                  ["change" "version" "leiningen.release/bump-version" "release"]
+                  ["vcs" "commit"]
+                  ["vcs" "tag" "--no-sign"]
+                  ["vcs" "push"]])

@@ -13,6 +13,7 @@
 /cypress/videos
 /cypress/support
 /cypress/fixtures
+/cypress/results
 config/**/*.edn
 !config/defaults/config.edn
 .lein-failures
@@ -25,8 +26,9 @@ node_modules
 .nrepl-port
 .DS_Store
 pom.xml
-package-lock.json
 prepros.cfg
 /env/
 /.clj-kondo/
 /.cljs_node_repl/
+/.lsp/
+/*.jks

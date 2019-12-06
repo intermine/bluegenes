@@ -49,6 +49,21 @@
          (fn [db]
            (get-in db [:idresolver :stage :view])))
 
+(reg-sub ::parsing?
+         (fn [db]
+           (= (get-in db [:idresolver :stage :status :action]) :parsing)))
+
+(reg-sub ::parsed?
+         (fn [db]
+           (boolean (get-in db [:idresolver :stage :flags :parsed]))))
+
+(reg-sub
+ ::in-progress?
+ :<- [::parsing?]
+ :<- [::parsed?]
+ (fn [[parsing? parsed?]]
+   (or parsing? parsed?)))
+
 (reg-sub
  ::stats
  :<- [::resolution-response]
