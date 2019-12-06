@@ -95,6 +95,14 @@
    (:fasta report)))
 
 (reg-sub
+ ::fasta-identifier
+ :<- [::fasta]
+ (fn [fasta]
+   (-> (string/split fasta #"[ \n]")
+       (first)
+       (subs 1))))
+
+(reg-sub
  ::chromosome-location
  :<- [::fasta]
  (fn [fasta]
