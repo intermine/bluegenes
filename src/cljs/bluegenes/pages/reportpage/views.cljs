@@ -2,7 +2,6 @@
   (:require [re-frame.core :as re-frame :refer [subscribe dispatch]]
             [reagent.core :as r]
             [bluegenes.pages.reportpage.components.summary :as summary]
-            [bluegenes.pages.reportpage.components.fasta :as fasta]
             [bluegenes.components.table :as table]
             [bluegenes.components.lighttable :as lighttable]
             [bluegenes.components.loader :refer [loader]]
@@ -106,7 +105,6 @@
                [summary/main (:summary @report)]
                (when (:summary @report)
                  [:div.report-body
-                  [fasta/main]
                   [tools/main]
                   [collections-and-references service current-mine-name type id]
                   [templates-for-entity service current-mine-name id]])])]))])))
