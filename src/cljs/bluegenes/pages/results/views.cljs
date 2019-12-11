@@ -36,12 +36,16 @@
                     {:title title}
                     adjusted-title]])) @history))])))
 
-(defn no-results []
+(defn no-results
+  "Show an appropriate message when the list does not exist."
+  []
   [:div "Hmmm. There are no results. How did this happen? Whoopsie! "
    [:a {:href (route/href ::route/home)}
     "There's no place like home."]])
 
-(defn query-history []
+(defn query-history
+  "Gives an overview of recent queries or lists, allowing you to jump between them."
+  []
   (let [historical-queries (subscribe [:results/historical-queries])
         current-query (subscribe [:results/history-index])]
     (fn []
@@ -56,7 +60,9 @@
                      [:div.time (time-format/unparse custom-time-formatter (time-coerce/from-long last-executed))]])
                   @historical-queries))])))
 
-(defn description-input [_title initial-text]
+(defn description-input
+  "Textarea input for updating the description of a list."
+  [_title initial-text]
   (let [text (reagent/atom (or initial-text ""))
         error (subscribe [:results/errors :description])
         stop-editing #(dispatch [:list-description/edit false])]
@@ -80,7 +86,9 @@
          "Save"]
         (when-let [e @error] [:p.error e])]])))
 
-(defn description-box []
+(defn description-box
+  "Shows the list description if one is available, and let's you toggle editing."
+  []
   (let [editing? (subscribe [:list-description/editing?])
         start-editing #(dispatch [:list-description/edit true])]
     (fn [title description]
@@ -100,7 +108,9 @@
             [:svg.icon.icon-edit [:use {:xlinkHref "#icon-edit"}]]
             "Add description"]])))))
 
-(defn main []
+(defn main
+  "Result page for a list or query."
+  []
   (let [are-there-results? (subscribe [:results/are-there-results?])
         current-list (subscribe [:results/current-list])]
     (fn []
