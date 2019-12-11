@@ -33,7 +33,7 @@
   (let [fasta @(subscribe [::subs/fasta])]
     [:span.dropdown
      [:a.dropdown-toggle.fasta-button
-      {:data-toggle "dropdown" :role "button"}
+      {:data-toggle "dropdown" :role "button" :title "Show sequence"}
       "FASTA..."]
      [:div.dropdown-menu.fasta-dropdown
       [:form ; Top secret technique to avoid closing the dropdown when clicking inside.
@@ -57,8 +57,9 @@
                         (ocall el :click))]
     (fn []
       [:<>
-       [:a {:download "download" :ref (fn [el] (reset! download-ref el))}]
-       [:a.fasta-download {:role "button" :on-click download!}
+       [:a.hidden-download {:download "download" :ref (fn [el] (reset! download-ref el))}]
+       [:a.fasta-download {:role "button" :title "Download sequence" :on-click download!}
+        "Download"
         [:svg.icon.icon-download [:use {:xlinkHref "#icon-download"}]]]])))
 
 (defn fasta-fields []
