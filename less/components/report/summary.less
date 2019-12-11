@@ -55,6 +55,41 @@
                 }
             }
         }
+
+        .fasta-value {
+            display: flex;
+
+            .fasta-button {
+                font-size: 0.8em;
+                margin-left: @spacer;
+                border: black 1px solid;
+                padding: @spacer/10;
+                background-image: linear-gradient(#e6e6e6, white);
+            }
+
+            .fasta-dropdown {
+                padding: 0;
+            }
+
+            .fasta-sequence {
+                overflow: auto;
+                width: 400px;
+                height: 200px;
+                resize: both;
+                margin: 0;
+            }
+
+            .hidden-download {
+              display: none;
+            }
+
+            .fasta-download {
+                display: flex;
+                align-items: center;
+                margin-left: @spacer/2;
+                font-size: 0.8em;
+            }
+        }
     }
 
     .collections {
