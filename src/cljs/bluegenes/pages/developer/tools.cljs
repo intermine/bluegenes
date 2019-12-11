@@ -49,8 +49,8 @@
     (when-not supported?
       [:div.tool-alert
        [:p (str "This tool will not show on " mine-name " as it doesn't support: ")
-           (into [:<> (interpose " " (map #(vector :code %) unsupported))])
-           ". However, it may be shown for other mines."]])))
+        (into [:<> (interpose " " (map #(vector :code %) unsupported))])
+        ". However, it may be shown for other mines."]])))
 
 (defn tool-description
   [text]

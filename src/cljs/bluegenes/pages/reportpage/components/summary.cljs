@@ -72,7 +72,7 @@
         [:div.field-label [:h4 "Chromosome location"]]
         [:div.field-value chromosome-location]]
        [:div.field
-        [:div.field-label [:h4 "Sequence length"]] 
+        [:div.field-label [:h4 "Sequence length"]]
         [:div.field-value.fasta-value fasta-length
          [fasta-dropdown]
          [fasta-download]]]])))
