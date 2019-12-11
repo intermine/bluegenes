@@ -166,24 +166,24 @@
       :enrichment/get-enrichment [(:widget params) enrichment-chan]})))
 
 (reg-event-db
- :description/edit
+ :list-description/edit
  (fn [db [_ state]]
    (-> db
        (assoc-in [:results :description :editing?] state)
        (assoc-in [:results :errors :description] false))))
 
 (reg-event-fx
- :description/update
+ :list-description/update
  (fn [{db :db} [_ list-name new-description]]
    (let [service (get-in db [:mines (:current-mine db) :service])]
      {:im-chan {:chan (save/im-list-update service list-name {:newDescription new-description})
-                :on-success [:description/update-success]
-                :on-failure [:description/update-failure]}})))
+                :on-success [:list-description/update-success]
+                :on-failure [:list-description/update-failure]}})))
 
 (reg-event-fx
- :description/update-success
+ :list-description/update-success
  (fn [{db :db} [_ {list-name :name list-description :description}]]
-   {:dispatch [:description/edit false]
+   {:dispatch [:list-description/edit false]
     :db (update-in db [:assets :lists (:current-mine db)]
                    (fn [lists]
                      (let [index (first (keep-indexed (fn [i {:keys [name]}]
@@ -192,7 +192,7 @@
                        (assoc-in lists [index :description] list-description))))}))
 
 (reg-event-db
- :description/update-failure
+ :list-description/update-failure
  (fn [db [_ {:keys [status body] :as res}]]
    (assoc-in db [:results :errors :description]
              (cond

@@ -88,6 +88,6 @@
    (get-in db [:results :errors kw])))
 
 (reg-sub
- :description/editing?
+ :list-description/editing?
  (fn [db]
    (get-in db [:results :description :editing?])))

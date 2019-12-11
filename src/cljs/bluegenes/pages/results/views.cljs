@@ -59,7 +59,7 @@
 (defn description-input [_title initial-text]
   (let [text (reagent/atom (or initial-text ""))
         error (subscribe [:results/errors :description])
-        stop-editing #(dispatch [:description/edit false])]
+        stop-editing #(dispatch [:list-description/edit false])]
     (fn [title _initial-text]
       [:div.description-edit
        [:label "Description"]
@@ -76,13 +76,13 @@
          "Cancel"]
         [:button.btn.btn-primary.btn-raised
          {:type "button"
-          :on-click #(dispatch [:description/update title @text])}
+          :on-click #(dispatch [:list-description/update title @text])}
          "Save"]
         (when-let [e @error] [:p.error e])]])))
 
 (defn description-box []
-  (let [editing? (subscribe [:description/editing?])
-        start-editing #(dispatch [:description/edit true])]
+  (let [editing? (subscribe [:list-description/editing?])
+        start-editing #(dispatch [:list-description/edit true])]
     (fn [title description]
       (if @editing?
         [description-input title description]
