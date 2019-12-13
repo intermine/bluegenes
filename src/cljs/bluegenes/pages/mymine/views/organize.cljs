@@ -333,16 +333,20 @@
         {:type "button"
          :on-click submit-fn}
         "Add"]]]
-     (when-let [err-msg (get-in @state [:errors :folder])]
+     (when-let [err-msg (or (get-in @state [:errors :folder])
+                            @(subscribe [:bluegenes.pages.mymine.subs/modal-data
+                                         [:organize :error]]))]
        [:p.error err-msg])]))
 
-;; TODO make sure that this is only run when modal is open (? is this really a good idea)
 (defn main
   "Main function for creating an organize element."
   [state]
-  (let [lists (subscribe [:lists/filtered-lists])]
-    (swap! state assoc :tree (lists->tree @lists))
-    (fn [state]
-      (-> [:div.organize-tree (cancel-drop-events state)]
-          (into [[level state [] (:tree @state) :top? true]])
-          (into [[new-folder state]])))))
+  (let [lists @(subscribe [:lists/filtered-lists])]
+    (when (not= (:hash @state) (hash lists))
+      ;; Lists are not consistent with tree. Rebuild!
+      (swap! state assoc
+             :hash (hash lists)
+             :tree (lists->tree lists)))
+    (-> [:div.organize-tree (cancel-drop-events state)]
+        (into [[level state [] (:tree @state) :top? true]])
+        (into [[new-folder state]]))))

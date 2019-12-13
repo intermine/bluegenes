@@ -382,31 +382,24 @@
                               "OK"]]]]]])})))
 
 (defn modal-organize []
-  (let [input-dom-node (r/atom nil)
-        modal-dom-node (r/atom nil)
-        state          (r/atom nil)]
-    (add-watch state :debug #(.log js/console %4)) ;; TODO remove DEBUG
-    (r/create-class
-     {:component-did-mount (fn [this])
-      :reagent-render (fn [{:keys [description name trail] :as dets}]
-                        [:div#myMineOrganize.modal.fade
-                         {:tab-index "-1" ; Allows "escape" key to work.... for some reason
-                          :role "dialog"
-                          :ref (fn [e] (when e (reset! modal-dom-node (js/$ e))))} ; Get a handle on our
-                         [:div.modal-dialog
-                          [:div.modal-content
-                           [:div.modal-header [:h4 "Drag items to move into folders"]]
-                           [:div.modal-body
-                            [organize/main state]]
-                           [:div.modal-footer
-                            [:div.btn-toolbar.pull-right
-                             [:button.btn.btn-default
-                              {:data-dismiss "modal"}
-                              "Cancel"]
-                             [:button.btn.btn-success.btn-raised
-                              {:data-dismiss "modal"
-                               :on-click #(dispatch [::evts/update-tags (organize/tree->tags (:tree @state))])}
-                              "Save changes"]]]]]])})))
+  (let [state (r/atom nil)]
+    (fn []
+      [:div#myMineOrganize.modal.fade
+       {:tab-index "-1" ; Allows "escape" key to work.... for some reason
+        :role "dialog"}
+       [:div.modal-dialog
+        [:div.modal-content
+         [:div.modal-header [:h4 "Drag items to move into folders"]]
+         [:div.modal-body
+          [organize/main state]]
+         [:div.modal-footer
+          [:div.btn-toolbar.pull-right
+           [:button.btn.btn-default
+            {:data-dismiss "modal"}
+            "Cancel"]
+           [:button.btn.btn-success.btn-raised
+            {:on-click #(dispatch [::evts/update-tags (organize/tree->tags (:tree @state))])}
+            "Save changes"]]]]]])))
 
 (defn modal []
   (let [input-dom-node (r/atom nil)

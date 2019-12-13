@@ -137,7 +137,7 @@
 
 (declare level)
 (defn row-folder [title children nesting]
-  (let [open? (r/atom false)]
+  (let [open? (r/atom true)]
     (fn []
       [:div
        [:div.grid.grid-middle
@@ -196,12 +196,14 @@
 
 (defn level [{:keys [lists folders]} nesting]
   (-> [:div.level]
-      (into (map (fn [[_ {:keys [id]}]]
-                   [row-list {:im-obj-type "list" :im-obj-id id} nesting])
-                 lists))
-      (into (map (fn [[title children]]
-                   [row-folder title children nesting])
-                 folders))))
+      (into (for [[title children] folders]
+              ;; We don't have any natural unique IDs to give them, but they
+              ;; still need a unique key to avoid artifacts, so we use gensym.
+              ^{:key (str "key-" (gensym))}
+              [row-folder title children nesting]))
+      (into (for [[_ {:keys [id]}] lists]
+              ^{:key (str "key-" id)}
+              [row-list {:im-obj-type "list" :im-obj-id id} nesting]))))
 
 (defn main []
   (let [context-menu-target (subscribe [::subs/context-menu-target])

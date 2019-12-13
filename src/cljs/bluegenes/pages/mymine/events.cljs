@@ -5,6 +5,7 @@
             [imcljs.save :as save]
             [clojure.string :as s]
             [clojure.set :as core.set]
+            [oops.core :refer [ocall]]
             [bluegenes.pages.mymine.views.organize :as organize]))
 
 (reg-event-db
@@ -114,46 +115,60 @@
 
 ;;;; END TODO
 
-;;;; START TODO
-;; display alert if any of the calls fail (reset error on start)
-;; we should tell the user to try to click "save changes" again
-;; when all tag events complete, (we need a way to keep track of this)
-;; the modal can safely close
-
 (reg-event-fx
  ::update-tags
  (fn [{db :db} [_ new-tags]]
    (let [old-tags (->> (get-in db [:assets :lists (:current-mine db)])
                        (reduce (fn [m {:keys [tags title]}]
                                  (assoc m title (first (organize/extract-path-tag tags))))
-                               {}))]
-     ;; Compute the changes in the path tags for the lists, and generate the
-     ;; appropriate remove-tag and add-tag events.
-     (.log js/console {:dispatch-n (->> (core.set/difference (set new-tags) (set old-tags))
-                                        (map (fn [[title new-tag]]
-                                               (let [old-tag (get old-tags title)]
-                                                 [(when old-tag [::remove-tag title old-tag])
-                                                  (when new-tag [::add-tag title new-tag])])))
-                                        (apply concat))})
-     {})))
+                               {}))
+         ;; Compute the changes in the path tags for the lists, and generate
+         ;; the appropriate remove-tag and add-tag events.
+         tag-events (->> (core.set/difference (set new-tags) (set old-tags))
+                         (map (fn [[title new-tag]]
+                                (let [old-tag (get old-tags title)]
+                                  [(when old-tag [::remove-tag title old-tag])
+                                   (when new-tag [::add-tag title new-tag])])))
+                         (apply concat)
+                         (filter some?))]
+     (if (empty? tag-events)
+       (do (ocall (js/$ "#myMineOrganize") :modal "hide")
+           {:db (update-in db [:mymine :modals :organize] dissoc :error)})
+       {:dispatch-n tag-events
+        :db (assoc-in db [:mymine :pending-tag-operations] (set tag-events))}))))
 
 (reg-event-fx
  ::add-tag
- (fn [{db :db} [_ list-name tags]]
+ (fn [{db :db} [_ list-name tags :as evt]]
    (let [service (get-in db [:mines (get db :current-mine) :service])]
      {:im-chan {:chan (save/im-list-add-tag service list-name tags)
-                :on-success "report that this is done"
-                :on-failure "alert"}})))
+                :on-success [::tag-success evt]
+                :on-failure [::tag-failure evt]}})))
 (reg-event-fx
  ::remove-tag
- (fn [{db :db} [_ list-name tags]]
+ (fn [{db :db} [_ list-name tags :as evt]]
    (let [service (get-in db [:mines (get db :current-mine) :service])]
-     ;; TODO replace with `save/im-list-remove-tag` once added
-     {:im-chan {:chan (save/im-list-add-tag service list-name tags)
-                :on-success "report that this is done"
-                :on-failure "alert"}})))
+     {:im-chan {:chan (save/im-list-remove-tag service list-name tags)
+                :on-success [::tag-success evt]
+                :on-failure [::tag-failure evt]}})))
 
-;;;; END TODO
+(reg-event-fx
+ ::tag-success
+ (fn [{db :db} [_ evt]]
+   (let [operations (disj (get-in db [:mymine :pending-tag-operations]) evt)
+         db' (assoc-in db [:mymine :pending-tag-operations] operations)]
+     (if (empty? operations)
+       (do (ocall (js/$ "#myMineOrganize") :modal "hide")
+           {:db (update-in db' [:mymine :modals :organize] dissoc :error)
+            :dispatch [:assets/fetch-lists]})
+       {:db db'}))))
+
+(reg-event-db
+ ::tag-failure
+ (fn [db [_ _evt]]
+   (-> db
+       (update :mymine dissoc :pending-tag-operations)
+       (assoc-in [:mymine :modals :organize :error] "Failed to save changes to folder hierarchy. Please check your network connection and try again."))))
 
 (reg-event-fx
  ::rename-list
