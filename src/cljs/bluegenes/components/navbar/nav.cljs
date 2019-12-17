@@ -69,10 +69,11 @@
       [:li [:a {:on-click #(dispatch [:bluegenes.events.auth/logout])} "Log Out"]]]]))
 
 (defn anonymous []
-  (let [credentials  (reagent/atom {:username nil :password nil})
-        register?    (reagent/atom false)
-        current-mine (subscribe [:current-mine])
-        auth-values  (subscribe [:bluegenes.subs.auth/auth])]
+  (let [credentials    (reagent/atom {:username nil :password nil})
+        register?      (reagent/atom false)
+        current-mine   (subscribe [:current-mine])
+        auth-values    (subscribe [:bluegenes.subs.auth/auth])
+        show-password? (reagent/atom false)]
     (fn []
       (let [{:keys [error? thinking? message]} @auth-values
             submit-fn #(dispatch [(if @register?
@@ -83,10 +84,13 @@
                                          :mine-id (:id @current-mine))])]
         [:li.logon.secondary-nav.dropdown.warning
          ;; Always show login dialog and not registration dialog, when first opened.
+         ;; And reset `show-password?` back to false, to hide when next opened.
          {:ref (fn [evt] (some-> evt js/$
                                  (ocall :off "hide.bs.dropdown")
                                  (ocall :on  "hide.bs.dropdown"
-                                        #(do (reset! register? false) nil))))}
+                                        #(do (reset! register? false)
+                                             (reset! show-password? false)
+                                             nil))))}
          [:a.dropdown-toggle {:data-toggle "dropdown" :role "button"}
           [:svg.icon.icon-cog [:use {:xlinkHref "#icon-user-times"}]] " Log In"]
          [:div.dropdown-menu.login-form-dropdown
@@ -102,15 +106,21 @@
               :on-change (partial update-form credentials :username)
               :on-key-up #(when (= 13 (oget % :keyCode))
                             (submit-fn))}]]
-           [:div.form-group
+           [:div.form-group.toggle-show-password
             [:label "Password"]
             [:input.form-control
-             {:type "password"
+             {:type (if @show-password? "text" "password")
               :id "password"
               :value (:password @credentials)
               :on-change (partial update-form credentials :password)
               :on-key-up #(when (= 13 (oget % :keyCode))
-                            (submit-fn))}]]
+                            (submit-fn))}]
+            (let [icon (str "icon-eye" (when @show-password? "-blocked"))]
+              [:a {:role "button"
+                   :on-click #(swap! show-password? not)
+                   :title (str (if @show-password? "Hide" "Show") " password")}
+               [:svg.icon {:class icon}
+                [:use {:xlinkHref (str "#" icon)}]]])]
            [:div.register-or-login
             [:div.other-action
              [:a {:on-click #(do (dispatch [:bluegenes.events.auth/clear-error])
