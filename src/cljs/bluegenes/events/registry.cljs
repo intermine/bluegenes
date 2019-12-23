@@ -46,8 +46,7 @@
        (not (contains? registry current-mine))
        {:db (assoc db-with-registry :current-mine :default)
         :dispatch [:messages/add
-                   {:markup [:span (str "Your mine has been changed to the default as your selected mine '" (name current-mine) "' was not present in the registry.")]
-                    :style "warning"}]}
+                   {:markup [:span (str "Your mine has been changed to the default as your selected mine '" (name current-mine) "' was not present in the registry.")]}]}
        ;; Fill in the mine details if it's missing.
        ;; (This happens when we use a registry mine.)
        (nil? (get-in db-with-registry [:mines current-mine]))

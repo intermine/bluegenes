@@ -125,7 +125,7 @@
 (defn ico []
   (fn [file-type]
     (case file-type
-      "list" [:svg.icon.icon-document-list {:style {:margin-left 0}}
+      "list" [:svg.icon.icon-document-list
               [:use {:xlinkHref "#icon-document-list"}]]
       "tag" [:svg.icon.icon-folder [:use {:xlinkHref "#icon-folder"}]]
       [:svg.icon.icon-folder [:use {:xlinkHref "#icon-spyglass"}]])))

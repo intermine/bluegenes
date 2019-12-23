@@ -65,8 +65,7 @@
                             :type class
                             :id objectId})}
      [:div.grid-3_xs-3.single-feature
-      [:div.col {:style {:word-wrap "break-word"}}
-       primaryIdentifier]
+      [:div.col.feature primaryIdentifier]
       [:div.col the-type]
       [:div.col (str
                  (get-in chromosomeLocation [:locatedOn :primaryIdentifier])

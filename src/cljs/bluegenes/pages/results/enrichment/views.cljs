@@ -77,7 +77,8 @@
                                                          :title
                                                          identifier)}]))}
                          description]}])]
-         [:div.col-xs-3 [:span {:style {:font-size "0.8em"}} (.toExponential p-value 6)]]]]])))
+         [:div.col-xs-3 [:span
+                         (.toExponential p-value 6)]]]]])))
 
 (defn has-text?
   "Return true if a label contains a string"
