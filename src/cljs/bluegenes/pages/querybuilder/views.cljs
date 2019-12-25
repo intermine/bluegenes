@@ -130,9 +130,9 @@
      (let [path [root-class]]
        (into [:ul
               [:li [:div [:button.btn.btn-default.btn-slim
-                     {:on-click (fn [] (dispatch [:qb/enhance-query-add-summary-views [root-class]]))}
-                     [:span.label-button
-                      "Summary"]]
+                          {:on-click (fn [] (dispatch [:qb/enhance-query-add-summary-views [root-class]]))}
+                          [:span.label-button
+                           "Summary"]]
                     [:button.btn.btn-default.btn-slim
                      {:on-click (fn [] (dispatch [:qb/expand-all]))}
                      "Expand to Selection"]
