@@ -38,8 +38,7 @@
        [:span.markup markup]
        [:span.controls
         [:button.btn.btn-default.btn-xs.btn-raised
-         {:on-click (fn [] (dispatch [:messages/remove id]))
-          :style {:margin 0}} "X"]]])}))
+         {:on-click (fn [] (dispatch [:messages/remove id]))} "X"]]])}))
 
 (defn messages
   "Creates a message bar on the bottom of the screen"

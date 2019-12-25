@@ -72,7 +72,6 @@
               [tables/main [:results :table]]
               (when (> (count description) 0)
                 [:div.description-div
-                 {:style {:background-color "#D2CEBF"  :padding "10px" :overflow "auto"}}
                  [:b "Description: "]
                  description])]
              [:div

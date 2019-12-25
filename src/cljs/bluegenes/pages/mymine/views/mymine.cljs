@@ -146,7 +146,8 @@
            [:a {:href (route/href ::route/list {:title (:title dets)})}
             name]
            (when-not authorized
-             [:svg.icon.icon-globe {:style {:fill "#939393"}} [:use {:xlinkHref "#icon-globe"}]])]
+             [:svg.icon.icon-globe
+              [:use {:xlinkHref "#icon-globe"}]])]
           [:div.description-text
            description]]
          [:div.col-1 {:class (str "tag-type type-" type)} type]

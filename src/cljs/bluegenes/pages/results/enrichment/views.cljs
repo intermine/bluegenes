@@ -95,7 +95,6 @@
      [:div.container-fluid
       [:div.row
        [:div.col-xs-2
-        {:style {:white-space "nowrap"}}
         [:input
          {:type "checkbox"
           :checked selected?
