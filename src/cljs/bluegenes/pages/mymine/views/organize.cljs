@@ -91,6 +91,18 @@
   [p]
   (= p []))
 
+(defn trash-node?
+  "Whether `p` is the path to the trash node."
+  [p]
+  (= p [:trash]))
+
+(defn has-children?
+  "Whether `p` is a path to a folder node with children."
+  [tree p]
+  (let [{:keys [folders lists]} (get-in tree p)]
+    (boolean (or (not-empty folders)
+                 (not-empty lists)))))
+
 (defn folder-exists?
   "Whether `folder-path` is a folder name already present in `path` in `tree`."
   [tree folder-path path]
@@ -159,16 +171,30 @@
                       (when (valid-drop? (:tree @state) dragging dropping)
                         (swap! state
                                (fn [{:keys [tree] :as prev-state}]
+                                 ;; Make sure `dropping` in this context refers
+                                 ;; to the parent folder if it's a list.
                                  (let [dropping (if (list-path? dropping)
                                                   (subvec dropping 0 (- (count dropping) 2))
-                                                  dropping)]
-                                   (-> prev-state
-                                       (assoc :drag nil)
-                                       (assoc :tree
-                                              (-> tree
+                                                  dropping)
+                                       state' (-> prev-state
+                                                  ;; Clear drag state.
+                                                  (assoc :drag nil)
+                                                  ;; Clear drop errors if present.
+                                                  (cond-> (not-empty (get-in prev-state [:errors :drop]))
+                                                    (assoc-in [:errors :drop] nil)))]
+                                   (cond
+                                     (and (trash-node? dropping) (has-children? tree dragging))
+                                     (assoc-in state' [:errors :drop]
+                                               "Only empty folders can be deleted.")
+                                     :else
+                                     (assoc state' :tree
+                                            (-> tree
+                                                ;; Create node in new location (if it wasn't trashed).
+                                                (cond-> (not (trash-node? dropping))
                                                   (assoc-in (into dropping (take-last 2 dragging))
-                                                            (get-in tree dragging))
-                                                  (update-in (drop-last dragging) dissoc (last dragging)))))))))))})
+                                                            (get-in tree dragging)))
+                                                ;; Delete node from old location.
+                                                (update-in (drop-last dragging) dissoc (last dragging)))))))))))})
 
 (defn cancel-drop-events
   "Event attributes for an element whose traversal nullifies the dropping target.
@@ -217,6 +243,14 @@
    [:div.node-parent (drop-events state [])
     [:div.node.root (drag-events state [])]]])
 
+(defn trash-node
+  "This is a special trash node for use as a drop target to delete folder nodes."
+  [state]
+  [:li.node-container.node-fake
+   [:div.node-parent (drop-events state [:trash])
+    [:div.node.trash (drag-events state [:trash])
+     [:svg.icon.icon-bin [:use {:xlinkHref "#icon-bin"}]]]]])
+
 (defn list-node
   "Wrapper around node for lists."
   [state path [_ {:keys [title fake?]}] & {:keys [last?]}]
@@ -261,7 +295,8 @@
   are 3 nodes added manually in addition to the 'real' nodes:
   - Placeholder node to signify a valid drop target at this level
   - Top level root node (see `root-node`)
-  - Top level placeholder node for when the root node is the drop target"
+  - Top level placeholder node for when the root node is the drop target
+  - Top level trash node (see `trash-node`)"
   [state path {:keys [lists folders]} & {:keys [top?]}]
   (-> [:ul {:className (if top? "top-level-list" "list")}]
       (into (let [items (concat folders lists
@@ -293,7 +328,13 @@
                   [(map->node state path
                               [(last dragging)
                                (assoc (get-in @state (into [:tree] dragging))
-                                      :fake? true)])]))))))
+                                      :fake? true)])]))))
+      ;; Trash target node for deleting folder nodes.
+      (into (when top?
+              (when-let [{:keys [dragging]} (:drag @state)]
+                (when (and (some? dragging)
+                           (not (list-path? dragging)))
+                  [[trash-node state]]))))))
 
 (defn new-folder
   "Input and button for creating a new folder."
@@ -333,7 +374,8 @@
         {:type "button"
          :on-click submit-fn}
         "Add"]]]
-     (when-let [err-msg (or (get-in @state [:errors :folder])
+     (when-let [err-msg (or (get-in @state [:errors :drop])
+                            (get-in @state [:errors :folder])
                             @(subscribe [:bluegenes.pages.mymine.subs/modal-data
                                          [:organize :error]]))]
        [:p.error err-msg])]))

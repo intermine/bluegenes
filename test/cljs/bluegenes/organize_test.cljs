@@ -36,7 +36,9 @@
             :folders {"less" {:lists {"list-b" list-b
                                       "list-c" list-c}
                               :folders {"deeper" {:lists {"list-d" list-d}}}}
-                      "more" {:lists {"list-e" list-e}}}}]
+                      "more" {:lists {"list-e" list-e}}}}
+      tree+empty (assoc-in tree [:folders "less" :folders "empty"]
+                           {:lists {} :folders {}})]
 
   (deftest lists->tree
     (is (= (organize/lists->tree [list-a list-b list-c list-d list-e])
@@ -49,6 +51,10 @@
             "list-c" (tag "less")
             "list-d" (tag "less.deeper")
             "list-e" (tag "more")})))
+
+  (deftest has-children?
+    (is (true? (organize/has-children? tree+empty [:folders "less" :folders "deeper"])))
+    (is (false? (organize/has-children? tree+empty [:folders "less" :folders "empty"]))))
 
   (deftest folder-exists?
     (is (true? (organize/folder-exists? tree
@@ -161,6 +167,10 @@
 (deftest root-node?
   (is (false? (organize/root-node? [:folders "more"])))
   (is (true? (organize/root-node? []))))
+
+(deftest trash-node?
+  (is (false? (organize/trash-node? [:folders "more"])))
+  (is (true? (organize/trash-node? [:trash]))))
 
 (deftest being-dragged?
   (is (true? (organize/being-dragged? [:folders "less"] [:folders "less"])))
