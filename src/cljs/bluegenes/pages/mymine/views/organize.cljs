@@ -2,6 +2,7 @@
   (:require [re-frame.core :refer [subscribe]]
             [reagent.core :as r]
             [clojure.string :as string]
+            [clojure.set :as s]
             [oops.core :refer [ocall oget]]))
 
 (def path-tag-prefix "bgpath")
@@ -179,13 +180,12 @@
                                        state' (-> prev-state
                                                   ;; Clear drag state.
                                                   (assoc :drag nil)
-                                                  ;; Clear drop errors if present.
-                                                  (cond-> (not-empty (get-in prev-state [:errors :drop]))
-                                                    (assoc-in [:errors :drop] nil)))]
+                                                  ;; Clear error if present.
+                                                  (cond-> (contains? prev-state :error)
+                                                    (dissoc :error)))]
                                    (cond
                                      (and (trash-node? dropping) (has-children? tree dragging))
-                                     (assoc-in state' [:errors :drop]
-                                               "Only empty folders can be deleted.")
+                                     (assoc state' :error "Only empty folders can be deleted.")
                                      :else
                                      (assoc state' :tree
                                             (-> tree
@@ -215,7 +215,9 @@
   drag and drop. Note that a node can also be 'fake' or 'hidden', in which
   case they're non-interactive and used as a placeholder to signify a valid
   drop target."
-  [state {:keys [title icon last? on-click path fake?]} & children]
+  [state {:keys [title icon last? on-click path fake?
+                 ;; Keys in line below are solely for renaming folders.
+                 rename? edit? on-edit edit-value edit-change edit-save]} & children]
   (let [{:keys [dragging dropping]} (:drag @state)
         drag? (and (being-dragged? path dragging)
                    (not (valid-drop? (:tree @state) dragging dropping)))
@@ -229,9 +231,27 @@
             [:div.node (when-not fake?
                          (merge (drag-events state path)
                                 (when on-click {:on-click on-click})))
-             [:svg {:className (str "icon icon-" icon)}
+             [:svg {:className (str "icon symbol-icon icon-" icon)}
               [:use {:xlinkHref (str "#icon-" icon)}]]
-             [:span.text title]
+             (if edit?
+               [:input.form-control {:type "text"
+                                     :placeholder title
+                                     :value edit-value
+                                     :on-change edit-change
+                                     :on-click #(ocall % :stopPropagation)
+                                     :on-key-up #(when (= (oget % :keyCode) 13)
+                                                   (edit-save %))
+                                     :auto-focus true}]
+               [:span.text title])
+             (when rename?
+               (if edit?
+                 [:<>
+                  [:a {:role "button" :on-click on-edit}
+                   [:svg.icon.edit-icon.icon-close [:use {:xlinkHref "#icon-close"}]]]
+                  [:a {:role "button" :on-click edit-save}
+                   [:svg.icon.edit-icon.icon-checkmark [:use {:xlinkHref "#icon-checkmark"}]]]]
+                 [:a {:role "button" :on-click on-edit}
+                  [:svg.icon.edit-icon.icon-edit [:use {:xlinkHref "#icon-edit"}]]]))
              [:span.drag-handle "☰"]]]]
           children)))
 
@@ -264,14 +284,44 @@
 (defn folder-node
   "Wrapper around node for folders."
   []
-  (let [open? (r/atom true)]
+  (let [open? (r/atom true)
+        edit? (r/atom false)
+        edit-value (r/atom "")]
     (fn [state path [title children] & {:keys [last?]}]
-      [node state {:title title
-                   :icon (str "folder" (when @open? "-open"))
-                   :last? last?
-                   :on-click #(swap! open? not)
-                   :path path
-                   :fake? (:fake? children)}
+      [node state
+       {:title title
+        :icon (str "folder" (when @open? "-open"))
+        :last? last?
+        :on-click #(swap! open? not)
+        :path path
+        :fake? (:fake? children)
+        ;; Remaining properties are for supporting renaming of folders.
+        :rename? true
+        :edit? @edit?
+        :on-edit #(do (ocall % :stopPropagation)
+                      (reset! edit-value title)
+                      (swap! edit? not)
+                      (when (contains? @state :error)
+                        (swap! state dissoc :error)))
+        :edit-value @edit-value
+        :edit-change #(reset! edit-value (oget % :target :value))
+        :edit-save (fn [evt]
+                     (ocall evt :stopPropagation)
+                     (let [p (into [:tree] (drop-last path))
+                           new-title (string/trim @edit-value)]
+                       (cond
+                         (or (empty? new-title) (= title new-title))
+                         (swap! edit? not)
+
+                         (contains? (get-in @state p) new-title)
+                         (swap! state assoc :error "A folder with that name already exists at the same level.")
+                         :else
+                         (swap! state
+                                #(-> %
+                                     (update-in p s/rename-keys {title new-title})
+                                     ;; Clear error if present.
+                                     (cond-> (contains? % :error)
+                                       (dissoc :error)))))))}
        (when (and @open? (not-empty children))
          [level state path children])])))
 
@@ -352,11 +402,11 @@
                           (assoc-in [:tree :folders input]
                                     {:folders {} :lists {}})
                           (assoc-in [:inputs :folder] "")
-                          (assoc-in [:errors :folder] nil))
-                      (assoc-in prev-state [:errors :folder]
-                                (cond
-                                  (not valid?) "Folder names may only contain letters, numbers, spaces, hyphens and colons."
-                                  exists? (str input " already exists at the top level.")))))))]
+                          (dissoc :error))
+                      (assoc prev-state :error
+                             (cond
+                               (not valid?) "Folder names may only contain letters, numbers, spaces, hyphens and colons."
+                               exists? (str (pr-str input) " already exists at the top level.")))))))]
 
     [:div
      [:div.node-parent
@@ -374,8 +424,7 @@
         {:type "button"
          :on-click submit-fn}
         "Add"]]]
-     (when-let [err-msg (or (get-in @state [:errors :drop])
-                            (get-in @state [:errors :folder])
+     (when-let [err-msg (or (get @state :error)
                             @(subscribe [:bluegenes.pages.mymine.subs/modal-data
                                          [:organize :error]]))]
        [:p.error err-msg])]))

@@ -53,6 +53,14 @@
             padding: 2px;
             color: transparent;
             background-color: transparent;
+
+            .icon {
+                fill: transparent;
+            }
+
+            input {
+                visibility: hidden;
+            }
         }
     }
 
@@ -61,6 +69,8 @@
     }
 
     .node {
+        display: flex;
+        align-items: center;
         cursor: pointer;
         padding: 4px;
         color: @organize-node-fg;
@@ -74,19 +84,50 @@
             pointer-events: none;
         }
 
+        & > a {
+            pointer-events: auto;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            padding: 8px 6px;
+        }
+
+        & > input {
+            pointer-events: auto;
+
+            width: 200px;
+            margin-right: 4px;
+
+            &, &::placeholder {
+                height: 30px;
+                font-size: 14px;
+                line-height: 1.5;
+            }
+        }
+
         .icon {
             fill: @organize-node-fg;
-            margin-left: 0;
+            margin: 0;
+        }
+
+        .icon.symbol-icon {
             margin-right: 12px;
         }
 
         .text {
             font-size: 1.2em;
-            margin-right: 12px;
+            margin-right: 6px;
+        }
+
+        .icon.edit-icon {
+            font-size: 1em;
         }
 
         .drag-handle {
             font-size: 1.0em;
+            margin-left: 6px;
         }
 
         &.root {
@@ -103,7 +144,6 @@
 
             .icon {
                 font-size: 3em;
-                margin-right: 0;
             }
         }
     }
