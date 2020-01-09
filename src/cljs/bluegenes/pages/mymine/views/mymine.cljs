@@ -125,7 +125,7 @@
 (defn ico []
   (fn [file-type]
     (case file-type
-      "list" [:svg.icon.icon-document-list {:style {:margin-left 0}}
+      "list" [:svg.icon.icon-document-list
               [:use {:xlinkHref "#icon-document-list"}]]
       "tag" [:svg.icon.icon-folder [:use {:xlinkHref "#icon-folder"}]]
       [:svg.icon.icon-folder [:use {:xlinkHref "#icon-spyglass"}]])))
@@ -146,7 +146,8 @@
            [:a {:href (route/href ::route/list {:title (:title dets)})}
             name]
            (when-not authorized
-             [:svg.icon.icon-globe {:style {:fill "#939393"}} [:use {:xlinkHref "#icon-globe"}]])]
+             [:svg.icon.icon-globe
+              [:use {:xlinkHref "#icon-globe"}]])]
           [:div.description-text
            description]]
          [:div.col-1 {:class (str "tag-type type-" type)} type]

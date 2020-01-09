@@ -24,8 +24,7 @@
                              [:h3 (str title (when result-count (str " (" result-count ")")))]
                              (if (= 0 result-count)
                                [:div "No Results"]
-                               [:div {:style {:background-color "white"}}
-                                [im-table/main loc]])])))})))
+                               [:div [im-table/main loc]])])))})))
 
 (defn strip-class [s]
   (clojure.string/join "." (drop 1 (clojure.string/split s "."))))

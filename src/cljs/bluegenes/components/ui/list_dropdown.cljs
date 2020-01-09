@@ -49,10 +49,8 @@
             filter-fn      (apply every-pred [text-filter type-filter])
             filtered-lists (filter filter-fn lists)]
         [:div.dropdown
-         [:button.btn.btn-raised.btn-default.dropdown-toggle
+         [:button.btn.btn-raised.dropdown-toggle
           {:disabled disabled
-           :style       {:text-transform "none"
-                         :white-space    "normal"}
            :data-toggle "dropdown"}
           (str (or value "Choose a list") " ") [:span.caret]]
          [:div.dropdown-menu.dropdown-mixed-content
@@ -60,7 +58,7 @@
             [:div.container-fluid
              [text-filter-form text-filter-atom]
              [:div.col-md-6
-              [:h4 [:svg.icon.icon-history [:use {:xlinkHref "#icon-history"}]] " Recently Created"]
+              [:h4 [:svg.icon.icon-history [:use  {:xlinkHref "#icon-history"}]] " Recently Created"]
               [im-lists
                :lists (take 5 (sort-by :timestamp filtered-lists))
                :on-change on-change]]

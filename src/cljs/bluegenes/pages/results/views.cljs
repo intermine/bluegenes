@@ -64,17 +64,14 @@
         (if @are-there-results?
         ;;show results
           [:div.container-fluid.results
-           {:style {:width "100%"}}
            [:div.row
             [:div.col-sm-2
              [query-history]]
             [:div.col-sm-7
              [:div
-              {:style {:background-color "white"}}
               [tables/main [:results :table]]
               (when (> (count description) 0)
                 [:div.description-div
-                 {:style {:background-color "#D2CEBF"  :padding "10px" :overflow "auto"}}
                  [:b "Description: "]
                  description])]
              [:div

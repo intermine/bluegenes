@@ -129,12 +129,10 @@
     [:div.model-browser
      (let [path [root-class]]
        (into [:ul
-              [:li [:div
-                    {:style {:white-space "nowrap"}}
-                    [:button.btn.btn-default.btn-slim
-                     {:on-click (fn [] (dispatch [:qb/enhance-query-add-summary-views [root-class]]))}
-                     [:span.label-button
-                      "Summary"]]
+              [:li [:div [:button.btn.btn-default.btn-slim
+                          {:on-click (fn [] (dispatch [:qb/enhance-query-add-summary-views [root-class]]))}
+                          [:span.label-button
+                           "Summary"]]
                     [:button.btn.btn-default.btn-slim
                      {:on-click (fn [] (dispatch [:qb/expand-all]))}
                      "Expand to Selection"]
@@ -155,7 +153,7 @@
         [:li.tree.haschildren
          [:div.flexmex
           [:span.lab {:class (if (im-path/class? model (join "." path)) "qb-class" "qb-attribute")}
-           [:span.qb-label {:style {:margin-left 5}} [tooltip {:on-click #(dispatch [:qb/expand-path path]) :title (str "Show " (uncamel k) " in the model browser")} [:a  (uncamel k)]]]
+           [:span.qb-label [tooltip {:on-click #(dispatch [:qb/expand-path path]) :title (str "Show " (uncamel k) " in the model browser")} [:a  (uncamel k)]]]
            (when-let [s (:subclass properties)] [:span.label.label-default (uncamel s)])
            [:svg.icon.icon-bin
             {:on-click (if (> (count path) 1)
@@ -166,8 +164,7 @@
            [:svg.icon.icon-filter {:on-click (fn [] (dispatch [:qb/enhance-query-add-constraint path]))} [:use {:xlinkHref "#icon-filter"}]]
            (when-let [c (:id-count properties)]
              [:span.label.label-soft
-              {:class (when (= 0 c) "label-no-results")
-               :style {:margin-left 5}} (str c " row" (when (not= c 1) "s"))])]]
+              {:class (when (= 0 c) "label-no-results")} (str c " row" (when (not= c 1) "s"))])]]
          (when-let [constraints (:constraints properties)]
            (into [:ul.tree.banana]
                  (map-indexed (fn [idx con]

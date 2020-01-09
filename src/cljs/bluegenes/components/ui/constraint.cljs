@@ -253,7 +253,6 @@
                                              ((or on-change-operator on-change) {:code code :path path :value (cond-> value (seq? value) first) :op op})))]]
                             [:div.col-sm-8
                              [:div
-                              {:style {:position "relative"}}
                               [constraint-text-input
                                :model model
                                :value value
@@ -276,8 +275,7 @@
                                             ((or on-blur on-change) {:path path :value val :op op :code code})))]
                               (when on-remove
                                 [:svg.icon.icon-bin
-                                 {:style {:position "absolute"}
-                                  :on-click (fn [op] (on-remove {:path path :value value :op op}))}
+                                 {:on-click (fn [op] (on-remove {:path path :value value :op op}))}
                                  [:use {:xlinkHref "#icon-bin"}]])]]]]
                           #_[:div.constraint-component
                              [:div.input-group.constraint-input
