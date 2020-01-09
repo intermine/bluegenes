@@ -35,9 +35,9 @@ If a tool's npm package is updated, all you need to do in order to pull the upda
 
 ### Development tools
 
-If your tool is under development, you'll need to mimic it living in the `tools/node_modules/@intermine` directory. Your tool should comply with the [tool API guidelines](tool-api.md).
+If your tool is under development, you'll need to mimic it living in the `tools/@intermine` directory. Your tool should comply with the [tool API guidelines](tool-api.md). 
 
-You can do this by running `npm install --save /path/to/my/tool` inside the BlueGenes *tools* folder, putting in the appropriate path to the tool you're developing. This should create a symbolic link in the *node_modules* directory (nested under *@intermine*) to your package, and add it as a relative file path to *package.json*. Any changes you make to the tool in its own directory will automatically apply to BlueGenes (although you'll probably have to refresh your browser to load the new JS bundle).
+To add a tool, visit the `tools` directory and add a new entry with the path to your tool. This can be realtive - e.g. you might add a new line that says `"../../path/to/my/tool" "1.0.0"` to add a recently developed new tool. Any changes you make to the tool in its own directory will automatically apply to BlueGenes (although you'll probably have to refresh your browser to load the new JS bundle).
 
 ## Creating new tools
 
