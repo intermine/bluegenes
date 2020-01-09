@@ -7,7 +7,6 @@
 /resources/public/vendor
 /resources/public/css
 /resources/public/tools/*
-/tools/bluegenes**
 /cypress/screenshots
 /cypress/plugins
 /cypress/videos
@@ -29,6 +28,7 @@ pom.xml
 prepros.cfg
 /env/
 /.clj-kondo/
+/tools/
 /.cljs_node_repl/
 /.lsp/
 /*.jks

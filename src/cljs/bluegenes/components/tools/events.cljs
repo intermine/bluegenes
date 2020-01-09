@@ -7,13 +7,26 @@
  (fn [{db :db} [_]]
    {:db db
     ::fx/http {:method :get
-               :on-success [::store-tools]
-               :uri (str "/api/tools/all")}}))
+               :uri "/api/tools/all"
+               :on-success [::success-fetch-tools]}}))
 
 (reg-event-db
- ::store-tools
- (fn [db [_ tools]]
-   (assoc-in db [:tools :all] (:tools tools))))
+ ::success-fetch-tools
+ (fn [db [_ {:keys [tools]}]]
+   (assoc-in db [:tools :installed] tools)))
+
+(reg-event-fx
+ ::fetch-npm-tools
+ (fn [_ _]
+   {::fx/http {:method :get
+               :uri (str "https://api.npms.io/v2/search"
+                         "?q=keywords:bluegenes-intermine-tool")
+               :on-success [::success-fetch-npm-tools]}}))
+
+(reg-event-db
+ ::success-fetch-npm-tools
+ (fn [db [_ {:keys [results]}]]
+   (assoc-in db [:tools :available] results)))
 
 (reg-event-fx
  ::navigate-query
@@ -25,3 +38,15 @@
       ;; Use :dispatch-after-boot since [:results :queries] is cleared when switching mines.
       :db (cond-> db
             new-source? (update :dispatch-after-boot (fnil conj []) history+))})))
+
+(reg-event-fx
+ ::fetch-tool-path
+ (fn [_ [_]]
+   {::fx/http {:method :get
+               :uri "/api/tools/path"
+               :on-success [::success-fetch-tool-path]}}))
+
+(reg-event-db
+ ::success-fetch-tool-path
+ (fn [db [_ {:keys [path]}]]
+   (assoc-in db [:tools :path] path)))
