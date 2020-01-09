@@ -115,6 +115,11 @@
 
 ;;;; END TODO
 
+(reg-event-db
+ ::empty-folders
+ (fn [db [_ empties]]
+   (assoc-in db [:mymine :modals :organize :empty-folders] empties)))
+
 (reg-event-fx
  ::update-tags
  (fn [{db :db} [_ new-tags]]
@@ -133,6 +138,7 @@
                          (filter some?))]
      (if (empty? tag-events)
        (do (ocall (js/$ "#myMineOrganize") :modal "hide")
+           (ocall (js/$ "#myMineOrganizeConfirm") :modal "hide")
            {:db (update-in db [:mymine :modals :organize] dissoc :error)})
        {:dispatch-n tag-events
         :db (assoc-in db [:mymine :pending-tag-operations] (set tag-events))}))))
@@ -159,6 +165,7 @@
          db' (assoc-in db [:mymine :pending-tag-operations] operations)]
      (if (empty? operations)
        (do (ocall (js/$ "#myMineOrganize") :modal "hide")
+           (ocall (js/$ "#myMineOrganizeConfirm") :modal "hide")
            {:db (update-in db' [:mymine :modals :organize] dissoc :error)
             :dispatch [:assets/fetch-lists]})
        {:db db'}))))

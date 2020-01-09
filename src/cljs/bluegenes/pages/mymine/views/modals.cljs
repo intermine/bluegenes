@@ -383,23 +383,50 @@
 
 (defn modal-organize []
   (let [state (r/atom nil)]
+    ;; Uncomment to log state.
+    #_(add-watch state :debug #(do (.log js/console (:tree %4))
+                                   (.log js/console (:drag %4))))
     (fn []
-      [:div#myMineOrganize.modal.fade
-       {:tab-index "-1" ; Allows "escape" key to work.... for some reason
-        :role "dialog"}
-       [:div.modal-dialog
-        [:div.modal-content
-         [:div.modal-header [:h4 "Drag items to move into folders"]]
-         [:div.modal-body
-          [organize/main state]]
-         [:div.modal-footer
-          [:div.btn-toolbar.pull-right
-           [:button.btn.btn-default
-            {:data-dismiss "modal"}
-            "Cancel"]
-           [:button.btn.btn-success.btn-raised
-            {:on-click #(dispatch [::evts/update-tags (organize/tree->tags (:tree @state))])}
-            "Save changes"]]]]]])))
+      [:<>
+       [:div#myMineOrganize.modal.fade
+        {:tab-index "-1" ; Allows "escape" key to work.... for some reason
+         :role "dialog"}
+        [:div.modal-dialog
+         [:div.modal-content
+          [:div.modal-header [:h4 "Drag items to move into folders"]]
+          [:div.modal-body
+           [organize/main state]]
+          [:div.modal-footer
+           [:div.btn-toolbar.pull-right
+            [:button.btn.btn-default
+             {:data-dismiss "modal"}
+             "Cancel"]
+            [:button.btn.btn-success.btn-raised
+             {:on-click #(if-let [empties (not-empty (organize/empty-folders (:tree @state)))]
+                           (do (dispatch [::evts/empty-folders empties])
+                               (ocall (js/$ "#myMineOrganize") :modal "hide")
+                               (ocall (js/$ "#myMineOrganizeConfirm") :modal "show"))
+                           (dispatch [::evts/update-tags (organize/tree->tags (:tree @state))]))}
+             "Save changes"]]]]]]
+       [:div#myMineOrganizeConfirm.modal.fade
+        {:tab-index "-1" ; Allows "escape" key to work.... for some reason
+          :role "dialog"}
+        [:div.modal-dialog
+         [:div.modal-content
+          [:div.modal-header [:h4 "Empty folders won't be saved"]]
+          [:div.modal-body
+           [:p "The following marked folders don't contain any lists."]
+           (organize/confirm @(subscribe [::subs/modal-data [:organize :empty-folders]]))
+           [:p "You can choose to either go back to the previous screen and populate these folders, or continue saving your changes without the empty folders."]]
+          [:div.modal-footer
+           [:div.btn-toolbar.pull-right
+            [:button.btn.btn-default
+             {:data-dismiss "modal"
+              :on-click #(ocall (js/$ "#myMineOrganize") :modal "show")}
+             "Go back"]
+            [:button.btn.btn-info.btn-raised
+             {:on-click #(dispatch [::evts/update-tags (organize/tree->tags (:tree @state))])}
+             "Save without these folders"]]]]]]])))
 
 (defn modal []
   (let [input-dom-node (r/atom nil)

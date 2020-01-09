@@ -32,13 +32,24 @@
       list-c {:tags [(tag "less")] :title "list-c" :id 2}
       list-d {:tags [(tag "less.deeper")] :title "list-d" :id 3}
       list-e {:tags [(tag "more")] :title "list-e" :id 4}
+
       tree {:lists {"list-a" list-a}
             :folders {"less" {:lists {"list-b" list-b
                                       "list-c" list-c}
                               :folders {"deeper" {:lists {"list-d" list-d}}}}
                       "more" {:lists {"list-e" list-e}}}}
+
       tree+empty (assoc-in tree [:folders "less" :folders "empty"]
-                           {:lists {} :folders {}})]
+                           {:lists {} :folders {}})
+      tree++empty (assoc-in tree+empty [:folders "less" :folders "alsoempty"]
+                            {:lists {} :folders {}})
+      tree+++empty (assoc-in tree++empty [:folders "more" :folders "otherempty"]
+                             {:lists {} :folders {}})
+
+      tree*empty (assoc-in tree [:folders "less" :folders "almostempty"]
+                           {:lists {} :folders {"empty" {:lists {} :folders {}}}})
+      tree**empty (assoc-in tree*empty [:folders "less" :folders "almostempty" :folders "other"]
+                            {:lists {"list-z" {:title "list-z" :id 99}} :folders {}})]
 
   (deftest lists->tree
     (is (= (organize/lists->tree [list-a list-b list-c list-d list-e])
@@ -50,7 +61,25 @@
             "list-b" (tag "less")
             "list-c" (tag "less")
             "list-d" (tag "less.deeper")
+            "list-e" (tag "more")}))
+    (is (= (organize/tree->tags tree+empty)
+           {"list-a" nil
+            "list-b" (tag "less")
+            "list-c" (tag "less")
+            "list-d" (tag "less.deeper")
             "list-e" (tag "more")})))
+
+  (deftest empty-folders
+    (is (= (organize/empty-folders tree) #{}))
+    (is (= (organize/empty-folders tree+empty) #{[:folders "less" :folders "empty"]}))
+    (is (= (organize/empty-folders tree++empty) #{[:folders "less" :folders "empty"]
+                                                  [:folders "less" :folders "alsoempty"]}))
+    (is (= (organize/empty-folders tree+++empty) #{[:folders "less" :folders "empty"]
+                                                   [:folders "less" :folders "alsoempty"]
+                                                   [:folders "more" :folders "otherempty"]}))
+    (is (= (organize/empty-folders tree*empty) #{[:folders "less" :folders "almostempty" :folders "empty"]
+                                                 [:folders "less" :folders "almostempty"]}))
+    (is (= (organize/empty-folders tree**empty) #{[:folders "less" :folders "almostempty" :folders "empty"]})))
 
   (deftest has-children?
     (is (true? (organize/has-children? tree+empty [:folders "less" :folders "deeper"])))

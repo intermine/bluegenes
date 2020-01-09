@@ -61,6 +61,43 @@
                  (tree->tags (conj path k) subtree))
                (:folders tree))))))
 
+(defn drop-lastv
+  "Works just like `drop-last` except it takes and returns a vector instead of
+  a lazy sequence."
+  [n v]
+  (subvec v 0 (max 0 (- (count v) n))))
+
+(defn empty-folders
+  "Returns a collection of paths to empty folders present in the tree. This is
+  so we can inform the user that these won't be saved. Note that parents of
+  empty folders which don't have list children are also considered empty."
+  [tree]
+  (letfn [;; Recursively inspect the tree, returning paths to folder leaf nodes.
+          (empty-nodes [path {:keys [folders] :as tree}]
+            (if (empty? folders)
+              [path]
+              (mapcat (fn [[k subtree]]
+                        (empty-nodes (into path [:folders k]) subtree))
+                      (:folders tree))))]
+    ;; Now we need to go through all the parents of the folder leaf nodes
+    ;; returned by the recursive function above, until we find a folder with
+    ;; lists. This is because we consider folders that only have empty folders
+    ;; as children, to also be empty.
+    (let [[empties lists]
+          ;; In addition to paths to empty folders, we also keep track of paths
+          ;; to parent folders which we have found to have list children.
+          ;; We only track upwards from an empty folder, so it's possible that
+          ;; some paths don't discover list children while others do.
+          (reduce (fn [[empties lists] path]
+                    (let [[empty-paths list-paths]
+                          (split-with #(empty? (get-in tree (conj % :lists)))
+                                      (take-while not-empty
+                                                  (iterate #(drop-lastv 2 %) path)))]
+                      [(into empties empty-paths) (into lists list-paths)]))
+                  [#{} #{}]
+                  (empty-nodes [] tree))]
+      (s/difference empties lists))))
+
 ;;;;;;;;;;;
 ;; Logic ;;
 ;;;;;;;;;;;
@@ -126,9 +163,7 @@
   "Predicate for whether dropping paths `dragging` into `dropping` is a valid action."
   [tree dragging dropping]
   (let [dropping (if (list-path? dropping)
-                   ;; Works just like `(drop-last 2 dropping)`
-                   ;; except it doesn't return a seq.
-                   (subvec dropping 0 (max 0 (- (count dropping) 2)))
+                   (drop-lastv 2 dropping)
                    dropping)]
     (and dragging dropping
          (not= dragging dropping)
@@ -428,6 +463,29 @@
                             @(subscribe [:bluegenes.pages.mymine.subs/modal-data
                                          [:organize :error]]))]
        [:p.error err-msg])]))
+
+(defn confirm
+  "Returns a stripped non-interactive organize element highlighting empty folders.
+  You'll want to use `empty-folders` to generate the input to this function."
+  [empties]
+  (let [tree (reduce #(update-in %1 %2 merge {:empty? true}) {} empties)]
+    (letfn [(level [lfolders & {:keys [top?]}]
+              (into [:ul {:class (if top? "top-level-list" "list")}]
+                    (map-indexed
+                      (fn [i [title {:keys [folders empty?]}]]
+                        (let [last? (= (inc i) (count lfolders))]
+                          [:li.node-container {:class [(when-not last? "node-middle")
+                                                       (when empty? "node-empty")]}
+                           [:div.node-parent
+                            [:div.node
+                             [:svg.icon.symbol-icon.icon-folder-open
+                              [:use {:xlinkHref "#icon-folder-open"}]]
+                             [:span.text title]]]
+                           (when (not-empty folders)
+                             [level folders])]))
+                      lfolders)))]
+      [:div.organize-tree
+       [level (:folders tree) :top? true]])))
 
 (defn main
   "Main function for creating an organize element."
