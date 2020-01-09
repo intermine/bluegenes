@@ -185,7 +185,9 @@
   (is (true? (organize/child-of? [:folders "one" :folders "two" :lists "foo"]
                                  [:folders "one"])))
   (is (false? (organize/child-of? [:folders "one" :lists "foo"]
-                                  [:folders "one" :folders "two"]))))
+                                  [:folders "one" :folders "two"])))
+  (is (false? (organize/child-of? [:folders "one" :folders "foo"]
+                                  [:folders "on"]))))
 
 (deftest top-node?
   (is (true? (organize/top-node? [:lists "foo"])))

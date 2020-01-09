@@ -116,8 +116,10 @@
 (defn child-of?
   "Path `c` is a child (nested somewhere within) path `p`."
   [c p]
-  (string/starts-with? (string/join "." c)
-                       (string/join "." p)))
+  (let [all-parents (->> (iterate #(drop-lastv 2 %) c)
+                         (take-while not-empty)
+                         (set))]
+    (contains? all-parents p)))
 
 (defn top-node?
   "Path `p` is a node at the top of the tree, meaning its parent is the root node."
