@@ -411,7 +411,7 @@
              "Save changes"]]]]]]
        [:div#myMineOrganizeConfirm.modal.fade
         {:tab-index "-1" ; Allows "escape" key to work.... for some reason
-          :role "dialog"}
+         :role "dialog"}
         [:div.modal-dialog
          [:div.modal-content
           [:div.modal-header [:h4 "Empty folders won't be saved"]]

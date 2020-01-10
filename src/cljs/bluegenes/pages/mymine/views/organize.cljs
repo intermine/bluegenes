@@ -474,18 +474,18 @@
     (letfn [(level [lfolders & {:keys [top?]}]
               (into [:ul {:class (if top? "top-level-list" "list")}]
                     (map-indexed
-                      (fn [i [title {:keys [folders empty?]}]]
-                        (let [last? (= (inc i) (count lfolders))]
-                          [:li.node-container {:class [(when-not last? "node-middle")
-                                                       (when empty? "node-empty")]}
-                           [:div.node-parent
-                            [:div.node
-                             [:svg.icon.symbol-icon.icon-folder-open
-                              [:use {:xlinkHref "#icon-folder-open"}]]
-                             [:span.text title]]]
-                           (when (not-empty folders)
-                             [level folders])]))
-                      lfolders)))]
+                     (fn [i [title {:keys [folders empty?]}]]
+                       (let [last? (= (inc i) (count lfolders))]
+                         [:li.node-container {:class [(when-not last? "node-middle")
+                                                      (when empty? "node-empty")]}
+                          [:div.node-parent
+                           [:div.node
+                            [:svg.icon.symbol-icon.icon-folder-open
+                             [:use {:xlinkHref "#icon-folder-open"}]]
+                            [:span.text title]]]
+                          (when (not-empty folders)
+                            [level folders])]))
+                     lfolders)))]
       [:div.organize-tree
        [level (:folders tree) :top? true]])))
 
