@@ -83,6 +83,7 @@
         background-color: @organize-node-bg;
         margin-top: 10px;
         height: 31px;
+        max-width: 100%;
 
         & * {
             // Stop children from spamming dragenter and dragleave events.
@@ -103,7 +104,6 @@
         & > input {
             pointer-events: auto;
 
-            width: 200px;
             margin-right: 4px;
 
             &, &::placeholder {
@@ -125,6 +125,10 @@
         .text {
             font-size: 1.2em;
             margin-right: 6px;
+
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
         }
 
         .icon.edit-icon {
@@ -174,7 +178,6 @@
     }
 
     .form-control {
-        width: 250px;
         border-radius: 2px;
         border-width: 2px;
     }

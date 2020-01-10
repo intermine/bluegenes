@@ -391,7 +391,7 @@
        [:div#myMineOrganize.modal.fade
         {:tab-index "-1" ; Allows "escape" key to work.... for some reason
          :role "dialog"}
-        [:div.modal-dialog
+        [:div.modal-dialog.modal-lg
          [:div.modal-content
           [:div.modal-header [:h4 "Drag items to move into folders"]]
           [:div.modal-body
