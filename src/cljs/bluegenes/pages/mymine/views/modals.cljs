@@ -395,20 +395,27 @@
          [:div.modal-content
           [:div.modal-header [:h4 "Drag items to move into folders"]]
           [:div.modal-body
-           [organize/main state]]
+           (if (empty? @(subscribe [:lists/authorized-lists]))
+             [:p "You don't have any lists to organize."]
+             [organize/main state])]
           [:div.modal-footer
            [:div.btn-toolbar.pull-right
-            [:button.btn.btn-default
-             {:data-dismiss "modal"
-              :on-click #(dispatch [::evts/clear-tag-error])}
-             "Cancel"]
-            [:button.btn.btn-success.btn-raised
-             {:on-click #(if-let [empties (not-empty (organize/empty-folders (:tree @state)))]
-                           (do (dispatch [::evts/empty-folders empties])
-                               (ocall (js/$ "#myMineOrganize") :modal "hide")
-                               (ocall (js/$ "#myMineOrganizeConfirm") :modal "show"))
-                           (dispatch [::evts/update-tags (organize/tree->tags (:tree @state))]))}
-             "Save changes"]]]]]]
+            (if (empty? @(subscribe [:lists/authorized-lists]))
+              [:button.btn.btn-info.btn-raised
+               {:data-dismiss "modal"}
+               "Close"]
+              [:<>
+               [:button.btn.btn-default
+                {:data-dismiss "modal"
+                 :on-click #(dispatch [::evts/clear-tag-error])}
+                "Cancel"]
+               [:button.btn.btn-success.btn-raised
+                {:on-click #(if-let [empties (not-empty (organize/empty-folders (:tree @state)))]
+                              (do (dispatch [::evts/empty-folders empties])
+                                  (ocall (js/$ "#myMineOrganize") :modal "hide")
+                                  (ocall (js/$ "#myMineOrganizeConfirm") :modal "show"))
+                              (dispatch [::evts/update-tags (organize/tree->tags (:tree @state))]))}
+                "Save changes"]])]]]]]
        [:div#myMineOrganizeConfirm.modal.fade
         {:tab-index "-1" ; Allows "escape" key to work.... for some reason
          :role "dialog"}

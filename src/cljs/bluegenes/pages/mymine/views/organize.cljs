@@ -492,7 +492,7 @@
 (defn main
   "Main function for creating an organize element."
   [state]
-  (let [lists @(subscribe [:lists/filtered-lists])]
+  (let [lists @(subscribe [:lists/authorized-lists])]
     (when (not= (:hash @state) (hash lists))
       ;; Lists are not consistent with tree. Rebuild!
       (swap! state assoc
