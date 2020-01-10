@@ -29,7 +29,7 @@
   (reagent/render [views/main-panel]
                   (ocall js/document "getElementById" "app"))
   ;; Uncomment this code to keep modals open after figwheel reloads.
-  #_(-> (js/$ "#myMineOrganize") ; Replace with your modal id.
+  #_(-> (js/$ "#myMineOrganizeConfirm") ; Replace with your modal id.
         (.addClass "in")
         (.css "display" "block")))
 

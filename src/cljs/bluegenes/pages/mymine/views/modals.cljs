@@ -399,7 +399,8 @@
           [:div.modal-footer
            [:div.btn-toolbar.pull-right
             [:button.btn.btn-default
-             {:data-dismiss "modal"}
+             {:data-dismiss "modal"
+              :on-click #(dispatch [::evts/clear-tag-error])}
              "Cancel"]
             [:button.btn.btn-success.btn-raised
              {:on-click #(if-let [empties (not-empty (organize/empty-folders (:tree @state)))]

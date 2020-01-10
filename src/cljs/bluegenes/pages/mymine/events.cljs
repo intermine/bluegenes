@@ -177,6 +177,11 @@
        (update :mymine dissoc :pending-tag-operations)
        (assoc-in [:mymine :modals :organize :error] "Failed to save changes to folder hierarchy. Please check your network connection and try again."))))
 
+(reg-event-db
+ ::clear-tag-error
+ (fn [db]
+   (update-in db [:mymine :modals :organize] dissoc :error)))
+
 (reg-event-fx
  ::rename-list
  (fn [{db :db} [_ old-list-name new-list-name]]
