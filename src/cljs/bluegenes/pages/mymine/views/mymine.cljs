@@ -97,14 +97,14 @@
                 no-lists? (empty? @(subscribe [:lists/authorized-lists]))]
             [:li {:class (when (or no-lists? no-login?) "disabled")}
              [:a (merge
-                   {:title (cond
-                             no-login? "Only logged in users can create folders"
-                             no-lists? "You don't have any lists to organize"
-                             :else "Create folders to organize your lists")}
-                   (when (not (or no-lists? no-login?))
-                     {:data-toggle "modal"
-                      :data-keyboard true
-                      :data-target "#myMineOrganize" }))
+                  {:title (cond
+                            no-login? "Only logged in users can create folders"
+                            no-lists? "You don't have any lists to organize"
+                            :else "Create folders to organize your lists")}
+                  (when (not (or no-lists? no-login?))
+                    {:data-toggle "modal"
+                     :data-keyboard true
+                     :data-target "#myMineOrganize"}))
               "Organize " [:svg.icon.icon-summary [:use {:xlinkHref "#icon-summary"}]]]])
 
           #_[:li {}
