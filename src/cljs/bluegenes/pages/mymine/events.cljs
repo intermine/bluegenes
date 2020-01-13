@@ -173,6 +173,10 @@
 (reg-event-db
  ::tag-failure
  (fn [db [_ _evt]]
+   ;; Switch to Organize modal if Confirm modal is open.
+   (when (ocall (js/$ "#myMineOrganizeConfirm") :hasClass "in")
+     (ocall (js/$ "#myMineOrganizeConfirm") :modal "hide")
+     (ocall (js/$ "#myMineOrganize") :modal "show"))
    (-> db
        (update :mymine dissoc :pending-tag-operations)
        (assoc-in [:mymine :modals :organize :error] "Failed to save changes to folder hierarchy. Please check your network connection and try again."))))
