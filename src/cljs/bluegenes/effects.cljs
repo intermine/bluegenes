@@ -95,11 +95,18 @@ and dispatches events depending on the status of that request's response."
                     ;; `statusCode` is part of the response body from InterMine.
                     ;; `status` is part of the response map created by cljs-http.
                     s (or statusCode status)]
+                ;; Note that `s` can be nil for successful responses, due to
+                ;; imcljs applying a transducer on success. The proper way to
+                ;; check for null responses (which don't have a status code)
+                ;; is to check if the response itself is nil.
                 (cond
-                  (< s 400) (dispatch (conj on-success response))
-                  (= s 401) (if on-failure
-                              (dispatch (conj on-failure response))
-                              (dispatch [:flag-invalid-token]))
+                  ;; This first clause will intentionally match on s=nil.
+                  (and (some? response)
+                       (< s 400)) (dispatch (conj on-success response))
+                  (and (some? response)
+                       (= s 401)) (if on-failure
+                                    (dispatch (conj on-failure response))
+                                    (dispatch [:flag-invalid-token]))
                   :else (if on-failure
                           (dispatch (conj on-failure response))
                           (.error js/console "Failed imcljs request" response))))))))
