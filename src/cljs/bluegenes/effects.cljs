@@ -66,20 +66,9 @@
 
 ;; See bottom of namespace for effect registrations and examples  on how to use them
 
-; Handles the I/O of the quicksearch results used for autosuggesting
-; values in the main search box
-; TODO: This can easily be retired by using the :im-chan effect below
-
-
-(reg-fx
- :suggest
- (fn [{:keys [c search-term source]}]
-   (if (= "" search-term)
-     (dispatch [:handle-suggestions nil])
-     (go (dispatch [:handle-suggestions (<! c)])))))
-
-"The :im-chan side effect is used to read a value from a channel that represents an HTTP request
-and dispatches events depending on the status of that request's response."
+;; The :im-chan side effect is used to read a value from a channel that
+;; represents an HTTP request and dispatches events depending on the status of
+;; that request's response.
 (reg-fx :im-chan
         (let [previous-requests (atom {})]
           (fn [{:keys [on-success on-failure chan abort]}]
@@ -107,8 +96,13 @@ and dispatches events depending on the status of that request's response."
                        (= s 401)) (if on-failure
                                     (dispatch (conj on-failure response))
                                     (dispatch [:flag-invalid-token]))
-                  :else (if on-failure
-                          (dispatch (conj on-failure response))
+                  :else (cond
+                          on-failure (dispatch (conj on-failure response))
+                          ;; If `abort` is specified, it's possible that this request's
+                          ;; channel was closed by a subsequent request. In this case,
+                          ;; there's no error and we don't want to log it.
+                          (and abort (nil? response)) nil
+                          :else
                           (.error js/console "Failed imcljs request" response))))))))
 
 (defn http-fxfn

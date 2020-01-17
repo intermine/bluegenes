@@ -137,14 +137,15 @@
 (reg-event-fx
  :bounce-search
  (fn [{db :db} [_ term]]
-   (let [connection (get-in db [:mines (get db :current-mine) :service])
-         suggest-chan (fetch/quicksearch connection term {:size 5})]
-     (when-let [c (:search-term-channel db)]
-       (close! c))
-     {:db (assoc db :search-term-channel suggest-chan :search-term term)
-      :suggest {:c suggest-chan
-                :search-term term
-                :source (get db :current-mine)}})))
+   (let [service (get-in db [:mines (get db :current-mine) :service])]
+     (if (empty? term)
+       {:db (assoc db
+                   :search-term term
+                   :suggestion-results nil)}
+       {:db (assoc db :search-term term)
+        :im-chan {:chan (fetch/quicksearch service term {:size 5})
+                  :abort :quicksearch
+                  :on-success [:handle-suggestions]}}))))
 
 (reg-event-db
  :cache/store-organisms
