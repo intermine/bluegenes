@@ -2,6 +2,14 @@
 
 .profile-page {
 
+    &&&& label {
+        color: #777777;
+
+        input[type="checkbox"] {
+            margin-left: @spacer;
+        }
+    }
+
     p.success {
         margin: @spacer/2;
         color: #42a94b;
@@ -26,8 +34,36 @@
     .settings-group {
         background-color: white;
         padding: @spacer 4*@spacer;
-        margin-top: 2*@spacer;
+        margin: 2*@spacer 0;
         border: 1px solid #dddddd;
+        position: relative;
     }
 
+    .settings-loader {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        left: 0;
+        top: 0;
+        z-index: 100;
+        background-color: #000000;
+        opacity: 0;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        transition: opacity 500ms ease-out;
+
+        pointer-events: none;
+
+        &.is-loading {
+            opacity: 0.3;
+            pointer-events: auto;
+        }
+    }
+
+    .save-button {
+        margin-bottom: 2*@spacer;
+    }
 }
