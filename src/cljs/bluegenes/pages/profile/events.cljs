@@ -154,3 +154,56 @@
              {:type :failure
               :message (or (get-in res [:body :error])
                            "Error occured when saving preferences.")})))
+
+(reg-event-fx
+ ::start-deregistration
+ (fn [{db :db}]
+   (let [service (get-in db [:mines (:current-mine db) :service])]
+     {:db (assoc-in db [:profile :requests :start-deregistration] true)
+      :im-chan {:chan (auth/deregistration service)
+                :on-success [::start-deregistration-success]
+                :on-failure [::start-deregistration-failure]}})))
+
+(reg-event-db
+ ::start-deregistration-success
+ (fn [db [_ token]]
+   (-> db
+       (update-in [:profile :requests] dissoc :start-deregistration)
+       (assoc-in [:profile :responses :deregistration-token] (:uuid token)))))
+
+(reg-event-db
+ ::start-deregistration-failure
+ (fn [db [_ res]]
+   (-> db
+       (update-in [:profile :requests] dissoc :start-deregistration)
+       (assoc-in [:profile :responses :deregistration]
+                 {:type :failure
+                  :message (or (get-in res [:body :error])
+                               "Error occured when acquiring deregistration token.")}))))
+
+(reg-event-fx
+ ::delete-account
+ (fn [{db :db} [_ deregistration-token]]
+   (let [service (get-in db [:mines (:current-mine db) :service])]
+     {:db (assoc-in db [:profile :requests :delete-account] true)
+      :im-chan {:chan (auth/delete-account service deregistration-token)
+                :on-success [::delete-account-success]
+                :on-failure [::delete-account-failure]}})))
+
+(reg-event-fx
+ ::delete-account-success
+ (fn [{db :db} [_ _res]]
+   {:db (update-in db [:profile :requests] dissoc :delete-account)
+    :dispatch [:bluegenes.events.auth/logout]}))
+
+(reg-event-db
+ ::delete-account-failure
+ (fn [db [_ res]]
+   (-> db
+       (update-in [:profile :requests] dissoc :delete-account)
+       (assoc-in [:profile :responses :delete-account]
+                 {:type :failure
+                  :message (or (get-in res [:body :error])
+                               (when (= 400 (:status res))
+                                 "The code is either invalid or has expired.")
+                               "Error occured when deleting account.")}))))

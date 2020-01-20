@@ -83,16 +83,19 @@
               (let [{:keys [statusCode status] :as response} (<! chan)
                     ;; `statusCode` is part of the response body from InterMine.
                     ;; `status` is part of the response map created by cljs-http.
-                    s (or statusCode status)]
+                    s (or statusCode status)
+                    ;; Response can be nil or "" when offline.
+                    valid-response? (and (some? response)
+                                         (not= response ""))]
                 ;; Note that `s` can be nil for successful responses, due to
                 ;; imcljs applying a transducer on success. The proper way to
                 ;; check for null responses (which don't have a status code)
                 ;; is to check if the response itself is nil.
                 (cond
                   ;; This first clause will intentionally match on s=nil.
-                  (and (some? response)
+                  (and valid-response?
                        (< s 400)) (dispatch (conj on-success response))
-                  (and (some? response)
+                  (and valid-response?
                        (= s 401)) (if on-failure
                                     (dispatch (conj on-failure response))
                                     (dispatch [:flag-invalid-token]))

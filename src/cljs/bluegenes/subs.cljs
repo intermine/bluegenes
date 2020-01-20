@@ -180,6 +180,12 @@
    (get-in db [:mines (get db :current-mine)])))
 
 (reg-sub
+ :current-mine-human-name
+ :<- [:current-mine]
+ (fn [current-mine]
+   (:name current-mine)))
+
+(reg-sub
  :active-token
  :<- [:current-mine]
  (fn [current-mine]

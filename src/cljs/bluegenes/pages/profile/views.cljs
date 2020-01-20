@@ -95,7 +95,50 @@
           (when-let [{:keys [type message]} @response]
             [:p {:class type} message])])])))
 
+(defn delete-account []
+  (let [deregistration-token (subscribe [::subs/responses :deregistration-token])
+        mine-name (subscribe [:current-mine-human-name])
+        deregistration-input (r/atom "")]
+    (fn []
+      [:div.settings-group
+       [:h3 "Delete account"]
+       (if (not-empty @deregistration-token)
+         [:<>
+          [:p "Copy the following code into the input field below, then press the button to delete your account on " [:strong @mine-name] "."
+           [:br]
+           [:code @deregistration-token]]
+          [:div.alert.alert-danger
+           "Once completed, you will no longer be able to login to your account and access your saved lists, queries, templates, tags and user preferences on this InterMine instance."
+           [:br]
+           [:strong "THIS CANNOT BE UNDONE."]]
+          [:div.form-group
+           [:label "Code for account deletion"]
+           [:div.input-container
+            [:input.form-control
+             {:type "text"
+              :value @deregistration-input
+              :on-change #(reset! deregistration-input (oget % :target :value))}]]
+           [:div.flex-row
+            [:button.btn.btn-danger.btn-raised
+             {:type "button"
+              :disabled @(subscribe [::subs/requests :delete-account])
+              :on-click #(dispatch [::events/delete-account @deregistration-input])}
+             "Delete account"]
+            (when-let [{:keys [type message]} @(subscribe [::subs/responses :delete-account])]
+              [:p {:class type} message])]]]
+         [:<>
+          [:p "Delete your account on " [:strong @mine-name] " including all your saved lists, queries, templates, tags and user preferences on this InterMine instance."]
+          [:div.save-button.flex-row
+           [:button.btn.btn-danger.btn-raised
+            {:type "button"
+             :disabled @(subscribe [::subs/requests :start-deregistration])
+             :on-click #(dispatch [::events/start-deregistration])}
+            "Start account deletion"]
+           (when-let [{:keys [type message]} @(subscribe [::subs/responses :deregistration])]
+             [:p {:class type} message])]])])))
+
 (defn main []
   [:div.profile-page.container
    [user-preferences]
-   [password-settings]])
+   [password-settings]
+   [delete-account]])
