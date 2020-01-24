@@ -37,8 +37,10 @@
  (fn [db [_ res]]
    (assoc-in db [:profile :responses :change-password]
              {:type :failure
-              :message (or (get-in res [:body :error])
-                           "Failed to change password. Please check your connection and try again.")})))
+              :message (case (:status res)
+                         405 "This InterMine is running an older version which does not support changing password via BlueGenes."
+                         (or (get-in res [:body :error])
+                             "Failed to change password. Please check your connection and try again."))})))
 
 (reg-event-fx
  ::get-preferences
