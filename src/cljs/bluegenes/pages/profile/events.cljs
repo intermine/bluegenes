@@ -127,33 +127,97 @@
  (fn [db [_ path f]]
    (update-in db (into [:profile :inputs] path) f)))
 
+;; The webservice for saving preferences is a bit tricky. It will only let you
+;; POST booleans and non-empty strings. To set a pref to an empty string (ie.
+;; deactivate it) you have to call DELETE instead. As a result, the event
+;; handler below has to compute the prefs which have actually changed,
+;; then separate those into prefs that were deleted (string value set to empty)
+;; and prefs that were updated (boolean or string value set to non-empty value).
 (reg-event-fx
  ::save-preferences
  (fn [{db :db} [_ new-prefs]]
+   (let [old-prefs (get-in db [:profile :preferences])
+         changed-prefs (into {} (filter (fn [[k v]] (not= (get old-prefs k) v))) new-prefs)
+         deleted-prefs (into {} (filter (comp (every-pred string? empty?) val)) changed-prefs)
+         updated-prefs (reduce dissoc changed-prefs (keys deleted-prefs))
+         service (get-in db [:mines (:current-mine db) :service])]
+     (cond-> {:db (-> db
+                      (update-in [:profile :responses] dissoc :user-preferences)
+                      (assoc-in [:profile :requests :save-preferences]
+                                {:active (set (keys changed-prefs))}))}
+       (not-empty deleted-prefs)
+       (assoc :dispatch-n (map (fn [[k _]] [::delete-preference k]) deleted-prefs))
+       (not-empty updated-prefs)
+       (assoc :im-chan {:chan (save/preferences service updated-prefs)
+                        :on-success [::save-preferences-success (keys updated-prefs)]
+                        :on-failure [::save-preferences-failure (keys updated-prefs)]})))))
+
+(reg-event-fx
+ ::delete-preference
+ (fn [{db :db} [_ k]]
    (let [service (get-in db [:mines (:current-mine db) :service])]
-     {:db (update-in db [:profile :responses] dissoc :user-preferences)
-      :im-chan {:chan (save/preferences service new-prefs)
-                :on-success [::save-preferences-success]
-                :on-failure [::save-preferences-failure]}})))
+     {:im-chan {:chan (save/delete-preference service (name k))
+                :on-success [::delete-preference-success k]
+                :on-failure [::delete-preference-failure k]}})))
+
+(reg-event-fx
+ ::delete-preference-success
+ (fn [{db :db} [_ k prefs]]
+   (let [req-path [:profile :requests :save-preferences :active]
+         active (get-in db req-path)
+         active' (disj active k)
+         db' (assoc-in db req-path active')]
+     (cond-> {:db db'}
+       (empty? active')
+       (assoc :dispatch [::save-preferences-done prefs])))))
 
 (reg-event-db
+ ::delete-preference-failure
+ (fn [db [_ k res]]
+   (-> db
+       (update-in [:profile :requests :save-preferences :active] disj k)
+       (update-in [:profile :requests :save-preferences :failure] (fnil conj #{}) k)
+       (assoc-in [:profile :responses :user-preferences]
+                 {:type :failure
+                  :message (or (get-in res [:body :error])
+                               "Error occured when saving preferences.")}))))
+
+(reg-event-fx
  ::save-preferences-success
- (fn [db [_ prefs]]
-   (let [prefs' (merge default-preferences (parse-preferences prefs))]
-     (-> db
-         (assoc-in [:profile :preferences] prefs')
-         (assoc-in [:profile :inputs :user-preferences] prefs')
-         (assoc-in [:profile :responses :user-preferences]
-                   {:type :success
-                    :message "Updated preferences have been saved."})))))
+ (fn [{db :db} [_ ks prefs]]
+   (let [req-path [:profile :requests :save-preferences :active]
+         active (get-in db req-path)
+         active' (apply disj active ks)
+         db' (assoc-in db req-path active')]
+     (cond-> {:db db'}
+       (empty? active')
+       (assoc :dispatch [::save-preferences-done prefs])))))
 
 (reg-event-db
  ::save-preferences-failure
- (fn [db [_ res]]
-   (assoc-in db [:profile :responses :user-preferences]
-             {:type :failure
-              :message (or (get-in res [:body :error])
-                           "Error occured when saving preferences.")})))
+ (fn [db [_ ks res]]
+   (-> db
+       (update-in [:profile :requests :save-preferences :active] #(apply disj % ks))
+       (update-in [:profile :requests :save-preferences :failure] (fnil into #{}) ks)
+       (assoc-in [:profile :responses :user-preferences]
+                 {:type :failure
+                  :message (or (get-in res [:body :error])
+                               "Error occured when saving preferences.")}))))
+
+(reg-event-db
+ ::save-preferences-done
+ (fn [db [_ prefs]]
+   (let [prefs' (merge default-preferences (parse-preferences prefs))
+         success? (empty? (get-in db [:profile :requests :save-preferences :failure]))]
+     (-> db
+         (assoc-in [:profile :preferences] prefs')
+         (cond->
+           success?
+           (->
+               (assoc-in [:profile :inputs :user-preferences] prefs')
+               (assoc-in [:profile :responses :user-preferences]
+                         {:type :success
+                          :message "Updated preferences have been saved."})))))))
 
 (reg-event-fx
  ::start-deregistration
