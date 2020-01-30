@@ -2,7 +2,7 @@
   (:require [re-frame.core :refer [subscribe dispatch]]
             [reagent.core :as reagent :refer [create-class]]
             [imcljs.path :as p]
-            [clojure.string :refer [split join blank?]]
+            [clojure.string :refer [split join]]
             [oops.core :refer [ocall oget]]
             [clojure.string :as str :refer [starts-with? ends-with?]]
             [bluegenes.utils :refer [uncamel]]
@@ -225,7 +225,7 @@
                (map (fn [n]
                       [queryview-node model n]) @enhance-query))]
         [:div
-         [:div "Please select at least one attribute from the Model Browser on the left."]
+         [:p "Please select at least one attribute from the Model Browser on the left."]
          (cond (seq @default-query?) [example-button])]))))
 
 (def <sub (comp deref subscribe))
@@ -259,24 +259,23 @@
        [:button.btn.btn-primary.btn-raised
         {:on-click (fn [] (dispatch [:qb/export-query]))}
         (str "Show All " (when-let [c (:iTotalRecords @results-preview)] (str c " ")) "Rows")]
-       [:button.btn
+       [:button.btn.btn-raised
+        {:on-click (fn [] (println "TODO implement me"))}
+        "Save Query"]
+       [:button.btn.btn-raised
         {:on-click (fn [] (dispatch [:qb/enhance-query-clear-query]))}
         "Clear Query"]])))
 
 (defn preview [result-count]
   (let [results-preview (subscribe [:qb/preview])
         fetching-preview? (subscribe [:qb/fetching-preview?])]
-    (if @fetching-preview?
-      [loader]
-      [:div
-       (when @results-preview
-         [:div
-          [preview-table
-           :loading? @fetching-preview?
-           :hide-count? true
-           :query-results @results-preview]
-          (if (> (:iTotalRecords @results-preview) 5)
-            [:h4 (str "... and  " (- (:iTotalRecords @results-preview) 5) " more rows")])])])))
+    [:div
+     (if-let [res @results-preview]
+       [preview-table
+        :loading? false ; The loader is ugly.
+        :hide-count? true
+        :query-results res]
+       [:p "No query available for generating preview."])]))
 
 (defn drop-nth [n coll] (vec (keep-indexed #(if (not= %1 n) %2) coll)))
 
@@ -354,6 +353,60 @@
           0 [preview @prev]
           1 [xml-view])]])))
 
+(defn recent-queries []
+  (let [queries (take 5 @(subscribe [:results/historical-custom-queries]))
+        active-query @(subscribe [:qb/im-query])]
+    (if (empty? queries)
+      [:p "Queries that you have run during this session will appear here."]
+      [:table.table.query-table
+       [:thead
+        [:tr
+         [:th "Start"]
+         [:th "Results Format"]
+         [:th "Last Run"]]]
+       (into [:tbody]
+             (for [[_ {:keys [value last-executed]}] queries
+                   :let [{:keys [from select]} value
+                         active? (= active-query (dissoc value :title))]]
+               [:tr {:role "button"
+                     :title (if active? "This query is active" "Load this query")
+                     :class (when active? "active-query")
+                     :on-click #(dispatch [:qb/load-query value])}
+                [:td [:code.start {:class (str "start-" from)} from]]
+                [:td (into [:<>] (for [c select] [:code c]))]
+                [:td [:span.date (.toLocaleTimeString (js/Date. last-executed))]]]))])))
+
+(defn saved-queries [])
+
+(defn import-from-xml [])
+
+(defn create-template [])
+
+(defn other-query-options []
+  (let [tab-index (reagent/atom 0)]
+    (fn []
+      [:div.panel.panel-default
+       [:div.panel-body
+        [:ul.nav.nav-tabs
+         [:li {:class (when (= @tab-index 0) "active")}
+          [:a {:on-click #(reset! tab-index 0)} "Recent Queries"]]
+         [:li {:class (when (= @tab-index 1) "active")}
+          [:a {:on-click #(reset! tab-index 1)} "Saved Queries"]]
+         [:li {:class (when (= @tab-index 2) "active")}
+          [:a {:on-click #(reset! tab-index 2)} "Import from XML"]]
+         [:li {:class (when (= @tab-index 3) "active")}
+          [:a {:on-click #(reset! tab-index 3)} "Create Template"]]]
+        (case @tab-index
+          0 [recent-queries]
+          1 [saved-queries]
+          2 [import-from-xml]
+          3 [create-template])]])))
+
+(defn browse-model []
+  [:div.panel.panel-default
+   [:div.panel-body
+    [:h4 "Imagine a beautiful data model browser"]]])
+
 (defn main []
   (let [enhance-query (subscribe [:qb/enhance-query])
         query (subscribe [:qb/query])
@@ -382,8 +435,14 @@
                              [root-class-dropdown])
                            (when @root-class
                              [model-browser (:model (:service @current-mine)) (name @root-class)])]]
-                         [:div.query-view-column [:div.row
-                                                  [:div.col-lg-5
-                                                   [query-viewer]]
-                                                  [:div.col-lg-7
-                                                   [column-order-preview]]]]])})))
+                         [:div.query-view-column
+                          [:div.row
+                           [:div.col-xs-12.col-lg-5
+                            [query-viewer]]
+                           [:div.col-xs-12.col-lg-7
+                            [column-order-preview]]]
+                          [:div.row
+                           [:div.col-xs-12.col-lg-8
+                            [other-query-options]]
+                           [:div.col-xs-12.col-lg-4
+                            [browse-model]]]]])})))

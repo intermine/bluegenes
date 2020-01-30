@@ -49,13 +49,93 @@ div.column-container {
         background-color: #fbfbfb;
         overflow-y: scroll;
 
+        p {
+            margin: @spacer 0 @spacer/2 0;
+        }
+
         .panel {
             border: 1px solid #e5e5e5;
+            height: 100%;
         }
 
         .button-group {
             display: flex;
             align-items: baseline;
+
+            button {
+                margin-right: @spacer/2;
+            }
+        }
+
+        // These two selectors below are to enable columns to expand to the same
+        // height as the tallest column on the same row.
+        // This is standard in Bootstrap 4.
+        .row {
+            display: flex;
+            flex-wrap: wrap;
+        }
+        .row > [class*='col-'] {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .table {
+            margin-bottom: 0;
+        }
+
+        .query-table {
+            tbody > tr {
+                cursor: pointer;
+
+                &.active-query {
+                    background-color: #f0fae5 !important;
+                }
+
+                &:hover {
+                    background-color: #edf3f2;
+                }
+            }
+
+            code {
+                display: inline-block;
+                background-color: #DFE6ED;
+                color: #4B5C6B;
+                margin: 0 @spacer/2 @spacer/2 0;
+            }
+
+            code.start {
+                color: inherit;
+                background-color: @color-Nuffink;
+
+                // If only we had CSS-in-JS [;
+                // Actually, I do think if we want to do this well, (including
+                // the 3 other places this is used) we should use inline style.
+                &.start-Gene {
+                    background-color: @color-Gene;
+                    color: #fff;
+                }
+                &.start-Protein {
+                    background-color: @color-Protein;
+                }
+                &.start-Author,
+                &.start-Publication {
+                    background-color: @color-Publication;
+                }
+                &.start-Organism {
+                    background-color: @color-Organism;
+                }
+                &.start-Interaction {
+                    background-color: @color-Interaction;
+                }
+                &.start-GOTerm {
+                    background-color: @color-GO;
+                    color: #fff;
+                }
+            }
+
+            .date {
+                white-space: nowrap;
+            }
         }
     }
 }
