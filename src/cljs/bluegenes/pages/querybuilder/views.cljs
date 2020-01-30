@@ -192,9 +192,9 @@
                                                          (dispatch [:qb/enhance-query-build-im-query true]))
 
                                    :on-change (fn [c]
-                                                (dispatch [:qb/enhance-query-update-constraint path idx c])
+                                                (dispatch [:qb/enhance-query-update-constraint path idx c]))
                                                 ;(dispatch [:qb/enhance-query-build-im-query true])
-)
+
                                    :on-blur (fn [c]
                                               (dispatch [:qb/enhance-query-update-constraint path idx c])
                                               (dispatch [:qb/enhance-query-build-im-query true]))
@@ -324,19 +324,20 @@
         tab-index (reagent/atom 0)
         constraint-value-count (subscribe [:qb/constraint-value-count])]
     (fn []
-      [:div.panel-body
-       [:ul.nav.nav-tabs
-        [:li {:class (when (= @tab-index 0) "active")} [:a {:on-click #(reset! tab-index 0)} "Query"]]
-        [:li {:class (when (= @tab-index 1) "active")} [:a {:on-click #(reset! tab-index 1)} "Column Order"]]]
-       (case @tab-index
-         0 [:div
-            [queryview-browser (:model (:service @current-mine))]
-            (when (>= @constraint-value-count 2)
-              [:div
-               [:h4 "Constraint Logic"]
-               [logic-box]])]
-         1 [sortable-list])
-       (when (not-empty @enhance-query) [controls])])))
+      [:div.panel.panel-default
+       [:div.panel-body
+        [:ul.nav.nav-tabs
+         [:li {:class (when (= @tab-index 0) "active")} [:a {:on-click #(reset! tab-index 0)} "Query"]]
+         [:li {:class (when (= @tab-index 1) "active")} [:a {:on-click #(reset! tab-index 1)} "Column Order"]]]
+        (case @tab-index
+          0 [:div
+             [queryview-browser (:model (:service @current-mine))]
+             (when (>= @constraint-value-count 2)
+               [:div
+                [:h4 "Constraint Logic"]
+                [logic-box]])]
+          1 [sortable-list])
+        (when (not-empty @enhance-query) [controls])]])))
 
 (defn column-order-preview []
   (let [enhance-query (subscribe [:qb/enhance-query])
@@ -344,13 +345,14 @@
         tab-index (reagent/atom 0)
         prev (subscribe [:qb/preview])]
     (fn []
-      [:div.panel-body
-       [:ul.nav.nav-tabs
-        [:li {:class (when (= @tab-index 0) "active")} [:a {:on-click #(reset! tab-index 0)} "Preview"]]
-        [:li {:class (when (= @tab-index 1) "active")} [:a {:on-click #(reset! tab-index 1)} "XML"]]]
-       (case @tab-index
-         0 [preview @prev]
-         1 [xml-view])])))
+      [:div.panel.panel-default
+       [:div.panel-body
+        [:ul.nav.nav-tabs
+         [:li {:class (when (= @tab-index 0) "active")} [:a {:on-click #(reset! tab-index 0)} "Preview"]]
+         [:li {:class (when (= @tab-index 1) "active")} [:a {:on-click #(reset! tab-index 1)} "XML"]]]
+        (case @tab-index
+          0 [preview @prev]
+          1 [xml-view])]])))
 
 (defn main []
   (let [enhance-query (subscribe [:qb/enhance-query])
@@ -380,9 +382,8 @@
                              [root-class-dropdown])
                            (when @root-class
                              [model-browser (:model (:service @current-mine)) (name @root-class)])]]
-                         [:div.query-view-column [:div.container-fluid
-                                                  [:div.row
-                                                   [:div.col-md-5
-                                                    [query-viewer]]
-                                                   [:div.col-md-7
-                                                    [column-order-preview]]]]]])})))
+                         [:div.query-view-column [:div.row
+                                                  [:div.col-lg-5
+                                                   [query-viewer]]
+                                                  [:div.col-lg-7
+                                                   [column-order-preview]]]]])})))
