@@ -69,6 +69,7 @@
          {:dispatch-n [[:results/history+
                         {:source current-mine
                          :type :query
+                         :intent :list
                          :value {:title title
                                  :from type
                                  :select summary-fields

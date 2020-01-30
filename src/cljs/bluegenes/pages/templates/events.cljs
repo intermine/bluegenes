@@ -44,6 +44,7 @@
     :dispatch [:results/history+
                {:source (:current-mine db)
                 :type :query
+                :intent :template
                 :value (remove-switchedoff-constraints (get-in db [:components :template-chooser :selected-template]))}]}))
 
 (defn one-of? [col value] (some? (some #{value} col)))

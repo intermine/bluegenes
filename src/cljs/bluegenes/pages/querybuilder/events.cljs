@@ -271,9 +271,11 @@
     :dispatch [:results/history+
                {:source (get-in db [:current-mine])
                 :type :query
+                :intent :query
                 :value (assoc
                         (get-in db [:qb :im-query])
-                        :title "Custom Built Query")}]}))
+                        :title (str "Custom Query " (hash (get-in db [:qb :im-query]))))
+                :display-title "Custom Query"}]}))
 
 (defn within? [col item]
   (some? (some #{item} col)))

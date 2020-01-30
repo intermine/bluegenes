@@ -73,7 +73,15 @@
 (reg-sub
  :results/historical-queries
  (fn [db]
-   (sort-by (comp :last-executed second) > (seq (get-in db [:results :queries])))))
+   (->> (get-in db [:results :queries])
+        (filter (comp (hash-set (:current-mine db)) :source val))
+        (sort-by (comp :last-executed second) >))))
+
+(reg-sub
+ :results/historical-custom-queries
+ :<- [:results/historical-queries]
+ (fn [queries]
+   (filter (comp #{:query} :intent val) queries)))
 
 (reg-sub
  :results/current-list
