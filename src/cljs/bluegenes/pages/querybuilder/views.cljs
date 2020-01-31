@@ -129,21 +129,87 @@
     [:div.model-browser
      (let [path [root-class]]
        (into [:ul
-              [:li [:div
-                    {:style {:white-space "nowrap"}}
-                    [:button.btn.btn-default.btn-slim
-                     {:on-click (fn [] (dispatch [:qb/enhance-query-add-summary-views [root-class]]))}
-                     [:span.label-button
-                      "Summary"]]
-                    [:button.btn.btn-default.btn-slim
-                     {:on-click (fn [] (dispatch [:qb/expand-all]))}
-                     "Expand to Selection"]
+              [:li [:div.model-button-group
                     [:button.btn.btn-slim
-                     {:on-click (fn [] (dispatch [:qb/collapse-all]))}
+                     {:on-click #(dispatch [:qb/enhance-query-add-summary-views [root-class]])}
+                     "Summarise"]
+                    [:button.btn.btn-slim
+                     {:on-click #(dispatch [:qb/expand-all])}
+                     "Expand Selected"]
+                    [:button.btn.btn-slim
+                     {:on-click #(dispatch [:qb/collapse-all])}
                      "Collapse All"]]]]
              (concat
               (map (fn [i] [attribute model i path]) (sort (remove (comp (partial = :id) first) (im-path/attributes model root-class))))
               (map (fn [i] [node model i path]) (sort (im-path/relationships model root-class))))))]))
+
+(defn data-browser-node [close! model hier tag]
+  (let [open? (reagent/atom true)]
+    (fn []
+      (let [children (filter #(contains? (parents hier %) tag)
+                             (descendants hier tag))]
+        [:li.haschildren.qb-group
+         {:class (when @open? "expanded-group")}
+         [:div.group-title
+          (when (seq children)
+            [:a {:on-click #(swap! open? not)}
+             [:svg.icon.icon-plus
+              {:class (when @open? "arrow-down")}
+              [:use {:xlinkHref "#icon-plus"}]]])
+          [:a.qb-class
+           {:class (when (empty? children) "no-icon")
+            :on-click #(do (dispatch [:qb/set-root-class tag]) (close!))}
+           tag]
+          (when-let [count (get-in model [tag :count])]
+            (when (pos? count)
+              [:span.class-count count]))]
+         (when (and (seq children) @open?)
+           (into [:ul]
+                 (for [child (sort children)]
+                   [data-browser-node close! model hier child])))]))))
+
+(defn data-browser [close!]
+  (let [model @(subscribe [:model])
+        hier (reduce (fn [h [child {:keys [extends]}]]
+                       (reduce #(derive %1 child %2) h (map keyword extends)))
+                     (make-hierarchy) model)]
+    (fn []
+      [:div.model-browser-column
+       [:div.header-group
+        [:h4 "Data Browser"]
+        [:button.btn.btn-raised.btn-sm.browse-button
+         {:on-click close!}
+         [:svg.icon.icon-arrow-left [:use {:xlinkHref "#icon-arrow-left"}]]
+         "Back to model"]]
+       [:div.model-browser.class-browser
+        (into [:ul]
+              (for [root (->> (keys model)
+                              (filter #(empty? (parents hier %)))
+                              (sort))]
+                [data-browser-node close! model hier root]))]])))
+
+(defn browser-pane []
+  (let [query (subscribe [:qb/query])
+        current-mine (subscribe [:current-mine])
+        root-class (subscribe [:qb/root-class])
+        browse-model? (reagent/atom true)]
+    (when (empty? @query)
+      (dispatch [:qb/set-root-class "Gene"]))
+    (fn []
+      (if @browse-model?
+        [:div.model-browser-column
+         [:h4 "Model Browser"]
+         (when @root-class
+           [:div.input-group
+            [root-class-dropdown]
+            [:span.input-group-btn
+             [:button.btn.btn-raised.btn-sm.browse-button
+              {:on-click #(swap! browse-model? not)}
+              [:svg.icon.icon-tree [:use {:xlinkHref "#icon-tree"}]]
+              "Browse"]]])
+         (when @root-class
+           [model-browser (:model (:service @current-mine)) (name @root-class)])]
+        [data-browser #(swap! browse-model? not)]))))
 
 (defn dissoc-keywords [m]
   (apply dissoc m (filter keyword? (keys m))))
@@ -402,47 +468,15 @@
           2 [import-from-xml]
           3 [create-template])]])))
 
-(defn browse-model []
-  [:div.panel.panel-default
-   [:div.panel-body
-    [:h4 "Imagine a beautiful data model browser"]]])
-
 (defn main []
-  (let [enhance-query (subscribe [:qb/enhance-query])
-        query (subscribe [:qb/query])
-        current-mine (subscribe [:current-mine])
-        root-class (subscribe [:qb/root-class])
-        prev (subscribe [:qb/preview])]
-    (reagent/create-class
-     {:component-did-mount (fn [x]
-                             (when (empty? @query)
-                               (dispatch [:qb/set-root-class "Gene"])))
-      :reagent-render (fn []
-                        [:div.column-container
-                         [:div.model-browser-column
-                          [:div.container-fluid
-                           [:h4 "Model Browser"]
-                           #_[:div.btn-toolbar
-                              [:button.btn.btn-slim
-                               {:on-click (fn [] (dispatch [:qb/expand-all]))}
-                               "Expand to Query"]
-                              [:button.btn.btn-slim
-                               {:on-click (fn [] (dispatch [:qb/collapse-all]))}
-                               "Collapse All"]]
-                           [:div
-                            [:span "Start with..."]]
-                           (when @root-class
-                             [root-class-dropdown])
-                           (when @root-class
-                             [model-browser (:model (:service @current-mine)) (name @root-class)])]]
-                         [:div.query-view-column
-                          [:div.row
-                           [:div.col-xs-12.col-lg-5
-                            [query-viewer]]
-                           [:div.col-xs-12.col-lg-7
-                            [column-order-preview]]]
-                          [:div.row
-                           [:div.col-xs-12.col-lg-8
-                            [other-query-options]]
-                           [:div.col-xs-12.col-lg-4
-                            [browse-model]]]]])})))
+  [:div.column-container
+   [browser-pane]
+   [:div.query-view-column
+    [:div.row
+     [:div.col-xs-12.col-lg-5
+      [query-viewer]]
+     [:div.col-xs-12.col-lg-7
+      [column-order-preview]]]
+    [:div.row
+     [:div.col-xs-12
+      [other-query-options]]]]])

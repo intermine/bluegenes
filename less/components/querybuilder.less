@@ -37,10 +37,20 @@ div.column-container {
         border: 1px solid #d5d5d5;
         border-width: 0 1px 0 0;
 
-        padding-top: @spacer/2;
+        padding: @spacer/2 @spacer @spacer/2 @spacer;
 
         resize: horizontal;
         overflow: auto;
+
+        .browse-button {
+            margin-bottom: 3px;
+            padding-right: 30px;
+        }
+
+        .header-group {
+            display: flex;
+            justify-content: space-between;
+        }
     }
 
     .query-view-column {
@@ -372,6 +382,16 @@ div.column-container {
     .subclass {}
 }
 
+.class-browser {
+    .no-icon {
+        margin-left: 2em;
+    }
+
+    .class-count {
+        margin-left: @spacer/2;
+    }
+}
+
 .model-browser {
     .icon {
         fill: darken(silver,10%);
@@ -404,6 +424,7 @@ div.column-container {
         // padding-left: 0.2em;
         border: 1px solid #d5d5d5;
         border-width: 0 0 1px 1px;
+        height: 100%;
 
         &.haschildren {
             border-bottom: 0;
@@ -481,6 +502,10 @@ div.column-container {
     .expanded-group ul {
         padding-top: @border-offset;
         z-index: 11;
+    }
+
+    .model-button-group {
+        display: flex;
     }
 }
 
