@@ -194,6 +194,7 @@
                   :query-is-valid? false
                   :order []
                   :preview nil
+                  :im-query nil
                   :enhance-query {}
                   :root-class (keyword root-class-kw)
                   :qm {root-class-kw {:visible true}})})))
