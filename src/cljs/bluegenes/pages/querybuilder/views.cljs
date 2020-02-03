@@ -37,15 +37,18 @@
                       :value "mad"}]})
 
 (defn root-class-dropdown []
-  (let [current-mine (subscribe [:current-mine])
-        root-class (subscribe [:qb/root-class])]
-    (fn []
-      (into [:select.form-control
-             {:on-change (fn [e] (dispatch [:qb/set-root-class (oget e :target :value)]))
-              :value @root-class}]
-            (map (fn [[class-kw details]]
-                   [:option {:value class-kw} (:displayName details)])
-                 (sort-by (comp :displayName second) (get-in @current-mine [:service :model :classes])))))))
+  (let [model @(subscribe [:model])
+        root-class @(subscribe [:qb/root-class])
+        classes (sort-by (comp :displayName val) model)
+        preferred (filter #(contains? (-> % val :tags set) "im:preferredBagType") classes)]
+    (into [:select.form-control
+           {:on-change (fn [e] (dispatch [:qb/set-root-class (oget e :target :value)]))
+            :value root-class}]
+          (map (fn [[class-kw details :as item]]
+                 (if (map-entry? item)
+                   [:option {:value class-kw} (:displayName details)]
+                   [:option {:disabled true :role "separator"} "─────────────────────────"]))
+               (concat preferred [[:separator]] classes)))))
 
 (defn dotsplit [string] (split string "."))
 
