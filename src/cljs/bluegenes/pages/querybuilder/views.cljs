@@ -338,7 +338,7 @@
 (defn preview [result-count]
   (let [results-preview (subscribe [:qb/preview])
         fetching-preview? (subscribe [:qb/fetching-preview?])]
-    [:div
+    [:div.preview-container
      (if-let [res @results-preview]
        [preview-table
         :loading? false ; The loader is ugly.
