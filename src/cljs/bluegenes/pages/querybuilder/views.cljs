@@ -1,18 +1,13 @@
 (ns bluegenes.pages.querybuilder.views
   (:require [re-frame.core :refer [subscribe dispatch]]
-            [reagent.core :as reagent :refer [create-class]]
-            [imcljs.path :as p]
-            [clojure.string :refer [split join]]
+            [reagent.core :as reagent]
+            [clojure.string :as string :refer [split join]]
             [oops.core :refer [ocall oget]]
-            [clojure.string :as str :refer [starts-with? ends-with?]]
             [bluegenes.utils :refer [uncamel]]
             [bluegenes.components.ui.constraint :refer [constraint]]
-            [bluegenes.components.bootstrap :refer [popover tooltip]]
+            [bluegenes.components.bootstrap :refer [tooltip]]
             [imcljs.path :as im-path]
-            [cljs.reader :refer [read]]
             [imcljs.query :refer [->xml]]
-            [cljs.reader :refer [read-string]]
-            [dommy.core :refer-macros [sel1]]
             [bluegenes.components.loader :refer [mini-loader loader]]
             [bluegenes.components.ui.results_preview :refer [preview-table]]))
 
@@ -422,6 +417,18 @@
           0 [preview @prev]
           1 [xml-view])]])))
 
+(defn short-readable-path
+  "Takes a path and returns a concise abbreviated version.
+  (short-readable-path 'Gene.homologues.homologue.symbol')
+  => 'G.h.homologue.symbol'"
+  [path]
+  (let [pathv (string/split path #"\.")]
+    (if (> (count pathv) 2)
+      (let [[pre-path class-attr] (split-at (- (count pathv) 2) pathv)]
+        (string/join "." [(string/join "." (map first pre-path))
+                          (string/join "." class-attr)]))
+      path)))
+
 (defn recent-queries []
   (let [queries (take 5 @(subscribe [:results/historical-custom-queries]))
         active-query @(subscribe [:qb/im-query])]
@@ -442,7 +449,9 @@
                      :class (when active? "active-query")
                      :on-click #(dispatch [:qb/load-query value])}
                 [:td [:code.start {:class (str "start-" from)} from]]
-                [:td (into [:<>] (for [c select] [:code c]))]
+                [:td (into [:<>] (for [path select]
+                                   [:code {:title path}
+                                    (string/join "." (take-last 2 (string/split path #"\.")))]))]
                 [:td [:span.date (.toLocaleTimeString (js/Date. last-executed))]]]))])))
 
 (defn saved-queries [])
