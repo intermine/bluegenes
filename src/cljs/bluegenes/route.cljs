@@ -180,7 +180,7 @@
       :controllers
       [{:start #(dispatch [:set-active-panel :querybuilder-panel
                            nil
-                           [:qb/make-tree]])}]}]
+                           [:bluegenes.pages.querybuilder.events/load-querybuilder]])}]}]
     ["/list/:title"
      {:name ::list
       :controllers

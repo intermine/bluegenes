@@ -5,12 +5,17 @@
             [imcljs.query :as im-query]
             [imcljs.path :as im-path]
             [imcljs.fetch :as fetch]
-            [imcljs.query :refer [->xml]]
+            [imcljs.save :as save]
             [clojure.set :refer [difference]]
             [cljs.reader :as reader]
             [bluegenes.pages.querybuilder.logic
              :refer [read-logic-string remove-code vec->list append-code]]
             [clojure.string :refer [join split blank?]]))
+
+(reg-event-fx
+ ::load-querybuilder
+ (fn [_]
+   {:dispatch-n [[:qb/fetch-saved-queries]]}))
 
 (def loc [:qb :qm])
 
@@ -406,6 +411,9 @@
               :im-query nil
               :menu {})))
 
+(defn enhance-constraint-logic [logic]
+  (not-empty (str (not-empty (vec->list logic)))))
+
 (reg-event-fx
  :qb/enhance-query-build-im-query
  (fn [{db :db} [_ fetch-preview?]]
@@ -414,7 +422,7 @@
 
      (let [im-query (-> {:from (name (get-in db [:qb :root-class]))
                          :select (get-in db [:qb :order])
-                         :constraintLogic (not-empty (str (not-empty (vec->list (get-in db [:qb :constraint-logic])))))
+                         :constraintLogic (enhance-constraint-logic (get-in db [:qb :constraint-logic]))
                          :where (concat (regular-constraints enhance-query) (subclass-constraints enhance-query))}
                         im-query/sterilize-query)
            query-changed? (not= im-query (get-in db [:qb :im-query]))]
@@ -431,11 +439,6 @@
  :qb/save-preview
  (fn [db [_ results]]
    (update db :qb assoc :preview results :fetching-preview? false)))
-
-(reg-event-db
- :qb/make-tree
- (fn [db]
-   (let [model (-> db :assets :model)] db)))
 
 (reg-event-fx
  :qb/fetch-preview
@@ -455,3 +458,106 @@
      (if summary
        (update-in db [:qb :enhance-query] assoc-in (conj v :id-count) (js/parseInt summary))
        (update-in db [:qb :enhance-query] assoc-in (conj v :id-count) nil)))))
+
+(reg-event-fx
+ :qb/save-query
+ (fn [{db :db} [_ title]]
+   (let [service (get-in db [:mines (:current-mine db) :service])
+         query (get-in db [:qb :im-query])]
+     {:im-chan {:chan (save/query service (assoc query :title title))
+                :on-success [:qb/save-query-success]
+                :on-failure [:qb/save-query-failure title]}})))
+
+(reg-event-fx
+ :qb/save-query-success
+ (fn [{db :db} [_]]
+   (let [service (get-in db [:mines (:current-mine db) :service])]
+     {:im-chan {:chan (fetch/saved-queries service)
+                :on-success [:qb/fetch-saved-queries-success]
+                :on-failure [:qb/fetch-saved-queries-failure]}})))
+
+(reg-event-fx
+ :qb/save-query-failure
+ (fn [_ [_ title res]]
+   {:dispatch [:messages/add
+               {:markup [:span (str "Failed to save query '" title "'. "
+                                    (or (get-in res [:body :error])
+                                        "Please check your connection and try again."))]
+                :style "warning"}]}))
+
+(reg-event-fx
+ :qb/delete-query
+ (fn [{db :db} [_ title]]
+   (let [service (get-in db [:mines (:current-mine db) :service])]
+     {:im-chan {:chan (save/delete-query service title)
+                :on-success [:qb/delete-query-success title]
+                :on-failure [:qb/delete-query-failure title]}})))
+
+(reg-event-db
+ :qb/delete-query-success
+ (fn [db [_ title _res]]
+   (update-in db [:qb :saved-queries] dissoc title)))
+
+(reg-event-fx
+ :qb/delete-query-failure
+ (fn [_ [_ title res]]
+   {:dispatch [:messages/add
+               {:markup [:span (str "Failed to delete query '" title "'. "
+                                    (or (get-in res [:body :error])
+                                        "Please check your connection and try again."))]
+                :style "warning"}]}))
+
+(reg-event-fx
+ :qb/rename-query
+ (fn [{db :db} [_ old-title new-title]]
+   (let [service (get-in db [:mines (:current-mine db) :service])
+         query (get-in db [:qb :saved-queries old-title])]
+     {:db (update-in db [:qb :saved-queries] dissoc old-title)
+      :im-chan {:chan (save/query service (assoc query :title new-title))
+                :on-success [:qb/rename-query-success old-title query]
+                :on-failure [:qb/rename-query-failure old-title query]}})))
+
+(reg-event-fx
+ :qb/rename-query-success
+ (fn [{db :db} [_ old-title query]]
+   (let [service (get-in db [:mines (:current-mine db) :service])]
+     {:im-chan {:chan (save/delete-query service old-title)
+                :on-success [:qb/save-query-success]
+                :on-failure [:qb/rename-query-failure old-title query]}})))
+
+(reg-event-fx
+ :qb/rename-query-failure
+ (fn [{db :db} [_ old-title query]]
+   {:db (assoc-in db [:qb :saved-queries old-title] query)
+    :dispatch [:messages/add
+               {:markup [:span (str "An error occured when renaming saved query '" old-title "'.")]
+                :style "warning"}]}))
+
+(reg-event-fx
+ :qb/fetch-saved-queries
+ (fn [{db :db} [_]]
+   (let [service (get-in db [:mines (:current-mine db) :service])]
+     {:db (update db :qb dissoc :saved-queries)
+      :im-chan {:chan (fetch/saved-queries service)
+                :on-success [:qb/fetch-saved-queries-success]
+                :on-failure [:qb/fetch-saved-queries-failure]}})))
+
+(reg-event-db
+ :qb/fetch-saved-queries-success
+ (fn [db [_ queries]]
+   (let [model (get-in db [:mines (:current-mine db) :service :model])]
+     (assoc-in db [:qb :saved-queries]
+               (reduce-kv
+                (fn [m title query]
+                  (assoc m (name title)
+                         (let [path (-> query :select first)
+                               root (im-path/class model path)]
+                           (-> query
+                               (assoc :from (name root))
+                               (update :constraintLogic
+                                       (comp enhance-constraint-logic read-logic-string))
+                               (update :where #(or % []))
+                               (dissoc :title :model)
+                               ;; Sterilizing *might* not be necessary.
+                               (im-query/sterilize-query)))))
+                {} queries)))))

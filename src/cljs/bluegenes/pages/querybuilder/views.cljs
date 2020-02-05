@@ -141,9 +141,9 @@
               (map (fn [i] [attribute model i path]) (sort (remove (comp (partial = :id) first) (im-path/attributes model root-class))))
               (map (fn [i] [node model i path]) (sort (im-path/relationships model root-class))))))]))
 
-(defn data-browser-node [close! model hier tag]
+(defn data-browser-node []
   (let [open? (reagent/atom true)]
-    (fn []
+    (fn [close! model hier tag]
       (let [children (filter #(contains? (parents hier %) tag)
                              (descendants hier tag))]
         [:li.haschildren.qb-group
@@ -166,12 +166,12 @@
                  (for [child (sort children)]
                    [data-browser-node close! model hier child])))]))))
 
-(defn data-browser [close!]
+(defn data-browser []
   (let [model @(subscribe [:model])
         hier (reduce (fn [h [child {:keys [extends]}]]
                        (reduce #(derive %1 child %2) h (map keyword extends)))
                      (make-hierarchy) model)]
-    (fn []
+    (fn [close!]
       [:div.model-browser-column
        [:div.header-group
         [:h4 "Data Browser"]
@@ -317,18 +317,41 @@
           [:span @logic]])])))
 
 (defn controls []
-  (let [results-preview (subscribe [:qb/preview])]
+  (let [saving-query? (reagent/atom false)
+        query-title (reagent/atom "")
+        results-preview (subscribe [:qb/preview])
+        submit-fn #(when-let [title (not-empty @query-title)]
+                     (swap! saving-query? not)
+                     (reset! query-title "")
+                     (dispatch [:qb/save-query title]))]
     (fn []
-      [:div.button-group
-       [:button.btn.btn-primary.btn-raised
-        {:on-click (fn [] (dispatch [:qb/export-query]))}
-        (str "Show All " (when-let [c (:iTotalRecords @results-preview)] (str c " ")) "Rows")]
-       [:button.btn.btn-raised
-        {:on-click (fn [] (println "TODO implement me"))}
-        "Save Query"]
-       [:button.btn.btn-raised
-        {:on-click (fn [] (dispatch [:qb/enhance-query-clear-query]))}
-        "Clear Query"]])))
+      (if @saving-query?
+        [:div.button-group
+         [:div.input-group
+          [:label {:for "query-title-input"} "Title:"]
+          [:input#query-title-input.form-control
+           {:type "text"
+            :autoFocus true
+            :value @query-title
+            :on-change #(reset! query-title (oget % :target :value))
+            :on-key-up #(when (= (oget % :keyCode) 13)
+                          (submit-fn))}]]
+         [:button.btn.btn-raised
+          {:on-click submit-fn}
+          "Save Query"]
+         [:button.btn
+          {:on-click (fn [] (swap! saving-query? not))}
+          "Cancel"]]
+        [:div.button-group
+         [:button.btn.btn-primary.btn-raised
+          {:on-click (fn [] (dispatch [:qb/export-query]))}
+          (str "Show All " (when-let [c (:iTotalRecords @results-preview)] (str c " ")) "Rows")]
+         [:button.btn.btn-raised
+          {:on-click (fn [] (swap! saving-query? not))}
+          "Save Query"]
+         [:button.btn.btn-raised
+          {:on-click (fn [] (dispatch [:qb/enhance-query-clear-query]))}
+          "Clear Query"]]))))
 
 (defn preview [result-count]
   (let [results-preview (subscribe [:qb/preview])
@@ -429,6 +452,9 @@
                           (string/join "." class-attr)]))
       path)))
 
+(defn truncate-path [path]
+  (string/join "." (take-last 2 (string/split path #"\."))))
+
 (defn recent-queries []
   (let [queries (take 5 @(subscribe [:results/historical-custom-queries]))
         active-query @(subscribe [:qb/im-query])]
@@ -450,11 +476,95 @@
                      :on-click #(dispatch [:qb/load-query value])}
                 [:td [:code.start {:class (str "start-" from)} from]]
                 [:td (into [:<>] (for [path select]
-                                   [:code {:title path}
-                                    (string/join "." (take-last 2 (string/split path #"\.")))]))]
+                                   [:code {:title path} (truncate-path path)]))]
                 [:td [:span.date (.toLocaleTimeString (js/Date. last-executed))]]]))])))
 
-(defn saved-queries [])
+(defn saved-query [title _query]
+  (let [renaming? (reagent/atom false)
+        rename-input (reagent/atom title)]
+    (fn [title {:keys [from select] :as query} & {:keys [active? any-renaming*]}]
+      (let [toggle-rename! #(do (.stopPropagation %)
+                                (swap! any-renaming* not)
+                                (swap! renaming? not)
+                                (reset! rename-input title))
+            rename! #(do (.stopPropagation %)
+                         (when-let [new-title (not-empty @rename-input)]
+                           (when (not= title new-title)
+                             (dispatch [:qb/rename-query title new-title])))
+                         (toggle-rename! %))]
+        [:tr {:role "button"
+              :title (if active? "This query is active" "Load this query")
+              :class (when active? "active-query")
+              :on-click #(dispatch [:qb/load-query query])}
+         (if @renaming?
+           [:td
+            [:input.form-control
+             {:type "text"
+              :placeholder title
+              :value @rename-input
+              :autoFocus true
+              :aria-label "New title for query"
+              :title "New title for query"
+              :on-change #(reset! rename-input (oget % :target :value))
+              :on-key-up #(when (= (oget % :keyCode) 13) (rename! %))}]]
+           [:td (str title)])
+         [:td [:code.start {:class (str "start-" from)} from]]
+         [:td.hidden-lg {:class (when-not @any-renaming* "hidden")}
+          [:code {:title (string/join " " select)} "..."]]
+         [:td {:class (when @any-renaming* "visible-lg-block")}
+          (into [:<>] (for [path select]
+                        [:code {:title path} (truncate-path path)]))]
+         [:td
+          (when-not @any-renaming*
+            [:<>
+             [:a {:role "button"
+                  :title ""
+                  :on-click #(do (.stopPropagation %)
+                                 (dispatch [:qb/load-query query]))}
+              "Load"]
+             " "
+             [:a {:role "button"
+                  :title ""
+                  :on-click toggle-rename!}
+              "Rename"]
+             " "
+             [:a {:role "button"
+                  :title ""
+                  :on-click #(do (.stopPropagation %)
+                                 (dispatch [:qb/delete-query title]))}
+              "Delete"]])
+          (when @renaming?
+            [:<>
+             [:a {:role "button"
+                  :title ""
+                  :on-click rename!}
+              "Save"]
+             " "
+             [:a {:role "button"
+                  :title ""
+                  :on-click toggle-rename!}
+              "Cancel"]])]]))))
+
+(defn saved-queries []
+  (let [queries (subscribe [:qb/saved-queries])
+        active-query (subscribe [:qb/im-query])
+        any-renaming? (reagent/atom false)]
+    (fn []
+      (if (empty? @queries)
+        [:p "Queries that you have saved will appear here."]
+        [:table.table.query-table
+         [:thead
+          [:tr
+           [:th "Title"]
+           [:th "Start"]
+           [:th "Results Format"]
+           [:th "Actions"]]]
+         (into [:tbody]
+               (for [[title query] @queries]
+                 ^{:key title}
+                 [saved-query title query
+                  :active? (= @active-query query)
+                  :any-renaming* any-renaming?]))]))))
 
 (defn import-from-xml [])
 

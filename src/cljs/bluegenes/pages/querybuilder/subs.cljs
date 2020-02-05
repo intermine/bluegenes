@@ -63,3 +63,8 @@
  :qb/example
  (fn [db]
    (get-in db [:mines (get db :current-mine) :default-query-example])))
+
+(reg-sub
+ :qb/saved-queries
+ (fn [db]
+   (get-in db [:qb :saved-queries])))
