@@ -26,6 +26,7 @@
   "A message component that dismisses itself after 5 seconds
   Messages should be in the following format:
       {:markup [:span \"Your text\"]] ; Or any other markup.
+       ;; :markup can also be a function which takes `id` and returns hiccup.
        :style \"success\" ; Or any bootstrap color name.
        :timeout 0 ; Optional to override default auto-dismissal of 5 seconds.
        }"
@@ -42,7 +43,7 @@
     (fn [{:keys [markup style id]}]
       [:div.alert.message
        {:class (str "alert-" (or style "info"))}
-       [:span.markup markup]
+       [:span.markup (cond-> markup (fn? markup) (apply [id]))]
        [:span.controls
         [:button.btn.btn-default.btn-xs.btn-raised
          {:on-click (fn [] (dispatch [:messages/remove id]))

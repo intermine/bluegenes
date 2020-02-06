@@ -493,10 +493,33 @@
                 :on-success [:qb/delete-query-success title]
                 :on-failure [:qb/delete-query-failure title]}})))
 
-(reg-event-db
+(reg-event-fx
  :qb/delete-query-success
- (fn [db [_ title _res]]
-   (update-in db [:qb :saved-queries] dissoc title)))
+ (fn [{db :db} [_ title _res]]
+   (let [query (get-in db [:qb :saved-queries title])]
+     {:db (update-in db [:qb :saved-queries] dissoc title)
+      :dispatch [:messages/add
+                 {:markup (fn [id]
+                            [:span
+                             "The query "
+                             [:em title]
+                             " has been deleted from your user profile. "
+                             [:a {:role "button"
+                                  :on-click #(dispatch [:qb/undo-delete-query
+                                                        title query id])}
+                              "Click here"]
+                             " to undo this action and restore your query."])
+                  :style "info"
+                  :timeout 10000}]})))
+
+(reg-event-fx
+ :qb/undo-delete-query
+ (fn [{db :db} [_ title query id]]
+   (let [service (get-in db [:mines (:current-mine db) :service])]
+     {:im-chan {:chan (save/query service (assoc query :title title))
+                :on-success [:qb/save-query-success]
+                :on-failure [:qb/save-query-failure title]}
+      :dispatch [:messages/remove id]})))
 
 (reg-event-fx
  :qb/delete-query-failure
