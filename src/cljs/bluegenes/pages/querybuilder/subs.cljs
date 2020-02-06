@@ -67,4 +67,4 @@
 (reg-sub
  :qb/saved-queries
  (fn [db]
-   (get-in db [:qb :saved-queries])))
+   (sort-by key (get-in db [:qb :saved-queries]))))
