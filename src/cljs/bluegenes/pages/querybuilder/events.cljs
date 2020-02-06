@@ -581,6 +581,7 @@
                                        (comp enhance-constraint-logic read-logic-string))
                                (update :where #(or % []))
                                (dissoc :title :model)
-                               ;; Sterilizing *might* not be necessary.
+                               ;; Sterilizing *might* not be necessary since
+                               ;; it's coming straight from the InterMine.
                                (im-query/sterilize-query)))))
                 {} queries)))))

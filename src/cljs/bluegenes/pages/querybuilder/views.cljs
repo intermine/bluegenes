@@ -9,7 +9,8 @@
             [imcljs.path :as im-path]
             [imcljs.query :refer [->xml]]
             [bluegenes.components.loader :refer [mini-loader loader]]
-            [bluegenes.components.ui.results_preview :refer [preview-table]]))
+            [bluegenes.components.ui.results_preview :refer [preview-table]]
+            [bluegenes.utils :refer [read-xml-query]]))
 
 (defn one-of? [haystack needle] (some? (some #{needle} haystack)))
 
@@ -566,7 +567,21 @@
                   :active? (= @active-query query)
                   :any-renaming* any-renaming?]))]))))
 
-(defn import-from-xml [])
+(defn import-from-xml []
+  (let [query-input (reagent/atom "")]
+    (fn []
+      [:div
+       [:p "Paste your InterMine PathQuery XML here."]
+       [:textarea.form-control
+        {:rows 10
+         :autoFocus true
+         :value @query-input
+         :on-change #(reset! query-input (oget % :target :value))}]
+       [:button.btn.btn-raised
+        {:on-click #(when-let [query (not-empty @query-input)]
+                      (reset! query-input "")
+                      (dispatch [:qb/load-query (read-xml-query query)]))}
+        "Load query"]])))
 
 (defn create-template [])
 
