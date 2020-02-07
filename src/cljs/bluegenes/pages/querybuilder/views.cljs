@@ -364,37 +364,42 @@
         :query-results res]
        [:p "No query available for generating preview."])]))
 
-(defn drop-nth [n coll] (vec (keep-indexed #(if (not= %1 n) %2) coll)))
+(defn move-vec-elem
+  "Moves an element in a vector `v` from index `i` to `i'`."
+  [v i i']
+  (let [e (nth v i)
+        v' (into (subvec v 0 i)
+                 (subvec v (inc i)))]
+    (into [] cat
+          [(subvec v' 0 i')
+           [e]
+           (subvec v' i')])))
 
 (defn sortable-list []
   (let [order (subscribe [:qb/order])
-        state (reagent/atom {:items ["A" "B" "C" "D"] :selected nil})]
+        selected* (reagent/atom nil)]
     (fn []
       (into [:div.sort-order-container
-             {:class (when (some? (:selected @state)) "dragtest")}]
+             {:class (when (some? @selected*) "dragtest")}]
             (map-indexed
              (fn [idx i]
-               [:div {:class (when (= idx (:selected @state)) "dragging")
+               [:div {:class (when (= idx @selected*) "dragging")
                       :draggable true
                       :on-drag-start (fn [e]
-                                        ;(.preventDefault e)
                                        (ocall e :stopPropagation)
-                                       (ocall e "dataTransfer.setData" "banana" "cakes")
-                                       (swap! state assoc :selected idx))
+                                       (reset! selected* idx))
                       :on-drag-enter (fn [e]
                                        (ocall e :preventDefault)
                                        (ocall e :stopPropagation)
-                                       (let [selected-idx (:selected @state)
-                                             items @order
-                                             selected-item (get items selected-idx)
-                                             [before after] (split-at idx (drop-nth selected-idx items))]
-                                         #_(swap! state assoc
-                                                  :selected idx
-                                                  :items (vec (concat (vec before) (vec (list selected-item)) (vec after))))
-                                         (swap! state assoc :selected idx)
-                                         (dispatch [:qb/set-order (vec (concat (vec before) (vec (list selected-item)) (vec after)))])))
-                      :on-drag-end (fn [] (swap! state assoc :selected nil))}
-                (into [:div] (map (fn [part] [:span.part part]) (interpose ">" (map uncamel (split i ".")))))])) @order))))
+                                       (let [new-order (move-vec-elem @order @selected* idx)]
+                                         (reset! selected* idx)
+                                         (dispatch [:qb/set-order new-order])))
+                      :on-drag-end (fn [] (reset! selected* nil))}
+                (into [:div]
+                      (map (fn [part]
+                             [:span.part part])
+                           (interpose ">" (map uncamel (split i ".")))))]))
+            @order))))
 
 (defn xml-view []
   (let [query (subscribe [:qb/im-query])
