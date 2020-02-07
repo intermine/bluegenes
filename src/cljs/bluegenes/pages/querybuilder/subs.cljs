@@ -68,3 +68,8 @@
  :qb/saved-queries
  (fn [db]
    (sort-by key (get-in db [:qb :saved-queries]))))
+
+(reg-sub
+ :qb/import-error
+ (fn [db]
+   (get-in db [:qb :import-error])))

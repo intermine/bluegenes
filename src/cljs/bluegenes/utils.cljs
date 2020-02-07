@@ -30,10 +30,12 @@
         kw)))
 
 (defn read-xml-query
-  "Read an InterMine PathQuery in XML into an EDN Clojure map."
+  "Read an InterMine PathQuery in XML into an EDN Clojure map.
+  Will throw on invalid XML."
   [xml-query]
   (let [xml-map         (xml/parse-str xml-query)
-        select          (string/split (get-in xml-map [:attrs :view]) #" ")
+        select          (string/split (get-in xml-map [:attrs :view] " ") #" ")
+        _               (when (empty? select) (throw (js/Error. "Invalid PathQuery XML")))
         from            (second (re-find #"^(.*)\." (first select)))
         constraintLogic (get-in xml-map [:attrs :constraintLogic])
         orderBy         (let [{:keys [sortOrder orderBy]} (:attrs xml-map)

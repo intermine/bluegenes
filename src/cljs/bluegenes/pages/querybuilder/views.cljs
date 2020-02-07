@@ -9,8 +9,7 @@
             [imcljs.path :as im-path]
             [imcljs.query :refer [->xml]]
             [bluegenes.components.loader :refer [mini-loader loader]]
-            [bluegenes.components.ui.results_preview :refer [preview-table]]
-            [bluegenes.utils :refer [read-xml-query]]))
+            [bluegenes.components.ui.results_preview :refer [preview-table]]))
 
 (defn one-of? [haystack needle] (some? (some #{needle} haystack)))
 
@@ -571,17 +570,25 @@
   (let [query-input (reagent/atom "")]
     (fn []
       [:div
-       [:p "Paste your InterMine PathQuery XML here."]
+       [:p "Paste your InterMine PathQuery XML here."
+        [:a {:href "https://intermine.readthedocs.io/en/latest/api/pathquery/"
+             :target "_blank"
+             :title "More information on the PathQuery API"}
+         [:svg.icon.icon-external [:use {:xlinkHref "#icon-external"}]]]]
        [:textarea.form-control
         {:rows 10
          :autoFocus true
          :value @query-input
          :on-change #(reset! query-input (oget % :target :value))}]
-       [:button.btn.btn-raised
-        {:on-click #(when-let [query (not-empty @query-input)]
-                      (reset! query-input "")
-                      (dispatch [:qb/load-query (read-xml-query query)]))}
-        "Load query"]])))
+       [:div.flex-row
+        [:button.btn.btn-raised
+         {:type "button"
+          :on-click #(when-let [query (not-empty @query-input)]
+                       (reset! query-input "")
+                       (dispatch [:qb/import-xml-query query]))}
+         "Load query"]
+        (when-let [err-msg @(subscribe [:qb/import-error])]
+          [:p.error err-msg])]])))
 
 (defn create-template [])
 
@@ -590,15 +597,18 @@
     (fn []
       [:div.panel.panel-default
        [:div.panel-body
-        [:ul.nav.nav-tabs
-         [:li {:class (when (= @tab-index 0) "active")}
-          [:a {:on-click #(reset! tab-index 0)} "Recent Queries"]]
-         [:li {:class (when (= @tab-index 1) "active")}
-          [:a {:on-click #(reset! tab-index 1)} "Saved Queries"]]
-         [:li {:class (when (= @tab-index 2) "active")}
-          [:a {:on-click #(reset! tab-index 2)} "Import from XML"]]
-         [:li {:class (when (= @tab-index 3) "active")}
-          [:a {:on-click #(reset! tab-index 3)} "Create Template"]]]
+        (into [:ul.nav.nav-tabs]
+              (let [tabs ["Recent Queries"
+                          "Saved Queries"
+                          "Import from XML"
+                          "Create Template"]]
+                (for [[i title] (map-indexed vector tabs)]
+                  [:li {:class (when (= @tab-index i) "active")}
+                   [:a {:on-click #(do (when (= @tab-index
+                                                (.indexOf tabs "Import from XML"))
+                                         (dispatch [:qb/clear-import-error]))
+                                       (reset! tab-index i))}
+                    title]])))
         (case @tab-index
           0 [recent-queries]
           1 [saved-queries]

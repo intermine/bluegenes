@@ -10,12 +10,15 @@
             [cljs.reader :as reader]
             [bluegenes.pages.querybuilder.logic
              :refer [read-logic-string remove-code vec->list append-code]]
-            [clojure.string :refer [join split blank?]]))
+            [clojure.string :refer [join split blank?]]
+            [bluegenes.utils :refer [read-xml-query]]
+            [oops.core :refer [oget]]))
 
 (reg-event-fx
  ::load-querybuilder
  (fn [_]
-   {:dispatch-n [[:qb/fetch-saved-queries]]}))
+   {:dispatch-n [[:qb/fetch-saved-queries]
+                 [:qb/clear-import-error]]}))
 
 (def loc [:qb :qm])
 
@@ -585,3 +588,18 @@
                                ;; it's coming straight from the InterMine.
                                (im-query/sterilize-query)))))
                 {} queries)))))
+
+(reg-event-fx
+ :qb/import-xml-query
+ (fn [{db :db} [_ query-xml]]
+   (try
+     (let [query (read-xml-query query-xml)]
+       {:db (update db :qb dissoc :import-error)
+        :dispatch [:qb/load-query query]})
+     (catch js/Error e
+       {:db (assoc-in db [:qb :import-error] (oget e :message))}))))
+
+(reg-event-db
+ :qb/clear-import-error
+ (fn [db [_]]
+   (update db :qb dissoc :import-error)))
