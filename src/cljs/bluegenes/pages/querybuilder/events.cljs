@@ -190,7 +190,8 @@
                   :menu (treeify model query)
                   :order (:select query)
                   :root-class (keyword (:from query))
-                  :constraint-logic (read-logic-string (:constraintLogic query)))
+                  :constraint-logic (read-logic-string (:constraintLogic query))
+                  :sort (:sortOrder query))
       :dispatch [:qb/enhance-query-build-im-query true]})))
 
 (reg-event-fx
@@ -201,6 +202,7 @@
                   :constraint-logic nil
                   :query-is-valid? false
                   :order []
+                  :sort []
                   :preview nil
                   :im-query nil
                   :enhance-query {}
@@ -409,6 +411,7 @@
    (update-in db [:qb] assoc
               :enhance-query {}
               :order []
+              :sort []
               :preview nil
               :constraint-logic '()
               :im-query nil
@@ -426,7 +429,8 @@
      (let [im-query (-> {:from (name (get-in db [:qb :root-class]))
                          :select (get-in db [:qb :order])
                          :constraintLogic (enhance-constraint-logic (get-in db [:qb :constraint-logic]))
-                         :where (concat (regular-constraints enhance-query) (subclass-constraints enhance-query))}
+                         :where (concat (regular-constraints enhance-query) (subclass-constraints enhance-query))
+                         :sortOrder (get-in db [:qb :sort])}
                         im-query/sterilize-query)
            query-changed? (not= im-query (get-in db [:qb :im-query]))]
        (cond-> {:db (update-in db [:qb] assoc :im-query im-query)}
@@ -436,6 +440,26 @@
  :qb/set-order
  (fn [{db :db} [_ ordered-vec]]
    {:db (assoc-in db [:qb :order] ordered-vec)
+    :dispatch [:qb/enhance-query-build-im-query true]}))
+
+(reg-event-fx
+ :qb/set-sort
+ (fn [{db :db} [_ path direction]]
+   {:db (update-in db [:qb :sort]
+                   (fn [sorts]
+                     (let [match (first (filter (comp #{path} :path) sorts))]
+                       (cond
+                         ;; Remove active sorting.
+                         (and match (= direction (:direction match)))
+                         (into [] (remove (comp #{path} :path)) sorts)
+                         ;; Change active sorting.
+                         match
+                         (mapv #(cond-> %
+                                  (= path (:path %))
+                                  (assoc :direction direction))
+                               sorts)
+                         ;; Add new sorting.
+                         :else (conj sorts {:path path :direction direction})))))
     :dispatch [:qb/enhance-query-build-im-query true]}))
 
 (reg-event-db

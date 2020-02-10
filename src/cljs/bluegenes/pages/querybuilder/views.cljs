@@ -9,7 +9,8 @@
             [imcljs.path :as im-path]
             [imcljs.query :refer [->xml]]
             [bluegenes.components.loader :refer [mini-loader loader]]
-            [bluegenes.components.ui.results_preview :refer [preview-table]]))
+            [bluegenes.components.ui.results_preview :refer [preview-table]]
+            [inflections.core :refer [ordinalize]]))
 
 (defn one-of? [haystack needle] (some? (some #{needle} haystack)))
 
@@ -382,23 +383,39 @@
       (into [:div.sort-order-container
              {:class (when (some? @selected*) "dragtest")}]
             (map-indexed
-             (fn [idx i]
-               [:div {:class (when (= idx @selected*) "dragging")
-                      :draggable true
-                      :on-drag-start (fn [e]
-                                       (ocall e :stopPropagation)
-                                       (reset! selected* idx))
-                      :on-drag-enter (fn [e]
-                                       (ocall e :preventDefault)
-                                       (ocall e :stopPropagation)
-                                       (let [new-order (move-vec-elem @order @selected* idx)]
-                                         (reset! selected* idx)
-                                         (dispatch [:qb/set-order new-order])))
-                      :on-drag-end (fn [] (reset! selected* nil))}
+             (fn [idx path]
+               [:div.sort-item
+                {:class (when (= idx @selected*) "dragging")
+                 :draggable true
+                 :on-drag-start (fn [e]
+                                  (ocall e :stopPropagation)
+                                  (reset! selected* idx))
+                 :on-drag-enter (fn [e]
+                                  (ocall e :preventDefault)
+                                  (ocall e :stopPropagation)
+                                  (let [new-order (move-vec-elem @order @selected* idx)]
+                                    (reset! selected* idx)
+                                    (dispatch [:qb/set-order new-order])))
+                 :on-drag-end (fn [] (reset! selected* nil))}
                 (into [:div]
                       (map (fn [part]
                              [:span.part part])
-                           (interpose ">" (map uncamel (split i ".")))))]))
+                           (interpose ">" (map uncamel (split path ".")))))
+                [:div.button-group
+                 (when-let [sort-priority @(subscribe [:qb/sort-priority path])]
+                   [:span.sort-priority (str "Sort " (-> sort-priority inc ordinalize))])
+                 [:a.sort-button {:role "button"
+                                  :title "Sort ascending"
+                                  :class (when (= "ASC" @(subscribe [:qb/active-sort path]))
+                                           "active")
+                                  :on-click #(dispatch [:qb/set-sort path "ASC"])}
+                  [:svg.icon.icon-sort-alpha-asc [:use {:xlinkHref "#icon-sort-alpha-asc"}]]]
+                 [:a.sort-button {:role "button"
+                                  :title "Sort descending"
+                                  :class (when (= "DESC" @(subscribe [:qb/active-sort path]))
+                                           "active")
+                                  :on-click #(dispatch [:qb/set-sort path "DESC"])}
+                  [:svg.icon.icon-sort-alpha-desc [:use {:xlinkHref "#icon-sort-alpha-desc"}]]]]]))
             @order))))
 
 (defn xml-view []
@@ -411,15 +428,14 @@
 (defn query-viewer []
   (let [enhance-query (subscribe [:qb/enhance-query])
         current-mine (subscribe [:current-mine])
-        query (subscribe [:qb/im-query])
         tab-index (reagent/atom 0)
         constraint-value-count (subscribe [:qb/constraint-value-count])]
     (fn []
       [:div.panel.panel-default
        [:div.panel-body
         [:ul.nav.nav-tabs
-         [:li {:class (when (= @tab-index 0) "active")} [:a {:on-click #(reset! tab-index 0)} "Query"]]
-         [:li {:class (when (= @tab-index 1) "active")} [:a {:on-click #(reset! tab-index 1)} "Column Order"]]]
+         [:li {:class (when (= @tab-index 0) "active")} [:a {:on-click #(reset! tab-index 0)} "Query Editor"]]
+         [:li {:class (when (= @tab-index 1) "active")} [:a {:on-click #(reset! tab-index 1)} "Manage Columns"]]]
         (case @tab-index
           0 [:div
              [queryview-browser (:model (:service @current-mine))]

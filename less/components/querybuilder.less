@@ -87,6 +87,11 @@ div.column-container {
                 margin-right: @spacer/2;
             }
 
+            .sort-priority {
+                color: #039be5;
+                margin-right: @spacer/2;
+            }
+
             .input-group {
                 display: flex;
                 align-items: baseline;
@@ -690,6 +695,34 @@ div.column-container {
             opacity: 0.8;
             color: white;
             margin-left: 15px;
+        }
+    }
+
+    .sort-item {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+
+        .sort-button {
+            background-color: white;
+            font-size: 16px;
+            outline: solid 1px #dadada;
+            margin-right: 4px;
+            display: flex;
+            padding: 4px;
+
+            & > svg {
+                margin: 0;
+                fill: #dadada;
+            }
+
+            &.active {
+                outline: solid 2px #039be5;
+            }
+
+            &.active > svg {
+                fill: #039be5;
+            }
         }
     }
 }

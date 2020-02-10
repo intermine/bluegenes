@@ -491,7 +491,7 @@
 
     [:symbol#icon-sort-alpha-asc
      {:viewBox "0 0 16 16"}
-     [:title "Sort alphabetically ascending"]
+     [:title "Sort ascending"]
      [:path {:d "M5 12v-12h-2v12h-2.5l3.5 3.5 3.5-3.5h-2.5z"}]
      [:path
       {:d
@@ -502,7 +502,7 @@
 
     [:symbol#icon-sort-alpha-desc
      {:viewBox "0 0 16 16"}
-     [:title "Sort alphabetically descending"]
+     [:title "Sort descending"]
      [:path {:d "M5 12v-12h-2v12h-2.5l3.5 3.5 3.5-3.5h-2.5z"}]
      [:path
       {:d
