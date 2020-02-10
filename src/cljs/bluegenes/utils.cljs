@@ -36,7 +36,7 @@
   (let [xml-map         (xml/parse-str xml-query)
         select          (string/split (get-in xml-map [:attrs :view] " ") #" ")
         _               (when (empty? select) (throw (js/Error. "Invalid PathQuery XML")))
-        from            (second (re-find #"^(.*)\." (first select)))
+        from            (not-empty (first (string/split (first select) #"\.")))
         constraintLogic (get-in xml-map [:attrs :constraintLogic])
         orderBy         (let [{:keys [sortOrder orderBy]} (:attrs xml-map)
                               pairs (partition 2 (string/split (or sortOrder orderBy) #" "))]

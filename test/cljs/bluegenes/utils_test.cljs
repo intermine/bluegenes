@@ -109,4 +109,23 @@
             :joins ["Gene.proteins"],
             :where
             [{:path "Gene.symbol", :code "A", :op "CONTAINS", :value "ab"}
-             {:path "Gene", :code "B", :op "IN", :value "PL FlyAtlas_brain_top"}]}))))
+             {:path "Gene", :code "B", :op "IN", :value "PL FlyAtlas_brain_top"}]})))
+ (testing "Can handle longer paths"
+   (is (= (utils/read-xml-query "<query name=\"\" model=\"genomic\" view=\"Gene.homologues.homologue.secondaryIdentifier Gene.homologues.homologue.symbol Gene.homologues.homologue.primaryIdentifier Gene.homologues.homologue.organism.name Gene.secondaryIdentifier Gene.symbol Gene.primaryIdentifier Gene.organism.name\" longDescription=\"\">)))
+  <join path=\"Gene.homologues\" style=\"OUTER\"/>
+  <constraint path=\"Gene.symbol\" op=\"CONTAINS\" value=\"ab\"/>))
+</query>")
+          {:from "Gene",
+           :select
+           ["Gene.homologues.homologue.secondaryIdentifier"
+            "Gene.homologues.homologue.symbol"
+            "Gene.homologues.homologue.primaryIdentifier"
+            "Gene.homologues.homologue.organism.name"
+            "Gene.secondaryIdentifier"
+            "Gene.symbol"
+            "Gene.primaryIdentifier"
+            "Gene.organism.name"],
+           :orderBy [],
+           :constraintLogic nil,
+           :joins ["Gene.homologues"],
+           :where [{:path "Gene.symbol", :op "CONTAINS", :value "ab"}]}))))
