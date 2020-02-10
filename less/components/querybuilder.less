@@ -409,6 +409,16 @@ div.column-container {
     }
 
     .subclass {}
+
+    .outer-join-button {
+        & > svg {
+            margin: 0 @spacer/2 0 0;
+        }
+
+        &.active > svg {
+            fill: #039be5;
+        }
+    }
 }
 
 .class-browser {

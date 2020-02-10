@@ -191,7 +191,8 @@
                   :order (:select query)
                   :root-class (keyword (:from query))
                   :constraint-logic (read-logic-string (:constraintLogic query))
-                  :sort (:sortOrder query))
+                  :sort (:sortOrder query)
+                  :joins (set (:joins query)))
       :dispatch [:qb/enhance-query-build-im-query true]})))
 
 (reg-event-fx
@@ -203,6 +204,7 @@
                   :query-is-valid? false
                   :order []
                   :sort []
+                  :joins #{}
                   :preview nil
                   :im-query nil
                   :enhance-query {}
@@ -369,6 +371,18 @@
       :dispatch [:qb/enhance-query-build-im-query true]})))
 
 (reg-event-fx
+ :qb/add-outer-join
+ (fn [{db :db} [_ pathv]]
+   {:db (update-in db [:qb :joins] (fnil conj #{}) (join "." pathv))
+    :dispatch [:qb/enhance-query-build-im-query true]}))
+
+(reg-event-fx
+ :qb/remove-outer-join
+ (fn [{db :db} [_ pathv]]
+   {:db (update-in db [:qb :joins] (fnil disj #{}) (join "." pathv))
+    :dispatch [:qb/enhance-query-build-im-query true]}))
+
+(reg-event-fx
  :qb/enhance-query-add-constraint
  (fn [{db :db} [_ view-vec]]
    (let [code (next-available-const-code (get-in db [:qb :enhance-query]))]
@@ -412,6 +426,7 @@
               :enhance-query {}
               :order []
               :sort []
+              :joins #{}
               :preview nil
               :constraint-logic '()
               :im-query nil
@@ -430,7 +445,8 @@
                          :select (get-in db [:qb :order])
                          :constraintLogic (enhance-constraint-logic (get-in db [:qb :constraint-logic]))
                          :where (concat (regular-constraints enhance-query) (subclass-constraints enhance-query))
-                         :sortOrder (get-in db [:qb :sort])}
+                         :sortOrder (get-in db [:qb :sort])
+                         :joins (vec (get-in db [:qb :joins]))}
                         im-query/sterilize-query)
            query-changed? (not= im-query (get-in db [:qb :im-query]))]
        (cond-> {:db (update-in db [:qb] assoc :im-query im-query)}

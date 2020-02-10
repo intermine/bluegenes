@@ -216,10 +216,11 @@
 (defn queryview-node []
   (let [lists (subscribe [:current-lists])]
     (fn [model [k properties] & [trail]]
-      (let [path (vec (conj trail (name k)))]
+      (let [path (vec (conj trail (name k)))
+            class-node? (im-path/class? model (join "." path))]
         [:li.tree.haschildren
          [:div.flexmex
-          [:span.lab {:class (if (im-path/class? model (join "." path)) "qb-class" "qb-attribute")}
+          [:span.lab {:class (if class-node? "qb-class" "qb-attribute")}
            [:span.qb-label {:style {:margin-left 5}} [tooltip {:on-click #(dispatch [:qb/expand-path path]) :title (str "Show " (uncamel k) " in the model browser")} [:a  (uncamel k)]]]
            (when-let [s (:subclass properties)] [:span.label.label-default (uncamel s)])
            [:svg.icon.icon-bin
@@ -227,6 +228,19 @@
                          (fn [] (dispatch [:qb/enhance-query-remove-view path]))
                          (fn [] (dispatch [:qb/enhance-query-clear-query path])))}
             [:use {:xlinkHref "#icon-bin"}]]
+
+           (when class-node?
+             (let [outer-join? @(subscribe [:qb/active-outer-join (join "." path)])]
+               [:a.outer-join-button
+                {:role "button"
+                 :class (when outer-join? "active")
+                 :title (if outer-join?
+                          "Optional match: Show possible matches in a subtable"
+                          "Required match: Show separate rows for each match")
+                 :on-click #(dispatch [(if outer-join?
+                                         :qb/remove-outer-join
+                                         :qb/add-outer-join) path])}
+                [:svg.icon.icon-table [:use {:xlinkHref "#icon-table"}]]]))
 
            [:svg.icon.icon-filter {:on-click (fn [] (dispatch [:qb/enhance-query-add-constraint path]))} [:use {:xlinkHref "#icon-filter"}]]
            (when-let [c (:id-count properties)]

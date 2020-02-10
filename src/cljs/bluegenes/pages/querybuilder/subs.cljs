@@ -90,3 +90,8 @@
                           (when (= path (:path item))
                             index))
                         (get-in db [:qb :sort])))))
+
+(reg-sub
+ :qb/active-outer-join
+ (fn [db [_ path]]
+   (contains? (get-in db [:qb :joins]) path)))
