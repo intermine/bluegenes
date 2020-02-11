@@ -326,23 +326,30 @@
   (let [editing? (reagent/atom false)
         logic (subscribe [:qb/constraint-logic])]
     (fn []
-      [:div.logic-box
-       {:ref (fn [x]
-               (some-> x (ocall :getElementsByTagName "input") array-seq first (ocall :focus)))}
-       (if @editing?
-         [:input.form-control.input-sm
-          {:type "text"
-           :value @logic
-           :on-key-down (fn [e] (when (= (oget e :keyCode) 13)
-                                  (reset! editing? false)
-                                  (dispatch [:qb/format-constraint-logic @logic])))
-           :on-blur (fn []
-                      (reset! editing? false)
-                      (dispatch [:qb/format-constraint-logic @logic]))
-           :on-change (fn [e] (dispatch [:qb/update-constraint-logic (oget e :target :value)]))}]
-         [:pre
-          [:svg.icon.icon-edit {:on-click (fn [] (reset! editing? true))} [:use {:xlinkHref "#icon-edit"}]]
-          [:span @logic]])])))
+      [:div.logic-container
+       [:label {:for "logic-input"} "Constraint Logic:"]
+       [:div.logic-box
+        {:ref (fn [x]
+                (some-> x (ocall :getElementsByTagName "input") array-seq first (ocall :focus)))}
+        (if @editing?
+          [:input.form-control.input-sm
+           {:type "text"
+            :value @logic
+            :id "logic-input"
+            :on-key-down (fn [e] (when (= (oget e :keyCode) 13)
+                                   (reset! editing? false)
+                                   (dispatch [:qb/format-constraint-logic @logic])))
+            :on-blur (fn []
+                       (reset! editing? false)
+                       (dispatch [:qb/format-constraint-logic @logic]))
+            :on-change (fn [e] (dispatch [:qb/update-constraint-logic (oget e :target :value)]))}]
+          [:pre
+           [:a {:role "button"
+                :id "logic-input"
+                :title "Edit constraint logic"
+                :on-click (fn [] (reset! editing? true))}
+            [:svg.icon.icon-edit [:use {:xlinkHref "#icon-edit"}]]]
+           [:span#logic-input @logic]])]])))
 
 (defn controls []
   (let [saving-query? (reagent/atom false)
@@ -403,7 +410,7 @@
            [e]
            (subvec v' i')])))
 
-(defn sortable-list []
+(defn manage-columns []
   (let [order (subscribe [:qb/order])
         selected* (reagent/atom nil)]
     (fn []
@@ -452,11 +459,27 @@
 
       [:pre (str (->xml (:model (:service @current-mine)) @query))])))
 
+(defn joins-list []
+  (let [joins @(subscribe [:qb/joins])]
+    (when (not-empty joins)
+      (into [:ul.joins-list]
+            (for [path joins]
+              [:li
+               [:svg.icon.icon-venn-combine [:use {:xlinkHref "#icon-venn-combine"}]]
+               [:span [:code path] "will show as a subtable if present"]])))))
+
+(defn query-editor []
+  (let [current-mine @(subscribe [:current-mine])
+        constraint-value-count @(subscribe [:qb/constraint-value-count])]
+    [:div
+     [queryview-browser (:model (:service current-mine))]
+     [joins-list]
+     (when (>= constraint-value-count 2)
+       [logic-box])]))
+
 (defn query-viewer []
   (let [enhance-query (subscribe [:qb/enhance-query])
-        current-mine (subscribe [:current-mine])
-        tab-index (reagent/atom 0)
-        constraint-value-count (subscribe [:qb/constraint-value-count])]
+        tab-index (reagent/atom 0)]
     (fn []
       [:div.panel.panel-default
        [:div.panel-body
@@ -464,13 +487,8 @@
          [:li {:class (when (= @tab-index 0) "active")} [:a {:on-click #(reset! tab-index 0)} "Query Editor"]]
          [:li {:class (when (= @tab-index 1) "active")} [:a {:on-click #(reset! tab-index 1)} "Manage Columns"]]]
         (case @tab-index
-          0 [:div
-             [queryview-browser (:model (:service @current-mine))]
-             (when (>= @constraint-value-count 2)
-               [:div
-                [:h4 "Constraint Logic"]
-                [logic-box]])]
-          1 [sortable-list])
+          0 [query-editor]
+          1 [manage-columns])
         (when (not-empty @enhance-query) [controls])]])))
 
 (defn column-order-preview []

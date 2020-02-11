@@ -118,6 +118,13 @@ div.column-container {
             margin-bottom: 0;
         }
 
+        code {
+            display: inline-block;
+            background-color: #DFE6ED;
+            color: #4B5C6B;
+            margin: 0 @spacer/2 @spacer/2 0;
+        }
+
         .query-table {
             tbody > tr {
                 cursor: pointer;
@@ -129,13 +136,6 @@ div.column-container {
                 &:hover {
                     background-color: #edf3f2;
                 }
-            }
-
-            code {
-                display: inline-block;
-                background-color: #DFE6ED;
-                color: #4B5C6B;
-                margin: 0 @spacer/2 @spacer/2 0;
             }
 
             code.start {
@@ -175,6 +175,33 @@ div.column-container {
 
         .preview-container {
             overflow: auto;
+        }
+
+        .joins-list {
+            padding: 0;
+            list-style: none;
+            margin-bottom: @spacer;
+
+            & > li {
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+
+                & > svg {
+                    fill: #039be5;
+                    font-size: 1.5em;
+                }
+            }
+        }
+
+        .logic-container {
+            display: flex;
+            align-items: baseline;
+            margin-bottom: @spacer;
+
+            pre {
+                margin-bottom: 0;
+            }
         }
     }
 }
@@ -314,7 +341,6 @@ div.column-container {
         width: @border-offset;
         margin-left:0;
     }
-    .logic-box pre {display:flex;align-items:center;}
     .noselect;
     font-size: 1.1em;
     cursor: pointer;

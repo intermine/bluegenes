@@ -95,3 +95,8 @@
  :qb/active-outer-join
  (fn [db [_ path]]
    (contains? (get-in db [:qb :joins]) path)))
+
+(reg-sub
+ :qb/joins
+ (fn [db]
+   (get-in db [:qb :joins])))
