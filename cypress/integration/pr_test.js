@@ -84,7 +84,9 @@ describe("UI Test", function() {
     });
   });
 
-  it("Saves the list from an upload and deletes it", function() {
+  it("Saves the list from an upload, updates the description and deletes it", function() {
+    // Upload list
+
     var listName = "Automated CI test list ".concat(Number(new Date()));
 
     cy.contains("Upload").click();
@@ -106,6 +108,23 @@ describe("UI Test", function() {
 
     cy.wait(1000);
     cy.wait("@tolist");
+
+    // Add description to list
+
+    cy.contains("Add description").click();
+    cy.get("textarea").type("My description", { delay: 100 });
+    cy.get("button")
+      .contains("Save")
+      .click();
+    // Update description to list
+    cy.contains("Edit description").click();
+    cy.get("textarea").type(" new", { delay: 100 });
+    cy.get("button")
+      .contains("Save")
+      .click();
+    cy.get(".description").contains("My description new");
+
+    // Delete list
 
     cy.contains("Data") .click();
     cy.contains(listName);
