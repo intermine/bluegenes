@@ -10,7 +10,7 @@
             [imcljs.query :refer [->xml]]
             [bluegenes.components.loader :refer [mini-loader loader]]
             [bluegenes.components.ui.results_preview :refer [preview-table]]
-            [inflections.core :refer [ordinalize]]))
+            [inflections.core :refer [ordinalize plural]]))
 
 (defn one-of? [haystack needle] (some? (some #{needle} haystack)))
 
@@ -217,11 +217,22 @@
   (let [lists (subscribe [:current-lists])]
     (fn [model [k properties] & [trail]]
       (let [path (vec (conj trail (name k)))
-            class-node? (im-path/class? model (join "." path))]
+            class-node? (im-path/class? model (join "." path))
+            non-root-class? (and class-node? (> (count path) 1))
+            [parent-class referenced-class] (when non-root-class?
+                                              (->> (map keyword path)
+                                                   (im-path/walk model)
+                                                   (take-last 2)
+                                                   (map :displayName)))]
         [:li.tree.haschildren
          [:div.flexmex
           [:span.lab {:class (if class-node? "qb-class" "qb-attribute")}
-           [:span.qb-label {:style {:margin-left 5}} [tooltip {:on-click #(dispatch [:qb/expand-path path]) :title (str "Show " (uncamel k) " in the model browser")} [:a  (uncamel k)]]]
+           [:span.qb-label {:style {:margin-left 5}}
+            [tooltip {:on-click #(dispatch [:qb/expand-path path])
+                      :title (str "Show " (uncamel k) " in the model browser")}
+             [:a (uncamel k)]]]
+           (when (and non-root-class? (not= referenced-class (uncamel k)))
+             [:span.qb-type (str "(" referenced-class ")")])
            (when-let [s (:subclass properties)] [:span.label.label-default (uncamel s)])
            [:svg.icon.icon-bin
             {:on-click (if (> (count path) 1)
@@ -229,18 +240,20 @@
                          (fn [] (dispatch [:qb/enhance-query-clear-query path])))}
             [:use {:xlinkHref "#icon-bin"}]]
 
-           (when class-node?
+           (when non-root-class?
              (let [outer-join? @(subscribe [:qb/active-outer-join (join "." path)])]
                [:a.outer-join-button
                 {:role "button"
                  :class (when outer-join? "active")
                  :title (if outer-join?
-                          "Optional match: Show possible matches in a subtable"
-                          "Required match: Show separate rows for each match")
+                          (str "Show all " (plural parent-class) " and show " (plural referenced-class) " if they are present")
+                          (str "Show only " (plural parent-class) " if they have a " referenced-class))
                  :on-click #(dispatch [(if outer-join?
                                          :qb/remove-outer-join
                                          :qb/add-outer-join) path])}
-                [:svg.icon.icon-table [:use {:xlinkHref "#icon-table"}]]]))
+                (if outer-join?
+                  [:svg.icon.icon-venn-combine [:use {:xlinkHref "#icon-venn-combine"}]]
+                  [:svg.icon.icon-venn-intersection [:use {:xlinkHref "#icon-venn-intersection"}]])]))
 
            [:svg.icon.icon-filter {:on-click (fn [] (dispatch [:qb/enhance-query-add-constraint path]))} [:use {:xlinkHref "#icon-filter"}]]
            (when-let [c (:id-count properties)]
