@@ -435,21 +435,27 @@
                       (map (fn [part]
                              [:span.part part])
                            (interpose ">" (map uncamel (split path ".")))))
-                [:div.button-group
-                 (when-let [sort-priority @(subscribe [:qb/sort-priority path])]
-                   [:span.sort-priority (str "Sort " (-> sort-priority inc ordinalize))])
-                 [:a.sort-button {:role "button"
-                                  :title "Sort ascending"
-                                  :class (when (= "ASC" @(subscribe [:qb/active-sort path]))
-                                           "active")
-                                  :on-click #(dispatch [:qb/set-sort path "ASC"])}
-                  [:svg.icon.icon-sort-alpha-asc [:use {:xlinkHref "#icon-sort-alpha-asc"}]]]
-                 [:a.sort-button {:role "button"
-                                  :title "Sort descending"
-                                  :class (when (= "DESC" @(subscribe [:qb/active-sort path]))
-                                           "active")
-                                  :on-click #(dispatch [:qb/set-sort path "DESC"])}
-                  [:svg.icon.icon-sort-alpha-desc [:use {:xlinkHref "#icon-sort-alpha-desc"}]]]]]))
+                (let [subpaths (->> (split path #"\.") (iterate drop-last) (take-while not-empty) (set))
+                      outer-joined-section? (some #(contains? subpaths %)
+                                                  (map #(split % #"\.") @(subscribe [:qb/joins])))]
+                  (if outer-joined-section?
+                    [:span.outerjoined-section {:title "Optional attributes cannot be sorted"}
+                     [:svg.icon.icon-venn-combine [:use {:xlinkHref "#icon-venn-combine"}]]]
+                    [:div.button-group
+                     (when-let [sort-priority @(subscribe [:qb/sort-priority path])]
+                       [:span.sort-priority (str "Sort " (-> sort-priority inc ordinalize))])
+                     [:a.sort-button {:role "button"
+                                      :title "Sort ascending"
+                                      :class (when (= "ASC" @(subscribe [:qb/active-sort path]))
+                                               "active")
+                                      :on-click #(dispatch [:qb/set-sort path "ASC"])}
+                      [:svg.icon.icon-sort-alpha-asc [:use {:xlinkHref "#icon-sort-alpha-asc"}]]]
+                     [:a.sort-button {:role "button"
+                                      :title "Sort descending"
+                                      :class (when (= "DESC" @(subscribe [:qb/active-sort path]))
+                                               "active")
+                                      :on-click #(dispatch [:qb/set-sort path "DESC"])}
+                      [:svg.icon.icon-sort-alpha-desc [:use {:xlinkHref "#icon-sort-alpha-desc"}]]]]))]))
             @order))))
 
 (defn xml-view []

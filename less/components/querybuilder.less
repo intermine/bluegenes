@@ -763,8 +763,9 @@ div.column-container {
 
     .sort-item {
         display: flex;
-        align-items: baseline;
+        align-items: center;
         justify-content: space-between;
+        height: 40px;
 
         .sort-button {
             background-color: white;
@@ -785,6 +786,16 @@ div.column-container {
 
             &.active > svg {
                 fill: #039be5;
+            }
+        }
+
+        .outerjoined-section {
+            margin-right: 4px;
+
+            svg {
+                margin: 0;
+                fill: #039be5;
+                font-size: 1.5em;
             }
         }
     }

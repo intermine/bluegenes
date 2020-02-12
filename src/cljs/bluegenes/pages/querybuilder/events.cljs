@@ -370,11 +370,30 @@
                      :order new-order)
       :dispatch [:qb/enhance-query-build-im-query true]})))
 
+(defn subpath-of? [subpath path]
+  (let [subpaths (->> (split path #"\.")
+                      (iterate drop-last)
+                      (take-while not-empty)
+                      (set))]
+    (contains? subpaths (split subpath #"\."))))
+
 (reg-event-fx
  :qb/add-outer-join
  (fn [{db :db} [_ pathv]]
-   {:db (update-in db [:qb :joins] (fnil conj #{}) (join "." pathv))
-    :dispatch [:qb/enhance-query-build-im-query true]}))
+   (let [outerjoins ((fnil conj #{}) (get-in db [:qb :joins]) (join "." pathv))
+         outerjoined-paths (->> (get-in db [:qb :sort])
+                                (map :path)
+                                (filter (fn [path]
+                                          (some #(subpath-of? % path) outerjoins)))
+                                (set))]
+     {:db (-> db
+              (assoc-in [:qb :joins] outerjoins)
+              ;; If any previously added sort path is part of the newly added
+              ;; outerjoined path, we need to remove it as it's not supported.
+              (cond-> (not-empty outerjoined-paths)
+                (update-in [:qb :sort]
+                           #(into [] (remove (comp outerjoined-paths :path)) %))))
+      :dispatch [:qb/enhance-query-build-im-query true]})))
 
 (reg-event-fx
  :qb/remove-outer-join
