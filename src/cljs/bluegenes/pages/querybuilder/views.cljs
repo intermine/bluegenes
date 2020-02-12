@@ -431,7 +431,7 @@
                                     (reset! selected* idx)
                                     (dispatch [:qb/set-order new-order])))
                  :on-drag-end (fn [] (reset! selected* nil))}
-                (into [:div]
+                (into [:div.path-parts]
                       (map (fn [part]
                              [:span.part part])
                            (interpose ">" (map uncamel (split path ".")))))

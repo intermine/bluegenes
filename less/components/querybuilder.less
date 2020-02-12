@@ -348,6 +348,7 @@ div.column-container {
     background-color: @query-browser-bg;
     color: @query-browser-fg;
     padding: 0 20px 20px;
+    overflow: auto;
 
     li.tree,
     ul.tree {
@@ -707,10 +708,6 @@ div.column-container {
     }
 }
 
-.part {
-    padding: 2px;
-}
-
 .label-button {
     font-size: 0.8em;
     margin-left: 2px;
@@ -765,7 +762,17 @@ div.column-container {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        height: 40px;
+        min-height: 40px;
+        max-width: 100%;
+
+        .path-parts {
+            display: flex;
+            flex-wrap: wrap;
+
+            .part {
+                padding: 0 2px;
+            }
+        }
 
         .sort-button {
             background-color: white;
