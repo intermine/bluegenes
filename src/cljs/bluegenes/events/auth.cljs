@@ -3,16 +3,13 @@
             [bluegenes.effects :as fx]
             [bluegenes.route :as route]))
 
-(def error-messages {401 "Invalid username or password"
-                     404 "Remote server not found"})
-
 (reg-event-fx
  ::login
  ;; Fire events to log in a user
  (fn [{db :db} [_ credentials]]
    {:db (update-in db [:mines (:current-mine db) :auth] assoc
                    :thinking? true
-                   :error? nil)
+                   :error? false)
     ::fx/http {:uri "/api/auth/login"
                :method :post
                :on-success [::login-success]
@@ -39,23 +36,29 @@
 (reg-event-db
  ::login-failure
  ;; Clear a user's identity and store an error message
- (fn [db [_ {:keys [statusCode] :as _r}]]
-   (let [msg (get error-messages statusCode "Error")]
-     (update-in db [:mines (:current-mine db) :auth] assoc
-                :thinking? false
-                :identity nil
-                :error? true
-                :message msg))))
+ (fn [db [_ res]]
+   (update-in db [:mines (:current-mine db) :auth] assoc
+              :thinking? false
+              :identity nil
+              :error? true
+              :message (get-in res [:body :error]))))
 
 (reg-event-fx
  ::logout
  ;; Fire events to log out a user. This clears the Session on the server
  (fn [{db :db} [_]]
-   {:db (update-in db [:mines (:current-mine db) :auth] assoc
-                   :thinking? true)
-    ::fx/http {:uri "/api/auth/logout"
-               :method :get
-               :on-success [::logout-success]}}))
+   (let [current-mine (:current-mine db)]
+     {:db (update-in db [:mines current-mine :auth] assoc
+                     :thinking? true)
+      ::fx/http {:uri "/api/auth/logout"
+                 :method :post
+                 :on-success [::logout-success]
+                 ;; We don't really care if anything goes wrong.
+                 :on-failure [::logout-success]
+                 :on-unauthorised [::logout-success]
+                 :transit-params {:service (select-keys
+                                            (get-in db [:mines current-mine :service])
+                                            [:root :token])}}})))
 
 (reg-event-fx
  ::logout-success
@@ -72,3 +75,23 @@
       :dispatch-n [[:remove-login current-mine]
                    [::route/navigate ::route/home]
                    [:reboot]]})))
+
+(reg-event-fx
+ ::register
+ (fn [{db :db} [_ credentials]]
+   {:db (update-in db [:mines (:current-mine db) :auth] assoc
+                   :thinking? true
+                   :error? false)
+    ::fx/http {:uri "/api/auth/register"
+               :method :post
+               :on-success [::login-success]
+               :on-failure [::login-failure]
+               :on-unauthorised [::login-failure]
+               :transit-params credentials}}))
+
+(reg-event-db
+ ::clear-error
+ (fn [db]
+   (update-in db [:mines (:current-mine db) :auth] assoc
+              :error? false
+              :message nil)))

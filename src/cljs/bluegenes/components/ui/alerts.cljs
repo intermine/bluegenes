@@ -2,6 +2,13 @@
   (:require [re-frame.core :refer [subscribe dispatch]]
             [reagent.core :as r]))
 
+(defn tool-operation-alert []
+  (let [working? @(subscribe [:bluegenes.pages.developer.subs/tool-working?])]
+    (when working?
+      [:div.alert-container
+       [:div.alert.alert-info
+        [:span "A tool operation is in progress..."]]])))
+
 (defn invalid-token-alert []
   (let [invalid-token? (subscribe [:invalid-token?])]
     (if @invalid-token?
@@ -49,3 +56,11 @@
       [:div.messages-wrapper
        (into [:div.messages-container]
              (map (fn [m] [message m]) @messages))])))
+
+(defn main
+  []
+  [:<> ; This hieroglyph is read as "React Fragment".
+   ;; It lets you return multiple elements without wrapping them in a container element.
+   [tool-operation-alert]
+   [invalid-token-alert]
+   [messages]])

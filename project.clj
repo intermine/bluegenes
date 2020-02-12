@@ -21,6 +21,7 @@
                  [metosin/reitit "0.3.9"]
                  [servant "0.1.5"]
                  [json-html "0.4.5"]
+                 [markdown-to-hiccup "0.6.2"]
 
                  ; HTTP
                  [clj-http "3.10.0"]
@@ -66,7 +67,7 @@
                  ; Intermine Assets
                  [org.intermine/im-tables "0.9.0"]
                  [org.intermine/imcljs "1.0.2"]
-                 [org.intermine/bluegenes-tool-store "0.1.0"]]
+                 [org.intermine/bluegenes-tool-store "0.2.0"]]
 
   :deploy-repositories {"clojars" {:sign-releases false}}
   :codox {:language :clojurescript}
@@ -91,7 +92,8 @@
                     ["with-profile" "prod" "run"]]
             "deploy" ["with-profile" "+uberjar" "deploy" "clojars"]
             "format" ["cljfmt" "fix"]
-            "kaocha" ["with-profile" "kaocha" "run" "-m" "kaocha.runner"]}
+            "kaocha" ["with-profile" "kaocha" "run" "-m" "kaocha.runner"]
+            "tools" ["run" "-m" "bluegenes-tool-store.tools"]}
 
   :min-lein-version "2.8.1"
 
@@ -116,6 +118,7 @@
 
   :profiles {:dev {:dependencies [[binaryage/devtools "0.9.10"]
                                   [day8.re-frame/re-frame-10x "0.4.4"]
+                                  [day8.re-frame/tracing "0.5.1"]
                                   [figwheel-sidecar "0.5.19"]
                                   [cider/piggieback "0.4.1"]]
                    :resource-paths ["config/dev" "tools" "config/defaults"]
@@ -140,7 +143,8 @@
                                         :source-map-timestamp true
                                         :pretty-print true
                                         ;:parallel-build true
-                                        :closure-defines {"re_frame.trace.trace_enabled_QMARK_" true}
+                                        :closure-defines {"re_frame.trace.trace_enabled_QMARK_" true
+                                                          "day8.re_frame.tracing.trace_enabled_QMARK_"  true}
                                         :preloads [devtools.preload
                                                    day8.re-frame-10x.preload]
                                         :external-config {:devtools/config {:features-to-install :all}}}}

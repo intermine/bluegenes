@@ -36,12 +36,16 @@
                     {:title title}
                     adjusted-title]])) @history))])))
 
-(defn no-results []
+(defn no-results
+  "Show an appropriate message when the list does not exist."
+  []
   [:div "Hmmm. There are no results. How did this happen? Whoopsie! "
    [:a {:href (route/href ::route/home)}
     "There's no place like home."]])
 
-(defn query-history []
+(defn query-history
+  "Gives an overview of recent queries or lists, allowing you to jump between them."
+  []
   (let [historical-queries (subscribe [:results/historical-queries])
         current-query (subscribe [:results/history-index])]
     (fn []
@@ -56,11 +60,61 @@
                      [:div.time (time-format/unparse custom-time-formatter (time-coerce/from-long last-executed))]])
                   @historical-queries))])))
 
-(defn main []
+(defn description-input
+  "Textarea input for updating the description of a list."
+  [_title initial-text]
+  (let [text (reagent/atom (or initial-text ""))
+        error (subscribe [:results/errors :description])
+        stop-editing #(dispatch [:list-description/edit false])]
+    (fn [title _initial-text]
+      [:div.description-edit
+       [:label "Description"]
+       [:textarea.form-control
+        {:rows 5
+         :placeholder "Describe the contents of this list."
+         :value @text
+         :ref #(.focus (js/$ %))
+         :on-change #(reset! text (oget % "target" "value"))}]
+       [:div.controls
+        [:button.btn
+         {:type "button"
+          :on-click stop-editing}
+         "Cancel"]
+        [:button.btn.btn-primary.btn-raised
+         {:type "button"
+          :on-click #(dispatch [:list-description/update title @text])}
+         "Save"]
+        (when-let [e @error] [:p.error e])]])))
+
+(defn description-box
+  "Shows the list description if one is available, and let's you toggle editing."
+  []
+  (let [editing? (subscribe [:list-description/editing?])
+        start-editing #(dispatch [:list-description/edit true])]
+    (fn [title description]
+      (if @editing?
+        [description-input title description]
+        (if (not-empty description)
+          [:div.description
+           [:b "Description: "]
+           description
+           [:button.btn.btn-slim {:type "button"
+                                  :on-click start-editing}
+            [:svg.icon.icon-edit [:use {:xlinkHref "#icon-edit"}]]
+            "Edit description"]]
+          [:div.description
+           [:button.btn.btn-slim {:type "button"
+                                  :on-click start-editing}
+            [:svg.icon.icon-edit [:use {:xlinkHref "#icon-edit"}]]
+            "Add description"]])))))
+
+(defn main
+  "Result page for a list or query."
+  []
   (let [are-there-results? (subscribe [:results/are-there-results?])
         current-list (subscribe [:results/current-list])]
     (fn []
-      (let [{:keys [description authorized name type size timestamp]} @current-list]
+      (let [{:keys [description authorized name type size timestamp] :as list} @current-list]
         (if @are-there-results?
         ;;show results
           [:div.container-fluid.results
@@ -72,11 +126,10 @@
              [:div
               {:style {:background-color "white"}}
               [tables/main [:results :table]]
-              (when (> (count description) 0)
-                [:div.description-div
-                 {:style {:background-color "#D2CEBF"  :padding "10px" :overflow "auto"}}
-                 [:b "Description: "]
-                 description])]
+              (when (and list authorized)
+                ;; Only show when results are for a list, not a query.
+                ;; And only when the user is authorized to edit it.
+                [description-box name description])]
              [:div
               [tools/main]]]
             [:div.col-sm-3

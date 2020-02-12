@@ -7,13 +7,29 @@
    (get-in db [:tools :entity])))
 
 (reg-sub
- ::all-tools
+ ::installed-tools
  (fn [db]
-   (get-in db [:tools :all])))
+   (get-in db [:tools :installed])))
+
+(reg-sub
+ ::available-tools
+ (fn [db]
+   (get-in db [:tools :available])))
+
+(reg-sub
+ ::remaining-tools
+ :<- [::installed-tools]
+ :<- [::available-tools]
+ (fn [[installed available]]
+   (let [installed-names (set (map #(get-in % [:package :name])
+                                   installed))]
+     (remove #(contains? installed-names
+                         (get-in % [:package :name]))
+             available))))
 
 (reg-sub
  ::suitable-tools
- :<- [::all-tools]
+ :<- [::installed-tools]
  :<- [::entity]
  :<- [:model]
  (fn [[tools entity model]]

@@ -144,7 +144,7 @@
             (cond
               (<= 200 status 399) (when on-success (dispatch (conj on-success body)))
               (<= 400 status 499) (when on-unauthorised (dispatch (conj on-unauthorised response)))
-              (>= 500 status 599) (when on-error (dispatch (conj on-error response)))
+              (<= 500 status 599) (when on-error (dispatch (conj on-error response)))
               :else nil)))
       (when on-progress-upload
         (go-loop []
