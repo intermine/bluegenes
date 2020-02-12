@@ -18,10 +18,10 @@
 
 (reg-event-fx
  ::change-password
- (fn [{db :db} [_ new-password]]
+ (fn [{db :db} [_ old-password new-password]]
    (let [service (get-in db [:mines (:current-mine db) :service])]
      {:db (update-in db [:profile :responses] dissoc :change-password)
-      :im-chan {:chan (auth/change-password service new-password)
+      :im-chan {:chan (auth/change-password service old-password new-password)
                 :on-success [::change-password-success]
                 :on-failure [::change-password-failure]}})))
 
@@ -38,7 +38,7 @@
    (assoc-in db [:profile :responses :change-password]
              {:type :failure
               :message (case (:status res)
-                         405 "This InterMine is running an older version which does not support changing password via BlueGenes."
+                         (400 405) "This InterMine is running an older version which does not support changing password via BlueGenes."
                          (or (get-in res [:body :error])
                              "Failed to change password. Please check your connection and try again."))})))
 
