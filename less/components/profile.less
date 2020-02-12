@@ -12,13 +12,13 @@
 
     p.success {
         margin: @spacer/2;
-        color: #42a94b;
+        color: @success-text-color;
         font-weight: 500;
     }
 
     p.failure {
         margin: @spacer/2;
-        color: #a94442;
+        color: @failure-text-color;
         font-weight: 500;
     }
 
@@ -39,6 +39,10 @@
         position: relative;
     }
 
+    // This fades the element.
+    // It's not actually a loader.
+    // But there's a real loader in the center!
+    // Which you can find in the hiccup.
     .settings-loader {
         position: absolute;
         width: 100%;
