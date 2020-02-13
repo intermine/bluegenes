@@ -211,3 +211,12 @@
  :messages
  (fn [db]
    (sort-by :when > (vals (:messages db)))))
+
+;; Returns the active mine's InterMine version as a vector of numbers.
+;; ie. [4 1 2]
+(reg-sub
+ :current-intermine-version
+ (fn [db]
+   (->> (get-in db [:assets :intermine-version (:current-mine db)])
+        (re-seq #"\d+")
+        (mapv #(js/parseInt % 10)))))

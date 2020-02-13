@@ -94,14 +94,17 @@
                 {:on-click (fn [] (when (not cant-operate?) (dispatch [::evts/set-modal :subtract])))})
             "Subtract " [:svg.icon.icon-venn-difference.venn [:use {:xlinkHref "#icon-venn-difference"}]]]]
           (let [no-login? (not @(subscribe [:bluegenes.subs.auth/authenticated?]))
-                no-lists? (empty? @(subscribe [:lists/authorized-lists]))]
-            [:li {:class (when (or no-lists? no-login?) "disabled")}
+                no-lists? (empty? @(subscribe [:lists/authorized-lists]))
+                no-support? (< (first @(subscribe [:current-intermine-version])) 5)
+                problem? (or no-lists? no-login? no-support?)]
+            [:li.hidden-xs {:class (when problem? "disabled")}
              [:a (merge
                   {:title (cond
+                            no-support? "This InterMine is running an older version which does not support creating folders"
                             no-login? "Only logged in users can create folders"
                             no-lists? "You don't have any lists to organize"
                             :else "Create folders to organize your lists")}
-                  (when (not (or no-lists? no-login?))
+                  (when (not problem?)
                     {:data-toggle "modal"
                      :data-keyboard true
                      :data-target "#myMineOrganize"}))
