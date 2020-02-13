@@ -5,7 +5,8 @@
             [bluegenes.pages.developer.icons :as icons]
             [bluegenes.pages.developer.tools :as tools]
             [clojure.string :refer [blank?]]
-            [bluegenes.route :as route]))
+            [bluegenes.route :as route]
+            [cljs-bean.core :refer [->clj]]))
 
 (defn nav []
   "Buttons to choose which mine you're using."
@@ -68,7 +69,7 @@
 (defn version-number []
   [:div.panel.container
    [:h3 "Client Version: "]
-   [:code (str bluegenes.core/version)]])
+   [:code (:version (->clj js/serverVars))]])
 
 (defn localstorage-destroyer []
   (fn []
@@ -103,20 +104,25 @@
            (dispatch [:scramble-tokens]))}
         "Scramble token"]])))
 
+(defn tool-api-path []
+  (let [tools-path @(subscribe [::subs/tools-path])]
+    [:div.panel.container
+     [:h3 "Tools path"]
+     [:p "The path where your BlueGenes tools are installed on the server is:"]
+     [:pre tools-path]]))
+
 (defn debug-panel []
   (fn []
     (let [panel (subscribe [::subs/panel])]
-      [:div.developer
+      [:div.developer.container
        [nav]
-       (cond
-         (= @panel "main")
-         [:div
-          [:h1 "Debug console"]
-          [mine-config]
-          [localstorage-destroyer]
-          [scrambled-eggs-and-token]
-          [version-number]]
-         (= @panel "tool-store")
-         [tools/tool-store]
-         (= @panel "icons")
-         [icons/iconview])])))
+       (case @panel
+         "main" [:div
+                 [:h1 "Debug console"]
+                 [mine-config]
+                 [localstorage-destroyer]
+                 [scrambled-eggs-and-token]
+                 [tool-api-path]
+                 [version-number]]
+         "tool-store" [tools/tool-store]
+         "icons" [icons/iconview])])))

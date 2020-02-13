@@ -83,12 +83,10 @@
 (reg-event-fx
  :intercept-save-list
  (fn [{db :db} [_ [_ {:keys [listName listSize] :as evt}]]]
-   {:db (update db :messages conj)
-    :dispatch-n
-    [[:assets/fetch-lists]
-     [:messages/add
-      {:markup [:span (str "Saved list to My Data: " listName)]
-       :style "success"}]]}))
+   {:dispatch-n [[:assets/fetch-lists]
+                 [:messages/add
+                  {:markup [:span (str "Saved list to My Data: " listName)]
+                   :style "success"}]]}))
 
 (defn init-mine-defaults
   "If this bluegenes instance is coupled with InterMine, load the intermine's
@@ -149,7 +147,7 @@
               ;; Only use data from local storage if it's non-empty and the
               ;; client version matches.
               (and (seq state)
-                   (= bluegenes.core/version version))
+                   (= version (:version (->clj js/serverVars))))
               (assoc :current-mine (or selected-mine current-mine)
                      :mines updated-mines
                      :assets assets

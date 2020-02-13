@@ -20,6 +20,7 @@
     }
 
     .error-box {
+        margin-top: @spacer;
         animation: login-error-fadein 1s;
     }
 
@@ -35,22 +36,29 @@
         color: @body-foreground-color;
     }
 
-    .forceregistrationscreen {
-        display:none;
-    }
-
     .register-or-login {
         display: flex;
         align-items: center;
         justify-content: flex-end;
+
+        .other-action {
+            margin-right: @spacer;
+        }
+
+        button {
+            margin-top: 0;
+        }
     }
 
-    .register {
-        margin-right: 1em;
-        display: flex;
+    .toggle-show-password {
+        position: relative;
 
-        a {
-            padding: 1em;
+        .icon {
+            fill: #444444;
+            font-size: 0.8em;
+            position: absolute;
+            right: 13px;
+            bottom: 13px;
         }
     }
 }

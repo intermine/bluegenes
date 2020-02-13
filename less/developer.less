@@ -90,18 +90,12 @@
       border: solid 1px @light-contrast;
       display: flex;
       align-items: center;
-      padding: @spacer 0;
+      padding: @spacer @spacer;
       background-color: @content-color-background;
 
-      p {
-        margin: 0;
-      }
-
-      .icon-info {
-        width: 3*@spacer;
-        height: 3*@spacer;
-        padding: 0.5*@spacer 0.5*@spacer 0.5*@spacer 0;
-        fill: @highlight-color;
+      button {
+        margin: auto;
+        margin-right: 0;
       }
     }
 
@@ -157,7 +151,8 @@
           .tool-size;
 
           img {
-            object-fit: cover;
+            object-fit: contain;
+            width: 100%;
           }
           border-bottom: solid 1px @body-foreground-color;
           overflow: hidden;
@@ -186,13 +181,26 @@
           h2 {
             font-weight: bold;
           }
+
+          p {
+            display: inline;
+          }
         }
 
         .tool-type h3 {
           font-weight: bold;
         }
 
+        .tool-alert {
+          width: 100%;
+          font-size: 0.9*@spacer;
+          color: @notice-me;
+          margin: @spacer/2 0;
+        }
+
         .tool-class {
+          width: 100%;
+
           ul {
             display: flex;
             flex-direction: column;
@@ -206,6 +214,24 @@
             border-width: 0 0 0 3px;
             padding: 0 0.5 * @spacer;
             margin: @spacer/6;
+          }
+        }
+
+        .tool-footer {
+          display: flex;
+          margin-top: auto;
+          padding: @spacer;
+          padding-top: 0;
+          width: 100%;
+          justify-content: space-between;
+
+          .tool-actions {
+            display: flex;
+            margin-left: auto;
+
+            button {
+              margin: 0 @spacer/2;
+            }
           }
         }
       }

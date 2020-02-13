@@ -23,7 +23,8 @@
             [clojure.string :refer [join split]]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
             [imcljs.fetch :as fetch]
-            [bluegenes.events.registry :as registry]))
+            [bluegenes.events.registry :as registry]
+            [cljs-bean.core :refer [->clj]]))
 
 ; Change the main panel to a new view
 (reg-event-fx
@@ -60,7 +61,8 @@
      ;; Attach the client version to the saved state. This will be checked
      ;; the next time the client boots to make sure the local storage data
      ;; and the client version number are aligned.
-     {:persist [:bluegenes/state (assoc saved-keys :version bluegenes.core/version)]})))
+     {:persist [:bluegenes/state
+                (assoc saved-keys :version (:version (->clj js/serverVars)))]})))
 
 (reg-event-fx
  :save-login

@@ -2,7 +2,8 @@
   (:require [bluegenes.handler :refer [handler]]
             [config.core :refer [env]]
             [ring.adapter.jetty :refer [run-jetty]]
-            [taoensso.timbre :as timbre :refer [infof]])
+            [taoensso.timbre :as timbre :refer [infof]]
+            [bluegenes-tool-store.tools :refer [initialise-tools]])
   (:gen-class))
 
 (defn ->int
@@ -31,4 +32,5 @@
   "Start the BlueGenes server. This is the main entry point for the application"
   [& _args]
   (timbre/set-level! :info) ; Enable Logging
+  (initialise-tools)
   (start-web-server!))

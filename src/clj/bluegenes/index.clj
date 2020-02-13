@@ -1,19 +1,30 @@
 (ns bluegenes.index
   (:require [hiccup.page :refer [include-js include-css html5]]
             [config.core :refer [env]]
-            [cheshire.core :refer [generate-string]]))
+            [cheshire.core :refer [generate-string]]
+            [clojure.java.io :as io]
+            [clojure.string :as string]
+            [clojure.edn :as edn]))
 
 ;; Hello dear maker of the internet. You want to edit *this* file for prod,
 ;; NOT resources/public/index.html.
 
+(def fingerprints
+  "Reads manifest.edn which is produced by the ClojureScript compiler's
+  `:fingerprint` option. This is a map from target path to the compiled
+  path with the fingerprinted filename."
+  (try (some->> "public/js/compiled/manifest.edn"
+                io/resource
+                slurp
+                edn/read-string)
+       (catch Exception _)))
 
-; *** IMPORTANT ***
-; The version binding below will be nil when BlueGenes is deployed as a dependency of another project (for example: Gradle).
-; This is because project.clj does not get packaged into the "skinny" jar file when BlueGenes is pushed to clojars.
-; TODO: Figure out how to get BlueGenes version without relying on project.clj
-(defn version [] (:version (try
-                             (-> "project.clj" slurp read-string (nth 2))
-                             (catch Exception e nil))))
+(def bundle-path
+  "Uses the fingerprinted filename if available, and otherwise falls back
+  to the default."
+  (or (some-> (get fingerprints "resources/public/js/compiled/app.js")
+              (string/replace #"resources/public" ""))
+      "/js/compiled/app.js"))
 
 ; A pure CSS loading animation to be displayed before the bluegenes javascript is read:
 (def loader-style
@@ -43,7 +54,9 @@
     (str "var serverVars="
          (generate-string {:googleAnalytics (:google-analytics env)
                            :serviceRoot     (:bluegenes-default-service-root env)
-                           :mineName        (:bluegenes-default-mine-name env)})
+                           :mineName        (:bluegenes-default-mine-name env)
+                           :version         (or (second (re-find #"app-(.*)\.js" bundle-path))
+                                                "dev")})
          ";")]
   ; Javascript:
    [:link {:rel "shortcut icon" :href "https://raw.githubusercontent.com/intermine/design-materials/f5f00be4/logos/intermine/fav32x32.png" :type "image/png"}]
@@ -84,7 +97,7 @@
     (css-compiler)
     (loader)
     [:div#app]
-     ; Bust the cache by using the project's version number as a URL parameter
-    [:script {:src (str "/js/compiled/app.js?v=" (version))}]
-     ; Call the constructor of the bluegenes client and pass in the user's optional identity as an object
+    [:script {:src bundle-path}]
+    ;; Call the constructor of the bluegenes client and pass in the user's
+    ;; optional identity as an object.
     [:script "bluegenes.core.init();"]]))
