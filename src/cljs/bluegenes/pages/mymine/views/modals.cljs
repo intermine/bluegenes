@@ -7,6 +7,14 @@
             [bluegenes.pages.mymine.views.organize :as organize]
             [clojure.string :as s]))
 
+(defn on-enter
+  "Call `function` if `evt` received is the Enter key pressed."
+  [function]
+  (fn [evt]
+    (case (oget evt :keyCode)
+      13 (function)
+      nil)))
+
 (def operations
   {:combine {:title "Combine"
              :on-success (fn [list-name] (dispatch [::evts/lo-combine (s/trim list-name)]))
@@ -89,17 +97,14 @@
                              {:type "text"
                               :value @state
                               :on-change (fn [evt] (reset! state (oget evt :target :value)))
-                              :on-key-up (fn [evt]
-                                           (case (oget evt :keyCode)
-                                             13 (when (not (s/blank? @state))
-                                                  (do
-                                                     ; Call the succeess function with the value of the target
-                                                    (on-success @state)
-                                                     ; Clear the state for re-use
-                                                    (reset! state "")
-                                                     ; Find the modal parent and manually close it
-                                                    (-> @dom-node (ocall :closest ".modal") (ocall :modal "hide"))))
-                                             nil))}]
+                              :on-key-up (on-enter
+                                           #(when (not (s/blank? @state))
+                                              ; Call the succeess function with the value of the target
+                                              (on-success @state)
+                                              ; Clear the state for re-use
+                                              (reset! state "")
+                                              ; Find the modal parent and manually close it
+                                              (-> @dom-node (ocall :closest ".modal") (ocall :modal "hide"))))}]
                             (when (true? (:name-taken? errors))
                               [:div.alert.alert-warning "A list with this name already exists"])]]))})))
 
@@ -121,17 +126,14 @@
                              {:type "text"
                               :value @state
                               :on-change (fn [evt] (reset! state (oget evt :target :value)))
-                              :on-key-up (fn [evt]
-                                           (case (oget evt :keyCode)
-                                             13 (when (not (s/blank? @state))
-                                                  (do
-                                                     ; Call the succeess function with the value of the target
-                                                    (on-success @state)
-                                                     ; Clear the state for re-use
-                                                    (reset! state "")
-                                                     ; Find the modal parent and manually close it
-                                                    (-> @dom-node (ocall :closest ".modal") (ocall :modal "hide"))))
-                                             nil))}]
+                              :on-key-up (on-enter
+                                           #(when (not (s/blank? @state))
+                                              ; Call the succeess function with the value of the target
+                                              (on-success @state)
+                                              ; Clear the state for re-use
+                                              (reset! state "")
+                                              ; Find the modal parent and manually close it
+                                              (-> @dom-node (ocall :closest ".modal") (ocall :modal "hide"))))}]
                             (when (true? (:name-taken? errors))
                               [:div.alert.alert-warning "A list with this name already exists"])]]))})))
 
@@ -238,13 +240,9 @@
                             [:input.form-control
                              {:ref (fn [e] (when e (do (oset! e :value name) (reset! input-dom-node (js/$ e)))))
                               :type "text"
-                              :on-key-up (fn [evt]
-                                           (case (oget evt :keyCode)
-                                             13 (do ; Detect "Return"
-                                                   ;(dispatch [::evts/copy trail (:name @dets) (ocall @input-dom-node :val)])
-
-                                                  (ocall @modal-dom-node :modal "hide"))
-                                             nil))}]]
+                              :on-key-up (on-enter
+                                           #(do ;(dispatch [::evts/copy trail (:name @dets) (ocall @input-dom-node :val)])
+                                                (ocall @modal-dom-node :modal "hide")))}]]
                            [:div.modal-footer
                             [:div.btn-toolbar.pull-right
                              [:button.btn.btn-default
@@ -282,12 +280,8 @@
                             [:input.form-control
                              {:ref (fn [e] (when e (do (oset! e :value "") (reset! input-dom-node (js/$ e)))))
                               :type "text"
-                              :on-key-up (fn [evt]
-                                           (case (oget evt :keyCode)
-                                             13 (do ; Detect "Return"
-                                                  (dispatch [::evts/lo-combine (ocall @input-dom-node :val)])
-                                                  (ocall @modal-dom-node :modal "hide"))
-                                             nil))}]]
+                              :on-key-up (on-enter #(do (dispatch [::evts/lo-combine (ocall @input-dom-node :val)])
+                                                        (ocall @modal-dom-node :modal "hide")))}]]
                            [:div.modal-footer
                             [:div.btn-toolbar.pull-right
                              [:button.btn.btn-default
@@ -324,12 +318,8 @@
                             [:input.form-control
                              {:ref (fn [e] (when e (do (oset! e :value "") (reset! input-dom-node (js/$ e)))))
                               :type "text"
-                              :on-key-up (fn [evt]
-                                           (case (oget evt :keyCode)
-                                             13 (do ; Detect "Return"
-                                                  (dispatch [::evts/lo-intersect (ocall @input-dom-node :val)])
-                                                  (ocall @modal-dom-node :modal "hide"))
-                                             nil))}]]
+                              :on-key-up (on-enter #(do (dispatch [::evts/lo-intersect (ocall @input-dom-node :val)])
+                                                        (ocall @modal-dom-node :modal "hide")))}]]
                            [:div.modal-footer
                             [:div.btn-toolbar.pull-right
                              [:button.btn.btn-default
@@ -365,12 +355,8 @@
                             [:input.form-control
                              {:ref (fn [e] (when e (do (oset! e :value name) (reset! input-dom-node (js/$ e)))))
                               :type "text"
-                              :on-key-up (fn [evt]
-                                           (case (oget evt :keyCode)
-                                             13 (do ; Detect "Return"
-                                                  (dispatch [::evts/rename-list (ocall @input-dom-node :val)])
-                                                  (ocall @modal-dom-node :modal "hide"))
-                                             nil))}]]
+                              :on-key-up (on-enter #(do (dispatch [::evts/rename-list (ocall @input-dom-node :val)])
+                                                        (ocall @modal-dom-node :modal "hide")))}]]
                            [:div.modal-footer
                             [:div.btn-toolbar.pull-right
                              [:button.btn.btn-default
@@ -467,12 +453,8 @@
                             [:input.form-control
                              {:ref (fn [e] (when e (do (oset! e :value label) (reset! input-dom-node (js/$ e)))))
                               :type "text"
-                              :on-key-up (fn [evt]
-                                           (case (oget evt :keyCode)
-                                             13 (do ; Detect "Return"
-                                                  (dispatch-edit trail :label (ocall @input-dom-node :val))
-                                                  (ocall @modal-dom-node :modal "hide"))
-                                             nil))}]]
+                              :on-key-up (on-enter #(do (dispatch-edit trail :label (ocall @input-dom-node :val))
+                                                        (ocall @modal-dom-node :modal "hide")))}]]
                            [:div.modal-footer
                             [:div.btn-toolbar.pull-right
                              [:button.btn.btn-default
