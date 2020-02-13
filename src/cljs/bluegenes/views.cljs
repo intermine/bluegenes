@@ -16,6 +16,7 @@
             [bluegenes.pages.results.views :as results]
             [bluegenes.pages.regions.views :as regions]
             [bluegenes.pages.help.views :as help]
+            [bluegenes.pages.profile.views :as profile]
             [oops.core :refer [ocall oapply oget oset!]]
             [bluegenes.route :as route]))
 
@@ -47,6 +48,7 @@
 (defn show-panel [panel-name]
   [(case panel-name
      :home-panel         home/main
+     :profile-panel      profile/main
      :debug-panel        dev/debug-panel
      :templates-panel    templates/main
      :reportpage-panel   reportpage/main

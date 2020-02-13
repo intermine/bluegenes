@@ -1,6 +1,7 @@
 (ns bluegenes.events.auth
   (:require [re-frame.core :refer [reg-event-db reg-event-fx]]
-            [bluegenes.effects :as fx]))
+            [bluegenes.effects :as fx]
+            [bluegenes.route :as route]))
 
 (reg-event-fx
  ::login
@@ -72,6 +73,7 @@
                          :message nil)
               (assoc-in [:mines current-mine :service :token] nil))
       :dispatch-n [[:remove-login current-mine]
+                   [::route/navigate ::route/home]
                    [:reboot]]})))
 
 (reg-event-fx
