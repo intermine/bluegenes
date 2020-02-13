@@ -3,6 +3,7 @@
 @organize-node-bg: #DFE6ED;
 @organize-node-fg: #4B5C6B;
 @organize-branches: #788896;
+@organize-border: 2px dashed @organize-branches;
 
 .organize-tree {
     margin-bottom: 14px;
@@ -19,8 +20,8 @@
             content: "\a0";
             padding: 0 4px;
             position: absolute;
-            border-left: 2px dashed @organize-branches;
-            border-bottom: 2px dashed @organize-branches;
+            border-left: @organize-border;
+            border-bottom: @organize-border;
             left: -14px;
             height: 25.5px;
         }
@@ -29,7 +30,7 @@
             content: "\a0";
             padding: 0 4px;
             position: absolute;
-            border-left: 2px dashed @organize-branches;
+            border-left: @organize-border;
             left: -14px;
             bottom: 0;
             height: ~"calc(100% - 25.5px)";
@@ -43,13 +44,13 @@
 
         &.node-fake .node {
             opacity: 0.65;
-            border: 2px dashed #788896;
+            border: @organize-border;
             padding: 2px;
         }
 
         &.node-hide .node {
             opacity: 0.65;
-            border: 2px dashed #788896;
+            border: @organize-border;
             padding: 2px;
             color: transparent;
             background-color: transparent;
