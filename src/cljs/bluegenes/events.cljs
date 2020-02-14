@@ -107,12 +107,15 @@
                                          {:service {:root (:url mine-m)}
                                           :name (:name mine-m)
                                           :id mine-kw})
+         ;; Switch to home page.
          not-home?     (update :db assoc
                                :active-panel :home-panel
                                :panel-params nil)
          ;; We need to make sure to :reboot when switching mines.
          done-booting? (-> (assoc-in [:db :fetching-assets?] true)
-                           (assoc :dispatch [:reboot])))
+                           (assoc :dispatch [:reboot]))
+         ;; Always abort all active requests.
+         true (assoc :im-chan {:abort-active true}))
        {}))))
 
 (reg-event-db

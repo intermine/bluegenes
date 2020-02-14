@@ -81,8 +81,9 @@
 "The :im-chan side effect is used to read a value from a channel that represents an HTTP request
 and dispatches events depending on the status of that request's response."
 (reg-fx :im-chan
-        (let [previous-requests (atom {})]
-          (fn [{:keys [on-success on-failure chan abort]}]
+        (let [previous-requests (atom {})
+              active-requests (atom #{})]
+          (fn [{:keys [on-success on-failure chan abort abort-active]}]
             ; This http request can be closed early to prevent asynchronous http race conditions
             (when abort
               ; Look for a request stored in the state keyed by whatever value is in 'abort'
@@ -90,19 +91,28 @@ and dispatches events depending on the status of that request's response."
               (some-> @previous-requests (get abort) close!)
               ; Swap the old value for the new value
               (swap! previous-requests assoc abort chan))
-            (go
-              (let [{:keys [statusCode status] :as response} (<! chan)
-                    ;; `statusCode` is part of the response body from InterMine.
-                    ;; `status` is part of the response map created by cljs-http.
-                    s (or statusCode status)]
-                (cond
-                  (< s 400) (dispatch (conj on-success response))
-                  (= s 401) (if on-failure
-                              (dispatch (conj on-failure response))
-                              (dispatch [:flag-invalid-token]))
-                  :else (if on-failure
-                          (dispatch (conj on-failure response))
-                          (.error js/console "Failed imcljs request" response))))))))
+
+            ;; Closes any and all active requests.
+            (when abort-active
+              (doseq [req @active-requests]
+                (close! req)))
+
+            (when chan
+              (swap! active-requests conj chan)
+              (go
+                (let [{:keys [statusCode status] :as response} (<! chan)
+                      ;; `statusCode` is part of the response body from InterMine.
+                      ;; `status` is part of the response map created by cljs-http.
+                      s (or statusCode status)]
+                  (swap! active-requests disj chan)
+                  (cond
+                    (< s 400) (dispatch (conj on-success response))
+                    (= s 401) (if on-failure
+                                (dispatch (conj on-failure response))
+                                (dispatch [:flag-invalid-token]))
+                    :else (if on-failure
+                            (dispatch (conj on-failure response))
+                            (.error js/console "Failed imcljs request" response)))))))))
 
 (defn http-fxfn
   "The :http side effect is similar to :im-chan but is more generic and is used
