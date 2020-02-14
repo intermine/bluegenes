@@ -50,24 +50,34 @@
                       :assets/success-fetch-widgets
                       :assets/success-fetch-intermine-version
                       :assets/success-fetch-web-service-version]
-             ;; Now finish setting up BlueGenes!
-             :dispatch-n
-             (cond-> [;; Verify InterMine web service version.
-                      [:verify-web-service-version]
-                      ;; Start Google Analytics.
-                      [:start-analytics]
-                      ;; Set a flag indicating all assets are fetched.
-                      [:finished-loading-assets]
-                      ;; Save the current state to local storage.
-                      [:save-state]
-                      ;; fetch-organisms doesn't always load before it is needed.
-                      ;; for example on a fresh load of the id resolver, I sometimes end up with
-                      ;; no organisms when I initialise the component. I have a workaround
-                      ;; so it doesn't matter in this case, but it is something to be aware of.
-                      [:cache/fetch-organisms]
-                      [:regions/select-all-feature-types]]
-               (not wait-registry?) (conj [::registry/load-other-mines]))
+             :dispatch [:boot/finalize {:wait-registry? wait-registry?}]
+             :halt? true}
+            ;; Handle the case where one or more assets fail to fetch.
+            {:when :seen?
+             :events [:assets/failure]
+             :dispatch [:boot/finalize {:wait-registry? wait-registry?
+                                        :failed-assets? true}]
              :halt? true}])})
+
+(reg-event-fx
+ :boot/finalize
+ (fn [_ [_ {:keys [wait-registry? failed-assets?]}]]
+   {:dispatch-n
+    [;; Verify InterMine web service version.
+     [:verify-web-service-version]
+     ;; Start Google Analytics.
+     [:start-analytics]
+     ;; Set a flag indicating all assets are fetched.
+     [:finished-loading-assets]
+     ;; Save the current state to local storage.
+     (when-not failed-assets? [:save-state])
+     ;; fetch-organisms doesn't always load before it is needed.
+     ;; for example on a fresh load of the id resolver, I sometimes end up with
+     ;; no organisms when I initialise the component. I have a workaround
+     ;; so it doesn't matter in this case, but it is something to be aware of.
+     [:cache/fetch-organisms]
+     [:regions/select-all-feature-types]
+     (when-not wait-registry? [::registry/load-other-mines])]}))
 
 (defn im-tables-events-forwarder
   "Creates instructions for listening in on im-tables events.
@@ -268,12 +278,10 @@
    (let [current-mine (:current-mine db)]
      (cond-> {:db (assoc-in db [:mines current-mine :service :token] token)}
        (nil? token)
-       (assoc :dispatch
-              (let [service-root (get-in db [:mines current-mine :service :root])]
-                [:messages/add
-                 {:markup [:span (str "Failed to acquire token. It's likely that you have no connection to the InterMine instance at \"" service-root "\".")]
-                  :style "danger"
-                  :timeout 0}]))))))
+       (assoc :dispatch [:messages/add
+                         {:markup [:span "Failed to acquire token. It's likely that you have no connection to the InterMine instance."]
+                          :style "danger"
+                          :timeout 0}])))))
 
 ; Fetch model
 (def preferred-tag "im:preferredBagType")
@@ -293,10 +301,11 @@
 
 (reg-event-fx
  :assets/fetch-model
- (fn [{db :db}]
+ (fn [{db :db} [evt]]
    {:db db
     :im-chan {:chan (fetch/model (get-in db [:mines (:current-mine db) :service]))
-              :on-success [:assets/success-fetch-model (:current-mine db)]}}))
+              :on-success [:assets/success-fetch-model (:current-mine db)]
+              :on-failure [:assets/failure evt]}}))
 
 ; Fetch lists
 
@@ -307,12 +316,13 @@
 
 (reg-event-fx
  :assets/fetch-lists
- (fn [{db :db}]
+ (fn [{db :db} [evt]]
    {:db db
     :im-chan
     {:chan (fetch/lists
             (get-in db [:mines (:current-mine db) :service]))
-     :on-success [:assets/success-fetch-lists (:current-mine db)]}}))
+     :on-success [:assets/success-fetch-lists (:current-mine db)]
+     :on-failure [:assets/failure evt]}}))
 
 ; Fetch class keys
 
@@ -323,12 +333,13 @@
 
 (reg-event-fx
  :assets/fetch-class-keys
- (fn [{db :db}]
+ (fn [{db :db} [evt]]
    {:db db
     :im-chan
     {:chan (fetch/class-keys
             (get-in db [:mines (:current-mine db) :service]))
-     :on-success [:assets/success-fetch-class-keys (:current-mine db)]}}))
+     :on-success [:assets/success-fetch-class-keys (:current-mine db)]
+     :on-failure [:assets/failure evt]}}))
 
 ; Fetch templates
 
@@ -339,11 +350,12 @@
 
 (reg-event-fx
  :assets/fetch-templates
- (fn [{db :db}]
+ (fn [{db :db} [evt]]
    {:db db
     :im-chan
     {:chan (fetch/templates (get-in db [:mines (:current-mine db) :service]))
-     :on-success [:assets/success-fetch-templates (:current-mine db)]}}))
+     :on-success [:assets/success-fetch-templates (:current-mine db)]
+     :on-failure [:assets/failure evt]}}))
 
 ; Fetch summary fields
 
@@ -354,20 +366,22 @@
 
 (reg-event-fx
  :assets/fetch-summary-fields
- (fn [{db :db}]
+ (fn [{db :db} [evt]]
    {:db db
     :im-chan
     {:chan (fetch/summary-fields
             (get-in db [:mines (:current-mine db) :service]))
-     :on-success [:assets/success-fetch-summary-fields (:current-mine db)]}}))
+     :on-success [:assets/success-fetch-summary-fields (:current-mine db)]
+     :on-failure [:assets/failure evt]}}))
 
 (reg-event-fx
  :assets/fetch-widgets
   ;;fetches all enrichment widgets. afaik the non-enrichment widgets are InterMine 1.x UI specific so are filtered out upon success
- (fn [{db :db}]
+ (fn [{db :db} [evt]]
    {:im-chan
     {:chan (fetch/widgets (get-in db [:mines (:current-mine db) :service]))
-     :on-success [:assets/success-fetch-widgets (:current-mine db)]}}))
+     :on-success [:assets/success-fetch-widgets (:current-mine db)]
+     :on-failure [:assets/failure evt]}}))
 
 (reg-event-db
  :assets/success-fetch-widgets
@@ -382,12 +396,12 @@
  :assets/fetch-intermine-version
   ;;fetches all enrichment widgets. afaik the non-enrichment widgets
   ;;are InterMine 1.x UI specific so are filtered out upon success
- (fn [{db :db}]
+ (fn [{db :db} [evt]]
    {:im-chan
     {:chan (fetch/version-intermine
             (get-in db [:mines (:current-mine db) :service]))
-     :on-success
-     [:assets/success-fetch-intermine-version (:current-mine db)]}}))
+     :on-success [:assets/success-fetch-intermine-version (:current-mine db)]
+     :on-failure [:assets/failure evt]}}))
 
 (reg-event-db
  :assets/success-fetch-intermine-version
@@ -396,14 +410,24 @@
 
 (reg-event-fx
  :assets/fetch-web-service-version
- (fn [{db :db}]
+ (fn [{db :db} [evt]]
    {:im-chan
     {:chan (fetch/version-web-service
             (get-in db [:mines (:current-mine db) :service]))
-     :on-success
-     [:assets/success-fetch-web-service-version (:current-mine db)]}}))
+     :on-success [:assets/success-fetch-web-service-version (:current-mine db)]
+     :on-failure [:assets/failure evt]}}))
 
 (reg-event-db
  :assets/success-fetch-web-service-version
  (fn [db [_ mine-kw version]]
    (assoc-in db [:assets :web-service-version mine-kw] version)))
+
+(reg-event-fx
+ :assets/failure
+ (fn [{db :db} [_ evt]]
+   (let [mine-name (get-in db [:mines (:current-mine db) :name])]
+     {:dispatch [:messages/add
+                 {:markup [:span "Failed " [:em (name evt)] " from " [:em mine-name] ". "
+                           "Please contact the maintainers of the InterMine instance. BlueGenes may work in reduced capacity."]
+                  :style "warning"
+                  :timeout 0}]})))
