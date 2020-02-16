@@ -54,7 +54,7 @@ describe("UI Test", function() {
         .should("be.gt", 0);
     });
     cy.get("div[class=template-list]").within(() => {
-      cy.get(":nth-child(3) > .col")
+      cy.get(":nth-child(2) > .col")
         .find("button")
         .contains("View >>")
         .click({ force: true });
@@ -63,13 +63,14 @@ describe("UI Test", function() {
     cy.get("@getData").should(xhr => {
       expect(xhr.status).to.equal(200);
     });
-    cy.get("select.constraint-chooser").select("!=");
+    cy.get(".template-constraint-container:nth-child(2) select.constraint-chooser")
+      .select("!=");
   });
 
   it("Gives suggestion results when typing in search", function() {
     cy.get(".home .search").within(() => {
       cy.get("input[class=typeahead-search]").type("mal*");
-      cy.get(".quicksearch-result").should("have.length", 5);
+      cy.get(".quicksearch-result").its('length').should("be.gt", 0);
     });
   });
 
@@ -113,13 +114,13 @@ describe("UI Test", function() {
 
     cy.contains("Add description").click();
     cy.get("textarea").type("My description", { delay: 100 });
-    cy.get("button")
+    cy.get(".controls button")
       .contains("Save")
       .click();
     // Update description to list
     cy.contains("Edit description").click();
     cy.get("textarea").type(" new", { delay: 100 });
-    cy.get("button")
+    cy.get(".controls button")
       .contains("Save")
       .click();
     cy.get(".description").contains("My description new");
@@ -157,7 +158,12 @@ describe("UI Test", function() {
     cy.get("@getData").should(xhr => {
       expect(xhr.status).to.equal(200);
     });
-    cy.get(".results-summary").should("have", "Results");
+    cy.get(".results-summary").then((a)=>{
+      expect(a.text()).to.include('Results')
+    })
+    cy.get(".results-body .single-feature")
+      .its('length')
+      .should("be.gt", 0);
   });
 
   it("Login and logout works", function() {
@@ -172,7 +178,7 @@ describe("UI Test", function() {
     });
     cy.contains("Log In").click();
     cy.get("#email").type("demo@intermine.org");
-    cy.get("#password").type("demo");
+    cy.get("input[type='password']").type("demo");
     cy.get("form")
       .find("button")
       .click();
@@ -180,7 +186,7 @@ describe("UI Test", function() {
     cy.get("@auth").should(xhr => {
       expect(xhr.status).to.equal(200);
     });
-    cy.contains("demo@intermine.org");
+    cy.contains("demo@intermine.org").should('be.visible');
   });
 
   it("Successfully clears invalid anonymous token using dialog", function() {
