@@ -16,13 +16,10 @@
   is queued until all of the assets (data model, lists, templates etc) are fetched.
   When finished, an event called :finished-loading-assets is dispatch which tells BlueGenes
   it can continue routing."
-  [wait-registry?]
+  [& {:keys [wait-registry?]}]
   ;; wait-registry? is to indicate that the current mine requries data from the
   ;; registry, which isn't present (usually because it is a fresh boot).
-  {:first-dispatch (if wait-registry?
-                     [::registry/load-other-mines]
-                     [:authentication/init])
-   :rules (filterv
+  {:rules (filterv
            some?
            [(when wait-registry?
               {:when :seen?
@@ -51,18 +48,17 @@
                       :assets/success-fetch-widgets
                       :assets/success-fetch-intermine-version
                       :assets/success-fetch-web-service-version]
-             :dispatch [:boot/finalize {:wait-registry? wait-registry?}]
+             :dispatch [:boot/finalize]
              :halt? true}
             ;; Handle the case where one or more assets fail to fetch.
             {:when :seen?
              :events :assets/failure
-             :dispatch [:boot/finalize {:wait-registry? wait-registry?
-                                        :failed-assets? true}]
+             :dispatch [:boot/finalize :failed-assets? true]
              :halt? true}])})
 
 (reg-event-fx
  :boot/finalize
- (fn [_ [_ {:keys [wait-registry? failed-assets?]}]]
+ (fn [_ [_ & {:keys [failed-assets?]}]]
    {:dispatch-n
     [;; Verify InterMine web service version.
      [:verify-web-service-version]
@@ -77,8 +73,7 @@
      ;; no organisms when I initialise the component. I have a workaround
      ;; so it doesn't matter in this case, but it is something to be aware of.
      [:cache/fetch-organisms]
-     [:regions/select-all-feature-types]
-     (when-not wait-registry? [::registry/load-other-mines])]}))
+     [:regions/select-all-feature-types]]}))
 
 (defn im-tables-events-forwarder
   "Creates instructions for listening in on im-tables events.
@@ -117,6 +112,10 @@
                  :token token}})))
 
 (defn wait-for-registry?
+  "If the URL corresponds to a non-default mine, we will have to fetch the
+  registry and look for the mine with the same namespace, (user will be
+  redirected to the default mine if it doesn't exist) before we attempt
+  authentication. Returns whether this is the case."
   [db]
   (let [current-mine (:current-mine db)
         default? (= current-mine :default)
@@ -141,11 +140,9 @@
              ;; Add default mine, either as is configured when attached to an
              ;; InterMine instance, or as an empty placeholder.
              (assoc-in [:mines :default] (init-mine-defaults))
-             ;; Note that the final value of current-mine will have the
-             ;; following order of priority: pathname > localstorage > :default
              (assoc :current-mine (or selected-mine :default)))
          ;; Get data previously persisted to local storage.
-         {:keys [current-mine mines assets version] :as state} (:local-store cofx)
+         {:keys [mines assets version] :as state} (:local-store cofx)
          ;; We always want `init-mine-defaults` to override the :default mine
          ;; saved in local storage, as a coupled intermine instance should
          ;; always take priority.
@@ -159,18 +156,24 @@
               ;; client version matches.
               (and (seq state)
                    (= version (:version (->clj js/serverVars))))
-              (assoc :current-mine (or selected-mine current-mine)
-                     :mines updated-mines
+              (assoc :mines updated-mines
                      :assets assets
                      ;; This needs to be true so we can block `:set-active-panel`
                      ;; event until we have `:finished-loading-assets`, as some
                      ;; routes might attempt to build a query which is dependent
                      ;; on `db :assets :summary-fields` before it gets populated
                      ;; by `:assets/success-fetch-summary-fields`.
-                     :fetching-assets? true))]
+                     :fetching-assets? true))
+         wait-registry? (wait-for-registry? db)]
      {:db db
+      :dispatch-n (if wait-registry?
+                    ;; Wait with authentication until registry is loaded.
+                    [[::registry/load-other-mines]]
+                    ;; Do both at the same time!
+                    [[:authentication/init]
+                     [::registry/load-other-mines]])
       ;; Boot the application asynchronously
-      :async-flow (boot-flow (wait-for-registry? db))
+      :async-flow (boot-flow :wait-registry? wait-registry?)
       ;; Register an event sniffer for im-tables
       :forward-events (im-tables-events-forwarder)})))
 
@@ -188,7 +191,8 @@
  :reboot
  (fn [{db :db}]
    {:db (assoc (remove-stateful-keys-from-db db) :fetching-assets? true)
-    :async-flow (boot-flow (wait-for-registry? db))}))
+    :dispatch [:authentication/init]
+    :async-flow (boot-flow :wait-registry? false)}))
 
 (reg-event-fx
  :finished-loading-assets
