@@ -6,6 +6,7 @@
             [bluegenes.events.webproperties]
             [bluegenes.events.registry :as registry]
             [bluegenes.route :as route]
+            [bluegenes.utils :as utils]
             [cljs-bean.core :refer [->clj]]))
 
 (defn boot-flow
@@ -54,7 +55,7 @@
              :halt? true}
             ;; Handle the case where one or more assets fail to fetch.
             {:when :seen?
-             :events [:assets/failure]
+             :events :assets/failure
              :dispatch [:boot/finalize {:wait-registry? wait-registry?
                                         :failed-assets? true}]
              :halt? true}])})
@@ -241,7 +242,7 @@
 (reg-event-fx
  :authentication/init
  [(inject-cofx :local-store :bluegenes/login)]
- (fn [{db :db, login :local-store} _]
+ (fn [{db :db, login :local-store} [evt]]
    (let [current-mine (:current-mine db)
          ;; Add any persisted login identities to their respective mines.
          db+logins  (reduce (fn [new-db [mine-kw identity]]
@@ -257,16 +258,18 @@
                   :on-success [:authentication/store-token token]
                   :on-failure [:authentication/invalid-token (boolean auth-token)]}
                  {:chan (fetch/session service)
-                  :on-success [:authentication/store-token]})})))
+                  :on-success [:authentication/store-token]
+                  :on-failure [:assets/failure evt]})})))
 
 ;; The token has likely expired, so we fetch a new one.
 ;; We also clear the login token if it had expired.
 (reg-event-fx
  :authentication/invalid-token
- (fn [{db :db} [_ clear-login?]]
+ (fn [{db :db} [evt clear-login?]]
    (let [current-mine (:current-mine db)]
      (cond-> {:im-chan {:chan (fetch/session (get-in db [:mines current-mine :service]))
-                        :on-success [:authentication/store-token]}}
+                        :on-success [:authentication/store-token]
+                        :on-failure [:assets/failure evt]}}
        clear-login? (->
                      (assoc :db (update-in db [:mines current-mine] dissoc :auth))
                      (assoc :dispatch [:remove-login current-mine]))))))
@@ -426,8 +429,15 @@
  :assets/failure
  (fn [{db :db} [_ evt]]
    (let [mine-name (get-in db [:mines (:current-mine db) :name])]
-     {:dispatch [:messages/add
-                 {:markup [:span "Failed " [:em (name evt)] " from " [:em mine-name] ". "
-                           "Please contact the maintainers of the InterMine instance. BlueGenes may work in reduced capacity."]
-                  :style "warning"
-                  :timeout 0}]})))
+     {:dispatch (case evt
+                  (:authentication/init :authentication/invalid-token)
+                  [:messages/add
+                   {:markup [:span "Failed to acquire token. It's likely that you have no connection to the InterMine instance."]
+                    :style "danger"
+                    :timeout 0}]
+
+                  [:messages/add
+                   {:markup [:span "Failed " [:em (utils/kw->str evt)] " from " [:em mine-name] ". "
+                             "Please contact the maintainers of the InterMine instance. BlueGenes may work in reduced capacity."]
+                    :style "warning"
+                    :timeout 0}])})))
