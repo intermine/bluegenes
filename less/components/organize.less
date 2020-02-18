@@ -1,0 +1,192 @@
+@import "../variables";
+
+@organize-node-bg: #DFE6ED;
+@organize-node-fg: #4B5C6B;
+@organize-branches: #788896;
+@organize-border: 2px dashed @organize-branches;
+
+.organize-tree {
+    margin-bottom: @spacer;
+    padding: 0.9*@spacer;
+
+    .top-level-list {
+        padding-inline-start: 0;
+    }
+
+    .list {
+        padding-inline-start: 1.9*@spacer;
+
+        & > .node-container:before {
+            content: "\a0";
+            padding: 0 0.3*@spacer;
+            position: absolute;
+            border-left: @organize-border;
+            border-bottom: @organize-border;
+            left: -14px;
+            height: 25.5px;
+        }
+
+        & > .node-container.node-middle:after {
+            content: "\a0";
+            padding: 0 0.3*@spacer;
+            position: absolute;
+            border-left: @organize-border;
+            left: -14px;
+            bottom: 0;
+            height: ~"calc(100% - 25.5px)";
+        }
+    }
+
+    .node-container {
+        display: flex;
+        flex-direction: column;
+        position: relative;
+
+        &.node-fake .node {
+            opacity: 0.65;
+            border: @organize-border;
+            padding: 0.14*@spacer;
+        }
+
+        &.node-hide .node {
+            opacity: 0.65;
+            border: @organize-border;
+            padding: 0.14*@spacer;
+            color: transparent;
+            background-color: transparent;
+
+            .icon {
+                fill: transparent;
+            }
+
+            input {
+                visibility: hidden;
+            }
+        }
+
+        &.node-empty > .node-parent > .node {
+            background-color: #ffc422;
+            border: 2px dashed #ff5722;
+            padding: 0.14*@spacer;
+        }
+    }
+
+    .node-parent {
+        display: flex;
+    }
+
+    .node {
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        padding: 0.3*@spacer;
+        color: @organize-node-fg;
+        background-color: @organize-node-bg;
+        margin-top: 0.7*@spacer;
+        height: 31px;
+        max-width: 100%;
+
+        & * {
+            // Stop children from spamming dragenter and dragleave events.
+            // https://stackoverflow.com/a/18582960
+            pointer-events: none;
+        }
+
+        & > a {
+            pointer-events: auto;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            padding: 0.6*@spacer 0.4*@spacer;
+        }
+
+        & > input {
+            pointer-events: auto;
+
+            margin-right: 0.3*@spacer;
+
+            &, &::placeholder {
+                height: 30px;
+                font-size: 14px;
+                line-height: 1.5;
+            }
+        }
+
+        .icon {
+            fill: @organize-node-fg;
+            margin: 0;
+        }
+
+        .icon.symbol-icon {
+            margin-right: 0.6*@spacer;
+            min-width: 21px;
+            min-height: 21px;
+        }
+
+        .text {
+            font-size: 1.2em;
+            margin-right: 0.4*@spacer;
+
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .icon.edit-icon {
+            font-size: 1em;
+        }
+
+        .drag-handle {
+            font-size: 1.0em;
+            margin-left: 0.4*@spacer;
+        }
+
+        &.root {
+            width: 200px;
+        }
+
+        &.trash {
+            width: 80px;
+            height: 80px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            .icon {
+                font-size: 3em;
+            }
+        }
+    }
+
+    .node-input {
+        display: flex;
+        padding: 0.3*@spacer;
+        margin-top: 0.7*@spacer;
+        color: @organize-node-fg;
+        background-color: @organize-node-bg;
+
+        .icon {
+            fill: @organize-node-fg;
+            margin-left: 0;
+            margin-right: 0.4*@spacer;
+            font-size: 2.0em;
+        }
+
+        .btn {
+            color: @organize-node-fg;
+        }
+    }
+
+    .form-control {
+        border-radius: 2px;
+        border-width: 2px;
+    }
+
+    p.error {
+        margin-top: @spacer/2;
+        color: #a94442;
+    }
+}

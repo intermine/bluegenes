@@ -1,3 +1,5 @@
+@import "../variables";
+
 .breadcrumb-container {
     display: flex;
     align-items: center;
@@ -44,6 +46,27 @@
                 font-size: 0.7em;
                 text-align: right;
             }
+        }
+    }
+
+    .description {
+        background-color: #D2CEBF;
+        padding: @spacer/2;
+        overflow: auto;
+    }
+
+    .description-edit {
+        padding: @spacer/2;
+
+        .controls {
+            display: flex;
+            align-items: baseline;
+        }
+
+        p.error {
+            margin: @spacer/2;
+            color: #a94442;
+            font-weight: 500;
         }
     }
 }

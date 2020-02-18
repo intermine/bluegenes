@@ -3,7 +3,10 @@
             [imcljs.send :as send]
             [imcljs.fetch :as fetch]
             [imcljs.save :as save]
-            [clojure.string :as s]))
+            [clojure.string :as s]
+            [clojure.set :as core.set]
+            [oops.core :refer [ocall]]
+            [bluegenes.pages.mymine.views.organize :as organize]))
 
 (reg-event-db
  ::set-action-target
@@ -111,6 +114,77 @@
                 :on-failure [::copy-failure]}})))
 
 ;;;; END TODO
+
+(reg-event-db
+ ::empty-folders
+ (fn [db [_ empties]]
+   (assoc-in db [:mymine :modals :organize :empty-folders] empties)))
+
+(reg-event-fx
+ ::update-tags
+ (fn [{db :db} [_ new-tags]]
+   (let [old-tags (->> (get-in db [:assets :lists (:current-mine db)])
+                       (reduce (fn [m {:keys [tags title]}]
+                                 (assoc m title (first (organize/extract-path-tag tags))))
+                               {}))
+         ;; Compute the changes in the path tags for the lists, and generate
+         ;; the appropriate remove-tag and add-tag events.
+         tag-events (->> (core.set/difference (set new-tags) (set old-tags))
+                         (map (fn [[title new-tag]]
+                                (let [old-tag (get old-tags title)]
+                                  [(when old-tag [::remove-tag title old-tag])
+                                   (when new-tag [::add-tag title new-tag])])))
+                         (apply concat)
+                         (filter some?))]
+     (if (empty? tag-events)
+       (do (ocall (js/$ "#myMineOrganize") :modal "hide")
+           (ocall (js/$ "#myMineOrganizeConfirm") :modal "hide")
+           {:db (update-in db [:mymine :modals :organize] dissoc :error)})
+       {:dispatch-n tag-events
+        :db (assoc-in db [:mymine :pending-tag-operations] (set tag-events))}))))
+
+(reg-event-fx
+ ::add-tag
+ (fn [{db :db} [_ list-name tags :as evt]]
+   (let [service (get-in db [:mines (get db :current-mine) :service])]
+     {:im-chan {:chan (save/im-list-add-tag service list-name tags)
+                :on-success [::tag-success evt]
+                :on-failure [::tag-failure evt]}})))
+(reg-event-fx
+ ::remove-tag
+ (fn [{db :db} [_ list-name tags :as evt]]
+   (let [service (get-in db [:mines (get db :current-mine) :service])]
+     {:im-chan {:chan (save/im-list-remove-tag service list-name tags)
+                :on-success [::tag-success evt]
+                :on-failure [::tag-failure evt]}})))
+
+(reg-event-fx
+ ::tag-success
+ (fn [{db :db} [_ evt]]
+   (let [operations (disj (get-in db [:mymine :pending-tag-operations]) evt)
+         db' (assoc-in db [:mymine :pending-tag-operations] operations)]
+     (if (empty? operations)
+       (do (ocall (js/$ "#myMineOrganize") :modal "hide")
+           (ocall (js/$ "#myMineOrganizeConfirm") :modal "hide")
+           {:db (update-in db' [:mymine :modals :organize] dissoc :error)
+            :dispatch [:assets/fetch-lists]})
+       {:db db'}))))
+
+(reg-event-db
+ ::tag-failure
+ (fn [db [_ _evt]]
+   ;; Switch to Organize modal if Confirm modal is open.
+   (when (ocall (js/$ "#myMineOrganizeConfirm") :hasClass "in")
+     (ocall (js/$ "#myMineOrganizeConfirm") :modal "hide")
+     (ocall (js/$ "#myMineOrganize") :modal "show"))
+   (-> db
+       (update :mymine dissoc :pending-tag-operations)
+       (assoc-in [:mymine :modals :organize :error] "Failed to save changes to folder hierarchy. Please check your network connection and try again."))))
+
+(reg-event-db
+ ::clear-tag-error
+ (fn [db]
+   (update-in db [:mymine :modals :organize] dissoc :error)))
 
 (reg-event-fx
  ::rename-list
