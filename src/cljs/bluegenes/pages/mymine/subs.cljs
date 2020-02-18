@@ -74,3 +74,8 @@
  ::dropping-on
  (fn [db]
    (get-in db [:mymine :drag :dropping-on])))
+
+(reg-sub
+ ::modal-data
+ (fn [db [_ path]]
+   (get-in db (into [:mymine :modals] path))))

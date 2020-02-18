@@ -7,7 +7,8 @@
             [bluegenes.pages.mymine.subs :as subs]
             [bluegenes.pages.mymine.views.modals :as modals]
             [bluegenes.pages.mymine.views.contextmenu :as m]
-            [bluegenes.route :as route])
+            [bluegenes.route :as route]
+            [bluegenes.pages.mymine.views.organize :as organize])
   (:import
    (goog.i18n NumberFormat)
    (goog.i18n.NumberFormat Format)))
@@ -59,7 +60,6 @@
                                     :data-keyboard true
                                     :data-target "#myTestModal"}
                                    {})]
-
         [:nav.nav-list-operations
          [:ul
           [:li {:class (when cant-perform? "disabled")}
@@ -93,6 +93,22 @@
                 operation-properties
                 {:on-click (fn [] (when (not cant-operate?) (dispatch [::evts/set-modal :subtract])))})
             "Subtract " [:svg.icon.icon-venn-difference.venn [:use {:xlinkHref "#icon-venn-difference"}]]]]
+          (let [no-login? (not @(subscribe [:bluegenes.subs.auth/authenticated?]))
+                no-lists? (empty? @(subscribe [:lists/authorized-lists]))
+                no-support? (< (first @(subscribe [:current-intermine-version])) 5)
+                problem? (or no-lists? no-login? no-support?)]
+            [:li.hidden-xs {:class (when problem? "disabled")}
+             [:a (merge
+                  {:title (cond
+                            no-support? "This InterMine is running an older version which does not support creating folders"
+                            no-login? "Only logged in users can create folders"
+                            no-lists? "You don't have any lists to organize"
+                            :else "Create folders to organize your lists")}
+                  (when (not problem?)
+                    {:data-toggle "modal"
+                     :data-keyboard true
+                     :data-target "#myMineOrganize"}))
+              "Organize " [:svg.icon.icon-summary [:use {:xlinkHref "#icon-summary"}]]]])
 
           #_[:li {}
              [:a {:on-click (fn [] (dispatch [::evts/fetch-tree]))}
@@ -130,7 +146,36 @@
       "tag" [:svg.icon.icon-folder [:use {:xlinkHref "#icon-folder"}]]
       [:svg.icon.icon-folder [:use {:xlinkHref "#icon-spyglass"}]])))
 
-(defn row-list [{:keys [im-obj-id trail im-obj-type entry-id] :as file}]
+(declare level)
+(defn row-folder [title children nesting]
+  (let [open? (r/atom true)]
+    (fn []
+      [:div
+       [:div.grid.grid-middle
+        {:on-context-menu (fn [evt]
+                            ; Prevent the browser from showing its context menu
+                            (ocall evt :preventDefault)
+                            ; Stop evt propogation
+                            (ocall evt :stopPropagation))}
+        [:div.col-7
+         [:div.folder-row {:style {:margin-left (* nesting 30)}}
+          [:a.expand-folder {:on-click #(swap! open? not)
+                             :title (if @open? "collapse" "expand")}
+           (if @open?
+             [:svg.icon.icon-minus [:use {:xlinkHref "#icon-minus"}]]
+             [:svg.icon.icon-plus [:use {:xlinkHref "#icon-plus"}]])]
+          (if @open?
+            [:svg.icon.icon-folder-open [:use {:xlinkHref "#icon-folder-open"}]]
+            [:svg.icon.icon-folder [:use {:xlinkHref "#icon-folder"}]])
+          [:a {:on-click #(swap! open? not)} title]]]
+        [:div.col-1.tag-type "Folder"]
+        [:div.col-1.list-size
+         ;; Count total amount of lists and folders children.
+         (apply + (map (comp count keys) ((juxt :lists :folders) children)))]]
+       (when @open?
+         [level children (inc nesting)])])))
+
+(defn row-list [{:keys [im-obj-id trail im-obj-type entry-id] :as file} nesting]
   (let [details             (subscribe [::subs/one-list im-obj-id])
         context-menu-target (subscribe [::subs/context-menu-target])]
     (fn [{:keys []}]
@@ -142,7 +187,9 @@
                 {:on-click (fn []
                              (dispatch [::evts/set-context-menu-target file]))})
          [:div.col-7 (merge {} (draggable file))
-          [:div [checkbox im-obj-id] [ico im-obj-type]
+          [:div {:style {:margin-left (* nesting 30)}}
+           [checkbox im-obj-id]
+           [ico im-obj-type]
            [:a {:href (route/href ::route/list {:title (:title dets)})}
             name]
            (when-not authorized
@@ -158,10 +205,21 @@
       "list" [row-list item]
       [:div])))
 
+(defn level [{:keys [lists folders]} nesting]
+  (-> [:div.level]
+      (into (for [[title children] folders]
+              ;; We don't have any natural unique IDs to give them, but they
+              ;; still need a unique key to avoid artifacts, so we use gensym.
+              ^{:key (str "key-" (gensym))}
+              [row-folder title children nesting]))
+      (into (for [[_ {:keys [id]}] lists]
+              ^{:key (str "key-" id)}
+              [row-list {:im-obj-type "list" :im-obj-id id} nesting]))))
+
 (defn main []
   (let [context-menu-target (subscribe [::subs/context-menu-target])
         modal-kw            (subscribe [::subs/modal])
-        items               (subscribe [::subs/untagged-items])]
+        lists               (subscribe [:lists/filtered-lists])]
     (r/create-class
      {:component-did-mount attach-hide-context-menu
       :reagent-render
@@ -170,14 +228,7 @@
          [:div.files
           [list-operations]
           [:div.bottom
-           (into [:div]
-                 (map-indexed (fn [idx x]
-                                ^{:key
-                                  (str (or (:entry-id x)
-                                           (str (:im-obj-type x)
-                                                (:im-obj-id x))))}
-                                [row (assoc x :index idx)])
-                              @items))]]
+           [level (organize/lists->tree @lists) 0]]]
           ;[checked-panel]]
 
          [modals/modal-list-operations @modal-kw]
@@ -188,4 +239,5 @@
          [modals/modal-lo @context-menu-target]
          [modals/modal-lo-intersect @context-menu-target]
          [modals/modal-rename-list @context-menu-target]
+         [modals/modal-organize]
          [m/context-menu-container @context-menu-target]])})))
