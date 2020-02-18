@@ -6,6 +6,7 @@
             [bluegenes.components.search.subs]
             [bluegenes.subs.auth]
             [bluegenes.components.idresolver.subs]
+            [bluegenes.pages.profile.subs]
             [lambdaisland.uri :refer [uri]]))
 
 (reg-sub
@@ -177,6 +178,12 @@
  :current-mine
  (fn [db]
    (get-in db [:mines (get db :current-mine)])))
+
+(reg-sub
+ :current-mine-human-name
+ :<- [:current-mine]
+ (fn [current-mine]
+   (:name current-mine)))
 
 (reg-sub
  :active-token
