@@ -218,3 +218,8 @@
  :messages
  (fn [db]
    (sort-by :when > (vals (:messages db)))))
+
+(reg-sub
+ :show-mine-loader?
+ (fn [db]
+   (get db :show-mine-loader?)))

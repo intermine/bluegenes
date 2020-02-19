@@ -186,3 +186,22 @@
                    {:chan (imcljs.fetch/rows service query options)
                     :on-success [:save-query-results-event]
                     :on-error [:warn-user-about-error-event]}})))
+
+;; Switching mines is usually so quick that we don't need a loader.
+;; But if it were to take a long time, we'll show a loader.
+(reg-fx
+ :mine-loader
+ (let [timer (atom nil)
+       showing? (atom false)]
+   (fn [state]
+     (case state
+       true (reset! timer
+                    (.setTimeout js/window
+                                 #(do (dispatch [:show-mine-loader])
+                                      (reset! showing? true))
+                                 4000))
+       false (do (when-let [active-timer @timer]
+                   (.clearTimeout js/window active-timer))
+                 (when @showing?
+                   (dispatch [:hide-mine-loader])
+                   (reset! showing? false)))))))

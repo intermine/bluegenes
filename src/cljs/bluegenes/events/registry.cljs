@@ -1,7 +1,8 @@
 (ns bluegenes.events.registry
   (:require [re-frame.core :refer [reg-event-fx dispatch]]
             [imcljs.fetch :as fetch]
-            [clojure.string :as string]))
+            [clojure.string :as string]
+            [bluegenes.utils :refer [read-registry-mine]]))
 
 ;; this is not crazy to hardcode. The consequences of a mine that is lower than
 ;; the minimum version using bluegenes could potentially result in corrupt lists
@@ -68,11 +69,8 @@
        ;; Fill in the mine details if it's missing.
        ;; (This happens when we use a registry mine.)
        (nil? (get-in db-with-registry [:mines current-mine]))
-       (let [{reg-url :url reg-name :name} (get registry current-mine)]
-         {:db (assoc-in db-with-registry [:mines current-mine]
-                        {:service {:root reg-url}
-                         :name reg-name
-                         :id current-mine})})
+       {:db (assoc-in db-with-registry [:mines current-mine]
+                      (read-registry-mine (get registry current-mine)))}
        ;; If we ended up here it means we used a registry mine and the data is
        ;; already present. Yay!
        :else {:db db-with-registry}))))

@@ -25,7 +25,8 @@
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
             [imcljs.fetch :as fetch]
             [bluegenes.events.registry :as registry]
-            [cljs-bean.core :refer [->clj]]))
+            [cljs-bean.core :refer [->clj]]
+            [bluegenes.utils :refer [read-registry-mine]]))
 
 ;; If a requirement exists for the target panel, it will be called with the db
 ;; as argument and its return value decides whether the panel will be changed.
@@ -117,9 +118,7 @@
          ;; registry. This is good as we don't want to overwrite it anyways.
          (and in-registry?
               (not in-mines?)) (assoc-in [:db :mines mine-kw]
-                                         {:service {:root (:url mine-m)}
-                                          :name (:name mine-m)
-                                          :id mine-kw})
+                                         (read-registry-mine mine-m))
          ;; Switch to home page.
          not-home?     (update :db assoc
                                :active-panel :home-panel
@@ -128,8 +127,10 @@
          done-booting? (-> (assoc-in [:db :fetching-assets?] true)
                            (assoc :dispatch [:reboot]))
          ;; Always abort all active requests.
-         true (assoc :im-chan {:abort-active true}))
-       {}))))
+         true (assoc :im-chan {:abort-active true})
+         ;; Always start the timer for showing the loading dialog.
+         true (assoc :mine-loader true))
+       {:mine-loader true}))))
 
 (reg-event-db
  :handle-suggestions
@@ -243,3 +244,13 @@
 
 (defn ^:export scrambleTokens []
   (dispatch [:scramble-tokens]))
+
+(reg-event-db
+ :show-mine-loader
+ (fn [db]
+   (assoc db :show-mine-loader? true)))
+
+(reg-event-db
+ :hide-mine-loader
+ (fn [db]
+   (assoc db :show-mine-loader? false)))

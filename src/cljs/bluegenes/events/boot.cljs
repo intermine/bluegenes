@@ -200,7 +200,8 @@
    (let [dispatch-after-boot (:dispatch-after-boot db)]
      (cond-> {:db (-> db
                       (dissoc :dispatch-after-boot)
-                      (assoc :fetching-assets? false))}
+                      (assoc :fetching-assets? false))
+              :mine-loader false}
        (some? dispatch-after-boot) (assoc :dispatch-n dispatch-after-boot)))))
 
 (reg-event-fx
