@@ -339,7 +339,8 @@
    {:db db
     :im-chan
     {:chan (fetch/lists
-            (get-in db [:mines (:current-mine db) :service]))
+            (get-in db [:mines (:current-mine db) :service])
+            {:showTags true})
      :on-success [:assets/success-fetch-lists (:current-mine db)]
      :on-failure [:assets/failure evt]}}))
 
