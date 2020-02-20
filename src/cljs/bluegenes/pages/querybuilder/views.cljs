@@ -620,13 +620,19 @@
 (defn saved-queries []
   (let [queries (subscribe [:qb/saved-queries])
         active-query (subscribe [:qb/im-query])
+        authed? (subscribe [:bluegenes.subs.auth/authenticated?])
         any-renaming? (reagent/atom false)]
     (fn []
       (if (empty? @queries)
         [:p "Queries that you have saved will appear here."]
         [:table.table.query-table
          [:thead
+          (when (and (not-empty @queries) (not @authed?))
+            [:tr.danger
+             [:th {:colspan 4}
+              "Warning: Since you're not logged in, these queries have been saved to your session and may disappear when exiting BlueGenes."]])
           [:tr
+           ;; Remember to update colspan if you change the amount of columns.
            [:th "Title"]
            [:th "Start"]
            [:th "Results Format"]

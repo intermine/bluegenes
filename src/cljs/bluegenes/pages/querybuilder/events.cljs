@@ -528,7 +528,12 @@
          query (get-in db [:qb :im-query])]
      {:im-chan {:chan (save/query service (assoc query :title title))
                 :on-success [:qb/save-query-success]
-                :on-failure [:qb/save-query-failure title]}})))
+                :on-failure [:qb/save-query-failure title]}
+      :dispatch [:messages/add
+                 {:markup [:span "Your query titled " [:em title]
+                           " has been saved. You can access it under the "
+                           [:strong "Saved Queries"] " tab."]}
+                 :style "success"]})))
 
 (reg-event-fx
  :qb/save-query-success
