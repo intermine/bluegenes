@@ -21,6 +21,8 @@
     fill: @dangercolor;
 }
 
+@querybuilder-soft-color: #d5d5d5;
+
 div.column-container {
     display: flex;
     position: fixed;
@@ -34,7 +36,7 @@ div.column-container {
         background-color: @model-browser-bg;
         color: @model-browser-fg;
 
-        border: 1px solid #d5d5d5;
+        border: 1px solid @querybuilder-soft-color;
         border-width: 0 1px 0 0;
 
         padding: @spacer/2 @spacer @spacer/2 @spacer;
@@ -269,7 +271,7 @@ div.column-container {
 
     li {
         padding-left: 1em;
-        border: 1px solid #d5d5d5;
+        border: 1px solid @querybuilder-soft-color;
         border-width: 0 0 1px 1px;
     }
 
@@ -284,7 +286,7 @@ div.column-container {
     }
 
     li ul {
-        border-top: 1px solid #d5d5d5;
+        border-top: 1px solid @querybuilder-soft-color;
         margin-left: -1em;
         padding-left: 2em;
     }
@@ -365,7 +367,7 @@ div.column-container {
     li.tree {
         padding-left: 1em;
         // padding-left: 0.2em;
-        border: 1px solid #d5d5d5;
+        border: 1px solid @querybuilder-soft-color;
         border-width: 0 0 1px 1px;
     }
 
@@ -395,7 +397,7 @@ div.column-container {
     }
 
     li.tree ul.tree {
-        border-top: 1px solid #d5d5d5;
+        border-top: 1px solid @querybuilder-soft-color;
         margin-left: -1em;
         padding-left: 2em;
     }
@@ -515,7 +517,7 @@ div.column-container {
     li {
         padding-left: 1em;
         // padding-left: 0.2em;
-        border: 1px solid #d5d5d5;
+        border: 1px solid @querybuilder-soft-color;
         border-width: 0 0 1px 1px;
         height: 100%;
 
@@ -530,7 +532,7 @@ div.column-container {
         }
 
         ul {
-            border-top: 1px solid #d5d5d5;
+            border-top: 1px solid @querybuilder-soft-color;
             margin-left: -1em;
             padding-left: 2em;
         }
@@ -777,14 +779,14 @@ div.column-container {
         .sort-button {
             background-color: white;
             font-size: 16px;
-            outline: solid 1px #dadada;
+            outline: solid 1px @querybuilder-soft-color;
             margin-right: 4px;
             display: flex;
             padding: 4px;
 
             & > svg {
                 margin: 0;
-                fill: #dadada;
+                fill: #6c757d;
             }
 
             &.active {
