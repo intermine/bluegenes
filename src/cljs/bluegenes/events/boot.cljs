@@ -19,7 +19,9 @@
   [& {:keys [wait-registry?]}]
   ;; wait-registry? is to indicate that the current mine requries data from the
   ;; registry, which isn't present (usually because it is a fresh boot).
-  {:rules (filterv
+  {:id :async/custom-flow
+   :db-path [:boot-flow]
+   :rules (filterv
            some?
            [(when wait-registry?
               {:when :seen?
@@ -55,6 +57,15 @@
              :events :assets/failure
              :dispatch [:boot/finalize :failed-assets? true]
              :halt? true}])})
+
+;; It's not really optimal that `:assets/failure` starts `:boot/finalize`
+;; immediately. This may also (through a race condition) log errors that the
+;; `:async/custom-flow` event handler is missing, since it would have been
+;; deregistered. It's very unlikely that this will actually break something,
+;; and we shouldn't optimize for faulty webservices. Just to note, the proper
+;; way would be to wait for all `:assets/*` to either succeed or fail, then
+;; halt and run `:boot/finalize`. Right now any failure will result in
+;; `:boot/finalize` running, even with other `:assets/*` still in progress.
 
 (reg-event-fx
  :boot/finalize

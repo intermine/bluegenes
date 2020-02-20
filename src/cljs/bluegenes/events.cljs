@@ -106,30 +106,39 @@
  (fn [{db :db} [_ mine]]
    (let [mine-kw         (keyword mine)
          different-mine? (not= mine-kw (:current-mine db))
-         done-booting?   (not (:fetching-assets? db))
          not-home?       (not= (:active-panel db) :home-panel)
          in-registry?    (contains? (:registry db) mine-kw)
          in-mines?       (contains? (:mines db) mine-kw)
-         mine-m          (get-in db [:registry mine-kw])]
+         mine-m          (get-in db [:registry mine-kw])
+         active-flow?    (some? (:boot-flow db))]
      (if different-mine?
-       (cond-> {:db (assoc db :current-mine mine-kw)
-                :visual-navbar-minechange []}
+       (cond-> {:db (assoc db
+                           :current-mine mine-kw
+                           :fetching-assets? true)
+                :visual-navbar-minechange []
+                ;; Abort all active requests.
+                :im-chan {:abort-active true}
+                ;; Start the timer for showing the loading dialog.
+                :mine-loader true
+                ;; Switching mine always involves a reboot.
+                :dispatch [:reboot]}
          ;; This does not run for the `:default` mine, as it isn't part of the
          ;; registry. This is good as we don't want to overwrite it anyways.
          (and in-registry?
               (not in-mines?)) (assoc-in [:db :mines mine-kw]
                                          (read-registry-mine mine-m))
          ;; Switch to home page.
-         not-home?     (update :db assoc
-                               :active-panel :home-panel
-                               :panel-params nil)
-         ;; We need to make sure to :reboot when switching mines.
-         done-booting? (-> (assoc-in [:db :fetching-assets?] true)
-                           (assoc :dispatch [:reboot]))
-         ;; Always abort all active requests.
-         true (assoc :im-chan {:abort-active true})
-         ;; Always start the timer for showing the loading dialog.
-         true (assoc :mine-loader true))
+         not-home? (update :db assoc
+                           :active-panel :home-panel
+                           :panel-params nil)
+         ;; We are being a bit naughty here, manually pulling the plug
+         ;; on the async-flow, but it's the only way to abruptly halt
+         ;; an in-progress flow (we don't want two overlapping!).
+         active-flow? (-> (update :db dissoc :boot-flow)
+                          (assoc
+                           :forward-events {:unregister :async/custom-flow}
+                           :deregister-event-handler :async/custom-flow)))
+       ;; The following branch is only run on initial boot.
        {:mine-loader true}))))
 
 (reg-event-db

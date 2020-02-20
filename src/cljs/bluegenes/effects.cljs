@@ -1,7 +1,7 @@
 (ns bluegenes.effects
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
-  (:require [re-frame.core :as rf :refer [dispatch subscribe reg-fx reg-cofx]]
-            [cljs.core.async :refer [<! close!]]
+  (:require [re-frame.core :as rf :refer [dispatch reg-fx reg-cofx]]
+            [cljs.core.async :refer [<! close! put!]]
             [cljs-http.client :as http]
             [cognitect.transit :as t]
             [bluegenes.titles :refer [db->title]]))
@@ -73,7 +73,9 @@
         (let [previous-requests (atom {})
               active-requests (atom #{})]
           (fn [{:keys [on-success on-failure chan abort abort-active]}]
-            ; This http request can be closed early to prevent asynchronous http race conditions
+            ;; `abort` should be used when you have a request which may be sent
+            ;; multiple times, and you want new requests to replace pending
+            ;; requests of the same `abort` value.
             (when abort
               ; Look for a request stored in the state keyed by whatever value is in 'abort'
               ; and close it
@@ -81,9 +83,16 @@
               ; Swap the old value for the new value
               (swap! previous-requests assoc abort chan))
 
-            ;; Closes any and all active requests.
+            ;; `abort-active` is different from `abort` in that instead of being
+            ;; used with a request, it's more something you call to cancel all
+            ;; active requests, without invoking their `on-failure` function.
             (when abort-active
               (doseq [req @active-requests]
+                ;; Create an artificial HTTP response to indicate that this
+                ;; request has been aborted.
+                (put! req {:status 408
+                           :success false
+                           :body :abort})
                 (close! req)))
 
             (when chan
@@ -110,7 +119,11 @@
                                       (dispatch (conj on-failure response))
                                       (dispatch [:flag-invalid-token]))
                     :else (cond
+                            ;; Don't invoke `on-failure` if request was aborted.
+                            (and (= s 408) (= (:body response) :abort)) nil
+
                             on-failure (dispatch (conj on-failure response))
+
                             ;; If `abort` is specified, it's possible that this request's
                             ;; channel was closed by a subsequent request. In this case,
                             ;; there's no error and we don't want to log it.
@@ -192,16 +205,19 @@
 (reg-fx
  :mine-loader
  (let [timer (atom nil)
-       showing? (atom false)]
+       showing? (atom false)
+       clear-timer! (fn []
+                      (when-let [active-timer @timer]
+                         (.clearTimeout js/window active-timer))
+                      (when @showing?
+                        (dispatch [:hide-mine-loader])
+                        (reset! showing? false)))]
    (fn [state]
      (case state
-       true (reset! timer
-                    (.setTimeout js/window
-                                 #(do (dispatch [:show-mine-loader])
-                                      (reset! showing? true))
-                                 4000))
-       false (do (when-let [active-timer @timer]
-                   (.clearTimeout js/window active-timer))
-                 (when @showing?
-                   (dispatch [:hide-mine-loader])
-                   (reset! showing? false)))))))
+       true (do (clear-timer!)
+                (reset! timer
+                        (.setTimeout js/window
+                                     #(do (dispatch [:show-mine-loader])
+                                          (reset! showing? true))
+                                     4000)))
+       false (clear-timer!)))))
