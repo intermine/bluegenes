@@ -12,6 +12,13 @@
             [bluegenes.components.ui.results_preview :refer [preview-table]]
             [inflections.core :refer [ordinalize plural]]))
 
+(defn query=
+  "Returns whether `queries` are all =, ignoring empty values like [] and nil."
+  [& queries]
+  (apply =
+         (map #(into {} (remove (comp empty? val)) %)
+              queries)))
+
 (defn one-of? [haystack needle] (some? (some #{needle} haystack)))
 
 (def auto (reagent/atom true))
@@ -561,7 +568,7 @@
        (into [:tbody]
              (for [[_ {:keys [value last-executed]}] queries
                    :let [{:keys [from select]} value
-                         active? (= active-query (dissoc value :title))]]
+                         active? (query= active-query (dissoc value :title))]]
                [:tr {:role "button"
                      :title (if active? "This query is active" "Load this query")
                      :class (when active? "active-query")
@@ -661,7 +668,7 @@
                (for [[title query] @queries]
                  ^{:key title}
                  [saved-query title query
-                  :active? (= @active-query query)
+                  :active? (query= @active-query query)
                   :any-renaming* any-renaming?]))]))))
 
 (defn import-from-xml []
