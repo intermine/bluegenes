@@ -451,7 +451,13 @@
               :im-query nil
               :menu {})))
 
-(defn enhance-constraint-logic [logic]
+(defn enhance-constraint-logic
+  "If you have read the surrounding code, you'll know that the Query Builder
+  requires an extended version of PathQuery object to accomodate the interface.
+  This is the 'enhanced' query, which is different from how you usually see
+  PathQuery encoded in JSON. Likewise, constraint logics have an 'enhanced'
+  representation which this function returns."
+  [logic]
   (not-empty (str (not-empty (vec->list logic)))))
 
 (reg-event-fx
