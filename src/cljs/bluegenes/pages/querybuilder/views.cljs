@@ -666,7 +666,7 @@
                        (dispatch [:qb/import-xml-query query]))}
          "Load query"]
         (when-let [err-msg @(subscribe [:qb/import-error])]
-          [:p.error err-msg])]])))
+          [:p.failure err-msg])]])))
 
 (defn create-template [])
 

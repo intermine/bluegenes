@@ -84,7 +84,7 @@
          {:type "button"
           :on-click #(dispatch [:list-description/update title @text])}
          "Save"]
-        (when-let [e @error] [:p.error e])]])))
+        (when-let [e @error] [:p.failure e])]])))
 
 (defn description-box
   "Shows the list description if one is available, and let's you toggle editing."
