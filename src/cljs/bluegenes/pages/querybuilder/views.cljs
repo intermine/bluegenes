@@ -460,10 +460,30 @@
 
 (defn xml-view []
   (let [query (subscribe [:qb/im-query])
-        current-mine (subscribe [:current-mine])]
+        current-mine (subscribe [:current-mine])
+        clipboard (atom nil)
+        msg (reagent/atom nil)]
     (fn []
-
-      [:pre (str (->xml (:model (:service @current-mine)) @query))])))
+      (let [xml (str (->xml (get-in @current-mine [:service :model]) @query))]
+        [:div
+         [:textarea.hidden-clipboard
+          {:ref #(reset! clipboard %) :value xml :read-only true}]
+         [:pre xml]
+         [:div.flex-row
+          [:button.btn.btn-raised
+           {:type "button"
+            :on-click
+            #(when-let [clip @clipboard]
+               (.focus clip)
+               (.select clip)
+               (try
+                 (ocall js/document :execCommand "copy")
+                 (reset! msg {:type "success" :text "Copied to clipboard"})
+                 (catch js/Error _
+                   (reset! msg {:type "failure" :text "Failed to copy to clipboard"}))))}
+           "Copy XML"]
+          (when-let [{:keys [type text]} @msg]
+            [:p {:class type} text])]]))))
 
 (defn joins-list []
   (let [joins @(subscribe [:qb/joins])]
