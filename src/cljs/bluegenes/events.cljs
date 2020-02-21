@@ -44,6 +44,9 @@
          (cond-> {:db (assoc db
                              :active-panel active-panel
                              :panel-params panel-params)}
+           ;; Hide intro loader if this is the first panel change.
+           (nil? (:active-panel db)) (assoc :hide-intro-loader nil)
+           ;; Dispatch any events paired with the panel change.
            evt (assoc :dispatch evt))
          {:dispatch-n [[::route/navigate ::route/home]
                        [:messages/add
@@ -254,10 +257,11 @@
 (defn ^:export scrambleTokens []
   (dispatch [:scramble-tokens]))
 
-(reg-event-db
+(reg-event-fx
  :show-mine-loader
- (fn [db]
-   (assoc db :show-mine-loader? true)))
+ (fn [{db :db}]
+   {:db (assoc db :show-mine-loader? true)
+    :hide-intro-loader nil}))
 
 (reg-event-db
  :hide-mine-loader

@@ -208,12 +208,15 @@
 (reg-event-fx
  :finished-loading-assets
  (fn [{db :db}]
-   (let [dispatch-after-boot (:dispatch-after-boot db)]
+   (let [dispatch-after-boot (:dispatch-after-boot db)
+         will-change-panel? (contains? (set (map first dispatch-after-boot))
+                                       :do-active-panel)]
      (cond-> {:db (-> db
                       (dissoc :dispatch-after-boot)
                       (assoc :fetching-assets? false))
               :mine-loader false}
-       (some? dispatch-after-boot) (assoc :dispatch-n dispatch-after-boot)))))
+       (some? dispatch-after-boot) (assoc :dispatch-n dispatch-after-boot)
+       (not will-change-panel?) (assoc :hide-intro-loader nil)))))
 
 (reg-event-fx
  :verify-web-service-version

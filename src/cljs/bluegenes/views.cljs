@@ -18,7 +18,6 @@
             [bluegenes.pages.help.views :as help]
             [bluegenes.pages.profile.views :as profile]
             [bluegenes.components.loader :as loader]
-            [oops.core :refer [ocall oapply oget oset!]]
             [bluegenes.route :as route]))
 
 ;; about
@@ -63,11 +62,8 @@
      home/main)])
 
 (defn main-panel []
-  (let [active-panel (re-frame/subscribe [:active-panel])
-        ;;note: I think we can do better than this loader - perhaps a static html first page
-        first-blush-loader (ocall js/document "getElementById"  "wrappy")]
+  (let [active-panel (re-frame/subscribe [:active-panel])]
     (fn []
-      (cond first-blush-loader (ocall first-blush-loader "remove"))
       [:div.approot
        [loader/mine-loader]
        [icons/icons]

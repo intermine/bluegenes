@@ -4,7 +4,8 @@
             [cljs.core.async :refer [<! close! put!]]
             [cljs-http.client :as http]
             [cognitect.transit :as t]
-            [bluegenes.titles :refer [db->title]]))
+            [bluegenes.titles :refer [db->title]]
+            [oops.core :refer [ocall]]))
 
 ;; Cofx and fx which you use from event handlers to read/write to localStorage.
 
@@ -221,3 +222,9 @@
                                           (reset! showing? true))
                                      4000)))
        false (clear-timer!)))))
+
+(reg-fx
+ :hide-intro-loader
+ (fn [_]
+   (some-> (ocall js/document :getElementById "wrappy")
+           (ocall :remove))))
