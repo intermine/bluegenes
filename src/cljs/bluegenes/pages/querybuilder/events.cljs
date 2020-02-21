@@ -18,7 +18,7 @@
  ::load-querybuilder
  (fn [_]
    {:dispatch-n [[:qb/fetch-saved-queries]
-                 [:qb/clear-import-error]]}))
+                 [:qb/clear-import-result]]}))
 
 (def loc [:qb :qm])
 
@@ -664,12 +664,14 @@
  (fn [{db :db} [_ query-xml]]
    (try
      (let [query (read-xml-query query-xml)]
-       {:db (update db :qb dissoc :import-error)
+       {:db (assoc-in db [:qb :import-result] {:type "success"
+                                               :text "XML loaded successfully"})
         :dispatch [:qb/load-query query]})
      (catch js/Error e
-       {:db (assoc-in db [:qb :import-error] (oget e :message))}))))
+       {:db (assoc-in db [:qb :import-result] {:type "failure"
+                                               :text (oget e :message)})}))))
 
 (reg-event-db
- :qb/clear-import-error
+ :qb/clear-import-result
  (fn [db [_]]
-   (update db :qb dissoc :import-error)))
+   (update db :qb dissoc :import-result)))

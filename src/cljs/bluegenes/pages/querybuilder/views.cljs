@@ -692,8 +692,8 @@
                        (reset! query-input "")
                        (dispatch [:qb/import-xml-query query]))}
          "Load query"]
-        (when-let [err-msg @(subscribe [:qb/import-error])]
-          [:p.failure err-msg])]])))
+        (when-let [{:keys [type text]} @(subscribe [:qb/import-result])]
+          [:p {:class type} text])]])))
 
 (defn create-template [])
 
@@ -711,7 +711,7 @@
                   [:li {:class (when (= @tab-index i) "active")}
                    [:a {:on-click #(do (when (= @tab-index
                                                 (.indexOf tabs "Import from XML"))
-                                         (dispatch [:qb/clear-import-error]))
+                                         (dispatch [:qb/clear-import-result]))
                                        (reset! tab-index i))}
                     title]])))
         (case @tab-index

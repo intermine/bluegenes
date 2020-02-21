@@ -70,9 +70,9 @@
    (sort-by key (get-in db [:qb :saved-queries]))))
 
 (reg-sub
- :qb/import-error
+ :qb/import-result
  (fn [db]
-   (get-in db [:qb :import-error])))
+   (get-in db [:qb :import-result])))
 
 (reg-sub
  :qb/active-sort
