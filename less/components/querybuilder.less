@@ -126,8 +126,9 @@ div.column-container {
             tbody > tr {
                 cursor: pointer;
 
-                &.active-query {
-                    background-color: #f0fae5 !important;
+                &.active-query,
+                &.active-query:hover {
+                    background-color: #f0fae5;
                 }
 
                 &:hover {
@@ -457,9 +458,11 @@ div.column-container {
         }
     }
 
-    .constraint-selector {
-        flex-direction: row !important;
+    .constraint-selector.constraint-selector.constraint-selector.constraint-selector.constraint-selector.constraint-selector {
+        flex-direction: row;
+    }
 
+    .constraint-selector {
         .constraint-label {
             display: flex;
             align-items: center;
@@ -467,10 +470,12 @@ div.column-container {
         }
     }
 
-    .constraint-input {
-        flex-direction: row !important;
+    .constraint-input.constraint-input.constraint-input.constraint-input.constraint-input.constraint-input {
+        flex-direction: row;
         align-items: baseline;
+    }
 
+    .constraint-input {
         svg {
             min-width: 1em;
             min-height: 1em;
