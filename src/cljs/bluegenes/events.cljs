@@ -224,14 +224,15 @@
  (fn [db]
    (assoc-in db [:mines (:current-mine db) :service :token] "faketoken")))
 
-(reg-event-db
+(reg-event-fx
  :messages/add
- (fn [db [_ props]]
+ (fn [{db :db} [_ props]]
    (let [id (gensym)
          msg (assoc props
                     :id id
                     :when (.getTime (js/Date.)))]
-     (assoc-in db [:messages id] msg))))
+     {:db (assoc-in db [:messages id] msg)
+      :message (select-keys msg [:id :timeout])})))
 
 (reg-event-db
  :messages/remove
