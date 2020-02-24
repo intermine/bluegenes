@@ -134,7 +134,8 @@
                 ;; Start the timer for showing the loading dialog.
                 :mine-loader true
                 ;; Switching mine always involves a reboot.
-                :dispatch [:reboot]}
+                :dispatch-n [[:messages/clear]
+                             [:reboot]]}
          ;; This does not run for the `:default` mine, as it isn't part of the
          ;; registry. This is good as we don't want to overwrite it anyways.
          (and in-registry?
@@ -265,6 +266,11 @@
  :messages/remove
  (fn [db [_ id]]
    (update db :messages dissoc id)))
+
+(reg-event-db
+ :messages/clear
+ (fn [db]
+   (update db :messages empty)))
 
 (defn ^:export scrambleTokens []
   (dispatch [:scramble-tokens]))
