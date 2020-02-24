@@ -196,7 +196,8 @@
   ;; Perhaps we should consider settings `:assets` to `{}` here as well?
   (dissoc db :regions :idresolver :results :qb
           :suggestion-results ; Avoid showing old results belonging to previous mine.
-          :invalid-token?))  ; Clear invalid-token-alert.
+          :invalid-token?     ; Clear invalid-token-alert.
+          :failed-auth?))     ; Clear flag for failing to auth with mine.
 
 (reg-event-fx
  :reboot
@@ -209,13 +210,15 @@
  :finished-loading-assets
  (fn [{db :db}]
    (let [dispatch-after-boot (:dispatch-after-boot db)
+         failed-auth? (:failed-auth? db)
          will-change-panel? (contains? (set (map first dispatch-after-boot))
                                        :do-active-panel)]
      (cond-> {:db (-> db
                       (dissoc :dispatch-after-boot)
                       (assoc :fetching-assets? false))
               :mine-loader false}
-       (some? dispatch-after-boot) (assoc :dispatch-n dispatch-after-boot)
+       (and (some? dispatch-after-boot)
+            (not failed-auth?)) (assoc :dispatch-n dispatch-after-boot)
        (not will-change-panel?) (assoc :hide-intro-loader nil)))))
 
 (reg-event-fx
@@ -449,7 +452,11 @@
  :assets/failure
  (fn [{db :db} [_ evt]]
    (let [mine-name (get-in db [:mines (:current-mine db) :name])]
-     {:dispatch (case evt
+     {:db (case evt
+            (:authentication/init :authentication/invalid-token)
+            (assoc db :failed-auth? true)
+            db)
+      :dispatch (case evt
                   (:authentication/init :authentication/invalid-token)
                   [:messages/add
                    {:markup [:span "Failed to acquire token. It's likely that you have no connection to the InterMine instance."]

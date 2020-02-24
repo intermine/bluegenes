@@ -59,11 +59,17 @@
  :set-active-panel
  (fn [{db :db} [_ active-panel panel-params evt]]
    (let [event [:do-active-panel active-panel panel-params evt]]
-     (if (:fetching-assets? db)
+     (cond
        ;; If we're fetching assets then save the panel change for later.
+       (:fetching-assets? db)
        {:db (update db :dispatch-after-boot (fnil conj []) event)}
+       ;; If we failed to auth with mine, don't do a panel change.
+       (:failed-auth? db)
+       {:dispatch [:messages/add
+                   {:markup [:span "Navigation has been disabled due to being unable to establish a connection with " [:em (-> db :current-mine name)] ". You can still use the mine switcher to connect to a different InterMine instance."]
+                    :style "warning"}]}
        ;; Otherwise dispatch it now.
-       {:dispatch event}))))
+       :else {:dispatch event}))))
 
 (reg-event-fx
  :save-state
