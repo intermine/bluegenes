@@ -66,7 +66,11 @@
        ;; If we failed to auth with mine, don't do a panel change.
        (:failed-auth? db)
        {:dispatch [:messages/add
-                   {:markup [:span "Navigation has been disabled due to being unable to establish a connection with " [:em (-> db :current-mine name)] ". You can still use the mine switcher to connect to a different InterMine instance."]
+                   {:markup [:span "Navigation has been disabled due to being unable to establish a connection with "
+                             (let [current-mine (:current-mine db)
+                                   mine-name (get-in db [:mines current-mine :name])]
+                               [:em mine-name])
+                             ". You can still use the mine switcher to connect to a different InterMine instance."]
                     :style "warning"}]}
        ;; Otherwise dispatch it now.
        :else {:dispatch event}))))
