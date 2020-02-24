@@ -183,6 +183,8 @@
                     ;; Do both at the same time!
                     [[:authentication/init]
                      [::registry/load-other-mines]])
+      ;; Start the timer for showing the loading dialog.
+      :mine-loader true
       ;; Boot the application asynchronously
       :async-flow (boot-flow :wait-registry? wait-registry?)
       ;; Register an event sniffer for im-tables

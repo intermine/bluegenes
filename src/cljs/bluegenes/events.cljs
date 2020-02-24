@@ -147,8 +147,10 @@
                           (assoc
                            :forward-events {:unregister :async/custom-flow}
                            :deregister-event-handler :async/custom-flow)))
-       ;; The following branch is only run on initial boot.
-       {:mine-loader true}))))
+       ;; It's probably not a good idea to put something in the following branch.
+       ;; It will run on initial boot, but you can't tell exactly when, and it
+       ;; might run multiple times.
+       {}))))
 
 (reg-event-db
  :handle-suggestions
