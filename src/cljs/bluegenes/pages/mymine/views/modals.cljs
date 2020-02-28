@@ -98,13 +98,13 @@
                               :value @state
                               :on-change (fn [evt] (reset! state (oget evt :target :value)))
                               :on-key-up (on-enter
-                                           #(when (not (s/blank? @state))
+                                          #(when (not (s/blank? @state))
                                               ; Call the succeess function with the value of the target
-                                              (on-success @state)
+                                             (on-success @state)
                                               ; Clear the state for re-use
-                                              (reset! state "")
+                                             (reset! state "")
                                               ; Find the modal parent and manually close it
-                                              (-> @dom-node (ocall :closest ".modal") (ocall :modal "hide"))))}]
+                                             (-> @dom-node (ocall :closest ".modal") (ocall :modal "hide"))))}]
                             (when (true? (:name-taken? errors))
                               [:div.alert.alert-warning "A list with this name already exists"])]]))})))
 
@@ -127,13 +127,13 @@
                               :value @state
                               :on-change (fn [evt] (reset! state (oget evt :target :value)))
                               :on-key-up (on-enter
-                                           #(when (not (s/blank? @state))
+                                          #(when (not (s/blank? @state))
                                               ; Call the succeess function with the value of the target
-                                              (on-success @state)
+                                             (on-success @state)
                                               ; Clear the state for re-use
-                                              (reset! state "")
+                                             (reset! state "")
                                               ; Find the modal parent and manually close it
-                                              (-> @dom-node (ocall :closest ".modal") (ocall :modal "hide"))))}]
+                                             (-> @dom-node (ocall :closest ".modal") (ocall :modal "hide"))))}]
                             (when (true? (:name-taken? errors))
                               [:div.alert.alert-warning "A list with this name already exists"])]]))})))
 
@@ -241,8 +241,8 @@
                              {:ref (fn [e] (when e (do (oset! e :value name) (reset! input-dom-node (js/$ e)))))
                               :type "text"
                               :on-key-up (on-enter
-                                           #(do ;(dispatch [::evts/copy trail (:name @dets) (ocall @input-dom-node :val)])
-                                                (ocall @modal-dom-node :modal "hide")))}]]
+                                          #(do ;(dispatch [::evts/copy trail (:name @dets) (ocall @input-dom-node :val)])
+                                             (ocall @modal-dom-node :modal "hide")))}]]
                            [:div.modal-footer
                             [:div.btn-toolbar.pull-right
                              [:button.btn.btn-default
