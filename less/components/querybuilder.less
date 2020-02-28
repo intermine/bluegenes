@@ -521,6 +521,7 @@ div.column-container {
     }
 
     li {
+      a {padding-left:0;}
         padding-left: 1em;
         // padding-left: 0.2em;
         border: 1px solid @querybuilder-soft-color;
@@ -594,9 +595,20 @@ div.column-container {
         margin-bottom: -@border-offset;
         z-index: 12;
         position: relative;
+        padding: @border-offset/2 0em;
     }
 
     .group-title {
+      &.is-parent {
+        padding-top:@border-offset;
+        .expand-close .icon {
+          margin-top:@border-offset;
+        }
+         .qb-class {
+           display:inline-block;
+           margin-top:@border-offset/2;
+        }
+      }
         white-space: nowrap;
     }
 

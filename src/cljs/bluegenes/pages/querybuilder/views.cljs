@@ -157,8 +157,15 @@
         [:li.haschildren.qb-group
          {:class (when @open? "expanded-group")}
          [:div.group-title
+          (if (seq children)
+            {:class "is-parent"
+             :role "treeitem"
+             :aria-expanded true}
+            {:class "is-closed"
+             :role "treeitem"
+             :aria-expanded false})
           (when (seq children)
-            [:a {:on-click #(swap! open? not)}
+            [:a.expand-close {:on-click #(swap! open? not)}
              [:svg.icon.icon-plus
               {:class (when @open? "arrow-down")}
               [:use {:xlinkHref "#icon-plus"}]]])
