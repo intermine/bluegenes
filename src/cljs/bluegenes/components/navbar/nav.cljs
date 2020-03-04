@@ -58,8 +58,8 @@
                          (when (= 13 (oget k :keyCode))
                            (dispatch [:bluegenes.events.auth/login
                                       (assoc @credentials
-                                             :service (:service @current-mine)
-                                             :mine-id (:id @current-mine))])))}]]
+                                        :service (:service @current-mine)
+                                        :mine-id (:id @current-mine))])))}]]
          [:div.register-or-login
           [register-for-mine current-mine]
           [:button.btn.btn-primary.btn-raised
@@ -67,8 +67,8 @@
             :on-click (fn []
                         (dispatch [:bluegenes.events.auth/login
                                    (assoc @credentials
-                                          :service (:service @current-mine)
-                                          :mine-id (:id @current-mine))]))}
+                                     :service (:service @current-mine)
+                                     :mine-id (:id @current-mine))]))}
            [mine-icon @current-mine]
            "Sign In"]]
          (when error?
