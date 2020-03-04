@@ -1,6 +1,7 @@
 (ns bluegenes.events.auth
   (:require [re-frame.core :refer [reg-event-db reg-event-fx]]
-            [bluegenes.effects :as fx]))
+            [bluegenes.effects :as fx]
+            [bluegenes.route :as routes]))
 
 (def error-messages {401 "Invalid username or password"
                      404 "Remote server not found"})
@@ -33,7 +34,10 @@
                          :error? false)
               (assoc-in [:mines current-mine :service :token] token))
       :dispatch-n [[:save-login current-mine identity]
-                   [:assets/fetch-lists]]})))
+                   [:assets/fetch-lists]
+                   [::route/navigate
+                    ::route/home
+                    {:mine current-mine}]]})))
 
 (reg-event-db
  ::login-failure
