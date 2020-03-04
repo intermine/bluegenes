@@ -2,9 +2,10 @@
   (:require [re-frame.core :refer [subscribe dispatch]]
             [reagent.core :as reagent]
             [bluegenes.components.search.typeahead :as search]
-            [oops.core :refer [oget]]
+            [oops.core :refer [oget ocall]]
             [bluegenes.components.progress_bar :as progress-bar]
-            [bluegenes.route :as route]))
+            [bluegenes.route :as route]
+            [bluegenes.components.ui.inputs :refer [password-input]]))
 
 (defn mine-icon
   "returns the icon set for a specific mine, or a default.
@@ -123,14 +124,60 @@
       [:svg.icon.icon-cog [:use {:xlinkHref "#icon-user-circle"}]]
       [:span.long-name (str " " (:username @identity))]]
      [:ul.dropdown-menu
+      [:li [:a {:href (route/href ::route/profile)} "Profile"]]
       [:li [:a {:on-click #(dispatch [:bluegenes.events.auth/logout])} "Log Out"]]]]))
 
 (defn anonymous []
-  [:li.logon.secondary-nav.dropdown.warning
-   [:a.dropdown-toggle {:data-toggle "dropdown" :role "button"}
-    [:svg.icon.icon-cog [:use {:xlinkHref "#icon-user-times"}]] " Log In"]
-   [:div.dropdown-menu.login-form-dropdown
-    [login-form]]])
+  (let [credentials    (reagent/atom {:username nil :password nil})
+        register?      (reagent/atom false)
+        current-mine   (subscribe [:current-mine])
+        auth-values    (subscribe [:bluegenes.subs.auth/auth])]
+    (fn []
+      (let [{:keys [error? thinking? message]} @auth-values
+            submit-fn #(dispatch [(if @register?
+                                    :bluegenes.events.auth/register
+                                    :bluegenes.events.auth/login)
+                                  (assoc @credentials
+                                         :service (:service @current-mine)
+                                         :mine-id (:id @current-mine))])]
+        [:li.logon.secondary-nav.dropdown.warning
+         ;; Always show login dialog and not registration dialog, when first opened.
+         {:ref (fn [evt] (some-> evt js/$
+                                 (ocall :off "hide.bs.dropdown")
+                                 (ocall :on  "hide.bs.dropdown"
+                                        #(do (reset! register? false) nil))))}
+         [:a.dropdown-toggle {:data-toggle "dropdown" :role "button"}
+          [:svg.icon.icon-cog [:use {:xlinkHref "#icon-user-times"}]] " Log In"]
+         [:div.dropdown-menu.login-form-dropdown
+          [:form.login-form
+           [:h2 (str (if @register? "Create an account for " "Log in to ")
+                     (:name @current-mine))]
+           [:div.form-group
+            [:label "Email Address"]
+            [:input.form-control
+             {:type "text"
+              :id "email"
+              :value (:username @credentials)
+              :on-change (partial update-form credentials :username)
+              :on-key-up #(when (= 13 (oget % :keyCode))
+                            (submit-fn))}]]
+           [password-input {:value (:password @credentials)
+                            :on-change (partial update-form credentials :password)
+                            :on-submit submit-fn}]
+           [:div.register-or-login
+            [:div.other-action
+             [:a {:on-click #(do (dispatch [:bluegenes.events.auth/clear-error])
+                                 (swap! register? not))}
+              (if @register?
+                "I already have an account"
+                "I don't have an account")]]
+            [:button.btn.btn-primary.btn-raised
+             {:type "button"
+              :on-click submit-fn}
+             [mine-icon @current-mine]
+             (if @register? "Register" "Sign In")]]
+           (when error?
+             [:div.alert.alert-danger.error-box message])]]]))))
 
 (defn user []
   (let [authed? (subscribe [:bluegenes.subs.auth/authenticated?])]
