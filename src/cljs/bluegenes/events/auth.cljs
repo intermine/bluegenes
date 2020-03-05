@@ -1,7 +1,7 @@
 (ns bluegenes.events.auth
   (:require [re-frame.core :refer [reg-event-db reg-event-fx]]
             [bluegenes.effects :as fx]
-            [bluegenes.route :as routes]))
+            [bluegenes.route :as route]))
 
 (def error-messages {401 "Invalid username or password"
                      404 "Remote server not found"})
