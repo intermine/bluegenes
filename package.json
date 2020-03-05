@@ -20,8 +20,11 @@
     "bootstrap": "^3.3.7",
     "bootstrap-material-design": "git+https://github.com/intermine/bootstrap-material-design.git#im-0.0.2",
     "isomorphic-ws": "^4.0.1",
+    "node-gyp": "^6.1.0",
+    "node-gyp-build": "^4.2.1",
+    "npm-deps": "^0.3.7",
     "wait-on": "^3.3.0",
-    "ws": "^7.1.2",
+    "ws": "^7.2.1",
     "xmlhttprequest": "^1.8.0"
   },
   "devDependencies": {
