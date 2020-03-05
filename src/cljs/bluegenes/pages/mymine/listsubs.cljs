@@ -49,3 +49,10 @@
      (some? (:favourite flag-filters)) (filter (partial tag-check? (:favourite flag-filters) "im:favourite"))
        ;true (sort (apply comp (map build-comparer sort-order)))
      true (sort-by :timestamp >))))
+
+(reg-sub
+ :lists/authorized-lists
+ :<- [:lists]
+ :<- [:current-mine-name]
+ (fn [[all-lists current-mine-kw]]
+   (filter :authorized (get all-lists current-mine-kw))))
