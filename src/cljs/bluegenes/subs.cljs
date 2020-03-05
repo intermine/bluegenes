@@ -6,6 +6,7 @@
             [bluegenes.components.search.subs]
             [bluegenes.subs.auth]
             [bluegenes.components.idresolver.subs]
+            [bluegenes.pages.profile.subs]
             [lambdaisland.uri :refer [uri]]))
 
 (reg-sub
@@ -179,6 +180,12 @@
    (get-in db [:mines (get db :current-mine)])))
 
 (reg-sub
+ :current-mine-human-name
+ :<- [:current-mine]
+ (fn [current-mine]
+   (:name current-mine)))
+
+(reg-sub
  :active-token
  :<- [:current-mine]
  (fn [current-mine]
@@ -211,3 +218,12 @@
  :messages
  (fn [db]
    (sort-by :when > (vals (:messages db)))))
+
+;; Returns the active mine's InterMine version as a vector of numbers.
+;; ie. [4 1 2]
+(reg-sub
+ :current-intermine-version
+ (fn [db]
+   (->> (get-in db [:assets :intermine-version (:current-mine db)])
+        (re-seq #"\d+")
+        (mapv #(js/parseInt % 10)))))

@@ -1,0 +1,73 @@
+@import "../variables";
+
+.profile-page {
+
+    &&&& label {
+        color: #777777;
+
+        input[type="checkbox"] {
+            margin-left: @spacer;
+        }
+    }
+
+    p.success {
+        margin: @spacer/2;
+        color: @success-text-color;
+        font-weight: 500;
+    }
+
+    p.failure {
+        margin: @spacer/2;
+        color: @failure-text-color;
+        font-weight: 500;
+    }
+
+    .flex-row {
+        display: flex;
+        align-items: baseline;
+    }
+
+    .input-container {
+        max-width: 300px;
+    }
+
+    .settings-group {
+        background-color: white;
+        padding: @spacer 4*@spacer;
+        margin: 2*@spacer 0;
+        border: 1px solid #dddddd;
+        position: relative;
+    }
+
+    // This fades the element.
+    // It's not actually a loader.
+    // But there's a real loader in the center!
+    // Which you can find in the hiccup.
+    .settings-loader {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        left: 0;
+        top: 0;
+        z-index: 100;
+        background-color: #000000;
+        opacity: 0;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        transition: opacity 500ms ease-out;
+
+        pointer-events: none;
+
+        &.is-loading {
+            opacity: 0.3;
+            pointer-events: auto;
+        }
+    }
+
+    .save-button {
+        margin-bottom: 2*@spacer;
+    }
+}
