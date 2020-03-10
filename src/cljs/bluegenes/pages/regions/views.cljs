@@ -166,8 +166,8 @@
       [:div.container.regionsearch
        [:div.headerwithguidance
         [:h1 "Region Search"]
-        [:a.guidance
+       [:button.btn.btn-default.btn-raised
          {:on-click #(dispatch [:regions/set-to-search (ex)])}
-         "[Show me an example]"]]
+         "Show Example"]]
        [input-section]
        [results-section]])}))
