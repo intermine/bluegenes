@@ -54,6 +54,15 @@
    [:div.col [:h4 "Feature Type"]]
    [:div.col [:h4 "Location"]]])
 
+(defn ex
+  "Generate example region search input based on pre-configured per-mine settings"
+  []
+  (let [active-mine (subscribe [:current-mine])
+        example-text (:regionsearch-example @active-mine)]
+      ;; We can't use split-lines because the lines are split with an escaped
+      ;; slash - that is, they are split on `\\n` and not `\n`
+    (clojure.string/join "\n" (split example-text #"\\n"))))
+
 (defn table-row
   "A single result row for a single region feature."
   [chromosome {:keys [primaryIdentifier class chromosomeLocation objectId] :as result}]
@@ -116,6 +125,7 @@
     [:div]))
 
 (defn results-section []
+
   (let [results   (subscribe [:regions/results])
         loading? (subscribe [:regions/loading])
         error (subscribe [:regions/error])]
@@ -123,6 +133,9 @@
 
         (if (not @error)
           [:div
+           [:div.row [:button.btn.btn-default.btn-raised.fl-right
+                      {:on-click #(dispatch [:regions/set-to-search (ex)])}
+                      "Show Example"]]
            [:div.results-summary [:h2 "Results"] [results-count-summary @results]]
            (into [:div.allresults]
                  (map (fn [result]

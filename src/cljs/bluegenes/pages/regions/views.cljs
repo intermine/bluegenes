@@ -155,7 +155,7 @@
                     (ocall (oget e "target") "blur"))
         :title "Enter something into the 'Regions to search' box or click on [Show me an example], then click here! :)"}
        "Search"]]
-     ; Results section
+       ; Results section
      [checkboxes to-search settings]]))
 
 (defn main []
@@ -165,9 +165,6 @@
     (fn []
       [:div.container.regionsearch
        [:div.headerwithguidance
-        [:h1 "Region Search"]
-       [:button.btn.btn-default.btn-raised
-         {:on-click #(dispatch [:regions/set-to-search (ex)])}
-         "Show Example"]]
+        [:h1 "Region Search"]]
        [input-section]
        [results-section]])}))
