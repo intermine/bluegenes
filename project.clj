@@ -49,6 +49,7 @@
                  [cljsjs/google-analytics "2015.04.13-0"]
                  [day8.re-frame/test "0.1.5"]
                  [cljs-bean "1.4.0"]
+                 [org.clojure/data.xml "0.2.0-alpha6"]
 
                  ; Logging
                  [com.taoensso/timbre "4.10.0"]
@@ -66,7 +67,7 @@
 
                  ; Intermine Assets
                  [org.intermine/im-tables "0.9.0"]
-                 [org.intermine/imcljs "1.0.2"]
+                 [org.intermine/imcljs "1.1.0"]
                  [org.intermine/bluegenes-tool-store "0.2.0"]]
 
   :deploy-repositories {"clojars" {:sign-releases false}}

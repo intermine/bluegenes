@@ -192,6 +192,7 @@
      {:dispatch [:results/history+
                  {:source current-mine
                   :type :query
+                  :intent :search
                   :value {:title "Search Results"
                           :from (name object-type)
                           :select summary-fields

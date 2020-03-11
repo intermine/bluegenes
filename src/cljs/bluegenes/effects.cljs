@@ -228,3 +228,8 @@
  (fn [_]
    (some-> (ocall js/document :getElementById "wrappy")
            (ocall :remove))))
+
+(reg-fx :message
+        (fn [{:keys [id timeout] :or {timeout 5000}}]
+          (when (pos? timeout)
+            (.setTimeout js/window #(dispatch [:messages/remove id]) timeout))))

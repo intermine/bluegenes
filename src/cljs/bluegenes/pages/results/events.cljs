@@ -19,6 +19,7 @@
   fire the :results/history+ event with a package that represents a query, like so:"
   (dispatch [:results/history+ {:source :flymine
                                 :type :query
+                                :intent :query ; Should signify what is creating the query.
                                 :value {:title "Appears in Breadcrumb"
                                         :from "Gene"
                                         :select ["Gene.symbol"]

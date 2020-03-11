@@ -52,11 +52,11 @@
       [:div
        [:h3 [:i.fa.fa-clock-o] " Recent Queries"]
        (into [:ul.history-list]
-             (map (fn [[title {:keys [source value last-executed]}]]
+             (map (fn [[title {:keys [source value last-executed display-title]}]]
                     [:li.history-item
                      {:class (when (= title @current-query) "active")
                       :on-click #(dispatch [::route/navigate ::route/list {:title title}])}
-                     [:div.title title]
+                     [:div.title (or display-title title)]
                      [:div.time (time-format/unparse custom-time-formatter (time-coerce/from-long last-executed))]])
                   @historical-queries))])))
 
@@ -84,7 +84,7 @@
          {:type "button"
           :on-click #(dispatch [:list-description/update title @text])}
          "Save"]
-        (when-let [e @error] [:p.error e])]])))
+        (when-let [e @error] [:p.failure e])]])))
 
 (defn description-box
   "Shows the list description if one is available, and let's you toggle editing."

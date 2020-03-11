@@ -234,7 +234,9 @@
                            [:div.row.no-gutter
                             [:div.col-sm-12 [:label label]]]
                            [:div.row.no-gutter
-                            [:div.col-sm-4
+                            [:div.col-sm-4.constraint-selector
+                             (when (and code (not hide-code?))
+                               [:span.constraint-label code])
                              [constraint-operator
                               :model model
                               :path path
@@ -251,34 +253,31 @@
                                            (if (or (= op "ONE OF") (= op "NONE OF"))
                                              ((or on-change-operator on-change) {:code code :path path :values (cond-> value string? list) :op op})
                                              ((or on-change-operator on-change) {:code code :path path :value (cond-> value (seq? value) first) :op op})))]]
-                            [:div.col-sm-8
-                             [:div
-                              {:style {:position "relative"}}
-                              [constraint-text-input
-                               :model model
-                               :value value
-                               :op op
-                               :on-select-list on-select-list
-                               :typeahead? typeahead?
-                               :path path
-                               :code code
-                               :lists lists
-                               :disabled disabled
-                               :allow-possible-values (and (not= op "IN") (not= op "NOT IN"))
-                               :possible-values @pv
-                               :on-change (fn [val]
-                                            (if (and (some? val) (or (= op "ONE OF") (= op "NONE OF")))
-                                              (on-change {:path path :values val :op op :code code})
-                                              (on-change {:path path :value val :op op :code code})))
-                               :on-blur (fn [val]
-                                          (if (and (some? val) (or (= op "ONE OF") (= op "NONE OF")))
-                                            ((or on-blur on-change) {:path path :values val :op op :code code})
-                                            ((or on-blur on-change) {:path path :value val :op op :code code})))]
-                              (when on-remove
-                                [:svg.icon.icon-bin
-                                 {:style {:position "absolute"}
-                                  :on-click (fn [op] (on-remove {:path path :value value :op op}))}
-                                 [:use {:xlinkHref "#icon-bin"}]])]]]]
+                            [:div.col-sm-8.constraint-input
+                             [constraint-text-input
+                              :model model
+                              :value value
+                              :op op
+                              :on-select-list on-select-list
+                              :typeahead? typeahead?
+                              :path path
+                              :code code
+                              :lists lists
+                              :disabled disabled
+                              :allow-possible-values (and (not= op "IN") (not= op "NOT IN"))
+                              :possible-values @pv
+                              :on-change (fn [val]
+                                           (if (and (some? val) (or (= op "ONE OF") (= op "NONE OF")))
+                                             (on-change {:path path :values val :op op :code code})
+                                             (on-change {:path path :value val :op op :code code})))
+                              :on-blur (fn [val]
+                                         (if (and (some? val) (or (= op "ONE OF") (= op "NONE OF")))
+                                           ((or on-blur on-change) {:path path :values val :op op :code code})
+                                           ((or on-blur on-change) {:path path :value val :op op :code code})))]
+                             (when on-remove
+                               [:svg.icon.icon-bin
+                                {:on-click (fn [op] (on-remove {:path path :value value :op op}))}
+                                [:use {:xlinkHref "#icon-bin"}]])]]]
                           #_[:div.constraint-component
                              [:div.input-group.constraint-input
                               [constraint-operator

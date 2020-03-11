@@ -63,3 +63,40 @@
  :qb/example
  (fn [db]
    (get-in db [:mines (get db :current-mine) :default-query-example])))
+
+(reg-sub
+ :qb/saved-queries
+ (fn [db]
+   (sort-by key (get-in db [:qb :saved-queries]))))
+
+(reg-sub
+ :qb/import-result
+ (fn [db]
+   (get-in db [:qb :import-result])))
+
+(reg-sub
+ :qb/active-sort
+ (fn [db [_ path]]
+   (->> (get-in db [:qb :sort])
+        (filter (comp #{path} :path))
+        (first)
+        (:direction))))
+
+(reg-sub
+ :qb/sort-priority
+ ;; Returns either nil or the index (sort priority) of `path`.
+ (fn [db [_ path]]
+   (first (keep-indexed (fn [index item]
+                          (when (= path (:path item))
+                            index))
+                        (get-in db [:qb :sort])))))
+
+(reg-sub
+ :qb/active-outer-join
+ (fn [db [_ path]]
+   (contains? (get-in db [:qb :joins]) path)))
+
+(reg-sub
+ :qb/joins
+ (fn [db]
+   (get-in db [:qb :joins])))
