@@ -7,7 +7,6 @@
             [imcljs.fetch :as fetch]
             [imcljs.save :as save]
             [clojure.set :refer [difference]]
-            [cljs.reader :as reader]
             [bluegenes.pages.querybuilder.logic
              :refer [read-logic-string remove-code vec->list append-code]]
             [clojure.string :refer [join split blank?]]
@@ -641,23 +640,22 @@
 (reg-event-db
  :qb/fetch-saved-queries-success
  (fn [db [_ queries]]
-   (let [model (get-in db [:mines (:current-mine db) :service :model])]
-     (assoc-in db [:qb :saved-queries]
-               (reduce-kv
-                (fn [m title query]
-                  (assoc m (name title)
-                         (let [path (-> query :select first)
-                               root (im-path/class model path)]
-                           (-> query
-                               (assoc :from (name root))
-                               (update :constraintLogic
-                                       (comp enhance-constraint-logic read-logic-string))
-                               (update :where #(or % []))
-                               (dissoc :title :model)
-                               ;; Sterilizing *might* not be necessary since
-                               ;; it's coming straight from the InterMine.
-                               (im-query/sterilize-query)))))
-                {} queries)))))
+   (assoc-in db [:qb :saved-queries]
+             (reduce-kv
+              (fn [m title query]
+                (assoc m (name title)
+                       (let [path (-> query :select first)
+                             root (first (split path #"\."))]
+                         (-> query
+                             (assoc :from root)
+                             (update :constraintLogic
+                                     (comp enhance-constraint-logic read-logic-string))
+                             (update :where #(or % []))
+                             (dissoc :title :model)
+                             ;; Sterilizing *might* not be necessary since
+                             ;; it's coming straight from the InterMine.
+                             (im-query/sterilize-query)))))
+              {} queries))))
 
 (reg-event-fx
  :qb/import-xml-query
