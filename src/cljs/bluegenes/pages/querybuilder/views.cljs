@@ -712,8 +712,8 @@
         (into [:ul.nav.nav-tabs]
               (let [tabs ["Recent Queries"
                           "Saved Queries"
-                          "Import from XML"
-                          "Create Template"]]
+                          "Import from XML"]]
+                          ; "Create Template"]]
                 (for [[i title] (map-indexed vector tabs)]
                   [:li {:class (when (= @tab-index i) "active")}
                    [:a {:on-click #(do (when (= @tab-index
@@ -724,8 +724,8 @@
         (case @tab-index
           0 [recent-queries]
           1 [saved-queries]
-          2 [import-from-xml]
-          3 [create-template])]])))
+          2 [import-from-xml])]])))
+          ; 3 [create-template])]])))
 
 (defn main []
   [:div.column-container
