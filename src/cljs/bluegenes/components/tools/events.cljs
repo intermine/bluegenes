@@ -32,7 +32,10 @@
  ::navigate-query
  (fn [{db :db} [_ query source]]
    (let [set-current-mine [:set-current-mine source]
-         history+         [:results/history+ {:source source, :type :query, :value query}]
+         history+         [:results/history+ {:source source
+                                              :type :query
+                                              :intent :tool
+                                              :value query}]
          new-source?      (not= source (:current-mine db))]
      {:dispatch (if new-source? set-current-mine history+)
       ;; Use :dispatch-after-boot since [:results :queries] is cleared when switching mines.

@@ -214,12 +214,12 @@
      (-> db
          (assoc-in [:profile :preferences] prefs')
          (cond->
-           success?
+          success?
            (->
-               (assoc-in [:profile :inputs :user-preferences] prefs')
-               (assoc-in [:profile :responses :user-preferences]
-                         {:type :success
-                          :message "Updated preferences have been saved."})))))))
+            (assoc-in [:profile :inputs :user-preferences] prefs')
+            (assoc-in [:profile :responses :user-preferences]
+                      {:type :success
+                       :message "Updated preferences have been saved."})))))))
 
 (reg-event-fx
  ::start-deregistration

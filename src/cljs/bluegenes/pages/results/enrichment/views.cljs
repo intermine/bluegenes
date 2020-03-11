@@ -70,6 +70,7 @@
                                (dispatch [:results/history+
                                           {:source @current-mine
                                            :type :query
+                                           :intent :enrichment
                                            :value (assoc (build-matches-query
                                                           (:pathQuery details)
                                                           (:pathConstraint details)
@@ -131,6 +132,7 @@
                           (dispatch [:results/history+
                                      {:source @current-mine
                                       :type :query
+                                      :intent :enrichment
                                       :value (assoc
                                               (build-matches-query
                                                (:pathQuery details)

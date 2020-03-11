@@ -176,3 +176,8 @@
                    {:chan (imcljs.fetch/rows service query options)
                     :on-success [:save-query-results-event]
                     :on-error [:warn-user-about-error-event]}})))
+
+(reg-fx :message
+        (fn [{:keys [id timeout] :or {timeout 5000}}]
+          (when (pos? timeout)
+            (.setTimeout js/window #(dispatch [:messages/remove id]) timeout))))

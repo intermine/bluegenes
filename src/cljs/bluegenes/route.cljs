@@ -69,6 +69,7 @@
          {:dispatch-n [[:results/history+
                         {:source current-mine
                          :type :query
+                         :intent :list
                          :value {:title title
                                  :from type
                                  :select summary-fields
@@ -185,7 +186,7 @@
       :controllers
       [{:start #(dispatch [:set-active-panel :querybuilder-panel
                            nil
-                           [:qb/make-tree]])}]}]
+                           [:bluegenes.pages.querybuilder.events/load-querybuilder]])}]}]
     ["/list/:title"
      {:name ::list
       :controllers
