@@ -119,7 +119,7 @@
                  :token token}}
       {:id :default
        :name nil
-       :service {:root "https://www.flymine.org/flymine"
+       :service {:root "https://alpha.flymine.org/alpha"
                  :token token}})))
 
 (defn wait-for-registry?
