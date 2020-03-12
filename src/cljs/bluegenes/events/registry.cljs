@@ -1,7 +1,8 @@
 (ns bluegenes.events.registry
-  (:require [re-frame.core :refer [reg-event-db reg-event-fx]]
+  (:require [re-frame.core :refer [reg-event-fx dispatch]]
             [imcljs.fetch :as fetch]
-            [clojure.string :as string]))
+            [clojure.string :as string]
+            [bluegenes.utils :refer [read-registry-mine]]))
 
 ;; this is not crazy to hardcode. The consequences of a mine that is lower than
 ;; the minimum version using bluegenes could potentially result in corrupt lists
@@ -12,10 +13,13 @@
 (reg-event-fx
  ;; these are the intermines we'll allow users to switch to
  ::load-other-mines
- (fn [{db :db}]
-   {:im-chan
-    {:chan (fetch/registry false)
-     :on-success [::success-fetch-registry]}}))
+ ;; `?id` is only used in a few cases when initiated from a message.
+ (fn [_ [_ ?id]]
+   (cond-> {:im-chan
+            {:chan (fetch/registry false)
+             :on-success [::success-fetch-registry]
+             :on-failure [::failure-fetch-registry]}}
+     ?id (assoc :dispatch [:messages/remove ?id]))))
 
 (def protocol (delay (.. js/window -location -protocol)))
 
@@ -26,6 +30,20 @@
   (if (= @protocol "https:")
     (not (string/starts-with? url "http:"))
     true))
+
+(reg-event-fx
+ ::failure-fetch-registry
+ (fn [_ [_]]
+   {:dispatch [:messages/add
+               {:markup (fn [id]
+                          [:span "Unable to contact " [:strong "InterMine registry"]
+                           ". It's either down or there is a problem with your connection. You will not be able to switch to other mines in the registry. "
+                           [:a {:role "button"
+                                :on-click #(dispatch [::load-other-mines id])}
+                            "Click here"]
+                           " to try again."])
+                :style "warning"
+                :timeout 10000}]}))
 
 (reg-event-fx
  ::success-fetch-registry
@@ -51,11 +69,8 @@
        ;; Fill in the mine details if it's missing.
        ;; (This happens when we use a registry mine.)
        (nil? (get-in db-with-registry [:mines current-mine]))
-       (let [{reg-url :url reg-name :name} (get registry current-mine)]
-         {:db (assoc-in db-with-registry [:mines current-mine]
-                        {:service {:root reg-url}
-                         :name reg-name
-                         :id current-mine})})
+       {:db (assoc-in db-with-registry [:mines current-mine]
+                      (read-registry-mine (get registry current-mine)))}
        ;; If we ended up here it means we used a registry mine and the data is
        ;; already present. Yay!
        :else {:db db-with-registry}))))

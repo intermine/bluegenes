@@ -6,6 +6,7 @@
             [bluegenes.events.webproperties]
             [bluegenes.events.registry :as registry]
             [bluegenes.route :as route]
+            [bluegenes.utils :as utils]
             [cljs-bean.core :refer [->clj]]))
 
 (defn boot-flow
@@ -15,12 +16,11 @@
   is queued until all of the assets (data model, lists, templates etc) are fetched.
   When finished, an event called :finished-loading-assets is dispatch which tells BlueGenes
   it can continue routing."
-  [wait-registry?]
+  [& {:keys [wait-registry?]}]
   ;; wait-registry? is to indicate that the current mine requries data from the
   ;; registry, which isn't present (usually because it is a fresh boot).
-  {:first-dispatch (if wait-registry?
-                     [::registry/load-other-mines]
-                     [:authentication/init])
+  {:id :async/custom-flow
+   :db-path [:boot-flow]
    :rules (filterv
            some?
            [(when wait-registry?
@@ -50,24 +50,41 @@
                       :assets/success-fetch-widgets
                       :assets/success-fetch-intermine-version
                       :assets/success-fetch-web-service-version]
-             ;; Now finish setting up BlueGenes!
-             :dispatch-n
-             (cond-> [;; Verify InterMine web service version.
-                      [:verify-web-service-version]
-                      ;; Start Google Analytics.
-                      [:start-analytics]
-                      ;; Set a flag indicating all assets are fetched.
-                      [:finished-loading-assets]
-                      ;; Save the current state to local storage.
-                      [:save-state]
-                      ;; fetch-organisms doesn't always load before it is needed.
-                      ;; for example on a fresh load of the id resolver, I sometimes end up with
-                      ;; no organisms when I initialise the component. I have a workaround
-                      ;; so it doesn't matter in this case, but it is something to be aware of.
-                      [:cache/fetch-organisms]
-                      [:regions/select-all-feature-types]]
-               (not wait-registry?) (conj [::registry/load-other-mines]))
+             :dispatch [:boot/finalize]
+             :halt? true}
+            ;; Handle the case where one or more assets fail to fetch.
+            {:when :seen?
+             :events :assets/failure
+             :dispatch [:boot/finalize :failed-assets? true]
              :halt? true}])})
+
+;; It's not really optimal that `:assets/failure` starts `:boot/finalize`
+;; immediately. This may also (through a race condition) log errors that the
+;; `:async/custom-flow` event handler is missing, since it would have been
+;; deregistered. It's very unlikely that this will actually break something,
+;; and we shouldn't optimize for faulty webservices. Just to note, the proper
+;; way would be to wait for all `:assets/*` to either succeed or fail, then
+;; halt and run `:boot/finalize`. Right now any failure will result in
+;; `:boot/finalize` running, even with other `:assets/*` still in progress.
+
+(reg-event-fx
+ :boot/finalize
+ (fn [_ [_ & {:keys [failed-assets?]}]]
+   {:dispatch-n
+    [;; Verify InterMine web service version.
+     [:verify-web-service-version]
+     ;; Start Google Analytics.
+     [:start-analytics]
+     ;; Set a flag indicating all assets are fetched.
+     [:finished-loading-assets]
+     ;; Save the current state to local storage.
+     (when-not failed-assets? [:save-state])
+     ;; fetch-organisms doesn't always load before it is needed.
+     ;; for example on a fresh load of the id resolver, I sometimes end up with
+     ;; no organisms when I initialise the component. I have a workaround
+     ;; so it doesn't matter in this case, but it is something to be aware of.
+     [:cache/fetch-organisms]
+     [:regions/select-all-feature-types]]}))
 
 (defn im-tables-events-forwarder
   "Creates instructions for listening in on im-tables events.
@@ -106,6 +123,10 @@
                  :token token}})))
 
 (defn wait-for-registry?
+  "If the URL corresponds to a non-default mine, we will have to fetch the
+  registry and look for the mine with the same namespace, (user will be
+  redirected to the default mine if it doesn't exist) before we attempt
+  authentication. Returns whether this is the case."
   [db]
   (let [current-mine (:current-mine db)
         default? (= current-mine :default)
@@ -130,11 +151,9 @@
              ;; Add default mine, either as is configured when attached to an
              ;; InterMine instance, or as an empty placeholder.
              (assoc-in [:mines :default] (init-mine-defaults))
-             ;; Note that the final value of current-mine will have the
-             ;; following order of priority: pathname > localstorage > :default
              (assoc :current-mine (or selected-mine :default)))
          ;; Get data previously persisted to local storage.
-         {:keys [current-mine mines assets version] :as state} (:local-store cofx)
+         {:keys [mines assets version] :as state} (:local-store cofx)
          ;; We always want `init-mine-defaults` to override the :default mine
          ;; saved in local storage, as a coupled intermine instance should
          ;; always take priority.
@@ -148,18 +167,26 @@
               ;; client version matches.
               (and (seq state)
                    (= version (:version (->clj js/serverVars))))
-              (assoc :current-mine (or selected-mine current-mine)
-                     :mines updated-mines
+              (assoc :mines updated-mines
                      :assets assets
                      ;; This needs to be true so we can block `:set-active-panel`
                      ;; event until we have `:finished-loading-assets`, as some
                      ;; routes might attempt to build a query which is dependent
                      ;; on `db :assets :summary-fields` before it gets populated
                      ;; by `:assets/success-fetch-summary-fields`.
-                     :fetching-assets? true))]
+                     :fetching-assets? true))
+         wait-registry? (wait-for-registry? db)]
      {:db db
+      :dispatch-n (if wait-registry?
+                    ;; Wait with authentication until registry is loaded.
+                    [[::registry/load-other-mines]]
+                    ;; Do both at the same time!
+                    [[:authentication/init]
+                     [::registry/load-other-mines]])
+      ;; Start the timer for showing the loading dialog.
+      :mine-loader true
       ;; Boot the application asynchronously
-      :async-flow (boot-flow (wait-for-registry? db))
+      :async-flow (boot-flow :wait-registry? wait-registry?)
       ;; Register an event sniffer for im-tables
       :forward-events (im-tables-events-forwarder)})))
 
@@ -171,22 +198,30 @@
   ;; Perhaps we should consider settings `:assets` to `{}` here as well?
   (dissoc db :regions :idresolver :results :qb
           :suggestion-results ; Avoid showing old results belonging to previous mine.
-          :invalid-token?))  ; Clear invalid-token-alert.
+          :invalid-token?     ; Clear invalid-token-alert.
+          :failed-auth?))     ; Clear flag for failing to auth with mine.
 
 (reg-event-fx
  :reboot
  (fn [{db :db}]
    {:db (assoc (remove-stateful-keys-from-db db) :fetching-assets? true)
-    :async-flow (boot-flow (wait-for-registry? db))}))
+    :dispatch [:authentication/init]
+    :async-flow (boot-flow :wait-registry? false)}))
 
 (reg-event-fx
  :finished-loading-assets
  (fn [{db :db}]
-   (let [dispatch-after-boot (:dispatch-after-boot db)]
+   (let [dispatch-after-boot (:dispatch-after-boot db)
+         failed-auth? (:failed-auth? db)
+         will-change-panel? (contains? (set (map first dispatch-after-boot))
+                                       :do-active-panel)]
      (cond-> {:db (-> db
                       (dissoc :dispatch-after-boot)
-                      (assoc :fetching-assets? false))}
-       (some? dispatch-after-boot) (assoc :dispatch-n dispatch-after-boot)))))
+                      (assoc :fetching-assets? false))
+              :mine-loader false}
+       (and (some? dispatch-after-boot)
+            (not failed-auth?)) (assoc :dispatch-n dispatch-after-boot)
+       (not will-change-panel?) (assoc :hide-intro-loader nil)))))
 
 (reg-event-fx
  :verify-web-service-version
@@ -231,7 +266,7 @@
 (reg-event-fx
  :authentication/init
  [(inject-cofx :local-store :bluegenes/login)]
- (fn [{db :db, login :local-store} _]
+ (fn [{db :db, login :local-store} [evt]]
    (let [current-mine (:current-mine db)
          ;; Add any persisted login identities to their respective mines.
          db+logins  (reduce (fn [new-db [mine-kw identity]]
@@ -247,16 +282,18 @@
                   :on-success [:authentication/store-token token]
                   :on-failure [:authentication/invalid-token (boolean auth-token)]}
                  {:chan (fetch/session service)
-                  :on-success [:authentication/store-token]})})))
+                  :on-success [:authentication/store-token]
+                  :on-failure [:assets/failure evt]})})))
 
 ;; The token has likely expired, so we fetch a new one.
 ;; We also clear the login token if it had expired.
 (reg-event-fx
  :authentication/invalid-token
- (fn [{db :db} [_ clear-login?]]
+ (fn [{db :db} [evt clear-login?]]
    (let [current-mine (:current-mine db)]
      (cond-> {:im-chan {:chan (fetch/session (get-in db [:mines current-mine :service]))
-                        :on-success [:authentication/store-token]}}
+                        :on-success [:authentication/store-token]
+                        :on-failure [:assets/failure evt]}}
        clear-login? (->
                      (assoc :db (update-in db [:mines current-mine] dissoc :auth))
                      (assoc :dispatch [:remove-login current-mine]))))))
@@ -268,12 +305,10 @@
    (let [current-mine (:current-mine db)]
      (cond-> {:db (assoc-in db [:mines current-mine :service :token] token)}
        (nil? token)
-       (assoc :dispatch
-              (let [service-root (get-in db [:mines current-mine :service :root])]
-                [:messages/add
-                 {:markup [:span (str "Failed to acquire token. It's likely that you have no connection to the InterMine instance at \"" service-root "\".")]
-                  :style "danger"
-                  :timeout 0}]))))))
+       (assoc :dispatch [:messages/add
+                         {:markup [:span "Failed to acquire token. It's likely that you have no connection to the InterMine instance."]
+                          :style "danger"
+                          :timeout 0}])))))
 
 ; Fetch model
 (def preferred-tag "im:preferredBagType")
@@ -293,10 +328,11 @@
 
 (reg-event-fx
  :assets/fetch-model
- (fn [{db :db}]
+ (fn [{db :db} [evt]]
    {:db db
     :im-chan {:chan (fetch/model (get-in db [:mines (:current-mine db) :service]))
-              :on-success [:assets/success-fetch-model (:current-mine db)]}}))
+              :on-success [:assets/success-fetch-model (:current-mine db)]
+              :on-failure [:assets/failure evt]}}))
 
 ; Fetch lists
 
@@ -307,13 +343,14 @@
 
 (reg-event-fx
  :assets/fetch-lists
- (fn [{db :db}]
+ (fn [{db :db} [evt]]
    {:db db
     :im-chan
     {:chan (fetch/lists
             (get-in db [:mines (:current-mine db) :service])
             {:showTags true})
-     :on-success [:assets/success-fetch-lists (:current-mine db)]}}))
+     :on-success [:assets/success-fetch-lists (:current-mine db)]
+     :on-failure [:assets/failure evt]}}))
 
 ; Fetch class keys
 
@@ -324,12 +361,13 @@
 
 (reg-event-fx
  :assets/fetch-class-keys
- (fn [{db :db}]
+ (fn [{db :db} [evt]]
    {:db db
     :im-chan
     {:chan (fetch/class-keys
             (get-in db [:mines (:current-mine db) :service]))
-     :on-success [:assets/success-fetch-class-keys (:current-mine db)]}}))
+     :on-success [:assets/success-fetch-class-keys (:current-mine db)]
+     :on-failure [:assets/failure evt]}}))
 
 ; Fetch templates
 
@@ -340,11 +378,12 @@
 
 (reg-event-fx
  :assets/fetch-templates
- (fn [{db :db}]
+ (fn [{db :db} [evt]]
    {:db db
     :im-chan
     {:chan (fetch/templates (get-in db [:mines (:current-mine db) :service]))
-     :on-success [:assets/success-fetch-templates (:current-mine db)]}}))
+     :on-success [:assets/success-fetch-templates (:current-mine db)]
+     :on-failure [:assets/failure evt]}}))
 
 ; Fetch summary fields
 
@@ -355,20 +394,22 @@
 
 (reg-event-fx
  :assets/fetch-summary-fields
- (fn [{db :db}]
+ (fn [{db :db} [evt]]
    {:db db
     :im-chan
     {:chan (fetch/summary-fields
             (get-in db [:mines (:current-mine db) :service]))
-     :on-success [:assets/success-fetch-summary-fields (:current-mine db)]}}))
+     :on-success [:assets/success-fetch-summary-fields (:current-mine db)]
+     :on-failure [:assets/failure evt]}}))
 
 (reg-event-fx
  :assets/fetch-widgets
   ;;fetches all enrichment widgets. afaik the non-enrichment widgets are InterMine 1.x UI specific so are filtered out upon success
- (fn [{db :db}]
+ (fn [{db :db} [evt]]
    {:im-chan
     {:chan (fetch/widgets (get-in db [:mines (:current-mine db) :service]))
-     :on-success [:assets/success-fetch-widgets (:current-mine db)]}}))
+     :on-success [:assets/success-fetch-widgets (:current-mine db)]
+     :on-failure [:assets/failure evt]}}))
 
 (reg-event-db
  :assets/success-fetch-widgets
@@ -383,12 +424,12 @@
  :assets/fetch-intermine-version
   ;;fetches all enrichment widgets. afaik the non-enrichment widgets
   ;;are InterMine 1.x UI specific so are filtered out upon success
- (fn [{db :db}]
+ (fn [{db :db} [evt]]
    {:im-chan
     {:chan (fetch/version-intermine
             (get-in db [:mines (:current-mine db) :service]))
-     :on-success
-     [:assets/success-fetch-intermine-version (:current-mine db)]}}))
+     :on-success [:assets/success-fetch-intermine-version (:current-mine db)]
+     :on-failure [:assets/failure evt]}}))
 
 (reg-event-db
  :assets/success-fetch-intermine-version
@@ -397,14 +438,35 @@
 
 (reg-event-fx
  :assets/fetch-web-service-version
- (fn [{db :db}]
+ (fn [{db :db} [evt]]
    {:im-chan
     {:chan (fetch/version-web-service
             (get-in db [:mines (:current-mine db) :service]))
-     :on-success
-     [:assets/success-fetch-web-service-version (:current-mine db)]}}))
+     :on-success [:assets/success-fetch-web-service-version (:current-mine db)]
+     :on-failure [:assets/failure evt]}}))
 
 (reg-event-db
  :assets/success-fetch-web-service-version
  (fn [db [_ mine-kw version]]
    (assoc-in db [:assets :web-service-version mine-kw] version)))
+
+(reg-event-fx
+ :assets/failure
+ (fn [{db :db} [_ evt]]
+   (let [mine-name (get-in db [:mines (:current-mine db) :name])]
+     {:db (case evt
+            (:authentication/init :authentication/invalid-token)
+            (assoc db :failed-auth? true)
+            db)
+      :dispatch (case evt
+                  (:authentication/init :authentication/invalid-token)
+                  [:messages/add
+                   {:markup [:span "Failed to acquire token. It's likely that you have no connection to the InterMine instance."]
+                    :style "danger"
+                    :timeout 0}]
+
+                  [:messages/add
+                   {:markup [:span "Failed " [:em (utils/kw->str evt)] " from " [:em mine-name] ". "
+                             "Please contact the maintainers of the InterMine instance. BlueGenes may work in reduced capacity."]
+                    :style "warning"
+                    :timeout 0}])})))

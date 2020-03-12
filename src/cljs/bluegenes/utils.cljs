@@ -29,6 +29,16 @@
     (do (assert (string? kw) "This function takes only a keyword or string.")
         kw)))
 
+(defn read-registry-mine
+  "Grab the most important data from a mine object retrieved from the registry.
+  This is how a mine is initially created in `(:mines app-db)`, before it is
+  populated with the responses from fetching assets."
+  [reg-mine]
+  {:service {:root (:url reg-mine)}
+   :name (:name reg-mine)
+   :id (-> reg-mine :namespace keyword)
+   :logo (-> reg-mine :images :logo)})
+
 (defn read-xml-query
   "Read an InterMine PathQuery in XML into an EDN Clojure map.
   Will throw on invalid XML."

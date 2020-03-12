@@ -227,3 +227,8 @@
    (->> (get-in db [:assets :intermine-version (:current-mine db)])
         (re-seq #"\d+")
         (mapv #(js/parseInt % 10)))))
+
+(reg-sub
+ :show-mine-loader?
+ (fn [db]
+   (get db :show-mine-loader?)))
