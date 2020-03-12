@@ -221,7 +221,9 @@
   ;; Make sure there are no hanging popovers.
   (ocall (js/$ ".popover") "remove")
   ;; Track the page (new-match has :data, so can use anything from `routes`).
-  (js/ga "send" "pageview" (:path new-match))
+  (try
+    (js/ga "send" "pageview" (:path new-match))
+    (catch js/Error _))
   ;; - Handle actual navigation.
   (if new-match
     (dispatch [::navigated new-match])

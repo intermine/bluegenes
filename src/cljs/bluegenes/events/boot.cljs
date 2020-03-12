@@ -245,8 +245,10 @@
      (if analytics-enabled?
         ;;set tracker up if we have a tracking id
        (do
-         (js/ga "create" analytics-id "auto")
-         (js/ga "send" "pageview")
+         (try
+           (js/ga "create" analytics-id "auto")
+           (js/ga "send" "pageview")
+           (catch js/Error _))
          (.info js/console
                 "Google Analytics enabled. Tracking ID:"
                 analytics-id))
