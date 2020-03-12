@@ -687,136 +687,142 @@
 
 (defn review-step []
   (let [resolution-response (subscribe [::subs/resolution-response])
-        in-progress? (subscribe [::subs/in-progress?])
         list-name (subscribe [::subs/list-name])
-        stats (subscribe [::subs/stats])
-        tab (subscribe [::subs/review-tab])]
+        tab (subscribe [::subs/review-tab])
+        stats (subscribe [::subs/stats])]
+    (when (pos? (:duplicates @stats))
+      (dispatch [::evts/update-option :review-tab :issues]))
     (fn []
       (let [{:keys [matches issues notFound converted duplicates all other]} @stats]
-        (if (= nil @resolution-response)
-          (if @in-progress?
-            [:div [loader]]
-            (dispatch [::route/navigate ::route/upload-step {:step "input"}]))
-          [:div
-           [:div.flex-progressbar
-            [:div.title
-             [:h4
-              (str (+ matches other) " of your " all " identifiers matched a "
-                   (str (:type @resolution-response)))]]
-               ;; inline styles are actually appropriate here for the
-               ;; percentages
-            [:div.bars
-             (when (> (- matches converted) 0)
-               [:div.bar.bar-success
-                {:style {:flex (* 100 (/ (+ matches converted) all))}}
-                (str (- matches converted)
-                     (str " Match" (when (> (- matches converted) 1) "es")))])
-             (when (> converted 0)
-               [:div.bar.bar-success
-                {:style {:flex (* 100 (/ (+ matches converted) all))}}
-                (str converted " Converted")])
-             (when (> other 0)
-               [:div.bar.bar-success
-                {:style {:flex (* 100 (/ other all))}}
-                (str other " Synonym" (when (> other 1) "s"))])
-             (when (> duplicates 0)
-               [:div.bar.bar-warning
-                {:style {:flex (* 100 (/ duplicates all))}}
-                (str duplicates " Ambiguous")])
-             (when (> notFound 0)
-               [:div.bar.bar-danger
-                {:style {:flex (* 100 (/ notFound all))}}
-                (str notFound " Not Found")])]]
+        [:div
+         [:div.flex-progressbar
+          [:div.title
+           [:h4
+            (str (+ matches other) " of your " all " identifiers matched a "
+                 (str (:type @resolution-response)))]]
+          ;; inline styles are actually appropriate here for the
+          ;; percentages
+          [:div.bars
+           (when (> (- matches converted) 0)
+             [:div.bar.bar-success
+              {:style {:flex (* 100 (/ (+ matches converted) all))}}
+              (str (- matches converted)
+                   (str " Match" (when (> (- matches converted) 1) "es")))])
+           (when (> converted 0)
+             [:div.bar.bar-success
+              {:style {:flex (* 100 (/ (+ matches converted) all))}}
+              (str converted " Converted")])
+           (when (> other 0)
+             [:div.bar.bar-success
+              {:style {:flex (* 100 (/ other all))}}
+              (str other " Synonym" (when (> other 1) "s"))])
+           (when (> duplicates 0)
+             [:div.bar.bar-warning
+              {:style {:flex (* 100 (/ duplicates all))}}
+              (str duplicates " Ambiguous")])
+           (when (> notFound 0)
+             [:div.bar.bar-danger
+              {:style {:flex (* 100 (/ notFound all))}}
+              (str notFound " Not Found")])]]
 
-           (when (not= duplicates 0)
-             (dispatch [::evts/update-option :review-tab :issues])
-             [:div.alert.alert-warning.guidance
-              [:h4 [:svg.icon.icon-info
-                    [:use {:xlinkHref "#icon-info"}]]
-               (str " " duplicates " of your identifiers resolved to more than one "
-                    (:type @resolution-response))]
-              [:p "Please select which objects you want to keep from the "
-               [:span.label.label-warning
-                [:svg.icon.icon-duplicate
-                 [:use {:xlinkHref "#icon-duplicate"}]]
-                (str " Ambiguous (" duplicates ")")]
-               " tab"]])
-           [:div.save-list
-            [:label "List Name"
-             [:input
-              {:type "text"
-               :value @list-name
-               :on-change (fn [e]
-                            (dispatch
-                             [::evts/update-list-name
-                              (oget e :target :value)]))}]]
-            [:button.cta
-             {:on-click (fn [] (dispatch [::evts/save-list]))}
-             [:svg.icon.icon-floppy-disk
-              [:use {:xlinkHref "#icon-floppy-disk"}]]
-             "Save List"]]
+         (when (not= duplicates 0)
+           [:div.alert.alert-warning.guidance
+            [:h4 [:svg.icon.icon-info
+                  [:use {:xlinkHref "#icon-info"}]]
+             (str " " duplicates " of your identifiers resolved to more than one "
+                  (:type @resolution-response))]
+            [:p "Please select which objects you want to keep from the "
+             [:span.label.label-warning
+              [:svg.icon.icon-duplicate
+               [:use {:xlinkHref "#icon-duplicate"}]]
+              (str " Ambiguous (" duplicates ")")]
+             " tab"]])
+         [:div.save-list
+          [:label "List Name"
+           [:input
+            {:type "text"
+             :value @list-name
+             :on-change (fn [e]
+                          (dispatch
+                            [::evts/update-list-name
+                             (oget e :target :value)]))}]]
+          [:button.cta
+           {:on-click (fn [] (dispatch [::evts/save-list]))}
+           [:svg.icon.icon-floppy-disk
+            [:use {:xlinkHref "#icon-floppy-disk"}]]
+           "Save List"]]
 
-           [:ul.nav.nav-tabs.id-resolver-tabs
-            (when (> matches 0)
-              [:li
-               {:class (when (= @tab :matches) "active")
-                :on-click
-                (fn []
-                  (dispatch
-                   [::evts/update-option :review-tab :matches]))}
-               [:a.matches.all-ok
-                [:svg.icon.icon-checkmark
-                 [:use {:xlinkHref "#icon-checkmark"}]]
-                (str " Matches ("
-                     (- matches converted) ")")]])
-            (when (> converted 0)
-              [:li
-               {:class (when (= @tab :converted) "active")
-                :on-click
-                (fn [] (dispatch
-                        [::evts/update-option :review-tab :converted]))}
-               [:a.converted.all-ok
-                [:svg.icon.icon-converted
-                 [:use {:xlinkHref "#icon-converted"}]]
-                (str "Converted (" converted ")")]])
-            (when (> other 0)
-              [:li
-               {:class (when (= @tab :other) "active")
-                :on-click
-                (fn []
-                  (dispatch
-                   [::evts/update-option :review-tab :other]))}
-               [:a.synonyms.all-ok
-                [:svg.icon.icon-info
-                 [:use {:xlinkHref "#icon-info"}]]
-                (str "Synonyms (" other ")")]])
-            (when (> duplicates 0)
-              [:li
-               {:class (when (= @tab :issues) "active")
-                :on-click (fn []
-                            (dispatch
-                             [::evts/update-option :review-tab :issues]))}
-               [:a.ambiguous.needs-attention
-                [:svg.icon.icon-duplicate
-                 [:use {:xlinkHref "#icon-duplicate"}]]
-                (str " Ambiguous (" duplicates ")")]])
-            (when (> notFound 0)
-              [:li
-               {:class (when (= @tab :notFound) "active")
-                :on-click
-                (fn [] (dispatch
-                        [::evts/update-option :review-tab :notFound]))}
-               [:a.error.not-found
-                [:svg.icon.icon-wondering
-                 [:use {:xlinkHref "#icon-wondering"}]]
-                (str "Not Found (" notFound ")")]])]
-           [:div.table-container
-            (case @tab
-              :issues [review-table (:type @resolution-response) (-> @resolution-response :matches :DUPLICATE)]
-              :notFound [not-found-table (:type @resolution-response) (-> @resolution-response :unresolved)]
-              :converted [converted-table (:type @resolution-response) (-> @resolution-response :matches :TYPE_CONVERTED) :converted]
-              :other [converted-table (:type @resolution-response) (-> @resolution-response :matches :OTHER) :other]
-              [matches-table (:type @resolution-response) (-> @resolution-response :matches :MATCH)])]])))))
+         [:ul.nav.nav-tabs.id-resolver-tabs
+          (when (> matches 0)
+            [:li
+             {:class (when (= @tab :matches) "active")
+              :on-click
+              (fn []
+                (dispatch
+                  [::evts/update-option :review-tab :matches]))}
+             [:a.matches.all-ok
+              [:svg.icon.icon-checkmark
+               [:use {:xlinkHref "#icon-checkmark"}]]
+              (str " Matches ("
+                   (- matches converted) ")")]])
+          (when (> converted 0)
+            [:li
+             {:class (when (= @tab :converted) "active")
+              :on-click
+              (fn [] (dispatch
+                       [::evts/update-option :review-tab :converted]))}
+             [:a.converted.all-ok
+              [:svg.icon.icon-converted
+               [:use {:xlinkHref "#icon-converted"}]]
+              (str "Converted (" converted ")")]])
+          (when (> other 0)
+            [:li
+             {:class (when (= @tab :other) "active")
+              :on-click
+              (fn []
+                (dispatch
+                  [::evts/update-option :review-tab :other]))}
+             [:a.synonyms.all-ok
+              [:svg.icon.icon-info
+               [:use {:xlinkHref "#icon-info"}]]
+              (str "Synonyms (" other ")")]])
+          (when (> duplicates 0)
+            [:li
+             {:class (when (= @tab :issues) "active")
+              :on-click (fn []
+                          (dispatch
+                            [::evts/update-option :review-tab :issues]))}
+             [:a.ambiguous.needs-attention
+              [:svg.icon.icon-duplicate
+               [:use {:xlinkHref "#icon-duplicate"}]]
+              (str " Ambiguous (" duplicates ")")]])
+          (when (> notFound 0)
+            [:li
+             {:class (when (= @tab :notFound) "active")
+              :on-click
+              (fn [] (dispatch
+                       [::evts/update-option :review-tab :notFound]))}
+             [:a.error.not-found
+              [:svg.icon.icon-wondering
+               [:use {:xlinkHref "#icon-wondering"}]]
+              (str "Not Found (" notFound ")")]])]
+         [:div.table-container
+          (case @tab
+            :issues [review-table (:type @resolution-response) (-> @resolution-response :matches :DUPLICATE)]
+            :notFound [not-found-table (:type @resolution-response) (-> @resolution-response :unresolved)]
+            :converted [converted-table (:type @resolution-response) (-> @resolution-response :matches :TYPE_CONVERTED) :converted]
+            :other [converted-table (:type @resolution-response) (-> @resolution-response :matches :OTHER) :other]
+            [matches-table (:type @resolution-response) (-> @resolution-response :matches :MATCH)])]]))))
+
+(defn review-step-container []
+  (let [resolution-response (subscribe [::subs/resolution-response])
+        in-progress? (subscribe [::subs/in-progress?])]
+    (fn []
+      (if (= nil @resolution-response)
+        (if @in-progress?
+          [:div [loader]]
+          (dispatch [::route/navigate ::route/upload-step {:step "input"}]))
+        [review-step]))))
 
 (defn breadcrumbs []
   (let [response (subscribe [::subs/resolution-response])]
@@ -847,7 +853,7 @@
        [breadcrumbs (:step @panel-params)]
        [:div.wizard-body
         (case (:step @panel-params)
-          :save [review-step]
+          :save [review-step-container]
           [upload-step])]])))
 
 (defn main []
