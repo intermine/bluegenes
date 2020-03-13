@@ -138,7 +138,6 @@
 
     [:symbol#icon-venn-intersection
      {:viewBox "-5 0 160 100"}
-     [:title "Intersect these lists"]
 
      [:circle
       {:r 50 :cx 50 :cy 50 :stroke-width 5 :fill "transparent" :stroke "black"}]
@@ -238,7 +237,6 @@
 
     [:symbol#icon-table
      {:viewBox "0 0 16 16"}
-     [:title "table"]
      [:path.path1
       {:d
        "M0 1v14h16v-14h-16zM6 10v-3h4v3h-4zM10 11v3h-4v-3h4zM10 3v3h-4v-3h4zM5 3v3h-4v-3h4zM1 7h4v3h-4v-3zM11 7h4v3h-4v-3zM11 6v-3h4v3h-4zM1 11h4v3h-4v-3zM11 14v-3h4v3h-4z"}]]
@@ -491,7 +489,7 @@
 
     [:symbol#icon-sort-alpha-asc
      {:viewBox "0 0 16 16"}
-     [:title "Sort alphabetically ascending"]
+     [:title "Sort ascending"]
      [:path {:d "M5 12v-12h-2v12h-2.5l3.5 3.5 3.5-3.5h-2.5z"}]
      [:path
       {:d
@@ -502,7 +500,7 @@
 
     [:symbol#icon-sort-alpha-desc
      {:viewBox "0 0 16 16"}
-     [:title "Sort alphabetically descending"]
+     [:title "Sort descending"]
      [:path {:d "M5 12v-12h-2v12h-2.5l3.5 3.5 3.5-3.5h-2.5z"}]
      [:path
       {:d

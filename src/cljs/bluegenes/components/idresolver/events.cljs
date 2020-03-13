@@ -199,6 +199,7 @@
                    [:results/history+
                     {:source (get db :current-mine)
                      :type :query
+                     :intent :list
                      :value {:title list-name
                              :from object-type
                              :select summary-fields

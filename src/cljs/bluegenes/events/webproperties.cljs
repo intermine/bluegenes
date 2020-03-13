@@ -53,8 +53,9 @@
 
 (reg-event-fx
  :assets/fetch-web-properties
- (fn [{db :db} _]
+ (fn [{db :db} [evt]]
    (let [current-mine (:current-mine db)
          service      (get-in db [:mines current-mine :service])]
      {:im-chan {:chan (fetch/web-properties service)
-                :on-success [:assets/success-fetch-web-properties current-mine]}})))
+                :on-success [:assets/success-fetch-web-properties current-mine]
+                :on-failure [:assets/failure evt]}})))

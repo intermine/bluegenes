@@ -464,7 +464,7 @@
      (when-let [err-msg (or (get @state :error)
                             @(subscribe [:bluegenes.pages.mymine.subs/modal-data
                                          [:organize :error]]))]
-       [:p.error err-msg])]))
+       [:p.failure err-msg])]))
 
 (defn confirm
   "Returns a stripped non-interactive organize element highlighting empty folders.
