@@ -1,12 +1,13 @@
 # Local build
 
+Start by installing the dependencies in [System Requirements](docs/building.md#system-requirements), then [Download NPM dependencies](docs/building.md#download-npm-dependencies) and finally run the command in [Running a dev environment](docs/building.md#running-a-dev-environment). For more information, refer to the rest of this document or the [FAQ](docs/useful-faqs.md).
+
 ## System Requirements
 
 * OpenJDK, version 8 (only until we make our software compatible with OpenJDK 11)
 * Latest [Leiningen](https://leiningen.org/)
 * Latest supported [nodejs](https://nodejs.org/).  You can check your version using `node -v`). We recommend installing node using [nvm](https://github.com/creationix/nvm)
 * Latest supported [npm](https://www.npmjs.com/)
-* InterMine version 1.8+ (version 2.0 recommended)
 
 ## Download NPM dependencies
 
