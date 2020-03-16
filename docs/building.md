@@ -1,6 +1,6 @@
 # Local build
 
-Start by installing the dependencies in [System Requirements](docs/building.md#system-requirements), then [Download NPM dependencies](docs/building.md#download-npm-dependencies) and finally run the command in [Running a dev environment](docs/building.md#running-a-dev-environment). For more information, refer to the rest of this document or the [FAQ](docs/useful-faqs.md).
+Start by installing the dependencies in [System Requirements](/docs/building.md#system-requirements), then [Download NPM dependencies](/docs/building.md#download-npm-dependencies) and finally run the command in [Running a dev environment](/docs/building.md#running-a-dev-environment). For more information, refer to the rest of this document or the [FAQ](/docs/useful-faqs.md).
 
 ## System Requirements
 
