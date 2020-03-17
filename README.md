@@ -34,6 +34,8 @@ Check out our [contributing guidelines](https://github.com/intermine/bluegenes/b
 
 [Configuring a local build](docs/configuring.md)
 
+[Development resources](docs/developing.md)
+
 
 ## Need further help?
 
