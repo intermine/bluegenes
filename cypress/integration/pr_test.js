@@ -1,13 +1,3 @@
-// There is a bug triggered by the combination of reitit and cypress:
-// https://github.com/metosin/reitit/pull/301
-// Until the above PR gets merged, we ignore uncaught exceptions containing the
-// false positive error to keep CI going.
-Cypress.on('uncaught:exception', (err, runnable) => {
-  expect(err.message).to.include('is not ISeqable')
-
-  return false;
-});
-
 describe("UI Test", function() {
   beforeEach(function() {
     cy.visit("/");
@@ -54,7 +44,7 @@ describe("UI Test", function() {
         .should("be.gt", 0);
     });
     cy.get("div[class=template-list]").within(() => {
-      cy.get(":nth-child(2) > .col")
+      cy.get(":nth-child(1) > .col")
         .find("button")
         .contains("View >>")
         .click({ force: true });
@@ -63,7 +53,7 @@ describe("UI Test", function() {
     cy.get("@getData").should(xhr => {
       expect(xhr.status).to.equal(200);
     });
-    cy.get(".template-constraint-container:nth-child(2) select.constraint-chooser")
+    cy.get(".template-constraint-container:nth-child(1) select.constraint-chooser")
       .select("!=");
   });
 
@@ -169,16 +159,9 @@ describe("UI Test", function() {
   it("Login and logout works", function() {
     cy.server();
     cy.route("POST", "/api/auth/login").as("auth");
-    cy.get("#bluegenes-main-nav").within(() => {
-      cy.get("ul")
-        .find("li.dropdown.mine-settings.secondary-nav")
-        .click()
-        .contains("FlyMine")
-        .click();
-    });
     cy.contains("Log In").click();
-    cy.get("#email").type("demo@intermine.org");
-    cy.get("input[type='password']").type("demo");
+    cy.get("#email").type("test_user@mail_account");
+    cy.get("input[type='password']").type("secret");
     cy.get("form")
       .find("button")
       .click();
@@ -186,19 +169,29 @@ describe("UI Test", function() {
     cy.get("@auth").should(xhr => {
       expect(xhr.status).to.equal(200);
     });
-    cy.contains("demo@intermine.org").should('be.visible');
+
+    cy.contains("test_user@mail_account").should('be.visible');
+
+    cy.get('#bluegenes-main-nav .logon').click();
+    cy.get('#bluegenes-main-nav .logon').contains('Log Out').click();
   });
 
   it("Successfully clears invalid anonymous token using dialog", function() {
     cy.server();
-    cy.route("GET", "*/service/search?*").as("getSearch");
+    cy.route("POST", "*/service/query/results").as("queryOrganisms");
+
+    cy.wait(1000);
+    // This request is run when Bluegenes has finished loading.
+    cy.wait("@queryOrganisms")
 
     cy.window().then(win => {
       win.bluegenes.events.scrambleTokens();
     });
 
+    cy.route("GET", "*/service/search?*").as("getSearch");
+
     cy.get(".home .search").within(() => {
-      cy.get("input[class=typeahead-search]").type("zen{enter}", { delay: 100 });
+      cy.get("input[class=typeahead-search]").type("gene{enter}", { delay: 100 });
     });
 
     cy.wait("@getSearch");
@@ -217,7 +210,7 @@ describe("UI Test", function() {
 
     cy.contains("Home").click();
     cy.get(".home .search").within(() => {
-      cy.get("input[class=typeahead-search]").clear().type("adh{enter}", { delay: 100 });
+      cy.get("input[class=typeahead-search]").clear().type("gene{enter}", { delay: 100 });
     });
 
     cy.wait("@getSecondSearch");
