@@ -2,7 +2,7 @@ version: 2.1
 executors:
   intermine_exec:
     machine:
-    - image: 'ubuntu-1604:201903-01'
+      image: ubuntu-1604:201903-01
   bluegenes_exec:
     docker:
     - image: 'circleci/clojure:openjdk-8-lein-2.9.1-node-browsers'
