@@ -15,7 +15,7 @@ jobs:
   setup_biotestmine:
     executor: intermine_exec
     steps:
-    - run: pip install intermine-boot
+    - run: pip3 install intermine-boot
     - run: intermine_boot start local --build-im --im-branch bluegenes
   setup_bluegenes:
     executor: bluegenes_exec

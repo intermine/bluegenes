@@ -8,6 +8,7 @@ addons:
     packages:
       - python3-pip
       - python3-setuptools
+      - python3-wheel
 env:
   global:
     - BLUEGENES_DEFAULT_SERVICE_ROOT="http://localhost:9999/biotestmine"
