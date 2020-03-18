@@ -2,6 +2,10 @@ language: java
 sudo: true
 jdk: openjdk8
 services: postgresql
+addons:
+  apt:
+    packages:
+      - python3
 env:
   global:
     - BLUEGENES_DEFAULT_SERVICE_ROOT="http://localhost:9999/biotestmine"
