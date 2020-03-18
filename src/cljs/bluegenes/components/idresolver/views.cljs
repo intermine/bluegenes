@@ -744,8 +744,8 @@
              :value @list-name
              :on-change (fn [e]
                           (dispatch
-                            [::evts/update-list-name
-                             (oget e :target :value)]))}]]
+                           [::evts/update-list-name
+                            (oget e :target :value)]))}]]
           [:button.cta
            {:on-click (fn [] (dispatch [::evts/save-list]))}
            [:svg.icon.icon-floppy-disk
@@ -759,7 +759,7 @@
               :on-click
               (fn []
                 (dispatch
-                  [::evts/update-option :review-tab :matches]))}
+                 [::evts/update-option :review-tab :matches]))}
              [:a.matches.all-ok
               [:svg.icon.icon-checkmark
                [:use {:xlinkHref "#icon-checkmark"}]]
@@ -770,7 +770,7 @@
              {:class (when (= @tab :converted) "active")
               :on-click
               (fn [] (dispatch
-                       [::evts/update-option :review-tab :converted]))}
+                      [::evts/update-option :review-tab :converted]))}
              [:a.converted.all-ok
               [:svg.icon.icon-converted
                [:use {:xlinkHref "#icon-converted"}]]
@@ -781,7 +781,7 @@
               :on-click
               (fn []
                 (dispatch
-                  [::evts/update-option :review-tab :other]))}
+                 [::evts/update-option :review-tab :other]))}
              [:a.synonyms.all-ok
               [:svg.icon.icon-info
                [:use {:xlinkHref "#icon-info"}]]
@@ -791,7 +791,7 @@
              {:class (when (= @tab :issues) "active")
               :on-click (fn []
                           (dispatch
-                            [::evts/update-option :review-tab :issues]))}
+                           [::evts/update-option :review-tab :issues]))}
              [:a.ambiguous.needs-attention
               [:svg.icon.icon-duplicate
                [:use {:xlinkHref "#icon-duplicate"}]]
@@ -801,7 +801,7 @@
              {:class (when (= @tab :notFound) "active")
               :on-click
               (fn [] (dispatch
-                       [::evts/update-option :review-tab :notFound]))}
+                      [::evts/update-option :review-tab :notFound]))}
              [:a.error.not-found
               [:svg.icon.icon-wondering
                [:use {:xlinkHref "#icon-wondering"}]]
