@@ -75,6 +75,7 @@ describe("UI Test", function() {
     });
   });
 
+  /* TODO: Uncomment this when webservice supports updating description when not logged in.
   it("Saves the list from an upload, updates the description and deletes it", function() {
     // Upload list
 
@@ -132,6 +133,7 @@ describe("UI Test", function() {
 
     cy.contains(listName).should("not.exist");
   });
+  */
 
   it("Perform a region search using existing example", function() {
     cy.server();
