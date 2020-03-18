@@ -1,15 +1,23 @@
 version: 2.1
 executors:
+  intermine_exec:
+    docker:
+    - image: 'circleci/python:3.5'
   bluegenes_exec:
     docker:
     - image: 'circleci/clojure:openjdk-8-lein-2.9.1-node-browsers'
-    # TODO add biotestmine docker
     environment:
-      BLUEGENES_DEFAULT_SERVICE_ROOT: "http://www.flymine.org/flymine"
+      BLUEGENES_DEFAULT_SERVICE_ROOT: "http://localhost:9999/biotestmine"
       CYPRESS_defaultCommandTimeout: 60000
       CYPRESS_requestTimeout: 60000
       CYPRESS_responseTimeout: 60000
 jobs:
+  setup_biotestmine:
+    executor: intermine_exec
+    steps:
+    - setup_remote_docker
+    - run: pip install intermine-boot
+    - run: intermine_boot start local --build-im --im-branch bluegenes
   setup_bluegenes:
     executor: bluegenes_exec
     steps:
@@ -51,4 +59,5 @@ jobs:
 workflows:
   build_and_test:
     jobs:
+    - setup_biotestmine
     - setup_bluegenes
