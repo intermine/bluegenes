@@ -4,15 +4,15 @@ jdk: openjdk8
 services: postgresql
 env:
   global:
-    - BLUEGENES_DEFAULT_SERVICE_ROOT="http://localhost:8080/biotestmine"
+    - BLUEGENES_DEFAULT_SERVICE_ROOT="http://localhost:9999/biotestmine"
     - CYPRESS_defaultCommandTimeout=60000
     - CYPRESS_requestTimeout=60000
     - CYPRESS_responseTimeout=60000
 
 before_script:
   # Setup biotestmine to test against
-  - git clone https://github.com/intermine/ci-scripts
-  - (cd ci-scripts && bash init-biotestmine.sh)
+  - pip install intermine-boot
+  - intermine_boot start local --build-im --im-branch bluegenes
   # Install lein - required to build the project
   - wget https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein -O /tmp/lein
   - chmod +x /tmp/lein
