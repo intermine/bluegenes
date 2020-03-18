@@ -2,7 +2,7 @@ version: 2.1
 executors:
   intermine_exec:
     docker:
-    - image: 'circleci/python:3.5'
+    - image: 'circleci/python:3.8.2'
   bluegenes_exec:
     docker:
     - image: 'circleci/clojure:openjdk-8-lein-2.9.1-node-browsers'
