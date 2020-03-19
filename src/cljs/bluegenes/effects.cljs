@@ -1,10 +1,11 @@
 (ns bluegenes.effects
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
-  (:require [re-frame.core :as rf :refer [dispatch subscribe reg-fx reg-cofx]]
-            [cljs.core.async :refer [<! close!]]
+  (:require [re-frame.core :as rf :refer [dispatch reg-fx reg-cofx]]
+            [cljs.core.async :refer [<! close! put!]]
             [cljs-http.client :as http]
             [cognitect.transit :as t]
-            [bluegenes.titles :refer [db->title]]))
+            [bluegenes.titles :refer [db->title]]
+            [oops.core :refer [ocall]]))
 
 ;; Cofx and fx which you use from event handlers to read/write to localStorage.
 
@@ -70,43 +71,66 @@
 ;; represents an HTTP request and dispatches events depending on the status of
 ;; that request's response.
 (reg-fx :im-chan
-        (let [previous-requests (atom {})]
-          (fn [{:keys [on-success on-failure chan abort]}]
-            ; This http request can be closed early to prevent asynchronous http race conditions
+        (let [previous-requests (atom {})
+              active-requests (atom #{})]
+          (fn [{:keys [on-success on-failure chan abort abort-active]}]
+            ;; `abort` should be used when you have a request which may be sent
+            ;; multiple times, and you want new requests to replace pending
+            ;; requests of the same `abort` value.
             (when abort
               ; Look for a request stored in the state keyed by whatever value is in 'abort'
               ; and close it
               (some-> @previous-requests (get abort) close!)
               ; Swap the old value for the new value
               (swap! previous-requests assoc abort chan))
-            (go
-              (let [{:keys [statusCode status] :as response} (<! chan)
-                    ;; `statusCode` is part of the response body from InterMine.
-                    ;; `status` is part of the response map created by cljs-http.
-                    s (or statusCode status)
-                    ;; Response can be nil or "" when offline.
-                    valid-response? (and (some? response)
-                                         (not= response ""))]
-                ;; Note that `s` can be nil for successful responses, due to
-                ;; imcljs applying a transducer on success. The proper way to
-                ;; check for null responses (which don't have a status code)
-                ;; is to check if the response itself is nil.
-                (cond
-                  ;; This first clause will intentionally match on s=nil.
-                  (and valid-response?
-                       (< s 400)) (dispatch (conj on-success response))
-                  (and valid-response?
-                       (= s 401)) (if on-failure
-                                    (dispatch (conj on-failure response))
-                                    (dispatch [:flag-invalid-token]))
-                  :else (cond
-                          on-failure (dispatch (conj on-failure response))
-                          ;; If `abort` is specified, it's possible that this request's
-                          ;; channel was closed by a subsequent request. In this case,
-                          ;; there's no error and we don't want to log it.
-                          (and abort (nil? response)) nil
-                          :else
-                          (.error js/console "Failed imcljs request" response))))))))
+
+            ;; `abort-active` is different from `abort` in that instead of being
+            ;; used with a request, it's more something you call to cancel all
+            ;; active requests, without invoking their `on-failure` function.
+            (when abort-active
+              (doseq [req @active-requests]
+                ;; Create an artificial HTTP response to indicate that this
+                ;; request has been aborted.
+                (put! req {:status 408
+                           :success false
+                           :body :abort})
+                (close! req)))
+
+            (when chan
+              (swap! active-requests conj chan)
+              (go
+                (let [{:keys [statusCode status] :as response} (<! chan)
+                      ;; `statusCode` is part of the response body from InterMine.
+                      ;; `status` is part of the response map created by cljs-http.
+                      s (or statusCode status)
+                      ;; Response can be nil or "" when offline.
+                      valid-response? (and (some? response)
+                                           (not= response ""))]
+                  (swap! active-requests disj chan)
+                  ;; Note that `s` can be nil for successful responses, due to
+                  ;; imcljs applying a transducer on success. The proper way to
+                  ;; check for null responses (which don't have a status code)
+                  ;; is to check if the response itself is nil.
+                  (cond
+                    ;; This first clause will intentionally match on s=nil.
+                    (and valid-response?
+                         (< s 400)) (dispatch (conj on-success response))
+                    (and valid-response?
+                         (= s 401)) (if on-failure
+                                      (dispatch (conj on-failure response))
+                                      (dispatch [:flag-invalid-token]))
+                    :else (cond
+                            ;; Don't invoke `on-failure` if request was aborted.
+                            (and (= s 408) (= (:body response) :abort)) nil
+
+                            on-failure (dispatch (conj on-failure response))
+
+                            ;; If `abort` is specified, it's possible that this request's
+                            ;; channel was closed by a subsequent request. In this case,
+                            ;; there's no error and we don't want to log it.
+                            (and abort (nil? response)) nil
+                            :else
+                            (.error js/console "Failed imcljs request" response)))))))))
 
 (defn http-fxfn
   "The :http side effect is similar to :im-chan but is more generic and is used
@@ -176,3 +200,36 @@
                    {:chan (imcljs.fetch/rows service query options)
                     :on-success [:save-query-results-event]
                     :on-error [:warn-user-about-error-event]}})))
+
+;; Switching mines is usually so quick that we don't need a loader.
+;; But if it were to take a long time, we'll show a loader.
+(reg-fx
+ :mine-loader
+ (let [timer (atom nil)
+       showing? (atom false)
+       clear-timer! (fn []
+                      (when-let [active-timer @timer]
+                         (.clearTimeout js/window active-timer))
+                      (when @showing?
+                        (dispatch [:hide-mine-loader])
+                        (reset! showing? false)))]
+   (fn [state]
+     (case state
+       true (do (clear-timer!)
+                (reset! timer
+                        (.setTimeout js/window
+                                     #(do (dispatch [:show-mine-loader])
+                                          (reset! showing? true))
+                                     4000)))
+       false (clear-timer!)))))
+
+(reg-fx
+ :hide-intro-loader
+ (fn [_]
+   (some-> (ocall js/document :getElementById "wrappy")
+           (ocall :remove))))
+
+(reg-fx :message
+        (fn [{:keys [id timeout] :or {timeout 5000}}]
+          (when (pos? timeout)
+            (.setTimeout js/window #(dispatch [:messages/remove id]) timeout))))

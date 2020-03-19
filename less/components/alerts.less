@@ -11,14 +11,30 @@
     bottom: 10px;
     left: 0;
     width: 100%;
+
     .messages-container {
         padding: 0 50px;
         display: flex;
         flex-direction: column;
+
         .message {
             display: flex;
-            .markup { flex: 1 0; }
-            .controls { flex: 0 0; }
+
+            .markup {
+                flex: 1 0;
+
+                a {
+                    font-weight: bold;
+                }
+
+                em {
+                    font-weight: 400;
+                }
+            }
+
+            .controls {
+                flex: 0 0;
+            }
         }
     }
 }

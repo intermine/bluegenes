@@ -25,7 +25,8 @@
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
             [imcljs.fetch :as fetch]
             [bluegenes.events.registry :as registry]
-            [cljs-bean.core :refer [->clj]]))
+            [cljs-bean.core :refer [->clj]]
+            [bluegenes.utils :refer [read-registry-mine]]))
 
 ;; If a requirement exists for the target panel, it will be called with the db
 ;; as argument and its return value decides whether the panel will be changed.
@@ -43,6 +44,9 @@
          (cond-> {:db (assoc db
                              :active-panel active-panel
                              :panel-params panel-params)}
+           ;; Hide intro loader if this is the first panel change.
+           (nil? (:active-panel db)) (assoc :hide-intro-loader nil)
+           ;; Dispatch any events paired with the panel change.
            evt (assoc :dispatch evt))
          {:dispatch-n [[::route/navigate ::route/home]
                        [:messages/add
@@ -55,11 +59,21 @@
  :set-active-panel
  (fn [{db :db} [_ active-panel panel-params evt]]
    (let [event [:do-active-panel active-panel panel-params evt]]
-     (if (:fetching-assets? db)
+     (cond
        ;; If we're fetching assets then save the panel change for later.
+       (:fetching-assets? db)
        {:db (update db :dispatch-after-boot (fnil conj []) event)}
+       ;; If we failed to auth with mine, don't do a panel change.
+       (:failed-auth? db)
+       {:dispatch [:messages/add
+                   {:markup [:span "Navigation has been disabled due to being unable to establish a connection with "
+                             (let [current-mine (:current-mine db)
+                                   mine-name (get-in db [:mines current-mine :name])]
+                               [:em mine-name])
+                             ". You can still use the mine switcher to connect to a different InterMine instance."]
+                    :style "warning"}]}
        ;; Otherwise dispatch it now.
-       {:dispatch event}))))
+       :else {:dispatch event}))))
 
 (reg-event-fx
  :save-state
@@ -105,27 +119,42 @@
  (fn [{db :db} [_ mine]]
    (let [mine-kw         (keyword mine)
          different-mine? (not= mine-kw (:current-mine db))
-         done-booting?   (not (:fetching-assets? db))
          not-home?       (not= (:active-panel db) :home-panel)
          in-registry?    (contains? (:registry db) mine-kw)
          in-mines?       (contains? (:mines db) mine-kw)
-         mine-m          (get-in db [:registry mine-kw])]
+         mine-m          (get-in db [:registry mine-kw])
+         active-flow?    (some? (:boot-flow db))]
      (if different-mine?
-       (cond-> {:db (assoc db :current-mine mine-kw)
-                :visual-navbar-minechange []}
+       (cond-> {:db (assoc db
+                           :current-mine mine-kw
+                           :fetching-assets? true)
+                :visual-navbar-minechange []
+                ;; Abort all active requests.
+                :im-chan {:abort-active true}
+                ;; Start the timer for showing the loading dialog.
+                :mine-loader true
+                ;; Switching mine always involves a reboot.
+                :dispatch-n [[:messages/clear]
+                             [:reboot]]}
          ;; This does not run for the `:default` mine, as it isn't part of the
          ;; registry. This is good as we don't want to overwrite it anyways.
          (and in-registry?
               (not in-mines?)) (assoc-in [:db :mines mine-kw]
-                                         {:service {:root (:url mine-m)}
-                                          :name (:name mine-m)
-                                          :id mine-kw})
-         not-home?     (update :db assoc
-                               :active-panel :home-panel
-                               :panel-params nil)
-         ;; We need to make sure to :reboot when switching mines.
-         done-booting? (-> (assoc-in [:db :fetching-assets?] true)
-                           (assoc :dispatch [:reboot])))
+                                         (read-registry-mine mine-m))
+         ;; Switch to home page.
+         not-home? (update :db assoc
+                           :active-panel :home-panel
+                           :panel-params nil)
+         ;; We are being a bit naughty here, manually pulling the plug
+         ;; on the async-flow, but it's the only way to abruptly halt
+         ;; an in-progress flow (we don't want two overlapping!).
+         active-flow? (-> (update :db dissoc :boot-flow)
+                          (assoc
+                           :forward-events {:unregister :async/custom-flow}
+                           :deregister-event-handler :async/custom-flow)))
+       ;; It's probably not a good idea to put something in the following branch.
+       ;; It will run on initial boot, but you can't tell exactly when, and it
+       ;; might run multiple times.
        {}))))
 
 (reg-event-db
@@ -224,19 +253,36 @@
  (fn [db]
    (assoc-in db [:mines (:current-mine db) :service :token] "faketoken")))
 
-(reg-event-db
+(reg-event-fx
  :messages/add
- (fn [db [_ props]]
+ (fn [{db :db} [_ props]]
    (let [id (gensym)
          msg (assoc props
                     :id id
                     :when (.getTime (js/Date.)))]
-     (assoc-in db [:messages id] msg))))
+     {:db (assoc-in db [:messages id] msg)
+      :message (select-keys msg [:id :timeout])})))
 
 (reg-event-db
  :messages/remove
  (fn [db [_ id]]
    (update db :messages dissoc id)))
 
+(reg-event-db
+ :messages/clear
+ (fn [db]
+   (update db :messages empty)))
+
 (defn ^:export scrambleTokens []
   (dispatch [:scramble-tokens]))
+
+(reg-event-fx
+ :show-mine-loader
+ (fn [{db :db}]
+   {:db (assoc db :show-mine-loader? true)
+    :hide-intro-loader nil}))
+
+(reg-event-db
+ :hide-mine-loader
+ (fn [db]
+   (assoc db :show-mine-loader? false)))

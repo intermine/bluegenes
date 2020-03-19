@@ -69,6 +69,7 @@
          {:dispatch-n [[:results/history+
                         {:source current-mine
                          :type :query
+                         :intent :list
                          :value {:title title
                                  :from type
                                  :select summary-fields
@@ -185,12 +186,18 @@
       :controllers
       [{:start #(dispatch [:set-active-panel :querybuilder-panel
                            nil
-                           [:qb/make-tree]])}]}]
+                           [:bluegenes.pages.querybuilder.events/load-querybuilder]])}]}]
     ["/list/:title"
      {:name ::list
       :controllers
       [{:parameters {:path [:title]}
         :start (fn [{{:keys [title]} :path}]
+                 ;; We have to clear the previous query and tools entity, as
+                 ;; otherwise we may show old results and tools from the
+                 ;; previous invocation. This way, we'll only show the new
+                 ;; results and tools once they're ready.
+                 (dispatch [:results/clear])
+                 (dispatch [:clear-ids-tool-entity])
                  (dispatch [:set-active-panel :results-panel
                             nil
                             [::view-list title]]))}]}]
@@ -220,7 +227,9 @@
   ;; Make sure there are no hanging popovers.
   (ocall (js/$ ".popover") "remove")
   ;; Track the page (new-match has :data, so can use anything from `routes`).
-  (js/ga "send" "pageview" (:path new-match))
+  (try
+    (js/ga "send" "pageview" (:path new-match))
+    (catch js/Error _))
   ;; - Handle actual navigation.
   (if new-match
     (dispatch [::navigated new-match])

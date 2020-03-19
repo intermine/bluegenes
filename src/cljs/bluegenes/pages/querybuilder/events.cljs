@@ -5,12 +5,19 @@
             [imcljs.query :as im-query]
             [imcljs.path :as im-path]
             [imcljs.fetch :as fetch]
-            [imcljs.query :refer [->xml]]
+            [imcljs.save :as save]
             [clojure.set :refer [difference]]
-            [cljs.reader :as reader]
             [bluegenes.pages.querybuilder.logic
              :refer [read-logic-string remove-code vec->list append-code]]
-            [clojure.string :refer [join split blank?]]))
+            [clojure.string :refer [join split blank?]]
+            [bluegenes.utils :refer [read-xml-query]]
+            [oops.core :refer [oget]]))
+
+(reg-event-fx
+ ::load-querybuilder
+ (fn [_]
+   {:dispatch-n [[:qb/fetch-saved-queries]
+                 [:qb/clear-import-result]]}))
 
 (def loc [:qb :qm])
 
@@ -182,7 +189,9 @@
                   :menu (treeify model query)
                   :order (:select query)
                   :root-class (keyword (:from query))
-                  :constraint-logic (read-logic-string (:constraintLogic query)))
+                  :constraint-logic (read-logic-string (:constraintLogic query))
+                  :sort (:sortOrder query)
+                  :joins (set (:joins query)))
       :dispatch [:qb/enhance-query-build-im-query true]})))
 
 (reg-event-fx
@@ -193,7 +202,10 @@
                   :constraint-logic nil
                   :query-is-valid? false
                   :order []
+                  :sort []
+                  :joins #{}
                   :preview nil
+                  :im-query nil
                   :enhance-query {}
                   :root-class (keyword root-class-kw)
                   :qm {root-class-kw {:visible true}})})))
@@ -271,9 +283,11 @@
     :dispatch [:results/history+
                {:source (get-in db [:current-mine])
                 :type :query
+                :intent :query
                 :value (assoc
                         (get-in db [:qb :im-query])
-                        :title "Custom Built Query")}]}))
+                        :title (str "Custom Query " (hash (get-in db [:qb :im-query]))))
+                :display-title "Custom Query"}]}))
 
 (defn within? [col item]
   (some? (some #{item} col)))
@@ -355,6 +369,37 @@
                      :order new-order)
       :dispatch [:qb/enhance-query-build-im-query true]})))
 
+(defn subpath-of? [subpath path]
+  (let [subpaths (->> (split path #"\.")
+                      (iterate drop-last)
+                      (take-while not-empty)
+                      (set))]
+    (contains? subpaths (split subpath #"\."))))
+
+(reg-event-fx
+ :qb/add-outer-join
+ (fn [{db :db} [_ pathv]]
+   (let [outerjoins ((fnil conj #{}) (get-in db [:qb :joins]) (join "." pathv))
+         outerjoined-paths (->> (get-in db [:qb :sort])
+                                (map :path)
+                                (filter (fn [path]
+                                          (some #(subpath-of? % path) outerjoins)))
+                                (set))]
+     {:db (-> db
+              (assoc-in [:qb :joins] outerjoins)
+              ;; If any previously added sort path is part of the newly added
+              ;; outerjoined path, we need to remove it as it's not supported.
+              (cond-> (not-empty outerjoined-paths)
+                (update-in [:qb :sort]
+                           #(into [] (remove (comp outerjoined-paths :path)) %))))
+      :dispatch [:qb/enhance-query-build-im-query true]})))
+
+(reg-event-fx
+ :qb/remove-outer-join
+ (fn [{db :db} [_ pathv]]
+   {:db (update-in db [:qb :joins] (fnil disj #{}) (join "." pathv))
+    :dispatch [:qb/enhance-query-build-im-query true]}))
+
 (reg-event-fx
  :qb/enhance-query-add-constraint
  (fn [{db :db} [_ view-vec]]
@@ -398,10 +443,21 @@
    (update-in db [:qb] assoc
               :enhance-query {}
               :order []
+              :sort []
+              :joins #{}
               :preview nil
               :constraint-logic '()
               :im-query nil
               :menu {})))
+
+(defn enhance-constraint-logic
+  "If you have read the surrounding code, you'll know that the Query Builder
+  requires an extended version of PathQuery object to accomodate the interface.
+  This is the 'enhanced' query, which is different from how you usually see
+  PathQuery encoded in JSON. Likewise, constraint logics have an 'enhanced'
+  representation which this function returns."
+  [logic]
+  (not-empty (str (not-empty (vec->list logic)))))
 
 (reg-event-fx
  :qb/enhance-query-build-im-query
@@ -411,8 +467,10 @@
 
      (let [im-query (-> {:from (name (get-in db [:qb :root-class]))
                          :select (get-in db [:qb :order])
-                         :constraintLogic (not-empty (str (not-empty (vec->list (get-in db [:qb :constraint-logic])))))
-                         :where (concat (regular-constraints enhance-query) (subclass-constraints enhance-query))}
+                         :constraintLogic (enhance-constraint-logic (get-in db [:qb :constraint-logic]))
+                         :where (concat (regular-constraints enhance-query) (subclass-constraints enhance-query))
+                         :sortOrder (get-in db [:qb :sort])
+                         :joins (vec (get-in db [:qb :joins]))}
                         im-query/sterilize-query)
            query-changed? (not= im-query (get-in db [:qb :im-query]))]
        (cond-> {:db (update-in db [:qb] assoc :im-query im-query)}
@@ -424,15 +482,30 @@
    {:db (assoc-in db [:qb :order] ordered-vec)
     :dispatch [:qb/enhance-query-build-im-query true]}))
 
+(reg-event-fx
+ :qb/set-sort
+ (fn [{db :db} [_ path direction]]
+   {:db (update-in db [:qb :sort]
+                   (fn [sorts]
+                     (let [match (first (filter (comp #{path} :path) sorts))]
+                       (cond
+                         ;; Remove active sorting.
+                         (and match (= direction (:direction match)))
+                         (into [] (remove (comp #{path} :path)) sorts)
+                         ;; Change active sorting.
+                         match
+                         (mapv #(cond-> %
+                                  (= path (:path %))
+                                  (assoc :direction direction))
+                               sorts)
+                         ;; Add new sorting.
+                         :else (conj sorts {:path path :direction direction})))))
+    :dispatch [:qb/enhance-query-build-im-query true]}))
+
 (reg-event-db
  :qb/save-preview
  (fn [db [_ results]]
    (update db :qb assoc :preview results :fetching-preview? false)))
-
-(reg-event-db
- :qb/make-tree
- (fn [db]
-   (let [model (-> db :assets :model)] db)))
 
 (reg-event-fx
  :qb/fetch-preview
@@ -452,3 +525,151 @@
      (if summary
        (update-in db [:qb :enhance-query] assoc-in (conj v :id-count) (js/parseInt summary))
        (update-in db [:qb :enhance-query] assoc-in (conj v :id-count) nil)))))
+
+(reg-event-fx
+ :qb/save-query
+ (fn [{db :db} [_ title]]
+   (let [service (get-in db [:mines (:current-mine db) :service])
+         query (get-in db [:qb :im-query])]
+     {:im-chan {:chan (save/query service (assoc query :title title))
+                :on-success [:qb/save-query-success]
+                :on-failure [:qb/save-query-failure title]}
+      :dispatch [:messages/add
+                 {:markup [:span "Your query titled " [:em title]
+                           " has been saved. You can access it under the "
+                           [:strong "Saved Queries"] " tab."]}
+                 :style "success"]})))
+
+(reg-event-fx
+ :qb/save-query-success
+ (fn [{db :db} [_]]
+   (let [service (get-in db [:mines (:current-mine db) :service])]
+     {:im-chan {:chan (fetch/saved-queries service)
+                :on-success [:qb/fetch-saved-queries-success]
+                :on-failure [:qb/fetch-saved-queries-failure]}})))
+
+(reg-event-fx
+ :qb/save-query-failure
+ (fn [_ [_ title res]]
+   {:dispatch [:messages/add
+               {:markup [:span (str "Failed to save query '" title "'. "
+                                    (or (get-in res [:body :error])
+                                        "Please check your connection and try again."))]
+                :style "warning"}]}))
+
+(reg-event-fx
+ :qb/delete-query
+ (fn [{db :db} [_ title]]
+   (let [service (get-in db [:mines (:current-mine db) :service])]
+     {:im-chan {:chan (save/delete-query service title)
+                :on-success [:qb/delete-query-success title]
+                :on-failure [:qb/delete-query-failure title]}})))
+
+(reg-event-fx
+ :qb/delete-query-success
+ (fn [{db :db} [_ title _res]]
+   (let [query (get-in db [:qb :saved-queries title])]
+     {:db (update-in db [:qb :saved-queries] dissoc title)
+      :dispatch [:messages/add
+                 {:markup (fn [id]
+                            [:span
+                             "The query "
+                             [:em title]
+                             " has been deleted from your user profile. "
+                             [:a {:role "button"
+                                  :on-click #(dispatch [:qb/undo-delete-query
+                                                        title query id])}
+                              "Click here"]
+                             " to undo this action and restore your query."])
+                  :style "info"
+                  :timeout 10000}]})))
+
+(reg-event-fx
+ :qb/undo-delete-query
+ (fn [{db :db} [_ title query id]]
+   (let [service (get-in db [:mines (:current-mine db) :service])]
+     {:im-chan {:chan (save/query service (assoc query :title title))
+                :on-success [:qb/save-query-success]
+                :on-failure [:qb/save-query-failure title]}
+      :dispatch [:messages/remove id]})))
+
+(reg-event-fx
+ :qb/delete-query-failure
+ (fn [_ [_ title res]]
+   {:dispatch [:messages/add
+               {:markup [:span (str "Failed to delete query '" title "'. "
+                                    (or (get-in res [:body :error])
+                                        "Please check your connection and try again."))]
+                :style "warning"}]}))
+
+(reg-event-fx
+ :qb/rename-query
+ (fn [{db :db} [_ old-title new-title]]
+   (let [service (get-in db [:mines (:current-mine db) :service])
+         query (get-in db [:qb :saved-queries old-title])]
+     {:db (update-in db [:qb :saved-queries] dissoc old-title)
+      :im-chan {:chan (save/query service (assoc query :title new-title))
+                :on-success [:qb/rename-query-success old-title query]
+                :on-failure [:qb/rename-query-failure old-title query]}})))
+
+(reg-event-fx
+ :qb/rename-query-success
+ (fn [{db :db} [_ old-title query]]
+   (let [service (get-in db [:mines (:current-mine db) :service])]
+     {:im-chan {:chan (save/delete-query service old-title)
+                :on-success [:qb/save-query-success]
+                :on-failure [:qb/rename-query-failure old-title query]}})))
+
+(reg-event-fx
+ :qb/rename-query-failure
+ (fn [{db :db} [_ old-title query]]
+   {:db (assoc-in db [:qb :saved-queries old-title] query)
+    :dispatch [:messages/add
+               {:markup [:span (str "An error occured when renaming saved query '" old-title "'.")]
+                :style "warning"}]}))
+
+(reg-event-fx
+ :qb/fetch-saved-queries
+ (fn [{db :db} [_]]
+   (let [service (get-in db [:mines (:current-mine db) :service])]
+     {:db (update db :qb dissoc :saved-queries)
+      :im-chan {:chan (fetch/saved-queries service)
+                :on-success [:qb/fetch-saved-queries-success]
+                :on-failure [:qb/fetch-saved-queries-failure]}})))
+
+(reg-event-db
+ :qb/fetch-saved-queries-success
+ (fn [db [_ queries]]
+   (assoc-in db [:qb :saved-queries]
+             (reduce-kv
+              (fn [m title query]
+                (assoc m (name title)
+                       (let [path (-> query :select first)
+                             root (first (split path #"\."))]
+                         (-> query
+                             (assoc :from root)
+                             (update :constraintLogic
+                                     (comp enhance-constraint-logic read-logic-string))
+                             (update :where #(or % []))
+                             (dissoc :title :model)
+                             ;; Sterilizing *might* not be necessary since
+                             ;; it's coming straight from the InterMine.
+                             (im-query/sterilize-query)))))
+              {} queries))))
+
+(reg-event-fx
+ :qb/import-xml-query
+ (fn [{db :db} [_ query-xml]]
+   (try
+     (let [query (read-xml-query query-xml)]
+       {:db (assoc-in db [:qb :import-result] {:type "success"
+                                               :text "XML loaded successfully"})
+        :dispatch [:qb/load-query query]})
+     (catch js/Error e
+       {:db (assoc-in db [:qb :import-result] {:type "failure"
+                                               :text (oget e :message)})}))))
+
+(reg-event-db
+ :qb/clear-import-result
+ (fn [db [_]]
+   (update db :qb dissoc :import-result)))

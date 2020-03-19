@@ -33,7 +33,7 @@
  :<- [::entity]
  :<- [:model]
  (fn [[tools entity model]]
-   (let [{:keys [format class]} entity]
+   (when-let [{:keys [format class]} entity]
      (filter (fn [{{:keys [accepts classes depends]} :config :as _tool}]
                (and (contains? (set accepts) format)
                     (contains? (set classes) class)

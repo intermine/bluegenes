@@ -1,3 +1,5 @@
+@import "../variables";
+
 .mini-loader {
     overflow: hidden;
 
@@ -118,6 +120,48 @@
     @keyframes spin {
         100% {
             transform: rotate(360deg);
+        }
+    }
+}
+
+.mine-loader {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+
+    .mine-loader-dialog {
+        z-index: 40; // Above inputs but below mine switcher dropdown.
+
+        background-color: #E6E6E6;
+        padding: @spacer*2;
+        border: 2px solid #A7A7A7;
+
+        & > img {
+            max-height: @spacer*10;
+            width: auto;
+        }
+
+        & > img, & > svg {
+            margin-bottom: @spacer;
+        }
+
+        .loading {
+            margin-bottom: @spacer/2;
+            color: #656464;
+        }
+
+        #loader {
+            margin-top: 0;
+            margin-bottom: @spacer*2;
+        }
+
+        p {
+            font-size: 16px;
+            color: #656464;
         }
     }
 }

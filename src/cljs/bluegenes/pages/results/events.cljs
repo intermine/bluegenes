@@ -19,6 +19,7 @@
   fire the :results/history+ event with a package that represents a query, like so:"
   (dispatch [:results/history+ {:source :flymine
                                 :type :query
+                                :intent :query ; Should signify what is creating the query.
                                 :value {:title "Appears in Breadcrumb"
                                         :from "Gene"
                                         :select ["Gene.symbol"]
@@ -141,6 +142,11 @@
      {:db (assoc-in db [:tools :entity] entity)
       :dispatch [::tools/fetch-tools]})))
 
+(reg-event-db
+ :clear-ids-tool-entity
+ (fn [db]
+   (assoc-in db [:tools :entity] nil)))
+
 (reg-event-fx
  :fetch-enrichment-ids-from-query
  (fn [world [_ service query what-to-enrich]]
@@ -164,6 +170,11 @@
                         :enrichment-results
                         (keyword (:widget params))] nil)
       :enrichment/get-enrichment [(:widget params) enrichment-chan]})))
+
+(reg-event-db
+ :results/clear
+ (fn [db]
+   (assoc-in db [:results :query] nil)))
 
 (reg-event-db
  :list-description/edit
