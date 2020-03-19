@@ -160,8 +160,7 @@
           :on-click (fn [e] (dispatch [:regions/run-query])
                       (ocall (oget e "target") "blur"))
           :title "Enter something into the 'Regions to search' box or click on [Show me an example], then click here! :)"}
-         "Search"]]
-       ]]
+         "Search"]]]]
        ; Results section
      [checkboxes to-search settings]]))
 
