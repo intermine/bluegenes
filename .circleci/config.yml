@@ -16,7 +16,7 @@ jobs:
     executor: intermine_exec
     steps:
     - run: pyenv versions
-    - run: pyenv global 3.6
+    - run: pyenv global 3.6.5
     - run: pip3 install intermine-boot
     - run: intermine_boot start local --build-im --im-branch bluegenes
   setup_bluegenes:
@@ -43,6 +43,10 @@ jobs:
     - run:
         name: Start BlueGenes server
         command: lein with-profile prod run
+        background: true
+    - run:
+        name: Running X virtual framebuffer for kaocha browser tests
+        command: Xvfb :99 -screen 0 1280x1024x24
         background: true
     - run: lein kaocha
     - save_cache:
