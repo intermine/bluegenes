@@ -116,6 +116,7 @@
     [:div]))
 
 (defn results-section []
+
   (let [results   (subscribe [:regions/results])
         loading? (subscribe [:regions/loading])
         error (subscribe [:regions/error])]

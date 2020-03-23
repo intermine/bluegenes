@@ -209,7 +209,7 @@
        showing? (atom false)
        clear-timer! (fn []
                       (when-let [active-timer @timer]
-                         (.clearTimeout js/window active-timer))
+                        (.clearTimeout js/window active-timer))
                       (when @showing?
                         (dispatch [:hide-mine-loader])
                         (reset! showing? false)))]

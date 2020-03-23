@@ -143,19 +143,25 @@
         to-search (subscribe [:regions/to-search])]
     [:div.row.input-section
      ; Parameters section
-     [:div.organism-and-regions
+     [:div.row.organism-and-regions
       [region-input]
       [organism-selection]
-      [:button.btn.btn-primary.btn-raised.fattysubmitbutton
-       {:disabled (or
-                   (= "" @to-search)
-                   (= nil @to-search)
-                   (empty? (filter (fn [[name enabled?]] enabled?) (:feature-types @settings))))
-        :on-click (fn [e] (dispatch [:regions/run-query])
-                    (ocall (oget e "target") "blur"))
-        :title "Enter something into the 'Regions to search' box or click on [Show me an example], then click here! :)"}
-       "Search"]]
-     ; Results section
+      [:div.row
+       [:div.col-md-6
+        [:button.btn.btn-default.btn-raised.example-button
+         {:on-click #(dispatch [:regions/set-to-search (ex)])}
+         "Show Example"]]
+       [:div.col-md-6
+        [:button.btn.btn-primary.btn-raised.fattysubmitbutton
+         {:disabled (or
+                     (= "" @to-search)
+                     (= nil @to-search)
+                     (empty? (filter (fn [[name enabled?]] enabled?) (:feature-types @settings))))
+          :on-click (fn [e] (dispatch [:regions/run-query])
+                      (ocall (oget e "target") "blur"))
+          :title "Enter something into the 'Regions to search' box or click on [Show me an example], then click here! :)"}
+         "Search"]]]]
+       ; Results section
      [checkboxes to-search settings]]))
 
 (defn main []
@@ -165,9 +171,6 @@
     (fn []
       [:div.container.regionsearch
        [:div.headerwithguidance
-        [:h1 "Region Search"]
-        [:a.guidance
-         {:on-click #(dispatch [:regions/set-to-search (ex)])}
-         "[Show me an example]"]]
+        [:h1 "Region Search"]]
        [input-section]
        [results-section]])}))
