@@ -148,7 +148,7 @@
       [organism-selection]
       [:div.row
        [:div.col-md-6
-        [:button.btn.btn-default.btn-raised.btn-default-2
+        [:button.btn.btn-default.btn-raised.example-button
          {:on-click #(dispatch [:regions/set-to-search (ex)])}
          "Show Example"]]
        [:div.col-md-6
