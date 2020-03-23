@@ -18,7 +18,7 @@ env:
 before_script:
   # Use a newer version of Python
   - pyenv versions
-  - pyenv global 3.6.5
+  - pyenv global 3.6
   # Setup biotestmine to test against
   - pip3 install intermine-boot
   - intermine_boot start local --build-im --im-branch bluegenes
