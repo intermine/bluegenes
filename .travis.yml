@@ -1,8 +1,11 @@
 language: java
 sudo: true
 jdk: openjdk8
-services: postgresql
+services:
+  - postgresql
+  - xvfb
 addons:
+  firefox: latest
   apt:
     packages:
       - python3-pip
@@ -14,6 +17,7 @@ env:
     - CYPRESS_defaultCommandTimeout=60000
     - CYPRESS_requestTimeout=60000
     - CYPRESS_responseTimeout=60000
+    - MOZ_HEADLESS=1
 
 before_script:
   # Use a newer version of Python
@@ -34,8 +38,6 @@ before_script:
   - gem install awesome_bot
   # install cypress dependencies
   - sudo apt-get install xvfb libgtk2.0-0 libnotify-dev libgconf-2-4 libnss3 libxss1 libasound2 -y
-  # Running X virtual framebuffer for kaocha browser tests
-  - Xvfb :99 -screen 0 1280x1024x24
 
 
 script:
@@ -48,7 +50,7 @@ script:
   # start server
   - lein trampoline with-profile prod run &
   # Run unit tests
-  - lein kaocha
+  - xvfb-run lein kaocha
   # run UI tests using Cypress
   - npx cypress run
   # check for the links in the documentation

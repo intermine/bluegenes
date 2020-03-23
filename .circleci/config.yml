@@ -36,6 +36,10 @@ jobs:
         paths:
         - ~/.npm
         - ~/.cache
+    - run:
+        name: Running X virtual framebuffer for kaocha browser tests
+        command: Xvfb :99 -screen 0 1280x1024x24
+        background: true
     - run: lein cljfmt check
     - run: lein deps
     - run: lein with-profile prod less once
@@ -44,11 +48,7 @@ jobs:
         name: Start BlueGenes server
         command: lein with-profile prod run
         background: true
-    - run:
-        name: Running X virtual framebuffer for kaocha browser tests
-        command: Xvfb :99 -screen 0 1280x1024x24
-        background: true
-    - run: lein kaocha
+    - run: xvfb-run lein kaocha
     - save_cache:
         key: v1-deps-{{ .Branch }}-{{ checksum "project.clj" }}
         paths:
