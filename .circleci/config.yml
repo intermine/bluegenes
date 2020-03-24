@@ -13,13 +13,19 @@ jobs:
     executor: bluegenes_exec
     steps:
     - run: sudo lein upgrade
+    ## debugging start
+    - run:
+        command: google-chrome-stable --no-first-run --disable-gpu
+        background: true
+    - run: lein kaocha
+    ## debugging end
     - run: pyenv versions
     - run: pyenv global 3.6.5
     - run: pip3 install intermine-boot
     - run: intermine_boot start local --build-im --im-branch bluegenes
     - run:
         name: Start a browser process for running kaocha tests
-        command: google-chrome-stable --no-first-run http://localhost
+        command: google-chrome-stable --no-first-run --disable-gpu
         background: true
     - checkout
     - restore_cache:
