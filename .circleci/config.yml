@@ -9,7 +9,7 @@ executors:
       CYPRESS_requestTimeout: 60000
       CYPRESS_responseTimeout: 60000
 jobs:
-  bluegenes:
+  test_bluegenes:
     executor: bluegenes_exec
     steps:
     - run: pyenv versions
@@ -58,4 +58,4 @@ jobs:
 workflows:
   build_and_test:
     jobs:
-    - bluegenes:
+    - test_bluegenes:
