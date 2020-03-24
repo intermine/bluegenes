@@ -19,7 +19,7 @@ jobs:
     - run: intermine_boot start local --build-im --im-branch bluegenes
     - run:
         name: Start a browser process for running kaocha tests
-        command: /usr/bin/google-chrome-stable --no-first-run
+        command: google-chrome-stable --no-first-run http://localhost
         background: true
     - checkout
     - restore_cache:
