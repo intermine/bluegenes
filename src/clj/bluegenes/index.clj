@@ -13,10 +13,16 @@
   "Reads manifest.edn which is produced by the ClojureScript compiler's
   `:fingerprint` option. This is a map from target path to the compiled
   path with the fingerprinted filename."
-  (try (some->> "public/js/compiled/manifest.edn"
-                io/resource
+  (try (some->> (io/file "resources" "public" "js" "compiled" "manifest.edn")
                 slurp
-                edn/read-string)
+                edn/read-string
+                ;; Replace backslashes with forward slashes in case of Windows.
+                (reduce-kv
+                  (fn [m k v]
+                    (assoc m
+                           (string/replace k #"\\" "/")
+                           (string/replace v #"\\" "/")))
+                  {}))
        (catch Exception _)))
 
 (def bundle-path
