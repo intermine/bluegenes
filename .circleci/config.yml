@@ -14,6 +14,9 @@ jobs:
     steps:
     - run: sudo lein upgrade
     ## debugging start
+    - run: sudo apt-get update
+    - run: sudo apt-get install chrome google-chrome-stable
+    - run: sudo apt-get upgrade chrome google-chrome-stable
     - checkout
     - run: npm ci
     - run:
