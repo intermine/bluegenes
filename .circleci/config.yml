@@ -15,14 +15,13 @@ jobs:
     - run: sudo lein upgrade
     ## debugging start
     - run: sudo apt-get update
-    - run: sudo apt-get install google-chrome-stable
-    - run: sudo apt-get upgrade google-chrome-stable
+    - run: sudo apt-get install google-chrome-stable xvfb
     - checkout
     - run: npm ci
     - run:
         command: google-chrome-stable --no-first-run --disable-gpu
         background: true
-    - run: lein kaocha
+    - run: xvfb-run lein kaocha
     ## debugging end
     - run: pyenv versions
     - run: pyenv global 3.6.5
