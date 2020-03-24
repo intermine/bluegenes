@@ -15,17 +15,13 @@ jobs:
     - run: sudo lein upgrade
     ## debugging start
     - run: sudo apt-get update
-    - run: sudo apt-get install google-chrome-stable xvfb
+    - run: sudo apt-get install google-chrome-stable
     - checkout
     - run: npm ci
     - run:
-        name: Running X virtual framebuffer for kaocha browser tests
-        command: Xvfb :99 -screen 0 1280x1024x24
-        background: true
-    - run:
         command: google-chrome-stable --no-first-run --disable-gpu
         background: true
-    - run: xvfb-run lein kaocha
+    - run: xvfb-run -a lein kaocha
     ## debugging end
     - run: pyenv versions
     - run: pyenv global 3.6.5
