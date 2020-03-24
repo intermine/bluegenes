@@ -12,7 +12,7 @@ jobs:
   setup_bluegenes:
     executor: bluegenes_exec
     steps:
-    - run: lein upgrade
+    - run: sudo lein upgrade
     - run: pyenv versions
     - run: pyenv global 3.6.5
     - run: pip3 install intermine-boot
