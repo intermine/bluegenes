@@ -19,6 +19,10 @@ jobs:
     - checkout
     - run: npm ci
     - run:
+        name: Running X virtual framebuffer for kaocha browser tests
+        command: Xvfb :99 -screen 0 1280x1024x24
+        background: true
+    - run:
         command: google-chrome-stable --no-first-run --disable-gpu
         background: true
     - run: xvfb-run lein kaocha
