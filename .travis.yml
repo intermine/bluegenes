@@ -23,7 +23,7 @@ before_script:
   - pyenv global 3.6
   # Setup biotestmine to test against
   - pip3 install intermine-boot
-  # - intermine_boot start local --build-im --im-branch bluegenes
+  - intermine_boot start local --build-im --im-branch bluegenes
   # Install lein - required to build the project
   - wget https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein -O /tmp/lein
   - chmod +x /tmp/lein
