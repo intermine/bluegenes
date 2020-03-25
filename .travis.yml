@@ -23,7 +23,7 @@ before_script:
   - pyenv global 3.6
   # Setup biotestmine to test against
   - pip3 install intermine-boot
-  - intermine_boot start local --build-im --im-branch bluegenes
+  # - intermine_boot start local --build-im --im-branch bluegenes
   # Install lein - required to build the project
   - wget https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein -O /tmp/lein
   - chmod +x /tmp/lein
@@ -52,7 +52,10 @@ script:
   # Run unit tests
   - lein kaocha
   # Wait for bluegenes to be ready
-  - npx wait-on http://localhost:5000
+  - |
+    until $(curl --output /dev/null --silent --head --fail http://localhost:5000); do
+        sleep 10
+    done
   # run UI tests using Cypress
   - npx cypress run
   # check for the links in the documentation

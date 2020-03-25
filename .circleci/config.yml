@@ -48,7 +48,7 @@ jobs:
     - run: pyenv versions
     - run: pyenv global 3.6.5
     - run: pip3 install intermine-boot
-    - run: intermine_boot start local --build-im --im-branch bluegenes
+    # - run: intermine_boot start local --build-im --im-branch bluegenes
     - checkout
     - restore_cache:
         keys:
@@ -73,7 +73,10 @@ jobs:
         key: v1-deps-{{ .Branch }}-{{ checksum "project.clj" }}
         paths:
         - ~/.m2
-    - run: npx wait-on http://localhost:5000
+    - run: |
+        until $(curl --output /dev/null --silent --head --fail http://localhost:5000); do
+            sleep 10
+        done
     - run: npx cypress run
     - store_test_results:
         path: cypress/results
