@@ -1,18 +1,29 @@
 language: java
 sudo: true
 jdk: openjdk8
-services: postgresql
+services:
+  - xvfb
+addons:
+  chrome: stable
+  apt:
+    packages:
+      - python3-pip
+      - python3-setuptools
+      - python3-wheel
 env:
   global:
-    - BLUEGENES_DEFAULT_SERVICE_ROOT="http://localhost:8080/biotestmine"
+    - BLUEGENES_DEFAULT_SERVICE_ROOT="http://localhost:9999/biotestmine"
     - CYPRESS_defaultCommandTimeout=60000
     - CYPRESS_requestTimeout=60000
     - CYPRESS_responseTimeout=60000
 
 before_script:
+  # Use a newer version of Python
+  - pyenv versions
+  - pyenv global 3.6
   # Setup biotestmine to test against
-  - git clone https://github.com/intermine/ci-scripts
-  - (cd ci-scripts && bash init-biotestmine.sh)
+  - pip3 install intermine-boot
+  - intermine_boot start local --build-im --im-branch bluegenes
   # Install lein - required to build the project
   - wget https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein -O /tmp/lein
   - chmod +x /tmp/lein
@@ -24,7 +35,9 @@ before_script:
   # install link validator bot for docs
   - gem install awesome_bot
   # install cypress dependencies
-  - sudo apt-get install xvfb libgtk2.0-0 libnotify-dev libgconf-2-4 libnss3 libxss1 libasound2 -y
+  - sudo apt-get install libgtk2.0-0 libnotify-dev libgconf-2-4 libnss3 libxss1 libasound2 -y
+  # start a browser process for running kaocha tests
+  - google-chrome-stable --no-first-run &
 
 
 script:
@@ -38,6 +51,11 @@ script:
   - lein trampoline with-profile prod run &
   # Run unit tests
   - lein kaocha
+  # Wait for bluegenes to be ready
+  - |
+    until $(curl --output /dev/null --silent --head --fail http://localhost:5000); do
+        sleep 10
+    done
   # run UI tests using Cypress
   - npx cypress run
   # check for the links in the documentation

@@ -125,8 +125,8 @@
                    :resource-paths ["config/dev" "tools" "config/defaults"]
                    :plugins [[lein-figwheel "0.5.19"]
                              [lein-doo "0.1.8"]]}
-             :kaocha {:dependencies [[lambdaisland/kaocha "0.0-541"]
-                                     [lambdaisland/kaocha-cljs "0.0-59"]]}
+             :kaocha {:dependencies [[lambdaisland/kaocha "0.0-601"]
+                                     [lambdaisland/kaocha-cljs "0.0-71"]]}
              :repl {:source-paths ["dev"]}
              :prod {:resource-paths ["config/prod" "tools" "config/defaults"]}
              :uberjar {:resource-paths ["config/prod" "config/defaults"]
