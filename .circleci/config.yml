@@ -1,6 +1,9 @@
 version: 2.1
 executors:
   bluegenes_exec:
+    docker:
+    - image: 'circleci/clojure:openjdk-8-lein-2.9.1-node-browsers'
+  intermine_exec:
     machine:
       image: ubuntu-1604:201903-01
     environment:
@@ -8,29 +11,44 @@ executors:
       CYPRESS_defaultCommandTimeout: 60000
       CYPRESS_requestTimeout: 60000
       CYPRESS_responseTimeout: 60000
+## I wasn't able to get kaocha to connect to the browser when using the machine
+## executor (needed for the browser tests) and you can't use intermine_boot
+## (needed for Cypress tests) inside a docker executor, due to them using a
+## remote docker daemon. Hence the need for two executors.
 jobs:
   setup_bluegenes:
     executor: bluegenes_exec
     steps:
-    - run: sudo lein upgrade
-    ## debugging start
-    - run: sudo apt-get update
-    - run: sudo apt-get install google-chrome-stable
-    - checkout
-    - run: npm ci
     - run:
-        command: google-chrome-stable --no-first-run --disable-gpu
+        name: Start a browser process for running kaocha tests
+        command: google-chrome-stable --no-first-run
         background: true
-    - run: xvfb-run -a lein kaocha
-    ## debugging end
+    - checkout
+    - restore_cache:
+        keys:
+        - v1-deps-{{ .Branch }}-{{ checksum "package.json" }}
+        - v1-deps--kaocha-{{ .Branch }}-{{ checksum "project.clj" }}
+        - v1-deps-{{ .Branch }}
+        - v1-deps
+    - run: lein cljfmt check
+    - run: npm ci
+    - save_cache:
+        key: v1-deps-{{ .Branch }}-{{ checksum "package.json" }}
+        paths:
+        - ~/.npm
+        - ~/.cache
+    - run: lein kaocha
+    - save_cache:
+        key: v1-deps-kaocha-{{ .Branch }}-{{ checksum "project.clj" }}
+        paths:
+        - ~/.m2
+  setup_intermine:
+    executor: intermine_exec
+    steps:
     - run: pyenv versions
     - run: pyenv global 3.6.5
     - run: pip3 install intermine-boot
     - run: intermine_boot start local --build-im --im-branch bluegenes
-    - run:
-        name: Start a browser process for running kaocha tests
-        command: google-chrome-stable --no-first-run --disable-gpu
-        background: true
     - checkout
     - restore_cache:
         keys:
@@ -45,15 +63,12 @@ jobs:
         paths:
         - ~/.npm
         - ~/.cache
-    - run: lein cljfmt check
     - run: lein deps
     - run: lein with-profile prod less once
     - run: lein with-profile prod cljsbuild once min
     - run:
-        name: Start BlueGenes server
         command: lein with-profile prod run
         background: true
-    - run: lein kaocha
     - save_cache:
         key: v1-deps-{{ .Branch }}-{{ checksum "project.clj" }}
         paths:
@@ -70,3 +85,4 @@ workflows:
   build_and_test:
     jobs:
     - setup_bluegenes
+    - setup_intermine

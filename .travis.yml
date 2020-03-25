@@ -2,7 +2,6 @@ language: java
 sudo: true
 jdk: openjdk8
 services:
-  - postgresql
   - xvfb
 addons:
   chrome: stable
@@ -52,6 +51,8 @@ script:
   - lein trampoline with-profile prod run &
   # Run unit tests
   - lein kaocha
+  # Wait for bluegenes to be ready
+  - npx wait-on http://localhost:5000
   # run UI tests using Cypress
   - npx cypress run
   # check for the links in the documentation
