@@ -18,11 +18,11 @@
                 edn/read-string
                 ;; Replace backslashes with forward slashes in case of Windows.
                 (reduce-kv
-                  (fn [m k v]
-                    (assoc m
-                           (string/replace k #"\\" "/")
-                           (string/replace v #"\\" "/")))
-                  {}))
+                 (fn [m k v]
+                   (assoc m
+                          (string/replace k #"\\" "/")
+                          (string/replace v #"\\" "/")))
+                 {}))
        (catch Exception _)))
 
 (def bundle-path
