@@ -1,6 +1,7 @@
 (ns bluegenes.pages.mymine.views.modals
   (:require [re-frame.core :refer [subscribe dispatch]]
             [reagent.core :as r]
+            [reagent.dom :as dom]
             [oops.core :refer [ocall oset! oget]]
             [bluegenes.pages.mymine.events :as evts]
             [bluegenes.pages.mymine.subs :as subs]
@@ -76,7 +77,7 @@
   []
   (let [dom-node (atom nil)]
     (r/create-class
-     {:component-did-mount (fn [this] (reset! dom-node (js/$ (r/dom-node this))))
+     {:component-did-mount (fn [this] (reset! dom-node (js/$ (dom/dom-node this))))
       :reagent-render (let [suggested-state (subscribe [::subs/suggested-modal-state])
                             checked-items (subscribe [::subs/checked-details])
                             new-list-name (r/atom nil)]
@@ -113,7 +114,7 @@
   []
   (let [dom-node (atom nil)]
     (r/create-class
-     {:component-did-mount (fn [this] (reset! dom-node (js/$ (r/dom-node this))))
+     {:component-did-mount (fn [this] (reset! dom-node (js/$ (dom/dom-node this))))
       :reagent-render (let [checked-items (subscribe [::subs/checked-details])
                             new-list-name (r/atom nil)]
                         (fn [{:keys [errors body on-success state]}]
@@ -145,7 +146,7 @@
      {:component-did-update (fn [])
       :component-did-mount (fn [this]
                               ; When the modal is dismissed then clear the state
-                             (ocall (js/$ (r/dom-node this)) :on "hidden.bs.modal" (fn [] (reset! state nil))))
+                             (ocall (js/$ (dom/dom-node this)) :on "hidden.bs.modal" (fn [] (reset! state nil))))
       :reagent-render (fn [operation]
                         (let [{:keys [title icon body action on-success success-label] :as details} (get operations operation)
                               errors {:name-taken? (some? (not-empty (filter (comp #{(s/trim (or @state ""))} :name) @all-lists)))
@@ -188,10 +189,10 @@
      {:component-did-mount (fn [this]
                               ; When modal is closed, clear the context menu target. This prevents the modal
                               ; from retamaining prior state that was cancelled / dismissed
-                             (ocall (js/$ (r/dom-node this))
+                             (ocall (js/$ (dom/dom-node this))
                                     :on "hidden.bs.modal"
                                     (fn [] (dispatch [::evts/set-context-menu-target nil])))
-                             #_(ocall (js/$ (r/dom-node this))
+                             #_(ocall (js/$ (dom/dom-node this))
                                       :on "shown.bs.modal"
                                       (fn [] (ocall @input-dom-node :select))))
       :reagent-render (fn [{:keys [name]}]
@@ -222,10 +223,10 @@
      {:component-did-mount (fn [this]
                               ; When modal is closed, clear the context menu target. This prevents the modal
                               ; from retamaining prior state that was cancelled / dismissed
-                             (ocall (js/$ (r/dom-node this))
+                             (ocall (js/$ (dom/dom-node this))
                                     :on "hidden.bs.modal"
                                     (fn [] (dispatch [::evts/set-context-menu-target nil])))
-                             (ocall (js/$ (r/dom-node this))
+                             (ocall (js/$ (dom/dom-node this))
                                     :on "shown.bs.modal"
                                     (fn [] (ocall @input-dom-node :select))))
       :reagent-render (fn [{:keys [name description]}]
@@ -262,10 +263,10 @@
      {:component-did-mount (fn [this]
                               ; When modal is closed, clear the context menu target. This prevents the modal
                               ; from retamaining prior state that was cancelled / dismissed
-                             (ocall (js/$ (r/dom-node this))
+                             (ocall (js/$ (dom/dom-node this))
                                     :on "hidden.bs.modal"
                                     (fn [] (dispatch [::evts/set-context-menu-target nil])))
-                             (ocall (js/$ (r/dom-node this))
+                             (ocall (js/$ (dom/dom-node this))
                                     :on "shown.bs.modal"
                                     (fn [] (ocall @input-dom-node :select))))
       :reagent-render (fn [{:keys [file-type label trail]}]
@@ -300,10 +301,10 @@
      {:component-did-mount (fn [this]
                               ; When modal is closed, clear the context menu target. This prevents the modal
                               ; from retamaining prior state that was cancelled / dismissed
-                             (ocall (js/$ (r/dom-node this))
+                             (ocall (js/$ (dom/dom-node this))
                                     :on "hidden.bs.modal"
                                     (fn [] (dispatch [::evts/set-context-menu-target nil])))
-                             (ocall (js/$ (r/dom-node this))
+                             (ocall (js/$ (dom/dom-node this))
                                     :on "shown.bs.modal"
                                     (fn [] (ocall @input-dom-node :select))))
       :reagent-render (fn [{:keys [file-type label trail]}]
@@ -337,10 +338,10 @@
      {:component-did-mount (fn [this]
                               ; When modal is closed, clear the context menu target. This prevents the modal
                               ; from retamaining prior state that was cancelled / dismissed
-                             (ocall (js/$ (r/dom-node this))
+                             (ocall (js/$ (dom/dom-node this))
                                     :on "hidden.bs.modal"
                                     (fn [] (dispatch [::evts/set-context-menu-target nil])))
-                             (ocall (js/$ (r/dom-node this))
+                             (ocall (js/$ (dom/dom-node this))
                                     :on "shown.bs.modal"
                                     (fn [] (ocall @input-dom-node :select))))
       :reagent-render (fn [{:keys [description name trail] :as dets}]
@@ -435,10 +436,10 @@
      {:component-did-mount (fn [this]
                               ; When modal is closed, clear the context menu target. This prevents the modal
                               ; from retamaining prior state that was cancelled / dismissed
-                             (ocall (js/$ (r/dom-node this))
+                             (ocall (js/$ (dom/dom-node this))
                                     :on "hidden.bs.modal"
                                     (fn [] (dispatch [::evts/set-context-menu-target nil])))
-                             (ocall (js/$ (r/dom-node this))
+                             (ocall (js/$ (dom/dom-node this))
                                     :on "shown.bs.modal"
                                     (fn [] (ocall @input-dom-node :select))))
       :reagent-render (fn [{:keys [file-type label trail]}]

@@ -1,5 +1,6 @@
 (ns bluegenes.components.bootstrap
   (:require [reagent.core :as reagent]
+            [reagent.dom :as dom]
             [reagent.dom.server :refer [render-to-static-markup]]
             [oops.core :refer [ocall oapply oget oset!]]))
 
@@ -18,10 +19,10 @@
   (reagent/create-class
    {:component-did-mount
     (fn [this]
-      (let [node (reagent/dom-node this)] (ocall (-> node js/$) "popover")))
+      (let [node (dom/dom-node this)] (ocall (-> node js/$) "popover")))
     :component-will-unmount
     (fn [this]
-      (let [node (reagent/dom-node this)] (ocall (-> "popover" js/$) "remove")))
+      (let [node (dom/dom-node this)] (ocall (-> "popover" js/$) "remove")))
     :reagent-render
     (fn [[element attributes & rest]]
       [element (-> attributes

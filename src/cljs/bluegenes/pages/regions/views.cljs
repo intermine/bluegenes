@@ -1,6 +1,7 @@
 (ns bluegenes.pages.regions.views
   (:require [re-frame.core :refer [subscribe dispatch]]
             [reagent.core :as reagent]
+            [reagent.dom :as dom]
             [bluegenes.pages.regions.graphs :as graphs]
             [bluegenes.components.table :as table]
             [bluegenes.components.loader :refer [loader]]
@@ -89,7 +90,7 @@
           :value @to-search
           :on-change (fn [e]
                        (dispatch [:regions/set-to-search (oget e "target" "value")]))}])
-      :component-did-mount (fn [this] (.focus (reagent/dom-node this)))})))
+      :component-did-mount (fn [this] (.focus (dom/dom-node this)))})))
 
 (defn clear-textbox []
   "Interactive UI component to clear any entered text present in the region input textarea."

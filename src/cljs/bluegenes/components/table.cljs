@@ -1,12 +1,13 @@
 (ns bluegenes.components.table
   (:require [reagent.core :as reagent]
+            [reagent.dom :as dom]
             [re-frame.core :as re-frame :refer [subscribe dispatch]]
             [dommy.core :as dommy :refer-macros [sel sel1]]
             [oops.core :refer [ocall oapply oget oset!]]))
 
 (defn handle [expanded? e]
   (let [props (reagent/props e)
-        node  (sel1 (reagent/dom-node e) :.im-target)]
+        node  (sel1 (dom/dom-node e) :.im-target)]
     (if @expanded?
       (-> (ocall js/imtables "loadTable"
                  node

@@ -1,6 +1,7 @@
 (ns bluegenes.components.lighttable
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [reagent.core :as reagent]
+            [reagent.dom :as dom]
             [re-frame.core :as re-frame :refer [subscribe dispatch]]
             [dommy.core :as dommy :refer-macros [sel sel1]]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
@@ -57,7 +58,7 @@
 
 (defn handler [state e]
   (let [props (reagent/props e)
-        node  (sel1 (reagent/dom-node e) :.im-target)
+        node  (sel1 (dom/dom-node e) :.im-target)
         missing-values (filter #(and
                                  (= nil (:value %))
                                  (some? (:op %))) (:where (:query props)))]

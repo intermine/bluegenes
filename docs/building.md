@@ -4,7 +4,7 @@ Start by installing the dependencies in [System Requirements](/docs/building.md#
 
 ## System Requirements
 
-* OpenJDK, version 8 (only until we make our software compatible with OpenJDK 11)
+* Java 8-11 (we recommend [OpenJDK](https://adoptopenjdk.net/))
 * Latest [Leiningen](https://leiningen.org/)
 * Latest supported [nodejs](https://nodejs.org/).  You can check your version using `node -v`). We recommend installing node using [nvm](https://github.com/creationix/nvm)
 * Latest supported [npm](https://www.npmjs.com/)
