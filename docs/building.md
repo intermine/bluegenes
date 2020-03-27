@@ -116,10 +116,26 @@ There is also a shortcut that in addition cleans and compiles CSS.
 
 ## Deploying your build
 
-One of the easiest ways to deploy the prod minified version is to set up [Dokku](http://dokku.viewdocs.io/dokku/) on your intended server. You can also use BlueGenes with [heroku](https://www.heroku.com/).
+### docker
 
+BlueGenes has a Dockerfile which you can build with a fresh uberjar.
 
-### Minified deployment using dokku
+    lein uberjar
+    docker build -t bluegenes .
+
+Run it and the web server should default to port 5000.
+
+    docker run -p 5000:5000 -it --rm bluegenes
+
+You can specify environment variables by using the `-e` or `--env-file` arguments when calling docker. See [Configuring](/docs/configuring.md) for a list of all available environment variables.
+
+There is also a prebuilt docker image available on Docker Hub.
+
+    docker pull intermine/bluegenes:latest
+
+### Dokku
+
+[Dokku](http://dokku.viewdocs.io/dokku/) allows you to push a Git branch and have it automatically build and serve it using the appropriate docker container. (You can also use BlueGenes with [heroku](https://www.heroku.com/).)
 
 Once dokku is configured on your remote host, you'll need to add your public key, create a remote for your host and push to it:
 
@@ -139,7 +155,7 @@ To compile and package BlueGenes into an executable jar, run the following comma
 
     lein uberjar
 
-Then, to start the application, execute the jar and pass in a [`config.edn` file](../config/dev/README.md):
+Then, to start the application, execute the jar and pass in a [`config.edn` file](/docs/configuring.md):
 
     java -jar -Dconfig="config/prod/config.edn" target/bluegenes.jar
 
