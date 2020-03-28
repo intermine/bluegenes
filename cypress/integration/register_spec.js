@@ -1,6 +1,6 @@
 describe("Registration Tests", function () {
   beforeEach(() => {
-    cy.visit("/humanmine");
+    cy.visit("/");
     cy.contains("Log In").click();
     cy.get("form").contains("I don't have an account").click();
 
