@@ -8,7 +8,7 @@ describe("Registration Tests", function () {
     cy.route("POST", "/api/auth/register").as("auth");
   });
 
-  it("displays error message; requires email input", () => {
+  it("requires email input; expect error", () => {
     cy.get("#email").type("test_user@mail_account.com{enter}");
     cy.wait("@auth");
     cy.get("@auth").should(xhr => {
@@ -17,7 +17,7 @@ describe("Registration Tests", function () {
     cy.get(".error-box").should('contain', 'missing parameters. name and password required');
   });
 
-  it("displays error message; requires password input", () => {
+  it("requires password input; expect error; ", () => {
     cy.get("input[type='password']").type("nay{enter}");
     cy.wait("@auth");
     cy.get("@auth").should(xhr => {
@@ -38,10 +38,10 @@ describe("Registration Tests", function () {
     });
 
     cy.getCookie("ring-session").should('exist');
-    cy.get('.long-name').should("contain", "dummy_act@dummy.com")
-  })
+    cy.get('.long-name').should("contain", "dummy_act@dummy.com");
+  });
 
-  it("displays error message; requires unique email", () => {
+  it("requires unique email; expect error", () => {
     cy.get("#email").type("dummy_act@dummy.com");
     cy.get("input[type='password']").type("naw{enter}");
     cy.wait("@auth");
@@ -54,5 +54,5 @@ describe("Registration Tests", function () {
       .and('contain', 'There is already a user with that name');
 
     cy.getCookie("ring-session").should('not.exist');
-  })
+  });
 });
