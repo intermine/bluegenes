@@ -1,5 +1,6 @@
 (ns bluegenes.components.search.typeahead
   (:require [reagent.core :as reagent]
+            [reagent.dom :as dom]
             [re-frame.core :as re-frame :refer [subscribe dispatch]]
             [dommy.core :as dommy :refer-macros [sel1]]
             [bluegenes.route :as route]
@@ -88,7 +89,7 @@
          search-term (subscribe [:search-term])]
      {:component-did-mount
       (fn [e]
-        (let [node (reagent/dom-node e)]
+        (let [node (dom/dom-node e)]
           (-> node
               (sel1 :input)
               (dommy/listen! :focus (fn [] (dommy/add-class! node :open)))

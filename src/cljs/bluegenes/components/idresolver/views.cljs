@@ -1,5 +1,6 @@
 (ns bluegenes.components.idresolver.views
   (:require [reagent.core :as reagent]
+            [reagent.dom :as dom]
             [re-frame.core :as re-frame :refer [subscribe dispatch]]
             [json-html.core :as json-html]
             [dommy.core :as dommy :refer-macros [sel sel1]]
@@ -92,7 +93,7 @@
                                   (submit-input input val))
                                 (reset! val input))))}])
        ;;autofocus on the entry field when the page loads
-      :component-did-mount (fn [this] (.focus (reagent/dom-node this)))})))
+      :component-did-mount (fn [this] (.focus (dom/dom-node this)))})))
 
 (defn organism-identifier
   "Sometimes the ambiguity we're resolving with duplicate ids is the same symbol from two similar organisms, so we'll need to add organism name where known."

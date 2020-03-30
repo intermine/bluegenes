@@ -5,37 +5,37 @@
   :dependencies [; Clojure
                  [org.clojure/clojure "1.10.1"]
                  [org.clojure/clojurescript "1.10.520"]
-                 [org.clojure/core.async "0.4.500"]
+                 [org.clojure/core.async "1.0.567"]
 
                  ; MVC
-                 [re-frame "0.10.8"]
+                 [re-frame "0.12.0"]
                  [day8.re-frame/http-fx "0.1.6"]
                  [day8.re-frame/async-flow-fx "0.1.0"]
                  [day8.re-frame/forward-events-fx "0.0.6"]
-                 [day8.re-frame/undo "0.3.2"]
-                 [reagent "0.8.1"]
+                 [day8.re-frame/undo "0.3.3"]
+                 [reagent "0.10.0"]
                  [cljsjs/react-transition-group "1.2.0-0"
                   :exclusions [cljsjs/react cljsjs/react-dom]]
                  [hiccup "1.0.5"]
                  [prismatic/dommy "1.1.0"]
                  [metosin/reitit "0.4.2"]
                  [servant "0.1.5"]
-                 [json-html "0.4.5"]
+                 [json-html "0.4.7"]
                  [markdown-to-hiccup "0.6.2"]
 
                  ; HTTP
                  [clj-http "3.10.0"]
                  [cljs-http "0.1.46"]
                  [compojure "1.6.1"]
-                 [ring "1.7.1"]
+                 [ring "1.8.0"]
                  [ring/ring-defaults "0.3.2"]
-                 [ring/ring-json "0.4.0" :exclusions [cheshire.core]]
-                 [cheshire "5.8.1"]
+                 [ring/ring-json "0.5.0" :exclusions [cheshire.core]]
+                 [cheshire "5.10.0"]
                  [metosin/ring-http-response "0.9.1"]
                  [ring-middleware-format "0.7.4"]
 
                  ; Build tools
-                 [yogthos/config "0.9"]
+                 [yogthos/config "1.1.7"]
 
                  ; Utility libraries
                  [com.cognitect/transit-cljs "0.8.256"]
@@ -43,26 +43,26 @@
                  [com.andrewmcveigh/cljs-time "0.5.2"]
                  [com.taoensso/carmine "2.19.1"]
                  [inflections "0.13.2"]
-                 [fipp "0.6.18"]
+                 [fipp "0.6.22"]
                  [binaryage/oops "0.7.0"]
                  [inflections "0.13.2"]
-                 [cljsjs/google-analytics "2015.04.13-0"]
+                 [cljsjs/google-analytics "2017.09.21-0"]
                  [day8.re-frame/test "0.1.5"]
-                 [cljs-bean "1.4.0"]
+                 [cljs-bean "1.5.0"]
                  [org.clojure/data.xml "0.2.0-alpha6"]
 
                  ; Logging
                  [com.taoensso/timbre "4.10.0"]
-                 [com.fzakaria/slf4j-timbre "0.3.14"]
+                 [com.fzakaria/slf4j-timbre "0.3.19"]
 
                  ; Security
                  [buddy/buddy-auth "2.2.0"]
-                 [buddy/buddy-sign "2.2.0"]
+                 [buddy/buddy-sign "3.1.0"]
                  [buddy/buddy-hashers "1.4.0"]
 
                  [com.cemerick/friend "0.2.3"]
                  [clojusc/friend-oauth2 "0.2.0"]
-                 [lambdaisland/uri "1.1.0"]
+                 [lambdaisland/uri "1.2.1"]
 
 
                  ; Intermine Assets
@@ -117,11 +117,11 @@
                  :init (-main)
                  :timeout 120000}
 
-  :profiles {:dev {:dependencies [[binaryage/devtools "0.9.10"]
-                                  [day8.re-frame/re-frame-10x "0.4.4"]
-                                  [day8.re-frame/tracing "0.5.1"]
+  :profiles {:dev {:dependencies [[binaryage/devtools "1.0.0"]
+                                  [day8.re-frame/re-frame-10x "0.6.0"]
+                                  [day8.re-frame/tracing "0.5.3"]
                                   [figwheel-sidecar "0.5.19"]
-                                  [cider/piggieback "0.4.1"]]
+                                  [cider/piggieback "0.4.2"]]
                    :resource-paths ["config/dev" "tools" "config/defaults"]
                    :plugins [[lein-figwheel "0.5.19"]
                              [lein-doo "0.1.8"]]}

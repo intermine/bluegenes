@@ -116,7 +116,7 @@
     (let [panel (subscribe [::subs/panel])]
       [:div.developer.container
        [nav]
-       (case @panel
+       (case (or @panel "main")
          "main" [:div
                  [:h1 "Debug console"]
                  [mine-config]
