@@ -23,25 +23,25 @@
                  :applies-to [nil]}
                 {:op "="
                  :label "="
-                 :applies-to ["java.lang.String" "java.lang.Boolean" "java.lang.Integer" "java.lang.Double" "java.lang.Float"]}
+                 :applies-to ["java.lang.String" "java.lang.Boolean" "java.lang.Integer" "java.lang.Double" "java.lang.Float" "java.util.Date"]}
                 {:op "!="
                  :label "!="
-                 :applies-to ["java.lang.String" "java.lang.Boolean" "java.lang.Integer" "java.lang.Double" "java.lang.Float"]}
+                 :applies-to ["java.lang.String" "java.lang.Boolean" "java.lang.Integer" "java.lang.Double" "java.lang.Float" "java.util.Date"]}
                 {:op "CONTAINS"
                  :label "Contains"
                  :applies-to ["java.lang.String"]}
                 {:op "<"
                  :label "<"
-                 :applies-to ["java.lang.Integer" "java.lang.Double" "java.lang.Float"]}
+                 :applies-to ["java.lang.Integer" "java.lang.Double" "java.lang.Float" "java.util.Date"]}
                 {:op "<="
                  :label "<="
-                 :applies-to ["java.lang.Integer" "java.lang.Double" "java.lang.Float"]}
+                 :applies-to ["java.lang.Integer" "java.lang.Double" "java.lang.Float" "java.util.Date"]}
                 {:op ">"
                  :label ">"
-                 :applies-to ["java.lang.Integer" "java.lang.Double" "java.lang.Float"]}
+                 :applies-to ["java.lang.Integer" "java.lang.Double" "java.lang.Float" "java.util.Date"]}
                 {:op ">="
                  :label ">="
-                 :applies-to ["java.lang.Integer" "java.lang.Double" "java.lang.Float"]}
+                 :applies-to ["java.lang.Integer" "java.lang.Double" "java.lang.Float" "java.util.Date"]}
                 {:op "LIKE"
                  :label "Like"
                  :applies-to ["java.lang.String"]}
@@ -50,10 +50,10 @@
                  :applies-to ["java.lang.String"]}
                 {:op "ONE OF"
                  :label "One of"
-                 :applies-to ["java.lang.String"]}
+                 :applies-to ["java.lang.String" "java.util.Date"]}
                 {:op "NONE OF"
                  :label "None of"
-                 :applies-to ["java.lang.String"]}])
+                 :applies-to ["java.lang.String" "java.util.Date"]}])
 
 (defn applies-to?
   "Given a field type (ex java.lang.Double) return all constraint maps that support that type"
