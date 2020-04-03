@@ -207,7 +207,7 @@
  :current-possible-values
  :<- [:current-mine]
  (fn [current-mine [_ path]]
-   (get-in current-mine [:possible-values path])))
+   (sort (get-in current-mine [:possible-values path]))))
 
 (reg-sub
  :invalid-token?
