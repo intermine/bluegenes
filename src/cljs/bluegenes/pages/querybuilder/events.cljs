@@ -82,10 +82,9 @@
 (reg-event-fx
  :qb/add-constraint
  (fn [{db :db} [_ view-vec]]
-   (let [code (next-available-const-code (get-in db loc))]
-     {:db (update-in db loc update-in (conj view-vec :constraints)
-                     (comp vec conj) {:code nil :op nil :value nil})
-      :dispatch [:qb/build-im-query]})))
+   {:db (update-in db loc update-in (conj view-vec :constraints)
+                   (comp vec conj) {:code nil :op nil :value nil})
+    :dispatch [:qb/build-im-query]}))
 
 (reg-event-fx
  :qb/remove-constraint
@@ -101,7 +100,7 @@
    (let [updated-constraint (cond-> constraint
                               (and
                                (blank? (:code constraint))
-                               (not-blank? (:value constraint))) (assoc :code (next-available-const-code (get-in db loc)))
+                               (not-blank? (:value constraint))) (assoc :code (next-available-const-code (get-in db [:qb :enhance-query])))
                               (blank? (:value constraint)) (dissoc :code))]
      (update-in db loc assoc-in (reduce conj path [:constraints idx]) updated-constraint))))
 
@@ -403,11 +402,10 @@
 (reg-event-fx
  :qb/enhance-query-add-constraint
  (fn [{db :db} [_ view-vec]]
-   (let [code (next-available-const-code (get-in db [:qb :enhance-query]))]
-     {:db (update-in db [:qb :enhance-query] update-in (conj view-vec :constraints)
-                     (comp vec conj) {:code nil :op nil :value nil})
-      :dispatch-n [[:cache/fetch-possible-values (join "." view-vec)]
-                   [:qb/fetch-possible-values view-vec]]})))
+   {:db (update-in db [:qb :enhance-query] update-in (conj view-vec :constraints)
+                   (comp vec conj) {:code nil :op nil :value nil})
+    :dispatch-n [[:cache/fetch-possible-values (join "." view-vec)]
+                 [:qb/fetch-possible-values view-vec]]}))
 ;:dispatch [:qb/build-im-query]
 
 

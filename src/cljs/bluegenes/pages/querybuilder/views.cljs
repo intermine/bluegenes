@@ -290,23 +290,20 @@
                                    :typeahead? true
                                    :value (or (:value con) (:values con))
                                    :op (:op con)
+                                   ;; Having the following four functions is prone to bugs. If you have the need to
+                                   ;; refactor these, turn them into two functions instead: on-update and on-build.
+                                   ;; Then the children can decide whether they wish to call the first, last or both.
                                    :on-select-list (fn [c]
                                                      (dispatch [:qb/enhance-query-update-constraint path idx c])
                                                      (dispatch [:qb/enhance-query-build-im-query true]))
                                    :on-change-operator (fn [x]
                                                          (dispatch [:qb/enhance-query-update-constraint path idx x])
                                                          (dispatch [:qb/enhance-query-build-im-query true]))
-
                                    :on-change (fn [c]
                                                 (dispatch [:qb/enhance-query-update-constraint path idx c]))
-                                                ;(dispatch [:qb/enhance-query-build-im-query true])
-
                                    :on-blur (fn [c]
                                               (dispatch [:qb/enhance-query-update-constraint path idx c])
                                               (dispatch [:qb/enhance-query-build-im-query true]))
-
-                                   ;(dispatch [:qb/build-im-query])
-
                                    :label? false]]]) constraints)))
          (when (not-empty (dissoc-keywords properties))
            (let [classes (filter (fn [[k p]] (im-path/class? model (join "." (conj path k)))) (dissoc-keywords properties))

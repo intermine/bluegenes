@@ -152,7 +152,6 @@
                  :class (when disabled "disabled")
                  :value (or value "")
                  :on-change (fn [e]
-                              (on-change (oget e :target :value))
                               (on-blur (oget e :target :value)))}]
                (cond-> (map (fn [v] [:option {:value v} v]) (remove nil? possible-values))
                  (blank? value) (conj
@@ -175,7 +174,6 @@
                  :value (or value [])
                  :on-change (fn [e]
                               (let [value (doall (map first (filter (fn [[k elem]] (oget elem :selected)) @multiselects)))]
-                                (on-change value)
                                 (on-blur value)))}]
                (map (fn [v]
                       [:option
@@ -193,7 +191,6 @@
          :disabled disabled
          :restrict-type (im-path/class model path)
          :on-change (fn [list]
-                      ((or on-select-list on-change) list)
                       (on-blur list))]
 
         :else
@@ -231,11 +228,11 @@
               :value op
               :on-change (fn [e]
                            (let [new-op (oget e :target :value)]
-                             (on-change (oget e :target :value))
-                             ; Only fire the on-blur event when the operator has not changed from
-                             ; a non-list operator to a list-operator.
-                             ; Switching from "= Protein Domain" to "IN Protein Domain" doesn't make sense!
-                             (when-not (and (one-of? new-op ["IN" "NOT IN"]) (not-one-of? op ["IN" "NOT IN"]))
+                             (if (and (one-of? new-op ["IN" "NOT IN"]) (not-one-of? op ["IN" "NOT IN"]))
+                               (on-change (oget e :target :value))
+                               ; Only fire the on-blur event when the operator has not changed from
+                               ; a non-list operator to a list-operator.
+                               ; Switching from "= Protein Domain" to "IN Protein Domain" doesn't make sense!
                                (on-blur (oget e :target :value)))))}]
             (as-> operators $
               (filter (partial applies-to? (im-path/data-type model path)) $)
