@@ -369,7 +369,8 @@
         submit-fn #(when-let [title (not-empty @query-title)]
                      (swap! saving-query? not)
                      (reset! query-title "")
-                     (dispatch [:qb/save-query title]))]
+                     (dispatch [:qb/save-query title]))
+        fetching-preview? (subscribe [:qb/fetching-preview?])]
     (fn []
       (if @saving-query?
         [:div.button-group
@@ -397,11 +398,13 @@
           "Save Query"]
          [:button.btn.btn-raised
           {:on-click (fn [] (dispatch [:qb/enhance-query-clear-query]))}
-          "Clear Query"]]))))
+          "Clear Query"]
+         (when @fetching-preview?
+           [:div.query-preview-loader
+            [mini-loader "tiny"]])]))))
 
 (defn preview [result-count]
-  (let [results-preview (subscribe [:qb/preview])
-        fetching-preview? (subscribe [:qb/fetching-preview?])]
+  (let [results-preview (subscribe [:qb/preview])]
     [:div.preview-container
      (if-let [res @results-preview]
        [preview-table
