@@ -116,12 +116,12 @@
   []
   (let [multiselects (reagent/atom {})
         focused? (reagent/atom false)]
-    (fn [& {:keys [model path value typeahead? on-change on-blur _code lists
+    (fn [& {:keys [model path value typeahead? on-change on-blur _code lists type
                    _allow-possible-values possible-values disabled op on-select-list]}]
       (cond
-        (= (im-path/data-type model path) "java.util.Date")
+        (= type "java.util.Date")
         [:> js/DayPicker.Input
-         {:value value
+         {:value (or value "")
           :placeholder "YYYY-MM-DD"
           :formatDate (fn [date _ _]
                         (if (instance? js/Date date)
@@ -139,7 +139,9 @@
           :onDayChange (comp on-change read-day-change)
           :onDayPickerHide #(on-blur value)}]
 
-        (and (and typeahead? (seq? possible-values))
+        (and (not= type "java.lang.Integer")
+             typeahead?
+             (seq? possible-values)
              (or (= op "=")
                  (= op "!=")))
         [:div.constraint-text-input
@@ -307,6 +309,7 @@
                               :code code
                               :lists lists
                               :disabled disabled
+                              :type (im-path/data-type model path)
                               :allow-possible-values (and (not= op "IN") (not= op "NOT IN"))
                               :possible-values @pv
                               :on-change (fn [val]
@@ -354,6 +357,7 @@
                                         :typeahead? typeahead?
                                         :path path
                                         :disabled disabled
+                                        :type (im-path/data-type model path)
                                         :allow-possible-values (and (not= op "IN") (not= op "NOT IN"))
                                         :possible-values @pv
                                         :on-change (fn [val]
