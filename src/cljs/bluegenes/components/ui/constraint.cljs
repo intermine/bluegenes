@@ -121,7 +121,8 @@
       (cond
         (= type "java.util.Date")
         [:> js/DayPicker.Input
-         {:value (or value "")
+         {:inputProps {:class "form-control"}
+          :value (or value "")
           :placeholder "YYYY-MM-DD"
           :formatDate (fn [date _ _]
                         (if (instance? js/Date date)
