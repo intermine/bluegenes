@@ -116,8 +116,8 @@
   []
   (let [multiselects (reagent/atom {})
         focused? (reagent/atom false)]
-    (fn [& {:keys [disabled model path value typeahead? on-change on-blur code lists
-                   allow-possible-values possible-values disabled op on-select-list] :as x}]
+    (fn [& {:keys [model path value typeahead? on-change on-blur _code lists
+                   _allow-possible-values possible-values disabled op on-select-list]}]
       (cond
         (= (im-path/data-type model path) "java.util.Date")
         [:> js/DayPicker.Input
@@ -138,66 +138,74 @@
                              nil))))
           :onDayChange (comp on-change read-day-change)
           :onDayPickerHide #(on-blur value)}]
+
         (and (and typeahead? (seq? possible-values))
              (or (= op "=")
-                 (= op "!="))) [:div.constraint-text-input
-                                {:class (when @focused? "open")}
-                                (into [:select.form-control
-                                       {:disabled disabled
-                                        :class (when disabled "disabled")
-                                        :value (or value "")
-                                        :on-change (fn [e]
-                                                     (on-change (oget e :target :value))
-                                                     (on-blur (oget e :target :value)))}]
-                                      (cond-> (map (fn [v] [:option {:value v} v]) (remove nil? possible-values))
-                                        (blank? value) (conj
-                                                        [:option {:disabled true :value ""}
-                                                         (str
-                                                          "Choose "
-                                                          (join " > "
-                                                                (take-last 2 (split (im-path/friendly model path) " > "))))])))]
+                 (= op "!=")))
+        [:div.constraint-text-input
+         {:class (when @focused? "open")}
+         (into [:select.form-control
+                {:disabled disabled
+                 :class (when disabled "disabled")
+                 :value (or value "")
+                 :on-change (fn [e]
+                              (on-change (oget e :target :value))
+                              (on-blur (oget e :target :value)))}]
+               (cond-> (map (fn [v] [:option {:value v} v]) (remove nil? possible-values))
+                 (blank? value) (conj
+                                 [:option {:disabled true :value ""}
+                                  (str
+                                   "Choose "
+                                   (join " > "
+                                         (take-last 2 (split (im-path/friendly model path) " > "))))])))]
+
         (and
          (and typeahead? (seq? possible-values))
          (or (= op "ONE OF")
-             (= op "NONE OF"))) [:div.constraint-text-input
-                                 {:class (when @focused? "open")}
-                                 (into [:select.form-control
-                                        {:multiple true
-                                         :disabled disabled
-                                         :class (when disabled "disabled")
-                                         :value (or value [])
-                                         :on-change (fn [e]
-                                                      (let [value (doall (map first (filter (fn [[k elem]] (oget elem :selected)) @multiselects)))]
-                                                        (on-change value)
-                                                        (on-blur value)))}]
-                                       (map (fn [v]
-                                              [:option
-                                               {:ref (fn [e] (when e (swap! multiselects assoc v e)))
-                                                :value v}
-                                               v])
-                                            (remove nil? possible-values)))]
+             (= op "NONE OF")))
+        [:div.constraint-text-input
+         {:class (when @focused? "open")}
+         (into [:select.form-control
+                {:multiple true
+                 :disabled disabled
+                 :class (when disabled "disabled")
+                 :value (or value [])
+                 :on-change (fn [e]
+                              (let [value (doall (map first (filter (fn [[k elem]] (oget elem :selected)) @multiselects)))]
+                                (on-change value)
+                                (on-blur value)))}]
+               (map (fn [v]
+                      [:option
+                       {:ref (fn [e] (when e (swap! multiselects assoc v e)))
+                        :value v}
+                       v])
+                    (remove nil? possible-values)))]
+
         (or
          (= op "IN")
-         (= op "NOT IN")) [list-dropdown
-                           :value value
-                           :lists lists
-                           :disabled disabled
-                           :restrict-type (im-path/class model path)
-                           :on-change (fn [list]
-                                        ((or on-select-list on-change) list)
-                                        (on-blur list))]
-        :else [:input.form-control
-               {:data-toggle "none"
-                :disabled disabled
-                :class (when disabled "disabled")
-                :type "text"
-                :value value
-                :on-focus (fn [e] (reset! focused? true))
-                :on-change (fn [e] (on-change (oget e :target :value)))
-                :on-blur (fn [e] (on-blur (oget e :target :value)) (reset! focused? false))
-                :on-key-down (fn [e] (when (= (oget e :keyCode) 13)
-                                       (on-blur (oget e :target :value))
-                                       (reset! focused? false)))}]))))
+         (= op "NOT IN"))
+        [list-dropdown
+         :value value
+         :lists lists
+         :disabled disabled
+         :restrict-type (im-path/class model path)
+         :on-change (fn [list]
+                      ((or on-select-list on-change) list)
+                      (on-blur list))]
+
+        :else
+        [:input.form-control
+         {:data-toggle "none"
+          :disabled disabled
+          :class (when disabled "disabled")
+          :type "text"
+          :value value
+          :on-focus (fn [e] (reset! focused? true))
+          :on-change (fn [e] (on-change (oget e :target :value)))
+          :on-blur (fn [e] (on-blur (oget e :target :value)) (reset! focused? false))
+          :on-key-down (fn [e] (when (= (oget e :keyCode) 13)
+                                 (on-blur (oget e :target :value))
+                                 (reset! focused? false)))}]))))
 
 (defn one-of? [value col] (some? (some #{value} col)))
 (def not-one-of? (complement one-of?))
