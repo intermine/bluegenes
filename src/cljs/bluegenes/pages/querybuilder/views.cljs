@@ -133,7 +133,16 @@
 (defn model-browser []
   (fn [model root-class]
     [:div.model-browser
-     (let [path [root-class]]
+     (let [path [root-class]
+           attributes (->> (im-path/attributes model root-class)
+                           (remove (comp #{:id} key)) ; Hide id attribute.
+                           (sort))
+           relationships (->> (im-path/relationships model root-class)
+                              ;; Make sure class is present in model.
+                              ;; (If the class has no members, it won't be.)
+                              (filter #(contains? (:classes model)
+                                                  (-> % val :referencedType keyword)))
+                              (sort))]
        (into [:ul
               [:li [:div.model-button-group
                     [:button.btn.btn-slim
@@ -146,8 +155,8 @@
                      {:on-click #(dispatch [:qb/collapse-all])}
                      "Collapse All"]]]]
              (concat
-              (map (fn [i] [attribute model i path]) (sort (remove (comp (partial = :id) first) (im-path/attributes model root-class))))
-              (map (fn [i] [node model i path]) (sort (im-path/relationships model root-class))))))]))
+              (map (fn [class-entry] [attribute model class-entry path]) attributes)
+              (map (fn [class-entry] [node model class-entry path]) relationships))))]))
 
 (defn data-browser-node []
   (let [open? (reagent/atom true)]
