@@ -11,6 +11,7 @@
             [bluegenes.pages.templates.core]
             [cljsjs.google-analytics]
             [cljsjs.react-transition-group]
+            [cljsjs.react-day-picker]
             [oops.core :refer [ocall]]))
 
 ;(defn dev-setup []

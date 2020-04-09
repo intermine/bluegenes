@@ -6,7 +6,9 @@
             [bluegenes.components.loader :refer [mini-loader]]
             [reagent.core :as reagent :refer [create-class]]
             [dommy.core :as dommy :refer-macros [sel sel1]]
-            [bluegenes.components.ui.list_dropdown :refer [list-dropdown]]))
+            [bluegenes.components.ui.list_dropdown :refer [list-dropdown]]
+            [cljs-time.coerce :as time-coerce]
+            [cljs-time.format :as time-format]))
 
 ; These are what appear in a constraint drop down in order. Each map contains:
 ;  :op         - The syntax found in InterMine Query Language
@@ -50,10 +52,10 @@
                  :applies-to ["java.lang.String"]}
                 {:op "ONE OF"
                  :label "One of"
-                 :applies-to ["java.lang.String" "java.util.Date"]}
+                 :applies-to ["java.lang.String"]}
                 {:op "NONE OF"
                  :label "None of"
-                 :applies-to ["java.lang.String" "java.util.Date"]}])
+                 :applies-to ["java.lang.String"]}])
 
 (defn applies-to?
   "Given a field type (ex java.lang.Double) return all constraint maps that support that type"
@@ -95,6 +97,20 @@
 (defn set-text-value [node value]
   (when node (-> (sel1 node :input) (dommy/set-value! value))))
 
+(def fmt "yyyy-MM-dd")
+(def date-fmt (time-format/formatter fmt))
+
+(defn read-day-change
+  "Convert DayPicker input to the string we use as constraint."
+  [date _mods picker]
+  (let [input (.-value (.getInput picker))]
+    ;; `date` can be nil if it's not a valid date. We use the raw input text in
+    ;; that case, to accomodate alien calendars.
+    (or (some->> date
+                 (time-coerce/from-date)
+                 (time-format/unparse date-fmt))
+        input)))
+
 (defn constraint-text-input
   "A component that represents the freeform textbox for String / Lookup constraints"
   []
@@ -103,6 +119,25 @@
     (fn [& {:keys [disabled model path value typeahead? on-change on-blur code lists
                    allow-possible-values possible-values disabled op on-select-list] :as x}]
       (cond
+        (= (im-path/data-type model path) "java.util.Date")
+        [:> js/DayPicker.Input
+         {:value value
+          :placeholder "YYYY-MM-DD"
+          :formatDate (fn [date _ _]
+                        (if (instance? js/Date date)
+                          (->> date (time-coerce/from-date) (time-format/unparse date-fmt))
+                          ""))
+          :parseDate (fn [s _ _]
+                       (when (and (string? s)
+                                  (= (count s) (count fmt)))
+                         ;; Invalid dates like "2020-03-33" causes cljs-time
+                         ;; to throw an error. We don't care and return nil.
+                         (try
+                           (some->> s (time-format/parse date-fmt) (time-coerce/to-date))
+                           (catch js/Error _
+                             nil))))
+          :onDayChange (comp on-change read-day-change)
+          :onDayPickerHide #(on-blur value)}]
         (and (and typeahead? (seq? possible-values))
              (or (= op "=")
                  (= op "!="))) [:div.constraint-text-input

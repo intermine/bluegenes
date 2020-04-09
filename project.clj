@@ -22,6 +22,7 @@
                  [servant "0.1.5"]
                  [json-html "0.4.7"]
                  [markdown-to-hiccup "0.6.2"]
+                 [cljsjs/react-day-picker "7.3.0-1"]
 
                  ; HTTP
                  [clj-http "3.10.0"]
