@@ -420,7 +420,8 @@
       :dispatch [:qb/enhance-query-build-im-query true]})))
 ;:dispatch [:qb/build-im-query]
 
-
+;; Having both `:value` and `:values` keys makes this bug-prone. If we find we need
+;; to refactor this, we should merge it into a single polymorphic `:value` key.
 (reg-event-db
  :qb/enhance-query-update-constraint
  (fn [db [_ path idx constraint]]

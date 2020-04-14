@@ -472,6 +472,7 @@ div.column-container {
             display: flex;
             align-items: center;
             justify-content: center;
+            height: 1.8*@spacer;
         }
     }
 
@@ -485,6 +486,12 @@ div.column-container {
             min-width: 1em;
             min-height: 1em;
         }
+    }
+
+    // Applies to react-select third-party component.
+    .constraint-select {
+        width: 100%;
+        font-size: 14px;
     }
 }
 
@@ -872,9 +879,12 @@ div.column-container {
 }
 
 .constraint-input {
-    input[type="text"] {
-        transition: .4s;
-    }
+    // input[type="text"] {
+    //     transition: .4s;
+    // }
+    // I had to disable the above since it was overly general and ended up
+    // targetting react-select, causing the text to slowly jump around when
+    // inputted. I couldn't find its intended effect so I disabled it.
     .disabled {
         color: grey;
         fill: grey;
