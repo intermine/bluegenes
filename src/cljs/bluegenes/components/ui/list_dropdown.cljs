@@ -36,23 +36,22 @@
        :on-change   (fn [e] (reset! text-filter-atom (oget e :target :value)))
        :placeholder "Filter..."}]]))
 
-(defn list-dropdown []
+(defn list-dropdown
   "Creates a dropdown for intermine lists
   :value          The selected value to show in the dropdown
   :lists          A collection of Intermine lists
   :restrict-type  (Optional) a keyword to restrict the list to a type, like :Gene
   :on-change      A function to call with the name of the list"
+  []
   (let [text-filter-atom (reagent/atom nil)]
     (fn [& {:keys [value lists restrict-type on-change disabled :as x]}]
       (let [text-filter    (partial has-text? @text-filter-atom)
             type-filter    (partial has-type? restrict-type)
             filter-fn      (apply every-pred [text-filter type-filter])
             filtered-lists (filter filter-fn lists)]
-        [:div.dropdown
+        [:div.dropdown.list-dropdown
          [:button.btn.btn-raised.btn-default.dropdown-toggle
           {:disabled disabled
-           :style       {:text-transform "none"
-                         :white-space    "normal"}
            :data-toggle "dropdown"}
           (str (or value "Choose a list") " ") [:span.caret]]
          [:div.dropdown-menu.dropdown-mixed-content
