@@ -299,9 +299,10 @@
                                    :typeahead? true
                                    :value (or (:value con) (:values con))
                                    :op (:op con)
-                                   ;; Having the following four functions is prone to bugs. If you have the need to
-                                   ;; refactor these, turn them into two functions instead: on-update and on-build.
-                                   ;; Then the children can decide whether they wish to call the first, last or both.
+                                   ;; Do we need all these? I think it would be simpler to just have:
+                                   ;;     on-change - update state
+                                   ;;     on-blur   - update state and rerun query
+                                   ;; If you find you need to refactor these, try converting it to the above.
                                    :on-select-list (fn [c]
                                                      (dispatch [:qb/enhance-query-update-constraint path idx c])
                                                      (dispatch [:qb/enhance-query-build-im-query true]))

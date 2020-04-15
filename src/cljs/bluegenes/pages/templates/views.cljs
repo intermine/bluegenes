@@ -68,7 +68,7 @@
   [selected-template]
   (let [service (subscribe [:selected-template-service])
         row-count (subscribe [:template-chooser/count])
-        lists (subscribe [:lists])]
+        lists (subscribe [:current-lists])]
     [:div.col-xs-4.border-right
      (into [:div.form]
            ; Only show editable constraints, but don't filter because we want the index!
@@ -86,8 +86,12 @@
                          :hide-code? true
                          :label? true
                          :disabled (= switched "OFF")
-                         :lists (second (first @lists))
+                         :lists @lists
                          :on-blur (fn [new-constraint]
+                                    (dispatch [:template-chooser/replace-constraint
+                                               idx (merge (cond-> con
+                                                            (contains? new-constraint :values) (dissoc :value)
+                                                            (contains? new-constraint :value) (dissoc :values)) new-constraint)])
                                     (dispatch [:template-chooser/update-preview
                                                idx (merge (cond-> con
                                                             (contains? new-constraint :values) (dissoc :value)
