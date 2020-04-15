@@ -210,6 +210,12 @@
    (get-in current-mine [:possible-values path])))
 
 (reg-sub
+ :current-class-keys
+ :<- [:current-mine]
+ (fn [current-mine]
+   (:class-keys current-mine)))
+
+(reg-sub
  :invalid-token?
  (fn [db]
    (get db :invalid-token?)))

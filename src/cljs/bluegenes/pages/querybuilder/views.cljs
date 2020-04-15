@@ -237,16 +237,16 @@
   (apply dissoc m (filter keyword? (keys m))))
 
 (defn queryview-node []
-  (let [lists (subscribe [:current-lists])]
+  (let [lists (subscribe [:current-lists])
+        class-keys (subscribe [:current-class-keys])]
     (fn [model [k properties] & [trail]]
       (let [path (vec (conj trail (name k)))
             class-node? (im-path/class? model (join "." path))
             non-root-class? (and class-node? (> (count path) 1))
-            [parent-class referenced-class] (when non-root-class?
-                                              (->> (map keyword path)
-                                                   (im-path/walk model)
-                                                   (take-last 2)
-                                                   (map :displayName)))]
+            [{referenced-name :displayName, referenced-class :name}
+             {parent-name :displayName}] (->> (map keyword path)
+                                              (im-path/walk model)
+                                              (reverse))]
         [:li.tree.haschildren
          [:div.flexmex
           [:span.lab {:class (if class-node? "qb-class" "qb-attribute")}
@@ -254,8 +254,8 @@
             [tooltip {:on-click #(dispatch [:qb/expand-path path])
                       :title (str "Show " (uncamel k) " in the model browser")}
              [:a (uncamel k)]]]
-           (when (and non-root-class? (not= referenced-class (uncamel k)))
-             [:span.qb-type (str "(" referenced-class ")")])
+           (when (and non-root-class? (not= referenced-name (uncamel k)))
+             [:span.qb-type (str "(" referenced-name ")")])
            (when-let [s (:subclass properties)] [:span.label.label-default (uncamel s)])
            [:svg.icon.icon-bin
             {:on-click (if (> (count path) 1)
@@ -269,8 +269,8 @@
                 {:role "button"
                  :class (when outer-join? "active")
                  :title (if outer-join?
-                          (str "Show all " (plural parent-class) " and show " (plural referenced-class) " if they are present")
-                          (str "Show only " (plural parent-class) " if they have a " referenced-class))
+                          (str "Show all " (plural parent-name) " and show " (plural referenced-name) " if they are present")
+                          (str "Show only " (plural parent-name) " if they have a " referenced-name))
                  :on-click #(dispatch [(if outer-join?
                                          :qb/remove-outer-join
                                          :qb/add-outer-join) path])}
@@ -278,7 +278,14 @@
                   [:svg.icon.icon-venn-combine [:use {:xlinkHref "#icon-venn-combine"}]]
                   [:svg.icon.icon-venn-intersection [:use {:xlinkHref "#icon-venn-intersection"}]])]))
 
-           [:svg.icon.icon-filter {:on-click (fn [] (dispatch [:qb/enhance-query-add-constraint path]))} [:use {:xlinkHref "#icon-filter"}]]
+           ;; Disallow adding constraints to classes without class keys.
+           (when (or (not class-node?)
+                     (contains? @class-keys (keyword referenced-class)))
+             [:svg.icon.icon-filter
+              {:on-click (fn []
+                           (dispatch [:qb/enhance-query-add-constraint path]))}
+              [:use {:xlinkHref "#icon-filter"}]])
+
            (when-let [c (:id-count properties)]
              [:span.label.label-soft
               {:class (when (= 0 c) "label-no-results")
