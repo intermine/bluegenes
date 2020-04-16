@@ -8,7 +8,8 @@
             [bluegenes.components.ui.constraint :refer [constraint]]
             [bluegenes.components.ui.results_preview :refer [preview-table]]
             [oops.core :refer [oget ocall]]
-            [clojure.string :as s]))
+            [clojure.string :as s]
+            [bluegenes.components.loader :refer [mini-loader]]))
 
 (defn categories []
   (let [categories (subscribe [:template-chooser-categories])
@@ -42,9 +43,12 @@
   (let [fetching-preview? (subscribe [:template-chooser/fetching-preview?])
         results-preview (subscribe [:template-chooser/results-preview])]
     [:div.col-xs-8.preview
-     [:h4 "Results Preview"]
+     [:div.preview-header
+       [:h4 "Results Preview"]
+       (when @fetching-preview?
+         [:div.preview-header-loader
+          [mini-loader "tiny"]])]
      [preview-table
-      :loading? @fetching-preview?
       :query-results @results-preview]
      [:button.btn.btn-primary.btn-raised.view-results
       {:type "button"
