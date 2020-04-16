@@ -30,33 +30,31 @@
 (def css-transition-group
   (reagent/adapt-react-class js/ReactTransitionGroup.CSSTransitionGroup))
 
-(defn results-count-text [results-preview]
-  (if (< (:iTotalRecords @results-preview) 1)
-    "No Results"
-    (str "View "
-         (js/parseInt (:iTotalRecords @results-preview))
-         (if (> (:iTotalRecords @results-preview) 1) " rows" " row"))))
-
 (defn preview-results
   "Preview results of template as configured by the user or default config"
   [results-preview fetching-preview]
   (let [fetching-preview? (subscribe [:template-chooser/fetching-preview?])
-        results-preview (subscribe [:template-chooser/results-preview])]
+        results-preview (subscribe [:template-chooser/results-preview])
+        loading? (or @fetching-preview? (nil? @results-preview))
+        results-count (:iTotalRecords @results-preview)]
     [:div.col-xs-8.preview
      [:div.preview-header
        [:h4 "Results Preview"]
-       (when @fetching-preview?
+       (when loading?
          [:div.preview-header-loader
           [mini-loader "tiny"]])]
      [preview-table
       :query-results @results-preview]
      [:button.btn.btn-primary.btn-raised.view-results
       {:type "button"
-       :disabled (< (:iTotalRecords @results-preview) 1)
+       :disabled (zero? results-count)
        :on-click (fn [] (dispatch [:templates/send-off-query]))}
-      (if @fetching-preview?
-        "Loading"
-        (results-count-text results-preview))]]))
+      (cond
+        loading? "Loading"
+        (zero? results-count) "No Results"
+        :else (str "View "
+                   results-count
+                   (if (> results-count 1) " rows" " row")))]]))
 
 (defn toggle []
   (fn [{:keys [status on-change]}]

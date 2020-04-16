@@ -18,12 +18,12 @@
  (fn [{db :db} [_ id]]
    (let [current-mine (:current-mine db)
          query (get-in db [:assets :templates current-mine id])]
-     {:db (update-in db [:components :template-chooser]
-                     assoc
+     {:db (update-in db [:components :template-chooser] assoc
                      :selected-template query
                      :selected-template-name id
                      :selected-template-service (get-in db [:mines current-mine :service])
-                     :count nil)
+                     :count nil
+                     :results-preview nil)
       :dispatch-n [[:template-chooser/run-count]
                    [:template-chooser/fetch-preview]]})))
 
