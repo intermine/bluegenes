@@ -7,6 +7,8 @@
             [bluegenes.route :as route]
             [bluegenes.components.ui.inputs :refer [password-input]]))
 
+(def ^:const logo-path "/model/images/logo.png")
+
 (defn mine-icon
   "returns the icon set for a specific mine, or a default.
    Pass it the entire set of mine details, e.g.
@@ -15,8 +17,7 @@
   [:img
    {:class class
     :src (or (get-in details [:images :logo])
-             (str (get-in details [:service :root])
-                  "/model/images/logo.png"))}])
+             (str (get-in details [:service :root]) logo-path))}])
 
 (defn update-form [atom key evt]
   (swap! atom assoc key (oget evt :target :value)))
@@ -124,9 +125,10 @@
 
 (defn active-mine-logo []
   (let [current-mine @(subscribe [:current-mine])
+        logo (get-in current-mine [:logo])
         service (get-in current-mine [:service :root])]
     [:img.active-mine-image
-     {:src (str service "/model/images/logo.png")}]))
+     {:src (or logo (str service logo-path))}]))
 
 (defn main []
   (let [active-panel (subscribe [:active-panel])
