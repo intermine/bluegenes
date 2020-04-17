@@ -103,7 +103,8 @@
 (defn read-day-change
   "Convert DayPicker input to the string we use as constraint."
   [date _mods picker]
-  (let [input (.-value (.getInput picker))]
+  (let [input (-> (ocall picker :getInput)
+                  (oget :value))]
     ;; `date` can be nil if it's not a valid date. We use the raw input text in
     ;; that case, to accomodate alien calendars.
     (or (some->> date
