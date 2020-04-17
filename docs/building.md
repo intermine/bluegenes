@@ -147,6 +147,21 @@ Once dokku is configured on your remote host, you'll need to add your public key
 
 If you want to deploy a different branch, you can use `git push dokku dev:master` (replace *dev* with the branch you wish to deploy from).
 
+#### Deploying docker images to dokku instance
+
+You can also deploy docker images that you build locally, to the dokku instance. This is useful since it's much quicker and avoids the extra load on the dokku server from building.
+Make sure `youruser` on `dokku-server` is part of the `docker` group. This allows you to stream the file, instead of manually transferring it through ssh.
+
+```
+lein uberjar
+docker build -t dokku/appname:v1 .
+docker save dokku/appname:v1 | bzip2 | ssh youruser@dokku-server "bunzip2 | docker load"
+ssh youruser@dokku-server
+sudo dokku tags:deploy appname v1
+```
+
+Note that the tag `v1` needs to be unique for each deployment. It is common to use a version string and increment it for each deployment (might may not necessarily correspond with version releases). See the [dokku documentation](http://dokku.viewdocs.io/dokku/deployment/methods/images/#deploying-an-image-from-ci) for more information.
+
 ### Uberjar
 
 It's also possible to compile BlueGenes to a jar that will automatically launch a server when executed.
