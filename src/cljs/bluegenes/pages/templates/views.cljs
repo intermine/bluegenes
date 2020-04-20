@@ -39,10 +39,10 @@
         results-count (:iTotalRecords @results-preview)]
     [:div.col-xs-8.preview
      [:div.preview-header
-       [:h4 "Results Preview"]
-       (when loading?
-         [:div.preview-header-loader
-          [mini-loader "tiny"]])]
+      [:h4 "Results Preview"]
+      (when loading?
+        [:div.preview-header-loader
+         [mini-loader "tiny"]])]
      [preview-table
       :query-results @results-preview]
      [:button.btn.btn-primary.btn-raised.view-results
