@@ -112,92 +112,120 @@
                  (time-format/unparse date-fmt))
         input)))
 
-(defn constraint-text-input
-  "A component that represents the freeform textbox for String / Lookup constraints"
+(defn date-constraint-input
+  "Wraps `cljsjs/react-day-picker` for use as constraint input for selecting dates."
+  [{:keys [value on-change on-blur]}]
+  [:> js/DayPicker.Input
+   {:inputProps {:class "form-control"}
+    :value (or value "")
+    :placeholder "YYYY-MM-DD"
+    :formatDate (fn [date _ _]
+                  (if (instance? js/Date date)
+                    (->> date (time-coerce/from-date) (time-format/unparse date-fmt))
+                    ""))
+    :parseDate (fn [s _ _]
+                 (when (and (string? s)
+                            (= (count s) (count fmt)))
+                   ;; Invalid dates like "2020-03-33" causes cljs-time
+                   ;; to throw an error. We don't care and return nil.
+                   (try
+                     (some->> s (time-format/parse date-fmt) (time-coerce/to-date))
+                     (catch js/Error _
+                       nil))))
+    :onDayChange (comp on-change read-day-change)
+    :onDayPickerHide #(on-blur value)}])
+
+(defn select-constraint-input
+  "Wraps `cljsjs/react-select` for use as constraint input for selecting
+  one value out of `possible-values`."
+  [{:keys [model path value on-blur possible-values disabled]}]
+  [:> js/Select
+   {:className "constraint-select"
+    :classNamePrefix "constraint-select"
+    :placeholder (str "Choose "
+                      (join " > " (take-last 2 (split (im-path/friendly model path) " > "))))
+    :isDisabled disabled
+    ;; Leaving the line below as it can be useful in the future.
+    ; :isLoading (seq? possible-values)
+    :onChange (fn [value]
+                (on-blur (oget value :value)))
+    :value (when (not-empty value) {:value value :label value})
+    :options (map (fn [v] {:value v :label v}) (remove nil? possible-values))}])
+
+(defn select-multiple-constraint-input
+  "Wraps `cljsjs/react-select` for use as constraint input for selecting
+  multiple values out of `possible-values`."
+  [{:keys [model path value on-blur possible-values disabled]}]
+  [:> js/Select
+   {:className "constraint-select"
+    :classNamePrefix "constraint-select"
+    :placeholder (str "Choose "
+                      (join " > " (take-last 2 (split (im-path/friendly model path) " > "))))
+    :isMulti true
+    :isDisabled disabled
+    ;; Leaving the line below as it can be useful in the future.
+    ; :isLoading (seq? possible-values)
+    :onChange (fn [values]
+                (on-blur (not-empty (map :value (js->clj values :keywordize-keys true)))))
+    :value (map (fn [v] {:value v :label v}) value)
+    :options (map (fn [v] {:value v :label v}) (remove nil? possible-values))}])
+
+(defn list-constraint-input
+  "Wraps `list-dropdown` for use as constraint input for IN and NOT IN list."
+  [{:keys [model path value on-blur lists disabled]}]
+  [list-dropdown
+   :value value
+   :lists lists
+   :disabled disabled
+   :restrict-type (im-path/class model path)
+   :on-change (fn [list]
+                (on-blur list))])
+
+(defn text-constraint-input
+  "Freeform textbox for String / Lookup constraints."
   []
   (let [focused? (reagent/atom false)]
-    (fn [& {:keys [model path value typeahead? on-change on-blur _code lists type
-                   _allow-possible-values possible-values disabled op on-select-list]}]
-      (cond
-        (= type "java.util.Date")
-        [:> js/DayPicker.Input ; cljsjs/react-day-picker
-         {:inputProps {:class "form-control"}
-          :value (or value "")
-          :placeholder "YYYY-MM-DD"
-          :formatDate (fn [date _ _]
-                        (if (instance? js/Date date)
-                          (->> date (time-coerce/from-date) (time-format/unparse date-fmt))
-                          ""))
-          :parseDate (fn [s _ _]
-                       (when (and (string? s)
-                                  (= (count s) (count fmt)))
-                         ;; Invalid dates like "2020-03-33" causes cljs-time
-                         ;; to throw an error. We don't care and return nil.
-                         (try
-                           (some->> s (time-format/parse date-fmt) (time-coerce/to-date))
-                           (catch js/Error _
-                             nil))))
-          :onDayChange (comp on-change read-day-change)
-          :onDayPickerHide #(on-blur value)}]
+    (fn [{:keys [value on-change on-blur disabled]}]
+      [:input.form-control
+       {:data-toggle "none"
+        :disabled disabled
+        :class (when disabled "disabled")
+        :type "text"
+        :value value
+        :on-focus (fn [e] (reset! focused? true))
+        :on-change (fn [e] (on-change (oget e :target :value)))
+        :on-blur (fn [e] (on-blur (oget e :target :value)) (reset! focused? false))
+        :on-key-down (fn [e] (when (= (oget e :keyCode) 13)
+                               (on-blur (oget e :target :value))
+                               (reset! focused? false)))}])))
 
-        (and (not= type "java.lang.Integer")
-             typeahead?
-             (seq? possible-values)
-             (or (= op "=")
-                 (= op "!=")))
-        [:> js/Select ; cljsjs/react-select
-         {:className "constraint-select"
-          :classNamePrefix "constraint-select"
-          :placeholder (str "Choose "
-                            (join " > " (take-last 2 (split (im-path/friendly model path) " > "))))
-          :isDisabled disabled
-          ;; Leaving the line below as it can be useful in the future.
-          ; :isLoading (seq? possible-values)
-          :onChange (fn [value]
-                      (on-blur (oget value :value)))
-          :value (when (not-empty value) {:value value :label value})
-          :options (map (fn [v] {:value v :label v}) (remove nil? possible-values))}]
+(defn constraint-input
+  "Returns the appropriate input component for the constraint operator."
+  [& {:keys [model path value typeahead? on-change on-blur _code lists type
+             _allow-possible-values possible-values disabled op on-select-list]
+      :as props}]
+  (cond
+    (= type "java.util.Date")
+    [date-constraint-input props]
 
-        (and
-         (and typeahead? (seq? possible-values))
+    (and (not= type "java.lang.Integer")
+         typeahead?
+         (seq? possible-values)
+         (or (= op "=")
+             (= op "!=")))
+    [select-constraint-input props]
+
+    (and (and typeahead? (seq? possible-values))
          (or (= op "ONE OF")
              (= op "NONE OF")))
-        [:> js/Select ; cljsjs/react-select
-         {:className "constraint-select"
-          :classNamePrefix "constraint-select"
-          :isMulti true
-          :isDisabled disabled
-          ;; Leaving the line below as it can be useful in the future.
-          ; :isLoading (seq? possible-values)
-          :onChange (fn [values]
-                      (on-blur (not-empty (map :value (js->clj values :keywordize-keys true)))))
-          :value (map (fn [v] {:value v :label v}) value)
-          :options (map (fn [v] {:value v :label v}) (remove nil? possible-values))}]
+    [select-multiple-constraint-input props]
 
-        (or
-         (= op "IN")
-         (= op "NOT IN"))
-        [list-dropdown
-         :value value
-         :lists lists
-         :disabled disabled
-         :restrict-type (im-path/class model path)
-         :on-change (fn [list]
-                      (on-blur list))]
+    (or (= op "IN")
+        (= op "NOT IN"))
+    [list-constraint-input props]
 
-        :else
-        [:input.form-control
-         {:data-toggle "none"
-          :disabled disabled
-          :class (when disabled "disabled")
-          :type "text"
-          :value value
-          :on-focus (fn [e] (reset! focused? true))
-          :on-change (fn [e] (on-change (oget e :target :value)))
-          :on-blur (fn [e] (on-blur (oget e :target :value)) (reset! focused? false))
-          :on-key-down (fn [e] (when (= (oget e :keyCode) 13)
-                                 (on-blur (oget e :target :value))
-                                 (reset! focused? false)))}]))))
+    :else
+    [text-constraint-input props]))
 
 (defn one-of? [value col] (some? (some #{value} col)))
 (def not-one-of? (complement one-of?))
@@ -295,7 +323,7 @@
                                              ((or on-change-operator on-change) {:code code :path path :values (single->multi value) :op op})
                                              ((or on-change-operator on-change) {:code code :path path :value (multi->single value) :op op})))]]
                             [:div.col-sm-8.constraint-input
-                             [constraint-text-input
+                             [constraint-input
                               :model model
                               :value value
                               :op op
@@ -346,7 +374,7 @@
                                                        :on-change (fn [list]
                                                                     ((or on-select-list on-change) {:path path :value list :code code :op op}))]
                                   ; Otherwise show a text input
-                                 :else [constraint-text-input
+                                 :else [constraint-input
                                         :model model
                                         :value value
                                         :op op
