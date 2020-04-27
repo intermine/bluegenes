@@ -7,37 +7,33 @@
             [bluegenes.route :as route]
             [bluegenes.components.ui.inputs :refer [password-input]]))
 
+(def ^:const logo-path "/model/images/logo.png")
+
 (defn mine-icon
   "returns the icon set for a specific mine, or a default.
    Pass it the entire set of mine details, e.g.
    (subscribe [:current-mine])."
-  [mine]
-  (let [icon (:icon mine)]
-    [:svg.icon.logo {:class icon}
-     [:use {:xlinkHref (str "#" icon)}]]))
+  [details & {:keys [class]}]
+  [:img
+   {:class class
+    :src (or (get-in details [:images :logo])
+             (str (get-in details [:service :root]) logo-path))}])
 
 (defn update-form [atom key evt]
   (swap! atom assoc key (oget evt :target :value)))
 
 (defn mine-entry
   "Output a single mine in the mine picker"
-  [mine-key details]
+  [mine-key details & {:keys [current?]}]
   [:li
    {:title (:description details)}
-   [:a {:href (route/href ::route/home {:mine mine-key})}
-    [:img {:src (:logo (:images details))}]
+   [:a (if current?
+         {:class "current"}
+         {:href (route/href ::route/home {:mine mine-key})})
+    [mine-icon details]
     (str (:name details)
          (when (= mine-key :default)
            " (default)"))]])
-
-(defn mine-entry-current
-  "Output a single mine in the mine picker"
-  [details]
-  [:li
-   {:title (:description details)}
-   [:a [mine-icon details]
-    [:img {:src (:logo (:images details))}]
-    (:name details) " (current)"]])
 
 (defn settings
   "output the settings menu and mine picker"
@@ -48,14 +44,12 @@
      [:a.dropdown-toggle {:data-toggle "dropdown" :role "button"}
       [:svg.icon.icon-cog [:use {:xlinkHref "#icon-cog"}]]]
      (conj
-      (into
-       [:ul.dropdown-menu
-        [mine-entry-current (get registry-with-default current-mine-name)]]
-       (map (fn [[mine-key details]]
-              ^{:key mine-key}
-              [mine-entry mine-key details])
-            (sort-by (comp :name val)
-                     (dissoc registry-with-default current-mine-name))))
+      (into [:ul.dropdown-menu]
+            (map (fn [[mine-key details]]
+                   ^{:key mine-key}
+                   [mine-entry mine-key details
+                    :current? (= mine-key current-mine-name)])
+                 (sort-by (comp :name val) registry-with-default)))
       [:li.special
        [:a {:href (route/href ::route/debug {:panel "main"})}
         ">_ Developer"]])]))
@@ -117,7 +111,7 @@
             [:button.btn.btn-primary.btn-raised
              {:type "button"
               :on-click submit-fn}
-             [mine-icon @current-mine]
+             [mine-icon @current-mine :class "mine-logo"]
              (if @register? "Register" "Sign In")]]
            (when error?
              [:div.alert.alert-danger.error-box message])]]]))))
@@ -130,7 +124,11 @@
         [anonymous]))))
 
 (defn active-mine-logo []
-  [mine-icon @(subscribe [:current-mine])])
+  (let [current-mine @(subscribe [:current-mine])
+        logo (get-in current-mine [:logo])
+        service (get-in current-mine [:service :root])]
+    [:img.active-mine-image
+     {:src (or logo (str service logo-path))}]))
 
 (defn main []
   (let [active-panel (subscribe [:active-panel])

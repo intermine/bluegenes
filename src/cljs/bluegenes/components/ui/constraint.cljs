@@ -6,7 +6,9 @@
             [bluegenes.components.loader :refer [mini-loader]]
             [reagent.core :as reagent :refer [create-class]]
             [dommy.core :as dommy :refer-macros [sel sel1]]
-            [bluegenes.components.ui.list_dropdown :refer [list-dropdown]]))
+            [bluegenes.components.ui.list_dropdown :refer [list-dropdown]]
+            [cljs-time.coerce :as time-coerce]
+            [cljs-time.format :as time-format]))
 
 ; These are what appear in a constraint drop down in order. Each map contains:
 ;  :op         - The syntax found in InterMine Query Language
@@ -23,25 +25,25 @@
                  :applies-to [nil]}
                 {:op "="
                  :label "="
-                 :applies-to ["java.lang.String" "java.lang.Boolean" "java.lang.Integer" "java.lang.Double" "java.lang.Float"]}
+                 :applies-to ["java.lang.String" "java.lang.Boolean" "java.lang.Integer" "java.lang.Double" "java.lang.Float" "java.util.Date"]}
                 {:op "!="
                  :label "!="
-                 :applies-to ["java.lang.String" "java.lang.Boolean" "java.lang.Integer" "java.lang.Double" "java.lang.Float"]}
+                 :applies-to ["java.lang.String" "java.lang.Boolean" "java.lang.Integer" "java.lang.Double" "java.lang.Float" "java.util.Date"]}
                 {:op "CONTAINS"
                  :label "Contains"
                  :applies-to ["java.lang.String"]}
                 {:op "<"
                  :label "<"
-                 :applies-to ["java.lang.Integer" "java.lang.Double" "java.lang.Float"]}
+                 :applies-to ["java.lang.Integer" "java.lang.Double" "java.lang.Float" "java.util.Date"]}
                 {:op "<="
                  :label "<="
-                 :applies-to ["java.lang.Integer" "java.lang.Double" "java.lang.Float"]}
+                 :applies-to ["java.lang.Integer" "java.lang.Double" "java.lang.Float" "java.util.Date"]}
                 {:op ">"
                  :label ">"
-                 :applies-to ["java.lang.Integer" "java.lang.Double" "java.lang.Float"]}
+                 :applies-to ["java.lang.Integer" "java.lang.Double" "java.lang.Float" "java.util.Date"]}
                 {:op ">="
                  :label ">="
-                 :applies-to ["java.lang.Integer" "java.lang.Double" "java.lang.Float"]}
+                 :applies-to ["java.lang.Integer" "java.lang.Double" "java.lang.Float" "java.util.Date"]}
                 {:op "LIKE"
                  :label "Like"
                  :applies-to ["java.lang.String"]}
@@ -95,74 +97,135 @@
 (defn set-text-value [node value]
   (when node (-> (sel1 node :input) (dommy/set-value! value))))
 
-(defn constraint-text-input
-  "A component that represents the freeform textbox for String / Lookup constraints"
+(def fmt "yyyy-MM-dd")
+(def date-fmt (time-format/formatter fmt))
+
+(defn read-day-change
+  "Convert DayPicker input to the string we use as constraint."
+  [date _mods picker]
+  (let [input (-> (ocall picker :getInput)
+                  (oget :value))]
+    ;; `date` can be nil if it's not a valid date. We use the raw input text in
+    ;; that case, to accomodate alien calendars.
+    (or (some->> date
+                 (time-coerce/from-date)
+                 (time-format/unparse date-fmt))
+        input)))
+
+(defn date-constraint-input
+  "Wraps `cljsjs/react-day-picker` for use as constraint input for selecting dates."
+  [{:keys [value on-change on-blur]}]
+  [:> js/DayPicker.Input
+   {:inputProps {:class "form-control"}
+    :value (or value "")
+    :placeholder "YYYY-MM-DD"
+    :formatDate (fn [date _ _]
+                  (if (instance? js/Date date)
+                    (->> date (time-coerce/from-date) (time-format/unparse date-fmt))
+                    ""))
+    :parseDate (fn [s _ _]
+                 (when (and (string? s)
+                            (= (count s) (count fmt)))
+                   ;; Invalid dates like "2020-03-33" causes cljs-time
+                   ;; to throw an error. We don't care and return nil.
+                   (try
+                     (some->> s (time-format/parse date-fmt) (time-coerce/to-date))
+                     (catch js/Error _
+                       nil))))
+    :onDayChange (comp on-change read-day-change)
+    :onDayPickerHide #(on-blur value)}])
+
+(defn select-constraint-input
+  "Wraps `cljsjs/react-select` for use as constraint input for selecting
+  one value out of `possible-values`."
+  [{:keys [model path value on-blur possible-values disabled]}]
+  [:> js/Select
+   {:className "constraint-select"
+    :classNamePrefix "constraint-select"
+    :placeholder (str "Choose "
+                      (join " > " (take-last 2 (split (im-path/friendly model path) " > "))))
+    :isDisabled disabled
+    ;; Leaving the line below as it can be useful in the future.
+    ; :isLoading (seq? possible-values)
+    :onChange (fn [value]
+                (on-blur (oget value :value)))
+    :value (when (not-empty value) {:value value :label value})
+    :options (map (fn [v] {:value v :label v}) (remove nil? possible-values))}])
+
+(defn select-multiple-constraint-input
+  "Wraps `cljsjs/react-select` for use as constraint input for selecting
+  multiple values out of `possible-values`."
+  [{:keys [model path value on-blur possible-values disabled]}]
+  [:> js/Select
+   {:className "constraint-select"
+    :classNamePrefix "constraint-select"
+    :placeholder (str "Choose "
+                      (join " > " (take-last 2 (split (im-path/friendly model path) " > "))))
+    :isMulti true
+    :isDisabled disabled
+    ;; Leaving the line below as it can be useful in the future.
+    ; :isLoading (seq? possible-values)
+    :onChange (fn [values]
+                (on-blur (not-empty (map :value (js->clj values :keywordize-keys true)))))
+    :value (map (fn [v] {:value v :label v}) value)
+    :options (map (fn [v] {:value v :label v}) (remove nil? possible-values))}])
+
+(defn list-constraint-input
+  "Wraps `list-dropdown` for use as constraint input for IN and NOT IN list."
+  [{:keys [model path value on-blur lists disabled]}]
+  [list-dropdown
+   :value value
+   :lists lists
+   :disabled disabled
+   :restrict-type (im-path/class model path)
+   :on-change (fn [list]
+                (on-blur list))])
+
+(defn text-constraint-input
+  "Freeform textbox for String / Lookup constraints."
   []
-  (let [multiselects (reagent/atom {})
-        focused? (reagent/atom false)]
-    (fn [& {:keys [disabled model path value typeahead? on-change on-blur code lists
-                   allow-possible-values possible-values disabled op on-select-list] :as x}]
-      (cond
-        (and (and typeahead? (seq? possible-values))
-             (or (= op "=")
-                 (= op "!="))) [:div.constraint-text-input
-                                {:class (when @focused? "open")}
-                                (into [:select.form-control
-                                       {:disabled disabled
-                                        :class (when disabled "disabled")
-                                        :value (or value "")
-                                        :on-change (fn [e]
-                                                     (on-change (oget e :target :value))
-                                                     (on-blur (oget e :target :value)))}]
-                                      (cond-> (map (fn [v] [:option {:value v} v]) (remove nil? possible-values))
-                                        (blank? value) (conj
-                                                        [:option {:disabled true :value ""}
-                                                         (str
-                                                          "Choose "
-                                                          (join " > "
-                                                                (take-last 2 (split (im-path/friendly model path) " > "))))])))]
-        (and
-         (and typeahead? (seq? possible-values))
+  (let [focused? (reagent/atom false)]
+    (fn [{:keys [value on-change on-blur disabled]}]
+      [:input.form-control
+       {:data-toggle "none"
+        :disabled disabled
+        :class (when disabled "disabled")
+        :type "text"
+        :value value
+        :on-focus (fn [e] (reset! focused? true))
+        :on-change (fn [e] (on-change (oget e :target :value)))
+        :on-blur (fn [e] (on-blur (oget e :target :value)) (reset! focused? false))
+        :on-key-down (fn [e] (when (= (oget e :keyCode) 13)
+                               (on-blur (oget e :target :value))
+                               (reset! focused? false)))}])))
+
+(defn constraint-input
+  "Returns the appropriate input component for the constraint operator."
+  [& {:keys [model path value typeahead? on-change on-blur _code lists type
+             _allow-possible-values possible-values disabled op on-select-list]
+      :as props}]
+  (cond
+    (= type "java.util.Date")
+    [date-constraint-input props]
+
+    (and (not= type "java.lang.Integer")
+         typeahead?
+         (seq? possible-values)
+         (or (= op "=")
+             (= op "!=")))
+    [select-constraint-input props]
+
+    (and (and typeahead? (seq? possible-values))
          (or (= op "ONE OF")
-             (= op "NONE OF"))) [:div.constraint-text-input
-                                 {:class (when @focused? "open")}
-                                 (into [:select.form-control
-                                        {:multiple true
-                                         :disabled disabled
-                                         :class (when disabled "disabled")
-                                         :value (or value [])
-                                         :on-change (fn [e]
-                                                      (let [value (doall (map first (filter (fn [[k elem]] (oget elem :selected)) @multiselects)))]
-                                                        (on-change value)
-                                                        (on-blur value)))}]
-                                       (map (fn [v]
-                                              [:option
-                                               {:ref (fn [e] (when e (swap! multiselects assoc v e)))
-                                                :value v}
-                                               v])
-                                            (remove nil? possible-values)))]
-        (or
-         (= op "IN")
-         (= op "NOT IN")) [list-dropdown
-                           :value value
-                           :lists lists
-                           :disabled disabled
-                           :restrict-type (im-path/class model path)
-                           :on-change (fn [list]
-                                        ((or on-select-list on-change) list)
-                                        (on-blur list))]
-        :else [:input.form-control
-               {:data-toggle "none"
-                :disabled disabled
-                :class (when disabled "disabled")
-                :type "text"
-                :value value
-                :on-focus (fn [e] (reset! focused? true))
-                :on-change (fn [e] (on-change (oget e :target :value)))
-                :on-blur (fn [e] (on-blur (oget e :target :value)) (reset! focused? false))
-                :on-key-down (fn [e] (when (= (oget e :keyCode) 13)
-                                       (on-blur (oget e :target :value))
-                                       (reset! focused? false)))}]))))
+             (= op "NONE OF")))
+    [select-multiple-constraint-input props]
+
+    (or (= op "IN")
+        (= op "NOT IN"))
+    [list-constraint-input props]
+
+    :else
+    [text-constraint-input props]))
 
 (defn one-of? [value col] (some? (some #{value} col)))
 (def not-one-of? (complement one-of?))
@@ -185,11 +248,11 @@
               :value op
               :on-change (fn [e]
                            (let [new-op (oget e :target :value)]
-                             (on-change (oget e :target :value))
-                             ; Only fire the on-blur event when the operator has not changed from
-                             ; a non-list operator to a list-operator.
-                             ; Switching from "= Protein Domain" to "IN Protein Domain" doesn't make sense!
-                             (when-not (and (one-of? new-op ["IN" "NOT IN"]) (not-one-of? op ["IN" "NOT IN"]))
+                             (if (and (one-of? new-op ["IN" "NOT IN"]) (not-one-of? op ["IN" "NOT IN"]))
+                               (on-change (oget e :target :value))
+                               ; Only fire the on-blur event when the operator has not changed from
+                               ; a non-list operator to a list-operator.
+                               ; Switching from "= Protein Domain" to "IN Protein Domain" doesn't make sense!
                                (on-blur (oget e :target :value)))))}]
             (as-> operators $
               (filter (partial applies-to? (im-path/data-type model path)) $)
@@ -206,6 +269,12 @@
                 (concat [[:li
                           {:class "disabled"}
                           [:a (str "(No " (:displayName (first (im-path/walk model (name path-class)))) " lists)")]]])))))))
+
+(defn single->multi [v]
+  (cond-> v (string? v) list))
+
+(defn multi->single [v]
+  (cond-> v (seq? v) first))
 
 (defn constraint [& {:keys [model path]}]
   "Creates a button group that represents a query constraint.
@@ -247,14 +316,14 @@
                               :lists lists
                               :on-blur (fn [op]
                                          (if (or (= op "ONE OF") (= op "NONE OF"))
-                                           ((or on-blur on-change) {:code code :path path :values (cond-> value string? list) :op op})
-                                           ((or on-blur on-change) {:code code :path path :value (cond-> value (seq? value) first) :op op})))
+                                           ((or on-blur on-change) {:code code :path path :values (single->multi value) :op op})
+                                           ((or on-blur on-change) {:code code :path path :value (multi->single value) :op op})))
                               :on-change (fn [op]
                                            (if (or (= op "ONE OF") (= op "NONE OF"))
-                                             ((or on-change-operator on-change) {:code code :path path :values (cond-> value string? list) :op op})
-                                             ((or on-change-operator on-change) {:code code :path path :value (cond-> value (seq? value) first) :op op})))]]
+                                             ((or on-change-operator on-change) {:code code :path path :values (single->multi value) :op op})
+                                             ((or on-change-operator on-change) {:code code :path path :value (multi->single value) :op op})))]]
                             [:div.col-sm-8.constraint-input
-                             [constraint-text-input
+                             [constraint-input
                               :model model
                               :value value
                               :op op
@@ -264,6 +333,7 @@
                               :code code
                               :lists lists
                               :disabled disabled
+                              :type (im-path/data-type model path)
                               :allow-possible-values (and (not= op "IN") (not= op "NOT IN"))
                               :possible-values @pv
                               :on-change (fn [val]
@@ -289,8 +359,8 @@
                                :lists lists
                                :on-change (fn [op]
                                             (if (or (= op "ONE OF") (= op "NONE OF"))
-                                              ((or on-change-operator on-change) {:code code :path path :values (cond-> value string? list) :op op})
-                                              ((or on-change-operator on-change) {:code code :path path :value (cond-> value (seq? value) first) :op op})))]
+                                              ((or on-change-operator on-change) {:code code :path path :values (single->multi value) :op op})
+                                              ((or on-change-operator on-change) {:code code :path path :value (multi->single value) :op op})))]
                               [:div
                                [:span.constraint-component-label label]
                                (cond
@@ -304,13 +374,14 @@
                                                        :on-change (fn [list]
                                                                     ((or on-select-list on-change) {:path path :value list :code code :op op}))]
                                   ; Otherwise show a text input
-                                 :else [constraint-text-input
+                                 :else [constraint-input
                                         :model model
                                         :value value
                                         :op op
                                         :typeahead? typeahead?
                                         :path path
                                         :disabled disabled
+                                        :type (im-path/data-type model path)
                                         :allow-possible-values (and (not= op "IN") (not= op "NOT IN"))
                                         :possible-values @pv
                                         :on-change (fn [val]

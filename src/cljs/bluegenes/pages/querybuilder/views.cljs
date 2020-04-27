@@ -133,7 +133,16 @@
 (defn model-browser []
   (fn [model root-class]
     [:div.model-browser
-     (let [path [root-class]]
+     (let [path [root-class]
+           attributes (->> (im-path/attributes model root-class)
+                           (remove (comp #{:id} key)) ; Hide id attribute.
+                           (sort))
+           relationships (->> (im-path/relationships model root-class)
+                              ;; Make sure class is present in model.
+                              ;; (If the class has no members, it won't be.)
+                              (filter #(contains? (:classes model)
+                                                  (-> % val :referencedType keyword)))
+                              (sort))]
        (into [:ul
               [:li [:div.model-button-group
                     [:button.btn.btn-slim
@@ -146,8 +155,8 @@
                      {:on-click #(dispatch [:qb/collapse-all])}
                      "Collapse All"]]]]
              (concat
-              (map (fn [i] [attribute model i path]) (sort (remove (comp (partial = :id) first) (im-path/attributes model root-class))))
-              (map (fn [i] [node model i path]) (sort (im-path/relationships model root-class))))))]))
+              (map (fn [class-entry] [attribute model class-entry path]) attributes)
+              (map (fn [class-entry] [node model class-entry path]) relationships))))]))
 
 (defn data-browser-node []
   (let [open? (reagent/atom true)]
@@ -228,16 +237,16 @@
   (apply dissoc m (filter keyword? (keys m))))
 
 (defn queryview-node []
-  (let [lists (subscribe [:current-lists])]
+  (let [lists (subscribe [:current-lists])
+        class-keys (subscribe [:current-class-keys])]
     (fn [model [k properties] & [trail]]
       (let [path (vec (conj trail (name k)))
             class-node? (im-path/class? model (join "." path))
             non-root-class? (and class-node? (> (count path) 1))
-            [parent-class referenced-class] (when non-root-class?
-                                              (->> (map keyword path)
-                                                   (im-path/walk model)
-                                                   (take-last 2)
-                                                   (map :displayName)))]
+            [{referenced-name :displayName, referenced-class :name}
+             {parent-name :displayName}] (->> (map keyword path)
+                                              (im-path/walk model)
+                                              (reverse))]
         [:li.tree.haschildren
          [:div.flexmex
           [:span.lab {:class (if class-node? "qb-class" "qb-attribute")}
@@ -245,8 +254,8 @@
             [tooltip {:on-click #(dispatch [:qb/expand-path path])
                       :title (str "Show " (uncamel k) " in the model browser")}
              [:a (uncamel k)]]]
-           (when (and non-root-class? (not= referenced-class (uncamel k)))
-             [:span.qb-type (str "(" referenced-class ")")])
+           (when (and non-root-class? (not= referenced-name (uncamel k)))
+             [:span.qb-type (str "(" referenced-name ")")])
            (when-let [s (:subclass properties)] [:span.label.label-default (uncamel s)])
            [:svg.icon.icon-bin
             {:on-click (if (> (count path) 1)
@@ -260,8 +269,8 @@
                 {:role "button"
                  :class (when outer-join? "active")
                  :title (if outer-join?
-                          (str "Show all " (plural parent-class) " and show " (plural referenced-class) " if they are present")
-                          (str "Show only " (plural parent-class) " if they have a " referenced-class))
+                          (str "Show all " (plural parent-name) " and show " (plural referenced-name) " if they are present")
+                          (str "Show only " (plural parent-name) " if they have a " referenced-name))
                  :on-click #(dispatch [(if outer-join?
                                          :qb/remove-outer-join
                                          :qb/add-outer-join) path])}
@@ -269,7 +278,14 @@
                   [:svg.icon.icon-venn-combine [:use {:xlinkHref "#icon-venn-combine"}]]
                   [:svg.icon.icon-venn-intersection [:use {:xlinkHref "#icon-venn-intersection"}]])]))
 
-           [:svg.icon.icon-filter {:on-click (fn [] (dispatch [:qb/enhance-query-add-constraint path]))} [:use {:xlinkHref "#icon-filter"}]]
+           ;; Disallow adding constraints to classes without class keys.
+           (when (or (not class-node?)
+                     (contains? @class-keys (keyword referenced-class)))
+             [:svg.icon.icon-filter
+              {:on-click (fn []
+                           (dispatch [:qb/enhance-query-add-constraint path]))}
+              [:use {:xlinkHref "#icon-filter"}]])
+
            (when-let [c (:id-count properties)]
              [:span.label.label-soft
               {:class (when (= 0 c) "label-no-results")
@@ -290,23 +306,21 @@
                                    :typeahead? true
                                    :value (or (:value con) (:values con))
                                    :op (:op con)
+                                   ;; Do we need all these? I think it would be simpler to just have:
+                                   ;;     on-change - update state
+                                   ;;     on-blur   - update state and rerun query
+                                   ;; If you find you need to refactor these, try converting it to the above.
                                    :on-select-list (fn [c]
                                                      (dispatch [:qb/enhance-query-update-constraint path idx c])
                                                      (dispatch [:qb/enhance-query-build-im-query true]))
                                    :on-change-operator (fn [x]
                                                          (dispatch [:qb/enhance-query-update-constraint path idx x])
                                                          (dispatch [:qb/enhance-query-build-im-query true]))
-
                                    :on-change (fn [c]
                                                 (dispatch [:qb/enhance-query-update-constraint path idx c]))
-                                                ;(dispatch [:qb/enhance-query-build-im-query true])
-
                                    :on-blur (fn [c]
                                               (dispatch [:qb/enhance-query-update-constraint path idx c])
                                               (dispatch [:qb/enhance-query-build-im-query true]))
-
-                                   ;(dispatch [:qb/build-im-query])
-
                                    :label? false]]]) constraints)))
          (when (not-empty (dissoc-keywords properties))
            (let [classes (filter (fn [[k p]] (im-path/class? model (join "." (conj path k)))) (dissoc-keywords properties))
@@ -372,7 +386,8 @@
         submit-fn #(when-let [title (not-empty @query-title)]
                      (swap! saving-query? not)
                      (reset! query-title "")
-                     (dispatch [:qb/save-query title]))]
+                     (dispatch [:qb/save-query title]))
+        fetching-preview? (subscribe [:qb/fetching-preview?])]
     (fn []
       (if @saving-query?
         [:div.button-group
@@ -400,11 +415,13 @@
           "Save Query"]
          [:button.btn.btn-raised
           {:on-click (fn [] (dispatch [:qb/enhance-query-clear-query]))}
-          "Clear Query"]]))))
+          "Clear Query"]
+         (when @fetching-preview?
+           [:div.query-preview-loader
+            [mini-loader "tiny"]])]))))
 
 (defn preview [result-count]
-  (let [results-preview (subscribe [:qb/preview])
-        fetching-preview? (subscribe [:qb/fetching-preview?])]
+  (let [results-preview (subscribe [:qb/preview])]
     [:div.preview-container
      (if-let [res @results-preview]
        [preview-table

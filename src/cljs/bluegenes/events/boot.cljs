@@ -323,10 +323,12 @@
 (reg-event-db
  :assets/success-fetch-model
  (fn [db [_ mine-kw model]]
-   (-> db
-       (assoc-in [:mines mine-kw :service :model] model)
-       (assoc-in [:mines mine-kw :default-object-types]
-                 (sort (preferred-fields model))))))
+   (let [model' (update model :classes
+                        #(into {} (filter (comp pos? :count val) %)))]
+     (-> db
+         (assoc-in [:mines mine-kw :service :model] model')
+         (assoc-in [:mines mine-kw :default-object-types]
+                   (sort (preferred-fields model')))))))
 
 (reg-event-fx
  :assets/fetch-model

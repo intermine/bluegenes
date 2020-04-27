@@ -8,7 +8,8 @@
             [bluegenes.components.ui.constraint :refer [constraint]]
             [bluegenes.components.ui.results_preview :refer [preview-table]]
             [oops.core :refer [oget ocall]]
-            [clojure.string :as s]))
+            [clojure.string :as s]
+            [bluegenes.components.loader :refer [mini-loader]]))
 
 (defn categories []
   (let [categories (subscribe [:template-chooser-categories])
@@ -29,30 +30,31 @@
 (def css-transition-group
   (reagent/adapt-react-class js/ReactTransitionGroup.CSSTransitionGroup))
 
-(defn results-count-text [results-preview]
-  (if (< (:iTotalRecords @results-preview) 1)
-    "No Results"
-    (str "View "
-         (js/parseInt (:iTotalRecords @results-preview))
-         (if (> (:iTotalRecords @results-preview) 1) " rows" " row"))))
-
 (defn preview-results
   "Preview results of template as configured by the user or default config"
   [results-preview fetching-preview]
   (let [fetching-preview? (subscribe [:template-chooser/fetching-preview?])
-        results-preview (subscribe [:template-chooser/results-preview])]
+        results-preview (subscribe [:template-chooser/results-preview])
+        loading? (or @fetching-preview? (nil? @results-preview))
+        results-count (:iTotalRecords @results-preview)]
     [:div.col-xs-8.preview
-     [:h4 "Results Preview"]
+     [:div.preview-header
+      [:h4 "Results Preview"]
+      (when loading?
+        [:div.preview-header-loader
+         [mini-loader "tiny"]])]
      [preview-table
-      :loading? @fetching-preview?
       :query-results @results-preview]
      [:button.btn.btn-primary.btn-raised.view-results
       {:type "button"
-       :disabled (< (:iTotalRecords @results-preview) 1)
+       :disabled (zero? results-count)
        :on-click (fn [] (dispatch [:templates/send-off-query]))}
-      (if @fetching-preview?
-        "Loading"
-        (results-count-text results-preview))]]))
+      (cond
+        loading? "Loading"
+        (zero? results-count) "No Results"
+        :else (str "View "
+                   results-count
+                   (if (> results-count 1) " rows" " row")))]]))
 
 (defn toggle []
   (fn [{:keys [status on-change]}]
@@ -68,7 +70,7 @@
   [selected-template]
   (let [service (subscribe [:selected-template-service])
         row-count (subscribe [:template-chooser/count])
-        lists (subscribe [:lists])]
+        lists (subscribe [:current-lists])]
     [:div.col-xs-4.border-right
      (into [:div.form]
            ; Only show editable constraints, but don't filter because we want the index!
@@ -86,8 +88,12 @@
                          :hide-code? true
                          :label? true
                          :disabled (= switched "OFF")
-                         :lists (second (first @lists))
+                         :lists @lists
                          :on-blur (fn [new-constraint]
+                                    (dispatch [:template-chooser/replace-constraint
+                                               idx (merge (cond-> con
+                                                            (contains? new-constraint :values) (dissoc :value)
+                                                            (contains? new-constraint :value) (dissoc :values)) new-constraint)])
                                     (dispatch [:template-chooser/update-preview
                                                idx (merge (cond-> con
                                                             (contains? new-constraint :values) (dissoc :value)

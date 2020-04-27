@@ -59,7 +59,7 @@ div.column-container {
         padding: 20px;
         flex: 1 0;
         background-color: #fbfbfb;
-        overflow-y: scroll;
+        overflow: auto;
 
         p {
             margin: @spacer 0 @spacer/2 0;
@@ -208,6 +208,12 @@ div.column-container {
             white-space: pre-wrap;
             word-break: break-word;
         }
+
+        .query-preview-loader {
+            position: relative;
+            top: 0.4*@spacer;
+            left: 0.4*@spacer;
+        }
     }
 }
 
@@ -352,7 +358,6 @@ div.column-container {
     background-color: @query-browser-bg;
     color: @query-browser-fg;
     padding: 0 20px 20px;
-    overflow: auto;
 
     li.tree,
     ul.tree {
@@ -467,6 +472,7 @@ div.column-container {
             display: flex;
             align-items: center;
             justify-content: center;
+            height: 1.8*@spacer;
         }
     }
 
@@ -480,6 +486,12 @@ div.column-container {
             min-width: 1em;
             min-height: 1em;
         }
+    }
+
+    // Applies to react-select third-party component.
+    .constraint-select {
+        width: 100%;
+        font-size: 14px;
     }
 }
 
@@ -867,9 +879,6 @@ div.column-container {
 }
 
 .constraint-input {
-    input[type="text"] {
-        transition: .4s;
-    }
     .disabled {
         color: grey;
         fill: grey;

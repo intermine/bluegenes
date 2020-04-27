@@ -36,39 +36,42 @@
        :on-change   (fn [e] (reset! text-filter-atom (oget e :target :value)))
        :placeholder "Filter..."}]]))
 
-(defn list-dropdown []
+(defn list-dropdown
   "Creates a dropdown for intermine lists
   :value          The selected value to show in the dropdown
   :lists          A collection of Intermine lists
   :restrict-type  (Optional) a keyword to restrict the list to a type, like :Gene
   :on-change      A function to call with the name of the list"
+  []
   (let [text-filter-atom (reagent/atom nil)]
-    (fn [& {:keys [value lists restrict-type on-change disabled :as x]}]
-      (let [text-filter    (partial has-text? @text-filter-atom)
-            type-filter    (partial has-type? restrict-type)
-            filter-fn      (apply every-pred [text-filter type-filter])
-            filtered-lists (filter filter-fn lists)]
-        [:div.dropdown
+    (fn [& {:keys [value lists restrict-type on-change disabled]}]
+      (let [type-filter    (partial has-type? restrict-type)
+            text-filter    (partial has-text? @text-filter-atom)
+            suitable-lists (filter type-filter lists)
+            filtered-lists (filter text-filter suitable-lists)]
+        [:div.dropdown.list-dropdown
          [:button.btn.btn-raised.btn-default.dropdown-toggle
           {:disabled disabled
-           :style       {:text-transform "none"
-                         :white-space    "normal"}
            :data-toggle "dropdown"}
           (str (or value "Choose a list") " ") [:span.caret]]
          [:div.dropdown-menu.dropdown-mixed-content
-          (if (some? (not-empty lists))
+          (if (seq suitable-lists)
             [:div.container-fluid
              [text-filter-form text-filter-atom]
-             [:div.col-md-6
-              [:h4 [:svg.icon.icon-history [:use {:xlinkHref "#icon-history"}]] " Recently Created"]
-              [im-lists
-               :lists (take 5 (sort-by :timestamp filtered-lists))
-               :on-change on-change]]
-             [:div.col-md-6
-              [:h4 [:svg.icon.icon-sort-alpha-asc [:use {:xlinkHref "#icon-sort-alpha-asc"}]] " All Lists"]
-              [:div.clip-400
-               [im-lists
-                :lists (sort-by :name filtered-lists)
-                :on-change on-change]]]]
+             (if (seq filtered-lists)
+               [:<>
+                [:div.col-md-6
+                 [:h4 [:svg.icon.icon-history [:use {:xlinkHref "#icon-history"}]] " Recently Created"]
+                 [im-lists
+                  :lists (take 5 (sort-by :timestamp filtered-lists))
+                  :on-change on-change]]
+                [:div.col-md-6
+                 [:h4 [:svg.icon.icon-sort-alpha-asc [:use {:xlinkHref "#icon-sort-alpha-asc"}]] " All Lists"]
+                 [:div.clip-400
+                  [im-lists
+                   :lists (sort-by :name filtered-lists)
+                   :on-change on-change]]]]
+               [:div.container-fluid
+                [:h4 (str "No suitable lists containing \"" @text-filter-atom "\"")]])]
             [:div.container-fluid
-             [:h4 (str "No lists available of type " restrict-type)]])]]))))
+             [:h4 (str "No lists available of type " (name restrict-type))]])]]))))

@@ -204,7 +204,8 @@
  (fn [db [_ mine-kw view-vec results]]
    (if (false? results)
      (assoc-in db [:mines mine-kw :possible-values view-vec] false)
-     (assoc-in db [:mines mine-kw :possible-values view-vec] (not-empty (map :item (:results results)))))))
+     (assoc-in db [:mines mine-kw :possible-values view-vec]
+               (not-empty (sort (map :item (:results results))))))))
 
 (reg-fx
  :cache/fetch-possible-values-fx
