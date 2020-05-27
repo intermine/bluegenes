@@ -198,9 +198,13 @@
                  ;; results and tools once they're ready.
                  (dispatch [:results/clear])
                  (dispatch [:clear-ids-tool-entity])
+                 (dispatch [:viz/clear])
                  (dispatch [:set-active-panel :results-panel
                             nil
-                            [::view-list title]]))}]}]
+                            [::view-list title]])
+                 (dispatch [:results/listen-im-table-changes]))
+        :stop (fn []
+                (dispatch [:results/unlisten-im-table-changes]))}]}]
     ["/regions"
      {:name ::regions
       :controllers

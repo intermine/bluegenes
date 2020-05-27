@@ -24,6 +24,7 @@
                  [markdown-to-hiccup "0.6.2"]
                  [cljsjs/react-day-picker "7.3.0-1"]
                  [cljsjs/react-select "2.4.4-0"]
+                 [metasoarous/oz "1.6.0-alpha6"]
 
                  ; HTTP
                  [clj-http "3.10.0"]

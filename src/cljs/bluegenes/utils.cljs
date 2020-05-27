@@ -74,3 +74,13 @@
      :constraintLogic constraintLogic
      :joins joins
      :where where}))
+
+(defn suitable-config?
+  "Verifies a tool/viz `config` against a `model` and `entity`, returning
+  whether this tool/viz is suitable for displaying."
+  [model entity config]
+  (when-let [{:keys [format class]} entity]
+    (when-let [{:keys [accepts classes depends]} config]
+      (and (contains? (set accepts) format)
+           (contains? (set classes) class)
+           (every? #(contains? model %) (map keyword depends))))))

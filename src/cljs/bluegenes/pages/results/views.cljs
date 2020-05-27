@@ -13,7 +13,8 @@
             [cljs-time.format :as time-format]
             [cljs-time.coerce :as time-coerce]
             [bluegenes.route :as route]
-            [bluegenes.components.tools.views :as tools]))
+            [bluegenes.components.tools.views :as tools]
+            [bluegenes.components.viz.views :as viz]))
 
 (def custom-time-formatter (time-format/formatter "dd MMM, yy HH:mm"))
 
@@ -120,9 +121,9 @@
           [:div.container-fluid.results
            {:style {:width "100%"}}
            [:div.row
-            [:div.col-sm-2
+            [:div.col-sm-3.col-lg-2
              [query-history]]
-            [:div.col-sm-7
+            [:div.col-sm-9.col-lg-7
              [:div
               {:style {:background-color "white"}}
               [tables/main [:results :table]]
@@ -130,6 +131,7 @@
                 ;; Only show when results are for a list, not a query.
                 ;; And only when the user is authorized to edit it.
                 [description-box name description])]
+             [viz/main]
              [:div
               [tools/main]]]
             [:div.col-sm-3
