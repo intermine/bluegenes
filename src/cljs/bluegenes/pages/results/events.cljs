@@ -183,7 +183,8 @@
                  :format "ids"
                  :value (reduce into results)}]
      {:db (assoc-in db [:tools :entities class] entity)
-      :dispatch [:viz/run-queries-for-entity entity]})))
+      :dispatch-n [[:viz/run-queries-for-entity entity]
+                   [::tools/load-tools-for-entity entity]]})))
 
 (reg-event-db
  :clear-ids-tool-entity

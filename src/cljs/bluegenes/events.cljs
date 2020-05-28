@@ -19,6 +19,7 @@
             [bluegenes.pages.profile.events]
             [bluegenes.components.viz.events]
             [bluegenes.effects :refer [document-title]]
+            [bluegenes.components.tools.effects]
             [bluegenes.route :as route]
             [imcljs.fetch :as fetch]
             [imcljs.path :as im-path]
