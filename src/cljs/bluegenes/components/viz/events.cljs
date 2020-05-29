@@ -1,16 +1,17 @@
 (ns bluegenes.components.viz.events
   (:require [re-frame.core :refer [reg-event-db reg-event-fx reg-fx dispatch subscribe]]
-            [bluegenes.utils :refer [suitable-config?]]
+            [bluegenes.utils :refer [suitable-entities]]
             [imcljs.fetch :as fetch]
             [bluegenes.components.viz.views :refer [all-viz]]))
 
 (reg-event-fx
- :viz/run-queries-for-entity
- (fn [{db :db} [_ entity]]
-   (let [model (get-in db [:mines (:current-mine db) :service :model :classes])]
+ :viz/run-queries
+ (fn [{db :db} [_]]
+   (let [entities (get-in db [:tools :entities])
+         model (get-in db [:mines (:current-mine db) :service :model :classes])]
      {:dispatch-n (map (fn [{:keys [config query key]}]
-                         (when (suitable-config? model entity config)
-                           [:viz/run-query key (query (:value entity))]))
+                         (when-let [entity (suitable-entities model entities config)]
+                           [:viz/run-query key (query entity)]))
                        all-viz)})))
 
 (reg-event-fx

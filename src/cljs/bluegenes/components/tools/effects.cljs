@@ -3,6 +3,7 @@
             [oops.core :refer [ocall+ oset!]]
             [bluegenes.components.tools.events :as events]
             [bluegenes.route :as route]
+            [bluegenes.utils :refer [suitable-entities]]
             [clojure.string :as str]))
 
 (defmulti navigate
@@ -94,10 +95,13 @@
 ;; results page, or modifying the contents of the result page's im-table).
 ;; In the latter case, it will merely call the tool's main function.
 (reg-fx
- :load-tools
- (fn [{:keys [tools service entity]}]
+ :load-suitable-tools
+ (fn [{:keys [tools service entities]}]
    (doseq [tool tools]
-     (let [{{:keys [human cljs npm]} :names} tool
-           tool-id (or cljs npm (str/replace human " " ""))]
-       (fetch-script! tool tool-id :service service :entity entity)
-       (fetch-styles! tool tool-id)))))
+     ;; `entity` is nil if tool is not suitable to be displayed.
+     (when-let [entity (suitable-entities
+                         (get-in service [:model :classes]) entities (:config tool))]
+       (let [{{:keys [human cljs npm]} :names} tool
+             tool-id (or cljs npm (str/replace human " " ""))]
+         (fetch-script! tool tool-id :service service :entity entity)
+         (fetch-styles! tool tool-id))))))

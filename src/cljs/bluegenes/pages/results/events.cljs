@@ -162,7 +162,13 @@
  (fn [{db :db} _]
    (let [{:keys [source]} (get-in db [:results :package])
          query-parts (get-in db [:results :query-parts])]
-     {:dispatch-n (reduce (fn [events [class parts]]
+     {;; Initialise entities map with keys and nil values, to track progress.
+      :db (assoc-in db [:tools :entities]
+                    (zipmap (keys query-parts) (repeat nil)))
+      :dispatch-n (reduce (fn [events [class parts]]
+                            ;; `parts` is a vector of one map. It shouldn't be
+                            ;; possible to have more than one part for a class.
+                            ;; While it's handled here, it's not later on.
                             (into events (map (fn [{:keys [query]}]
                                                 [:fetch-ids-tool-entity class source query])
                                               parts)))
@@ -181,10 +187,15 @@
  (fn [{db :db} [_ class {:keys [results]}]]
    (let [entity {:class (name class)
                  :format "ids"
-                 :value (reduce into results)}]
-     {:db (assoc-in db [:tools :entities class] entity)
-      :dispatch-n [[:viz/run-queries-for-entity entity]
-                   [::tools/load-tools-for-entity entity]]})))
+                 :value (reduce into results)}
+         entities (assoc (get-in db [:tools :entities])
+                         class entity)]
+     (cond-> {:db (assoc-in db [:tools :entities] entities)}
+       ;; If there are no nil values, we know all entities
+       ;; are done fetching and can load the viz/tools.
+       (every? some? (vals entities))
+       (assoc :dispatch-n [[:viz/run-queries]
+                           [::tools/load-tools]])))))
 
 (reg-event-db
  :clear-ids-tool-entity

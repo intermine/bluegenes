@@ -1,11 +1,16 @@
 (ns bluegenes.components.tools.subs
   (:require [re-frame.core :refer [reg-sub]]
-            [bluegenes.utils :refer [suitable-config?]]))
+            [bluegenes.utils :refer [suitable-entities]]))
 
 (reg-sub
  ::entity
  (fn [db]
    (get-in db [:tools :entity])))
+
+(reg-sub
+ ::entities
+ (fn [db]
+   (get-in db [:tools :entities])))
 
 (reg-sub
  ::installed-tools
@@ -31,7 +36,7 @@
 (reg-sub
  ::suitable-tools
  :<- [::installed-tools]
- :<- [::entity]
+ :<- [::entities]
  :<- [:model]
- (fn [[tools entity model]]
-   (filter #(suitable-config? model entity %) tools)))
+ (fn [[tools entities model]]
+   (filter #(suitable-entities model entities %) (map :config tools))))

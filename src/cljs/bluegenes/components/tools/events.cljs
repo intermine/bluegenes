@@ -1,7 +1,6 @@
 (ns bluegenes.components.tools.events
   (:require [re-frame.core :as re-frame :refer [reg-event-db reg-event-fx reg-fx dispatch subscribe]]
-            [bluegenes.effects :as fx]
-            [bluegenes.utils :refer [suitable-config?]]))
+            [bluegenes.effects :as fx]))
 
 (reg-event-fx
  ::fetch-tools
@@ -57,14 +56,13 @@
    (assoc-in db [:tools :path] path)))
 
 (reg-event-fx
- ::load-tools-for-entity
- (fn [{db :db} [_ entity]]
-   (let [tools   (get-in db [:tools :installed])
-         service (get-in db [:mines (:current-mine db) :service])
-         model   (get-in service [:model :classes])
-         suitable-tools (filter #(suitable-config? model entity %) tools)]
-     (if (empty? suitable-tools)
+ ::load-tools
+ (fn [{db :db} [_]]
+   (let [tools    (get-in db [:tools :installed])
+         service  (get-in db [:mines (:current-mine db) :service])
+         entities (get-in db [:tools :entities])]
+     (if (empty? tools)
        {}
-       {:load-tools {:tools suitable-tools
-                     :service service
-                     :entity entity}}))))
+       {:load-suitable-tools {:tools tools
+                              :service service
+                              :entities entities}}))))

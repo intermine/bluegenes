@@ -84,3 +84,20 @@
       (and (contains? (set accepts) format)
            (contains? (set classes) class)
            (every? #(contains? model %) (map keyword depends))))))
+
+(defn suitable-entities
+  "Removes key-value pairs from an entities map which don't adhere to config.
+  Remaining value maps will be replaced with their `:value` key. May return
+  nil if no entity is suitable at all.
+  1. Check that all model dependencies are present.
+  2. Remove pairs which don't match accepted formats.
+  3. Pick pairs that match classes (all when `*` wildcard is used)."
+  [model entities config]
+  (when-let [{:keys [accepts classes depends]} config]
+    (when (every? #(contains? model %) (map keyword depends))
+      (as-> entities $
+        (into {} (filter (comp (set accepts) :format val)) $)
+        (if (some #{"*"} classes)
+          $
+          (select-keys $ (map keyword classes)))
+        (into {} (map (juxt key (comp :value val))) $)))))
