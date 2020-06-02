@@ -5,7 +5,7 @@
             [goog.string :refer [parseInt]]
             [oz.core :refer [vega-lite]]))
 
-(defn query [{:keys [Cases]}]
+(defn query [{{:keys [value]} :Cases}]
   {:from "Cases"
    :select ["date"
             "totalConfirmed"
@@ -16,7 +16,7 @@
             "geoLocation.state"]
    :where [{:path "Cases.id"
             :op "ONE OF"
-            :values Cases}]})
+            :values value}]})
 
 (defn states-as-countries
   "Convert countries with states to be separate countries with the state in
