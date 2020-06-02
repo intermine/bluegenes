@@ -233,3 +233,34 @@
         (fn [{:keys [id timeout] :or {timeout 5000}}]
           (when (pos? timeout)
             (.setTimeout js/window #(dispatch [:messages/remove id]) timeout))))
+
+;; Simple retry effect for when you're waiting for a value to be ready in
+;; app-db, usually as a result of an HTTP request. Usage:
+;;
+;;     {:retry {:event     ; Event vector in its entirety.
+;;              :timeout   ; Milliseconds to wait before retrying (optional).
+;;              :max-tries ; Maximum amount of retry attempts (optional).
+;;              }}
+;;
+;; When it finally succeeds, make sure to run the effect with `:success?` set
+;; to `true` to clear the retry count for the event ID.
+;;
+;;     {:retry {:event [:my-event-to-retry {:more "data"}]
+;;              :success? true}}
+;;
+(reg-fx
+ :retry
+ (let [retries (atom {})]
+   (fn [{:keys [timeout max-tries success?] [event-id :as event] :event
+         :or {timeout 2000 max-tries 5}}]
+     (cond
+       ;; Success; no more retries needed.
+       success? (swap! retries dissoc event-id)
+       ;; Still retries remaining.
+       (< (get @retries event-id 0) max-tries)
+       (do (swap! retries update event-id (fnil inc 0))
+           (.setTimeout js/window
+                        #(dispatch event)
+                        timeout))
+       ;; Exhausted all retries.
+       :else (swap! retries dissoc event-id)))))

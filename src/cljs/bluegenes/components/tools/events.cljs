@@ -61,8 +61,19 @@
    (let [tools    (get-in db [:tools :installed])
          service  (get-in db [:mines (:current-mine db) :service])
          entities (get-in db [:tools :entities])]
-     (if (empty? tools)
-       {}
-       {:load-suitable-tools {:tools tools
+     (cond
+       ;; Tools aren't ready yet.
+       (nil? tools)
+       {:retry {:event [::load-tools]
+                :timeout 1000}}
+       ;; We don't have any tools.
+       (empty? tools)
+       {:retry {:event [::load-tools]
+                :success? true}}
+       ;; We do have tools!
+       :else
+       {:retry {:event [::load-tools]
+                :success? true}
+        :load-suitable-tools {:tools tools
                               :service service
                               :entities entities}}))))
