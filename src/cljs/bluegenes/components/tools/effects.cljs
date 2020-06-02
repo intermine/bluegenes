@@ -40,7 +40,12 @@
         package (clj->js entity)
         config (clj->js (:config tool))
         main (str (get-in tool [:names :cljs]) ".main")]
-    (ocall+ js/window main el service package nil config navigate!)))
+    ;; If we don't wrap in a try-catch, errors thrown from tools can cause
+    ;; Bluegenes to halt execution.
+    (try
+      (ocall+ js/window main el service package nil config navigate!)
+      (catch js/Error e
+        (.error js/console e)))))
 
 (defn fetch-script!
   ;; inspired by https://stackoverflow.com/a/31374433/1542891
