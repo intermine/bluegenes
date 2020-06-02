@@ -30,7 +30,7 @@
 
 (defn run-script!
   "Executes a tool-api compliant main method to initialise a tool"
-  [tool tool-id & {:keys [service entity]}]
+  [tool tool-id & {:keys [service entity tries]}]
   ;;the default method signature is
   ;;package-name(el, service, package, state, config, navigate)
   (let [el (.getElementById js/document tool-id)
@@ -38,14 +38,23 @@
         ;; large, but could probably be useful?
         service (clj->js service)
         package (clj->js entity)
+        state (clj->js {})
         config (clj->js (:config tool))
         main (str (get-in tool [:names :cljs]) ".main")]
-    ;; If we don't wrap in a try-catch, errors thrown from tools can cause
-    ;; Bluegenes to halt execution.
-    (try
-      (ocall+ js/window main el service package nil config navigate!)
-      (catch js/Error e
-        (.error js/console e)))))
+    ;; It may occur that the element isn't mounted in the DOM when this runs.
+    ;; In this case, try again later!
+    (when (and (nil? el) (< (or tries 0) 5))
+      (.setTimeout js/window
+                   #(run-script! tool tool-id :service service :entity entity
+                                 :tries ((fnil inc 0) tries))
+                   1000))
+    (when el
+      ;; If we don't wrap in a try-catch, errors thrown from tools can cause
+      ;; Bluegenes to halt execution.
+      (try
+        (ocall+ js/window main el service package state config navigate!)
+        (catch js/Error e
+          (.error js/console e))))))
 
 (defn fetch-script!
   ;; inspired by https://stackoverflow.com/a/31374433/1542891
@@ -63,7 +72,7 @@
             head (aget (.getElementsByTagName js/document "head") 0)
             tool-path (get-in tool [:config :files :js])]
         (when-not tool-path
-          (.error js/console "%cNo script path provided for %s" "background:#ccc;border-bottom:solid 3px indianred; border-radius:2px;" (get-in tool [:names :human])))
+          (.error js/console "%cTool API: No script path provided for %s" "background:#ccc;border-bottom:solid 3px indianred; border-radius:2px;" (get-in tool [:names :npm])))
         (when tool-path
           (oset! script-tag "id" script-id)
           ;;fetch script from bluegenes-tool-store backend
@@ -106,7 +115,7 @@
      ;; `entity` is nil if tool is not suitable to be displayed.
      (when-let [entity (suitable-entities
                          (get-in service [:model :classes]) entities (:config tool))]
-       (let [{{:keys [human cljs npm]} :names} tool
-             tool-id (or cljs npm (str/replace human " " ""))]
-         (fetch-script! tool tool-id :service service :entity entity)
-         (fetch-styles! tool tool-id))))))
+       (if-let [tool-id (get-in tool [:names :cljs])]
+         (do (fetch-script! tool tool-id :service service :entity entity)
+             (fetch-styles! tool tool-id))
+         (.error js/console "%cTool API: No cljs name provided for %s" "background:#ccc;border-bottom:solid 3px indianred; border-radius:2px;" (get-in tool [:names :npm])))))))
