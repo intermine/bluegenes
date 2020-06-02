@@ -218,6 +218,8 @@
       :controllers
       [{:parameters {:path [:mine :type :id]}
         :start (fn [{{:keys [mine type id]} :path}]
+                 (dispatch [:clear-ids-tool-entity])
+                 (dispatch [:viz/clear])
                  (dispatch [:set-active-panel :reportpage-panel
                             {:type type, :id id, :format "id", :mine mine}
                             [:load-report mine type id]]))}]}]]])

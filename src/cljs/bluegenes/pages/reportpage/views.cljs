@@ -9,7 +9,8 @@
             [bluegenes.pages.reportpage.subs :as subs]
             [im-tables.views.core :as im-table]
             [imcljs.path :as im-path]
-            [bluegenes.route :as route]))
+            [bluegenes.route :as route]
+            [bluegenes.components.viz.views :as viz]))
 
 (defn tbl [{:keys [loc]}]
   (let [data (subscribe [::subs/a-table loc])]
@@ -108,6 +109,7 @@
                [summary/main (:summary @report)]
                (when (:summary @report)
                  [:div.report-body
+                  [viz/main]
                   [tools/main]
                   [collections-and-references service current-mine-name type id]
                   [templates-for-entity service current-mine-name id]])])]))])))

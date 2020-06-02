@@ -39,4 +39,4 @@
  :<- [::entities]
  :<- [:model]
  (fn [[tools entities model]]
-   (filter #(suitable-entities model entities %) (map :config tools))))
+   (filter #(suitable-entities model entities (:config %)) tools)))
