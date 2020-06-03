@@ -99,7 +99,7 @@
         !bin-scale (r/atom :linear)
         !y-field (r/atom :totalConfirmed)]
     (fn [results]
-      [:div.container
+      [:div
        [:h4 (str "Showing top " @!top-x-count " countries with highest cases: " (name @!y-field))]
        [:div {:style {:display "flex"
                       :justify-content "space-evenly"}}
@@ -130,8 +130,10 @@
         {:data {:values (-> results
                             (states-as-countries)
                             (top-x-countries @!top-x-count @!y-field))}
+         :autosize {:type "fit-x"
+                    :contains "padding"}
          :vconcat [(merge
-                    {:width 700
+                    {:width "container"
                      :mark {:type (name @!mark-type) :tooltip true}
                      :encoding {:x {:field "date"
                                     :type "temporal"}
@@ -151,7 +153,7 @@
                             y (str "datum." y-field)]
                         {:transform [{:calculate (str "if ("y"<1, 1, "y")")
                                       :as y-field}]})))
-                   {:width 700
+                   {:width "container"
                     :mark {:type "bar" :tooltip true}
                     ;; We could support log scaling on the histogram's Y axis,
                     ;; but we'd have to disable stacking countries for that and

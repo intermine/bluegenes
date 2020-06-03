@@ -122,7 +122,9 @@
            {:style {:width "100%"}}
            [:div.row
             [:div.col-sm-3.col-lg-2
-             [query-history]]
+             [query-history]
+             [:div.hidden-lg
+              [enrichment/enrich]]]
             [:div.col-sm-9.col-lg-7
              [:div
               {:style {:background-color "white"}}
@@ -134,7 +136,7 @@
              [viz/main]
              [:div
               [tools/main]]]
-            [:div.col-sm-3
+            [:div.col-sm-3.visible-lg-block
              [enrichment/enrich]]]
            #_[:div.results-and-enrichment
               [:div.col-md-8.col-sm-12.panel]

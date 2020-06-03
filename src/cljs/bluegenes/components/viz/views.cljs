@@ -11,8 +11,10 @@
 
 (defn main []
   (let [all-results @(subscribe [:viz/results])]
-    (into [:div.tools]
+    (into [:div.viz]
           (for [{:keys [viz key]} all-viz]
             (when-let [results (get all-results key)]
               ^{:key (name key)}
-              [viz results])))))
+              [:div.panel.panel-default
+               [:div.panel-body
+                [viz results]]])))))
