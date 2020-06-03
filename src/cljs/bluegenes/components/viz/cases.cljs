@@ -5,6 +5,12 @@
             [goog.string :refer [parseInt]]
             [oz.core :refer [vega-lite]]))
 
+(def config
+  {:accepts ["ids"]
+   :classes ["Cases"]
+   :depends ["Cases"]
+   :toolName {:human "Cases per-country plot and histogram"}})
+
 (defn query [{{:keys [value]} :Cases}]
   {:from "Cases"
    :select ["date"
@@ -63,12 +69,10 @@
 
 (defn toggle-group [atom group-label props]
   [:div.toggle-group
-   [:label {:style {:margin-left "0.5em"
-                    :margin-right "0.5em"}}
-    group-label]
+   [:label group-label]
    (into [:div.btn-group]
          (for [{:keys [label value active]} props]
-           [:button.btn.btn-default.btn-sm
+           [:button.btn.btn-default.btn-xs
             {:type "button"
              :class (when (or active (= @atom value))
                       :active)
@@ -76,22 +80,17 @@
             (or label (name value))]))])
 
 (defn number-input [atom label]
-  [:div
-   [:label {:style {:margin-left "0.5em"
-                    :margin-right "0.5em"}}
-    label]
+  [:div.number-input
+   [:label label]
    [:input.form-control
     {:type "number"
-     :style {:height "30px" :width "80px" :display "inline-block"}
      :on-change #(when-let [x (parseInt (oget % :target :value))]
                    (when (pos? x)
                      (reset! atom x)))
      :value @atom}]])
 
-;; - tooltips in histogram not working anymore (after adding selection: brush)
 ;; Suggestions:
 ;; - setting whether states should be included with or without country total, or excluded
-;; - remove :style usage
 (defn viz [results]
   (let [!top-x-count (r/atom 10)
         !mark-type (r/atom :line)
@@ -100,9 +99,10 @@
         !y-field (r/atom :totalConfirmed)]
     (fn [results]
       [:div
-       [:h4 (str "Showing top " @!top-x-count " countries with highest cases: " (name @!y-field))]
-       [:div {:style {:display "flex"
-                      :justify-content "space-evenly"}}
+       [:div.title-group
+        [:h4 (str "Showing top " @!top-x-count " countries with highest cases: " (name @!y-field))]
+        [:span.subtitle "Click and drag in the plot to narrow down the histogram."]]
+       [:div.control-group
         [number-input !top-x-count
          "Top"]
         [toggle-group !mark-type
@@ -177,6 +177,10 @@
                                      :type "quantitative"}
                                  :color {:field "geoLocation.country"
                                          :type "nominal"}})
+                    ;; The below line isn't used for anything; it's a workaround
+                    ;; to fix tooltips for composed views.
+                    ;; https://github.com/vega/vega-lite/issues/6003
+                    :selection {:fake {:type "single"}}
                     :transform (cond-> [{:filter {:selection "brush"}}]
                                  (= @!bin-scale :log)
                                  (into (let [x-field (name @!y-field)
@@ -189,9 +193,3 @@
                                            :as "x1"}
                                           {:calculate "pow(10, datum.bin_log_x_end)"
                                            :as "x2"}])))}]}]])))
-
-(def config
-  {:accepts ["ids"]
-   :classes ["Cases"]
-   :depends ["Cases"]
-   :toolName {:human "Cases per-country plot and histogram"}})

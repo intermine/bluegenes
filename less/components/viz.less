@@ -1,0 +1,49 @@
+@import "../variables";
+
+.viz {
+    // Without setting min-height this high, the window will scroll to the top
+    // when changing input to vega-lite although you never see an empty viz.
+    min-height: 600px;
+    margin-top: @spacer*2;
+
+    .title-group {
+        display: flex;
+        margin-bottom: @spacer;
+        align-items: center;
+        justify-content: space-between;
+
+        .subtitle {
+            font-size: 12px;
+            text-align: right;
+            font-style: oblique;
+        }
+    }
+
+    .control-group {
+        display: flex;
+        justify-content: space-evenly;
+    }
+
+    .toggle-group,
+    .number-input {
+        label {
+            font-size: 14px;
+            margin-left: @spacer/2;
+            margin-right: @spacer/2;
+        }
+    }
+
+    .number-input {
+        input {
+            display: inline-block;
+            height: 30px;
+            width: 60px;
+            margin-top: 5px;
+            margin-bottom: 1px;
+        }
+    }
+
+    .vega-embed {
+        width: 100%;
+    }
+}
