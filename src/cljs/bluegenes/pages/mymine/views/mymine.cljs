@@ -8,7 +8,8 @@
             [bluegenes.pages.mymine.views.modals :as modals]
             [bluegenes.pages.mymine.views.contextmenu :as m]
             [bluegenes.route :as route]
-            [bluegenes.pages.mymine.views.organize :as organize])
+            [bluegenes.pages.mymine.views.organize :as organize]
+            [bluegenes.version :as version])
   (:import
    (goog.i18n NumberFormat)
    (goog.i18n.NumberFormat Format)))
@@ -95,7 +96,8 @@
             "Subtract " [:svg.icon.icon-venn-difference.venn [:use {:xlinkHref "#icon-venn-difference"}]]]]
           (let [no-login? (not @(subscribe [:bluegenes.subs.auth/authenticated?]))
                 no-lists? (empty? @(subscribe [:lists/authorized-lists]))
-                no-support? (< (first @(subscribe [:current-intermine-version])) 5)
+                no-support? (< (first @(subscribe [:current-intermine-version]))
+                               version/organize-support)
                 problem? (or no-lists? no-login? no-support?)]
             [:li.hidden-xs {:class (when problem? "disabled")}
              [:a (merge
