@@ -3,7 +3,8 @@
             [bluegenes.components.tools.subs :as tools-subs]
             [bluegenes.pages.developer.events :as events]
             [markdown-to-hiccup.core :as md]
-            [bluegenes.version :as version]))
+            [bluegenes.version :as version]
+            [bluegenes.components.viz.views :refer [all-viz]]))
 
 (defn action [func]
   (fn [e]
@@ -124,6 +125,23 @@
           "Install"]]]])
     @tools)))
 
+(defn native-viz-list
+  "Display all native visualizations integrated into BlueGenes."
+  [vizs]
+  (into [:div.tool-list]
+        (for [{{:keys [accepts classes depends version]} :config :as viz} vizs]
+          [:div.tool
+           [:h2 (get-in viz [:config :toolName :human])]
+           [:div.details
+            [tool-description (get-in viz [:package :description])]
+            [output-tool-version (or version 1)]
+            [output-tool-depends depends]
+            [output-tool-classes classes]
+            [output-tool-accepts accepts]]
+           [:div.tool-footer
+            [:div.tool-data
+             "Included with BlueGenes"]]])))
+
 (defn tool-store
   "Page structure for tool store UI"
   []
@@ -145,4 +163,8 @@
          [:button.btn.btn-primary.btn-raised
           {:on-click (action #(dispatch [::events/install-all-tools]))}
           "Install all tools"]])
-      [available-tool-list remaining-tools]]]))
+      [available-tool-list remaining-tools]
+      (when (seq all-viz)
+        [:div.info
+         [:h4 "Native visualizations"]])
+      [native-viz-list all-viz]]]))
