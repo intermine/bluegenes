@@ -1,7 +1,8 @@
 (ns bluegenes.utils
   (:require [clojure.string :as string]
             [clojure.data.xml :as xml]
-            [imcljs.query :as im-query]))
+            [imcljs.query :as im-query]
+            [bluegenes.version :as version]))
 
 (defn uncamel
   "Uncamel case a string. Example: thisIsAString -> This is a string"
@@ -75,25 +76,19 @@
      :joins joins
      :where where}))
 
-(defn suitable-config?
-  "Verifies a tool/viz `config` against a `model` and `entity`, returning
-  whether this tool/viz is suitable for displaying."
-  [model entity config]
-  (when-let [{:keys [format class]} entity]
-    (when-let [{:keys [accepts classes depends]} config]
-      (and (contains? (set accepts) format)
-           (contains? (set classes) class)
-           (every? #(contains? model %) (map keyword depends))))))
-
 (defn suitable-entities
   "Removes key-value pairs from an entities map which don't adhere to config.
-  Will return nil if no entity is suitable at all.
-  1. Check that all model dependencies are present.
-  2. Remove pairs which don't match accepted formats.
-  3. Pick pairs that match classes (all when `*` wildcard is used)."
+  Can also be used to check whether a tool should be displayed, as it will
+  return nil if no entity is suitable at all.
+  1. Check that the tool's API version matches this Bluegenes.
+  2. Check that the tool's model dependencies are present.
+  3. Remove entity pairs which don't match tool's accepted formats.
+  4. Pick entity pairs that match tool's classes (all when `*` wildcard is used)."
   [model entities config]
-  (when-let [{:keys [accepts classes depends]} config]
-    (when (every? #(contains? model %) (map keyword depends))
+  (when-let [{:keys [accepts classes depends version]
+              :or {version 1}} config]
+    (when (and (= version version/tool-api)
+               (every? #(contains? model %) (map keyword depends)))
       (as-> entities $
         (into {} (filter (comp (set accepts) :format val)) $)
         (if (some #{"*"} classes)

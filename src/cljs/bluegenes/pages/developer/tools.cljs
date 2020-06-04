@@ -2,7 +2,8 @@
   (:require [re-frame.core :as re-frame :refer [dispatch subscribe]]
             [bluegenes.components.tools.subs :as tools-subs]
             [bluegenes.pages.developer.events :as events]
-            [markdown-to-hiccup.core :as md]))
+            [markdown-to-hiccup.core :as md]
+            [bluegenes.version :as version]))
 
 (defn action [func]
   (fn [e]
@@ -52,6 +53,20 @@
         (into [:<> (interpose " " (map #(vector :code %) unsupported))])
         ". However, it may be shown for other mines."]])))
 
+(defn output-tool-version
+  "Shows an alert if the version does not match this Bluegenes' tool API."
+  [version]
+  (let [supported? (= version version/tool-api)]
+    (when-not supported?
+      [:div.tool-alert
+       [:p "This tool is disabled due to using a different Tool API version than this BlueGenes instance. "
+        [:code (str "Tool: " version)]
+        " "
+        [:code (str "BlueGenes: " version/tool-api)]
+        (if (< version version/tool-api)
+          " We recommend updating the tool to the latest version."
+          " We recommend updating BlueGenes to the latest version.")]])))
+
 (defn tool-description
   [text]
   (when (not-empty text)
@@ -75,6 +90,7 @@
          [:div.tool-no-preview "No tool preview available"])
        [:div.details
         [tool-description (get-in tool [:package :description])]
+        [output-tool-version (get-in tool [:config :version] 1)]
         [output-tool-depends (get-in tool [:config :depends])]
         [output-tool-classes (get-in tool [:config :classes])]
         [output-tool-accepts (get-in tool [:config :accepts])]]

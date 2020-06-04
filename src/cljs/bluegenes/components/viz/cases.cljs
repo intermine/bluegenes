@@ -9,7 +9,8 @@
   {:accepts ["ids"]
    :classes ["Cases"]
    :depends ["Cases"]
-   :toolName {:human "Cases per-country plot and histogram"}})
+   :toolName {:human "Cases per-country plot and histogram"}
+   :version 2})
 
 (defn query [{{:keys [value]} :Cases}]
   {:from "Cases"
