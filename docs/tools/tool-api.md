@@ -99,13 +99,16 @@ This file provides bluegenes-specific config info. Some further config info is d
 {
   "accepts": ["id", "ids", "records", "rows"],
   "classes": ["Gene", "Protein", "*"],
-  "columnMapping" : {"Protein" : {"id" : "primaryAccession"}},
+  "columnMapping": {"Protein": {"id" : "primaryAccession"}},
   "depends": ["AtlasExpression", "ProteinAtlasExpression"],
-  "files" : {
-    "css" : "dist/style.css",
-    "js" : "dist/bundle.js"
+  "files": {
+    "css": "dist/style.css",
+    "js": "dist/bundle.js"
   },
-  "toolName" : "Protein Features"
+  "toolName": {
+    "human": "Protein Features",
+    "cljs": "proteinFeatures"
+  }
 }
 ```
 #### Accepts:
@@ -129,7 +132,7 @@ Plurality (i.e. id vs ids) will help to determine which context a tool can appea
 
 **files** - one file each for css and js, please. This should be the file bundled/built with all dependencies except/ imjs if needed. CSS is optional if the tool has no styles.
 
-**toolName** what would you want to see as a header for this tool? e.g. ProtVista might be called "Protein Features".
+**toolName** is an object with a human-readable name, as well as an internal name. The human name would be what you want to see as a header for this tool (e.g. ProtVista might be called "Protein Features"). The internal `cljs` name needs to be unique among tools and identical to the global JS variable which your tool's bundle initialises.
 
 
 #### preview.png
