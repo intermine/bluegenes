@@ -49,7 +49,6 @@
   [records x keyfn]
   (let [top-x (->> records
                    (group-by (comp :country :geoLocation))
-                   (#(dissoc % "World"))
                    (map (juxt key
                               (comp #(reduce + %)
                                     #(map keyfn %)
