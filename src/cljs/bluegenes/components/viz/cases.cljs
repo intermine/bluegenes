@@ -42,7 +42,6 @@
                   state (assoc-in [:geoLocation :country]
                                   (str country " (" state ")"))))))))
 
-
 (defn top-x-countries
   "Filters away all but the top `x` countries with the highest return value
   for `keyfn`."
@@ -151,7 +150,7 @@
                       ;; undefined behaviour.
                       (let [y-field (name @!y-field)
                             y (str "datum." y-field)]
-                        {:transform [{:calculate (str "if ("y"<1, 1, "y")")
+                        {:transform [{:calculate (str "if (" y "<1, 1, " y ")")
                                       :as y-field}]})))
                    {:width "container"
                     :mark {:type "bar" :tooltip true}
@@ -185,8 +184,8 @@
                                  (= @!bin-scale :log)
                                  (into (let [x-field (name @!y-field)
                                              x (str "datum." x-field)]
-                                         [{:filter (str x">0")}
-                                          {:calculate (str "log("x")/log(10)")
+                                         [{:filter (str x ">0")}
+                                          {:calculate (str "log(" x ")/log(10)")
                                            :as "log_x"}
                                           {:bin {:binned true :step 1} :field "log_x" :as "bin_log_x"}
                                           {:calculate "pow(10, datum.bin_log_x)"

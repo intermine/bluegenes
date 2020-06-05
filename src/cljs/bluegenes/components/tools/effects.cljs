@@ -114,7 +114,7 @@
    (doseq [tool tools]
      ;; `entity` is nil if tool is not suitable to be displayed.
      (when-let [entity (suitable-entities
-                         (get-in service [:model :classes]) entities (:config tool))]
+                        (get-in service [:model :classes]) entities (:config tool))]
        (if-let [tool-id (get-in tool [:names :cljs])]
          (do (fetch-script! tool tool-id :service service :entity entity)
              (fetch-styles! tool tool-id))
