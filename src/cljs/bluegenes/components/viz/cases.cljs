@@ -1,9 +1,8 @@
 (ns bluegenes.components.viz.cases
-  (:require [re-frame.core :refer [dispatch subscribe]]
-            [reagent.core :as r]
+  (:require [reagent.core :as r]
             [oops.core :refer [oget]]
             [goog.string :refer [parseInt]]
-            [oz.core :refer [vega-lite]]))
+            [bluegenes.components.viz.common :refer [vega-lite]]))
 
 (def config
   {:accepts ["ids"]

@@ -24,7 +24,6 @@
                  [markdown-to-hiccup "0.6.2"]
                  [cljsjs/react-day-picker "7.3.0-1"]
                  [cljsjs/react-select "2.4.4-0"]
-                 [metasoarous/oz "1.6.0-alpha6"]
 
                  ; HTTP
                  [clj-http "3.10.0"]
@@ -67,6 +66,10 @@
                  [clojusc/friend-oauth2 "0.2.0"]
                  [lambdaisland/uri "1.2.1"]
 
+                 ; Graphs
+                 [cljsjs/vega "5.9.0-0"]
+                 [cljsjs/vega-lite "4.0.2-0"]
+                 [cljsjs/vega-embed "6.0.0-0"]
 
                  ; Intermine Assets
                  [org.intermine/im-tables "0.9.0"]

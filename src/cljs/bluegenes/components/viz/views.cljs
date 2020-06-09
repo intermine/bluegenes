@@ -1,8 +1,6 @@
 (ns bluegenes.components.viz.views
-  (:require [re-frame.core :refer [subscribe dispatch]]
-            [reagent.core :as r]
-            [bluegenes.components.viz.cases :as cases]
-            [oz.core :refer [vega-lite]]))
+  (:require [re-frame.core :refer [subscribe]]
+            [bluegenes.components.viz.cases :as cases]))
 
 (def all-viz [{:config cases/config
                :query cases/query
