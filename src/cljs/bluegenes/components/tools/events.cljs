@@ -31,7 +31,8 @@
 (reg-event-fx
  ::navigate-query
  (fn [{db :db} [_ query source]]
-   (let [set-current-mine [:set-current-mine source]
+   (let [source (or source (:current-mine db))
+         set-current-mine [:set-current-mine source]
          history+         [:results/history+ {:source source
                                               :type :query
                                               :intent :tool
@@ -53,3 +54,26 @@
  ::success-fetch-tool-path
  (fn [db [_ {:keys [path]}]]
    (assoc-in db [:tools :path] path)))
+
+(reg-event-fx
+ ::load-tools
+ (fn [{db :db} [_]]
+   (let [tools    (get-in db [:tools :installed])
+         service  (get-in db [:mines (:current-mine db) :service])
+         entities (get-in db [:tools :entities])]
+     (cond
+       ;; Tools aren't ready yet.
+       (nil? tools)
+       {:retry {:event [::load-tools]
+                :timeout 1000}}
+       ;; We don't have any tools.
+       (empty? tools)
+       {:retry {:event [::load-tools]
+                :success? true}}
+       ;; We do have tools!
+       :else
+       {:retry {:event [::load-tools]
+                :success? true}
+        :load-suitable-tools {:tools tools
+                              :service service
+                              :entities entities}}))))

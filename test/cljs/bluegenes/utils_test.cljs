@@ -1,6 +1,7 @@
 (ns bluegenes.utils-test
   (:require [cljs.test :refer-macros [deftest is are testing]]
-            [bluegenes.utils :as utils]))
+            [bluegenes.utils :as utils]
+            [bluegenes.version :as version]))
 
 (deftest read-xml-query
   (testing "Missing fields are correctly nulled"
@@ -129,3 +130,117 @@
             :constraintLogic nil,
             :joins ["Gene.homologues"],
             :where [{:path "Gene.symbol", :op "CONTAINS", :value "ab"}]}))))
+
+(deftest suitable-entities
+  ;; Mock for model classes. We only check that the key is present.
+  (let [model {:Gene {} :Protein {}}]
+    (with-redefs [version/tool-api 1]
+      (is (= (utils/suitable-entities
+              model
+              {:Gene {:class "Gene" :format "id" :value 1}
+               :Protein {:class "Protein" :format "ids" :value [1 2 3]}}
+              {:accepts ["id"]
+               :classes ["Gene" "Protein"]})
+             {:Gene {:class "Gene" :format "id" :value 1}})
+          "Should remove invalid formats when accepts id")
+      (is (= (utils/suitable-entities
+              model
+              {:Gene {:class "Gene" :format "id" :value 1}
+               :Protein {:class "Protein" :format "ids" :value [1 2 3]}}
+              {:accepts ["ids"]
+               :classes ["Gene" "Protein"]})
+             {:Protein {:class "Protein" :format "ids" :value [1 2 3]}})
+          "Should remove invalid formats when accepts ids")
+      (is (= (utils/suitable-entities
+              model
+              {:Gene {:class "Gene" :format "id" :value 1}
+               :Protein {:class "Protein" :format "id" :value 2}}
+              {:accepts ["id"]
+               :classes ["Protein"]})
+             {:Protein {:class "Protein" :format "id" :value 2}})
+          "Should filter down to config's classes")
+      (is (= (utils/suitable-entities
+              model
+              {:Gene {:class "Gene" :format "id" :value 1}
+               :Protein {:class "Protein" :format "ids" :value [1 2 3]}}
+              {:accepts ["id" "ids"]
+               :classes ["*"]})
+             {:Gene {:class "Gene" :format "id" :value 1}
+              :Protein {:class "Protein" :format "ids" :value [1 2 3]}})
+          "Should handle wildcard in config's classes")
+      (is (= (utils/suitable-entities
+              model
+              {:Gene {:class "Gene" :format "id" :value 1}
+               :Protein {:class "Protein" :format "ids" :value [1 2 3]}}
+              {:accepts ["id" "ids"]
+               :classes ["Gene" "Protein"]
+               :depends ["Gene" "Protein"]})
+             {:Gene {:class "Gene" :format "id" :value 1}
+              :Protein {:class "Protein" :format "ids" :value [1 2 3]}})
+          "Should handle depends")
+      (testing "Should return nil when no entities are valid"
+        (are [entities config suitable]
+             (= (utils/suitable-entities model entities config) suitable)
+
+          {:Gene {:class "Gene" :format "id" :value 1}
+           :Protein {:class "Protein" :format "id" :value 2}}
+          {:accepts ["ids"]
+           :classes ["Gene" "Protein"]}
+          nil
+
+          {:Gene {:class "Gene" :format "id" :value 1}
+           :Protein {:class "Protein" :format "id" :value 2}}
+          {:accepts ["id"]
+           :classes ["OtherClass"]}
+          nil
+
+          {:Gene {:class "Gene" :format "id" :value 1}
+           :Protein {:class "Protein" :format "id" :value 2}}
+          {:accepts ["id"]
+           :classes ["Gene" "Protein"]
+           :depends ["NotInModel"]}
+          nil
+
+          {:Gene {:class "Gene" :format "id" :value 1}
+           :Protein {:class "Protein" :format "id" :value 2}}
+          {:accepts ["id"]
+           :classes ["*"]
+           :depends ["NotInModel"]}
+          nil))
+      (is (= (utils/suitable-entities
+              model
+              {:Gene {:class "Gene" :format "id" :value 1}
+               :Protein {:class "Protein" :format "id" :value 2}}
+              {:accepts ["id"]
+               :classes ["Gene" "Protein"]
+               :version 2})
+             nil)
+          "Should return nil when tool version is above bluegenes"))
+    (with-redefs [version/tool-api 2]
+      (is (= (utils/suitable-entities
+              model
+              {:Gene {:class "Gene" :format "id" :value 1}
+               :Protein {:class "Protein" :format "id" :value 2}}
+              {:accepts ["id"]
+               :classes ["Gene" "Protein"]
+               :version 1})
+             nil)
+          "Should return nil when tool version is below bluegenes")
+      (is (= (utils/suitable-entities
+              model
+              {:Gene {:class "Gene" :format "id" :value 1}
+               :Protein {:class "Protein" :format "id" :value 2}}
+              {:accepts ["id"]
+               :classes ["Gene" "Protein"]})
+             nil)
+          "Should return nil when inferred tool version is below bluegenes")
+      (is (= (utils/suitable-entities
+              model
+              {:Gene {:class "Gene" :format "id" :value 1}
+               :Protein {:class "Protein" :format "id" :value 2}}
+              {:accepts ["id"]
+               :classes ["Gene" "Protein"]
+               :version 2})
+             {:Gene {:class "Gene" :format "id" :value 1}
+              :Protein {:class "Protein" :format "id" :value 2}})
+          "Should return entities when tool version is equal to bluegenes"))))

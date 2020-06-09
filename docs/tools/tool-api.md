@@ -67,13 +67,34 @@ An object representing the data passed to the app, e.g.:
 
 ```json
 {
-  "class": "Gene",
-  "format": "id",
-  "value": 456
+  "Gene": {
+    "class": "Gene",
+    "format": "id",
+    "value": 456
+  }
 }
 ```
 
-To see a full example, look at how the method is called in [bluegenesProtVista's ui demo file](https://github.com/intermine/bluegenesProtVista/blob/master/demo.html) and how [index.js uses the values passed to it](https://github.com/intermine/bluegenesProtVista/blob/master/src/index.js)
+If your tool *accepts* `ids` and takes multiple *classes*, (see [config.json](/docs/tools/tool-api.md#configjson)) it might receive more than one class if they are present on the list or query results page.
+
+```json
+{
+  "Gene": {
+    "class": "Gene",
+    "format": "ids",
+    "value": [1, 2]
+  },
+  "Protein": {
+    "class": "Protein",
+    "format": "ids",
+    "value": [3, 4]
+  }
+}
+```
+
+It is up to you which class you want to use in your tool, and you can even use multiple.
+
+Currently, it is not possible to receive multiple classes on the report page with *accepts* `id`. However, the Tool API allows for this should it be an option in the future.
 
 **navigate**
 
@@ -108,7 +129,8 @@ This file provides bluegenes-specific config info. Some further config info is d
   "toolName": {
     "human": "Protein Features",
     "cljs": "proteinFeatures"
-  }
+  },
+  "version": 2
 }
 ```
 #### Accepts:
@@ -134,6 +156,7 @@ Plurality (i.e. id vs ids) will help to determine which context a tool can appea
 
 **toolName** is an object with a human-readable name, as well as an internal name. The human name would be what you want to see as a header for this tool (e.g. ProtVista might be called "Protein Features"). The internal `cljs` name needs to be unique among tools and identical to the global JS variable which your tool's bundle initialises.
 
+**version** is a whole number indicating which major version of the Tool API your tool adheres to. When creating a tool, you should always specify the latest version presented here. If your tool's version does not match the Tool API version of the BlueGenes using your tool, a warning will be shown and your tool will be disabled from displaying. In this case, you will have to update your tool to support the Tool API version of the BlueGenes using your tool, update the version key in your *config.json* and publish a new version of your tool. See the [Changelog](/docs/tools/tool-api.md#changelog) for details on each version.
 
 #### preview.png
 
@@ -143,3 +166,27 @@ Optional preview image for the "app store" dashboard (when admins are selecting 
 * [imjs](https://www.npmjs.com/package/imjs) will be available on the window automatically.
 
 **Credits:** Thanks to [Josh](https://gist.github.com/joshkh/76091f1182d425934c1c5dbe2644d23a) and [Vivek](https://gist.github.com/vivekkrish/2e5e4128efbbf2014c194aae6b83d245) for early work on the Tool API proposal.
+
+## Changelog
+
+We aim to keep all changes to the Tool API as backwards compatible as possible, but in some cases breaking changes are necessary. The Tool API major version number will increment on breaking changes and additional details on the rationale and upgrading process will be included.
+
+### Tool API version 1.0
+
+- Initial release.
+
+### Tool API version 2.0
+
+- Changes `imEntity` from an object to a nested object with keys corresponding to each object's class.
+
+  `{"class": "Gene", "format": "id", "value": 1}` **-->** `{"Gene": {"class": "Gene", "format": "id", "value": 1}}`
+
+  **Rationale:** It's possible for a list or query results page to have multiple classes, depending on the columns present. This meant a tool needed to be able to receive multiple imEntity's, which the previous Tool API didn't allow.
+
+  **Upgrading:** You will need to grab the value you wish to work on out from the nested object in `imEntity`. As an example for a tool that works on the "Gene" class, you would change `imEntity.value` to `imEntity.Gene.value`. If your tool takes multiple classes, you can decide whether to always default to one if available, or present a different behaviour when multiple classes are present.
+
+- Adds a `version` key to *config.json*.
+
+  **Rationale:** To accomodate the first breaking change in the Tool API, we have added versioning of the tools. If your tool's version does not match the Tool API version of the BlueGenes using it, a warning will be displayed and your tool won't be shown on the respective pages. To make your tool work again, you will have to update it to support the changes to the Tool API, as well as update the `version` key in *config.json*. Note that a missing `version` key will be interpreted as version 1.
+
+  **Upgrading:** Make sure your tool adheres to Tool API version 2 as described here, then add `"version": 2` to your *config.json*.

@@ -66,6 +66,10 @@
                  [clojusc/friend-oauth2 "0.2.0"]
                  [lambdaisland/uri "1.2.1"]
 
+                 ; Graphs
+                 [cljsjs/vega "5.9.0-0"]
+                 [cljsjs/vega-lite "4.0.2-0"]
+                 [cljsjs/vega-embed "6.0.0-0"]
 
                  ; Intermine Assets
                  [org.intermine/im-tables "0.9.0"]

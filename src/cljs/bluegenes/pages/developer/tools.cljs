@@ -2,7 +2,9 @@
   (:require [re-frame.core :as re-frame :refer [dispatch subscribe]]
             [bluegenes.components.tools.subs :as tools-subs]
             [bluegenes.pages.developer.events :as events]
-            [markdown-to-hiccup.core :as md]))
+            [markdown-to-hiccup.core :as md]
+            [bluegenes.version :as version]
+            [bluegenes.components.viz.views :refer [all-viz]]))
 
 (defn action [func]
   (fn [e]
@@ -52,6 +54,20 @@
         (into [:<> (interpose " " (map #(vector :code %) unsupported))])
         ". However, it may be shown for other mines."]])))
 
+(defn output-tool-version
+  "Shows an alert if the version does not match this Bluegenes' tool API."
+  [version]
+  (let [supported? (= version version/tool-api)]
+    (when-not supported?
+      [:div.tool-alert
+       [:p "This tool is disabled due to using a different Tool API version than this BlueGenes instance. "
+        [:code (str "Tool: " version)]
+        " "
+        [:code (str "BlueGenes: " version/tool-api)]
+        (if (< version version/tool-api)
+          " We recommend updating the tool to the latest version."
+          " We recommend updating BlueGenes to the latest version.")]])))
+
 (defn tool-description
   [text]
   (when (not-empty text)
@@ -75,6 +91,7 @@
          [:div.tool-no-preview "No tool preview available"])
        [:div.details
         [tool-description (get-in tool [:package :description])]
+        [output-tool-version (get-in tool [:config :version] 1)]
         [output-tool-depends (get-in tool [:config :depends])]
         [output-tool-classes (get-in tool [:config :classes])]
         [output-tool-accepts (get-in tool [:config :accepts])]]
@@ -108,6 +125,23 @@
           "Install"]]]])
     @tools)))
 
+(defn native-viz-list
+  "Display all native visualizations integrated into BlueGenes."
+  [vizs]
+  (into [:div.tool-list]
+        (for [{{:keys [accepts classes depends version]} :config :as viz} vizs]
+          [:div.tool
+           [:h2 (get-in viz [:config :toolName :human])]
+           [:div.details
+            [tool-description (get-in viz [:package :description])]
+            [output-tool-version (or version 1)]
+            [output-tool-depends depends]
+            [output-tool-classes classes]
+            [output-tool-accepts accepts]]
+           [:div.tool-footer
+            [:div.tool-data
+             "Included with BlueGenes"]]])))
+
 (defn tool-store
   "Page structure for tool store UI"
   []
@@ -129,4 +163,8 @@
          [:button.btn.btn-primary.btn-raised
           {:on-click (action #(dispatch [::events/install-all-tools]))}
           "Install all tools"]])
-      [available-tool-list remaining-tools]]]))
+      [available-tool-list remaining-tools]
+      (when (seq all-viz)
+        [:div.info
+         [:h4 "Native visualizations"]])
+      [native-viz-list all-viz]]]))

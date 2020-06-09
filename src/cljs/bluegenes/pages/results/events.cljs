@@ -80,6 +80,8 @@
            ;; Our route runs `:results/load-history`.
      (assoc :dispatch [::route/navigate ::route/list {:title (:title value)}]))))
 
+(def im-table-location [:results :table])
+
 ; Load one package at a particular index from the list analysis history collection
 (reg-event-fx
  :results/load-history
@@ -109,11 +111,12 @@
                     ; Clear the enrichment results before loading any new ones
                     :enrichment-results nil)
         :dispatch-n [;; Fetch IDs to build tool entity, and then our tools.
-                     [:fetch-ids-tool-entity]
+                     [:fetch-ids-tool-entities]
+                     [::tools/fetch-tools]
                      ; Fire the enrichment event (see the TODO above)
                      [:enrichment/enrich]
                      [:im-tables/load
-                      [:results :table]
+                      im-table-location
                       {:service (merge service {:summary-fields summary-fields})
                        :query value
                        :settings {:pagination {:limit 10}
@@ -125,27 +128,79 @@
                                                               :id objectId}))}}}]]}))))
 
 (reg-event-fx
- :fetch-ids-tool-entity
+ :results/listen-im-table-changes
+ (fn [{db :db} [_]]
+   {:forward-events {:register :results-page-im-table-listener
+                     ;; These fire whenever the query in im-tables is changed,
+                     ;; and runs successfully.
+                     :events #{:main/replace-query-response
+                               :main/merge-query-response}
+                     :dispatch-to [:results/update-tool-entities]}}))
+
+(reg-event-fx
+ :results/unlisten-im-table-changes
+ (fn [{db :db} [_]]
+   {:forward-events {:unregister :results-page-im-table-listener}}))
+
+(reg-event-fx
+ :results/update-tool-entities
+ (fn [{db :db} [_]]
+   (let [source (get-in db [:results :package :source])
+         model  (get-in db [:mines source :service :model])
+         ;; We have to reach into the im-table to get the updated query,
+         ;; as it's not passed via event handlers we can intercept.
+         query  (get-in db (conj im-table-location :query))]
+     ;; We wouldn't need to update db if we passed query-parts directly to the
+     ;; two events dispatched below (see TODO above).
+     {:db (update db :results assoc
+                  :query-parts (q/group-views-by-class model query))
+      :dispatch-n [[:fetch-ids-tool-entities]
+                   [:enrichment/enrich]]})))
+
+(reg-event-fx
+ :fetch-ids-tool-entities
  (fn [{db :db} _]
-   (let [{:keys [source value]} (get-in db [:results :package])
-         service (get-in db [:mines source :service])
-         query (assoc value :select ["Gene.id"])]
+   (let [{:keys [source]} (get-in db [:results :package])
+         query-parts (get-in db [:results :query-parts])]
+     {;; Initialise entities map with keys and nil values, to track progress.
+      :db (assoc-in db [:tools :entities]
+                    (zipmap (keys query-parts) (repeat nil)))
+      :dispatch-n (reduce (fn [events [class parts]]
+                            ;; `parts` is a vector of one map. It shouldn't be
+                            ;; possible to have more than one part for a class.
+                            ;; While it's handled here, it's not later on.
+                            (into events (map (fn [{:keys [query]}]
+                                                [:fetch-ids-tool-entity class source query])
+                                              parts)))
+                          []
+                          query-parts)})))
+
+(reg-event-fx
+ :fetch-ids-tool-entity
+ (fn [{db :db} [_ class source query]]
+   (let [service (get-in db [:mines source :service])]
      {:im-chan {:chan (fetch/rows service query)
-                :on-success [:success-fetch-ids-tool-entity]}})))
+                :on-success [:success-fetch-ids-tool-entity class]}})))
 
 (reg-event-fx
  :success-fetch-ids-tool-entity
- (fn [{db :db} [_ {:keys [rootClass results]}]]
-   (let [entity {:class rootClass
+ (fn [{db :db} [_ class {:keys [results]}]]
+   (let [entity {:class (name class)
                  :format "ids"
-                 :value (reduce into results)}]
-     {:db (assoc-in db [:tools :entity] entity)
-      :dispatch [::tools/fetch-tools]})))
+                 :value (reduce into results)}
+         entities (assoc (get-in db [:tools :entities])
+                         class entity)]
+     (cond-> {:db (assoc-in db [:tools :entities] entities)}
+       ;; If there are no nil values, we know all entities
+       ;; are done fetching and can load the viz/tools.
+       (every? some? (vals entities))
+       (assoc :dispatch-n [[:viz/run-queries]
+                           [::tools/load-tools]])))))
 
 (reg-event-db
  :clear-ids-tool-entity
  (fn [db]
-   (assoc-in db [:tools :entity] nil)))
+   (update db :tools dissoc :entity :entities)))
 
 (reg-event-fx
  :fetch-enrichment-ids-from-query

@@ -5,13 +5,15 @@
             [bluegenes.effects :refer [document-title]]
             [clojure.string :as string]))
 
-(reg-event-db
+(reg-event-fx
  :handle-report-summary
  [document-title]
- (fn [db [_ summary]]
-   (-> db
-       (assoc-in [:report :summary] summary)
-       (assoc :fetching-report? false))))
+ (fn [{db :db} [_ summary]]
+   {:db (-> db
+            (assoc-in [:report :summary] summary)
+            (assoc :fetching-report? false))
+    :dispatch-n [[:viz/run-queries]
+                 [::tools/load-tools]]}))
 
 (reg-event-fx
  :fetch-report
@@ -56,7 +58,7 @@
      {:db (-> db
               (assoc :fetching-report? true)
               (dissoc :report)
-              (assoc-in [:tools :entity] entity))
+              (assoc-in [:tools :entities (keyword type)] entity))
       :dispatch-n [[::tools/fetch-tools]
                    [:fetch-report (keyword mine) type id]
                    (when (= type "Gene")
