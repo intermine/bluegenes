@@ -133,6 +133,48 @@
     width: auto;
   }
 }
+.filter-manager .filter-item {
+  display: flex;
+  flex-flow: column;
+  overflow: visible;
+}
+.filter-manager .filter-item .filter-name {
+  margin-bottom: 0.5em;
+}
+.filter-manager .filter-item .imtable-constraint {
+  display: flex;
+  margin-bottom: 0.25em;
+}
+.filter-manager .filter-item .imtable-constraint .constraint-operator {
+  margin-right: 1em;
+  min-width: 110px;
+}
+.filter-manager .filter-item .imtable-constraint .constraint-operator .form-control {
+  height: 38px;
+}
+.filter-manager .filter-item .imtable-constraint .constraint-input {
+  width: 100%;
+  margin-right: 1em;
+}
+.filter-manager .filter-item .imtable-constraint .constraint-input .DayPickerInput {
+  width: 175px;
+}
+.filter-manager .filter-item .imtable-constraint .constraint-input .form-control {
+  height: 38px;
+}
+.filter-manager .add-filter-item {
+  display: flex;
+  flex-flow: column;
+}
+.filter-manager .add-filter-item .filter-name {
+  margin-bottom: 0.5em;
+}
+.filter-manager .add-filter-item .add-filter-controls {
+  display: flex;
+}
+.filter-manager .add-filter-item .add-filter-controls .constraint-add {
+  margin-left: 1em;
+}
 /*
 
 github.com style (c) Vasily Polovnyov <vast@whiteants.net>
@@ -215,6 +257,178 @@ github.com style (c) Vasily Polovnyov <vast@whiteants.net>
 .hljs-strong {
   font-weight: bold;
 }
+/* DayPicker styles */
+.DayPicker {
+  display: inline-block;
+  font-size: 1rem;
+}
+.DayPicker-wrapper {
+  position: relative;
+  flex-direction: row;
+  padding-bottom: 1em;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+.DayPicker-Months {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.DayPicker-Month {
+  display: table;
+  margin: 0 1em;
+  margin-top: 1em;
+  border-spacing: 0;
+  border-collapse: collapse;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+.DayPicker-NavButton {
+  position: absolute;
+  top: 1em;
+  right: 1.5em;
+  left: auto;
+  display: inline-block;
+  margin-top: 2px;
+  width: 1.25em;
+  height: 1.25em;
+  background-position: center;
+  background-size: 50%;
+  background-repeat: no-repeat;
+  color: #8B9898;
+  cursor: pointer;
+}
+.DayPicker-NavButton:hover {
+  opacity: 0.8;
+}
+.DayPicker-NavButton--prev {
+  margin-right: 1.5em;
+  background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACQAAAAwCAYAAAB5R9gVAAAABGdBTUEAALGPC/xhBQAAAVVJREFUWAnN2G0KgjAYwPHpGfRkaZeqvgQaK+hY3SUHrk1YzNLay/OiEFp92I+/Mp2F2Mh2lLISWnflFjzH263RQjzMZ19wgs73ez0o1WmtW+dgA01VxrE3p6l2GLsnBy1VYQOtVSEH/atCCgqpQgKKqYIOiq2CBkqtggLKqQIKgqgCBjpJ2Y5CdJ+zrT9A7HHSTA1dxUdHgzCqJIEwq0SDsKsEg6iqBIEoq/wEcVRZBXFV+QJxV5mBtlDFB5VjYTaGZ2sf4R9PM7U9ZU+lLuaetPP/5Die3ToO1+u+MKtHs06qODB2zBnI/jBd4MPQm1VkY79Tb18gB+C62FdBFsZR6yeIo1YQiLJWMIiqVjQIu1YSCLNWFgijVjYIuhYYCKoWKAiiFgoopxYaKLUWOii2FgkophYp6F3r42W5A9s9OcgNvva8xQaysKXlFytoqdYmQH6tF3toSUo0INq9AAAAAElFTkSuQmCC');
+}
+.DayPicker-NavButton--next {
+  background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACQAAAAwCAYAAAB5R9gVAAAABGdBTUEAALGPC/xhBQAAAXRJREFUWAnN119ugjAcwPHWzJ1gnmxzB/BBE0n24m4xfNkTaOL7wOtsl3AXMMb+Vjaa1BG00N8fSEibPpAP3xAKKs2yjzTPH9RAjhEo9WzPr/Vm8zgE0+gXATAxxuxtqeJ9t5tIwv5AtQAApsfT6TPdbp+kUBcgVwvO51KqVhMkXKsVJFXrOkigVhCIs1Y4iKlWZxB1rX4gwlpRIIpa8SDkWmggrFq4IIRaJKCYWnSgnrXIQV1r8YD+1Vrn+bReagysIFfLABRt31v8oBu1xEBttfRbltmfjgEcWh9snUS2kNdBK6WN1vrOWxObWsz+fjxevsxmB1GQDfINWiev83nhaoiB/CoOU438oPrhXS0WpQ9xc1ZQWxWHqUYe0I0qrKCQKjygDlXIQV2r0IF6ViEBxVTBBSFUQQNhVYkHIVeJAtkNsbQ7c1LtzP6FsObhb2rCKv7NBIGoq4SDmKoEgTirXAcJVGkFSVVpgoSrXICGUMUH/QBZNSUy5XWUhwAAAABJRU5ErkJggg==');
+}
+.DayPicker-NavButton--interactionDisabled {
+  display: none;
+}
+.DayPicker-Caption {
+  display: table-caption;
+  margin-bottom: 0.5em;
+  padding: 0 0.5em;
+  text-align: left;
+}
+.DayPicker-Caption > div {
+  font-weight: 500;
+  font-size: 1.15em;
+}
+.DayPicker-Weekdays {
+  display: table-header-group;
+  margin-top: 1em;
+}
+.DayPicker-WeekdaysRow {
+  display: table-row;
+}
+.DayPicker-Weekday {
+  display: table-cell;
+  padding: 0.5em;
+  color: #8B9898;
+  text-align: center;
+  font-size: 0.875em;
+}
+.DayPicker-Weekday abbr[title] {
+  border-bottom: none;
+  text-decoration: none;
+}
+.DayPicker-Body {
+  display: table-row-group;
+}
+.DayPicker-Week {
+  display: table-row;
+}
+.DayPicker-Day {
+  display: table-cell;
+  padding: 0.5em;
+  border-radius: 50%;
+  vertical-align: middle;
+  text-align: center;
+  cursor: pointer;
+}
+.DayPicker-WeekNumber {
+  display: table-cell;
+  padding: 0.5em;
+  min-width: 1em;
+  border-right: 1px solid #EAECEC;
+  color: #8B9898;
+  vertical-align: middle;
+  text-align: right;
+  font-size: 0.75em;
+  cursor: pointer;
+}
+.DayPicker--interactionDisabled .DayPicker-Day {
+  cursor: default;
+}
+.DayPicker-Footer {
+  padding-top: 0.5em;
+}
+.DayPicker-TodayButton {
+  border: none;
+  background-color: transparent;
+  background-image: none;
+  box-shadow: none;
+  color: #4A90E2;
+  font-size: 0.875em;
+  cursor: pointer;
+}
+/* Default modifiers */
+.DayPicker-Day--today {
+  color: #D0021B;
+  font-weight: 700;
+}
+.DayPicker-Day--outside {
+  color: #8B9898;
+  cursor: default;
+}
+.DayPicker-Day--disabled {
+  color: #DCE0E0;
+  cursor: default;
+  /* background-color: #eff1f1; */
+}
+/* Example modifiers */
+.DayPicker-Day--sunday {
+  background-color: #F7F8F8;
+}
+.DayPicker-Day--sunday:not(.DayPicker-Day--today) {
+  color: #DCE0E0;
+}
+.DayPicker-Day--selected:not(.DayPicker-Day--disabled):not(.DayPicker-Day--outside) {
+  position: relative;
+  background-color: #4A90E2;
+  color: #F0F8FF;
+}
+.DayPicker-Day--selected:not(.DayPicker-Day--disabled):not(.DayPicker-Day--outside):hover {
+  background-color: #51A0FA;
+}
+.DayPicker:not(.DayPicker--interactionDisabled) .DayPicker-Day:not(.DayPicker-Day--disabled):not(.DayPicker-Day--selected):not(.DayPicker-Day--outside):hover {
+  background-color: #F0F8FF;
+}
+/* DayPickerInput */
+.DayPickerInput {
+  display: inline-block;
+}
+.DayPickerInput-OverlayWrapper {
+  position: relative;
+}
+.DayPickerInput-Overlay {
+  position: absolute;
+  left: 0;
+  z-index: 1;
+  background: white;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+}
 .force-wrap {
   /* These are technically the same, but use both */
   overflow-wrap: break-word;
@@ -238,6 +452,7 @@ github.com style (c) Vasily Polovnyov <vast@whiteants.net>
 .im-table {
   min-height: 200px;
   padding-bottom: 40px;
+  position: relative;
   /*
     .table > thead > tr > th {
         background-color: #337ab9;
@@ -346,6 +561,9 @@ github.com style (c) Vasily Polovnyov <vast@whiteants.net>
   opacity: 1;
   transition: opacity 50ms ease-in;
 }
+.im-table .table-container {
+  overflow: auto;
+}
 .im-table .relative {
   position: relative;
 }
@@ -391,30 +609,52 @@ github.com style (c) Vasily Polovnyov <vast@whiteants.net>
 .im-table .column-summary-loader {
   width: 400px;
   height: 600px;
-
   opacity: 0.80;
-
   display: flex;
   align-items: center;
   justify-content: center;
 }
 .im-table .column-summary .main-view,
 .im-table .filter-view {
-  max-height: 60vh;
-  overflow: auto;
+  padding: 0.5em;
 }
 .im-table .column-summary .main-view .imtable-constraint,
 .im-table .filter-view .imtable-constraint {
   display: flex;
+  margin-bottom: 0.5em;
+}
+.im-table .column-summary .main-view .constraint-operator,
+.im-table .filter-view .constraint-operator {
+  margin-right: 0.5em;
+}
+.im-table .column-summary .main-view .constraint-operator .form-control,
+.im-table .filter-view .constraint-operator .form-control {
+  height: 38px;
 }
 .im-table .column-summary .main-view .constraint-input,
 .im-table .filter-view .constraint-input {
   flex-grow: 1;
-  padding: 0 0.3em;
+  color: #333333;
 }
-.im-table .column-summary .main-view .toolbar,
-.im-table .filter-view .toolbar {
-  margin: 0 0.3em 0.3em;
+.im-table .column-summary .main-view .constraint-input .DayPickerInput,
+.im-table .filter-view .constraint-input .DayPickerInput {
+  width: 175px;
+}
+.im-table .column-summary .main-view .constraint-input .form-control,
+.im-table .filter-view .constraint-input .form-control {
+  height: 38px;
+}
+.im-table .column-summary .main-view .constraint-delete,
+.im-table .filter-view .constraint-delete {
+  margin-left: 0.5em;
+}
+.im-table .column-summary .main-view .btn-toolbar,
+.im-table .filter-view .btn-toolbar {
+  margin-right: 0.33333333em;
+  margin-bottom: 0.33333333em;
+}
+.im-table .column-summary .main-view {
+  overflow: hidden;
 }
 .im-table .column-summary .title {
   margin: 0.5em 0.5em;
@@ -507,9 +747,8 @@ github.com style (c) Vasily Polovnyov <vast@whiteants.net>
   width: 12px;
   border-right: solid 1px #f0f8ff;
 }
-.im-table .dropdown-right {
-  right: 100%;
-  left: auto;
+.im-table .dropdown {
+  position: unset;
 }
 .im-table .summary-toolbar {
   vertical-align: top;
@@ -518,7 +757,9 @@ github.com style (c) Vasily Polovnyov <vast@whiteants.net>
 }
 .im-table .summary-toolbar .dropdown-menu {
   min-width: 360px;
+  max-width: 600px;
   padding: 0;
+  position: absolute;
 }
 .im-table .summary-toolbar .filter-icon.active-filter {
   color: #6495ed;
@@ -572,6 +813,32 @@ github.com style (c) Vasily Polovnyov <vast@whiteants.net>
 .im-table .dropdown-menu .table-condensed > thead > tr > td,
 .im-table .dropdown-menu .table-condensed > thead > tr > th {
   padding: 4px;
+}
+.im-table .dropdown-menu table.table-scrollable {
+  margin-bottom: 0;
+}
+.im-table .dropdown-menu table.table-scrollable tbody {
+  display: block;
+  overflow-y: auto;
+  overflow-x: hidden;
+  max-height: 50vh;
+  max-width: 586px;
+}
+.im-table .dropdown-menu table.table-scrollable thead tr,
+.im-table .dropdown-menu table.table-scrollable tbody tr {
+  display: table;
+}
+.im-table .dropdown-menu table.table-scrollable thead tr th:first-of-type,
+.im-table .dropdown-menu table.table-scrollable tbody tr td:first-of-type {
+  width: 25px;
+}
+.im-table .dropdown-menu table.table-scrollable thead tr th.data-item,
+.im-table .dropdown-menu table.table-scrollable tbody tr td.data-item {
+  width: 100%;
+}
+.im-table .dropdown-menu table.table-scrollable thead tr th:last-of-type,
+.im-table .dropdown-menu table.table-scrollable tbody tr td:last-of-type {
+  padding-right: 1.2em;
 }
 .im-table .more-below {
   /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#000000+0,000000+100&0+0,0.65+100 */
@@ -680,10 +947,6 @@ github.com style (c) Vasily Polovnyov <vast@whiteants.net>
 .im-table .ontop {
   background-color: #6495ed;
 }
-.im-table .modal-body {
-  max-height: 70vh;
-  overflow: auto;
-}
 .im-table .modal-header h3 {
   margin: 0;
 }
@@ -693,29 +956,73 @@ github.com style (c) Vasily Polovnyov <vast@whiteants.net>
   background-color: #e7e7e7;
   padding: 5px;
 }
-.im-table .histo {
+.im-table .histo-container .histo {
   background-color: #f0f8ff;
   display: flex;
+  align-items: flex-end;
   height: 75px;
   box-sizing: border-box;
   position: relative;
   border-bottom: 1px solid black;
 }
-.im-table .histo .histo-bucket {
+.im-table .histo-container .histo .histo-bucket {
   flex: 1 0;
 }
-.im-table .histo .histo-bucket.full {
+.im-table .histo-container .histo .histo-bucket.full {
   background-color: #0058a6;
   border-left: 1px solid white;
   border-right: 1px solid white;
 }
-.im-table .histo .trimmer {
+.im-table .histo-container .histo .trimmer {
   position: absolute;
   top: 0;
   bottom: 0;
   background-color: orange;
   opacity: 0.3;
 }
+.im-table .histo-container .histo .average {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background-color: red;
+  opacity: 0.75;
+}
+.im-table .histo-container .histo-x-label {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.125em;
+}
+.im-table .histo-container .histo-x-label span {
+  font-size: 12px;
+}
+.im-table .histo-container .histo-x-label span,
+.im-table .histo-container .histo-x-label button {
+  margin-left: 0.125em;
+  margin-right: 0.125em;
+}
+.im-table .histo-container .histo-scale {
+  display: flex;
+}
 .im-table .numerical-content-wrapper {
   padding: 10px;
+}
+.im-table .constraint-select {
+  width: 100%;
+  font-size: 14px;
+}
+.im-table .table-error .button-group {
+  display: flex;
+  margin-top: 1em;
+  margin-bottom: 1em;
+}
+.im-table .table-error .button-group button {
+  margin-right: 0.5em;
+}
+.im-table .table-error .button-group .pull-right {
+  margin-left: auto;
+}
+.im-table .im-modal .modal-body {
+  max-height: 80vh;
+  overflow: auto;
 }

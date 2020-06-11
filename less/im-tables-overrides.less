@@ -63,11 +63,6 @@
             .btn {
                 border-left: solid 1px  @lightish-grey;
             }
-
-            .btn,
-            select {
-                background-color: #ddd;
-            }
         }
 
         .btn {
@@ -95,6 +90,12 @@
 
     .im-table-toolbar label {
       .dark-text;
+    }
+
+    // bootstrap-material-design alerts are an eyesore!
+    .alert.alert-warning {
+        color: @body-foreground-color;
+        background-color: #FCF8E3;
     }
 }
 
