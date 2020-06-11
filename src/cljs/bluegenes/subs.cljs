@@ -226,14 +226,11 @@
  (fn [db]
    (sort-by :when > (vals (:messages db)))))
 
-;; Returns the active mine's InterMine version as a vector of numbers.
-;; ie. [4 1 2]
+;; Note that this returns a string similar to "\"4.2.0\"\n".
 (reg-sub
  :current-intermine-version
  (fn [db]
-   (->> (get-in db [:assets :intermine-version (:current-mine db)])
-        (re-seq #"\d+")
-        (mapv #(js/parseInt % 10)))))
+   (get-in db [:assets :intermine-version (:current-mine db)])))
 
 (reg-sub
  :show-mine-loader?

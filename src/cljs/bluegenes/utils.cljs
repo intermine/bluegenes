@@ -95,3 +95,35 @@
           $
           (select-keys $ (map keyword classes)))
         (not-empty $)))))
+
+(defn version-string->vec
+  "Converts a version string consisting of one or more whole numbers separated
+  by non-numeric characters into a vector of integers. Returns nil if the
+  version string can't be interpreted."
+  [vstring]
+  (some->> vstring
+           (re-seq #"\d+")
+           (mapv #(js/parseInt % 10))))
+
+(defn compatible-version?
+  "Returns whether `version` is compatible with `required-version`, meaning it
+  must be greater than or equal. Versions can be either a string or vector of
+  integers. Will return false if versions have differing amount of subversions."
+  [required-version version]
+  (let [version (cond-> version
+                  (string? version) version-string->vec)
+        required-version (cond-> required-version
+                           (string? required-version) version-string->vec)]
+    (if (= (count version)
+           (count required-version))
+      (reduce
+       (fn [_ [index v]]
+         (let [rv (nth required-version index)]
+           (cond
+             (< v rv) (reduced false)
+             (> v rv) (reduced true)
+             ;; This assures that `true` is returned if all subversions are equal.
+             :else true)))
+       nil
+       (map-indexed vector version))
+      false)))

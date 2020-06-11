@@ -8,9 +8,9 @@
 ;;https://github.com/intermine/intermine/issues/1482
 (def minimum-intermine 27)
 
-;; Prior to this major InterMine version, multiple TagManager's on the backend
+;; Prior to this InterMine version, multiple TagManager's on the backend
 ;; would cause updating and retrieving of tags set on lists to be buggy.
-(def organize-support 5)
+(def organize-support "4.1.3")
 
 ;;;; Version numbers you *might* want to change.
 

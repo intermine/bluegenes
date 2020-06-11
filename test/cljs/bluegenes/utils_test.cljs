@@ -244,3 +244,39 @@
              {:Gene {:class "Gene" :format "id" :value 1}
               :Protein {:class "Protein" :format "id" :value 2}})
           "Should return entities when tool version is equal to bluegenes"))))
+
+(deftest version-string->vec
+  (is (= (utils/version-string->vec "\"4.2.0\"\n") [4 2 0])
+      "Handles intermine version strings")
+  (is (= (utils/version-string->vec "31\n") [31])
+      "Handles web service version strings")
+  (is (= (utils/version-string->vec "\"0.10.0\"\n") [0 10 0])
+      "Handles double digits and zeros")
+  (is (= (utils/version-string->vec "4.1.3") [4 1 3])
+      "Handles handwritten version strings")
+  (is (= (utils/version-string->vec "\"0.01\"\n") [0 1])
+      "Handles leading zeros")
+  (is (nil? (utils/version-string->vec ""))
+      "Returns nil when no version found"))
+
+(deftest compatible-version?
+  (is (true? (utils/compatible-version? [4 2 0] [4 2 0]))
+      "Returns true when identical arguments")
+  (is (true? (utils/compatible-version? "\"4.2.0\"\n" "4.2.0"))
+      "Handles string arguments")
+  (is (true? (utils/compatible-version? "\"4.2.0\"\n" [4 2 0]))
+      "Handles mixed arguments")
+  (testing "Correctly handles differing versions"
+    (are [reqv v res] (= (utils/compatible-version? reqv v) res)
+      [4 2 0] [5 2 0] true
+      [4 2 0] [3 2 0] false
+      [4 2 0] [4 3 0] true
+      [4 2 0] [4 1 0] false
+      [4 2 1] [4 2 2] true
+      [4 2 1] [4 2 0] false
+      [4 2 0] [5 1 0] true
+      [4 2 0] [3 3 0] false
+      [4 2 0] [3 20 0] false
+      [4 2 10] [4 2 9] false
+      [4 2 10] [4 3 0] true
+      [4 1 3] [4 2 0] true)))
