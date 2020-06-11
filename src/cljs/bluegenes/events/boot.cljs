@@ -91,19 +91,30 @@
   Why? im-tables is its own re-frame application and it can save query results.
   When its save-list-success event is seen, fire a BlueGenes event to re-fetch lists"
   []
-  {:register :im-tables-events ;;  <-- used
-   :events #{:imt.io/save-list-success}
+  {:register :im-tables-events
+   :events #{:imt.io/save-list-success :imt.io/save-list-failure}
    :dispatch-to [:intercept-save-list]})
 
 ; When a list is saved from im-tables, intercept the message
 ; and show an alert while also refreshing the user's lists
 (reg-event-fx
  :intercept-save-list
- (fn [{db :db} [_ [_ {:keys [listName listSize] :as evt}]]]
-   {:dispatch-n [[:assets/fetch-lists]
-                 [:messages/add
-                  {:markup [:span (str "Saved list to My Data: " listName)]
-                   :style "success"}]]}))
+ (fn [{db :db} [_ [evt-id {:keys [listName listSize] :as evt}]]]
+   (case evt-id
+     :imt.io/save-list-success
+     {:dispatch-n [[:assets/fetch-lists]
+                   [:messages/add
+                    {:markup [:span "Saved list to My Data: "
+                              [:a {:href (route/href ::route/list {:title listName})}
+                               listName]]
+                     :style "success"}]]}
+
+     :imt.io/save-list-failure
+     {:dispatch [:messages/add
+                 {:markup [:span (str "Failed to save list: " listName)]
+                  :style "danger"}]}
+
+     (.error js/console (str "Unhandled forwarded im-tables event " evt-id)))))
 
 (defn init-mine-defaults
   "If this bluegenes instance is coupled with InterMine, load the intermine's
