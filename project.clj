@@ -1,4 +1,4 @@
-(defproject org.intermine/bluegenes "0.9.12"
+(defproject org.intermine/bluegenes "0.10.0"
   :licence "LGPL-2.1-only"
   :description "Bluegenes is a Clojure-powered user interface for InterMine, the biological data warehouse"
   :url "http://www.intermine.org"
