@@ -202,6 +202,12 @@ The release process is a combination of the above commands, with some additional
 1. Commit this change and tag it using `git tag -a v1.0.0 -m "Release v1.0.0"`, replacing *1.0.0* with your version number.
 1. Push your commit and tag using `git push origin` followed by `git push origin v1.0.0` (again replace *1.0.0* with your version number). Make sure that you push to the intermine repository, not just your fork!
 1. Deploy a new uberjar to Clojars with `lein deploy`.
+1. Push a new docker image to dockerhub.
+    1. `lein uberjar`
+    1. `docker build -t bluegenes .`
+    1. `docker tag bluegenes intermine/bluegenes:latest`
+    1. `docker tag bluegenes intermine/bluegenes:1.0.0` (remember to use your correct version number)
+    1. `docker push intermine/bluegenes`
 1. Deploy the latest release to dokku with `git push dokku dev:master`.
 
 # Troubleshooting
