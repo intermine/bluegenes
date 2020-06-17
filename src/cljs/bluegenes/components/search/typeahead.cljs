@@ -100,7 +100,7 @@
          [:input.typeahead-search
           {:type         "text"
            :value        @search-term
-           :placeholder  "Search"
+           :placeholder  "Search for any term"
            :on-change    (fn [e] (dispatch [:bounce-search (oget e :target :value)]))
            ;; Navigate to the main search results page if the user presses enter.
            :on-key-press (fn [e] (monitor-enter-key e))
@@ -113,6 +113,9 @@
                            ;; suggestions, it would be an empty vector.)
                            (when (nil? @results)
                              (dispatch [:bounce-search (oget e :target :value)])))}]
+         [:svg.icon.icon-search
+          {:on-click #(navigate-to-full-results)}
+          [:use {:xlinkHref "#icon-search"}]]
          (when (> (count @results) 0)
            [:div.dropdown-menu.quicksearch
             [show-all-results]

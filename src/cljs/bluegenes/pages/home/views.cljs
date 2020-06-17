@@ -47,7 +47,7 @@
     (fn []
       [:div.approot
        [:div.home.circles
-        [searchbox]
+        #_[searchbox]
         [:div.features
          [lists]
          [templates]

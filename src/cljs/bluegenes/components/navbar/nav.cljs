@@ -58,9 +58,10 @@
   (let [identity (subscribe [:bluegenes.subs.auth/identity])]
     [:li.logon.dropdown.success.secondary-nav
      [:a.dropdown-toggle {:data-toggle "dropdown" :role "button"}
-      [:svg.icon.icon-cog [:use {:xlinkHref "#icon-user-circle"}]]
-      [:span.long-name (str " " (:username @identity))]]
+      [:svg.icon.icon-2x.icon-user-circle [:use {:xlinkHref "#icon-user-circle"}]]
+      [:svg.icon.icon-caret-down [:use {:xlinkHref "#icon-caret-down"}]]]
      [:ul.dropdown-menu
+      [:li [:span (:username @identity)]]
       [:li [:a {:href (route/href ::route/profile)} "Profile"]]
       [:li [:a {:on-click #(dispatch [:bluegenes.events.auth/logout])} "Log Out"]]]]))
 
@@ -83,8 +84,10 @@
                                  (ocall :off "hide.bs.dropdown")
                                  (ocall :on  "hide.bs.dropdown"
                                         #(do (reset! register? false) nil))))}
-         [:a.dropdown-toggle {:data-toggle "dropdown" :role "button"}
-          [:svg.icon.icon-cog [:use {:xlinkHref "#icon-user-times"}]] " Log In"]
+         [:a.dropdown-toggle
+          {:data-toggle "dropdown" :role "button"}
+          [:span "LOGIN"]
+          [:svg.icon.icon-caret-down [:use {:xlinkHref "#icon-caret-down"}]]]
          [:div.dropdown-menu.login-form-dropdown
           [:form.login-form
            [:h2 (str (if @register? "Create an account for " "Log in to ")
@@ -130,48 +133,68 @@
     [:img.active-mine-image
      {:src (or logo (str service logo-path))}]))
 
+(defn nav-buttons [classes & {:keys [large-screen?]}]
+  [:<>
+   [:li.primary-nav.hidden-xs
+    {:class (classes :home-panel large-screen?)}
+    [:a {:href (route/href ::route/home)}
+     "Home"]]
+   [:li.primary-nav
+    {:class (classes :upload-panel large-screen?)}
+    [:a {:href (route/href ::route/upload-step {:step "input"})}
+     "Upload"]]
+   [:li.primary-nav
+    {:class (classes :mymine-panel large-screen?)}
+    [:a {:href (route/href ::route/mymine)}
+     "My\u00A0Data"]]
+   [:li.primary-nav
+    {:class (classes :templates-panel large-screen?)}
+    [:a {:href (route/href ::route/templates)}
+     "Templates"]]
+   [:li.primary-nav
+    {:class (classes :regions-panel large-screen?)}
+    [:a {:href (route/href ::route/regions)}
+     "Regions"]]
+   [:li.primary-nav
+    {:class (classes :querybuilder-panel large-screen?)}
+    [:a {:href (route/href ::route/querybuilder)}
+     "Query\u00A0Builder"]]
+   [:li.primary-nav.hidden-md.hidden-lg
+    {:class (classes :search-panel large-screen?)}
+    [:a {:href (route/href ::route/search)}
+     "Search"]]])
+
 (defn main []
   (let [active-panel (subscribe [:active-panel])
         current-mine (subscribe [:current-mine])
-        panel-is (fn [panel-key] (= @active-panel panel-key))]
+        main-color (subscribe [:style/header-main])
+        text-color (subscribe [:style/header-text])
+        classes (fn [panel-key large-screen?]
+                  [(when (= @active-panel panel-key) "active")
+                   (when large-screen? "hidden-xs")])]
     (fn []
       [:nav#bluegenes-main-nav.main-nav
+       {:style {:background-color @main-color
+                :color @text-color
+                :fill @text-color}}
        [:ul
+        [:li.primary-nav.bluegenes-logo
+         [:a {:href (route/href ::route/home)}
+          [:svg.icon.icon-3x.icon-bluegenes-logo
+           [:use {:xlinkHref "#icon-bluegenes-logo"}]]
+          [:span.hidden-xs.hidden-sm "BLUEGENES"]]]
+        ;; We want to show the nav buttons inside a container on small screens,
+        ;; so it can be scrolled. But we don't want the nav buttons inside the
+        ;; container on larger screens, so they can be placed more spaciously.
+        ;; This is how we achieve this!
+        [:div.nav-links.hidden-sm.hidden-md.hidden-lg
+         [nav-buttons classes]]
+        [nav-buttons classes :large-screen? true]
+        [:li.search.hidden-xs.hidden-sm [search/main]]
         [:li.minename.primary-nav
          [:a {:href (route/href ::route/home)}
           [active-mine-logo]
-          [:span.long-name (:name @current-mine)]]]
-        [:li.homelink.primary-nav.larger-screen-only
-         {:class (if (panel-is :home-panel) "active")}
-         [:a {:href (route/href ::route/home)}
-          "Home"]]
-        [:li.primary-nav {:class (when (panel-is :upload-panel) "active")}
-         [:a {:href (route/href ::route/upload-step {:step "input"})}
-          [:svg.icon.icon-upload.extra-tiny-screen [:use {:xlinkHref "#icon-upload"}]]
-          [:span..long-name.larger-screen-only "Upload"]]]
-        [:li.primary-nav {:class (when (panel-is :mymine-panel) "active")}
-         [:a {:href (route/href ::route/mymine)}
-          [:svg.icon.icon-cog [:use {:xlinkHref "#icon-my-data"}]]
-          [:span "My\u00A0Data"]]]
-        [:li.primary-nav {:class (when (panel-is :templates-panel) "active")}
-         [:a {:href (route/href ::route/templates)}
-          "Templates"]]
-        ;;don't show region search for mines that have no example configured
-        (when (:regionsearch-example @current-mine)
-          [:li {:class (when (panel-is :regions-panel) "active")}
-           [:a {:href (route/href ::route/regions)}
-            "Regions"]])
-        [:li.primary-nav {:class (when (panel-is :querybuilder-panel) "active")}
-         [:a {:href (route/href ::route/querybuilder)}
-          "Query\u00A0Builder"]]
-        [:li.secondary-nav.search [search/main]]
-        (when-not (panel-is :search-panel)
-          [:li.secondary-nav.search-mini
-           [:a {:href (route/href ::route/search)}
-            [:svg.icon.icon-search [:use {:xlinkHref "#icon-search"}]]]])
-        [:li.secondary-nav.larger-screen-only
-         [:a {:href (route/href ::route/help)}
-          [:svg.icon.icon-question [:use {:xlinkHref "#icon-question"}]]]]
-        [settings]
+          [:span.hidden-xs (:name @current-mine)]
+          [:svg.icon.icon-caret-down [:use {:xlinkHref "#icon-caret-down"}]]]]
         [user]]
        [progress-bar/main]])))

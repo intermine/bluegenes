@@ -87,7 +87,7 @@
 
 (reg-sub
  :mine-name
- (fn [db] 7
+ (fn [db]
    (:current-mine db)))
 
 (reg-sub
@@ -236,3 +236,24 @@
  :show-mine-loader?
  (fn [db]
    (get db :show-mine-loader?)))
+
+;;;; Styling
+
+(reg-sub
+ :style/colors
+ :<- [:registry]
+ :<- [:current-mine-name]
+ (fn [[registry current-mine]]
+   (get-in registry [current-mine :colors])))
+
+(reg-sub
+ :style/header-main
+ :<- [:style/colors]
+ (fn [colors]
+   (get-in colors [:header :main])))
+
+(reg-sub
+ :style/header-text
+ :<- [:style/colors]
+ (fn [colors]
+   (get-in colors [:header :text])))
