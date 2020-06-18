@@ -145,6 +145,11 @@
      (get-in current-mine [:service :model]))))
 
 (reg-sub
+ :assets
+ (fn [db]
+   (:assets db)))
+
+(reg-sub
  :lists
  (fn [db [_]]
    (get-in db [:assets :lists])))
@@ -194,8 +199,17 @@
 
 (reg-sub
  :version
- (fn [db [_ mine-keyword]]
-   (get-in db [:assets :intermine-version mine-keyword])))
+ :<- [:assets]
+ :<- [:current-mine-name]
+ (fn [[assets mine-keyword]]
+   (get-in assets [:intermine-version mine-keyword])))
+
+(reg-sub
+ :api-version
+ :<- [:assets]
+ :<- [:current-mine-name]
+ (fn [[assets mine-keyword]]
+   (get-in assets [:web-service-version mine-keyword])))
 
 (reg-sub
  :current-lists
