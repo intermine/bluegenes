@@ -90,7 +90,7 @@
           [:svg.icon.icon-caret-down [:use {:xlinkHref "#icon-caret-down"}]]]
          [:div.dropdown-menu.login-form-dropdown
           [:form.login-form
-           [:h2 (str (if @register? "Create an account for " "Log in to ")
+           [:h2 (str (if @register? "Create an account for " "Login to ")
                      (:name @current-mine))]
            [:div.form-group
             [:label "Email Address"]
@@ -115,7 +115,7 @@
              {:type "button"
               :on-click submit-fn}
              [mine-icon @current-mine :class "mine-logo"]
-             (if @register? "Register" "Sign In")]]
+             (if @register? "Register" "Login")]]
            (when error?
              [:div.alert.alert-danger.error-box message])]]]))))
 
