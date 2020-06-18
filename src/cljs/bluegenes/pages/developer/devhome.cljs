@@ -6,7 +6,8 @@
             [bluegenes.pages.developer.tools :as tools]
             [clojure.string :refer [blank?]]
             [bluegenes.route :as route]
-            [cljs-bean.core :refer [->clj]]))
+            [cljs-bean.core :refer [->clj]]
+            [bluegenes.version :as version]))
 
 (defn nav []
   "Buttons to choose which mine you're using."
@@ -68,8 +69,9 @@
 
 (defn version-number []
   [:div.panel.container
-   [:h3 "Client Version: "]
-   [:code (:version (->clj js/serverVars))]])
+   [:h3 "Client Version"]
+   [:p "Release: " [:code version/release]]
+   [:p "Fingerprint: " [:code (:version (->clj js/serverVars))]]])
 
 (defn localstorage-destroyer []
   (fn []

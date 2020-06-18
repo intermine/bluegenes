@@ -1,5 +1,9 @@
 (ns bluegenes.version)
 
+;; This makes the `release` version passed using closure-defines (see project.clj)
+;; available like any def-ed thing, with dev as the fallback value.
+(goog-define release "dev")
+
 ;;;; Version numbers you *wouldn't* want to change (collected for reference).
 
 ;; this is not crazy to hardcode. The consequences of a mine that is lower than

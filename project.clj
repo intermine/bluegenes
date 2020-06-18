@@ -1,3 +1,9 @@
+(def version
+  "This is Git release tag like 'v0.10.0-5-gb2dae83e'."
+  (-> (clojure.java.shell/sh "git" "describe" "--always")
+      :out
+      clojure.string/trim))
+
 (defproject org.intermine/bluegenes "0.10.0"
   :licence "LGPL-2.1-only"
   :description "Bluegenes is a Clojure-powered user interface for InterMine, the biological data warehouse"
@@ -163,7 +169,8 @@
                                         :output-to "resources/public/js/compiled/app.js"
                                         :fingerprint true
                                         :optimizations :advanced
-                                        :closure-defines {goog.DEBUG false}
+                                        :closure-defines {goog.DEBUG false
+                                                          "bluegenes.version.release" ~version}
                                         :pretty-print false}}}}
 
   :main bluegenes.core
