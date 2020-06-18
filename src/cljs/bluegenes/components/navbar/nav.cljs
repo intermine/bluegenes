@@ -22,38 +22,6 @@
 (defn update-form [atom key evt]
   (swap! atom assoc key (oget evt :target :value)))
 
-(defn mine-entry
-  "Output a single mine in the mine picker"
-  [mine-key details & {:keys [current?]}]
-  [:li
-   {:title (:description details)}
-   [:a (if current?
-         {:class "current"}
-         {:href (route/href ::route/home {:mine mine-key})})
-    [mine-icon details]
-    (str (:name details)
-         (when (= mine-key :default)
-           " (default)"))]])
-
-(defn settings
-  "output the settings menu and mine picker"
-  []
-  (let [current-mine-name     @(subscribe [:current-mine-name])
-        registry-with-default @(subscribe [:registry-with-default])]
-    [:li.dropdown.mine-settings.secondary-nav
-     [:a.dropdown-toggle {:data-toggle "dropdown" :role "button"}
-      [:svg.icon.icon-cog [:use {:xlinkHref "#icon-cog"}]]]
-     (conj
-      (into [:ul.dropdown-menu]
-            (map (fn [[mine-key details]]
-                   ^{:key mine-key}
-                   [mine-entry mine-key details
-                    :current? (= mine-key current-mine-name)])
-                 (sort-by (comp :name val) registry-with-default)))
-      [:li.special
-       [:a {:href (route/href ::route/debug {:panel "main"})}
-        ">_ Developer"]])]))
-
 (defn logged-in []
   (let [identity (subscribe [:bluegenes.subs.auth/identity])]
     [:li.logon.dropdown.success.secondary-nav
@@ -126,12 +94,44 @@
         [logged-in @authed?]
         [anonymous]))))
 
-(defn active-mine-logo []
-  (let [current-mine @(subscribe [:current-mine])
-        logo (get-in current-mine [:logo])
+(defn active-mine-logo [current-mine]
+  (let [logo    (get-in current-mine [:logo])
         service (get-in current-mine [:service :root])]
     [:img.active-mine-image
      {:src (or logo (str service logo-path))}]))
+
+(defn mine-entry
+  "Output a single mine in the mine picker"
+  [mine-key details & {:keys [current?]}]
+  [:li
+   {:title (:description details)}
+   [:a (if current?
+         {:class "current"}
+         {:href (route/href ::route/home {:mine mine-key})})
+    [mine-icon details]
+    (str (:name details)
+         (when (= mine-key :default)
+           " (default)"))]])
+
+(defn mine-picker []
+  (let [current-mine-name     @(subscribe [:current-mine-name])
+        current-mine          @(subscribe [:current-mine])
+        registry-with-default @(subscribe [:registry-with-default])]
+    [:li.minename.mine-settings.dropdown.secondary-nav
+     [:a.dropdown-toggle {:data-toggle "dropdown" :role "button"}
+      [active-mine-logo current-mine]
+      [:span.hidden-xs (:name current-mine)]
+      [:svg.icon.icon-caret-down [:use {:xlinkHref "#icon-caret-down"}]]]
+     (conj
+      (into [:ul.dropdown-menu.mine-picker]
+            (map (fn [[mine-key details]]
+                   ^{:key mine-key}
+                   [mine-entry mine-key details
+                    :current? (= mine-key current-mine-name)])
+                 (sort-by (comp :name val) registry-with-default)))
+      [:li.special
+       [:a {:href (route/href ::route/debug {:panel "main"})}
+        ">_ Developer"]])]))
 
 (defn nav-buttons [classes & {:keys [large-screen?]}]
   [:<>
@@ -166,7 +166,6 @@
 
 (defn main []
   (let [active-panel (subscribe [:active-panel])
-        current-mine (subscribe [:current-mine])
         main-color (subscribe [:style/header-main])
         text-color (subscribe [:style/header-text])
         classes (fn [panel-key large-screen?]
@@ -191,10 +190,6 @@
          [nav-buttons classes]]
         [nav-buttons classes :large-screen? true]
         [:li.search.hidden-xs.hidden-sm [search/main]]
-        [:li.minename.primary-nav
-         [:a {:href (route/href ::route/home)}
-          [active-mine-logo]
-          [:span.hidden-xs (:name @current-mine)]
-          [:svg.icon.icon-caret-down [:use {:xlinkHref "#icon-caret-down"}]]]]
+        [mine-picker]
         [user]]
        [progress-bar/main]])))

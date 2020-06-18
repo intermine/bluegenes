@@ -153,8 +153,9 @@
             .active-mine-image {
                 width: @spacer*2;
                 max-height: @spacer*2;
+                margin-right: @spacer/2;
             }
-            a {
+            & > a {
                 font-size: 16px;
                 font-weight: bold;
                 color: inherit;
@@ -203,11 +204,20 @@
             height: auto;
 
             &.quicksearch {
-                top: 44px;
+                top: 45px;
+                border-top: none;
             }
 
             &.login-form-dropdown {
-                top: 67px;
+                top: 68px;
+                border-top: none;
+            }
+
+            &.mine-picker {
+                top: 68px;
+                border-top: none;
+                right: auto;
+                width: 100%;
             }
         }
 
