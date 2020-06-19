@@ -147,10 +147,6 @@
                  (dispatch [:set-active-panel :debug-panel
                             nil
                             [:bluegenes.pages.developer.events/panel panel]]))}]}]
-    ["/help"
-     {:name ::help
-      :controllers
-      [{:start #(dispatch [:set-active-panel :help-panel])}]}]
     ["/templates"
      {:name ::templates
       :controllers

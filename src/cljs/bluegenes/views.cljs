@@ -16,7 +16,6 @@
             [bluegenes.components.idresolver.views :as idresolver]
             [bluegenes.pages.results.views :as results]
             [bluegenes.pages.regions.views :as regions]
-            [bluegenes.pages.help.views :as help]
             [bluegenes.pages.profile.views :as profile]
             [bluegenes.components.loader :as loader]))
 
@@ -34,7 +33,6 @@
      :results-panel      results/main
      :regions-panel      regions/main
      :mymine-panel       mymine/main
-     :help-panel         help/main
      :querybuilder-panel qb/main
      home/main)])
 

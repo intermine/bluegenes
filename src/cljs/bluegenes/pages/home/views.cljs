@@ -31,17 +31,6 @@
     [:a {:href (route/href ::route/templates)}
      "Browse"]]])
 
-(defn help []
-  [:div.feature.help
-   [:h3 "Help"]
-   [:div.piccie [:a {:href (route/href ::route/help)}
-                 [:svg.icon.icon-summary [:use {:xlinkHref "#icon-eh"}]]]]
-   [:div
-    [:a {:href (route/href ::route/help)}
-     "Tour"]
-    [:a {:href (route/href ::route/help)}
-     "Docs/Help"]]])
-
 (defn main []
   (let [active-panel (re-frame/subscribe [:active-panel])]
     (fn []
@@ -50,5 +39,4 @@
         [searchbox]
         [:div.features
          [lists]
-         [templates]
-         [help]]]])))
+         [templates]]]])))
