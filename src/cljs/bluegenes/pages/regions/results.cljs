@@ -124,7 +124,8 @@
 
         (if (not @error)
           [:div
-           [:div.results-summary [:h2 "Results"] [results-count-summary @results]]
+           [:div.results-summary
+            [results-count-summary @results]]
            (into [:div.allresults]
                  (map (fn [result]
                         [result-table result]) @results))]
