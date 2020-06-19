@@ -186,9 +186,9 @@
         ;; so it can be scrolled. But we don't want the nav buttons inside the
         ;; container on larger screens, so they can be placed more spaciously.
         ;; This is how we achieve this!
+        [nav-buttons classes :large-screen? true]
         [:div.nav-links.hidden-sm.hidden-md.hidden-lg
          [nav-buttons classes]]
-        [nav-buttons classes :large-screen? true]
         [:li.search.hidden-xs.hidden-sm [search/main]]
         [mine-picker]
         [user]]

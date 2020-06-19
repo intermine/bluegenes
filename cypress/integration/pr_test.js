@@ -148,9 +148,6 @@ describe("UI Test", function() {
     cy.get("@getData").should(xhr => {
       expect(xhr.status).to.equal(200);
     });
-    cy.get(".results-summary").then((a)=>{
-      expect(a.text()).to.include('Results')
-    })
     cy.get(".results-body .single-feature")
       .its('length')
       .should("be.gt", 0);
