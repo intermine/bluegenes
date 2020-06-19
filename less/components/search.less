@@ -396,14 +396,22 @@
     min-width: 40vw;
 }
 
-.search .dropdown {
-  display: flex;
-  input {
-      flex-grow: 1;
-      background-color:#fff;
-      color: @body-foreground-color;
-  }
+.search {
+    .dropdown {
+        display: flex;
+
+        input {
+            flex-grow: 1;
+            background-color: #fff;
+            color: @body-foreground-color;
+        }
+    }
+
+    .search-button {
+        display: none;
+    }
 }
+
 .quicksearch {
     margin: 0;
     padding: 0;
