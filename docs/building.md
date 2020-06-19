@@ -91,7 +91,10 @@ If you need something faster, evaluating `(cljs.test/run-tests)` from a connecte
 Checklist:
 - You might have to install [additional cypress dependencies](https://docs.cypress.io/guides/guides/continuous-integration.html#Dependencies) to be able to run Cypress.
 - The integration tests are designed to be run against [Biotestmine](https://github.com/intermine/biotestmine). The easiest way to achieve this is by using [intermine_boot](https://github.com/intermine/intermine_boot) to start one locally.
-- Make sure BlueGenes is running by using `lein prod`, otherwise a devtool will block part of the page and cause some tests to fail.
+
+Start BlueGenes by using the following command, (update the address if your biotestmine runs on a different machine or port) to ensure that BlueGenes connects to the Biotestmine instance.
+
+    BLUEGENES_DEFAULT_SERVICE_ROOT="http://localhost:9999/biotestmine" lein prod
 
 Run all the Cypress tests:
 
