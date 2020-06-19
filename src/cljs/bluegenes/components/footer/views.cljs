@@ -32,11 +32,21 @@
         [:span.thin " | "]
         [link "https://www.wellcome.ac.uk/" "Wellcome Trust"]]]]
      [:div.section
-      [link "https://github.com/intermine/" [icon "github" 2]]
-      [link "mailto:info@intermine.org" [icon "mail" 2]]
-      [link "https://intermineorg.wordpress.com/" [icon "blog" 2]]
-      [link "https://twitter.com/intermineorg/" [icon "twitter" 2]]
-      [link "http://chat.intermine.org/" [icon "discord" 2]]]
+      [link "https://github.com/intermine/"
+       [poppable {:data [:span "Check out our open-source software"]
+                  :children [icon "github" 2]}]]
+      [link "mailto:info@intermine.org"
+       [poppable {:data [:span "Send us an email"]
+                  :children [icon "mail" 2]}]]
+      [link "https://intermineorg.wordpress.com/"
+       [poppable {:data [:span "Read our blog"]
+                  :children [icon "blog" 2]}]]
+      [link "https://twitter.com/intermineorg/"
+       [poppable {:data [:span "Follow us on Twitter"]
+                  :children [icon "twitter" 2]}]]
+      [link "http://chat.intermine.org/"
+       [poppable {:data [:span "Chat with us on Discord"]
+                  :children [icon "discord" 2]}]]]
      [:div.section.column
       [link "https://intermineorg.wordpress.com/cite/" "CITE US!"]
       [link "https://intermine.readthedocs.io/en/latest/about/" "ABOUT US"]
