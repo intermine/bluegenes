@@ -212,6 +212,13 @@
    (get-in assets [:web-service-version mine-keyword])))
 
 (reg-sub
+ :release-version
+ :<- [:assets]
+ :<- [:current-mine-name]
+ (fn [[assets mine-keyword]]
+   (get-in assets [:release-version mine-keyword])))
+
+(reg-sub
  :current-lists
  :<- [:lists]
  :<- [:current-mine-name]

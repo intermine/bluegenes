@@ -13,14 +13,17 @@
   (->> vstring version-string->vec (str/join ".")))
 
 (defn main []
-  (let [short-version (nth (re-matches #"v?([0-9\.]+)-.*" version/release) 1 "dev")
+  (let [short-version     (nth (re-matches #"v?([0-9\.]+)-.*" version/release) 1 "dev")
         intermine-version (pretty-version @(subscribe [:version]))
-        api-version (pretty-version @(subscribe [:api-version]))]
+        api-version       (pretty-version @(subscribe [:api-version]))
+        release-version   (let [v @(subscribe [:release-version])]
+                            (nth (re-find #"\"(.*)\"" v) 1 (str/trim v)))]
     [:footer.footer
      [:div.section.column
       [:span.version (str "BlueGenes " short-version " powered by ")
        [poppable {:data [:span (str "Version: " intermine-version)
-                         [:br] (str "API: " api-version)]
+                         [:br] (str "API: " api-version)
+                         [:br] (str "Build: " release-version)]
                   :children [link "http://www.intermine.org" "InterMine"]}]]
       [:div.column.inner
        [:span.thin "FUNDED BY"]
