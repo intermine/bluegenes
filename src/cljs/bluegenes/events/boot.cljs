@@ -106,8 +106,8 @@
      :imt.io/save-list-success
      {:dispatch-n [[:assets/fetch-lists]
                    [:messages/add
-                    {:markup [:span "Saved list to My Data: "
-                              [:a {:href (route/href ::route/list {:title listName})}
+                    {:markup [:span "Saved list: "
+                              [:a {:href (route/href ::route/results {:title listName})}
                                listName]]
                      :style "success"}]]}
 

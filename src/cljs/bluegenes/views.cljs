@@ -32,7 +32,7 @@
      :search-panel       search/main
      :results-panel      results/main
      :regions-panel      regions/main
-     :mymine-panel       mymine/main
+     :lists-panel        mymine/main
      :querybuilder-panel qb/main
      home/main)])
 

@@ -144,9 +144,9 @@
     [:a {:href (route/href ::route/upload-step {:step "input"})}
      "Upload"]]
    [:li.primary-nav
-    {:class (classes :mymine-panel large-screen?)}
-    [:a {:href (route/href ::route/mymine)}
-     "My\u00A0Data"]]
+    {:class (classes :lists-panel large-screen?)}
+    [:a {:href (route/href ::route/lists)}
+     "Lists"]]
    [:li.primary-nav
     {:class (classes :templates-panel large-screen?)}
     [:a {:href (route/href ::route/templates)}

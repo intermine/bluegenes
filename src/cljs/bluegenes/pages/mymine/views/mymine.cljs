@@ -194,7 +194,7 @@
           [:div {:style {:margin-left (* nesting 30)}}
            [checkbox im-obj-id]
            [ico im-obj-type]
-           [:a {:href (route/href ::route/list {:title (:title dets)})}
+           [:a {:href (route/href ::route/results {:title (:title dets)})}
             name]
            (when-not authorized
              [:svg.icon.icon-globe {:style {:fill "#939393"}} [:use {:xlinkHref "#icon-globe"}]])]

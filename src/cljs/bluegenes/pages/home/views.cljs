@@ -16,7 +16,7 @@
    [:div.piccie [:a {:href (route/href ::route/upload)}
                  [:svg.icon.icon-summary [:use {:xlinkHref "#icon-summary"}]]]]
    [:div
-    [:a {:href (route/href ::route/mymine)}
+    [:a {:href (route/href ::route/lists)}
      "View"]
     [:a {:href (route/href ::route/upload)}
      "Upload"]]])
