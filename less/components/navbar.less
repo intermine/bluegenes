@@ -38,6 +38,16 @@
                 box-shadow: none;
             }
         }
+        li.logon.dropdown .dropdown-menu {
+            .email {
+                background-color: @active-entry-color;
+                font-weight: bold;
+            }
+
+            li > a {
+                display: flex; // So the text is centered.
+            }
+        }
         li.logon > a {
             font-size: 16px;
             letter-spacing: 0.04em;
@@ -130,7 +140,7 @@
                     }
                 }
                 li a.current {
-                    background-color: #d8ebf5;
+                    background-color: @active-entry-color;
                     font-weight: bold;
                 }
             }
@@ -211,6 +221,12 @@
             &.login-form-dropdown {
                 top: 68px;
                 border-top: none;
+            }
+
+            &.profile-dropdown {
+                top: 68px;
+                border-top: none;
+                padding: 0;
             }
 
             &.mine-picker {

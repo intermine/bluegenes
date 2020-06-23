@@ -21,7 +21,7 @@ describe("Authentication Tests", function() {
     cy.getCookie("ring-session").should('exist');
     cy.get(".logon.dropdown").click();
     cy.get(".logon.dropdown").contains("test_user@mail_account").should('be.visible');
-    cy.get(".logon.dropdown").contains('Log Out').click();
+    cy.get(".logon.dropdown").contains('Logout').click();
 	});
 
 	// **The response for the two tests below give me inconsistent response; sometimes 500, other times, 401.

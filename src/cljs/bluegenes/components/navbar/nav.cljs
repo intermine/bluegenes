@@ -24,14 +24,14 @@
 
 (defn logged-in []
   (let [identity (subscribe [:bluegenes.subs.auth/identity])]
-    [:li.logon.dropdown.success.secondary-nav
+    [:li.logon.dropdown.success.primary-nav
      [:a.dropdown-toggle {:data-toggle "dropdown" :role "button"}
       [:svg.icon.icon-2x.icon-user-circle [:use {:xlinkHref "#icon-user-circle"}]]
       [:svg.icon.icon-caret-down [:use {:xlinkHref "#icon-caret-down"}]]]
-     [:ul.dropdown-menu
-      [:li [:span (:username @identity)]]
+     [:ul.dropdown-menu.profile-dropdown
+      [:li.email [:span (:username @identity)]]
       [:li [:a {:href (route/href ::route/profile)} "Profile"]]
-      [:li [:a {:on-click #(dispatch [:bluegenes.events.auth/logout])} "Log Out"]]]]))
+      [:li [:a {:on-click #(dispatch [:bluegenes.events.auth/logout])} "Logout"]]]]))
 
 (defn anonymous []
   (let [credentials    (reagent/atom {:username nil :password nil})
@@ -46,7 +46,7 @@
                                   (assoc @credentials
                                          :service (:service @current-mine)
                                          :mine-id (:id @current-mine))])]
-        [:li.logon.secondary-nav.dropdown.warning
+        [:li.logon.primary-nav.dropdown.warning
          ;; Always show login dialog and not registration dialog, when first opened.
          {:ref (fn [evt] (some-> evt js/$
                                  (ocall :off "hide.bs.dropdown")
@@ -117,7 +117,7 @@
   (let [current-mine-name     @(subscribe [:current-mine-name])
         current-mine          @(subscribe [:current-mine])
         registry-with-default @(subscribe [:registry-with-default])]
-    [:li.minename.mine-settings.dropdown.secondary-nav
+    [:li.minename.mine-settings.dropdown.primary-nav
      [:a.dropdown-toggle {:data-toggle "dropdown" :role "button"}
       [active-mine-logo current-mine]
       [:span.hidden-xs (:name current-mine)]
@@ -189,7 +189,6 @@
         [nav-buttons classes :large-screen? true]
         [:div.nav-links.hidden-sm.hidden-md.hidden-lg
          [nav-buttons classes]]
-        [:li.search.hidden-xs.hidden-sm [search/main]]
+        [:li.primary-nav.search.hidden-xs.hidden-sm [search/main]]
         [mine-picker]
-        [user]]
-       [progress-bar/main]])))
+        [user]]])))
