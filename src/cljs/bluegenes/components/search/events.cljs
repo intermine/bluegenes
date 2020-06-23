@@ -127,7 +127,7 @@
  :search/begin-search
  (fn [{db :db} [_ search-term]]
    (let [new-search? (not= search-term (get-in db [:search-results :keyword]))]
-     (if new-search?
+     (if (and search-term new-search?)
        ;; By throwing the scroll information out of the window, we're making
        ;; sure the previous scroll position can't be restored. Mwuhahahaha!
        {:db (update db :search-results dissoc :scroll)

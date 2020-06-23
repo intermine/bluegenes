@@ -38,7 +38,8 @@
                           [:assets/fetch-widgets]
                           [:assets/fetch-summary-fields]
                           [:assets/fetch-intermine-version]
-                          [:assets/fetch-web-service-version]]}
+                          [:assets/fetch-web-service-version]
+                          [:assets/fetch-release-version]]}
             ;; Wait for all events that indicate our assets have been fetched successfully.
             {:when :seen-all-of?
              :events [:assets/success-fetch-model
@@ -49,7 +50,8 @@
                       :assets/success-fetch-summary-fields
                       :assets/success-fetch-widgets
                       :assets/success-fetch-intermine-version
-                      :assets/success-fetch-web-service-version]
+                      :assets/success-fetch-web-service-version
+                      :assets/success-fetch-release-version]
              :dispatch [:boot/finalize]
              :halt? true}
             ;; Handle the case where one or more assets fail to fetch.
@@ -104,8 +106,8 @@
      :imt.io/save-list-success
      {:dispatch-n [[:assets/fetch-lists]
                    [:messages/add
-                    {:markup [:span "Saved list to My Data: "
-                              [:a {:href (route/href ::route/list {:title listName})}
+                    {:markup [:span "Saved list: "
+                              [:a {:href (route/href ::route/results {:title listName})}
                                listName]]
                      :style "success"}]]}
 
@@ -437,8 +439,6 @@
 
 (reg-event-fx
  :assets/fetch-intermine-version
-  ;;fetches all enrichment widgets. afaik the non-enrichment widgets
-  ;;are InterMine 1.x UI specific so are filtered out upon success
  (fn [{db :db} [evt]]
    {:im-chan
     {:chan (fetch/version-intermine
@@ -464,6 +464,20 @@
  :assets/success-fetch-web-service-version
  (fn [db [_ mine-kw version]]
    (assoc-in db [:assets :web-service-version mine-kw] version)))
+
+(reg-event-fx
+ :assets/fetch-release-version
+ (fn [{db :db} [evt]]
+   {:im-chan
+    {:chan (fetch/version-release
+            (get-in db [:mines (:current-mine db) :service]))
+     :on-success [:assets/success-fetch-release-version (:current-mine db)]
+     :on-failure [:assets/failure evt]}}))
+
+(reg-event-db
+ :assets/success-fetch-release-version
+ (fn [db [_ mine-kw version]]
+   (assoc-in db [:assets :release-version mine-kw] version)))
 
 (reg-event-fx
  :assets/failure

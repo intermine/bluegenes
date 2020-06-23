@@ -1,7 +1,7 @@
 describe("Registration Tests", function () {
   beforeEach(() => {
     cy.visit("/");
-    cy.contains("Log In").click();
+    cy.contains("LOGIN").click();
     cy.get("form").contains("I don't have an account").click();
 
     cy.server();
@@ -38,7 +38,8 @@ describe("Registration Tests", function () {
     });
 
     cy.getCookie("ring-session").should('exist');
-    cy.get('.long-name').should("contain", "dummy_act@dummy.com");
+    cy.get(".logon.dropdown").click();
+    cy.get(".logon.dropdown").should("contain", "dummy_act@dummy.com");
   });
 
   it("requires unique email; expect error", () => {

@@ -171,7 +171,5 @@
     :reagent-render
     (fn []
       [:div.container.regionsearch
-       [:div.headerwithguidance
-        [:h1 "Region Search"]]
        [input-section]
        [results-section]])}))

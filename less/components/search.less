@@ -3,6 +3,8 @@
 @import "../datatype-colors";
 
 .search-fullscreen {
+    padding-top: 2em;
+    padding-bottom: 2em;
     font-size: 1.05em;
     width: 100%;
 
@@ -395,13 +397,22 @@
     min-width: 40vw;
 }
 
-.search .dropdown {
-  display:flex;
-  input {flex-grow:1;
-  background-color:#fff;
-  color: @body-foreground-color;
+.search {
+    .dropdown {
+        display: flex;
+
+        input {
+            flex-grow: 1;
+            background-color: #fff;
+            color: @body-foreground-color;
+        }
+    }
+
+    .search-button {
+        display: none;
+    }
 }
-}
+
 .quicksearch {
     margin: 0;
     padding: 0;

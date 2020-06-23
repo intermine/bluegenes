@@ -4,7 +4,7 @@ describe("Authentication Tests", function() {
 
 		cy.server();
 		cy.route("POST", "/api/auth/login").as("auth");
-		cy.contains("Log In").click();
+		cy.contains("LOGIN").click();
 	});
 		
 	it("login and logout user successfully", function() {
@@ -18,10 +18,10 @@ describe("Authentication Tests", function() {
 			expect(xhr.status).to.equal(200);
 		});
 
-		cy.contains("test_user@mail_account").should('be.visible');
-
-		cy.get('#bluegenes-main-nav .logon').click();
-		cy.get('#bluegenes-main-nav .logon').contains('Log Out').click();
+    cy.getCookie("ring-session").should('exist');
+    cy.get(".logon.dropdown").click();
+    cy.get(".logon.dropdown").contains("test_user@mail_account").should('be.visible');
+    cy.get(".logon.dropdown").contains('Logout').click();
 	});
 
 	// **The response for the two tests below give me inconsistent response; sometimes 500, other times, 401.

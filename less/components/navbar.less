@@ -5,6 +5,7 @@
         margin-right: -15px;
         color: @navbar-color-text;
         background-color: @navbar-color;
+        fill: @navbar-color-text;
         margin-bottom: 0;
         border-width: 0;
         border-radius: 0;
@@ -14,6 +15,55 @@
             align-items: stretch;
             justify-content: flex-start;
             margin-bottom: 0;
+            height: 100%;
+        }
+        .active-nav-link { // for use as mixin
+            text-decoration: none;
+            box-shadow: inset 0 0 100px 100px rgba(255, 255, 255, 0.2);
+            color: inherit;
+        }
+        li.bluegenes-logo a {
+            font-size: 18px;
+            font-weight: bold;
+            letter-spacing: 0.12em;
+            color: inherit;
+
+            svg {
+                fill: inherit;
+            }
+
+            &:focus,
+            &:hover,
+            &:active {
+                box-shadow: none;
+            }
+        }
+        li.logon.dropdown .dropdown-menu {
+            .email {
+                background-color: @active-entry-color;
+                font-weight: bold;
+            }
+
+            li > a {
+                display: flex; // So the text is centered.
+            }
+        }
+        li.logon > a {
+            font-size: 16px;
+            letter-spacing: 0.04em;
+
+            svg {
+                fill: inherit;
+                margin: 0;
+            }
+        }
+        li.active a {
+            .active-nav-link;
+        }
+        .nav-links {
+            flex-grow: 1;
+            display: flex;
+            overflow: auto;
         }
         li {
             min-height: 3*@spacer;
@@ -21,21 +71,24 @@
             justify-content: center;
             text-align: center;
             list-style-type: none;
-            color: @navbar-color-text;
             display: flex;
             flex-direction: column;
-            a {
+            & > a {
                 height: 100%;
                 justify-content: center;
                 flex-grow: 1;
                 align-items: center;
                 display: flex;
-                color: @navbar-color-text;
+                color: inherit;
+                font-size: 15px;
+                font-weight: 500;
+                &:focus,
+                &:hover,
+                &:active {
+                    .active-nav-link;
+                }
                 &:hover {
                     .transitions;
-                    text-decoration: none;
-                    background: lighten(@navbar-color, 10%);
-                    color: @navbar-color-text;
                 }
             }
             .transitions; //this is the mine chooser dropdown
@@ -87,15 +140,13 @@
                     }
                 }
                 li a.current {
-                    background-color: #d8ebf5;
+                    background-color: @active-entry-color;
                     font-weight: bold;
                 }
             }
         }
         .minename {
             display: flex;
-            -webkit-clip-path: polygon(0 0, 100% 0, 93% 100%, 0 100%);
-            clip-path: polygon(0 0, 100% 0, 93% 100%, 0 100%);
             flex-direction: row;
             justify-content: center;
             align-items: center;
@@ -114,12 +165,25 @@
                 max-height: @spacer*2;
                 margin-right: @spacer/2;
             }
-            &:hover {
-                .transitions;
-                text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.17);
-                background: lighten(@navbar-color, 15%);
-                color: white;
-            } //this and the keyframes are for changing mines.
+            & > a {
+                font-size: 16px;
+                font-weight: bold;
+                color: inherit;
+                text-transform: uppercase;
+
+                &:hover,
+                &:active {
+                    .active-nav-link;
+                }
+                &:hover {
+                    .transitions;
+                } //this and the keyframes are for changing mines.
+
+                svg {
+                    fill: inherit;
+                    margin: 0;
+                }
+            }
             &.recently-changed {
                 animation-duration: 3s;
                 animation-name: slidein;
@@ -144,17 +208,66 @@
         .short-name {
             display: none;
         }
-        .search,
-        .search:hover {
-            background: @navbar-color;
-            input {
-                margin: @spacer/4;
-                margin-left: auto;
-            }
-        }
         .dropdown-menu {
             left: auto;
             right: 0;
+            height: auto;
+
+            &.quicksearch {
+                top: 45px;
+                border-top: none;
+            }
+
+            &.login-form-dropdown {
+                top: 68px;
+                border-top: none;
+            }
+
+            &.profile-dropdown {
+                top: 68px;
+                border-top: none;
+                padding: 0;
+            }
+
+            &.mine-picker {
+                top: 68px;
+                border-top: none;
+                right: auto;
+                width: 100%;
+            }
+        }
+
+        .search {
+            height: 100%;
+            justify-content: center;
+            flex-grow: 1;
+            align-items: center;
+
+            .typeahead-search {
+                background-color: inherit;
+                color: inherit;
+                border: none;
+                border-bottom: 1px solid;
+                padding-right: 20px;
+                font-size: 13px;
+                font-weight: 500;
+
+                &::placeholder {
+                    color: inherit;
+                    font-size: 13px;
+                    font-weight: 500;
+                    opacity: 0.5;
+                }
+            }
+
+            .search-button {
+                display: block; // Override its display:none defined elsewhere.
+                fill: inherit;
+                cursor: pointer;
+                position: absolute;
+                right: -4px;
+                top: 2px;
+            }
         }
     }
 
@@ -181,9 +294,6 @@
         li {
             .transitions;
             padding: 0;
-            &.homelink {
-                display: none;
-            }
             a {
                 .transitions;
                 padding-left: 7px;
@@ -200,18 +310,6 @@
                 overflow: hidden;
                 padding-left: 0.4em;
                 padding-right: 0.4em;
-            }
-        }
-    }
-
-    @media (max-width:1400px) {
-        .search input,
-        .search input:hover {
-            .transitions;
-        }
-        li {
-            &.search {
-                display: none;
             }
         }
     }
@@ -237,15 +335,6 @@
         }
     }
 
-    .logon {
-        &.warning {
-            background-color: @highlight-color;
-            &:hover {
-                background-color: lighten(@highlight-color, 10%)
-            }
-        }
-    }
-
 //This is for *just* the top main navbar
 &.main-nav {
   z-index: 43;
@@ -253,5 +342,5 @@
       fill: rgba(255, 255, 255, 0.84);
   }
   margin-right:0;
-
+  height: 70px;
 }

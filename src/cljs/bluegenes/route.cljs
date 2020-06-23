@@ -147,10 +147,6 @@
                  (dispatch [:set-active-panel :debug-panel
                             nil
                             [:bluegenes.pages.developer.events/panel panel]]))}]}]
-    ["/help"
-     {:name ::help
-      :controllers
-      [{:start #(dispatch [:set-active-panel :help-panel])}]}]
     ["/templates"
      {:name ::templates
       :controllers
@@ -187,8 +183,8 @@
       [{:start #(dispatch [:set-active-panel :querybuilder-panel
                            nil
                            [:bluegenes.pages.querybuilder.events/load-querybuilder]])}]}]
-    ["/list/:title"
-     {:name ::list
+    ["/results/:title"
+     {:name ::results
       :controllers
       [{:parameters {:path [:title]}
         :start (fn [{{:keys [title]} :path}]
@@ -209,10 +205,10 @@
      {:name ::regions
       :controllers
       [{:start #(dispatch [:set-active-panel :regions-panel])}]}]
-    ["/mymine"
-     {:name ::mymine
+    ["/lists"
+     {:name ::lists
       :controllers
-      [{:start #(dispatch [:set-active-panel :mymine-panel])}]}]
+      [{:start #(dispatch [:set-active-panel :lists-panel])}]}]
     ["/report/:type/:id"
      {:name ::report
       :controllers

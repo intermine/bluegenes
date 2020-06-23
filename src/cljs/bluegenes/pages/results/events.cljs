@@ -78,7 +78,7 @@
                                      (time-coerce/to-long (time/now)))))}
      (not no-route?)
            ;; Our route runs `:results/load-history`.
-     (assoc :dispatch [::route/navigate ::route/list {:title (:title value)}]))))
+     (assoc :dispatch [::route/navigate ::route/results {:title (:title value)}]))))
 
 (def im-table-location [:results :table])
 

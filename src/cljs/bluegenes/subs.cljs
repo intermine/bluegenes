@@ -87,7 +87,7 @@
 
 (reg-sub
  :mine-name
- (fn [db] 7
+ (fn [db]
    (:current-mine db)))
 
 (reg-sub
@@ -145,6 +145,11 @@
      (get-in current-mine [:service :model]))))
 
 (reg-sub
+ :assets
+ (fn [db]
+   (:assets db)))
+
+(reg-sub
  :lists
  (fn [db [_]]
    (get-in db [:assets :lists])))
@@ -194,8 +199,24 @@
 
 (reg-sub
  :version
- (fn [db [_ mine-keyword]]
-   (get-in db [:assets :intermine-version mine-keyword])))
+ :<- [:assets]
+ :<- [:current-mine-name]
+ (fn [[assets mine-keyword]]
+   (get-in assets [:intermine-version mine-keyword])))
+
+(reg-sub
+ :api-version
+ :<- [:assets]
+ :<- [:current-mine-name]
+ (fn [[assets mine-keyword]]
+   (get-in assets [:web-service-version mine-keyword])))
+
+(reg-sub
+ :release-version
+ :<- [:assets]
+ :<- [:current-mine-name]
+ (fn [[assets mine-keyword]]
+   (get-in assets [:release-version mine-keyword])))
 
 (reg-sub
  :current-lists
@@ -236,3 +257,24 @@
  :show-mine-loader?
  (fn [db]
    (get db :show-mine-loader?)))
+
+;;;; Styling
+
+(reg-sub
+ :style/colors
+ :<- [:registry]
+ :<- [:current-mine-name]
+ (fn [[registry current-mine]]
+   (get-in registry [current-mine :colors])))
+
+(reg-sub
+ :style/header-main
+ :<- [:style/colors]
+ (fn [colors]
+   (get-in colors [:header :main])))
+
+(reg-sub
+ :style/header-text
+ :<- [:style/colors]
+ (fn [colors]
+   (get-in colors [:header :text])))

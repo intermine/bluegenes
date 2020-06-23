@@ -59,7 +59,7 @@ script:
   # run UI tests using Cypress
   - npx cypress run
   # check for the links in the documentation
-  - awesome_bot docs/*.md --allow-dupe --allow-redirect -w localhost
+  - awesome_bot docs/*.md --allow-dupe --allow-ssl --allow-redirect -w localhost
   # build API docs
   - lein with-profile prod codox
 

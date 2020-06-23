@@ -22,8 +22,7 @@
      :search-panel       [Search "Search"    Mine App]
      :results-panel      [Query "Results"    Mine App]
      :regions-panel      ["Region Search"    Mine App]
-     :mymine-panel       ["MyMine"           Mine App]
-     :help-panel         ["Help"             Mine App]
+     :lists-panel        ["Lists"            Mine App]
      :querybuilder-panel ["Query Builder"    Mine App]}))
 
 (defn *db->str
