@@ -135,7 +135,7 @@ Run it and the web server should default to port 5000.
 
 You can specify environment variables by using the `-e` or `--env-file` arguments when calling docker. See [Configuring](/docs/configuring.md) for a list of all available environment variables.
 
-There is also a prebuilt docker image available on Docker Hub.
+There is also a [prebuilt docker image available on Docker Hub](https://hub.docker.com/r/intermine/bluegenes/tags).
 
     docker pull intermine/bluegenes:latest
 
