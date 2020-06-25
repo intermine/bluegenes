@@ -52,3 +52,7 @@ This program is free software: you can redistribute it and/or modify it under th
 
 You should have received a copy of the GNU Lesser General Public License along with this program.
 If not, see <http://www.gnu.org/licenses/>.
+
+## Credits
+
+Icons are a mix of [fontawesome](https://fontawesome.com/) and [icomoon](https://icomoon.io/) free icons. We also use the [bootstrap material design theme](http://fezvrasta.github.io/bootstrap-material-design/).
