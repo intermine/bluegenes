@@ -171,6 +171,13 @@ Optional preview image for the "app store" dashboard (when admins are selecting 
 
 We aim to keep all changes to the Tool API as backwards compatible as possible, but in some cases breaking changes are necessary. The Tool API major version number will increment on breaking changes and additional details on the rationale and upgrading process will be included.
 
+Guidelines which should be followed for Tool API changes:
+1. All maintainers of the tools in https://github.com/topics/bluegenes-tool need to be contacted.
+1. A breaking change should be avoided unless deemed absolutely necessary, as agreed between developers and maintainers.
+1. Developers will assist with upgrading existing tools, even so far as to creating PRs.
+1. If the tool maintainer doesn't provide a way to test the updated tool, this becomes their responsibility.
+1. When releasing a breaking version, send an email to the dev-intermine mailing list with a warning that things may break if they update BlueGenes to this version.
+
 ### Tool API version 1.0
 
 - Initial release.
