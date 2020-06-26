@@ -6,48 +6,48 @@
 
 (defn mine-intro []
   (let [mine-name @(subscribe [:current-mine-human-name])]
-    [:div.row
+    [:div.row.section
+     [:div.col-xs-12
+      [:h2.text-center.text-uppercase mine-name]]
      [:div.col-xs-10.col-xs-offset-1
-      [:div.row
-       [:div.col-xs-12
-        [:h2.text-center mine-name]]]
       [:div.row
        [:div.col-xs-12.col-sm-8
         [:p "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi dignissim integer proin suscipit mi aliquet semper. Quis potenti odio elit leo amet. Pulvinar turpis in odio elit dui enim, ipsum. Sed vitae etiam turpis gravida malesuada massa vel lectus. Massa malesuada nunc id nibh eget metus, condimentum faucibus amet. Lectus lorem cursus sem et dignissim. At gravida sed viverra sapien neque pellentesque adipiscing rhoncus neque. Sit sit ac eget ut nisl proin mauris diam porta. Donec velit sed."]
-        [:button.btn.btn-primary.btn-raised
-         "Get video tutorial here"]]
+        [:button.btn.btn-home
+         "Watch video tutorial"]]
        [:div.col-sm-4.hidden-xs
         [:img.img-responsive
          {:src "https://source.unsplash.com/random"
           :alt ""}]]]]]))
 
 (defn call-to-action []
-  [:div.row
-   [:div.col-xs-12.col-sm-5
-    [:h3 "Build your own query"]
+  [:div.row.section
+   [:div.col-xs-12.col-sm-5.cta-block
+    [:h3.text-uppercase "Build your own query"]
     [:p "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Eu dui morbi nisl, velit aliquam nec porta laoreet magna. Cras sollicitudin varius nulla id. Sed ullamcorper nibh ut arcu nulla aliquam diam cras."]
-    [:button.btn.btn-primary.btn-raised
+    [:button.btn.btn-home
      "Build query"]]
-   [:div.col-xs-12.col-sm-5.col-sm-offset-2
-    [:h3 "Analyse your biodata"]
+   [:div.col-xs-12.col-sm-5.col-sm-offset-2.cta-block
+    [:h3.text-uppercase "Analyse your biodata"]
     [:p "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Eu dui morbi nisl, velit aliquam nec porta laoreet magna. Cras sollicitudin varius nulla id. Sed ullamcorper nibh ut arcu nulla aliquam diam cras."]
-    [:button.btn.btn-primary.btn-raised
+    [:button.btn.btn-home
      "Analyse data"]]
-   [:div.col-xs-12.col-sm-5
-    [:h3 "What's new?"]
+   [:div.col-xs-12.col-sm-5.cta-block
+    [:h3.text-uppercase "What's new?"]
     [:p "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Eu dui morbi nisl, velit aliquam nec porta laoreet magna. Cras sollicitudin varius nulla id. Sed ullamcorper nibh ut arcu nulla aliquam diam cras."]
-    [:button.btn.btn-primary.btn-raised
+    [:button.btn.btn-home
      "View all posts"]]
-   [:div.col-xs-12.col-sm-5.col-sm-offset-2
-    [:h3 "API in different languages"]
+   [:div.col-xs-12.col-sm-5.col-sm-offset-2.cta-block
+    [:h3.text-uppercase "API in different languages"]
     [:p "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Eu dui morbi nisl, velit aliquam nec porta laoreet magna. Cras sollicitudin varius nulla id. Sed ullamcorper nibh ut arcu nulla aliquam diam cras."]
-    [:button.btn.btn-primary.btn-raised
+    [:button.btn.btn-home
      "Developer resources"]]])
 
 (defn template-queries []
-  [:div.row
+  [:div.row.section
    [:div.col-xs-12
-    [:h2.text-center "Go by Most Popular Queries"]
+    [:h2.text-center "Go by Most Popular Queries"]]
+   [:div.col-xs-12
     [:ul.nav.nav-tabs
      [:li.active [:a "Regulation"]]
      [:li [:a "Genes"]]]
@@ -77,9 +77,10 @@
 
 (defn mine-selector []
   (let [registry-mines @(subscribe [:registry])]
-   [:div.row
+   [:div.row.section
     [:div.col-xs-12
-     [:h2.text-center "InterMine for all"]
+     [:h2.text-center.text-uppercase "InterMine for all"]]
+    [:div.col-xs-12
      [mine-selector-filter]
      [:div.row
       [:div.col-xs-12.col-sm-8
@@ -97,47 +98,47 @@
         "Switch to BMAP"]]]]]))
 
 (defn external-tools []
-  [:div.row
+  [:div.row.section
    [:div.col-xs-12
     [:h2.text-center "External tools"]
     [:p.text-center "Explore InterMine data with alternative tools"]]
-   [:div.col-xs-12.col-sm-5
+   [:div.col-xs-12.col-sm-5.cta-block
     [:h3 "Data Browser"]
     [:p "A faceted search tool to display the data from InterMine database, allowing the users to search easily within the different mines available around InterMine without the requirement of having an extensive knowledge of the data model."]
-    [:a.btn.btn-primary.btn-raised
+    [:a.btn.btn-home
      {:href "http://data-browser.apps.intermine.org/"
       :target "_blank"}
      "Open Data Browser"]]
-   [:div.col-xs-12.col-sm-5.col-sm-offset-2
+   [:div.col-xs-12.col-sm-5.col-sm-offset-2.cta-block
     [:h3 "InterMOD GO"]
     [:p "This tool searches for homologous genes and associated GO terms across six model organisms (yeast, nematode worm, fruit fly, zebrafish, mouse, rat) and humans, with a heatmap, statistical enrichment, and a GO term relationship graph."]
-    [:a.btn.btn-primary.btn-raised
+    [:a.btn.btn-home
      {:href "http://gointermod.apps.intermine.org/"
       :target "_blank"}
      "Open InterMOD GO"]]])
 
 (defn feedback []
-  [:div.row
+  [:div.row.section
    [:div.col-xs-12
     [:h2.text-center "We value your opinion"]
-    [:p.text-center "Feedback received by organisation@mail.com"]
+    [:p.text-center "Feedback received by organisation@mail.com"]]
+   [:div.col-xs-12
+    [:p.text-center "Did our service meet your needs?"]
+    [:div.btn-toolbar
+     [:div.btn-group
+      (for [number (range 1 6)]
+        ^{:key number}
+        [:button.btn.btn-raised
+         number])]]
+    [:p.text-center "Suggestions? Questions? Comments?"]
     [:div
-     [:h4.text-center "Did our service meet your needs?"]
-     [:div.btn-toolbar
-      [:div.btn-group
-       (for [number (range 1 6)]
-         ^{:key number}
-         [:button.btn.btn-raised
-          number])]]
-     [:h4.text-center "Suggestions? Questions? Comments?"]
-     [:div
-      [:input.form-control
-       {:type "email"
-        :placeholder "Your email (optional)"}]
-      [:textarea.form-control
-       {:placeholder "Your feedback here"}]
-      [:button.btn.btn-primary.btn-raised.btn-block
-       "Submit"]]]]])
+     [:input.form-control
+      {:type "email"
+       :placeholder "Your email (optional)"}]
+     [:textarea.form-control
+      {:placeholder "Your feedback here"}]
+     [:button.btn.btn-primary.btn-raised.btn-block
+      "Submit"]]]])
 
 (defn credits-entry [{:keys [text image url]}]
   (if (not-empty text)
@@ -174,20 +175,19 @@
                   :url "http://www.cagef.utoronto.ca/"}
                  {:image "https://bar.utoronto.ca/thalemine/images/UofT_Logo.svg"
                   :url "https://www.utoronto.ca/"}
-                 {:image "https://bar.utoronto.ca/thalemine/images/JCVI-Logo-Black-tm.svg"
-                  :url "https://www.jcvi.org/"}
+                 {:image "https://mines.legumeinfo.org/cyverse_rgb-40.png"
+                  :url "https://cyverse.org/"}
                  {:text "The [Legume Information System (LIS)](https://legumeinfo.org/) is a research project of the [USDA-ARS:Corn Insects and Crop Genetics Research](https://www.ars.usda.gov/midwest-area/ames/cicgru/) in Ames, IA."
                   :image "https://mines.legumeinfo.org/beanmine/model/images/USDA-92x67.png"
                   :url "https://usda.gov/"}]]
-    [:div.row
+    [:div.row.section
      [:div.col-xs-12
-      [:h3.text-center (str mine-name " is made possible by")]
-      [:div.row
-       [:div.col-xs-10.col-xs-offset-1
-        [:div.row.row-center-cols
-         (for [[i entry] (map-indexed vector (concat entries credits-intermine))]
-           ^{:key i}
-           [credits-entry entry])]]]]]))
+      [:h3.text-center (str mine-name " is made possible by")]]
+     [:div.col-xs-10.col-xs-offset-1
+      [:div.row.row-center-cols.row-space-cols
+       (for [[i entry] (map-indexed vector (concat entries credits-intermine))]
+         ^{:key i}
+         [credits-entry entry])]]]))
 
 (defn main []
   [:div.container.home

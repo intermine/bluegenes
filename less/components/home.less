@@ -1,2 +1,45 @@
+@import "../variables";
+
 .home {
+    font-size: 18px;
+
+    h1, h2, h3, h4 {
+        font-weight: bold;
+    }
+
+    h2 {
+        font-size: 2.6em;
+    }
+
+    h3 {
+        font-size: 2em;
+    }
+
+    .btn-home {
+        font-family: Roboto Condensed;
+        font-size: 1.3em;
+        font-weight: bold;
+        padding: @spacer*0.75 @spacer*3.2;
+        border: 2px solid @body-foreground-color;
+
+        &::after {
+            content: "  ❯❯";
+            font-size: 0.8em;
+            white-space: pre;
+            padding-bottom: 0.2em;
+        }
+    }
+
+    .section {
+        margin-top: @spacer*4;
+        margin-bottom: @spacer*5;
+
+        & > [class*='col-'] {
+            margin-bottom: @spacer*2.2;
+        }
+
+        .cta-block {
+            margin-bottom: @spacer*8;
+        }
+    }
 }
