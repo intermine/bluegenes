@@ -1,7 +1,8 @@
 (ns bluegenes.pages.home.views
   (:require [re-frame.core :refer [subscribe]]
             [bluegenes.route :as route]
-            [bluegenes.components.icons :refer [icon]]))
+            [bluegenes.components.icons :refer [icon]]
+            [markdown-to-hiccup.core :as md]))
 
 (defn mine-intro []
   (let [mine-name @(subscribe [:current-mine-human-name])]
@@ -92,7 +93,7 @@
        [:img.img-responsive
         {:src "https://source.unsplash.com/random/300x200"
          :alt ""}]
-       [:button.btn.btn-primary.btn-raised
+       [:button.btn.btn-primary.btn-raised.btn-block
         "Switch to BMAP"]]]]]))
 
 (defn external-tools []
@@ -138,19 +139,62 @@
       [:button.btn.btn-primary.btn-raised.btn-block
        "Submit"]]]]])
 
-(defn credit-funders []
-  (let [mine-name @(subscribe [:current-mine-human-name])]
+(defn credits-entry [{:keys [text image url]}]
+  (if (not-empty text)
+    [:div.col-xs-12
+     [:div.row.row-center-cols
+      [:div.col-xs-4
+       [:a {:href url}
+        [:img.img-responsive
+         {:src image}]]]
+      [:div.col-xs-8
+       (some-> text md/md->hiccup md/component (md/hiccup-in :div :p))]]]
+    [:div.col-xs-4
+     [:a {:href url}
+      [:img.img-responsive
+       {:src image}]]]))
+
+;; TODO maybe this should be in the properties file by default?
+;; - so the images will get hosted on the InterMine backend of the mine
+(def credits-intermine
+  [{:text "InterMine has been developed principally through support of the [Wellcome Trust](https://wellcome.ac.uk/). Complementary projects have been funded by the [NIH/NHGRI](https://www.nih.gov/) and the [BBSRC](https://bbsrc.ukri.org/)."
+    :image "https://www.humanmine.org/humanmine/images/icons/intermine-footer-logo.png"
+    :url "http://intermine.org/"}
+   {:image "https://www.humanmine.org/humanmine/images/wellcome-logo-black.png"
+    :url "https://wellcome.ac.uk/"}
+   {:image "https://www.humanmine.org/humanmine/images/logo_nhgri.png"
+    :url "https://www.nih.gov/"}
+   {:image "https://www.humanmine.org/humanmine/images/bbsrc-logo.gif"
+    :url "https://bbsrc.ukri.org/"}])
+
+(defn credits []
+  (let [mine-name @(subscribe [:current-mine-human-name])
+        ;; TODO replace with web-properties
+        entries [{:image "https://bar.utoronto.ca/thalemine/images/CAGEF.png"
+                  :url "http://www.cagef.utoronto.ca/"}
+                 {:image "https://bar.utoronto.ca/thalemine/images/UofT_Logo.svg"
+                  :url "https://www.utoronto.ca/"}
+                 {:image "https://bar.utoronto.ca/thalemine/images/JCVI-Logo-Black-tm.svg"
+                  :url "https://www.jcvi.org/"}
+                 {:text "The [Legume Information System (LIS)](https://legumeinfo.org/) is a research project of the [USDA-ARS:Corn Insects and Crop Genetics Research](https://www.ars.usda.gov/midwest-area/ames/cicgru/) in Ames, IA."
+                  :image "https://mines.legumeinfo.org/beanmine/model/images/USDA-92x67.png"
+                  :url "https://usda.gov/"}]]
     [:div.row
      [:div.col-xs-12
-      [:h3.text-center (str mine-name " is funded by")]
-      [:h3.text-center "InterMine is funded by"]]]))
+      [:h3.text-center (str mine-name " is made possible by")]
+      [:div.row
+       [:div.col-xs-10.col-xs-offset-1
+        [:div.row.row-center-cols
+         (for [[i entry] (map-indexed vector (concat entries credits-intermine))]
+           ^{:key i}
+           [credits-entry entry])]]]]]))
 
 (defn main []
-  [:div.container
+  [:div.container.home
    [mine-intro]
    [call-to-action]
    [template-queries]
    [mine-selector]
    [external-tools]
    [feedback]
-   [credit-funders]])
+   [credits]])

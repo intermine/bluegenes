@@ -480,3 +480,18 @@ textarea.hidden-clipboard {
   outline: none;
   box-shadow: none;
 }
+
+// Centers child cols of a bootstrap row. Useful when the cols contain block
+// elements of different sizes (e.g. images).
+.row-center-cols {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+
+    & > [class*='col-'] {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+}
