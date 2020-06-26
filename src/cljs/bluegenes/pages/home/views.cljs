@@ -2,23 +2,23 @@
   (:require [re-frame.core :refer [subscribe]]
             [bluegenes.route :as route]
             [bluegenes.components.icons :refer [icon]]
-            [markdown-to-hiccup.core :as md]))
+            [markdown-to-hiccup.core :as md]
+            [bluegenes.components.navbar.nav :refer [mine-icon]]))
 
 (defn mine-intro []
-  (let [mine-name @(subscribe [:current-mine-human-name])]
+  (let [mine-name @(subscribe [:current-mine-human-name])
+        current-mine @(subscribe [:current-mine])]
     [:div.row.section
      [:div.col-xs-12
       [:h2.text-center.text-uppercase mine-name]]
      [:div.col-xs-10.col-xs-offset-1
       [:div.row
        [:div.col-xs-12.col-sm-8
-        [:p "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi dignissim integer proin suscipit mi aliquet semper. Quis potenti odio elit leo amet. Pulvinar turpis in odio elit dui enim, ipsum. Sed vitae etiam turpis gravida malesuada massa vel lectus. Massa malesuada nunc id nibh eget metus, condimentum faucibus amet. Lectus lorem cursus sem et dignissim. At gravida sed viverra sapien neque pellentesque adipiscing rhoncus neque. Sit sit ac eget ut nisl proin mauris diam porta. Donec velit sed."]
+        [:p.mine-description "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Eu dui morbi nisl, velit aliquam nec porta laoreet magna. Cras sollicitudin varius nulla id. Sed ullamcorper nibh ut arcu nulla aliquam diam cras. Eu dui morbi nisl, velit aliquam nec porta laoreet magna. Cras sollicitudin varius nulla id."]
         [:button.btn.btn-home
          "Watch video tutorial"]]
        [:div.col-sm-4.hidden-xs
-        [:img.img-responsive
-         {:src "https://source.unsplash.com/random"
-          :alt ""}]]]]]))
+        [mine-icon current-mine :class "img-responsive full-width"]]]]]))
 
 (defn call-to-action []
   [:div.row.section
@@ -100,8 +100,7 @@
 (defn external-tools []
   [:div.row.section
    [:div.col-xs-12
-    [:h2.text-center "External tools"]
-    [:p.text-center "Explore InterMine data with alternative tools"]]
+    [:h2.text-center "External tools"]]
    [:div.col-xs-12.col-sm-5.cta-block
     [:h3 "Data Browser"]
     [:p "A faceted search tool to display the data from InterMine database, allowing the users to search easily within the different mines available around InterMine without the requirement of having an extensive knowledge of the data model."]
