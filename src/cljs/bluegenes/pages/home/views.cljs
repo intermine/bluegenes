@@ -3,7 +3,8 @@
             [bluegenes.route :as route]
             [bluegenes.components.icons :refer [icon]]
             [markdown-to-hiccup.core :as md]
-            [bluegenes.components.navbar.nav :refer [mine-icon]]))
+            [bluegenes.components.navbar.nav :refer [mine-icon]]
+            [bluegenes.components.search.typeahead :as search]))
 
 (defn mine-intro []
   (let [mine-name @(subscribe [:current-mine-human-name])
@@ -15,33 +16,26 @@
       [:div.row
        [:div.col-xs-12.col-sm-8
         [:p.mine-description "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Eu dui morbi nisl, velit aliquam nec porta laoreet magna. Cras sollicitudin varius nulla id. Sed ullamcorper nibh ut arcu nulla aliquam diam cras. Eu dui morbi nisl, velit aliquam nec porta laoreet magna. Cras sollicitudin varius nulla id."]
-        [:button.btn.btn-home
-         "Watch video tutorial"]]
+        [:div.search
+         [search/main]
+         [:div.search-info
+          [icon "info"]
+          [:span "Genes, proteins, pathways, ontology terms, authors, etc."]]]]
        [:div.col-sm-4.hidden-xs
         [mine-icon current-mine :class "img-responsive full-width"]]]]]))
 
 (defn call-to-action []
   [:div.row.section
    [:div.col-xs-12.col-sm-5.cta-block
-    [:h3.text-uppercase "Build your own query"]
-    [:p "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Eu dui morbi nisl, velit aliquam nec porta laoreet magna. Cras sollicitudin varius nulla id. Sed ullamcorper nibh ut arcu nulla aliquam diam cras."]
-    [:button.btn.btn-home
-     "Build query"]]
-   [:div.col-xs-12.col-sm-5.col-sm-offset-2.cta-block
     [:h3.text-uppercase "Analyse your biodata"]
     [:p "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Eu dui morbi nisl, velit aliquam nec porta laoreet magna. Cras sollicitudin varius nulla id. Sed ullamcorper nibh ut arcu nulla aliquam diam cras."]
     [:button.btn.btn-home
      "Analyse data"]]
-   [:div.col-xs-12.col-sm-5.cta-block
-    [:h3.text-uppercase "What's new?"]
-    [:p "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Eu dui morbi nisl, velit aliquam nec porta laoreet magna. Cras sollicitudin varius nulla id. Sed ullamcorper nibh ut arcu nulla aliquam diam cras."]
-    [:button.btn.btn-home
-     "View all posts"]]
    [:div.col-xs-12.col-sm-5.col-sm-offset-2.cta-block
-    [:h3.text-uppercase "API in different languages"]
+    [:h3.text-uppercase "Build your own query"]
     [:p "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Eu dui morbi nisl, velit aliquam nec porta laoreet magna. Cras sollicitudin varius nulla id. Sed ullamcorper nibh ut arcu nulla aliquam diam cras."]
     [:button.btn.btn-home
-     "Developer resources"]]])
+     "Build query"]]])
 
 (defn template-queries []
   [:div.row.section
@@ -59,6 +53,24 @@
     [:a {:ref (route/href ::route/templates)}
      "More queries here"]
     [:hr]]])
+
+(defn external-resources []
+  [:div.row.section
+   [:div.col-xs-12.col-sm-5.cta-block
+    [:h3.text-uppercase "What's new?"]
+    [:p "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Eu dui morbi nisl, velit aliquam nec porta laoreet magna. Cras sollicitudin varius nulla id. Sed ullamcorper nibh ut arcu nulla aliquam diam cras."]
+    [:button.btn.btn-home
+     "View all posts"]]
+   [:div.col-xs-12.col-sm-5.col-sm-offset-2.cta-block
+    [:h3.text-uppercase "API in different languages"]
+    [:p "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Eu dui morbi nisl, velit aliquam nec porta laoreet magna. Cras sollicitudin varius nulla id. Sed ullamcorper nibh ut arcu nulla aliquam diam cras."]
+    [:button.btn.btn-home
+     "Developer resources"]]
+   [:div.col-xs-12.col-sm-6.col-sm-offset-3.cta-block
+    [:h3.text-uppercase "Written and video tutorials"]
+    [:p "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Eu dui morbi nisl, velit aliquam nec porta laoreet magna. Cras sollicitudin varius nulla id. Sed ullamcorper nibh ut arcu nulla aliquam diam cras."]
+    [:button.btn.btn-home
+     "View documentation"]]])
 
 (defn mine-selector-filter []
   [:div.mine-neighbourhood-filter.text-center
@@ -193,6 +205,7 @@
    [mine-intro]
    [call-to-action]
    [template-queries]
+   [external-resources]
    [mine-selector]
    [external-tools]
    [feedback]

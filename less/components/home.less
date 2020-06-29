@@ -1,7 +1,9 @@
 @import "../variables";
 
 .home {
-    font-size: 18px;
+    // You can adjust the sizing and spacing by only changing this, as they're
+    // all relative. The original font size in the design was 18px.
+    font-size: 16px;
 
     h1, h2, h3, h4 {
         font-weight: bold;
@@ -44,6 +46,34 @@
 
         .cta-block {
             margin-bottom: @spacer*8;
+        }
+    }
+
+    .search {
+        h1, h2, h3, h4 {
+            font-weight: unset;
+        }
+
+        .typeahead-search {
+            background-color: transparent;
+            border: none;
+            border-bottom: 1px solid;
+        }
+
+        .dropdown-menu {
+            width: 100%;
+        }
+
+        .search-info {
+            display: flex;
+            align-items: center;
+            margin-top: @spacer*0.5;
+
+            .icon {
+                margin-left: 0;
+                fill: @highlight-color;
+                margin-bottom: 2px;
+            }
         }
     }
 }
