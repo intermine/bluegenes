@@ -29,12 +29,14 @@
    [:div.col-xs-12.col-sm-5.cta-block
     [:h3.text-uppercase "Analyse your biodata"]
     [:p "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Eu dui morbi nisl, velit aliquam nec porta laoreet magna. Cras sollicitudin varius nulla id. Sed ullamcorper nibh ut arcu nulla aliquam diam cras."]
-    [:button.btn.btn-home
+    [:a.btn.btn-home
+     {:href (route/href ::route/upload)}
      "Analyse data"]]
    [:div.col-xs-12.col-sm-5.col-sm-offset-2.cta-block
     [:h3.text-uppercase "Build your own query"]
     [:p "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Eu dui morbi nisl, velit aliquam nec porta laoreet magna. Cras sollicitudin varius nulla id. Sed ullamcorper nibh ut arcu nulla aliquam diam cras."]
-    [:button.btn.btn-home
+    [:a.btn.btn-home
+     {:href (route/href ::route/querybuilder)}
      "Build query"]]])
 
 (defn template-queries []
