@@ -1,10 +1,11 @@
 (ns bluegenes.pages.home.views
-  (:require [re-frame.core :refer [subscribe]]
+  (:require [re-frame.core :refer [subscribe dispatch]]
             [bluegenes.route :as route]
             [bluegenes.components.icons :refer [icon]]
             [markdown-to-hiccup.core :as md]
             [bluegenes.components.navbar.nav :refer [mine-icon]]
-            [bluegenes.components.search.typeahead :as search]))
+            [bluegenes.components.search.typeahead :as search]
+            [clojure.string :as str]))
 
 (defn mine-intro []
   (let [mine-name @(subscribe [:current-mine-human-name])
@@ -40,21 +41,29 @@
      "Build query"]]])
 
 (defn template-queries []
-  [:div.row.section
-   [:div.col-xs-12
-    [:h2.text-center "Go by Most Popular Queries"]]
-   [:div.col-xs-12
-    [:ul.nav.nav-tabs
-     [:li.active [:a "Regulation"]]
-     [:li [:a "Genes"]]]
-    [:ul
-     [:li [:a "Lorem ipsum dolor sit amet -> consectetur adipiscing elit"]]
-     [:li [:a "Lorem ipsum dolor sit amet -> consectetur adipiscing elit"]]
-     [:li [:a "Lorem ipsum dolor sit amet -> consectetur adipiscing elit"]]
-     [:li [:a "Lorem ipsum dolor sit amet -> consectetur adipiscing elit"]]]
-    [:a {:ref (route/href ::route/templates)}
-     "More queries here"]
-    [:hr]]])
+  (let [categories @(subscribe [:templates-by-popularity/all-categories])
+        current-category (or @(subscribe [:home/active-template-category])
+                             (first categories))
+        templates @(subscribe [:templates-by-popularity/category current-category])]
+    [:div.row.section
+     [:div.col-xs-12
+      [:h2.text-center "Go by Most Popular Queries"]]
+     [:div.col-xs-12
+      [:ul.nav.nav-tabs
+       (for [category categories]
+         ^{:key category}
+         [:li {:class (when (= category current-category) "active")}
+          [:a {:on-click #(dispatch [:home/select-template-category category])}
+           (str/replace category #"^im:aspect:" "")]])]
+      [:ul
+       (for [{:keys [title name]} templates]
+         ^{:key name}
+         [:li
+          [:a {:href (route/href ::route/template {:template name})}
+           title]])]
+      [:a {:href (route/href ::route/templates)}
+       "More queries here"]
+      [:hr]]]))
 
 (defn external-resources []
   [:div.row.section

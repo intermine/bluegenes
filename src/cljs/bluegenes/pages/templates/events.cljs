@@ -18,14 +18,18 @@
  (fn [{db :db} [_ id]]
    (let [current-mine (:current-mine db)
          query (get-in db [:assets :templates current-mine id])]
-     {:db (update-in db [:components :template-chooser] assoc
-                     :selected-template query
-                     :selected-template-name id
-                     :selected-template-service (get-in db [:mines current-mine :service])
-                     :count nil
-                     :results-preview nil)
-      :dispatch-n [[:template-chooser/run-count]
-                   [:template-chooser/fetch-preview]]})))
+     (if (not-empty query)
+       {:db (update-in db [:components :template-chooser] assoc
+                       :selected-template query
+                       :selected-template-name id
+                       :selected-template-service (get-in db [:mines current-mine :service])
+                       :count nil
+                       :results-preview nil)
+        :dispatch-n [[:template-chooser/run-count]
+                     [:template-chooser/fetch-preview]]}
+       {:dispatch [:messages/add
+                   {:markup [:span "The template " [:em (name id)] " does not exist."]
+                    :style "warning"}]}))))
 
 (reg-event-db
  :template-chooser/set-category-filter

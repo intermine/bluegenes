@@ -151,6 +151,14 @@
      {:name ::templates
       :controllers
       [{:start #(dispatch [:set-active-panel :templates-panel])}]}]
+    ["/templates/:template"
+     {:name ::template
+      :controllers
+      [{:parameters {:path [:template]}
+        :start (fn [{{:keys [template]} :path}]
+                 (dispatch [:set-active-panel :templates-panel
+                            nil
+                            [:template-chooser/choose-template (keyword template)]]))}]}]
     ["/upload"
      [""
       {:name ::upload

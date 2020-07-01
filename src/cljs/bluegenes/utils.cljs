@@ -127,3 +127,17 @@
        nil
        (map-indexed vector version))
       false)))
+
+(defn parse-template-rank [rank]
+  (let [rank-num (js/parseInt rank)]
+    ;; Template ranks come back as strings, either "unranked", or
+    ;; integers that have become stringy, e.g. "12". If we don't parse
+    ;; them into ints, the order becomes 1, 11, 12, 2, 23, 25, 3, etc.
+    ;; but we also need to handle the genuine strings, which become NaN
+    ;; when we try to parse them.
+    (if (.isNaN js/Number rank-num)
+      ;; unranked == last please.
+      ;; I sincerely hope we never have 100k templates
+      99999
+      ;; if it's a number, just return it.
+      rank-num)))
