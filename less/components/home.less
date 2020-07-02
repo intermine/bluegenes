@@ -5,6 +5,8 @@
     // all relative. The original font size in the design was 18px.
     font-size: 16px;
 
+    @wider-letter-spacing: 0.08em;
+
     h1, h2, h3, h4 {
         font-weight: bold;
     }
@@ -79,6 +81,7 @@
 
     .template-preview {
         text-align: center;
+        overflow: hidden;
 
         .nav-tabs.template-tabs {
             display: flex;
@@ -107,7 +110,7 @@
                 text-transform: uppercase;
                 font-weight: bold;
                 opacity: 0.47;
-                letter-spacing: 0.08em;
+                letter-spacing: @wider-letter-spacing;
 
                 &:hover {
                     opacity: 1;
@@ -162,11 +165,119 @@
             text-transform: uppercase;
             font-size: 1.1em;
             font-weight: bold;
-            letter-spacing: 0.08em;
+            letter-spacing: @wider-letter-spacing;
         }
 
         hr {
             border-top-width: 6px;
+        }
+    }
+
+    .mine-selector {
+        @mine-entry-height: 54px;
+        @thin-border: 1px solid @body-foreground-color;
+        @thick-border: 2px solid @body-foreground-color;
+
+        .mine-neighbourhood-filter {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            margin-bottom: 2*@spacer;
+
+            label {
+                display: flex;
+                align-items: center;
+
+                margin: 0 @spacer;
+
+                font-size: 1.3em;
+
+                input {
+                    width: 1.3em;
+                    height: 1.3em;
+                    margin: 0;
+                    margin-right: @spacer*0.3;
+                }
+            }
+        }
+
+        .mine-selector-body {
+            display: flex;
+            border: @thick-border;
+
+            .mine-selector-entries {
+                padding-bottom: 0;
+            }
+
+            .mine-entry {
+                display: flex;
+                align-items: baseline;
+                justify-content: space-between;
+
+                height: @mine-entry-height;
+
+                padding: 0.8*@spacer 1.7*@spacer;
+                border-bottom: @thin-border;
+                border-right: @thin-border;
+
+                &-active {
+                    svg {
+                        display: none;
+                    }
+                }
+
+                span {
+                    font-size: 1.1em;
+                    text-transform: uppercase;
+                    letter-spacing: @wider-letter-spacing;
+                }
+            }
+
+            .mine-preview {
+                display: flex;
+                flex-direction: column;
+                align-self: stretch;
+                border-left: @thick-border;
+                padding: 0;
+
+                h4 {
+                    font-size: 1.7em;
+                    text-transform: upper;
+
+                    height: @mine-entry-height;
+                    margin: 0;
+
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+
+                    border-bottom: @thin-border;
+                }
+
+                p {
+                    padding: @spacer*0.5 @spacer;
+                    margin: 0;
+
+                    border-bottom: @thin-border;
+                }
+
+                .preview-image {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    flex-grow: 1;
+
+                    border-bottom: @thin-border;
+                }
+
+                button {
+                    height: @mine-entry-height;
+                    font-size: 1.1em;
+                    font-weight: bold;
+                    margin: 0;
+                }
+            }
         }
     }
 }

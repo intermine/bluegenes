@@ -23,7 +23,7 @@
           [icon "info"]
           [:span "Genes, proteins, pathways, ontology terms, authors, etc."]]]]
        [:div.col-sm-4.hidden-xs
-        [mine-icon current-mine :class "img-responsive full-width"]]]]]))
+        [mine-icon current-mine :class "img-responsive"]]]]]))
 
 (defn call-to-action []
   [:div.row.section
@@ -98,41 +98,65 @@
      "View documentation"]]])
 
 (defn mine-selector-filter []
-  [:div.mine-neighbourhood-filter.text-center
-   [:label
-    [:input {:type "radio" :name "Animals" :value "animals" :checked true}]
-    "Animals"]
-   [:label
-    [:input {:type "radio" :name "Plants" :value "plants" :checked false}]
-    "Plants"]])
+  (let [all-neighbourhoods @(subscribe [:home/all-registry-mine-neighbourhoods])
+        current-neighbourhood (or @(subscribe [:home/active-mine-neighbourhood])
+                                  (first all-neighbourhoods))]
+    [:div.mine-neighbourhood-filter.text-center
+     (for [neighbourhood all-neighbourhoods]
+       [:label
+        [:input {:type "radio"
+                 :name neighbourhood
+                 :checked (= neighbourhood current-neighbourhood)
+                 :on-change #(dispatch [:home/select-mine-neighbourhood neighbourhood])}]
+        neighbourhood])]))
 
-(defn mine-selector-entry [[mine-key details]]
+(defn get-fg-color [mine-details]
+  (get-in mine-details [:colors :header :text]))
+
+(defn get-bg-color [mine-details]
+  (get-in mine-details [:colors :header :main]))
+
+(defn mine-selector-entry [[mine-key details] & {:keys [active?]}]
   (let [{:keys [name]} details]
-    [:div.col-xs-3
-     [:span name]
+    [:button.btn-link.col-xs-6.col-md-4.col-lg-3.mine-entry
+     (merge
+      {:class (when active? "mine-entry-active")
+       :on-click #(dispatch [:home/select-preview-mine mine-key])}
+      (when active?
+        {:style {:color (get-fg-color details)
+                 :background-color (get-bg-color details)}}))
+     [:span (or name "default")]
      [icon "plus" nil [:pull-right]]]))
 
+(defn mine-selector-preview []
+  (let [{:keys [description name] :as preview-mine} @(subscribe [:home/preview-mine])
+        mine-ns (-> preview-mine :namespace keyword)]
+    [:div.col-xs-10.col-xs-offset-1.col-sm-offset-0.col-sm-3.mine-preview
+     [:h4.text-center name]
+     [:p description]
+     [:div.preview-image
+      [mine-icon preview-mine :class "img-responsive"]]
+     [:button.btn.btn-block
+      {:on-click #(dispatch [::route/navigate ::route/home {:mine mine-ns}])
+       :style {:color (get-fg-color preview-mine)
+               :background-color (get-bg-color preview-mine)}}
+      (str "Switch to " name)]]))
+
 (defn mine-selector []
-  (let [registry-mines @(subscribe [:registry])]
-   [:div.row.section
-    [:div.col-xs-12
-     [:h2.text-center.text-uppercase "InterMine for all"]]
-    [:div.col-xs-12
-     [mine-selector-filter]
-     [:div.row
-      [:div.col-xs-12.col-sm-8
-       [:div.row
-        (for [mine registry-mines]
-          ^{:key (key mine)}
-          [mine-selector-entry mine])]]
-      [:div.col-xs-10.col-xs-offset-1.col-sm-offset-0.col-sm-4
-       [:h4.text-center "BMAP"]
-       [:p "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nisi, pretium praesent varius velit."]
-       [:img.img-responsive
-        {:src "https://source.unsplash.com/random/300x200"
-         :alt ""}]
-       [:button.btn.btn-primary.btn-raised.btn-block
-        "Switch to BMAP"]]]]]))
+  (let [registry-mines @(subscribe [:home/mines-by-neighbourhood])
+        active-ns (-> @(subscribe [:home/preview-mine]) :namespace keyword)]
+    [:div.row.section
+     [:div.col-xs-12
+      [:h2.text-center.text-uppercase "InterMine for all"]]
+     [:div.col-xs-12.mine-selector
+      [mine-selector-filter]
+      [:div.row.mine-selector-body
+       [:div.col-xs-12.col-sm-9.mine-selector-entries
+        [:div.row
+         (for [mine registry-mines]
+           ^{:key (key mine)}
+           [mine-selector-entry mine :active? (= active-ns (key mine))])]]
+       [mine-selector-preview]]]]))
 
 (defn external-tools []
   [:div.row.section
