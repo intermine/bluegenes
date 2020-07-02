@@ -40,6 +40,17 @@
      {:href (route/href ::route/querybuilder)}
      "Build query"]]])
 
+(defn ascii->svg-arrows
+  "Replaces arrows in template titles with prettier svg icons."
+  [s]
+  (interpose [icon "arrow-right"]
+             (map (fn [part]
+                    (interpose [icon "arrow-left"]
+                               (map (fn [subpart]
+                                      [:span subpart])
+                                    (str/split part #"<-+"))))
+                  (str/split s #"-+>"))))
+
 (defn template-queries []
   (let [categories @(subscribe [:templates-by-popularity/all-categories])
         current-category (or @(subscribe [:home/active-template-category])
@@ -48,20 +59,23 @@
     [:div.row.section
      [:div.col-xs-12
       [:h2.text-center "Go by Most Popular Queries"]]
-     [:div.col-xs-12
-      [:ul.nav.nav-tabs
+     [:div.col-xs-12.template-preview
+      [:ul.nav.nav-tabs.template-tabs
        (for [category categories]
          ^{:key category}
          [:li {:class (when (= category current-category) "active")}
           [:a {:on-click #(dispatch [:home/select-template-category category])}
            (str/replace category #"^im:aspect:" "")]])]
-      [:ul
-       (for [{:keys [title name]} templates]
+      [:ul.template-list
+       (for [{:keys [title name]} templates
+             :let [arrows (re-find #"(-+>|<-+)" title)]]
          ^{:key name}
          [:li
           [:a {:href (route/href ::route/template {:template name})}
-           title]])]
-      [:a {:href (route/href ::route/templates)}
+           (if arrows
+             (ascii->svg-arrows title)
+             [:span title])]])]
+      [:a.more-queries {:href (route/href ::route/templates)}
        "More queries here"]
       [:hr]]]))
 

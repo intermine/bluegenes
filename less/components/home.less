@@ -76,4 +76,97 @@
             }
         }
     }
+
+    .template-preview {
+        text-align: center;
+
+        .nav-tabs.template-tabs {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            background-color: #eeeeee;
+            border: none;
+            height: @spacer*4;
+
+            margin-bottom: 2.2*@spacer;
+
+            li {
+                width: 100%;
+                height: 100%;
+            }
+
+            li > a {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                width: 100%;
+                height: 100%;
+
+                margin: 0;
+                text-transform: uppercase;
+                font-weight: bold;
+                opacity: 0.47;
+                letter-spacing: 0.08em;
+
+                &:hover {
+                    opacity: 1;
+                }
+            }
+
+            li.active > a {
+                opacity: 1;
+                border: none;
+                border-bottom: 4px solid;
+                padding-bottom: 6px; // Offsets border-bottom effect on align-items center.
+                background-color: transparent;
+            }
+        }
+
+        .template-list {
+            list-style: none;
+            text-align: center;
+            padding: 0;
+
+            li {
+                margin-bottom: @spacer*0.5;
+
+                & > a {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+
+                    &:hover {
+                        font-weight: 400;
+                    }
+
+                    & > * {
+                        flex-grow: 1;
+                        flex-basis: 0;
+                        max-width: 10em;
+                        white-space: nowrap;
+                        display: flex;
+
+                        &:not(:first-child):not(:last-child) {
+                            justify-content: center;
+                        }
+                    }
+                }
+            }
+        }
+
+        .more-queries {
+            display: block;
+            margin-top: @spacer*2;
+            margin-bottom: @spacer*4;
+            text-transform: uppercase;
+            font-size: 1.1em;
+            font-weight: bold;
+            letter-spacing: 0.08em;
+        }
+
+        hr {
+            border-top-width: 6px;
+        }
+    }
 }
