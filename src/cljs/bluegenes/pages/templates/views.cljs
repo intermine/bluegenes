@@ -1,14 +1,13 @@
 (ns bluegenes.pages.templates.views
   (:require [reagent.core :as reagent]
             [re-frame.core :refer [subscribe dispatch]]
-            [clojure.string :refer [split join blank?]]
+            [clojure.string :as s :refer [split join blank?]]
             [json-html.core :as json-html]
             [bluegenes.components.lighttable :as lighttable]
             [imcljs.path :as im-path]
             [bluegenes.components.ui.constraint :refer [constraint]]
             [bluegenes.components.ui.results_preview :refer [preview-table]]
             [oops.core :refer [oget ocall]]
-            [clojure.string :as s]
             [bluegenes.components.loader :refer [mini-loader]]))
 
 (defn categories []
@@ -112,21 +111,17 @@
 
 (defn tags
   "UI element to visually output all aspect tags into each template card for easy scanning / identification of tags.
-  ** Expects: format im:aspect:thetag.
+  ** Expects: vector of strings 'im:aspect:thetag'.
   ** Will output 'thetag'.
   ** Won't output any other tag types or formats"
   [tagvec]
-  (into
-   [:div.template-tags "Template categories: "]
-   (if (> (count tagvec) 0)
-     (map (fn [tag]
-            (let [tag-parts (clojure.string/split tag #":")
-                  tag-name (peek tag-parts)
-                  is-aspect (and (= 3 (count tag-parts)) (= "aspect" (nth tag-parts 1)))]
-              (if is-aspect
-                [:span.tag-type {:class (str "type-" tag-name)} tag-name]
-                nil))) tagvec)
-     " none")))
+  (let [aspects (for [tag (filter #(s/starts-with? % "im:aspect:") tagvec)
+                      :let [[_ tag-name] (re-matches #"im:aspect:(.*)" tag)]
+                      :when (not-empty tag-name)]
+                  [:span.tag-type {:class (str "type-" tag-name)} tag-name])]
+    (when (not-empty aspects)
+      [:div.template-tags
+       (cons "Categories: " aspects)])))
 
 (defn template
   "UI element for a single template." []
