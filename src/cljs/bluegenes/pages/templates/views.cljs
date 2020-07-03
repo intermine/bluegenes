@@ -120,33 +120,38 @@
                       :let [[_ tag-name] (re-matches #"im:aspect:(.*)" tag)]
                       :when (not-empty tag-name)]
                   [:span.tag-type {:class (str "type-" tag-name)} tag-name])]
-    (when (not-empty aspects)
-      [:div.template-tags
-       (cons "Categories: " aspects)])))
+    ;; This element should still be present even when it has no contents.
+    ;; The "View >>" button is absolute positioned, so otherwise it would
+    ;; overlap with the template's description.
+    [:div.template-tags
+     (when (not-empty aspects)
+       (cons "Categories: " aspects))]))
 
 (defn template
-  "UI element for a single template." []
+  "UI element for a single template."
+  []
   (let [selected-template (subscribe [:selected-template])]
     (fn [[id query]]
-      [:div.grid-1
-       [:div.col.ani.template
-        {:on-click (fn []
-                     (if (not= (name id) (:name @selected-template))
-                       (dispatch [:template-chooser/choose-template id])))
-         :class (if (= (name id) (:name @selected-template)) "selected")}
-        [:h4
-         (let [title (:title query)]
+      (let [title (:title query)
+            selected? (= (name id) (:name @selected-template))]
+        [:div.grid-1
+         [:div.col.ani.template
+          {:class (when selected? "selected")
+           :on-click #(when (not selected?)
+                        (dispatch [:template-chooser/choose-template id]))}
+          [:h4
            (if (ascii-arrows title)
              (ascii->svg-arrows title)
-             [:span title]))]
-        [:div.description
-         {:dangerouslySetInnerHTML {:__html (:description query)}}]
-        (if (= (name id) (:name @selected-template))
-          [:div.body
-           [select-template-settings selected-template]
-           [preview-results]])
-        [:button.view "View >>"]
-        [tags (:tags query)]]])))
+             [:span title])]
+          [:div.description
+           {:dangerouslySetInnerHTML {:__html (:description query)}}]
+          (when selected?
+            [:div.body
+             [select-template-settings selected-template]
+             [preview-results]])
+          (when (not selected?)
+            [:button.view "View >>"])
+          [tags (:tags query)]]]))))
 
 (defn templates
   "Outputs all the templates that match the user's chosen filters."

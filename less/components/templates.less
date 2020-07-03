@@ -295,6 +295,10 @@
         padding: @spacer @spacer 0;
         border: 1px solid #ecebeb;
         border-bottom: solid 3px #ecebeb;
+
+        position: relative;
+        min-height: @spacer*7;
+
         .transitions;
 
         :hover {
@@ -368,6 +372,10 @@
         justify-content: flex-end;
         bottom: -3px;
         position: relative;
+        white-space: nowrap;
+        width: 100%; // Without this the relative positioning mucks up completely.
+
+        min-height: 2em; // So it still takes place in card even when no tags.
 
         .tag-type {
             background-color: #eee;
@@ -383,8 +391,8 @@
         display: flex;
         align-items: baseline;
         justify-content: flex-start;
-        bottom: -27px;
-        position: relative;
+        bottom: 0;
+        position: absolute;
         border: none;
         background-color: #039BE5;
         color: #FFFFFF;
