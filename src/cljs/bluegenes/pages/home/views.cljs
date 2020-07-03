@@ -5,7 +5,8 @@
             [markdown-to-hiccup.core :as md]
             [bluegenes.components.navbar.nav :refer [mine-icon]]
             [bluegenes.components.search.typeahead :as search]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [bluegenes.utils :refer [ascii-arrows ascii->svg-arrows]]))
 
 (defn mine-intro []
   (let [mine-name @(subscribe [:current-mine-human-name])
@@ -40,17 +41,6 @@
      {:href (route/href ::route/querybuilder)}
      "Build query"]]])
 
-(defn ascii->svg-arrows
-  "Replaces arrows in template titles with prettier svg icons."
-  [s]
-  (interpose [icon "arrow-right"]
-             (map (fn [part]
-                    (interpose [icon "arrow-left"]
-                               (map (fn [subpart]
-                                      [:span subpart])
-                                    (str/split part #"<-+"))))
-                  (str/split s #"-+>"))))
-
 (defn template-queries []
   (let [categories @(subscribe [:templates-by-popularity/all-categories])
         current-category (or @(subscribe [:home/active-template-category])
@@ -67,12 +57,11 @@
           [:a {:on-click #(dispatch [:home/select-template-category category])}
            (str/replace category #"^im:aspect:" "")]])]
       [:ul.template-list
-       (for [{:keys [title name]} templates
-             :let [arrows (re-find #"(-+>|<-+)" title)]]
+       (for [{:keys [title name]} templates]
          ^{:key name}
          [:li
           [:a {:href (route/href ::route/template {:template name})}
-           (if arrows
+           (if (ascii-arrows title)
              (ascii->svg-arrows title)
              [:span title])]])]
       [:a.more-queries {:href (route/href ::route/templates)}

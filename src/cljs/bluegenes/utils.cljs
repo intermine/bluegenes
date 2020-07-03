@@ -2,7 +2,8 @@
   (:require [clojure.string :as string]
             [clojure.data.xml :as xml]
             [imcljs.query :as im-query]
-            [bluegenes.version :as version]))
+            [bluegenes.version :as version]
+            [bluegenes.components.icons :refer [icon]]))
 
 (defn uncamel
   "Uncamel case a string. Example: thisIsAString -> This is a string"
@@ -141,3 +142,20 @@
       99999
       ;; if it's a number, just return it.
       rank-num)))
+
+(defn ascii-arrows
+  "Returns a seq of all arrows present in a template title.
+  Useful for checking whether there are any arrows present."
+  [s]
+  (re-seq #"(?:-+>|<-+)" s))
+
+(defn ascii->svg-arrows
+  "Replaces arrows in template titles with prettier svg icons."
+  [s]
+  (interpose [icon "arrow-right"]
+             (map (fn [part]
+                    (interpose [icon "arrow-left"]
+                               (map (fn [subpart]
+                                      [:span subpart])
+                                    (string/split part #"<-+"))))
+                  (string/split s #"-+>"))))

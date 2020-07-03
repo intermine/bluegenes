@@ -8,7 +8,8 @@
             [bluegenes.components.ui.constraint :refer [constraint]]
             [bluegenes.components.ui.results_preview :refer [preview-table]]
             [oops.core :refer [oget ocall]]
-            [bluegenes.components.loader :refer [mini-loader]]))
+            [bluegenes.components.loader :refer [mini-loader]]
+            [bluegenes.utils :refer [ascii-arrows ascii->svg-arrows]]))
 
 (defn categories []
   (let [categories (subscribe [:template-chooser-categories])
@@ -133,18 +134,11 @@
                      (if (not= (name id) (:name @selected-template))
                        (dispatch [:template-chooser/choose-template id])))
          :class (if (= (name id) (:name @selected-template)) "selected")}
-        ; Replace ASCII arrows in the template's title with SVG arrows
-        (into [:h4]
-              (->> (s/split (:title query) #" ") ; Split the title on space
-                   ; Map over each part and replace any ASCII arrows with SVG icons
-                   (map (fn [part]
-                          (cond
-                            ; If this part of text equals right arrow of any length then return an SVG right arrow
-                            (re-find #"-{1,}>" part) [:svg.icon.icon-arrow-right [:use {:xlinkHref "#icon-arrow-right"}]]
-                            ; Same for left arrows
-                            (re-find #"<-{1,}" part) [:svg.icon.icon-arrow-left [:use {:xlinkHref "#icon-arrow-left"}]]
-                            ; Otherwise just return the section of text within a span
-                            :else [:span (str part " ")])))))
+        [:h4
+         (let [title (:title query)]
+           (if (ascii-arrows title)
+             (ascii->svg-arrows title)
+             [:span title]))]
         [:div.description
          {:dangerouslySetInnerHTML {:__html (:description query)}}]
         (if (= (name id) (:name @selected-template))
