@@ -138,6 +138,7 @@
         [:div.grid-1
          [:div.col.ani.template
           {:class (when selected? "selected")
+           :id (name id)
            :on-click #(when (not selected?)
                         (dispatch [:template-chooser/choose-template id]))}
           [:h4

@@ -5,7 +5,9 @@
             [cljs-http.client :as http]
             [cognitect.transit :as t]
             [bluegenes.titles :refer [db->title]]
-            [oops.core :refer [ocall]]))
+            [oops.core :refer [ocall]]
+            [goog.dom :as gdom]
+            [goog.style :as gstyle]))
 
 ;; Cofx and fx which you use from event handlers to read/write to localStorage.
 
@@ -264,3 +266,9 @@
                         timeout))
        ;; Exhausted all retries.
        :else (swap! retries dissoc event-id)))))
+
+;; Only works on the template page, where each template element has an ID.
+(reg-fx
+ :scroll-to-template
+ (fn [template-id]
+   (gstyle/scrollIntoContainerView (gdom/getElement template-id) nil true)))
