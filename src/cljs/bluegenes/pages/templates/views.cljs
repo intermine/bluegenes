@@ -43,8 +43,9 @@
       (when loading?
         [:div.preview-header-loader
          [mini-loader "tiny"]])]
-     [preview-table
-      :query-results @results-preview]
+     [:div.preview-table-container
+      [preview-table
+       :query-results @results-preview]]
      [:button.btn.btn-primary.btn-raised.view-results
       {:type "button"
        :disabled (zero? results-count)

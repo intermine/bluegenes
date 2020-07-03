@@ -33,7 +33,6 @@
 
     .preview {
         max-width: 60vw;
-        overflow-x: "hidden";
 
         .preview-header {
             display: flex;
@@ -42,6 +41,15 @@
                 position: relative;
                 top: 0.6*@spacer;
                 left: 0.6*@spacer;
+            }
+        }
+
+        .preview-table-container {
+            overflow-x: auto;
+            margin-bottom: @spacer*2;
+
+            .table {
+                margin-bottom: 0;
             }
         }
     }
