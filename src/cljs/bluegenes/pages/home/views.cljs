@@ -181,23 +181,15 @@
    [:div.col-xs-12
     [:h2.text-center "We value your opinion"]
     [:p.text-center "Feedback received by organisation@mail.com"]]
-   [:div.col-xs-12
-    [:p.text-center "Did our service meet your needs?"]
-    [:div.btn-toolbar
-     [:div.btn-group
-      (for [number (range 1 6)]
-        ^{:key number}
-        [:button.btn.btn-raised
-         number])]]
-    [:p.text-center "Suggestions? Questions? Comments?"]
-    [:div
-     [:input.form-control
-      {:type "email"
-       :placeholder "Your email (optional)"}]
-     [:textarea.form-control
-      {:placeholder "Your feedback here"}]
-     [:button.btn.btn-primary.btn-raised.btn-block
-      "Submit"]]]])
+   [:div.col-xs-12.col-sm-10.col-sm-offset-1.col-md-8.col-md-offset-2.feedback
+    [:input.form-control
+     {:type "email"
+      :placeholder "Your email (optional)"}]
+    [:textarea.form-control
+     {:placeholder "Your feedback here"
+      :rows 5}]
+    [:button.btn.btn-block
+     "Submit"]]])
 
 (defn credits-entry [{:keys [text image url]}]
   (if (not-empty text)

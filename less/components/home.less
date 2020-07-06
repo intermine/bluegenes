@@ -5,7 +5,10 @@
     // all relative. The original font size in the design was 18px.
     font-size: 16px;
 
+    @wide-letter-spacing: 0.04em;
     @wider-letter-spacing: 0.08em;
+    @thin-border: 1px solid @body-foreground-color;
+    @thick-border: 2px solid @body-foreground-color;
 
     h1, h2, h3, h4 {
         font-weight: bold;
@@ -19,12 +22,17 @@
         font-size: 2em;
     }
 
-    .btn-home {
+    .homepage-button-mixin() {
         font-family: Roboto Condensed;
         font-size: 1.3em;
         font-weight: bold;
         padding: @spacer*0.75 @spacer*3.2;
-        border: 2px solid @body-foreground-color;
+        border: @thick-border;
+        letter-spacing: @wide-letter-spacing;
+    }
+
+    .btn-home {
+        .homepage-button-mixin();
 
         &::after {
             content: "  ❯❯";
@@ -32,6 +40,12 @@
             white-space: pre;
             padding-bottom: 0.2em;
         }
+    }
+
+    a.btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
     .section {
@@ -175,8 +189,6 @@
 
     .mine-selector {
         @mine-entry-height: 54px;
-        @thin-border: 1px solid @body-foreground-color;
-        @thick-border: 2px solid @body-foreground-color;
 
         .mine-neighbourhood-filter {
             display: flex;
@@ -277,6 +289,35 @@
                     font-weight: bold;
                     margin: 0;
                 }
+            }
+        }
+    }
+
+    .feedback {
+        input, textarea {
+            font-size: 1em;
+            border-radius: 0;
+            border-top: @thick-border;
+            border-left: @thick-border;
+            border-right: @thick-border;
+            border-bottom: none;
+        }
+
+        textarea {
+            resize: vertical;
+        }
+
+        button.btn.btn-block {
+            .homepage-button-mixin();
+
+            margin: 0;
+            color: white;
+            background-color: @body-foreground-color;
+
+            &:active,
+            &:focus,
+            &:hover {
+                background: lighten(@body-foreground-color,13%);
             }
         }
     }
