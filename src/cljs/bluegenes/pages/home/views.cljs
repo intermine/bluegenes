@@ -26,21 +26,6 @@
        [:div.col-sm-4.hidden-xs
         [mine-icon current-mine :class "img-responsive"]]]]]))
 
-(defn call-to-action []
-  [:div.row.section
-   [:div.col-xs-12.col-sm-5.cta-block
-    [:h3.text-uppercase "Analyse your biodata"]
-    [:p "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Eu dui morbi nisl, velit aliquam nec porta laoreet magna. Cras sollicitudin varius nulla id. Sed ullamcorper nibh ut arcu nulla aliquam diam cras."]
-    [:a.btn.btn-home
-     {:href (route/href ::route/upload)}
-     "Analyse data"]]
-   [:div.col-xs-12.col-sm-5.col-sm-offset-2.cta-block
-    [:h3.text-uppercase "Build your own query"]
-    [:p "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Eu dui morbi nisl, velit aliquam nec porta laoreet magna. Cras sollicitudin varius nulla id. Sed ullamcorper nibh ut arcu nulla aliquam diam cras."]
-    [:a.btn.btn-home
-     {:href (route/href ::route/querybuilder)}
-     "Build query"]]])
-
 (defn template-queries []
   (let [categories @(subscribe [:templates-by-popularity/all-categories])
         current-category (or @(subscribe [:home/active-template-category])
@@ -68,23 +53,48 @@
        "More queries here"]
       [:hr]]]))
 
-(defn external-resources []
-  [:div.row.section
+(defn call-to-action []
+  [:div.row.section.grid ;; Without grid class the 3rd row won't be on the same row.
+   ;; This isn't official bootstrap, so I can only imagine Gridlex is messing with things.
+   [:div.col-xs-12.col-sm-5.cta-block
+    [:h3.text-uppercase "Analyse your lists"]
+    [:p "Upload your own sets of genes, proteins, transcripts or other data type to analyse against the integrated data."]
+    [:a.btn.btn-home
+     {:href (route/href ::route/upload)}
+     "Analyse data"]]
+   [:div.col-xs-12.col-sm-5.col-sm-offset-2.cta-block
+    [:h3.text-uppercase "Browse data sources"]
+    [:p "Browse the full set of data available including versions, publications and links to the original data."]
+    [:button.btn.btn-home
+     {:on-click #(dispatch [:home/query-data-sources])}
+     "Show sources"]]
+   [:div.col-xs-12.col-sm-5.cta-block
+    [:h3.text-uppercase "Build your own query"]
+    [:p "Build your own data search using the Query Builder.  The Query Builder allows you to select and combine data classes, apply filters and configure the result table.  For a full set of pre-built searches, see the " [:a {:href (route/href ::route/templates)} "Templates"] "."]
+    [:a.btn.btn-home
+     {:href (route/href ::route/querybuilder)}
+     "Build query"]]
+   [:div.col-xs-12.col-sm-5.col-sm-offset-2.cta-block
+    [:h3.text-uppercase "Tutorials"]
+    [:p "Learn more about InterMine and how to search and analyse the data with a comprehensive set of written and video tutorials.  Please contact us if you can’t find what you need!"]
+    [:a.btn.btn-home
+     {:href "https://flymine.readthedocs.io/en/latest/"
+      :target "_blank"}
+     "View documentation"]]
    [:div.col-xs-12.col-sm-5.cta-block
     [:h3.text-uppercase "What's new?"]
-    [:p "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Eu dui morbi nisl, velit aliquam nec porta laoreet magna. Cras sollicitudin varius nulla id. Sed ullamcorper nibh ut arcu nulla aliquam diam cras."]
-    [:button.btn.btn-home
+    [:p "Latest news from the InterMine community."]
+    [:a.btn.btn-home
+     {:href "https://intermineorg.wordpress.com/"
+      :target "_blank"}
      "View all posts"]]
    [:div.col-xs-12.col-sm-5.col-sm-offset-2.cta-block
     [:h3.text-uppercase "API in different languages"]
-    [:p "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Eu dui morbi nisl, velit aliquam nec porta laoreet magna. Cras sollicitudin varius nulla id. Sed ullamcorper nibh ut arcu nulla aliquam diam cras."]
-    [:button.btn.btn-home
-     "Developer resources"]]
-   [:div.col-xs-12.col-sm-6.col-sm-offset-3.cta-block
-    [:h3.text-uppercase "Written and video tutorials"]
-    [:p "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Eu dui morbi nisl, velit aliquam nec porta laoreet magna. Cras sollicitudin varius nulla id. Sed ullamcorper nibh ut arcu nulla aliquam diam cras."]
-    [:button.btn.btn-home
-     "View documentation"]]])
+    [:p "The InterMine API has language bindings for Perl, Python, Ruby and Java, allowing you to easily run queries directly from scripts.  All queries available in the user interface can also be run through the API with results being returned in a number of formats."]
+    [:a.btn.btn-home
+     {:href "https://intermine.readthedocs.io/en/latest/web-services/"
+      :target "_blank"}
+     "Developer resources"]]])
 
 (defn mine-selector-filter []
   (let [all-neighbourhoods @(subscribe [:home/all-registry-mine-neighbourhoods])
@@ -241,9 +251,8 @@
 (defn main []
   [:div.container.home
    [mine-intro]
-   [call-to-action]
    [template-queries]
-   [external-resources]
+   [call-to-action]
    [mine-selector]
    [external-tools]
    [feedback]

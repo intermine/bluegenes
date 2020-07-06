@@ -19,7 +19,13 @@
   fire the :results/history+ event with a package that represents a query, like so:"
   (dispatch [:results/history+ {:source :flymine
                                 :type :query
-                                :intent :query ; Should signify what is creating the query.
+                                ;; The `intent` should signify what is creating the query.
+                                ;; Currently this is only used to filter away queries from
+                                ;; other sources when deciding what to include in "Recent
+                                ;; Queries" in the querybuilder page. You should check the
+                                ;; other uses of `:results/history+` and see if you find a
+                                ;; suitable intent to reuse, or make up a new one.
+                                :intent :query
                                 :value {:title "Appears in Breadcrumb"
                                         :from "Gene"
                                         :select ["Gene.symbol"]
