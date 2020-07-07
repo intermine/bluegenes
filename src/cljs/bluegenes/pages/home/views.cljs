@@ -183,6 +183,7 @@
      {:placeholder "Your feedback here"
       :rows 5}]
     [:button.btn.btn-block
+     {:on-click #(js/alert "Sorry! We're still working on implementing this.")}
      "Submit"]]])
 
 (defn credits-entry [{:keys [text image url]}]
@@ -213,24 +214,33 @@
    {:image "https://www.humanmine.org/humanmine/images/bbsrc-logo.gif"
     :url "https://bbsrc.ukri.org/"}])
 
+(defn credits-fallback []
+  (let [mine-name @(subscribe [:current-mine-human-name])
+        current-mine @(subscribe [:current-mine-name])
+        {:keys [maintainerUrl maintainerOrgName]}
+        (get @(subscribe [:registry]) current-mine)]
+    (when (not= maintainerOrgName "InterMine")
+      [:h4.credits-fallback
+       [:a {:href maintainerUrl
+            :target "_blank"}
+        (if (empty? maintainerOrgName)
+          (str "The maintainers and funders of " mine-name)
+          (str maintainerOrgName " and its funders"))]])))
+
 (defn credits []
   (let [mine-name @(subscribe [:current-mine-human-name])
-        ;; TODO replace with web-properties
-        entries [{:image "https://bar.utoronto.ca/thalemine/images/CAGEF.png"
-                  :url "http://www.cagef.utoronto.ca/"}
-                 {:image "https://bar.utoronto.ca/thalemine/images/UofT_Logo.svg"
-                  :url "https://www.utoronto.ca/"}
-                 {:image "https://mines.legumeinfo.org/cyverse_rgb-40.png"
-                  :url "https://cyverse.org/"}
-                 {:text "The [Legume Information System (LIS)](https://legumeinfo.org/) is a research project of the [USDA-ARS:Corn Insects and Crop Genetics Research](https://www.ars.usda.gov/midwest-area/ames/cicgru/) in Ames, IA."
-                  :image "https://mines.legumeinfo.org/beanmine/model/images/USDA-92x67.png"
-                  :url "https://usda.gov/"}]]
+        ;; TODO replace `entities` with web-properties
+        entries []
+        all-entries (concat entries credits-intermine)]
     [:div.row.section
      [:div.col-xs-12
       [:h3.text-center (str mine-name " is made possible by")]]
+     (when (empty? entries)
+       [:div.col-xs-12.text-center
+        [credits-fallback]])
      [:div.col-xs-10.col-xs-offset-1
       [:div.row.row-center-cols.row-space-cols
-       (for [[i entry] (map-indexed vector (concat entries credits-intermine))]
+       (for [[i entry] (map-indexed vector all-entries)]
          ^{:key i}
          [credits-entry entry])]]]))
 
