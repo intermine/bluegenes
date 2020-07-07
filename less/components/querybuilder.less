@@ -214,6 +214,19 @@ div.column-container {
             top: 0.4*@spacer;
             left: 0.4*@spacer;
         }
+
+        @media (min-width: 1600px) {
+            // .col-xl-* doesn't exist and adding it properly is a lot of work
+            // for something we probably will only use here. Hence a workaround!
+            .col-xl-5-workaround {
+                width: 41.66666667%;
+                float: left;
+            }
+            .col-xl-7-workaround {
+                width: 58.33333333%;
+                float: left;
+            }
+        }
     }
 }
 

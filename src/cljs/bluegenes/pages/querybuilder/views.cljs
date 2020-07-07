@@ -749,9 +749,9 @@
    [browser-pane]
    [:div.query-view-column
     [:div.row
-     [:div.col-xs-12.col-lg-5
+     [:div.col-xs-12.col-xl-5-workaround
       [query-viewer]]
-     [:div.col-xs-12.col-lg-7
+     [:div.col-xs-12.col-xl-7-workaround
       [column-order-preview]]]
     [:div.row
      [:div.col-xs-12
