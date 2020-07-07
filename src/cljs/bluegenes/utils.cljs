@@ -3,7 +3,18 @@
             [clojure.data.xml :as xml]
             [imcljs.query :as im-query]
             [bluegenes.version :as version]
-            [bluegenes.components.icons :refer [icon]]))
+            [bluegenes.components.icons :refer [icon]]
+            [markdown-to-hiccup.core :as md]))
+
+(defn md-paragraph
+  "Returns the `[:p]` hiccup for a specified markdown string paragraph.
+  Usage:
+      [:div (parse-markdown \"Foo *bar* [baz](http://baz.com)\")]
+  Note that only the first paragraph in the markdown string will be parsed;
+  any other elements before or after will be ignored, and so will any proceeding
+  paragraphs."
+  [md-string]
+  (some-> md-string md/md->hiccup md/component (md/hiccup-in :div :p)))
 
 (defn uncamel
   "Uncamel case a string. Example: thisIsAString -> This is a string"

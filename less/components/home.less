@@ -56,12 +56,19 @@
             margin-bottom: @spacer*2.2;
         }
 
-        .mine-description {
-            margin-bottom: @spacer*2;
-        }
-
         .cta-block {
             margin-bottom: @spacer*8;
+        }
+    }
+
+    .mine-intro {
+        .mine-name {
+            margin-bottom: @spacer;
+        }
+
+        p {
+            text-align: center;
+            margin-bottom: @spacer*2;
         }
     }
 
@@ -74,6 +81,7 @@
             background-color: transparent;
             border: none;
             border-bottom: 1px solid;
+            padding-right: 20px;
         }
 
         .dropdown-menu {
@@ -90,6 +98,14 @@
                 fill: @highlight-color;
                 margin-bottom: 2px;
             }
+        }
+
+        .search-button {
+            display: block; // Override its display:none defined elsewhere.
+            cursor: pointer;
+            position: absolute;
+            right: -4px;
+            top: 2px;
         }
     }
 

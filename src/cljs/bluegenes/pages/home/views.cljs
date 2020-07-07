@@ -2,29 +2,23 @@
   (:require [re-frame.core :refer [subscribe dispatch]]
             [bluegenes.route :as route]
             [bluegenes.components.icons :refer [icon]]
-            [markdown-to-hiccup.core :as md]
             [bluegenes.components.navbar.nav :refer [mine-icon]]
             [bluegenes.components.search.typeahead :as search]
             [clojure.string :as str]
-            [bluegenes.utils :refer [ascii-arrows ascii->svg-arrows]]))
+            [bluegenes.utils :refer [ascii-arrows ascii->svg-arrows md-paragraph]]))
 
 (defn mine-intro []
   (let [mine-name @(subscribe [:current-mine-human-name])
-        current-mine @(subscribe [:current-mine])]
-    [:div.row.section
-     [:div.col-xs-12
-      [:h2.text-center.text-uppercase mine-name]]
+        description @(subscribe [:registry/description])]
+    [:div.row.section.mine-intro
      [:div.col-xs-10.col-xs-offset-1
-      [:div.row
-       [:div.col-xs-12.col-sm-8
-        [:p.mine-description "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Eu dui morbi nisl, velit aliquam nec porta laoreet magna. Cras sollicitudin varius nulla id. Sed ullamcorper nibh ut arcu nulla aliquam diam cras. Eu dui morbi nisl, velit aliquam nec porta laoreet magna. Cras sollicitudin varius nulla id."]
-        [:div.search
-         [search/main]
-         [:div.search-info
-          [icon "info"]
-          [:span "Genes, proteins, pathways, ontology terms, authors, etc."]]]]
-       [:div.col-sm-4.hidden-xs
-        [mine-icon current-mine :class "img-responsive"]]]]]))
+      [:h2.text-center.text-uppercase.mine-name mine-name]
+      (md-paragraph description)
+      [:div.search
+       [search/main]
+       [:div.search-info
+        [icon "info"]
+        [:span "Genes, proteins, pathways, ontology terms, authors, etc."]]]]]))
 
 (defn template-queries []
   (let [categories @(subscribe [:templates-by-popularity/all-categories])
@@ -200,7 +194,7 @@
         [:img.img-responsive
          {:src image}]]]
       [:div.col-xs-8
-       (some-> text md/md->hiccup md/component (md/hiccup-in :div :p))]]]
+       (md-paragraph text)]]]
     [:div.col-xs-4
      [:a {:href url}
       [:img.img-responsive

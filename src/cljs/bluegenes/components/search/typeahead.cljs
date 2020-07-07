@@ -113,7 +113,7 @@
                            ;; suggestions, it would be an empty vector.)
                            (when (nil? @results)
                              (dispatch [:bounce-search (oget e :target :value)])))}]
-         ;; The following icon button is hidden everywhere except when used in navbar.
+         ;; The following icon button is hidden by default, so use CSS if you want it!
          [:svg.icon.icon-search.search-button
           {:on-click #(navigate-to-full-results)}
           [:use {:xlinkHref "#icon-search"}]]

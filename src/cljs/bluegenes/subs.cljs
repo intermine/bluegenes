@@ -259,6 +259,13 @@
  (fn [db]
    (get db :show-mine-loader?)))
 
+(reg-sub
+ :registry/description
+ :<- [:registry]
+ :<- [:current-mine-name]
+ (fn [[registry current-mine]]
+   (get-in registry [current-mine :description])))
+
 ;;;; Styling
 
 (reg-sub
