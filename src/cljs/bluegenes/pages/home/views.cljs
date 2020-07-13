@@ -176,7 +176,8 @@
   [:div.row.section
    [:div.col-xs-12
     [:h2.text-center "We value your opinion"]
-    [:p.text-center "Feedback received by organisation@mail.com"]]
+    ;; Doesn't look like we'll know this email.
+    #_[:p.text-center "Feedback received by organisation@mail.com"]]
    [:div.col-xs-12.col-sm-10.col-sm-offset-1.col-md-8.col-md-offset-2.feedback
     [:input.form-control
      {:type "email"
@@ -185,7 +186,7 @@
      {:placeholder "Your feedback here"
       :rows 5}]
     [:button.btn.btn-block
-     {:on-click #(js/alert "Sorry! We're still working on implementing this.")}
+     {:on-click #(js/alert "Sorry! We're still working on implementing this. Until then, you can use the email icon in the footer at the bottom of the page.")}
      "Submit"]]])
 
 (defn credits-entry [{:keys [text image url]}]
