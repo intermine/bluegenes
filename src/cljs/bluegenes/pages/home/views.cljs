@@ -30,19 +30,21 @@
       [:h2.text-center "Go by Most Popular Queries"]]
      [:div.col-xs-12.template-preview
       [:ul.nav.nav-tabs.template-tabs
-       (for [category categories]
-         ^{:key category}
-         [:li {:class (when (= category current-category) "active")}
-          [:a {:on-click #(dispatch [:home/select-template-category category])}
-           (str/replace category #"^im:aspect:" "")]])]
+       (doall
+        (for [category categories]
+          ^{:key category}
+          [:li {:class (when (= category current-category) "active")}
+           [:a {:on-click #(dispatch [:home/select-template-category category])}
+            (str/replace category #"^im:aspect:" "")]]))]
       [:ul.template-list
-       (for [{:keys [title name]} templates]
-         ^{:key name}
-         [:li
-          [:a {:href (route/href ::route/template {:template name})}
-           (if (ascii-arrows title)
-             (ascii->svg-arrows title)
-             [:span title])]])]
+       (doall
+        (for [{:keys [title name]} templates]
+          ^{:key name}
+          [:li
+           (into [:a {:href (route/href ::route/template {:template name})}]
+                 (if (ascii-arrows title)
+                   (ascii->svg-arrows title)
+                   [[:span title]]))]))]
       [:a.more-queries {:href (route/href ::route/templates)}
        "More queries here"]
       [:hr]]]))
@@ -94,14 +96,14 @@
   (let [all-neighbourhoods @(subscribe [:home/all-registry-mine-neighbourhoods])
         current-neighbourhood (or @(subscribe [:home/active-mine-neighbourhood])
                                   (first all-neighbourhoods))]
-    [:div.mine-neighbourhood-filter.text-center
-     (for [neighbourhood all-neighbourhoods]
-       [:label
-        [:input {:type "radio"
-                 :name neighbourhood
-                 :checked (= neighbourhood current-neighbourhood)
-                 :on-change #(dispatch [:home/select-mine-neighbourhood neighbourhood])}]
-        neighbourhood])]))
+    (into [:div.mine-neighbourhood-filter.text-center]
+          (for [neighbourhood all-neighbourhoods]
+            [:label
+             [:input {:type "radio"
+                      :name neighbourhood
+                      :checked (= neighbourhood current-neighbourhood)
+                      :on-change #(dispatch [:home/select-mine-neighbourhood neighbourhood])}]
+             neighbourhood]))))
 
 (defn get-fg-color [mine-details]
   (get-in mine-details [:colors :header :text]))

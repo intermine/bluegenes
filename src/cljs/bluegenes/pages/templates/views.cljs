@@ -124,9 +124,9 @@
     ;; This element should still be present even when it has no contents.
     ;; The "View >>" button is absolute positioned, so otherwise it would
     ;; overlap with the template's description.
-    [:div.template-tags
-     (when (not-empty aspects)
-       (cons "Categories: " aspects))]))
+    (into [:div.template-tags]
+          (when (not-empty aspects)
+            (cons "Categories: " aspects)))))
 
 (defn template
   "UI element for a single template."
@@ -141,10 +141,10 @@
            :id (name id)
            :on-click #(when (not selected?)
                         (dispatch [:template-chooser/choose-template id]))}
-          [:h4
-           (if (ascii-arrows title)
-             (ascii->svg-arrows title)
-             [:span title])]
+          (into [:h4]
+                (if (ascii-arrows title)
+                  (ascii->svg-arrows title)
+                  [[:span title]]))
           [:div.description
            {:dangerouslySetInnerHTML {:__html (:description query)}}]
           (when selected?

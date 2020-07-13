@@ -160,13 +160,22 @@
   [s]
   (re-seq #"(?:-+>|<-+)" s))
 
+(defn flatten-seq
+  "Works like flatten except it will only remove seqs; keeping vectors, lists
+  and other sequential things. This is useful when you have hiccup with seqs
+  interwoven and want to clean it up to get a flat sequence of elements."
+  [x]
+  (filter (complement seq?)
+          (rest (tree-seq seq? seq x))))
+
 (defn ascii->svg-arrows
   "Replaces arrows in template titles with prettier svg icons."
   [s]
-  (interpose [icon "arrow-right"]
-             (map (fn [part]
-                    (interpose [icon "arrow-left"]
-                               (map (fn [subpart]
-                                      [:span subpart])
-                                    (string/split part #"<-+"))))
-                  (string/split s #"-+>"))))
+  (flatten-seq
+   (interpose [icon "arrow-right"]
+              (map (fn [part]
+                     (interpose [icon "arrow-left"]
+                                (map (fn [subpart]
+                                       [:span subpart])
+                                     (string/split part #"<-+"))))
+                   (string/split s #"-+>")))))
