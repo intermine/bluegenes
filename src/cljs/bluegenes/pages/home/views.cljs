@@ -130,7 +130,9 @@
      [:div.preview-image
       [mine-icon preview-mine :class "img-responsive"]]
      [:button.btn.btn-block
-      {:on-click #(dispatch [::route/navigate ::route/home {:mine mine-ns}])
+      {:on-click (fn [_]
+                   (dispatch [::route/navigate ::route/home {:mine mine-ns}])
+                   (dispatch [:scroll-to-top]))
        :style {:color (get-fg-color preview-mine)
                :background-color (get-bg-color preview-mine)}}
       (str "Switch to " name)]]))

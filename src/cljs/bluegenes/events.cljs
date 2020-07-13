@@ -290,3 +290,8 @@
  :hide-mine-loader
  (fn [db]
    (assoc db :show-mine-loader? false)))
+
+(reg-event-fx
+ :scroll-to-top
+ (fn [{db :db} [_]]
+   {:scroll-to-top {}}))
