@@ -5,6 +5,8 @@
     // all relative. The original font size in the design was 18px.
     font-size: 16px;
 
+    @constrast-gray: #eeeeee;
+
     @wide-letter-spacing: 0.04em;
     @wider-letter-spacing: 0.08em;
     @thin-border: 1px solid @body-foreground-color;
@@ -110,14 +112,13 @@
 
     .template-preview {
         text-align: center;
-        overflow: hidden;
 
         .nav-tabs.template-tabs {
             display: flex;
             justify-content: space-between;
             align-items: center;
 
-            background-color: #eeeeee;
+            background-color: @constrast-gray;
             border: none;
             height: @spacer*4;
 
@@ -162,6 +163,11 @@
 
             li {
                 margin-bottom: @spacer*0.5;
+                overflow: hidden;
+
+                &:hover {
+                    background-color: @constrast-gray;
+                }
 
                 & > a {
                     display: flex;
