@@ -17,6 +17,7 @@
             [bluegenes.pages.reportpage.events]
             [bluegenes.pages.querybuilder.events]
             [bluegenes.pages.profile.events]
+            [bluegenes.pages.home.events]
             [bluegenes.components.viz.events]
             [bluegenes.effects :refer [document-title]]
             [bluegenes.components.tools.effects]
@@ -289,3 +290,8 @@
  :hide-mine-loader
  (fn [db]
    (assoc db :show-mine-loader? false)))
+
+(reg-event-fx
+ :scroll-to-top
+ (fn [{db :db} [_]]
+   {:scroll-to-top {}}))

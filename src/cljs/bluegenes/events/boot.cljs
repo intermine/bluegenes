@@ -209,10 +209,13 @@
    drosophila IDs are no longer valid when using humanmine."
   [db]
   ;; Perhaps we should consider settings `:assets` to `{}` here as well?
-  (dissoc db :regions :idresolver :results :qb
-          :suggestion-results ; Avoid showing old results belonging to previous mine.
-          :invalid-token?     ; Clear invalid-token-alert.
-          :failed-auth?))     ; Clear flag for failing to auth with mine.
+  (-> db
+      (dissoc :regions :idresolver :results :qb
+              :suggestion-results ; Avoid showing old results belonging to previous mine.
+              :invalid-token?     ; Clear invalid-token-alert.
+              :failed-auth?)      ; Clear flag for failing to auth with mine.
+      ;; Clear chosen template category as it may not be present in new mine.
+      (update :home dissoc :active-template-category)))
 
 (reg-event-fx
  :reboot

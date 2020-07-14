@@ -15,11 +15,13 @@
 ;; of bluegenes and copy/paste the code for your icon from there
 
 (defn icon
-  "Render the icon `icon-name` enlarged `enlarge` times."
-  [icon-name & [enlarge]]
+  "Render the icon `icon-name` enlarged `enlarge` times with a vector of
+  class names `classes` appended."
+  [icon-name & [enlarge classes]]
   [:svg.icon
-   {:class [(str "icon-" icon-name)
-            (when (number? enlarge) (str "icon-" enlarge "x"))]}
+   {:class (into [(str "icon-" icon-name)
+                  (when (number? enlarge) (str "icon-" enlarge "x"))]
+                 classes)}
    [:use {:xlinkHref (str "#icon-" icon-name)}]])
 
 (defn icons []

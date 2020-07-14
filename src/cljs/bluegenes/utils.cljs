@@ -2,7 +2,19 @@
   (:require [clojure.string :as string]
             [clojure.data.xml :as xml]
             [imcljs.query :as im-query]
-            [bluegenes.version :as version]))
+            [bluegenes.version :as version]
+            [bluegenes.components.icons :refer [icon]]
+            [markdown-to-hiccup.core :as md]))
+
+(defn md-paragraph
+  "Returns the `[:p]` hiccup for a specified markdown string paragraph.
+  Usage:
+      [:div (parse-markdown \"Foo *bar* [baz](http://baz.com)\")]
+  Note that only the first paragraph in the markdown string will be parsed;
+  any other elements before or after will be ignored, and so will any proceeding
+  paragraphs."
+  [md-string]
+  (some-> md-string md/md->hiccup md/component (md/hiccup-in :div :p)))
 
 (defn uncamel
   "Uncamel case a string. Example: thisIsAString -> This is a string"
@@ -127,3 +139,43 @@
        nil
        (map-indexed vector version))
       false)))
+
+(defn parse-template-rank [rank]
+  (let [rank-num (js/parseInt rank)]
+    ;; Template ranks come back as strings, either "unranked", or
+    ;; integers that have become stringy, e.g. "12". If we don't parse
+    ;; them into ints, the order becomes 1, 11, 12, 2, 23, 25, 3, etc.
+    ;; but we also need to handle the genuine strings, which become NaN
+    ;; when we try to parse them.
+    (if (.isNaN js/Number rank-num)
+      ;; unranked == last please.
+      ;; I sincerely hope we never have 100k templates
+      99999
+      ;; if it's a number, just return it.
+      rank-num)))
+
+(defn ascii-arrows
+  "Returns a seq of all arrows present in a template title.
+  Useful for checking whether there are any arrows present."
+  [s]
+  (re-seq #"(?:-+>|<-+)" s))
+
+(defn flatten-seq
+  "Works like flatten except it will only remove seqs; keeping vectors, lists
+  and other sequential things. This is useful when you have hiccup with seqs
+  interwoven and want to clean it up to get a flat sequence of elements."
+  [x]
+  (filter (complement seq?)
+          (rest (tree-seq seq? seq x))))
+
+(defn ascii->svg-arrows
+  "Replaces arrows in template titles with prettier svg icons."
+  [s]
+  (flatten-seq
+   (interpose [icon "arrow-right"]
+              (map (fn [part]
+                     (interpose [icon "arrow-left"]
+                                (map (fn [subpart]
+                                       [:span subpart])
+                                     (string/split part #"<-+"))))
+                   (string/split s #"-+>")))))

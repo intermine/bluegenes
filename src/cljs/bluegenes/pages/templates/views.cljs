@@ -1,15 +1,15 @@
 (ns bluegenes.pages.templates.views
   (:require [reagent.core :as reagent]
             [re-frame.core :refer [subscribe dispatch]]
-            [clojure.string :refer [split join blank?]]
+            [clojure.string :as s :refer [split join blank?]]
             [json-html.core :as json-html]
             [bluegenes.components.lighttable :as lighttable]
             [imcljs.path :as im-path]
             [bluegenes.components.ui.constraint :refer [constraint]]
             [bluegenes.components.ui.results_preview :refer [preview-table]]
             [oops.core :refer [oget ocall]]
-            [clojure.string :as s]
-            [bluegenes.components.loader :refer [mini-loader]]))
+            [bluegenes.components.loader :refer [mini-loader]]
+            [bluegenes.utils :refer [ascii-arrows ascii->svg-arrows]]))
 
 (defn categories []
   (let [categories (subscribe [:template-chooser-categories])
@@ -43,8 +43,9 @@
       (when loading?
         [:div.preview-header-loader
          [mini-loader "tiny"]])]
-     [preview-table
-      :query-results @results-preview]
+     [:div.preview-table-container
+      [preview-table
+       :query-results @results-preview]]
      [:button.btn.btn-primary.btn-raised.view-results
       {:type "button"
        :disabled (zero? results-count)
@@ -112,52 +113,47 @@
 
 (defn tags
   "UI element to visually output all aspect tags into each template card for easy scanning / identification of tags.
-  ** Expects: format im:aspect:thetag.
+  ** Expects: vector of strings 'im:aspect:thetag'.
   ** Will output 'thetag'.
   ** Won't output any other tag types or formats"
   [tagvec]
-  (into
-   [:div.template-tags "Template categories: "]
-   (if (> (count tagvec) 0)
-     (map (fn [tag]
-            (let [tag-parts (clojure.string/split tag #":")
-                  tag-name (peek tag-parts)
-                  is-aspect (and (= 3 (count tag-parts)) (= "aspect" (nth tag-parts 1)))]
-              (if is-aspect
-                [:span.tag-type {:class (str "type-" tag-name)} tag-name]
-                nil))) tagvec)
-     " none")))
+  (let [aspects (for [tag (filter #(s/starts-with? % "im:aspect:") tagvec)
+                      :let [[_ tag-name] (re-matches #"im:aspect:(.*)" tag)]
+                      :when (not-empty tag-name)]
+                  [:span.tag-type {:class (str "type-" tag-name)} tag-name])]
+    ;; This element should still be present even when it has no contents.
+    ;; The "View >>" button is absolute positioned, so otherwise it would
+    ;; overlap with the template's description.
+    (into [:div.template-tags]
+          (when (not-empty aspects)
+            (cons "Categories: " aspects)))))
 
 (defn template
-  "UI element for a single template." []
+  "UI element for a single template."
+  []
   (let [selected-template (subscribe [:selected-template])]
     (fn [[id query]]
-      [:div.grid-1
-       [:div.col.ani.template
-        {:on-click (fn []
-                     (if (not= (name id) (:name @selected-template))
-                       (dispatch [:template-chooser/choose-template id])))
-         :class (if (= (name id) (:name @selected-template)) "selected")}
-        ; Replace ASCII arrows in the template's title with SVG arrows
-        (into [:h4]
-              (->> (s/split (:title query) #" ") ; Split the title on space
-                   ; Map over each part and replace any ASCII arrows with SVG icons
-                   (map (fn [part]
-                          (cond
-                            ; If this part of text equals right arrow of any length then return an SVG right arrow
-                            (re-find #"-{1,}>" part) [:svg.icon.icon-arrow-right [:use {:xlinkHref "#icon-arrow-right"}]]
-                            ; Same for left arrows
-                            (re-find #"<-{1,}" part) [:svg.icon.icon-arrow-left [:use {:xlinkHref "#icon-arrow-left"}]]
-                            ; Otherwise just return the section of text within a span
-                            :else [:span (str part " ")])))))
-        [:div.description
-         {:dangerouslySetInnerHTML {:__html (:description query)}}]
-        (if (= (name id) (:name @selected-template))
-          [:div.body
-           [select-template-settings selected-template]
-           [preview-results]])
-        [:button.view "View >>"]
-        [tags (:tags query)]]])))
+      (let [title (:title query)
+            selected? (= (name id) (:name @selected-template))]
+        [:div.grid-1
+         [:div.col.ani.template
+          {:class (when selected? "selected")
+           :id (name id)
+           :on-click #(when (not selected?)
+                        (dispatch [:template-chooser/choose-template id]))}
+          (into [:h4]
+                (if (ascii-arrows title)
+                  (ascii->svg-arrows title)
+                  [[:span title]]))
+          [:div.description
+           {:dangerouslySetInnerHTML {:__html (:description query)}}]
+          (when selected?
+            [:div.body
+             [select-template-settings selected-template]
+             [preview-results]])
+          (when (not selected?)
+            [:button.view "View >>"])
+          [tags (:tags query)]]]))))
 
 (defn templates
   "Outputs all the templates that match the user's chosen filters."

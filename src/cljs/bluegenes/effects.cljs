@@ -5,7 +5,10 @@
             [cljs-http.client :as http]
             [cognitect.transit :as t]
             [bluegenes.titles :refer [db->title]]
-            [oops.core :refer [ocall]]))
+            [oops.core :refer [ocall oget]]
+            [goog.dom :as gdom]
+            [goog.style :as gstyle]
+            [goog.fx.dom :as gfx]))
 
 ;; Cofx and fx which you use from event handlers to read/write to localStorage.
 
@@ -264,3 +267,26 @@
                         timeout))
        ;; Exhausted all retries.
        :else (swap! retries dissoc event-id)))))
+
+;; Only works on the template page, where each template element has an ID.
+(reg-fx
+ :scroll-to-template
+ (fn [template-id]
+   (gstyle/scrollIntoContainerView (gdom/getElement template-id) nil true)))
+
+;; Nice resource for more easing functions: https://gist.github.com/gre/1650294
+(defn- ease-in-out-cubic [t]
+  (if (< t 0.5)
+    (* 4 t t t)
+    (+ 1 (* (- t 1)
+            (- (* 2 t) 2)
+            (- (* 2 t) 2)))))
+
+(reg-fx
+ :scroll-to-top
+ (fn [_]
+   (let [doc-elem (gdom/getDocumentScrollElement)
+         current-scroll (clj->js ((juxt #(oget % :x) #(oget % :y))
+                                  (gdom/getDocumentScroll)))]
+     (doto (gfx/Scroll. doc-elem current-scroll #js [0 0] 500 ease-in-out-cubic)
+       (.play)))))

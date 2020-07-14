@@ -8,6 +8,7 @@
             [bluegenes.components.idresolver.subs]
             [bluegenes.pages.profile.subs]
             [bluegenes.components.viz.subs]
+            [bluegenes.pages.home.subs]
             [lambdaisland.uri :refer [uri]]))
 
 (reg-sub
@@ -257,6 +258,13 @@
  :show-mine-loader?
  (fn [db]
    (get db :show-mine-loader?)))
+
+(reg-sub
+ :registry/description
+ :<- [:registry]
+ :<- [:current-mine-name]
+ (fn [[registry current-mine]]
+   (get-in registry [current-mine :description])))
 
 ;;;; Styling
 

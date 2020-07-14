@@ -2,9 +2,9 @@
   (:require [re-frame.core :as re-frame :refer [dispatch subscribe]]
             [bluegenes.components.tools.subs :as tools-subs]
             [bluegenes.pages.developer.events :as events]
-            [markdown-to-hiccup.core :as md]
             [bluegenes.version :as version]
-            [bluegenes.components.viz.views :refer [all-viz]]))
+            [bluegenes.components.viz.views :refer [all-viz]]
+            [bluegenes.utils :refer [md-paragraph]]))
 
 (defn action [func]
   (fn [e]
@@ -71,11 +71,9 @@
 (defn tool-description
   [text]
   (when (not-empty text)
-    [:div.description [:svg.icon.icon-info [:use {:xlinkHref "#icon-info"}]]
-     (-> text
-         md/md->hiccup
-         md/component
-         (md/hiccup-in :div :p))]))
+    [:div.description
+     [:svg.icon.icon-info [:use {:xlinkHref "#icon-info"}]]
+     (md-paragraph text)]))
 
 (defn installed-tool-list
   "Display all tool types to the user."

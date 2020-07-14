@@ -1,7 +1,9 @@
 (ns bluegenes.pages.templates.subs
   (:require-macros [reagent.ratom :refer [reaction]])
   (:require [re-frame.core :as re-frame :refer [reg-sub]]
-            [bluegenes.pages.templates.helpers :as template-helpers]))
+            [bluegenes.pages.templates.helpers :as template-helpers]
+            [bluegenes.utils :refer [parse-template-rank]]
+            [clojure.string :as str]))
 
 (defn template-contains-string?
   "Return true if a template's description contains a string"
@@ -49,11 +51,17 @@
    (template-helpers/categories templates)))
 
 (reg-sub
- :templates-by-category
+ :templates-by-rank
  :<- [:templates]
+ (fn [templates]
+   (sort-by (comp parse-template-rank :rank val) < templates)))
+
+(reg-sub
+ :templates-by-category
+ :<- [:templates-by-rank]
  :<- [:selected-template-category]
  :<- [:template-chooser/text-filter]
- (fn [[templates category text-filter]]
+ (fn [[sorted-templates category text-filter]]
    (let [filter-pred (fn [tag category] (= tag (str "im:aspect:" category)))
          filter-fn
          (fn [[id details]]
@@ -61,22 +69,50 @@
              (some? (some (fn [tag] (filter-pred tag category))
                           (:tags details)))
              true))]
-     (sort-by
-      (fn [[template-name template-details]]
-        (let [rank (:rank template-details)]
-          ;; Template ranks come back as strings, either "unranked", or
-          ;; integers that have become stringy, e.g. "12". If we don't parse
-          ;; them into ints, the order becomes 1, 11, 12, 2, 23, 25, 3, etc.
-          ;; but we also need to handle the genuine strings, which become NaN
-          ;; when we try to parse them.
-          (if (.isNaN js/Number rank)
-            ;; unranked == last please.
-            ;; I sincerely hope we never have 100k templates
-            99999
-            ;; if it's a number, just return it.
-            rank)))
-      < (filter (partial template-contains-string? text-filter)
-                (filter filter-fn templates))))))
+     (->> sorted-templates
+          (filter filter-fn)
+          (filter (partial template-contains-string? text-filter))))))
+
+(defn popular-templates
+  "Takes a sequence of sorted templates (presumably by rank) and returns a map
+  from categories (determined by the im:aspect:* tag) to the templates. The
+  categories are the top 6 with the most numerous templates that are part of
+  the top 50 ranked templates. The templates to each category are part of the
+  same top 50 ranked templates, although reduced to the top 10 for each category."
+  [sorted-templates]
+  (let [top-50-templates (take-while #(<= (-> % val :rank parse-template-rank) 50)
+                                     sorted-templates)
+        top-6-categories (->> top-50-templates
+                              (mapcat (comp :tags val))
+                              (filter #(str/starts-with? % "im:aspect:"))
+                              (frequencies)
+                              (sort-by val >)
+                              (take 6)
+                              (keys))]
+    (zipmap top-6-categories
+            (map (fn [category-tag]
+                   (take 10
+                         (filter (comp #(contains? % category-tag) set :tags)
+                                 (vals top-50-templates))))
+                 top-6-categories))))
+
+(reg-sub
+ :templates-by-popularity
+ :<- [:templates-by-rank]
+ (fn [sorted-templates]
+   (popular-templates sorted-templates)))
+
+(reg-sub
+ :templates-by-popularity/all-categories
+ :<- [:templates-by-popularity]
+ (fn [category->templates]
+   (keys category->templates)))
+
+(reg-sub
+ :templates-by-popularity/category
+ :<- [:templates-by-popularity]
+ (fn [category->templates [_ category]]
+   (get category->templates category)))
 
 (reg-sub
  :selected-template-name

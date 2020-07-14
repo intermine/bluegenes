@@ -151,6 +151,18 @@
      {:name ::templates
       :controllers
       [{:start #(dispatch [:set-active-panel :templates-panel])}]}]
+    ["/templates/:template"
+     {:name ::template
+      :controllers
+      [{:parameters {:path [:template]}
+        :start (fn [{{:keys [template]} :path}]
+                 (dispatch [:set-active-panel :templates-panel
+                            nil
+                            ;; flush-dom makes the event wait for the page to update first.
+                            ;; This is because we'll be scrolling to the template, so the
+                            ;; element needs to be present first.
+                            ^:flush-dom [:template-chooser/choose-template (keyword template)
+                                         {:scroll? true}]]))}]}]
     ["/upload"
      [""
       {:name ::upload
