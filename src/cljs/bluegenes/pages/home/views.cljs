@@ -236,7 +236,7 @@
 
 (defn credits []
   (let [mine-name @(subscribe [:current-mine-human-name])
-        ;; TODO replace `entities` with web-properties
+        ;; TODO replace `entries` with web-properties
         entries []
         all-entries (concat entries credits-intermine)]
     [:div.row.section
