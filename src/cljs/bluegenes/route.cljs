@@ -132,7 +132,9 @@
     [""
      {:name ::home
       :controllers
-      [{:start #(dispatch [:set-active-panel :home-panel])}]}]
+      [{:start (fn []
+                 (dispatch [:bluegenes.events.blog/fetch-rss])
+                 (dispatch [:set-active-panel :home-panel]))}]}]
     ["/profile"
      {:name ::profile
       :controllers
