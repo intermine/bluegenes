@@ -47,7 +47,7 @@
             (response/bad-request "Failed to parse RSS feed."))
           (catch Exception e
             (response/bad-request
-              (str "Error occured when parsing RSS feed: " (.getMessage e)))))
+             (str "Error occured when parsing RSS feed: " (.getMessage e)))))
         res))
     (response/bad-request "Please pass a `url` query parameter pointing to an RSS feed.")))
 
