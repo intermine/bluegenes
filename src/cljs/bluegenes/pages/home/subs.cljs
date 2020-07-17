@@ -58,6 +58,7 @@
  (fn [[active-preview-mine registry sorted-mines]]
    (get registry active-preview-mine (-> sorted-mines rand-nth val))))
 
+;; Be wary that this can return `false`, which many seq functions throw on.
 (reg-sub
  :home/latest-posts
  (fn [db]

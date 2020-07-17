@@ -55,7 +55,7 @@
 (def post-time-formatter (time-format/formatter "MMMM d, Y"))
 
 (defn latest-news []
-  (let [posts (take 3 @(subscribe [:home/latest-posts]))]
+  (let [posts (take 3 (or @(subscribe [:home/latest-posts]) nil))]
     (if (empty? posts)
       [:p "Latest news from the InterMine community."]
       (into [:ul.latest-news]
