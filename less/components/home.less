@@ -61,6 +61,30 @@
         }
     }
 
+    ul.latest-news {
+        list-style: none;
+        padding: 0;
+
+        li {
+            span {
+                display: block;
+                font-size: 0.9em;
+            }
+
+            a {
+                display: block;
+                font-weight: 400;
+                text-decoration: underline;
+            }
+
+            p {
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+        }
+    }
+
     .mine-intro {
         .mine-name {
             margin-bottom: @spacer;

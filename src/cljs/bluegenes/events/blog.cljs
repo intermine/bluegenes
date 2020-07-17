@@ -4,10 +4,13 @@
 
 (def default-rss "https://intermineorg.wordpress.com/?feed=rss")
 
+(defn get-rss-from-db [db]
+  (get-in db [:mines (:current-mine db) :rss] default-rss))
+
 (reg-event-fx
  ::fetch-rss
  (fn [{db :db} [_]]
-   (let [rss (get-in db [:mines (:current-mine db) :rss] default-rss)]
+   (let [rss (get-rss-from-db db)]
      ;; Only fetch RSS if we haven't done it previously.
      (if (nil? (get-in db [:cache :rss rss]))
        {::fx/http {:uri "/api/rss/parse"
