@@ -2,10 +2,12 @@
   (:require [re-frame.core :refer [reg-event-db reg-event-fx]]
             [bluegenes.effects :as fx]))
 
-(def default-rss "https://intermineorg.wordpress.com/?feed=rss")
+(def default-rss "https://intermineorg.wordpress.com/feed/")
 
 (defn get-rss-from-db [db]
-  (get-in db [:mines (:current-mine db) :rss] default-rss))
+  (if-let [rss (not-empty (get-in db [:mines (:current-mine db) :rss]))]
+    rss
+    default-rss))
 
 (reg-event-fx
  ::fetch-rss
