@@ -5,7 +5,10 @@
             [bluegenes.components.navbar.nav :refer [mine-icon]]
             [bluegenes.components.search.typeahead :as search]
             [clojure.string :as str]
-            [bluegenes.utils :refer [ascii-arrows ascii->svg-arrows md-paragraph]]))
+            [bluegenes.utils :refer [ascii-arrows ascii->svg-arrows md-paragraph]]
+            [goog.string :as gstring]
+            [cljs-time.format :as time-format]
+            [cljs-time.coerce :as time-coerce]))
 
 (defn mine-intro []
   (let [mine-name @(subscribe [:current-mine-human-name])
@@ -49,6 +52,20 @@
        "More queries here"]
       [:hr]]]))
 
+(def post-time-formatter (time-format/formatter "MMMM d, Y"))
+
+(defn latest-news []
+  (let [posts (take 3 (or @(subscribe [:home/latest-posts]) nil))]
+    (if (empty? posts)
+      [:p "Latest news from the InterMine community."]
+      (into [:ul.latest-news]
+            (for [{:keys [title link pubDate description]} posts]
+              [:li
+               [:span (time-format/unparse post-time-formatter
+                                           (time-coerce/from-string pubDate))]
+               [:a {:href link :target "_blank"} title]
+               [:p (-> description gstring/unescapeEntities str/trim (subs 0 100))]])))))
+
 (defn call-to-action []
   [:div.row.section.grid ;; Without grid class the 3rd row won't be on the same row.
    ;; This isn't official bootstrap, so I can only imagine Gridlex is messing with things.
@@ -79,7 +96,7 @@
      "View documentation"]]
    [:div.col-xs-12.col-sm-5.cta-block
     [:h3.text-uppercase "What's new?"]
-    [:p "Latest news from the InterMine community."]
+    [latest-news]
     [:a.btn.btn-home
      {:href "https://intermineorg.wordpress.com/"
       :target "_blank"}

@@ -19,6 +19,7 @@
    ;;todo - set sane default programmatically or default to first.
    :default-selected-object-type (first (get-in web-properties [:genomicRegionSearch :defaultOrganisms]))
    :regionsearch-example         (get-in web-properties [:genomicRegionSearch :defaultSpans])
+   :rss                          (get-in web-properties [:project :rss])
    ;;this needs to be passed in as an arg or pulled from the branding endpoint.
    :icon                         "icon-intermine"
    :idresolver-example           (let [ids (get-in web-properties [:bag :example :identifiers])]

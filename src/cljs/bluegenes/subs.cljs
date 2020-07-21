@@ -182,6 +182,11 @@
    (get-in db [:cache :organisms])))
 
 (reg-sub
+ :cache/rss
+ (fn [db [_ rss]]
+   (get-in db [:cache :rss rss])))
+
+(reg-sub
  :current-mine
  (fn [db]
    (get-in db [:mines (get db :current-mine)])))

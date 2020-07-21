@@ -4,6 +4,7 @@
             [ring.util.response :refer [response]]
             [bluegenes.ws.auth :as auth]
             [bluegenes.ws.ids :as ids]
+            [bluegenes.ws.rss :as rss]
             [bluegenes.index :as index]))
 
 ; Define the top level URL routes for the server
@@ -16,6 +17,7 @@
   ; Anything within this route is the API web service:
   (context "/api" []
     (context "/auth" [] auth/routes)
-    (context "/ids" [] ids/routes))
+    (context "/ids" [] ids/routes)
+    (context "/rss" [] rss/routes))
 
   (GET "*" [] (index/index)))

@@ -4,6 +4,8 @@
             [im-tables.events]
             [bluegenes.events.boot]
             [bluegenes.events.auth]
+            [bluegenes.events.registry]
+            [bluegenes.events.blog]
             [bluegenes.components.idresolver.events]
             [bluegenes.pages.mymine.events]
             [day8.re-frame.http-fx]
@@ -27,7 +29,6 @@
             [clojure.string :refer [join split]]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
             [imcljs.fetch :as fetch]
-            [bluegenes.events.registry :as registry]
             [cljs-bean.core :refer [->clj]]
             [bluegenes.utils :refer [read-registry-mine]]))
 

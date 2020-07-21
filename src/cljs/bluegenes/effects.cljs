@@ -142,6 +142,7 @@
            uri
            headers
            timeout
+           query-params
            json-params
            transit-params
            form-params
@@ -160,6 +161,7 @@
                   :put http/put
                   http/get)]
     (let [c (http-fn uri (cond-> {}
+                           query-params (assoc :query-params query-params)
                            json-params (assoc :json-params json-params)
                            transit-params (assoc :transit-params transit-params)
                            form-params (assoc :form-params form-params)
@@ -290,3 +292,12 @@
                                   (gdom/getDocumentScroll)))]
      (doto (gfx/Scroll. doc-elem current-scroll #js [0 0] 500 ease-in-out-cubic)
        (.play)))))
+
+;; Currently this only logs to console, but in the future we can decide to
+;; include more information and perhaps log to a reporting service.
+(reg-fx
+ :log-error
+ (fn [[error-string data-map]]
+   (.error js/console
+           (str "bluegenes: " error-string)
+           (clj->js data-map))))

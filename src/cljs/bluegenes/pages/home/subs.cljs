@@ -1,6 +1,7 @@
 (ns bluegenes.pages.home.subs
   (:require [re-frame.core :refer [reg-sub]]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [bluegenes.events.blog :refer [get-rss-from-db]]))
 
 (reg-sub
  :home/root
@@ -56,3 +57,10 @@
  :<- [:home/mines-by-neighbourhood]
  (fn [[active-preview-mine registry sorted-mines]]
    (get registry active-preview-mine (-> sorted-mines rand-nth val))))
+
+;; Be wary that this can return `false`, which many seq functions throw on.
+(reg-sub
+ :home/latest-posts
+ (fn [db]
+   (let [rss (get-rss-from-db db)]
+     (get-in db [:cache :rss rss]))))
