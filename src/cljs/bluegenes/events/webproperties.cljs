@@ -29,13 +29,14 @@
    :regionsearch-example         (get-in web-properties [:genomicRegionSearch :defaultSpans])
    :rss                          (get-in web-properties [:project :rss])
    :citation                     (parse-citation (get-in web-properties [:project :citation]))
+   :credits                      (get-in web-properties [:project :credits])
    ;;this needs to be passed in as an arg or pulled from the branding endpoint.
    :icon                         "icon-intermine"
    :idresolver-example           (let [ids (get-in web-properties [:bag :example :identifiers])]
                                    ;; ids can be one of the following:
                                    ;;     {:default "foo bar"
-                                   ;;      :protein "baz "boz"} ; post im 4.1.0?
-                                   ;;     "foo bar"             ; pre  im 4.1.0?
+                                   ;;      :protein "baz boz"} ; post im 4.1.0?
+                                   ;;     "foo bar"            ; pre  im 4.1.0?
                                    ;; When it's a map, we capitalize the keys
                                    ;; and rename :Default to :Gene; otherwise
                                    ;; we make a map with ids assigned to :Gene.

@@ -198,6 +198,12 @@
    (:citation current-mine)))
 
 (reg-sub
+ :current-mine/credits
+ :<- [:current-mine]
+ (fn [current-mine]
+   (:credits current-mine)))
+
+(reg-sub
  :current-mine-human-name
  :<- [:current-mine]
  (fn [current-mine]
