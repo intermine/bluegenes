@@ -55,7 +55,7 @@
        [:div.lists-row.lists-item
         [:div.lists-col
          [:input {:type "checkbox"}]
-         [icon "list-item"]]
+         [icon "list-item" nil ["list-icon"]]]
         [:div.lists-col
          [:p.list-title title]
          [:p.list-description description]]

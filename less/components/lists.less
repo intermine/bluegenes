@@ -7,6 +7,7 @@
 
     padding: @spacer*3.4 @spacer*4.7;
 
+    @visible-gray: #CCCCCC;
     @wider-letter-spacing: 0.08em;
 
     .filter-lists {
@@ -17,7 +18,10 @@
     // height: @spacer*8;
     .lists-table {
         display: table;
-        border-spacing: @spacer;
+        font-size: 1.3em;
+        background-color: @content-color-background;
+        border-collapse: collapse;
+        border: 1px solid @visible-gray;
 
         .lists-row {
             display: table-row;
@@ -28,15 +32,32 @@
         }
 
         .lists-headers {
-            font-size: 1.3em;
             font-weight: bold;
             letter-spacing: @wider-letter-spacing;
             white-space: nowrap;
+            border-bottom: 4px solid @visible-gray;
+
+            .lists-col {
+                padding: @spacer*1.5 @spacer*0.8;
+            }
         }
 
         .lists-item {
-            font-size: 1.3em;
             line-break: anywhere;
+            border-bottom: 1px solid @visible-gray;
+
+            &:nth-child(2n) {
+                background-color: @body-background-color;
+            }
+
+            .lists-col {
+                padding: @spacer*0.9 @spacer*0.8;
+            }
+
+            .list-icon {
+                font-size: 1.5em;
+                margin-top: 3px;
+            }
 
             .list-title {
                 font-weight: bold;
