@@ -225,8 +225,6 @@
       [:img.img-responsive
        {:src image}]]]))
 
-;; TODO maybe this should be in the properties file by default?
-;; - so the images will get hosted on the InterMine backend of the mine
 (def credits-intermine
   [{:text "InterMine has been developed principally through support of the [Wellcome Trust](https://wellcome.ac.uk/). Complementary projects have been funded by the [NIH/NHGRI](https://www.nih.gov/) and the [BBSRC](https://bbsrc.ukri.org/)."
     :image "https://www.humanmine.org/humanmine/images/icons/intermine-footer-logo.png"
@@ -253,8 +251,7 @@
 
 (defn credits []
   (let [mine-name @(subscribe [:current-mine-human-name])
-        ;; TODO replace `entries` with web-properties
-        entries []
+        entries @(subscribe [:current-mine/credits])
         all-entries (concat entries credits-intermine)]
     [:div.row.section
      [:div.col-xs-12
@@ -263,10 +260,9 @@
        [:div.col-xs-12.text-center
         [credits-fallback]])
      [:div.col-xs-10.col-xs-offset-1
-      [:div.row.row-center-cols.row-space-cols
-       (for [[i entry] (map-indexed vector all-entries)]
-         ^{:key i}
-         [credits-entry entry])]]]))
+      (into [:div.row.row-center-cols.row-space-cols]
+            (for [entry all-entries]
+              [credits-entry entry]))]]))
 
 (defn main []
   [:div.container.home

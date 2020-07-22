@@ -11,6 +11,14 @@
        string/capitalize
        keyword))
 
+(defn parse-citation
+  "Returns a URL citation or the URL of the first anchor element if it's HTML."
+  [citation]
+  (when-let [cit (not-empty citation)]
+    (or (re-matches #"\S+" cit) ;; If there are no spaces, it's probably a URL.
+        ;; Otherwise, extract it from the href attribute.
+        (second (re-find #"href=[\"']([^\"']+)" cit)))))
+
 (defn web-properties-to-bluegenes
   "Map intermine web properties to bluegenes properties"
   [web-properties previous-properties]
@@ -20,13 +28,15 @@
    :default-selected-object-type (first (get-in web-properties [:genomicRegionSearch :defaultOrganisms]))
    :regionsearch-example         (get-in web-properties [:genomicRegionSearch :defaultSpans])
    :rss                          (get-in web-properties [:project :rss])
+   :citation                     (parse-citation (get-in web-properties [:project :citation]))
+   :credits                      (get-in web-properties [:project :credits])
    ;;this needs to be passed in as an arg or pulled from the branding endpoint.
    :icon                         "icon-intermine"
    :idresolver-example           (let [ids (get-in web-properties [:bag :example :identifiers])]
                                    ;; ids can be one of the following:
                                    ;;     {:default "foo bar"
-                                   ;;      :protein "baz "boz"} ; post im 4.1.0?
-                                   ;;     "foo bar"             ; pre  im 4.1.0?
+                                   ;;      :protein "baz boz"} ; post im 4.1.0?
+                                   ;;     "foo bar"            ; pre  im 4.1.0?
                                    ;; When it's a map, we capitalize the keys
                                    ;; and rename :Default to :Gene; otherwise
                                    ;; we make a map with ids assigned to :Gene.

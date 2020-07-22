@@ -192,6 +192,18 @@
    (get-in db [:mines (get db :current-mine)])))
 
 (reg-sub
+ :current-mine/citation
+ :<- [:current-mine]
+ (fn [current-mine]
+   (:citation current-mine)))
+
+(reg-sub
+ :current-mine/credits
+ :<- [:current-mine]
+ (fn [current-mine]
+   (:credits current-mine)))
+
+(reg-sub
  :current-mine-human-name
  :<- [:current-mine]
  (fn [current-mine]
@@ -270,6 +282,20 @@
  :<- [:current-mine-name]
  (fn [[registry current-mine]]
    (get-in registry [current-mine :description])))
+
+(reg-sub
+ :registry/twitter
+ :<- [:registry]
+ :<- [:current-mine-name]
+ (fn [[registry current-mine]]
+   (not-empty (get-in registry [current-mine :twitter]))))
+
+(reg-sub
+ :registry/email
+ :<- [:registry]
+ :<- [:current-mine-name]
+ (fn [[registry current-mine]]
+   (not-empty (get-in registry [current-mine :maintainerEmail]))))
 
 ;;;; Styling
 
