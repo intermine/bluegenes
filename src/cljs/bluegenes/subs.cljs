@@ -9,6 +9,7 @@
             [bluegenes.pages.profile.subs]
             [bluegenes.components.viz.subs]
             [bluegenes.pages.home.subs]
+            [bluegenes.pages.lists.subs]
             [lambdaisland.uri :refer [uri]]))
 
 (reg-sub

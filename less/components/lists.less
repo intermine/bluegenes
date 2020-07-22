@@ -1,0 +1,51 @@
+@import "../variables";
+
+.lists {
+    // You can adjust the sizing and spacing by only changing this, as they're
+    // all relative. The original font size in the design was 18px.
+    font-size: 14px;
+
+    padding: @spacer*3.4 @spacer*4.7;
+
+    @wider-letter-spacing: 0.08em;
+
+    .filter-lists {
+        display: flex;
+        margin-bottom: @spacer*7;
+    }
+
+    // height: @spacer*8;
+    .lists-table {
+        display: table;
+        border-spacing: @spacer;
+
+        .lists-row {
+            display: table-row;
+        }
+
+        .lists-col {
+            display: table-cell;
+        }
+
+        .lists-headers {
+            font-size: 1.3em;
+            font-weight: bold;
+            letter-spacing: @wider-letter-spacing;
+            white-space: nowrap;
+        }
+
+        .lists-item {
+            font-size: 1.3em;
+            line-break: anywhere;
+
+            .list-title {
+                font-weight: bold;
+                text-decoration: underline;
+            }
+
+            .list-description {
+                font-size: 0.8em;
+            }
+        }
+    }
+}
