@@ -1,7 +1,9 @@
 (ns bluegenes.pages.lists.views
   (:require [re-frame.core :refer [subscribe]]
             [clojure.string :as str]
-            [bluegenes.components.icons :refer [icon]]))
+            [bluegenes.components.icons :refer [icon]]
+            [cljs-time.format :as time-format]
+            [cljs-time.coerce :as time-coerce]))
 
 (defn filter-lists []
   [:div.filter-lists
@@ -23,32 +25,36 @@
   (require '[re-frame.core :refer [subscribe]])
   (first @(subscribe [:lists/filtered-lists])))
 
+(def list-time-formatter (time-format/formatter "dd MMM, Y"))
+
 (defn lists []
   (let [filtered-lists @(subscribe [:lists/filtered-lists])]
     [:section.lists-table
 
      [:header.lists-row.lists-headers
       [:div.lists-col
-       [:input {:type "checkbox"}]
-       [:button "All" [icon "selection"]]]
+       [:input {:type "checkbox"}]]
       [:div.lists-col
-       [:span "List details"]
-       [:button [icon "sort"]]
-       [:button [icon "selection"]]]
+       [:div.list-header
+        [:span "List details"]
+        [:button.btn [icon "sort"]]
+        [:button.btn [icon "selection"]]]]
       [:div.lists-col
-       [:span "Date"]
-       [:button [icon "sort"]]
-       [:button [icon "selection"]]]
+       [:div.list-header
+        [:span "Date"]
+        [:button.btn [icon "sort"]]
+        [:button.btn [icon "selection"]]]]
       [:div.lists-col
-       [:span "Type"]
-       [:button [icon "sort"]]
-       [:button [icon "selection"]]]
+       [:div.list-header
+        [:span "Type"]
+        [:button.btn [icon "sort"]]
+        [:button.btn [icon "selection"]]]]
       [:div.lists-col
-       [:span "Tags"]
-       [:button [icon "sort"]]
-       [:button [icon "selection"]]]
-      [:div.lists-col
-       [:span "More"]]]
+       [:div.list-header
+        [:span "Tags"]
+        [:button.btn [icon "sort"]]
+        [:button.btn [icon "selection"]]]]
+      [:div.lists-col]]
 
      (for [{:keys [id title description dateCreated type tags]} filtered-lists]
        ^{:key id}
@@ -59,10 +65,20 @@
         [:div.lists-col
          [:p.list-title title]
          [:p.list-description description]]
-        [:div.lists-col dateCreated]
-        [:div.lists-col type]
-        [:div.lists-col (str/join ", " tags)]
-        [:div.lists-col id]])]))
+        [:div.lists-col
+         (time-format/unparse list-time-formatter
+                              (time-coerce/from-string dateCreated))]
+        [:div.lists-col
+         [:code.start {:class (str "start-" type)}
+          type]]
+        (into [:div.lists-col]
+              (for [tag tags]
+                [:code.tag tag]))
+        [:div.lists-col.vertical-align-cell
+         [:div.list-controls
+          [:button.btn [icon "list-copy"]]
+          [:button.btn [icon "list-edit"]]
+          [:button.btn [icon "list-delete"]]]]])]))
 
 (defn main []
   [:div.container-fluid.lists

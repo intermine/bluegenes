@@ -3,11 +3,14 @@
 .lists {
     // You can adjust the sizing and spacing by only changing this, as they're
     // all relative. The original font size in the design was 18px.
-    font-size: 14px;
+    font-size: 12px;
 
     padding: @spacer*3.4 @spacer*4.7;
 
     @visible-gray: #CCCCCC;
+    @highlight-blue: #1FB3FB;
+    @danger-red: #DA2837;
+    @icon-size: 1.5em;
     @wider-letter-spacing: 0.08em;
 
     .filter-lists {
@@ -29,16 +32,40 @@
 
         .lists-col {
             display: table-cell;
+
+            &.vertical-align-cell {
+                vertical-align: middle;
+            }
         }
 
         .lists-headers {
-            font-weight: bold;
             letter-spacing: @wider-letter-spacing;
             white-space: nowrap;
             border-bottom: 4px solid @visible-gray;
 
             .lists-col {
                 padding: @spacer*1.5 @spacer*0.8;
+
+                .list-header {
+                    display: flex;
+                    align-items: center;
+                    justify-content: flex-end;
+
+                    & > span {
+                        margin-right: auto;
+                        font-weight: bold;
+                        text-transform: uppercase;
+                    }
+
+                    & > button {
+                        padding: 0;
+                        margin: 0;
+
+                        .icon {
+                            font-size: @icon-size;
+                        }
+                    }
+                }
             }
         }
 
@@ -54,8 +81,12 @@
                 padding: @spacer*0.9 @spacer*0.8;
             }
 
+            .lists-col:nth-child(1) {
+                white-space: nowrap;
+            }
+
             .list-icon {
-                font-size: 1.5em;
+                font-size: @icon-size;
                 margin-top: 3px;
             }
 
@@ -66,6 +97,57 @@
 
             .list-description {
                 font-size: 0.8em;
+            }
+
+            code.start {
+                color: inherit;
+                background-color: @color-Nuffink;
+
+                // If only we had CSS-in-JS [;
+                // Actually, I do think if we want to do this well, (including
+                // the 3 other places this is used) we should use inline style.
+                &.start-Gene {
+                    background-color: @color-Gene;
+                    color: #fff;
+                }
+                &.start-Protein {
+                    background-color: @color-Protein;
+                }
+                &.start-Author,
+                &.start-Publication {
+                    background-color: @color-Publication;
+                }
+                &.start-Organism {
+                    background-color: @color-Organism;
+                }
+                &.start-Interaction {
+                    background-color: @color-Interaction;
+                }
+                &.start-GOTerm {
+                    background-color: @color-GO;
+                    color: #fff;
+                }
+            }
+
+            code.tag {
+                color: #fff;
+                background-color: @visible-gray;
+            }
+
+            .list-controls {
+                display: flex;
+
+                .icon {
+                    font-size: @icon-size;
+
+                    &.icon-list-copy,
+                    &.icon-list-edit {
+                        fill: @highlight-blue;
+                    }
+                    &.icon-list-delete {
+                        fill: @danger-red;
+                    }
+                }
             }
         }
     }
