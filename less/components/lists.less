@@ -1,4 +1,5 @@
 @import "../variables";
+@import "../datatype-colors";
 
 .lists {
     // You can adjust the sizing and spacing by only changing this, as they're
@@ -8,6 +9,7 @@
     padding: @spacer*3.4 @spacer*4.7;
 
     @visible-gray: #CCCCCC;
+    @dark-gray: #505050;
     @highlight-blue: #1FB3FB;
     @danger-red: #DA2837;
     @icon-size: 1.5em;
@@ -15,7 +17,64 @@
 
     .filter-lists {
         display: flex;
-        margin-bottom: @spacer*7;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: @spacer*4;
+
+        h2 {
+            font-size: 2.4em;
+            margin: 0;
+            margin-right: @spacer*0.5;
+        }
+
+        .filter-input {
+            position: relative;
+            width: 30%;
+            min-width: 200px;
+
+            input {
+                width: 100%;
+                font-size: 1.4em;
+                padding-right: 1.4em;
+            }
+
+            .icon {
+                font-size: 1.5em;
+                cursor: pointer;
+                position: absolute;
+                right: -4px;
+                top: 4px;
+            }
+        }
+    }
+
+    .controls {
+        display: flex;
+
+        button.btn.btn-raised {
+            flex-grow: 1;
+            font-size: 1.5em;
+            text-transform: none;
+            fill: #fff;
+            color: #fff;
+            background-color: @dark-gray;
+
+            &:focus,
+            &:hover,
+            &:active {
+                background-color: lighten(@dark-gray, 13%);
+            }
+
+            &:disabled {
+                color: @dark-gray;
+                fill: @dark-gray;
+                background-color: transparent;
+            }
+
+            .icon {
+                font-size: @icon-size;
+            }
+        }
     }
 
     // height: @spacer*8;
@@ -39,7 +98,6 @@
         }
 
         .lists-headers {
-            letter-spacing: @wider-letter-spacing;
             white-space: nowrap;
             border-bottom: 4px solid @visible-gray;
 
@@ -55,9 +113,10 @@
                         margin-right: auto;
                         font-weight: bold;
                         text-transform: uppercase;
+                        letter-spacing: @wider-letter-spacing;
                     }
 
-                    & > button {
+                    button {
                         padding: 0;
                         margin: 0;
 
@@ -90,9 +149,23 @@
                 margin-top: 3px;
             }
 
-            .list-title {
-                font-weight: bold;
-                text-decoration: underline;
+            .list-detail {
+                display: flex;
+                justify-content: flex-end;
+
+                .list-title {
+                    margin-right: auto;
+                    font-weight: bold;
+                    text-decoration: underline;
+                }
+
+                .list-size {
+                    white-space: nowrap;
+                }
+
+                .icon {
+                    min-width: 1em;
+                }
             }
 
             .list-description {
@@ -130,8 +203,8 @@
             }
 
             code.tag {
-                color: #fff;
-                background-color: @visible-gray;
+                background-color: #DFE6ED;
+                color: #4B5C6B;
             }
 
             .list-controls {
@@ -141,7 +214,8 @@
                     font-size: @icon-size;
 
                     &.icon-list-copy,
-                    &.icon-list-edit {
+                    &.icon-list-edit,
+                    &.icon-list-more {
                         fill: @highlight-blue;
                     }
                     &.icon-list-delete {
