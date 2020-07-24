@@ -1,6 +1,7 @@
 (ns bluegenes.pages.lists.subs
   (:require [re-frame.core :refer [reg-sub]]
-            [bluegenes.pages.lists.utils :refer [normalize-lists]]))
+            [bluegenes.pages.lists.utils :refer [normalize-lists]]
+            [clojure.string :as str]))
 
 (reg-sub
  :lists/root
@@ -30,4 +31,9 @@
  :<- [:lists/by-id]
  :<- [:lists/expanded-paths]
  (fn [[lists-by-id expanded-paths]]
-   (normalize-lists identity identity {:by-id lists-by-id :expanded-paths expanded-paths})))
+   (normalize-lists
+    identity
+    ; (partial filter #((fnil str/includes? "") (:title %) "genes"))
+    (comp (partial sort-by :authorized (complement compare))
+          (partial sort-by :timestamp >))
+    {:by-id lists-by-id :expanded-paths expanded-paths})))

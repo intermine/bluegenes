@@ -50,8 +50,6 @@
           [:li.active [:a "All"]]
           [:li [:a "Private only"]]
           [:li [:a "Public only"]]
-          [:li [:a "Private first"]]
-          [:li [:a "Public first"]]
           [:li [:a "Folders first"]]]]]]
       [:div.lists-col
        [:div.list-header
@@ -80,14 +78,15 @@
       [:div.lists-col]]
 
      (doall
-      (for [{:keys [id path title size authorized description dateCreated type tags]
+      (for [{:keys [id title size authorized description dateCreated type tags
+                    path is-last]
              :as item}
             filtered-lists
             :let [is-folder (folder? item)
                   is-expanded (and is-folder (contains? expanded-paths path))]]
         ^{:key id}
         [:div.lists-row.lists-item
-         (when is-expanded
+         (when (or is-expanded is-last)
            {:style {:borderBottomWidth 4}})
 
          (if is-folder

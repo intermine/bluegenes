@@ -77,29 +77,41 @@
 (defn folder? [{:keys [path] :as _folderm}]
   (some? (not-empty path)))
 
-(defn reduce-folders [expanded-paths expand-children lists folders]
-  (reduce (fn [items {:keys [path children] :as folderm}]
+(defn reduce-folders [expanded-paths expand-children items & [top-level?]]
+  (reduce (fn [items [{:keys [path children] :as folderm} last-child?]]
             (if (contains? expanded-paths path)
-              (into items (cons folderm (expand-children children)))
-              (conj items folderm)))
-          lists
-          folders))
+              (if-let [expanded (seq (expand-children children))]
+                ;; A folder can only exist if it has children. If there are no
+                ;; children, they have likely become filtered away, in which
+                ;; case there's no point in showing this folder.
+                (into items (cons folderm expanded))
+                items)
+              (conj items (cond-> folderm
+                            (and last-child? (not top-level?))
+                            (assoc :is-last true)))))
+          []
+          (map-indexed (fn [i x]
+                         [x (= i (dec (count items)))])
+                       items)))
 
-(defn expand-folders [{:keys [by-id expanded-paths] :as denormalized} children]
+(defn expand-folders [filterf sortf {:keys [by-id expanded-paths] :as denormalized} children]
   (let [children-maps (mapv by-id children)]
     (reduce-folders
      expanded-paths
-     (partial expand-folders denormalized)
-     (filterv (complement folder?) children-maps)
-     (filter folder? children-maps))))
+     (partial expand-folders filterf sortf denormalized)
+     (sortf
+      (concat (filterf (filter (complement folder?) children-maps))
+              (filter folder? children-maps))))))
 
 (defn normalize-lists [filterf sortf {:keys [by-id expanded-paths] :as denormalized}]
   (let [top-level-maps (vals by-id)]
     (reduce-folders
      expanded-paths
-     (partial expand-folders denormalized)
-     (filterv top-level-list? top-level-maps)
-     (filter top-level-folder? top-level-maps))))
+     (partial expand-folders filterf sortf denormalized)
+     (sortf
+      (concat (filterf (filter top-level-list? top-level-maps))
+              (filter top-level-folder? top-level-maps)))
+     true)))
 
 (comment
   (require '[re-frame.core :refer [subscribe]])
