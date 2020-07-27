@@ -38,9 +38,11 @@
       [:div.column.inner
        [:span.thin "FUNDED BY"]
        [:span
+        [link "https://www.wellcome.ac.uk/" "Wellcome Trust"]
+        [:span.thin " | "]
         [link "https://www.nih.gov/" "NIH"]
         [:span.thin " | "]
-        [link "https://www.wellcome.ac.uk/" "Wellcome Trust"]]]]
+        [link "https://bbsrc.ukri.org/" "BBSRC"]]]]
      [:div.section
       [link "https://github.com/intermine/"
        [poppable {:data [:span "Check out our open-source software"]
