@@ -27,10 +27,9 @@
                       :asc? true}
             :tree {}
             :list-operations {:selected #{}}}
-   :lists {:controls {:filters {:text-filter nil
-                                :flags {:authorized nil
-                                        :favourite nil}}
-                      :sort {:title :asc}}}
+   :lists {:controls {:filters {:keywords ""}
+                      :sort {:column :timestamp
+                             :order :desc}}}
 
    :qb {:root-class :Gene
         :order []

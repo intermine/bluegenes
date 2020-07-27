@@ -4,14 +4,17 @@
             [bluegenes.components.icons :refer [icon]]
             [bluegenes.pages.lists.utils :refer [folder?]]
             [cljs-time.format :as time-format]
-            [cljs-time.coerce :as time-coerce]))
+            [cljs-time.coerce :as time-coerce]
+            [oops.core :refer [oget]]))
 
 (defn filter-lists []
   [:div.filter-lists
    [:h2 "Filter lists"]
    [:div.filter-input
     [:input {:type "text"
-             :placeholder "Search for keywords"}]
+             :placeholder "Search for keywords"
+             :on-change #(dispatch [:lists/set-keywords-filter (oget % :target :value)])
+             :value @(subscribe [:lists/keywords-filter])}]
     [icon "search"]]])
 
 (defn controls []
@@ -29,6 +32,11 @@
     "Subtract lists" [icon "venn-difference"]]])
 
 (def list-time-formatter (time-format/formatter "dd MMM, Y"))
+(def list-time-formatter-full (time-format/formatter "dd MMMM, Y"))
+
+(defn parse-date-created [dateCreated & [full-month?]]
+  (time-format/unparse (if full-month? list-time-formatter-full list-time-formatter)
+                       (time-coerce/from-string dateCreated)))
 
 (defn lists []
   (let [filtered-lists @(subscribe [:lists/filtered-lists])
@@ -116,8 +124,7 @@
           [:p.list-description description]]
 
          [:div.lists-col
-          (time-format/unparse list-time-formatter
-                               (time-coerce/from-string dateCreated))]
+          (parse-date-created dateCreated)]
 
          [:div.lists-col
           (when-not is-folder

@@ -3,6 +3,8 @@
 
 ;; TODO should we implement folders on the backend?
 
+;; TODO add docstrings and unit tests
+
 (def path-tag-prefix "bgpath")
 
 (defn path-prefix? [s]
@@ -77,18 +79,25 @@
 (defn folder? [{:keys [path] :as _folderm}]
   (some? (not-empty path)))
 
-(defn reduce-folders [expanded-paths expand-children items & [top-level?]]
-  (reduce (fn [items [{:keys [path children] :as folderm} last-child?]]
-            (if (contains? expanded-paths path)
-              (if-let [expanded (seq (expand-children children))]
-                ;; A folder can only exist if it has children. If there are no
-                ;; children, they have likely become filtered away, in which
-                ;; case there's no point in showing this folder.
-                (into items (cons folderm expanded))
-                items)
-              (conj items (cond-> folderm
-                            (and last-child? (not top-level?))
-                            (assoc :is-last true)))))
+(defn reduce-folders
+  "Walk through `items` adding children after folders that are expanded and
+  stripping folders without children. A folder can only exist if it has
+  children, so if there are no children, they have likely become filtered away,
+  in which case there's no point in showing this folder. Also adds an
+  `:is-last` key to each item to mark when a folder ends."
+  [expanded-paths expand-children items & [top-level?]]
+  (reduce (fn [items [{:keys [path children] :as item} last-child?]]
+            (let [item?last (cond-> item
+                              (and last-child? (not top-level?))
+                              (assoc :is-last true))]
+              (if (folder? item)
+                (let [expanded (expand-children children)]
+                  (cond
+                    (and (contains? expanded-paths path)
+                         (seq expanded)) (into items (cons item expanded))
+                    (seq expanded)       (conj items item?last)
+                    :else                items))
+                (conj items item?last))))
           []
           (map-indexed (fn [i x]
                          [x (= i (dec (count items)))])

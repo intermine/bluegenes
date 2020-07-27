@@ -3,6 +3,9 @@
             [re-frame.std-interceptors :refer [path]]
             [bluegenes.pages.lists.utils :refer [denormalize-lists]]))
 
+;; TODO make sure :lists/initialize is run when lists assets update
+;; - check if active-panel is lists page, then dispatch it
+
 (def root [:lists])
 
 ;; A hash-map is more amenable to locating specific lists, so we copy the
@@ -24,3 +27,9 @@
  (path root)
  (fn [lists [_ path]]
    (update lists :expanded-paths (fnil disj #{}) path)))
+
+(reg-event-db
+ :lists/set-keywords-filter
+ (path root)
+ (fn [lists [_ keywords-string]]
+   (assoc-in lists [:controls :filters :keywords] keywords-string)))
