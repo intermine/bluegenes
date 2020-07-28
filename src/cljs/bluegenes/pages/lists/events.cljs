@@ -46,3 +46,9 @@
                             :asc :desc
                             :desc :asc)
                           :asc)}))))
+
+(reg-event-db
+ :lists/set-filter
+ (path root)
+ (fn [lists [_ filter-name value]]
+   (assoc-in lists [:controls :filters filter-name] value)))

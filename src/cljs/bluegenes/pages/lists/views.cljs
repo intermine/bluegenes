@@ -47,9 +47,24 @@
                            :asc "active-asc-sort"
                            :desc "active-desc-sort"))]]]))
 
+(defn selection-button [filter-name items]
+  (let [active-value @(subscribe [:lists/filter filter-name])]
+    [:div.dropdown
+     [:button.btn.dropdown-toggle
+      {:data-toggle "dropdown"}
+      [icon "selection" nil [(when (some? active-value)
+                               "active-selection")]]]
+     (into [:ul.dropdown-menu]
+           (for [{:keys [label value]} items]
+             [:li {:class (when (= value active-value)
+                            "active")}
+              [:a {:on-click #(dispatch [:lists/set-filter filter-name value])}
+               label]]))]))
+
 (defn lists []
-  (let [filtered-lists @(subscribe [:lists/filtered-lists])
-        expanded-paths @(subscribe [:lists/expanded-paths])]
+  (let [filtered-lists  @(subscribe [:lists/filtered-lists])
+        expanded-paths  @(subscribe [:lists/expanded-paths])
+        lists-selection @(subscribe [:lists/filter :lists])]
     [:section.lists-table
 
      [:header.lists-row.lists-headers
@@ -57,31 +72,31 @@
        [:input {:type "checkbox"}]]
       [:div.lists-col
        [:div.list-header
-        [:span (str "List details (" "All" ")")]
+        [:span (str "List details ("
+                    (case lists-selection
+                      nil "All"
+                      :private "Private only"
+                      :public "Public only"
+                      :folder "Folders first")
+                    ")")]
         [sort-button :title]
-        [:div.dropdown
-         [:button.btn.dropdown-toggle
-          {:data-toggle "dropdown"}
-          [icon "selection"]]
-         [:ul.dropdown-menu
-          [:li.active [:a "All"]]
-          [:li [:a "Private only"]]
-          [:li [:a "Public only"]]
-          [:li [:a "Folders first"]]]]]]
+        [selection-button
+         :lists
+         [{:label "All" :value nil}
+          {:label "Private only" :value :private}
+          {:label "Public only" :value :public}
+          {:label "Folders first" :value :folder}]]]]
       [:div.lists-col
        [:div.list-header
         [:span "Date"]
         [sort-button :timestamp]
-        [:div.dropdown
-         [:button.btn.dropdown-toggle
-          {:data-toggle "dropdown"}
-          [icon "selection"]]
-         [:ul.dropdown-menu
-          [:li.active [:a "All"]]
-          [:li [:a "Today"]]
-          [:li [:a "Last week"]]
-          [:li [:a "Last month"]]
-          [:li [:a "Last year"]]]]]]
+        [selection-button
+         :date
+         [{:label "All" :value nil}
+          {:label "Last day" :value :day}
+          {:label "Last week" :value :week}
+          {:label "Last month" :value :month}
+          {:label "Last year" :value :year}]]]]
       [:div.lists-col
        [:div.list-header
         [:span "Type"]

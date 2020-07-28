@@ -1,8 +1,10 @@
 (ns bluegenes.pages.lists.subs
   (:require [re-frame.core :refer [reg-sub]]
-            [bluegenes.pages.lists.utils :refer [normalize-lists internal-tag?]]
+            [bluegenes.pages.lists.utils :refer [normalize-lists internal-tag? folder?]]
             [bluegenes.pages.lists.views :refer [parse-date-created]]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [cljs-time.core :as time]
+            [cljs-time.coerce :as time-coerce]))
 
 (reg-sub
  :lists/root
@@ -34,6 +36,12 @@
    (:filters controls)))
 
 (reg-sub
+ :lists/filter
+ :<- [:lists/filters]
+ (fn [filters [_ filter-name]]
+   (get filters filter-name)))
+
+(reg-sub
  :lists/keywords-filter
  :<- [:lists/filters]
  (fn [filters]
@@ -49,30 +57,55 @@
   "Create a filter function from the filters map in controls, to be passed to
   `normalize-lists`. Remember that comp's arguments are run in reverse order!
   Will only be passed list maps, and not folders."
-  [{:keys [keywords] :as _filterm}]
-  (if (empty? keywords)
-    identity
-    (let [keyws (map str/lower-case (-> keywords str/trim (str/split #"\s+")))]
-      (partial filter (fn [listm]
-                        (let [all-text
-                              (str/join
-                               " "
-                               ((juxt :title :size :description
-                                      (comp #(parse-date-created % true) :dateCreated)
-                                      :type (comp #(str/join " " %) :tags))
-                                listm))]
-                          (if-let [s (-> all-text str/lower-case not-empty)]
-                            (every? #(str/includes? s %) keyws)
-                            false)))))))
+  [{:keys [keywords lists date] :as _filterm}]
+  (comp
+   ;; Keyword filter should be done last.
+   (if (empty? keywords)
+     identity
+     (let [keyws (map str/lower-case (-> keywords str/trim (str/split #"\s+")))]
+       (partial filter (fn [listm]
+                         (let [all-text
+                               (str/join
+                                " "
+                                ((juxt :title :size :description
+                                       (comp #(parse-date-created % true) :dateCreated)
+                                       :type (comp #(str/join " " %) :tags))
+                                 listm))]
+                           (if-let [s (-> all-text str/lower-case not-empty)]
+                             (every? #(str/includes? s %) keyws)
+                             false))))))
+   ;; Filter by type of list.
+   (if (or (nil? lists) (= lists :folder)) ; Folders first handled in `->sortf`.
+     identity
+     (partial filter (case lists
+                       :private (comp true? :authorized)
+                       :public (comp false? :authorized))))
+   ;; Filter by date.
+   (if (nil? date)
+     identity
+     (let [now (time/now)]
+       (partial filter (case date
+                         :day   (comp #(time/after? % (time/minus now (time/days 1)))
+                                      time-coerce/from-string :dateCreated)
+                         :week  (comp #(time/after? % (time/minus now (time/weeks 1)))
+                                      time-coerce/from-string :dateCreated)
+                         :month (comp #(time/after? % (time/minus now (time/months 1)))
+                                      time-coerce/from-string :dateCreated)
+                         :year  (comp #(time/after? % (time/minus now (time/years 1)))
+                                       time-coerce/from-string :dateCreated)))))))
 
 (defn ->sortf
   "Create a sort function from the sort map in controls, to be passed to
   `normalize-lists`. Remember that comp's arguments are run in reverse order!
   Will be passed both list and folder maps."
-  [{:keys [column order] :as _sortm}]
+  [{:keys [column order] :as _sortm} & {:keys [folders-first?]}]
   (comp
    ;; Show private lists first.
    (partial sort-by :authorized (comp - compare))
+   ;; Show folders first if the filter is applied.
+   (if folders-first?
+     (partial sort-by folder? (comp - compare))
+     identity)
    ;; Sort according to active control.
    (partial sort-by
             ;; We don't want "B" to come before "a", so we lowercase strings.
@@ -97,5 +130,5 @@
  (fn [[lists-by-id expanded-paths active-filters active-sort]]
    (normalize-lists
     (->filterf active-filters)
-    (->sortf active-sort)
+    (->sortf active-sort :folders-first? (= :folder (:lists active-filters)))
     {:by-id lists-by-id :expanded-paths expanded-paths})))

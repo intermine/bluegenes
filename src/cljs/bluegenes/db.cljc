@@ -27,7 +27,11 @@
                       :asc? true}
             :tree {}
             :list-operations {:selected #{}}}
-   :lists {:controls {:filters {:keywords ""}
+   :lists {:controls {:filters {:keywords ""
+                                :lists nil
+                                :date nil
+                                :type nil
+                                :tags nil}
                       :sort {:column :timestamp
                              :order :desc}}}
 

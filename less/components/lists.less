@@ -84,6 +84,7 @@
         background-color: @content-color-background;
         border-collapse: collapse;
         border: 1px solid @visible-gray;
+        width: 100%;
 
         .lists-row {
             display: table-row;
@@ -116,6 +117,12 @@
                         letter-spacing: @wider-letter-spacing;
                     }
 
+                    .dropdown-menu > .active > a {
+                        &, &:hover, &:focus {
+                            background-color: @highlight-blue;
+                        }
+                    }
+
                     button {
                         padding: 0;
                         margin: 0;
@@ -123,6 +130,10 @@
                         .icon {
                             margin: 0;
                             font-size: 2.2em;
+
+                            &.active-selection {
+                                fill: @highlight-blue;
+                            }
 
                             &.active-asc-sort {
                                 --top-color: @highlight-blue;
