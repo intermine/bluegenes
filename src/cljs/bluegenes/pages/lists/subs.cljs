@@ -1,6 +1,6 @@
 (ns bluegenes.pages.lists.subs
   (:require [re-frame.core :refer [reg-sub]]
-            [bluegenes.pages.lists.utils :refer [normalize-lists]]
+            [bluegenes.pages.lists.utils :refer [normalize-lists internal-tag?]]
             [bluegenes.pages.lists.views :refer [parse-date-created]]
             [clojure.string :as str]))
 
@@ -76,7 +76,12 @@
    ;; Sort according to active control.
    (partial sort-by
             ;; We don't want "B" to come before "a", so we lowercase strings.
-            (comp #(cond-> % (string? %) str/lower-case) column)
+            (comp #(cond-> % (string? %) str/lower-case)
+                  ;; Filter away internal tags, which we don't care to sort after.
+                  (if (= column :tags)
+                    (partial filterv (complement internal-tag?))
+                    identity)
+                  column)
             ;; `compare` also works great for vectors, for which it will first
             ;; sort by length, then by each element.
             (case order

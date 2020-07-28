@@ -10,6 +10,9 @@
 (defn path-prefix? [s]
   (str/starts-with? s (str path-tag-prefix ":")))
 
+(defn internal-tag? [tag]
+  (str/includes? tag ":"))
+
 (defn split-path [path]
   (str/split path #"[\.:]"))
 

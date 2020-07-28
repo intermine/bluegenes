@@ -33,3 +33,16 @@
  (path root)
  (fn [lists [_ keywords-string]]
    (assoc-in lists [:controls :filters :keywords] keywords-string)))
+
+(reg-event-db
+ :lists/toggle-sort
+ (path root)
+ (fn [lists [_ column]]
+   (update-in lists [:controls :sort]
+              (fn [{old-column :column old-order :order}]
+                {:column column
+                 :order (if (= old-column column)
+                          (case old-order
+                            :asc :desc
+                            :desc :asc)
+                          :asc)}))))

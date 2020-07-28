@@ -121,7 +121,16 @@
                         margin: 0;
 
                         .icon {
-                            font-size: @icon-size;
+                            margin: 0;
+                            font-size: 2.2em;
+
+                            &.active-asc-sort {
+                                --top-color: @highlight-blue;
+                            }
+
+                            &.active-desc-sort {
+                                --bottom-color: @highlight-blue;
+                            }
                         }
                     }
                 }
@@ -221,6 +230,10 @@
 
                 .icon {
                     font-size: @icon-size;
+
+                    &.icon-list-more {
+                        font-size: 2em;
+                    }
 
                     &.icon-list-copy,
                     &.icon-list-edit,

@@ -2,7 +2,7 @@
   (:require [re-frame.core :refer [subscribe dispatch]]
             [clojure.string :as str]
             [bluegenes.components.icons :refer [icon]]
-            [bluegenes.pages.lists.utils :refer [folder?]]
+            [bluegenes.pages.lists.utils :refer [folder? internal-tag?]]
             [cljs-time.format :as time-format]
             [cljs-time.coerce :as time-coerce]
             [oops.core :refer [oget]]))
@@ -38,6 +38,15 @@
   (time-format/unparse (if full-month? list-time-formatter-full list-time-formatter)
                        (time-coerce/from-string dateCreated)))
 
+(defn sort-button [column]
+  (let [active-sort @(subscribe [:lists/sort])]
+    [:button.btn
+     {:on-click #(dispatch [:lists/toggle-sort column])}
+     [icon "sort" nil [(when (= column (:column active-sort))
+                         (case (:order active-sort)
+                           :asc "active-asc-sort"
+                           :desc "active-desc-sort"))]]]))
+
 (defn lists []
   (let [filtered-lists @(subscribe [:lists/filtered-lists])
         expanded-paths @(subscribe [:lists/expanded-paths])]
@@ -49,7 +58,7 @@
       [:div.lists-col
        [:div.list-header
         [:span (str "List details (" "All" ")")]
-        [:button.btn [icon "sort"]]
+        [sort-button :title]
         [:div.dropdown
          [:button.btn.dropdown-toggle
           {:data-toggle "dropdown"}
@@ -62,7 +71,7 @@
       [:div.lists-col
        [:div.list-header
         [:span "Date"]
-        [:button.btn [icon "sort"]]
+        [sort-button :timestamp]
         [:div.dropdown
          [:button.btn.dropdown-toggle
           {:data-toggle "dropdown"}
@@ -76,12 +85,12 @@
       [:div.lists-col
        [:div.list-header
         [:span "Type"]
-        [:button.btn [icon "sort"]]
+        [sort-button :type]
         [:button.btn [icon "selection"]]]]
       [:div.lists-col
        [:div.list-header
         [:span "Tags"]
-        [:button.btn [icon "sort"]]
+        [sort-button :tags]
         [:button.btn [icon "selection"]]]]
       [:div.lists-col]]
 
@@ -132,9 +141,8 @@
              type])]
 
          (into [:div.lists-col]
-               (for [tag tags
-                     ;; Hide internal tags.
-                     :when (not (str/includes? tag ":"))]
+               ;; Hide internal tags.
+               (for [tag (remove internal-tag? tags)]
                  [:code.tag tag]))
 
          [:div.lists-col.vertical-align-cell
