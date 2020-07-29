@@ -1,10 +1,8 @@
 (ns bluegenes.pages.lists.subs
   (:require [re-frame.core :refer [reg-sub]]
             [bluegenes.pages.lists.utils :refer [normalize-lists internal-tag? folder?]]
-            [bluegenes.pages.lists.views :refer [parse-date-created]]
-            [clojure.string :as str]
-            [cljs-time.core :as time]
-            [cljs-time.coerce :as time-coerce]))
+            [clojure.string :as str])
+  (:import goog.date.Date))
 
 (reg-sub
  :lists/root
@@ -81,6 +79,7 @@
                            (every? #(str/includes? s %) keyws))))
        ;; The following function filters by matching all the different fields
        ;; belonging to a list. It's fancy, but sadly too slow for 50+ lists!
+       ;; Consider: If you remove dateCreated, it could be performant enough?
        #_(partial filter (fn [listm]
                            (let [all-text
                                  (str/lower-case
@@ -108,16 +107,12 @@
    ;; Filter by date.
    (if (nil? date)
      identity
-     (let [now (time/now)]
+     (let [now (.getTime (Date.))]
        (partial filter (case date
-                         :day   (comp #(time/after? % (time/minus now (time/days 1)))
-                                      time-coerce/from-string :dateCreated)
-                         :week  (comp #(time/after? % (time/minus now (time/weeks 1)))
-                                      time-coerce/from-string :dateCreated)
-                         :month (comp #(time/after? % (time/minus now (time/months 1)))
-                                      time-coerce/from-string :dateCreated)
-                         :year  (comp #(time/after? % (time/minus now (time/years 1)))
-                                       time-coerce/from-string :dateCreated)))))))
+                         :day   (comp #(> (+ % 8.64e+7) now) :timestamp)
+                         :week  (comp #(> (+ % 6.048e+8) now) :timestamp)
+                         :month (comp #(> (+ % 2.628e+9) now) :timestamp)
+                         :year  (comp #(> (+ % 3.154e+10) now) :timestamp)))))))
 
 (defn ->sortf
   "Create a sort function from the sort map in controls, to be passed to
