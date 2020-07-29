@@ -152,3 +152,15 @@
     (->filterf active-filters)
     (->sortf active-sort :folders-first? (= :folder (:lists active-filters)))
     {:by-id lists-by-id :expanded-paths expanded-paths})))
+
+(reg-sub
+ :lists/no-filtered-lists?
+ :<- [:lists/filtered-lists]
+ (fn [lists]
+   (empty? lists)))
+
+(reg-sub
+ :lists/no-lists?
+ :<- [:lists/by-id]
+ (fn [lists]
+   (empty? lists)))

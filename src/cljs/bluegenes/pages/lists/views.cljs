@@ -29,14 +29,15 @@
   [:div.controls
    [:button.btn.btn-raised
     {:disabled true}
-    "New folder" [icon "new-folder"]]
-   [:button.btn.btn-raised
     "Combine lists" [icon "venn-combine"]]
    [:button.btn.btn-raised
+    {:disabled true}
     "Intersect lists" [icon "venn-intersection"]]
    [:button.btn.btn-raised
+    {:disabled true}
     "Exclude lists" [icon "venn-disjunction"]]
    [:button.btn.btn-raised
+    {:disabled true}
     "Subtract lists" [icon "venn-difference"]]])
 
 (def list-time-formatter (time-format/formatter "dd MMM, Y"))
@@ -72,7 +73,7 @@
 (defn list-row [item]
   (let [{:keys [id title size authorized description dateCreated type tags
                 path is-last]} item
-        expanded-paths  @(subscribe [:lists/expanded-paths])
+        expanded-paths @(subscribe [:lists/expanded-paths])
         is-folder (folder? item)
         is-expanded (and is-folder (contains? expanded-paths path))]
     [:div.lists-row.lists-item
@@ -101,7 +102,7 @@
        [:p.list-title title]
        [:span.list-size (str "[" size "]")]
        (if authorized
-         [icon "user-circle"]
+         [icon "user-circle" nil ["authorized"]]
          [icon "globe"])]
       [:p.list-description description]]
 
@@ -192,8 +193,22 @@
        ^{:key id}
        [list-row item])]))
 
+(defn no-lists []
+  (let [no-lists? @(subscribe [:lists/no-lists?])
+        no-filtered-lists? @(subscribe [:lists/no-filtered-lists?])
+        is-empty (or no-lists? no-filtered-lists?)
+        mine-name @(subscribe [:current-mine-human-name])]
+    (when is-empty
+      [:div.no-lists
+       (cond
+         no-lists? [:h3 (str mine-name " has no public lists available")]
+         no-filtered-lists? [:h3 "No list matches active filters"])
+       [:hr]
+       [:p "You may have lists saved to your account. Login to access them."]])))
+
 (defn main []
   [:div.container-fluid.lists
    [filter-lists]
    [controls]
-   [lists]])
+   [lists]
+   [no-lists]])

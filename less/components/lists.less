@@ -194,6 +194,10 @@
 
                 .icon {
                     min-width: 1em;
+
+                    &.authorized {
+                        fill: #FFEE51;
+                    }
                 }
             }
 
@@ -257,5 +261,16 @@
                 }
             }
         }
+    }
+
+    .no-lists {
+        font-size: 1.5em;
+        display: flex;
+        flex-direction: column;
+        text-align: center;
+        background-color: @content-color-background;
+        border: 1px solid @visible-gray;
+        border-top: none;
+        padding: @spacer*2 @spacer*2 @spacer*4 @spacer*2;
     }
 }
