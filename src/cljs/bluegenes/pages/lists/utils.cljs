@@ -79,8 +79,8 @@
             id->list
             folder-paths)))
 
-(defn folder? [{:keys [path] :as _folderm}]
-  (some? (not-empty path)))
+(defn folder? [folderm]
+  (contains? folderm :path))
 
 (defn reduce-folders
   "Walk through `items` adding children after folders that are expanded and

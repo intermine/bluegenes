@@ -1,21 +1,29 @@
 (ns bluegenes.pages.lists.views
   (:require [re-frame.core :refer [subscribe dispatch]]
-            [clojure.string :as str]
+            [reagent.core :as r]
             [bluegenes.components.icons :refer [icon]]
             [bluegenes.pages.lists.utils :refer [folder? internal-tag?]]
             [cljs-time.format :as time-format]
             [cljs-time.coerce :as time-coerce]
-            [oops.core :refer [oget]]))
+            [oops.core :refer [oget]]
+            [goog.functions :refer [debounce]]))
 
 (defn filter-lists []
-  [:div.filter-lists
-   [:h2 "Filter lists"]
-   [:div.filter-input
-    [:input {:type "text"
-             :placeholder "Search for keywords"
-             :on-change #(dispatch [:lists/set-keywords-filter (oget % :target :value)])
-             :value @(subscribe [:lists/keywords-filter])}]
-    [icon "search"]]])
+  (let [input (r/atom @(subscribe [:lists/keywords-filter]))
+        debounced (debounce #(dispatch [:lists/set-keywords-filter %]) 500)
+        on-change (fn [e]
+                    (let [value (oget e :target :value)]
+                      (reset! input value)
+                      (debounced value)))]
+    (fn []
+      [:div.filter-lists
+       [:h2 "Filter lists"]
+       [:div.filter-input
+        [:input {:type "text"
+                 :placeholder "Search for keywords"
+                 :on-change on-change
+                 :value @input}]
+        [icon "search"]]])))
 
 (defn controls []
   [:div.controls
@@ -61,10 +69,75 @@
               [:a {:on-click #(dispatch [:lists/set-filter filter-name value])}
                label]]))]))
 
+(defn list-row [item]
+  (let [{:keys [id title size authorized description dateCreated type tags
+                path is-last]} item
+        expanded-paths  @(subscribe [:lists/expanded-paths])
+        is-folder (folder? item)
+        is-expanded (and is-folder (contains? expanded-paths path))]
+    [:div.lists-row.lists-item
+     (when (or is-expanded is-last)
+       {:style {:borderBottomWidth 4}})
+
+     (if is-folder
+       [:div.lists-col
+        [:div.list-actions
+         (if is-expanded
+           [:button.btn
+            {:on-click #(dispatch [:lists/collapse-path path])}
+            [icon "collapse-folder"]]
+           [:button.btn
+            {:on-click #(dispatch [:lists/expand-path path])}
+            [icon "expand-folder"]])
+         (if is-expanded
+           [icon "folder-open-item" nil ["list-icon"]]
+           [icon "folder-item" nil ["list-icon"]])]]
+       [:div.lists-col
+        [:input {:type "checkbox"}]
+        [icon "list-item" nil ["list-icon"]]])
+
+     [:div.lists-col
+      [:div.list-detail
+       [:p.list-title title]
+       [:span.list-size (str "[" size "]")]
+       (if authorized
+         [icon "user-circle"]
+         [icon "globe"])]
+      [:p.list-description description]]
+
+     [:div.lists-col
+      (parse-date-created dateCreated)]
+
+     [:div.lists-col
+      (when-not is-folder
+        [:code.start {:class (str "start-" type)}
+         type])]
+
+     (into [:div.lists-col]
+           ;; Hide internal tags.
+           (for [tag (remove internal-tag? tags)]
+             [:code.tag tag]))
+
+     [:div.lists-col.vertical-align-cell
+      [:div.list-controls.hidden-lg
+       [:div.dropdown
+        [:button.btn.dropdown-toggle
+         {:data-toggle "dropdown"}
+         [icon "list-more"]]
+        [:ul.dropdown-menu.dropdown-menu-right
+         [:li [:a "Copy"]]
+         [:li [:a "Edit"]]
+         [:li [:a "Delete"]]]]]
+      [:div.list-controls.hidden-xs.hidden-sm.hidden-md
+       [:button.btn [icon "list-copy"]]
+       [:button.btn [icon "list-edit"]]
+       [:button.btn [icon "list-delete"]]]]]))
+
 (defn lists []
   (let [filtered-lists  @(subscribe [:lists/filtered-lists])
-        expanded-paths  @(subscribe [:lists/expanded-paths])
-        lists-selection @(subscribe [:lists/filter :lists])]
+        lists-selection @(subscribe [:lists/filter :lists])
+        all-types @(subscribe [:lists/all-types])
+        all-tags @(subscribe [:lists/all-tags])]
     [:section.lists-table
 
      [:header.lists-row.lists-headers
@@ -101,79 +174,23 @@
        [:div.list-header
         [:span "Type"]
         [sort-button :type]
-        [:button.btn [icon "selection"]]]]
+        [selection-button
+         :type
+         (cons {:label "All" :value nil}
+               (map (fn [type] {:label type :value type}) all-types))]]]
       [:div.lists-col
        [:div.list-header
         [:span "Tags"]
         [sort-button :tags]
-        [:button.btn [icon "selection"]]]]
+        [selection-button
+         :tags
+         (cons {:label "All" :value nil}
+               (map (fn [tag] {:label tag :value tag}) all-tags))]]]
       [:div.lists-col]]
 
-     (doall
-      (for [{:keys [id title size authorized description dateCreated type tags
-                    path is-last]
-             :as item}
-            filtered-lists
-            :let [is-folder (folder? item)
-                  is-expanded (and is-folder (contains? expanded-paths path))]]
-        ^{:key id}
-        [:div.lists-row.lists-item
-         (when (or is-expanded is-last)
-           {:style {:borderBottomWidth 4}})
-
-         (if is-folder
-           [:div.lists-col
-            [:div.list-actions
-             (if is-expanded
-               [:button.btn
-                {:on-click #(dispatch [:lists/collapse-path path])}
-                [icon "collapse-folder"]]
-               [:button.btn
-                {:on-click #(dispatch [:lists/expand-path path])}
-                [icon "expand-folder"]])
-             (if is-expanded
-               [icon "folder-open-item" nil ["list-icon"]]
-               [icon "folder-item" nil ["list-icon"]])]]
-           [:div.lists-col
-            [:input {:type "checkbox"}]
-            [icon "list-item" nil ["list-icon"]]])
-
-         [:div.lists-col
-          [:div.list-detail
-           [:p.list-title title]
-           [:span.list-size (str "[" size "]")]
-           (if authorized
-             [icon "user-circle"]
-             [icon "globe"])]
-          [:p.list-description description]]
-
-         [:div.lists-col
-          (parse-date-created dateCreated)]
-
-         [:div.lists-col
-          (when-not is-folder
-            [:code.start {:class (str "start-" type)}
-             type])]
-
-         (into [:div.lists-col]
-               ;; Hide internal tags.
-               (for [tag (remove internal-tag? tags)]
-                 [:code.tag tag]))
-
-         [:div.lists-col.vertical-align-cell
-          [:div.list-controls.hidden-lg
-           [:div.dropdown
-            [:button.btn.dropdown-toggle
-             {:data-toggle "dropdown"}
-             [icon "list-more"]]
-            [:ul.dropdown-menu.dropdown-menu-right
-             [:li [:a "Copy"]]
-             [:li [:a "Edit"]]
-             [:li [:a "Delete"]]]]]
-          [:div.list-controls.hidden-xs.hidden-sm.hidden-md
-           [:button.btn [icon "list-copy"]]
-           [:button.btn [icon "list-edit"]]
-           [:button.btn [icon "list-delete"]]]]]))]))
+     (for [{:keys [id] :as item} filtered-lists]
+       ^{:key id}
+       [list-row item])]))
 
 (defn main []
   [:div.container-fluid.lists

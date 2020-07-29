@@ -18,6 +18,18 @@
    (:by-id root)))
 
 (reg-sub
+ :lists/all-tags
+ :<- [:lists/root]
+ (fn [root]
+   (:all-tags root)))
+
+(reg-sub
+ :lists/all-types
+ :<- [:lists/root]
+ (fn [root]
+   (:all-types root)))
+
+(reg-sub
  :lists/expanded-paths
  :<- [:lists/root]
  (fn [root]
@@ -57,24 +69,37 @@
   "Create a filter function from the filters map in controls, to be passed to
   `normalize-lists`. Remember that comp's arguments are run in reverse order!
   Will only be passed list maps, and not folders."
-  [{:keys [keywords lists date] :as _filterm}]
+  [{:keys [keywords lists date type tags] :as _filterm}]
   (comp
    ;; Keyword filter should be done last.
    (if (empty? keywords)
      identity
      (let [keyws (map str/lower-case (-> keywords str/trim (str/split #"\s+")))]
-       (partial filter (fn [listm]
-                         (let [all-text
-                               (str/join
-                                " "
-                                ((juxt :title :size :description
-                                       (comp #(parse-date-created % true) :dateCreated)
-                                       :type (comp #(str/join " " %) :tags))
-                                 listm))]
-                           (if-let [s (-> all-text str/lower-case not-empty)]
-                             (every? #(str/includes? s %) keyws)
-                             false))))))
-   ;; Filter by type of list.
+       (partial filter (fn [{:keys [title description]}]
+                         (let [s (-> (str title " " description)
+                                     (str/lower-case))]
+                           (every? #(str/includes? s %) keyws))))
+       ;; The following function filters by matching all the different fields
+       ;; belonging to a list. It's fancy, but sadly too slow for 50+ lists!
+       #_(partial filter (fn [listm]
+                           (let [all-text
+                                 (str/lower-case
+                                  (str/join
+                                   " "
+                                   ((juxt :title :size :description
+                                          (comp #(parse-date-created % true) :dateCreated)
+                                          :type (comp #(str/join " " %) :tags))
+                                    listm)))]
+                             (every? #(str/includes? all-text %) keyws))))))
+   ;; Filter by tag.
+   (if (nil? tags)
+     identity
+     (partial filter (comp #(contains? % tags) set :tags)))
+   ;; Filter by type.
+   (if (nil? type)
+     identity
+     (partial filter (comp #{type} :type)))
+   ;; Filter by details.
    (if (or (nil? lists) (= lists :folder)) ; Folders first handled in `->sortf`.
      identity
      (partial filter (case lists
