@@ -120,6 +120,7 @@
     (reduce-folders
      expanded-paths
      (partial expand-folders filterf sortf denormalized)
+     #_(take 20) ;; TODO implement pagination
      (sortf
       (concat (filterf (filter top-level-list? top-level-maps))
               (filter top-level-folder? top-level-maps)))

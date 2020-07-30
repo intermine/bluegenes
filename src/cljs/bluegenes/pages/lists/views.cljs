@@ -42,11 +42,10 @@
       "Subtract lists" [icon "venn-difference"]]]))
 
 (def list-time-formatter (time-format/formatter "dd MMM, Y"))
-(def list-time-formatter-full (time-format/formatter "dd MMMM, Y"))
 
-(defn parse-date-created [dateCreated & [full-month?]]
-  (time-format/unparse (if full-month? list-time-formatter-full list-time-formatter)
-                       (time-coerce/from-string dateCreated)))
+(defn pretty-time [timestamp]
+  (time-format/unparse list-time-formatter
+                       (time-coerce/from-long timestamp)))
 
 (defn sort-button [column]
   (let [active-sort @(subscribe [:lists/sort])]
@@ -72,7 +71,7 @@
                label]]))]))
 
 (defn list-row [item]
-  (let [{:keys [id title size authorized description dateCreated type tags
+  (let [{:keys [id title size authorized description timestamp type tags
                 path is-last]} item
         expanded-paths @(subscribe [:lists/expanded-paths])
         selected-lists @(subscribe [:lists/selected-lists])
@@ -115,7 +114,7 @@
       [:p.list-description description]]
 
      [:div.lists-col
-      (parse-date-created dateCreated)]
+      (pretty-time timestamp)]
 
      [:div.lists-col
       (when-not is-folder

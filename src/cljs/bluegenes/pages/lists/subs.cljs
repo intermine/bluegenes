@@ -79,23 +79,21 @@
    (if (empty? keywords)
      identity
      (let [keyws (map str/lower-case (-> keywords str/trim (str/split #"\s+")))]
-       (partial filter (fn [{:keys [title description]}]
-                         (let [s (-> (str title " " description)
-                                     (str/lower-case))]
-                           (every? #(str/includes? s %) keyws))))
+       ;; Slightly faster; consider it if you wish to improve performance.
+       #_(partial filter (fn [{:keys [title description]}]
+                           (let [s (-> (str title " " description)
+                                       (str/lower-case))]
+                             (every? #(str/includes? s %) keyws))))
        ;; The following function filters by matching all the different fields
-       ;; belonging to a list. It's fancy, but sadly too slow for 50+ lists!
-       ;; Consider: If you remove dateCreated, it could be performant enough?
-       #_(partial filter (fn [listm]
-                           (let [all-text
-                                 (str/lower-case
-                                  (str/join
-                                   " "
-                                   ((juxt :title :size :description
-                                          (comp #(parse-date-created % true) :dateCreated)
-                                          :type (comp #(str/join " " %) :tags))
-                                    listm)))]
-                             (every? #(str/includes? all-text %) keyws))))))
+       ;; belonging to a list. Performance seems quite good even for 200 lists.
+       (partial filter (fn [listm]
+                         (let [all-text (->> listm
+                                             ((juxt :title :size :description :type
+                                                    ;; Note that internal tags aren't removed!
+                                                    (comp #(str/join " " %) :tags)))
+                                             (str/join " ")
+                                             (str/lower-case))]
+                           (every? #(str/includes? all-text %) keyws))))))
    ;; Filter by tag.
    (if (nil? tags)
      identity
