@@ -58,3 +58,15 @@
  (path root)
  (fn [lists [_ filter-name value]]
    (assoc-in lists [:controls :filters filter-name] value)))
+
+(reg-event-db
+ :lists/select-list
+ (path root)
+ (fn [lists [_ list-id]]
+   (update lists :selected-lists (fnil conj #{}) list-id)))
+
+(reg-event-db
+ :lists/deselect-list
+ (path root)
+ (fn [lists [_ list-id]]
+   (update lists :selected-lists (fnil disj #{}) list-id)))

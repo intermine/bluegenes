@@ -34,6 +34,12 @@
    (:expanded-paths root)))
 
 (reg-sub
+ :lists/selected-lists
+ :<- [:lists/root]
+ (fn [root]
+   (:selected-lists root)))
+
+(reg-sub
  :lists/controls
  :<- [:lists/root]
  (fn [root]

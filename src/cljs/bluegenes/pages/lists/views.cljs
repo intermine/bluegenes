@@ -26,19 +26,20 @@
         [icon "search"]]])))
 
 (defn controls []
-  [:div.controls
-   [:button.btn.btn-raised
-    {:disabled true}
-    "Combine lists" [icon "venn-combine"]]
-   [:button.btn.btn-raised
-    {:disabled true}
-    "Intersect lists" [icon "venn-intersection"]]
-   [:button.btn.btn-raised
-    {:disabled true}
-    "Exclude lists" [icon "venn-disjunction"]]
-   [:button.btn.btn-raised
-    {:disabled true}
-    "Subtract lists" [icon "venn-difference"]]])
+  (let [lists-selected? (> (count @(subscribe [:lists/selected-lists])) 1)]
+    [:div.controls
+     [:button.btn.btn-raised
+      {:disabled (not lists-selected?)}
+      "Combine lists" [icon "venn-combine"]]
+     [:button.btn.btn-raised
+      {:disabled (not lists-selected?)}
+      "Intersect lists" [icon "venn-intersection"]]
+     [:button.btn.btn-raised
+      {:disabled (not lists-selected?)}
+      "Exclude lists" [icon "venn-disjunction"]]
+     [:button.btn.btn-raised
+      {:disabled (not lists-selected?)}
+      "Subtract lists" [icon "venn-difference"]]]))
 
 (def list-time-formatter (time-format/formatter "dd MMM, Y"))
 (def list-time-formatter-full (time-format/formatter "dd MMMM, Y"))
@@ -74,8 +75,10 @@
   (let [{:keys [id title size authorized description dateCreated type tags
                 path is-last]} item
         expanded-paths @(subscribe [:lists/expanded-paths])
+        selected-lists @(subscribe [:lists/selected-lists])
         is-folder (folder? item)
-        is-expanded (and is-folder (contains? expanded-paths path))]
+        is-expanded (and is-folder (contains? expanded-paths path))
+        is-selected (contains? selected-lists id)]
     [:div.lists-row.lists-item
      (when (or is-expanded is-last)
        {:style {:borderBottomWidth 4}})
@@ -94,7 +97,12 @@
            [icon "folder-open-item" nil ["list-icon"]]
            [icon "folder-item" nil ["list-icon"]])]]
        [:div.lists-col
-        [:input {:type "checkbox"}]
+        [:input {:type "checkbox"
+                 :checked is-selected
+                 :on-change #(dispatch [(if (oget % :target :checked)
+                                          :lists/select-list
+                                          :lists/deselect-list)
+                                        id])}]
         [icon "list-item" nil ["list-icon"]]])
 
      [:div.lists-col
@@ -132,7 +140,10 @@
       [:div.list-controls.hidden-xs.hidden-sm.hidden-md
        [:button.btn [icon "list-copy"]]
        [:button.btn [icon "list-edit"]]
-       [:button.btn [icon "list-delete"]]]]]))
+       [:button.btn [icon "list-delete"]]]]
+
+     (when is-selected
+       [:div.selected-list-overlay])]))
 
 (defn lists []
   (let [filtered-lists  @(subscribe [:lists/filtered-lists])

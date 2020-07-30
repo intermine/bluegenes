@@ -149,6 +149,8 @@
         }
 
         .lists-item {
+            position: relative;
+            transform: scale(1); // Hack to allow relative positioning within table-row.
             line-break: anywhere;
             border-bottom: 1px solid @visible-gray;
 
@@ -259,6 +261,16 @@
                         fill: @danger-red;
                     }
                 }
+            }
+
+            .selected-list-overlay {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(31, 179, 251, 0.27);
+                pointer-events: none;
             }
         }
     }
