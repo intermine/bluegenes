@@ -660,6 +660,22 @@
        :clip-rule "evenodd",
        :fill-rule "evenodd"}]]
 
+    [:symbol#icon-remove-list
+     {:viewBox "0 0 60 60"}
+     [:circle
+      {:stroke-width "3",
+       :stroke "#DA2837",
+       :fill "white",
+       :r "28.5",
+       :cy "30",
+       :cx "30"}]
+     [:rect
+      {:fill "#DA2837",
+       :height "5",
+       :width "33.3333",
+       :y "27.5",
+       :x "13.333"}]]
+
     [:symbol#icon-eye
      {:viewBox "0 0 32 32"}
      [:path

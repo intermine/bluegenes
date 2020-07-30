@@ -356,10 +356,14 @@
 
 ; Fetch lists
 
-(reg-event-db
+(reg-event-fx
  :assets/success-fetch-lists
- (fn [db [_ mine-kw lists]]
-   (assoc-in db [:assets :lists mine-kw] lists)))
+ (fn [{db :db} [_ mine-kw lists]]
+   (merge
+    {:db (assoc-in db [:assets :lists mine-kw] lists)}
+    ;; Denormalize lists right-away if you're on the lists page.
+    (when (= :lists-panel (:active-panel db))
+      {:dispatch [:lists/initialize]}))))
 
 (reg-event-fx
  :assets/fetch-lists

@@ -15,6 +15,42 @@
     @icon-size: 1.5em;
     @wider-letter-spacing: 0.08em;
 
+    code.tag {
+        background-color: #DFE6ED;
+        color: #4B5C6B;
+        margin-right: @spacer/2;
+    }
+
+    code.start {
+        color: inherit;
+        background-color: @color-Nuffink;
+
+        // If only we had CSS-in-JS [;
+        // Actually, I do think if we want to do this well, (including
+        // the 3 other places this is used) we should use inline style.
+        &.start-Gene {
+            background-color: @color-Gene;
+            color: #fff;
+        }
+        &.start-Protein {
+            background-color: @color-Protein;
+        }
+        &.start-Author,
+        &.start-Publication {
+            background-color: @color-Publication;
+        }
+        &.start-Organism {
+            background-color: @color-Organism;
+        }
+        &.start-Interaction {
+            background-color: @color-Interaction;
+        }
+        &.start-GOTerm {
+            background-color: @color-GO;
+            color: #fff;
+        }
+    }
+
     .filter-lists {
         display: flex;
         align-items: center;
@@ -207,41 +243,6 @@
                 font-size: 0.8em;
             }
 
-            code.start {
-                color: inherit;
-                background-color: @color-Nuffink;
-
-                // If only we had CSS-in-JS [;
-                // Actually, I do think if we want to do this well, (including
-                // the 3 other places this is used) we should use inline style.
-                &.start-Gene {
-                    background-color: @color-Gene;
-                    color: #fff;
-                }
-                &.start-Protein {
-                    background-color: @color-Protein;
-                }
-                &.start-Author,
-                &.start-Publication {
-                    background-color: @color-Publication;
-                }
-                &.start-Organism {
-                    background-color: @color-Organism;
-                }
-                &.start-Interaction {
-                    background-color: @color-Interaction;
-                }
-                &.start-GOTerm {
-                    background-color: @color-GO;
-                    color: #fff;
-                }
-            }
-
-            code.tag {
-                background-color: #DFE6ED;
-                color: #4B5C6B;
-            }
-
             .list-controls {
                 display: flex;
 
@@ -284,5 +285,93 @@
         border: 1px solid @visible-gray;
         border-top: none;
         padding: @spacer*2 @spacer*2 @spacer*4 @spacer*2;
+    }
+
+    .fade.modal-backdrop {
+        pointer-events: none;
+
+        &.show {
+            opacity: 0.15;
+        }
+    }
+
+    .modal {
+        font-size: 1.2em;
+
+        pointer-events: none;
+
+        &.in {
+            pointer-events: auto;
+        }
+
+        // Vertically center the modal.
+        // Source: https://stackoverflow.com/questions/18422223/bootstrap-3-modal-vertical-position-center
+        text-align: center;
+        @media screen and (min-width: 768px) {
+            &:before {
+                display: inline-block;
+                vertical-align: middle;
+                content: " ";
+                height: 100%;
+            }
+        }
+        &-dialog {
+            display: inline-block;
+            text-align: left;
+            vertical-align: middle;
+        }
+
+        .modal-body {
+            th, label {
+                font-size: 0.8em;
+                font-weight: 300;
+                text-transform: uppercase;
+                color: #444;
+            }
+
+            p {
+                font-weight: bold;
+            }
+
+            .table {
+                button.btn {
+                    margin: 0;
+                    padding: 0;
+                }
+
+                .title {
+                    line-break: anywhere;
+                }
+            }
+
+            .list-title-tags {
+                display: flex;
+
+                .title-input-container {
+                    margin-right: @spacer;
+                    flex: 2 2 0px;
+
+                    input {
+                        // To match react-select component besides.
+                        height: 38px;
+                        font-size: 16px;
+                        font-weight: 400;
+                    }
+                }
+
+                & > * {
+                    flex: 1 1 0px;
+                }
+            }
+
+            .list-description {
+                margin-top: 0.7em;
+                margin-bottom: @spacer*2;
+
+                textarea {
+                    resize: vertical;
+                }
+            }
+        }
     }
 }

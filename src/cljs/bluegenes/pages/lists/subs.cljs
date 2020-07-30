@@ -168,3 +168,53 @@
  :<- [:lists/by-id]
  (fn [lists]
    (empty? lists)))
+
+(reg-sub
+ :lists/modal-root
+ :<- [:lists/root]
+ (fn [root]
+   (:modal root)))
+
+(reg-sub
+ :lists/active-modal
+ :<- [:lists/modal-root]
+ (fn [modal]
+   (:active modal)))
+
+;; If you have enough lists selected to perform a list operation.
+(reg-sub
+ :lists/selected-operation?
+ :<- [:lists/selected-lists]
+ (fn [lists]
+   (> (count lists) 1)))
+
+(reg-sub
+ :lists/selected-lists-details
+ :<- [:lists/by-id]
+ :<- [:lists/selected-lists]
+ (fn [[by-id selected-lists]]
+   (map by-id selected-lists)))
+
+(reg-sub
+ :lists-modal/new-list-tags
+ :<- [:lists/modal-root]
+ (fn [modal]
+   (:tags modal)))
+
+(reg-sub
+ :lists-modal/new-list-title
+ :<- [:lists/modal-root]
+ (fn [modal]
+   (:title modal)))
+
+(reg-sub
+ :lists-modal/new-list-description
+ :<- [:lists/modal-root]
+ (fn [modal]
+   (:description modal)))
+
+(reg-sub
+ :lists-modal/error
+ :<- [:lists/modal-root]
+ (fn [modal]
+   (:error modal)))

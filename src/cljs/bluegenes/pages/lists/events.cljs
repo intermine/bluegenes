@@ -1,10 +1,8 @@
 (ns bluegenes.pages.lists.events
   (:require [re-frame.core :refer [reg-event-db reg-event-fx]]
             [re-frame.std-interceptors :refer [path]]
-            [bluegenes.pages.lists.utils :refer [denormalize-lists path-prefix?]]))
-
-;; TODO make sure :lists/initialize is run when lists assets update
-;; - check if active-panel is lists page, then dispatch it
+            [bluegenes.pages.lists.utils :refer [denormalize-lists path-prefix?]]
+            [imcljs.save :as save]))
 
 (def root [:lists])
 
@@ -70,3 +68,85 @@
  (path root)
  (fn [lists [_ list-id]]
    (update lists :selected-lists (fnil disj #{}) list-id)))
+
+(reg-event-db
+ :lists/clear-selected
+ (path root)
+ (fn [lists [_]]
+   (assoc lists :selected-lists #{})))
+
+(reg-event-db
+ :lists/open-modal
+ (path root)
+ (fn [lists [_ modal-kw]]
+   (assoc-in lists [:modal :active] modal-kw)))
+
+(reg-event-db
+ :lists/close-modal
+ (path root)
+ (fn [lists [_]]
+   (dissoc lists :modal)))
+
+(reg-event-db
+ :lists-modal/set-new-list-tags
+ (path root)
+ (fn [lists [_ tags]]
+   (assoc-in lists [:modal :tags] tags)))
+
+(reg-event-db
+ :lists-modal/set-new-list-title
+ (path root)
+ (fn [lists [_ title]]
+   (assoc-in lists [:modal :title] title)))
+
+(reg-event-db
+ :lists-modal/set-new-list-description
+ (path root)
+ (fn [lists [_ description]]
+   (assoc-in lists [:modal :description] description)))
+
+(def list-operation->im-req
+  {:combine save/im-list-union
+   :intersect save/im-list-intersect
+   :difference save/im-list-difference
+   :subtract save/im-list-subtraction})
+
+;; TODO handle `:subtract` which requires two sets of source lists
+(reg-event-fx
+ :lists/set-operation
+ (fn [{db :db} [_ list-operation]]
+   (let [service (get-in db [:mines (:current-mine db) :service])
+         im-req (list-operation->im-req list-operation)
+         {:keys [by-id selected-lists]
+          {:keys [title tags description]} :modal} (:lists db)
+         source-lists (->> selected-lists (map by-id) (map :name))]
+     (if (and im-req
+              (> (count source-lists) 1)
+              (not-empty title))
+       {:im-chan {:chan (im-req service title source-lists
+                                {:description description :tags tags})
+                  :on-success [:lists/set-operation-success]
+                  :on-failure [:lists/set-operation-failure title]}
+        :db (assoc-in db [:lists :modal :error] nil)}
+       {:db (assoc-in db [:lists :modal :error]
+                      (cond
+                        (nil? im-req) (str "Invalid list operation: " list-operation)
+                        (empty? title) "You need to specify a title for the new list"
+                        :else "Something went wrong"))}))))
+
+(reg-event-fx
+ :lists/set-operation-success
+ (fn [{db :db} [_ res]]
+   {:dispatch-n [[:lists/close-modal]
+                 [:lists/clear-selected]
+                 [:assets/fetch-lists]]}))
+
+(reg-event-fx
+ :lists/set-operation-failure
+ (fn [{db :db} [_ list-name res]]
+   {:dispatch [:messages/add
+               {:markup [:span "Failed to create list " [:em list-name]
+                         (when-let [error (:error res)]
+                           (str ": " error))]
+                :style "error"}]
+    :log-error ["List set operation failure" res]}))
