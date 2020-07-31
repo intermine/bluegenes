@@ -1,7 +1,7 @@
 (ns bluegenes.pages.lists.events
   (:require [re-frame.core :refer [reg-event-db reg-event-fx]]
             [re-frame.std-interceptors :refer [path]]
-            [bluegenes.pages.lists.utils :refer [denormalize-lists path-prefix?]]
+            [bluegenes.pages.lists.utils :refer [denormalize-lists path-prefix? internal-tag? split-path]]
             [imcljs.save :as save]))
 
 (def root [:lists])
@@ -11,11 +11,14 @@
 (reg-event-db
  :lists/initialize
  (fn [db]
-   (let [all-lists (get-in db [:assets :lists (:current-mine db)])]
+   (let [all-lists (get-in db [:assets :lists (:current-mine db)])
+         all-tags (->> all-lists (mapcat :tags) distinct)]
      (update-in db root assoc
                 :by-id (denormalize-lists all-lists)
-                :all-tags (->> all-lists (mapcat :tags) distinct (remove path-prefix?) sort)
-                :all-types (->> all-lists (map :type) distinct sort)))))
+                :all-tags (->> all-tags (remove internal-tag?) sort)
+                :all-types (->> all-lists (map :type) distinct sort)
+                :all-paths (->> (filter path-prefix? all-tags)
+                                (map (comp #(subvec % 1) split-path)))))))
 
 (reg-event-db
  :lists/expand-path
@@ -86,6 +89,7 @@
  (path root)
  (fn [lists [_ modal-kw]]
    (if (= modal-kw :subtract)
+     ;; Subtract modal needs some prepared data.
      (let [selected-lists (vec (:selected-lists lists))]
        (update lists :modal assoc
                :active modal-kw
@@ -132,6 +136,18 @@
    (-> lists
        (update-in [:modal :keep-lists] conj id)
        (update-in [:modal :subtract-lists] (partial filterv #(not= id %))))))
+
+(reg-event-db
+ :lists-modal/nest-folder
+ (path root)
+ (fn [lists [_ new-folder]]
+   (update-in lists [:modal :folder-path] (fnil conj []) new-folder)))
+
+(reg-event-db
+ :lists-modal/denest-folder
+ (path root)
+ (fn [lists [_]]
+   (update-in lists [:modal :folder-path] pop)))
 
 (def list-operation->im-req
   {:combine save/im-list-union

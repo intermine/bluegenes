@@ -7,7 +7,8 @@
             [cljs-time.coerce :as time-coerce]
             [oops.core :refer [oget]]
             [goog.functions :refer [debounce]]
-            [bluegenes.components.select-tags :as select-tags]))
+            [bluegenes.components.select-tags :as select-tags]
+            [clojure.string :as str]))
 
 (defn filter-lists []
   (let [input (r/atom @(subscribe [:lists/keywords-filter]))
@@ -58,10 +59,13 @@
          "Deselect all"]]
        [:div
         [:button.btn.btn-raised.btn-info
+         {:on-click #(dispatch [:lists/open-modal :move])}
          "Move all" [icon "new-folder"]]
         [:button.btn.btn-raised.btn-info
+         {:on-click #(dispatch [:lists/open-modal :copy])}
          "Copy all" [icon "list-copy"]]
         [:button.btn.btn-raised.btn-danger
+         {:on-click #(dispatch [:lists/open-modal :delete])}
          "Delete all" [icon "list-delete"]]]])))
 
 (def list-time-formatter (time-format/formatter "dd MMM, Y"))
@@ -265,12 +269,126 @@
         :on-click #(dispatch [:lists/deselect-list id])}
        [icon "remove-list" 2]]]]))
 
-(defn modal []
-  (let [active-modal @(subscribe [:lists/active-modal])
-        all-tags @(subscribe [:lists/all-tags])
+(defn modal-table [items & [subtract-operation]]
+  [:table.table.table-hover
+   [:thead
+    [:tr
+     [:th "Title"]
+     [:th "Date"]
+     [:th "Type"]
+     [:th "Tags"]
+     [:th]]] ; Empty header for row buttons.
+   [:tbody
+    (for [{:keys [id] :as item} items]
+      ^{:key id}
+      [modal-list-row item subtract-operation])]])
+
+(defn modal-new-list []
+  (let [all-tags @(subscribe [:lists/all-tags])
         new-list-title @(subscribe [:lists-modal/new-list-title])
         new-list-tags @(subscribe [:lists-modal/new-list-tags])
-        new-list-description @(subscribe [:lists-modal/new-list-description])
+        new-list-description @(subscribe [:lists-modal/new-list-description])]
+    [:<>
+     [:p "New list"]
+     [:div.list-title-tags
+      [:div.title-input-container
+       [:label {:for "modal-new-list-title"}
+        "Title"]
+       [:input.form-control
+        {:type "text"
+         :id "modal-new-list-title"
+         :on-change #(dispatch [:lists-modal/set-new-list-title
+                                (oget % :target :value)])
+         :value new-list-title}]]
+      [:div
+       [:label {:for "modal-new-list-tags"}
+        "Tags (optional)"]
+       [select-tags/main
+        :id "modal-new-list-tags"
+        :on-change #(dispatch [:lists-modal/set-new-list-tags %])
+        :value new-list-tags
+        :options all-tags]]]
+     [:div.list-description
+      [:label {:for "modal-new-list-description"}
+       "Description (optional)"]
+      [:textarea.form-control
+       {:id "modal-new-list-description"
+        :rows 2
+        :on-change #(dispatch [:lists-modal/set-new-list-description
+                               (oget % :target :value)])
+        :value new-list-description}]]]))
+
+(defn modal-set-operation []
+  (let [active-modal @(subscribe [:lists/active-modal])]
+    [:<>
+     (case active-modal
+       (:combine :intersect :difference)
+       [:div
+        (case active-modal
+          :combine [:p "The new list will contain " [:em "all items"] " from the following lists"]
+          :intersect [:p "The new list will contain only " [:em "items common"] " to all the following lists"]
+          :difference [:p "The new list will contain only " [:em "items unique"] " to each of the following lists"])
+        [modal-table @(subscribe [:lists/selected-lists-details])]]
+
+       (:subtract)
+       [:div.subtract-container
+        [:p "The new list will contain items from these lists"]
+        [:div.table-container
+         [modal-table @(subscribe [:lists-modal/keep-lists-details]) :down]]
+        [:p "that are not present in these lists"]
+        [:div.table-container
+         [modal-table @(subscribe [:lists-modal/subtract-lists-details]) :up]]])
+
+     [modal-new-list]]))
+
+(defn valid-folder?
+  "Whether a folder name is valid. Full stops are technically permitted but we
+  use them for nesting."
+  [s]
+  (re-matches #"[A-Za-z0-9 \-:]+" s))
+
+(def invalid-folder-message
+  "Folder names may only contain letters, numbers, spaces, hyphens and colons.")
+
+(defn modal-select-folder []
+  (let [folder-path @(subscribe [:lists-modal/folder-path])
+        folder-suggestions @(subscribe [:lists-modal/folder-suggestions])]
+    [:div.select-folder
+     [icon "modal-folder" 2]
+     [:span.folder-path (str/join " / " (conj folder-path ""))]
+     [:> js/Select.Creatable
+      {:className "folder-selector"
+       :placeholder "Choose folder"
+       :isValidNewOption #(valid-folder? %1)
+       :formatCreateLabel #(str "Create new \"" % "\" folder")
+       :noOptionsMessage #(if ((some-fn empty? valid-folder?) (oget % :inputValue))
+                            "No existing folders"
+                            invalid-folder-message)
+       :onChange #(dispatch [:lists-modal/nest-folder (oget % :value)])
+       :value nil ; Required or else it will keep its own state.
+       :options (map (fn [v] {:value v :label v}) folder-suggestions)}]
+     [:button.btn.button-folder-up
+      {:disabled (empty? folder-path)
+       :on-click #(dispatch [:lists-modal/denest-folder])}
+      [icon "modal-folder-up" nil ["folder-up"]]]]))
+
+(defn modal-other-operation []
+  (let [active-modal @(subscribe [:lists/active-modal])]
+    [:<>
+     (case active-modal
+       :delete
+       [modal-table @(subscribe [:lists/selected-lists-details])]
+       :edit
+       "TODO"
+       (:copy :move)
+       [:div
+        [:div.table-container
+         [modal-table @(subscribe [:lists/selected-lists-details])]]
+        [:p "Move lists to"]
+        [modal-select-folder]])]))
+
+(defn modal []
+  (let [active-modal @(subscribe [:lists/active-modal])
         error-message @(subscribe [:lists-modal/error])]
     [:<>
      [:div.fade.modal-backdrop
@@ -293,90 +411,19 @@
             :intersect "Intersect lists"
             :difference "Difference lists"
             :subtract "Subtract lists"
+            :delete "Delete list(s)"
+            :edit "Edit list"
+            :copy "Copy list(s)"
+            :move "Move list(s)"
             nil)]]
 
         [:div.modal-body
          (case active-modal
-           (:combine :intersect :difference)
-           [:div
-            (case active-modal
-              :combine [:p "The new list will contain " [:em "all items"] " from the following lists"]
-              :intersect [:p "The new list will contain only " [:em "items common"] " to all the following lists"]
-              :difference [:p "The new list will contain only " [:em "items unique"] " to each of the following lists"])
-            [:table.table.table-hover
-             [:thead
-              [:tr
-               [:th "Title"]
-               [:th "Date"]
-               [:th "Type"]
-               [:th "Tags"]
-               [:th]]]
-             [:tbody
-              (for [{:keys [id] :as item} @(subscribe [:lists/selected-lists-details])]
-                ^{:key id}
-                [modal-list-row item])]]]
-
-           (:subtract)
-           [:div.subtract-container
-            [:p "The new list will contain items from these lists"]
-            [:div.table-container
-             [:table.table.table-hover
-              [:thead
-               [:tr
-                [:th "Title"]
-                [:th "Date"]
-                [:th "Type"]
-                [:th "Tags"]
-                [:th]]]
-              [:tbody
-               (for [{:keys [id] :as item} @(subscribe [:lists-modal/keep-lists-details])]
-                 ^{:key id}
-                 [modal-list-row item :down])]]]
-            [:p "that are not present in these lists"]
-            [:div.table-container
-             [:table.table.table-hover
-              [:thead
-               [:tr
-                [:th "Title"]
-                [:th "Date"]
-                [:th "Type"]
-                [:th "Tags"]
-                [:th]]]
-              [:tbody
-               (for [{:keys [id] :as item} @(subscribe [:lists-modal/subtract-lists-details])]
-                 ^{:key id}
-                 [modal-list-row item :up])]]]]
-
+           (:combine :intersect :difference :subtract)
+           [modal-set-operation]
+           (:delete :edit :copy :move)
+           [modal-other-operation]
            nil)
-
-         [:p "New list"]
-         [:div.list-title-tags
-          [:div.title-input-container
-           [:label {:for "modal-new-list-title"}
-            "Title"]
-           [:input.form-control
-            {:type "text"
-             :id "modal-new-list-title"
-             :on-change #(dispatch [:lists-modal/set-new-list-title
-                                    (oget % :target :value)])
-             :value new-list-title}]]
-          [:div
-           [:label {:for "modal-new-list-tags"}
-            "Tags (optional)"]
-           [select-tags/main
-            :id "modal-new-list-tags"
-            :on-change #(dispatch [:lists-modal/set-new-list-tags %])
-            :value new-list-tags
-            :options all-tags]]]
-         [:div.list-description
-          [:label {:for "modal-new-list-description"}
-           "Description (optional)"]
-          [:textarea.form-control
-           {:id "modal-new-list-description"
-            :rows 2
-            :on-change #(dispatch [:lists-modal/set-new-list-description
-                                   (oget % :target :value)])
-            :value new-list-description}]]
 
          (when (not-empty error-message)
            [:div.alert.alert-danger
@@ -391,7 +438,13 @@
           [:button.btn.btn-primary.btn-raised
            {:type "button"
             :on-click #(dispatch [:lists/set-operation active-modal])}
-           "Save new list"]]]]]]]))
+           (case active-modal
+             (:combine :intersect :difference :subtract) "Save new list"
+             :delete "Delete list(s)"
+             :edit "Save"
+             :copy "Copy list(s)"
+             :move "Move list(s)"
+             nil)]]]]]]]))
 
 (defn main []
   [:div.container-fluid.lists

@@ -28,6 +28,12 @@
    (:all-types root)))
 
 (reg-sub
+ :lists/all-paths
+ :<- [:lists/root]
+ (fn [root]
+   (:all-paths root)))
+
+(reg-sub
  :lists/expanded-paths
  :<- [:lists/root]
  (fn [root]
@@ -250,3 +256,27 @@
    (map by-id subtract-lists)))
 
 ;; END COMMENT
+
+;; Expect a vector of strings.
+(reg-sub
+ :lists-modal/folder-path
+ :<- [:lists/modal-root]
+ (fn [modal]
+   (:folder-path modal)))
+
+;; Each path is a vector of strings representing the folder name at that level
+;; of nesting. We can find suggestions by taking the existing paths that match
+;; at all levels until the length of folder-path, then grab the next folder.
+(reg-sub
+ :lists-modal/folder-suggestions
+ :<- [:lists/all-paths]
+ :<- [:lists-modal/folder-path]
+ (fn [[all-paths folder-path]]
+   (let [folder-count (count folder-path)]
+     (if (zero? folder-count)
+       (->> all-paths (map first) distinct)
+       (->> all-paths
+            (remove (comp #(<= % folder-count) count))
+            (filter (comp #(= % folder-path) #(subvec % 0 folder-count)))
+            (map #(nth % folder-count))
+            (distinct))))))
