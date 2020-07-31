@@ -277,6 +277,7 @@
    (gstyle/scrollIntoContainerView (gdom/getElement template-id) nil true)))
 
 ;; Nice resource for more easing functions: https://gist.github.com/gre/1650294
+;; Update: Looks like there are some easing functions in `goog.fx.easing`.
 (defn- ease-in-out-cubic [t]
   (if (< t 0.5)
     (* 4 t t t)

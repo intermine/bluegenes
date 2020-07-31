@@ -87,6 +87,14 @@
     .controls {
         display: flex;
 
+        background-color: @body-background-color;
+        border-bottom: 1px solid @visible-gray;
+
+        // Stick to top when scrolling past it.
+        position: sticky;
+        top: -10px;
+        z-index: 100;
+
         button.btn.btn-raised {
             flex-grow: 1;
             font-size: 1.5em;

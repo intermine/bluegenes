@@ -144,10 +144,9 @@
       [:div.list-controls.hidden-xs.hidden-sm.hidden-md
        [:button.btn [icon "list-copy"]]
        [:button.btn [icon "list-edit"]]
-       [:button.btn [icon "list-delete"]]]]
-
-     (when is-selected
-       [:div.selected-list-overlay])]))
+       [:button.btn [icon "list-delete"]]]
+      (when is-selected
+        [:div.selected-list-overlay])]]))
 
 (defn lists []
   (let [filtered-lists  @(subscribe [:lists/filtered-lists])
@@ -280,26 +279,24 @@
 
         [:div.modal-body
          (case active-modal
-           :combine [:p "The new list will contain " [:em "all items"] " from the following lists"]
-           :intersect [:p "The new list will contain only " [:em "items common"] " to all the following lists"]
-           :difference [:p "The new list will contain only " [:em "items unique"] " to each of the following lists"]
-           :subtract nil
-           nil)
-
-         (case active-modal
            (:combine :intersect :difference)
-           [:table.table.table-hover
-            [:thead
-             [:tr
-              [:th "Title"]
-              [:th "Date"]
-              [:th "Type"]
-              [:th "Tags"]
-              [:th]]]
-            [:tbody
-             (for [{:keys [id] :as item} @(subscribe [:lists/selected-lists-details])]
-               ^{:key id}
-               [modal-list-row item])]]
+           [:div
+            (case active-modal
+              :combine [:p "The new list will contain " [:em "all items"] " from the following lists"]
+              :intersect [:p "The new list will contain only " [:em "items common"] " to all the following lists"]
+              :difference [:p "The new list will contain only " [:em "items unique"] " to each of the following lists"])
+            [:table.table.table-hover
+             [:thead
+              [:tr
+               [:th "Title"]
+               [:th "Date"]
+               [:th "Type"]
+               [:th "Tags"]
+               [:th]]]
+             [:tbody
+              (for [{:keys [id] :as item} @(subscribe [:lists/selected-lists-details])]
+                ^{:key id}
+                [modal-list-row item])]]]
 
            (:subtract)
            [:div.subtract-container
