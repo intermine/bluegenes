@@ -84,7 +84,7 @@
         }
     }
 
-    .controls {
+    .top-controls {
         display: flex;
 
         background-color: @body-background-color;
@@ -118,6 +118,41 @@
             .icon {
                 font-size: @icon-size;
             }
+        }
+    }
+
+    .bottom-controls {
+        display: flex;
+        justify-content: space-between;
+
+        background-color: @dark-gray;
+
+        // Stick to bottom.
+        position: sticky;
+        bottom: 0;
+        z-index: 100;
+
+        .selected-indicator {
+            color: white;
+            font-size: 1.2em;
+            font-weight: 400;
+            margin-left: @spacer*2;
+            margin-right: @spacer*1.5;
+        }
+
+        button.btn {
+            fill: white;
+            padding: @spacer/2 @spacer*2;
+            margin: @spacer/2;
+
+            &.btn-info {
+                margin-right: 0;
+            }
+        }
+
+        & > div {
+            display: flex;
+            align-items: baseline;
         }
     }
 

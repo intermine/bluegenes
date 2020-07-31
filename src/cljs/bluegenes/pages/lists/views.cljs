@@ -26,9 +26,9 @@
                  :value @input}]
         [icon "search"]]])))
 
-(defn controls []
+(defn top-controls []
   (let [insufficient-selected (not @(subscribe [:lists/selected-operation?]))]
-    [:div.controls
+    [:div.top-controls
      [:button.btn.btn-raised
       {:disabled insufficient-selected
        :on-click #(dispatch [:lists/open-modal :combine])}
@@ -45,6 +45,24 @@
       {:disabled insufficient-selected
        :on-click #(dispatch [:lists/open-modal :subtract])}
       "Subtract lists" [icon "venn-difference"]]]))
+
+(defn bottom-controls []
+  (let [list-count (count @(subscribe [:lists/selected-lists]))]
+    (when (pos? list-count)
+      [:div.bottom-controls
+       [:div
+        [:span.selected-indicator
+         (str "Selected " list-count (cond-> " list" (> list-count 1) (str "s")))]
+        [:button.btn.btn-raised.btn-default
+         {:on-click #(dispatch [:lists/clear-selected])}
+         "Deselect all"]]
+       [:div
+        [:button.btn.btn-raised.btn-info
+         "Move all" [icon "new-folder"]]
+        [:button.btn.btn-raised.btn-info
+         "Copy all" [icon "list-copy"]]
+        [:button.btn.btn-raised.btn-danger
+         "Delete all" [icon "list-delete"]]]])))
 
 (def list-time-formatter (time-format/formatter "dd MMM, Y"))
 
@@ -378,7 +396,8 @@
 (defn main []
   [:div.container-fluid.lists
    [filter-lists]
-   [controls]
+   [top-controls]
    [lists]
    [no-lists]
+   [bottom-controls]
    [modal]])
