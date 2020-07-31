@@ -67,7 +67,13 @@
  :lists/deselect-list
  (path root)
  (fn [lists [_ list-id]]
-   (update lists :selected-lists (fnil disj #{}) list-id)))
+   (if (= :subtract (get-in lists [:modal :active]))
+     ;; We need to remove list-id from more places if subtract modal is active.
+     (-> lists
+         (update :selected-lists (fnil disj #{}) list-id)
+         (update-in [:modal :keep-lists] (partial filterv #(not= list-id %)))
+         (update-in [:modal :subtract-lists] (partial filterv #(not= list-id %))))
+     (update lists :selected-lists (fnil disj #{}) list-id))))
 
 (reg-event-db
  :lists/clear-selected
@@ -79,7 +85,13 @@
  :lists/open-modal
  (path root)
  (fn [lists [_ modal-kw]]
-   (assoc-in lists [:modal :active] modal-kw)))
+   (if (= modal-kw :subtract)
+     (let [selected-lists (vec (:selected-lists lists))]
+       (update lists :modal assoc
+               :active modal-kw
+               :keep-lists (pop selected-lists)
+               :subtract-lists (vector (peek selected-lists))))
+     (assoc-in lists [:modal :active] modal-kw))))
 
 (reg-event-db
  :lists/close-modal
@@ -105,34 +117,58 @@
  (fn [lists [_ description]]
    (assoc-in lists [:modal :description] description)))
 
+(reg-event-db
+ :lists-modal/subtract-list
+ (path root)
+ (fn [lists [_ id]]
+   (-> lists
+       (update-in [:modal :keep-lists] (partial filterv #(not= id %)))
+       (update-in [:modal :subtract-lists] conj id))))
+
+(reg-event-db
+ :lists-modal/keep-list
+ (path root)
+ (fn [lists [_ id]]
+   (-> lists
+       (update-in [:modal :keep-lists] conj id)
+       (update-in [:modal :subtract-lists] (partial filterv #(not= id %))))))
+
 (def list-operation->im-req
   {:combine save/im-list-union
    :intersect save/im-list-intersect
    :difference save/im-list-difference
    :subtract save/im-list-subtraction})
 
-;; TODO handle `:subtract` which requires two sets of source lists
 (reg-event-fx
  :lists/set-operation
  (fn [{db :db} [_ list-operation]]
    (let [service (get-in db [:mines (:current-mine db) :service])
          im-req (list-operation->im-req list-operation)
          {:keys [by-id selected-lists]
-          {:keys [title tags description]} :modal} (:lists db)
-         source-lists (->> selected-lists (map by-id) (map :name))]
-     (if (and im-req
-              (> (count source-lists) 1)
-              (not-empty title))
-       {:im-chan {:chan (im-req service title source-lists
-                                {:description description :tags tags})
+          {:keys [title tags description
+                  keep-lists subtract-lists]} :modal} (:lists db)
+         keep-lists     (->> keep-lists     (map by-id) (map :name))
+         subtract-lists (->> subtract-lists (map by-id) (map :name))
+         source-lists   (->> selected-lists (map by-id) (map :name))
+         subtract? (= list-operation :subtract)
+         enough-lists? (if subtract?
+                         (every? seq [keep-lists subtract-lists])
+                         (> (count source-lists) 1))
+         options {:description description :tags tags}]
+     (if (and im-req enough-lists? (not-empty title))
+       {:im-chan {:chan (if subtract?
+                          (im-req service title keep-lists subtract-lists options)
+                          (im-req service title source-lists options))
                   :on-success [:lists/set-operation-success]
                   :on-failure [:lists/set-operation-failure title]}
         :db (assoc-in db [:lists :modal :error] nil)}
        {:db (assoc-in db [:lists :modal :error]
                       (cond
-                        (nil? im-req) (str "Invalid list operation: " list-operation)
+                        (not im-req) (str "Invalid list operation: " list-operation)
+                        (and (not enough-lists?) subtract?) "You need at least 1 list in each set to perform a list subtraction"
+                        (not enough-lists?) "You need at least 2 lists to perform a list set operation"
                         (empty? title) "You need to specify a title for the new list"
-                        :else "Something went wrong"))}))))
+                        :else "Unexpected error"))}))))
 
 (reg-event-fx
  :lists/set-operation-success

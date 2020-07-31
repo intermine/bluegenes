@@ -1,18 +1,30 @@
 (ns bluegenes.components.icons)
 
-;;TO ADD AN SVG: i'd recommend icomoon. get the svg symbol
-;; definition of an icon from https://icomoon.io/app/
-;; then plug it into http://htmltohiccup.herokuapp.com/ to make
-;; it hiccup, THEN paste it in here. Top tip: if your icon
-;; doesn't work, check if it's viewBox or view-box (but not viewBox)
-;; lowercase b makes react grumpy.
-
-;;TO USE AN SVG INLINE, do it like so:
-;;[:svg.icon.icon-search [:use {:xlinkHref "#icon-search"}]]
-;;The definitions of icons are below ) use the part after # in the symbol
-;;tag as identifiers.
-;;OR just go the the developer section in the cog menu (top right)
-;; of bluegenes and copy/paste the code for your icon from there
+;; - Where can I find new icons?
+;; We use many icons from https://icomoon.io/app/
+;;
+;; - How do I add a new icon from SVG?
+;; Paste the SVG markup into http://htmltohiccup.herokuapp.com/ to convert it
+;; to hiccup, then paste that in here under a new `symbol` tag. You should
+;; clean it up by removing the `:svg` parent tag, and removing every attribute
+;; other than `viewBox`. Note that the hiccup returned will specify `viewbox`
+;; with lowercase b, which React doesn't like, so make sure to uppercase the b.
+;;
+;; - How do I use an icon?
+;; We recommend using the `icon` function for this.
+;;     [icon "intermine"]
+;; You can also use the element directly.
+;;     [:svg.icon.icon-intermine [:use {:xlinkHref "#icon-intermine"}]]
+;; Find the icon name by looking at the part after # in the symbol tag.
+;;
+;; - How do I dynamically color the content of an icon?
+;; You can achieve this by using CSS variables
+;;     {:fill "var(--my-color)"}
+;; and create a CSS selector that sets it.
+;;     .active-icon {
+;;         --my-color: pink;
+;;     }
+;; Finally, you just need to have React set the class.
 
 (defn icon
   "Render the icon `icon-name` enlarged `enlarge` times with a vector of
@@ -675,6 +687,34 @@
        :width "33.3333",
        :y "27.5",
        :x "13.333"}]]
+
+    [:symbol#icon-move-down-list
+     {:viewBox "0 0 36 36"}
+     [:circle
+      {:stroke-width "3",
+       :stroke "#DA2837",
+       :fill "white",
+       :r "16.5",
+       :cy "18",
+       :cx "18"}]
+     [:path
+      {:fill "#DA2837",
+       :d
+       "M24.12 13.9999L18 20.1065L11.88 13.9999L10 15.8799L18 23.8799L26 15.8799L24.12 13.9999Z"}]]
+
+    [:symbol#icon-move-up-list
+     {:viewBox "0 0 36 36"}
+     [:circle
+      {:stroke-width "3",
+       :stroke "#DA2837",
+       :fill "white",
+       :r "16.5",
+       :cy "18",
+       :cx "18"}]
+     [:path
+      {:fill "#DA2837",
+       :d
+       "M11.88 22.88L18 16.7733L24.12 22.88L26 21L18 13L10 21L11.88 22.88Z"}]]
 
     [:symbol#icon-eye
      {:viewBox "0 0 32 32"}

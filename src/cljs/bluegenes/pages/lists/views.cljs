@@ -221,7 +221,7 @@
        [:hr]
        [:p "You may have lists saved to your account. Login to access them."]])))
 
-(defn modal-list-row [item]
+(defn modal-list-row [item & [subtract-operation]]
   (let [{:keys [id title timestamp type tags]} item]
     [:tr
      [:td.title title]
@@ -233,6 +233,16 @@
            (for [tag (remove internal-tag? tags)]
              [:code.tag tag]))
      [:td
+      (case subtract-operation
+        :down [:button.btn.pull-right
+               {:type "button"
+                :on-click #(dispatch [:lists-modal/subtract-list id])}
+               [icon "move-down-list" 2]]
+        :up   [:button.btn.pull-right
+               {:type "button"
+                :on-click #(dispatch [:lists-modal/keep-list id])}
+               [icon "move-up-list" 2]]
+        nil)
       [:button.btn.pull-right
        {:type "button"
         :on-click #(dispatch [:lists/deselect-list id])}
@@ -240,8 +250,6 @@
 
 (defn modal []
   (let [active-modal @(subscribe [:lists/active-modal])
-        selected-lists @(subscribe [:lists/selected-lists-details])
-        insufficient-selected (not @(subscribe [:lists/selected-operation?]))
         all-tags @(subscribe [:lists/all-tags])
         new-list-title @(subscribe [:lists-modal/new-list-title])
         new-list-tags @(subscribe [:lists-modal/new-list-tags])
@@ -271,20 +279,60 @@
             nil)]]
 
         [:div.modal-body
-         [:p "The new list will contain all items from the following lists"]
+         (case active-modal
+           :combine [:p "The new list will contain " [:em "all items"] " from the following lists"]
+           :intersect [:p "The new list will contain only " [:em "items common"] " to all the following lists"]
+           :difference [:p "The new list will contain only " [:em "items unique"] " to each of the following lists"]
+           :subtract nil
+           nil)
 
-         [:table.table.table-hover
-          [:thead
-           [:tr
-            [:th "Title"]
-            [:th "Date"]
-            [:th "Type"]
-            [:th "Tags"]
-            [:th]]]
-          [:tbody
-           (for [{:keys [id] :as item} selected-lists]
-             ^{:key id}
-             [modal-list-row item])]]
+         (case active-modal
+           (:combine :intersect :difference)
+           [:table.table.table-hover
+            [:thead
+             [:tr
+              [:th "Title"]
+              [:th "Date"]
+              [:th "Type"]
+              [:th "Tags"]
+              [:th]]]
+            [:tbody
+             (for [{:keys [id] :as item} @(subscribe [:lists/selected-lists-details])]
+               ^{:key id}
+               [modal-list-row item])]]
+
+           (:subtract)
+           [:div.subtract-container
+            [:p "The new list will contain items from these lists"]
+            [:div.table-container
+             [:table.table.table-hover
+              [:thead
+               [:tr
+                [:th "Title"]
+                [:th "Date"]
+                [:th "Type"]
+                [:th "Tags"]
+                [:th]]]
+              [:tbody
+               (for [{:keys [id] :as item} @(subscribe [:lists-modal/keep-lists-details])]
+                 ^{:key id}
+                 [modal-list-row item :down])]]]
+            [:p "that are not present in these lists"]
+            [:div.table-container
+             [:table.table.table-hover
+              [:thead
+               [:tr
+                [:th "Title"]
+                [:th "Date"]
+                [:th "Type"]
+                [:th "Tags"]
+                [:th]]]
+              [:tbody
+               (for [{:keys [id] :as item} @(subscribe [:lists-modal/subtract-lists-details])]
+                 ^{:key id}
+                 [modal-list-row item :up])]]]]
+
+           nil)
 
          [:p "New list"]
          [:div.list-title-tags
@@ -327,7 +375,6 @@
            "Cancel"]
           [:button.btn.btn-primary.btn-raised
            {:type "button"
-            :disabled insufficient-selected
             :on-click #(dispatch [:lists/set-operation active-modal])}
            "Save new list"]]]]]]]))
 

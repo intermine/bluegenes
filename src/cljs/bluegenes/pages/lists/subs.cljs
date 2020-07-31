@@ -218,3 +218,35 @@
  :<- [:lists/modal-root]
  (fn [modal]
    (:error modal)))
+
+;; START COMMENT
+;; These are only used for the subtract operation modal.
+;; See `:lists/open-modal` event for where they are initialised.
+
+(reg-sub
+ :lists-modal/keep-lists
+ :<- [:lists/modal-root]
+ (fn [modal]
+   (:keep-lists modal)))
+
+(reg-sub
+ :lists-modal/subtract-lists
+ :<- [:lists/modal-root]
+ (fn [modal]
+   (:subtract-lists modal)))
+
+(reg-sub
+ :lists-modal/keep-lists-details
+ :<- [:lists/by-id]
+ :<- [:lists-modal/keep-lists]
+ (fn [[by-id keep-lists]]
+   (map by-id keep-lists)))
+
+(reg-sub
+ :lists-modal/subtract-lists-details
+ :<- [:lists/by-id]
+ :<- [:lists-modal/subtract-lists]
+ (fn [[by-id subtract-lists]]
+   (map by-id subtract-lists)))
+
+;; END COMMENT
