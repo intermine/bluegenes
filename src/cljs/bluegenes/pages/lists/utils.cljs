@@ -1,8 +1,6 @@
 (ns bluegenes.pages.lists.utils
   (:require [clojure.string :as str]))
 
-;; TODO should we implement folders on the backend?
-
 ;; TODO add docstrings and unit tests
 
 (def path-tag-prefix "bgpath")
@@ -53,14 +51,56 @@
   (require '[re-frame.core :refer [subscribe]])
   (def lists (:default @(subscribe [:lists]))))
 
-(defn child-of? [parent child]
+(defn nesting [path]
+  (count (re-seq #"\." path)))
+
+(defn descendant-of? [parent child]
   (str/starts-with? child (str parent ".")))
+
+(defn child-of? [parent child]
+  (and (descendant-of? parent child)
+       (= (nesting parent) (dec (nesting child)))))
+
+(comment
+  (child-of? "bgpath:foo.bar" "bgpath:foo.bar")
+  (child-of? "bgpath:foo.bar" "bgpath:foo.bar.baz")
+  (child-of? "bgpath:foo.bar" "bgpath:foo.bar.baz.boz")
+  (descendant-of? "bgpath:foo.bar" "bgpath:foo.bar.baz.boz")
+  (nesting "bgpath:foo.bar.baz"))
+
+(defn newest-descendant-list [path->lists path]
+  (->> path->lists
+       (filter (comp (some-fn (partial = path)
+                              (partial descendant-of? path))
+                     key))
+       (mapcat val)
+       (sort-by :timestamp >)
+       (first)))
+
+(defn ensure-subpaths
+  "If there are nested paths, where a higher level of nesting don't have lists,
+  that level won't be visible as a tag (e.g. `foo.bar` has lists but not `foo`).
+  This goes through all paths and add any subpaths that are missing."
+  [paths]
+  (distinct
+   (mapcat (fn [path]
+             (let [p (split-path path)]
+               (map (comp join-path #(subvec p 1 %))
+                    (range 2 (inc (count p))))))
+           paths)))
+
+(comment
+  (re-seq #"(bgpath:.+\.)+" "bgpath:foo.bar.baz")
+  (let [s (split-path "bgpath:foo.bar.baz")]
+    (map (comp join-path #(subvec s 1 %)) (range 2 (inc (count s)))))
+  (ensure-subpaths '("bgpath:foo.bar" "bgpath:bar.bar")))
 
 (defn denormalize-lists [lists]
   (let [id->list (zipmap (map :id lists) lists)
         folder-paths (->> (mapcat :tags lists)
-                          (set)
-                          (filter path-prefix?))
+                          (distinct)
+                          (filter path-prefix?)
+                          (ensure-subpaths))
         path->lists (->> (filter (complement top-level-list?) lists)
                          (group-by list->path))]
     (reduce (fn [id->list+folder path]
@@ -68,16 +108,16 @@
                     child-list-ids (map :id list-children)
                     child-paths (filter (partial child-of? path) folder-paths)
                     children (concat child-list-ids child-paths)
-                    newest-child-list (first (sort-by :timestamp > list-children))]
+                    {:keys [authorized dateCreated timestamp]}
+                    (newest-descendant-list path->lists path)]
                 (assoc id->list+folder path
                        {:id path
                         :path path ; Main way to identify a folder is the presence of this key.
                         :title (path-title path)
                         :size (count children)
-                        :authorized (:authorized newest-child-list)
-                        ;; TODO make date and timestamp recursive to nested folders
-                        :dateCreated (:dateCreated newest-child-list)
-                        :timestamp (:timestamp newest-child-list)
+                        :authorized authorized
+                        :dateCreated dateCreated
+                        :timestamp timestamp
                         :children children})))
             id->list
             folder-paths)))
