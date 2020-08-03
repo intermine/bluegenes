@@ -92,17 +92,20 @@
    (if (= modal-kw :subtract)
      ;; Subtract modal needs some prepared data.
      (let [selected-lists (vec (:selected-lists lists))]
-       (update lists :modal assoc
-               :active modal-kw
+       (assoc lists :modal
+              {:active modal-kw
+               :open? true
                :keep-lists (pop selected-lists)
-               :subtract-lists (vector (peek selected-lists))))
-     (assoc-in lists [:modal :active] modal-kw))))
+               :subtract-lists (vector (peek selected-lists))}))
+     (assoc lists :modal
+            {:active modal-kw
+             :open? true}))))
 
 (reg-event-db
  :lists/close-modal
  (path root)
  (fn [lists [_]]
-   (dissoc lists :modal)))
+   (assoc-in lists [:modal :open?] false)))
 
 (reg-event-db
  :lists-modal/set-new-list-tags

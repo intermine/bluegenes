@@ -187,6 +187,12 @@
  (fn [modal]
    (:active modal)))
 
+(reg-sub
+ :lists/modal-open?
+ :<- [:lists/modal-root]
+ (fn [modal]
+   (:open? modal)))
+
 ;; If you have enough lists selected to perform a list operation.
 (reg-sub
  :lists/selected-operation?

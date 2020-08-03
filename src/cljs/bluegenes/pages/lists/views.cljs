@@ -388,13 +388,14 @@
         [modal-select-folder]])]))
 
 (defn modal []
-  (let [active-modal @(subscribe [:lists/active-modal])
+  (let [modal-open? @(subscribe [:lists/modal-open?])
+        active-modal @(subscribe [:lists/active-modal])
         error-message @(subscribe [:lists-modal/error])]
     [:<>
      [:div.fade.modal-backdrop
-      {:class (when (some? active-modal) :show)}]
+      {:class (when modal-open? :show)}]
      [:div.modal.fade.show
-      {:class (when (some? active-modal) :in)
+      {:class (when modal-open? :in)
        :tab-index "-1"
        :role "dialog"}
       [:div.modal-dialog.modal-lg
