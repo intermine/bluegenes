@@ -16,6 +16,9 @@
 (defn split-path [path]
   (str/split path #"[\.:]"))
 
+(defn join-path [pathv]
+  (str path-tag-prefix ":" (str/join "." pathv)))
+
 (defn path-title [path]
   (last (split-path path)))
 

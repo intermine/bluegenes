@@ -437,7 +437,13 @@
            "Cancel"]
           [:button.btn.btn-primary.btn-raised
            {:type "button"
-            :on-click #(dispatch [:lists/set-operation active-modal])}
+            :on-click
+            (case active-modal
+              (:combine :intersect :difference :subtract)
+              #(dispatch [:lists/set-operation active-modal])
+              (:move)
+              #(dispatch [:lists/move-lists])
+              #())}
            (case active-modal
              (:combine :intersect :difference :subtract) "Save new list"
              :delete "Delete list(s)"

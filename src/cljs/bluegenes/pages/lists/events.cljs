@@ -1,8 +1,9 @@
 (ns bluegenes.pages.lists.events
   (:require [re-frame.core :refer [reg-event-db reg-event-fx]]
             [re-frame.std-interceptors :refer [path]]
-            [bluegenes.pages.lists.utils :refer [denormalize-lists path-prefix? internal-tag? split-path]]
-            [imcljs.save :as save]))
+            [bluegenes.pages.lists.utils :refer [denormalize-lists path-prefix? internal-tag? split-path join-path list->path]]
+            [imcljs.save :as save]
+            [clojure.set :as set]))
 
 (def root [:lists])
 
@@ -188,7 +189,7 @@
 
 (reg-event-fx
  :lists/set-operation-success
- (fn [{db :db} [_ res]]
+ (fn [{db :db} [_ res]] ; Note that `res` can be nil or a collection of responses.
    {:dispatch-n [[:lists/close-modal]
                  [:lists/clear-selected]
                  [:assets/fetch-lists]]}))
@@ -196,9 +197,51 @@
 (reg-event-fx
  :lists/set-operation-failure
  (fn [{db :db} [_ list-name res]]
-   {:dispatch [:messages/add
-               {:markup [:span "Failed to create list " [:em list-name]
-                         (when-let [error (:error res)]
-                           (str ": " error))]
-                :style "error"}]
+   {:db (assoc-in db [:lists :modal :error]
+                  (str "Failed to create list " list-name
+                       (when-let [error (:error res)]
+                         (str ": " error))))
     :log-error ["List set operation failure" res]}))
+
+(reg-event-fx
+ :lists/move-lists
+ (fn [{db :db} [_]]
+   (let [service (get-in db [:mines (:current-mine db) :service])
+         {:keys [by-id selected-lists]
+          {:keys [folder-path]} :modal} (:lists db)
+         source-list-maps (map by-id selected-lists)
+         new-list->tags (zipmap (map :name source-list-maps)
+                                (repeat (join-path folder-path)))
+         old-list->tags (zipmap (map :name source-list-maps)
+                                (map list->path source-list-maps))
+         update-tag-chans
+         (->> (set/difference (set new-list->tags) (set old-list->tags))
+              (map (fn [[list-name new-tag]]
+                     (let [old-tag (get old-list->tags list-name)]
+                       [(when old-tag (save/im-list-remove-tag service list-name old-tag))
+                        (when new-tag (save/im-list-add-tag service list-name new-tag))])))
+              (apply concat)
+              (filter some?))]
+     (cond
+       (and (seq source-list-maps) (seq update-tag-chans))
+       {:im-chan {:chans update-tag-chans
+                  :on-success [:lists/set-operation-success]
+                  :on-failure [:lists/move-lists-failure]}
+        :db (assoc-in db [:lists :modal :error] nil)}
+
+       (seq source-list-maps) ; Lists haven't actually moved around, so signal success.
+       {:dispatch [:lists/set-operation-success nil]
+        :db (assoc-in db [:lists :modal :error] nil)}
+
+       :else
+       {:db (assoc-in db [:lists :modal :error]
+                      (cond
+                        (empty? source-list-maps) "You need to select at least 1 list."
+                        :else "Unexpected error"))}))))
+
+(reg-event-fx
+ :lists/move-lists-failure
+ (fn [{db :db} [_ all-res]]
+   {:db (assoc-in db [:lists :modal :error] "Error occured when moving lists")
+    :dispatch [:assets/fetch-lists] ; In case some of them were moved successfully.
+    :log-error ["Move lists failure" all-res]}))
