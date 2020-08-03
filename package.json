@@ -20,6 +20,8 @@
     "bootstrap": "^3.3.7",
     "bootstrap-material-design": "git+https://github.com/intermine/bootstrap-material-design.git#im-0.0.2",
     "isomorphic-ws": "^4.0.1",
+    "less": "1.7.5",
+    "less-watch-compiler": "^1.14.6",
     "wait-on": "^3.3.0",
     "ws": "^7.1.2",
     "xmlhttprequest": "^1.8.0"
