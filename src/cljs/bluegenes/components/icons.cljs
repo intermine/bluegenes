@@ -706,13 +706,13 @@
      {:viewBox "0 0 36 36"}
      [:circle
       {:stroke-width "3",
-       :stroke "#DA2837",
+       :stroke "#1FB3FB",
        :fill "white",
        :r "16.5",
        :cy "18",
        :cx "18"}]
      [:path
-      {:fill "#DA2837",
+      {:fill "#1FB3FB",
        :d
        "M24.12 13.9999L18 20.1065L11.88 13.9999L10 15.8799L18 23.8799L26 15.8799L24.12 13.9999Z"}]]
 
@@ -720,13 +720,13 @@
      {:viewBox "0 0 36 36"}
      [:circle
       {:stroke-width "3",
-       :stroke "#DA2837",
+       :stroke "#1FB3FB",
        :fill "white",
        :r "16.5",
        :cy "18",
        :cx "18"}]
      [:path
-      {:fill "#DA2837",
+      {:fill "#1FB3FB",
        :d
        "M11.88 22.88L18 16.7733L24.12 22.88L26 21L18 13L10 21L11.88 22.88Z"}]]
 
