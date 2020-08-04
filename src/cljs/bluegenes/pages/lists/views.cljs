@@ -384,7 +384,9 @@
        [:div
         [:div.table-container
          [modal-table @(subscribe [:lists/selected-lists-details])]]
-        [:p "Move lists to"]
+        [:p (case active-modal
+              :copy "Copy lists to (optional)"
+              :move "Move lists to")]
         [modal-select-folder]])]))
 
 (defn modal []
@@ -444,6 +446,8 @@
               #(dispatch [:lists/set-operation active-modal])
               :delete
               #(dispatch [:lists/delete-lists])
+              :copy
+              #(dispatch [:lists/copy-lists])
               :move
               #(dispatch [:lists/move-lists])
               #())}

@@ -1,7 +1,7 @@
 (ns bluegenes.pages.lists.events
   (:require [re-frame.core :refer [reg-event-db reg-event-fx]]
             [re-frame.std-interceptors :refer [path]]
-            [bluegenes.pages.lists.utils :refer [denormalize-lists path-prefix? internal-tag? split-path join-path list->path]]
+            [bluegenes.pages.lists.utils :refer [denormalize-lists path-prefix? internal-tag? split-path join-path list->path folder?]]
             [imcljs.save :as save]
             [clojure.set :as set]
             [clojure.string :as str]))
@@ -250,6 +250,84 @@
    {:db (assoc-in db [:lists :modal :error] "Error occured when moving lists")
     :dispatch [:assets/fetch-lists] ; In case some of them were moved successfully.
     :log-error ["Move lists failure" all-res]}))
+
+(defn copy-list-name
+  "Returns a new unique list name to be used for a copied list. Usually this
+  is achieved by appending '_1', but as there might already exist a list with
+  this name, we instead find the identical list names with a '_*' postfix and
+  grab the one with the highest number. The increment of this number will then
+  be used as postfix for the new list name."
+  [by-id list-name]
+  (let [greatest-postfix-num (->> (vals by-id)
+                                  (remove folder?)
+                                  (map :name)
+                                  (filter #(str/starts-with? % (str list-name "_")))
+                                  (map #(-> % (str/split #"_") peek js/parseInt))
+                                  (apply max))
+        ;; We need to handle nil (no lists with postfix) and NaN (empty after postfix).
+        new-postfix (if (or (not (number? greatest-postfix-num))
+                            (.isNaN js/Number greatest-postfix-num))
+                      1
+                      (inc greatest-postfix-num))]
+    (str list-name "_" new-postfix)))
+
+(comment
+  (copy-list-name {1 {:name "UseCase1_transcripts_oxidativeStress_1"}} "UseCase1_transcripts_oxidativeStress_1")
+  (copy-list-name {1 {:name "foo"}} "foo")
+  (copy-list-name {1 {:name "foo_"}} "foo")
+  (copy-list-name {1 {:name "foo"} 2 {:name "foo_1"}} "foo")
+  (copy-list-name {1 {:name "foo"} 2 {:name "foo_9"}} "foo")
+  (copy-list-name {1 {:name "foo"} 2 {:name "foo_9"} 3 {:name "foo_10"}} "foo")
+  (copy-list-name {1 {:name "foo"} 2 {:name "foo_10"}} "foo"))
+
+(reg-event-fx
+ :lists/copy-lists
+ (fn [{db :db} [_]]
+   (let [service (get-in db [:mines (:current-mine db) :service])
+         {:keys [by-id selected-lists]
+          {:keys [folder-path]} :modal} (:lists db)
+         folder-tag (when (seq folder-path) (join-path folder-path))
+         target-lists (->> selected-lists (map by-id) (map :name))
+         copied-lists (map #(copy-list-name by-id %) target-lists)]
+     (if (seq target-lists)
+       ;; If you look at the source of `save/im-list-copy` you can see it's
+       ;; inefficient due to it running a query to fetch information we already
+       ;; have, so there's room for improvement there. Same with adding folder
+       ;; tags in a separate request, as `tolist` takes the tags parameter.
+       ;; All this would require changes to imcljs.
+       {:im-chan {:chans (map #(save/im-list-copy service %1 %2)
+                              target-lists copied-lists)
+                  :on-success (if folder-tag
+                                [:lists/copy-lists-add-tag folder-tag]
+                                [:lists/operation-success])
+                  :on-failure [:lists/copy-lists-failure]}
+        :db (assoc-in db [:lists :modal :error] nil)}
+       {:db (assoc-in db [:lists :modal :error]
+                      (cond
+                        (empty? target-lists) "You need to select at least 1 list to copy"
+                        :else "Unexpected error"))}))))
+
+(reg-event-fx
+ :lists/copy-lists-add-tag
+ (fn [{db :db} [_ folder-tag all-res]]
+   (let [service (get-in db [:mines (:current-mine db) :service])
+         copied-lists (map :listName all-res)]
+     (if (seq copied-lists)
+       {:im-chan {:chans (map #(save/im-list-add-tag service % folder-tag)
+                              copied-lists)
+                  :on-success [:lists/operation-success]
+                  :on-failure [:lists/copy-lists-failure]}}
+       {:db (assoc-in db [:lists :modal :error]
+                      (cond
+                        (empty? copied-lists) "Failed to move copied lists into specified folder"
+                        :else "Unexpected error"))}))))
+
+(reg-event-fx
+ :lists/copy-lists-failure
+ (fn [{db :db} [_ all-res]]
+   {:db (assoc-in db [:lists :modal :error] "Error occured when copying lists")
+    :dispatch [:assets/fetch-lists] ; In case some of them were copied successfully.
+    :log-error ["Copy lists failure" all-res]}))
 
 (reg-event-fx
  :lists/delete-lists

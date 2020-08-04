@@ -144,7 +144,7 @@
               (swap! active-requests into chans)
               (go
                 (let [all-res (<! (->> (async/merge chans)
-                                       (async/reduce into [])))
+                                       (async/reduce conj [])))
                       all-s (map (some-fn :statusCode :status) all-res)
                       all-valid-response? (every? (every-pred some? #(not= % "")) all-res)]
                   (swap! active-requests #(apply disj %1 %2) chans)
