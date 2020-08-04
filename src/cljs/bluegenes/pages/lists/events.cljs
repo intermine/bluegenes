@@ -87,9 +87,16 @@
    (assoc lists :selected-lists #{})))
 
 (reg-event-db
+ :lists/clear-target
+ (path root)
+ (fn [lists [_]]
+   (let [target-id (get-in lists [:modal :target-id])]
+     (update lists :selected-lists (fnil disj #{}) target-id))))
+
+(reg-event-db
  :lists/open-modal
  (path root)
- (fn [lists [_ modal-kw]]
+ (fn [lists [_ modal-kw ?list-id]]
    (if (= modal-kw :subtract)
      ;; Subtract modal needs some prepared data.
      (let [selected-lists (vec (:selected-lists lists))]
@@ -100,6 +107,7 @@
                :subtract-lists (vector (peek selected-lists))}))
      (assoc lists :modal
             {:active modal-kw
+             :target-id ?list-id
              :open? true}))))
 
 (reg-event-db
@@ -199,6 +207,14 @@
                  [:lists/clear-selected]
                  [:assets/fetch-lists]]}))
 
+;; Identical to above except it uses `clear-target` instead of `clear-selected`.
+(reg-event-fx
+ :lists/operation-success-target
+ (fn [{db :db} [_ res]] ; Note that `res` can be nil or a collection of responses.
+   {:dispatch-n [[:lists/close-modal]
+                 [:lists/clear-target]
+                 [:assets/fetch-lists]]}))
+
 (reg-event-fx
  :lists/set-operation-failure
  (fn [{db :db} [_ list-name res]]
@@ -286,9 +302,9 @@
  (fn [{db :db} [_]]
    (let [service (get-in db [:mines (:current-mine db) :service])
          {:keys [by-id selected-lists]
-          {:keys [folder-path]} :modal} (:lists db)
+          {:keys [folder-path target-id]} :modal} (:lists db)
          folder-tag (when (seq folder-path) (join-path folder-path))
-         target-lists (->> selected-lists (map by-id) (map :name))
+         target-lists (->> (if target-id [target-id] selected-lists) (map by-id) (map :name))
          copied-lists (map #(copy-list-name by-id %) target-lists)]
      (if (seq target-lists)
        ;; If you look at the source of `save/im-list-copy` you can see it's
@@ -299,8 +315,10 @@
        {:im-chan {:chans (map #(save/im-list-copy service %1 %2)
                               target-lists copied-lists)
                   :on-success (if folder-tag
-                                [:lists/copy-lists-add-tag folder-tag]
-                                [:lists/operation-success])
+                                [:lists/copy-lists-add-tag folder-tag (boolean target-id)]
+                                (if target-id
+                                  [:lists/operation-success-target]
+                                  [:lists/operation-success]))
                   :on-failure [:lists/copy-lists-failure]}
         :db (assoc-in db [:lists :modal :error] nil)}
        {:db (assoc-in db [:lists :modal :error]
@@ -310,13 +328,15 @@
 
 (reg-event-fx
  :lists/copy-lists-add-tag
- (fn [{db :db} [_ folder-tag all-res]]
+ (fn [{db :db} [_ folder-tag target? all-res]]
    (let [service (get-in db [:mines (:current-mine db) :service])
          copied-lists (map :listName all-res)]
      (if (seq copied-lists)
        {:im-chan {:chans (map #(save/im-list-add-tag service % folder-tag)
                               copied-lists)
-                  :on-success [:lists/operation-success]
+                  :on-success (if target?
+                                [:lists/operation-success-target]
+                                [:lists/operation-success])
                   :on-failure [:lists/copy-lists-failure]}}
        {:db (assoc-in db [:lists :modal :error]
                       (cond
@@ -334,13 +354,16 @@
  :lists/delete-lists
  (fn [{db :db} [_]]
    (let [service (get-in db [:mines (:current-mine db) :service])
-         {:keys [by-id selected-lists]} (:lists db)
-         source-list-maps (map by-id selected-lists)
+         {:keys [by-id selected-lists]
+          {:keys [target-id]} :modal} (:lists db)
+         source-list-maps (map by-id (if target-id [target-id] selected-lists))
          target-lists (map :name source-list-maps)
          unauthorized-lists (->> source-list-maps (remove :authorized) (map :name))]
      (if (and (seq target-lists) (empty? unauthorized-lists))
        {:im-chan {:chans (map #(save/im-list-delete service %) target-lists)
-                  :on-success [:lists/operation-success]
+                  :on-success (if target-id
+                                [:lists/operation-success-target]
+                                [:lists/operation-success])
                   :on-failure [:lists/delete-lists-failure]}
         :db (assoc-in db [:lists :modal :error] nil)}
        {:db (assoc-in db [:lists :modal :error]

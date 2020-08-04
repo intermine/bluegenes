@@ -50,13 +50,14 @@
           (-> po (ocall "setContent"))
           (-> po (oget "$tip") (ocall :addClass "auto"))))
       :reagent-render
-      (fn [{:keys [data children]}]
+      (fn [{:keys [data children options]}]
         [:span (-> {:ref (fn [e] (reset! dom-node e))
                     :data-placement "auto"
                     :data-trigger "hover"
                     :data-html true
                     :data-container "body"
-                    :data-content (render-to-static-markup data)})
+                    :data-content (render-to-static-markup data)}
+                   (merge options))
          children])})))
 
 (defn tooltip

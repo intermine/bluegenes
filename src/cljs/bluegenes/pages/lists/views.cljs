@@ -97,6 +97,18 @@
               [:a {:on-click #(dispatch [:lists/set-filter filter-name value])}
                label]]))]))
 
+(defn list-row-controls [list-id]
+  [:<>
+   [:button.btn
+    {:on-click #(dispatch [:lists/open-modal :copy list-id])}
+    [icon "list-copy"]]
+   [:button.btn
+    {:on-click #(dispatch [:lists/open-modal :edit list-id])}
+    [icon "list-edit"]]
+   [:button.btn
+    {:on-click #(dispatch [:lists/open-modal :delete list-id])}
+    [icon "list-delete"]]])
+
 (defn list-row [item]
   (let [{:keys [id title size authorized description timestamp type tags
                 path is-last]} item
@@ -159,14 +171,11 @@
         [:button.btn.dropdown-toggle
          {:data-toggle "dropdown"}
          [icon "list-more"]]
-        [:ul.dropdown-menu.dropdown-menu-right
-         [:li [:a "Copy"]]
-         [:li [:a "Edit"]]
-         [:li [:a "Delete"]]]]]
+        [:div.dropdown-menu.dropdown-menu-controls
+         [:div.list-controls
+          [list-row-controls id]]]]]
       [:div.list-controls.hidden-xs.hidden-sm.hidden-md
-       [:button.btn [icon "list-copy"]]
-       [:button.btn [icon "list-edit"]]
-       [:button.btn [icon "list-delete"]]]
+       [list-row-controls id]]
       (when is-selected
         [:div.selected-list-overlay])]]))
 
@@ -242,7 +251,7 @@
        [:hr]
        [:p "You may have lists saved to your account. Login to access them."]])))
 
-(defn modal-list-row [item & [subtract-operation]]
+(defn modal-list-row [item & {:keys [subop single?]}]
   (let [{:keys [id title timestamp type tags]} item]
     [:tr
      [:td.title title]
@@ -254,7 +263,7 @@
            (for [tag (remove internal-tag? tags)]
              [:code.tag tag]))
      [:td
-      (case subtract-operation
+      (case subop
         :down [:button.btn.pull-right
                {:type "button"
                 :on-click #(dispatch [:lists-modal/subtract-list id])}
@@ -264,12 +273,13 @@
                 :on-click #(dispatch [:lists-modal/keep-list id])}
                [icon "move-up-list" 2]]
         nil)
-      [:button.btn.pull-right
-       {:type "button"
-        :on-click #(dispatch [:lists/deselect-list id])}
-       [icon "remove-list" 2]]]]))
+      (when-not single?
+        [:button.btn.pull-right
+         {:type "button"
+          :on-click #(dispatch [:lists/deselect-list id])}
+         [icon "remove-list" 2]])]]))
 
-(defn modal-table [items & [subtract-operation]]
+(defn modal-table [items & {:keys [subop single?]}]
   [:table.table.table-hover
    [:thead
     [:tr
@@ -281,7 +291,7 @@
    [:tbody
     (for [{:keys [id] :as item} items]
       ^{:key id}
-      [modal-list-row item subtract-operation])]])
+      [modal-list-row item :subop subop :single? single?])]])
 
 (defn modal-new-list []
   (let [all-tags @(subscribe [:lists/all-tags])
@@ -334,10 +344,10 @@
        [:div.subtract-container
         [:p "The new list will contain items from these lists"]
         [:div.table-container
-         [modal-table @(subscribe [:lists-modal/keep-lists-details]) :down]]
+         [modal-table @(subscribe [:lists-modal/keep-lists-details]) :subop :down]]
         [:p "that are not present in these lists"]
         [:div.table-container
-         [modal-table @(subscribe [:lists-modal/subtract-lists-details]) :up]]])
+         [modal-table @(subscribe [:lists-modal/subtract-lists-details]) :subop :up]]])
 
      [modal-new-list]]))
 
@@ -373,20 +383,23 @@
       [icon "modal-folder-up" nil ["folder-up"]]]]))
 
 (defn modal-other-operation []
-  (let [active-modal @(subscribe [:lists/active-modal])]
+  (let [active-modal @(subscribe [:lists/active-modal])
+        selected-lists @(subscribe [:lists/selected-lists-details])
+        target-list @(subscribe [:lists-modal/target-list])
+        list-items (if target-list [target-list] selected-lists)]
     [:<>
      (case active-modal
        :delete
-       [modal-table @(subscribe [:lists/selected-lists-details])]
+       [modal-table list-items :single? (boolean target-list)]
        :edit
        "TODO"
        (:copy :move)
        [:div
         [:div.table-container
-         [modal-table @(subscribe [:lists/selected-lists-details])]]
+         [modal-table list-items :single? (boolean target-list)]]
         [:p (case active-modal
-              :copy "Copy lists to (optional)"
-              :move "Move lists to")]
+              :copy "Copy to folder"
+              :move "Move to folder")]
         [modal-select-folder]])]))
 
 (defn modal []

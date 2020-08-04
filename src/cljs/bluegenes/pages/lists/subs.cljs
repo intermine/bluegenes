@@ -231,6 +231,19 @@
  (fn [modal]
    (:error modal)))
 
+(reg-sub
+ :lists-modal/target-id
+ :<- [:lists/modal-root]
+ (fn [modal]
+   (:target-id modal)))
+
+(reg-sub
+ :lists-modal/target-list
+ :<- [:lists/by-id]
+ :<- [:lists-modal/target-id]
+ (fn [[by-id target-id]]
+   (get by-id target-id)))
+
 ;; START COMMENT
 ;; These are only used for the subtract operation modal.
 ;; See `:lists/open-modal` event for where they are initialised.
