@@ -3,7 +3,8 @@
             [re-frame.std-interceptors :refer [path]]
             [bluegenes.pages.lists.utils :refer [denormalize-lists path-prefix? internal-tag? split-path join-path list->path]]
             [imcljs.save :as save]
-            [clojure.set :as set]))
+            [clojure.set :as set]
+            [clojure.string :as str]))
 
 (def root [:lists])
 
@@ -179,7 +180,7 @@
        {:im-chan {:chan (if subtract?
                           (im-req service title keep-lists subtract-lists options)
                           (im-req service title source-lists options))
-                  :on-success [:lists/set-operation-success]
+                  :on-success [:lists/operation-success]
                   :on-failure [:lists/set-operation-failure title]}
         :db (assoc-in db [:lists :modal :error] nil)}
        {:db (assoc-in db [:lists :modal :error]
@@ -190,8 +191,9 @@
                         (empty? title) "You need to specify a title for the new list"
                         :else "Unexpected error"))}))))
 
+;; Doesn't have `set-` in its name as it's dispatched by all successful events.
 (reg-event-fx
- :lists/set-operation-success
+ :lists/operation-success
  (fn [{db :db} [_ res]] ; Note that `res` can be nil or a collection of responses.
    {:dispatch-n [[:lists/close-modal]
                  [:lists/clear-selected]
@@ -228,18 +230,18 @@
      (cond
        (and (seq source-list-maps) (seq update-tag-chans))
        {:im-chan {:chans update-tag-chans
-                  :on-success [:lists/set-operation-success]
+                  :on-success [:lists/operation-success]
                   :on-failure [:lists/move-lists-failure]}
         :db (assoc-in db [:lists :modal :error] nil)}
 
        (seq source-list-maps) ; Lists haven't actually moved around, so signal success.
-       {:dispatch [:lists/set-operation-success nil]
+       {:dispatch [:lists/operation-success nil]
         :db (assoc-in db [:lists :modal :error] nil)}
 
        :else
        {:db (assoc-in db [:lists :modal :error]
                       (cond
-                        (empty? source-list-maps) "You need to select at least 1 list."
+                        (empty? source-list-maps) "You need to select at least 1 list to move"
                         :else "Unexpected error"))}))))
 
 (reg-event-fx
@@ -248,3 +250,29 @@
    {:db (assoc-in db [:lists :modal :error] "Error occured when moving lists")
     :dispatch [:assets/fetch-lists] ; In case some of them were moved successfully.
     :log-error ["Move lists failure" all-res]}))
+
+(reg-event-fx
+ :lists/delete-lists
+ (fn [{db :db} [_]]
+   (let [service (get-in db [:mines (:current-mine db) :service])
+         {:keys [by-id selected-lists]} (:lists db)
+         source-list-maps (map by-id selected-lists)
+         target-lists (map :name source-list-maps)
+         unauthorized-lists (->> source-list-maps (remove :authorized) (map :name))]
+     (if (and (seq target-lists) (empty? unauthorized-lists))
+       {:im-chan {:chans (map #(save/im-list-delete service %) target-lists)
+                  :on-success [:lists/operation-success]
+                  :on-failure [:lists/delete-lists-failure]}
+        :db (assoc-in db [:lists :modal :error] nil)}
+       {:db (assoc-in db [:lists :modal :error]
+                      (cond
+                        (empty? target-lists) "You need to select at least 1 list to delete"
+                        (seq unauthorized-lists) (str "You are not authorized to delete the following lists: " (str/join ", " unauthorized-lists))
+                        :else "Unexpected error"))}))))
+
+(reg-event-fx
+ :lists/delete-lists-failure
+ (fn [{db :db} [_ all-res]]
+   {:db (assoc-in db [:lists :modal :error] "Error occured when deleting lists")
+    :dispatch [:assets/fetch-lists] ; In case some of them were deleted successfully.
+    :log-error ["Delete lists failure" all-res]}))

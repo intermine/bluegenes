@@ -442,7 +442,9 @@
             (case active-modal
               (:combine :intersect :difference :subtract)
               #(dispatch [:lists/set-operation active-modal])
-              (:move)
+              :delete
+              #(dispatch [:lists/delete-lists])
+              :move
               #(dispatch [:lists/move-lists])
               #())}
            (case active-modal
