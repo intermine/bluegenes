@@ -214,9 +214,10 @@
    (let [service (get-in db [:mines (:current-mine db) :service])
          {:keys [by-id selected-lists]
           {:keys [folder-path]} :modal} (:lists db)
+         folder-tag (when (seq folder-path) (join-path folder-path))
          source-list-maps (map by-id selected-lists)
          new-list->tags (zipmap (map :name source-list-maps)
-                                (repeat (join-path folder-path)))
+                                (repeat folder-tag))
          old-list->tags (zipmap (map :name source-list-maps)
                                 (map list->path source-list-maps))
          update-tag-chans
