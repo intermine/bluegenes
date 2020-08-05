@@ -180,15 +180,20 @@
         [:div.selected-list-overlay])]]))
 
 (defn lists []
-  (let [filtered-lists  @(subscribe [:lists/filtered-lists])
+  (let [filtered-lists @(subscribe [:lists/filtered-lists])
         lists-selection @(subscribe [:lists/filter :lists])
         all-types @(subscribe [:lists/all-types])
-        all-tags @(subscribe [:lists/all-tags])]
+        all-tags @(subscribe [:lists/all-tags])
+        all-selected? @(subscribe [:lists/all-selected?])]
     [:section.lists-table
 
      [:header.lists-row.lists-headers
       [:div.lists-col
-       [:input {:type "checkbox"}]]
+       [:input {:type "checkbox"
+                :checked all-selected?
+                :on-change (if all-selected?
+                             #(dispatch [:lists/clear-selected])
+                             #(dispatch [:lists/select-all-lists]))}]]
       [:div.lists-col
        [:div.list-header
         [:span (str "List details ("

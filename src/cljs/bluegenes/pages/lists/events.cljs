@@ -1,7 +1,7 @@
 (ns bluegenes.pages.lists.events
   (:require [re-frame.core :refer [reg-event-db reg-event-fx]]
             [re-frame.std-interceptors :refer [path]]
-            [bluegenes.pages.lists.utils :refer [denormalize-lists path-prefix? internal-tag? split-path join-path list->path folder?]]
+            [bluegenes.pages.lists.utils :refer [denormalize-lists path-prefix? internal-tag? split-path join-path list->path folder? filtered-list-ids-set]]
             [imcljs.save :as save]
             [clojure.set :as set]
             [clojure.string :as str]))
@@ -67,6 +67,18 @@
  (path root)
  (fn [lists [_ list-id]]
    (update lists :selected-lists (fnil conj #{}) list-id)))
+
+;; It would be more efficient to use a special value like `:all`, but this would
+;; have to be handled in all event handlers reading `:selected-lists`. Not worth
+;; it when this is a feature that should be rarely used.
+(reg-event-db
+ :lists/select-all-lists
+ (path root)
+ (fn [lists]
+   (assoc lists :selected-lists
+          (filtered-list-ids-set
+           (:by-id lists)
+           (get-in lists [:controls :filters])))))
 
 (reg-event-db
  :lists/deselect-list

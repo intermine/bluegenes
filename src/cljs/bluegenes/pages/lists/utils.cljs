@@ -1,5 +1,6 @@
 (ns bluegenes.pages.lists.utils
-  (:require [clojure.string :as str]))
+  (:require [clojure.string :as str])
+  (:import goog.date.Date))
 
 ;; TODO add docstrings and unit tests
 
@@ -140,7 +141,8 @@
               (if (folder? item)
                 (let [expanded (expand-children children)]
                   (cond
-                    (and (contains? expanded-paths path)
+                    ;; `expanded-paths` can be a set or function.
+                    (and (expanded-paths path)
                          (seq expanded)) (into items (cons item expanded))
                     (seq expanded)       (conj items item?last)
                     :else                items))
@@ -164,14 +166,104 @@
     (reduce-folders
      expanded-paths
      (partial expand-folders filterf sortf denormalized)
-     #_(take 20) ;; TODO implement pagination
-     (sortf
-      (concat (filterf (filter top-level-list? top-level-maps))
-              (filter top-level-folder? top-level-maps)))
+     (take 20 ;; TODO implement pagination
+              ;; WARNING: This should be passed as an argument from a different
+              ;; event than :lists/filtered-lists, as not to break :lists/all-selected?
+      (sortf
+       (concat (filterf (filter top-level-list? top-level-maps))
+               (filter top-level-folder? top-level-maps))))
      true)))
 
 (comment
-  (require '[re-frame.core :refer [subscribe]])
   (normalize-lists identity identity {:by-id @(subscribe [:lists/by-id]) :expanded-paths #{}})
   (normalize-lists identity identity {:by-id @(subscribe [:lists/by-id]) :expanded-paths #{"bgpath:my folder.nested folder"}})
   (normalize-lists identity identity {:by-id @(subscribe [:lists/by-id]) :expanded-paths #{"bgpath:my folder"}}))
+
+(defn ->filterf
+  "Create a filter function from the filters map in controls, to be passed to
+  `normalize-lists`. Remember that comp's arguments are run in reverse order!
+  Will only be passed list maps, and not folders."
+  [{:keys [keywords lists date type tags] :as _filterm}]
+  (comp
+   ;; Keyword filter should be done last.
+   (if (empty? keywords)
+     identity
+     (let [keyws (map str/lower-case (-> keywords str/trim (str/split #"\s+")))]
+       ;; Slightly faster; consider it if you wish to improve performance.
+       #_(partial filter (fn [{:keys [title description]}]
+                           (let [s (-> (str title " " description)
+                                       (str/lower-case))]
+                             (every? #(str/includes? s %) keyws))))
+       ;; The following function filters by matching all the different fields
+       ;; belonging to a list. Performance seems quite good even for 200 lists.
+       (partial filter (fn [listm]
+                         (let [all-text (->> listm
+                                             ((juxt :title :size :description :type
+                                                    ;; Note that internal tags aren't removed!
+                                                    (comp #(str/join " " %) :tags)))
+                                             (str/join " ")
+                                             (str/lower-case))]
+                           (every? #(str/includes? all-text %) keyws))))))
+   ;; Filter by tag.
+   (if (nil? tags)
+     identity
+     (partial filter (comp #(contains? % tags) set :tags)))
+   ;; Filter by type.
+   (if (nil? type)
+     identity
+     (partial filter (comp #{type} :type)))
+   ;; Filter by details.
+   (if (or (nil? lists) (= lists :folder)) ; Folders first handled in `->sortf`.
+     identity
+     (partial filter (case lists
+                       :private (comp true? :authorized)
+                       :public (comp false? :authorized))))
+   ;; Filter by date.
+   (if (nil? date)
+     identity
+     (let [now (.getTime (Date.))]
+       (partial filter (case date
+                         :day   (comp #(> (+ % 8.64e+7) now) :timestamp)
+                         :week  (comp #(> (+ % 6.048e+8) now) :timestamp)
+                         :month (comp #(> (+ % 2.628e+9) now) :timestamp)
+                         :year  (comp #(> (+ % 3.154e+10) now) :timestamp)))))))
+
+(defn ->sortf
+  "Create a sort function from the sort map in controls, to be passed to
+  `normalize-lists`. Remember that comp's arguments are run in reverse order!
+  Will be passed both list and folder maps."
+  [{:keys [column order] :as _sortm} & {:keys [folders-first?]}]
+  (comp
+   ;; Show private lists first.
+   (partial sort-by :authorized (comp - compare))
+   ;; Show folders first if the filter is applied.
+   (if folders-first?
+     (partial sort-by folder? (comp - compare))
+     identity)
+   ;; Sort according to active control.
+   (partial sort-by
+            ;; We don't want "B" to come before "a", so we lowercase strings.
+            (comp #(cond-> % (string? %) str/lower-case)
+                  ;; Filter away internal tags, which we don't care to sort after.
+                  (if (= column :tags)
+                    (partial filterv (complement internal-tag?))
+                    identity)
+                  column)
+            ;; `compare` also works great for vectors, for which it will first
+            ;; sort by length, then by each element.
+            (case order
+              :asc compare
+              :desc (comp - compare)))))
+
+(defn filtered-list-ids-set
+  "Returns a set of all list IDs that are selectable with the currently active
+  filters. This is needed when we want to select all lists, or check if all
+  lists are currently selected."
+  [items-by-id active-filters]
+  (->> (normalize-lists
+        (->filterf active-filters)
+        identity
+        {:by-id items-by-id :expanded-paths (constantly true)})
+       (remove folder?)
+       (map :id)
+       (set)))

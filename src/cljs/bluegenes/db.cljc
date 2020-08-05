@@ -33,7 +33,8 @@
                                 :type nil
                                 :tags nil}
                       :sort {:column :timestamp
-                             :order :desc}}}
+                             :order :desc}}
+           :expanded-paths #{}}
 
    :qb {:root-class :Gene
         :order []
