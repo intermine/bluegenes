@@ -97,14 +97,25 @@
  :lists/open-modal
  (path root)
  (fn [lists [_ modal-kw ?list-id]]
-   (if (= modal-kw :subtract)
+   (case modal-kw
      ;; Subtract modal needs some prepared data.
-     (let [selected-lists (vec (:selected-lists lists))]
-       (assoc lists :modal
-              {:active modal-kw
-               :open? true
-               :keep-lists (pop selected-lists)
-               :subtract-lists (vector (peek selected-lists))}))
+     :subtract (let [selected-lists (vec (:selected-lists lists))]
+                 (assoc lists :modal
+                        {:active modal-kw
+                         :open? true
+                         :keep-lists (pop selected-lists)
+                         :subtract-lists (vector (peek selected-lists))}))
+     ;; Edit modal needs the list fields preset.
+     :edit (let [{:keys [title tags description] :as listm} (get (:by-id lists) ?list-id)]
+             (assoc lists :modal
+                    {:active modal-kw
+                     :target-id ?list-id
+                     :open? true
+                     :title title
+                     :tags (remove path-prefix? tags)
+                     :description description
+                     :folder-path (-> listm list->path split-path (subvec 1))}))
+     ;; Default for all other modals.
      (assoc lists :modal
             {:active modal-kw
              :target-id ?list-id
@@ -378,3 +389,81 @@
    {:db (assoc-in db [:lists :modal :error] "Error occured when deleting lists")
     :dispatch [:assets/fetch-lists] ; In case some of them were deleted successfully.
     :log-error ["Delete lists failure" all-res]}))
+
+(reg-event-fx
+ :lists/edit-list
+ (fn [{db :db} [_]]
+   (let [service (get-in db [:mines (:current-mine db) :service])
+         {:keys [by-id]
+          {:keys [target-id title tags description folder-path]} :modal} (:lists db)
+         {old-title :title old-tags :tags old-description :description} (get by-id target-id)
+         path-tag (join-path folder-path)
+         old-all-tags (set old-tags)
+         ;; The `cond->` is to avoid conj'ing if path-tag is nil.
+         all-tags (-> tags set (cond-> path-tag (conj path-tag)))
+         tags-to-delete (set/difference old-all-tags all-tags)
+         tags-to-add (set/difference all-tags old-all-tags)
+         next-actions {:description    (when (not= description old-description) description)
+                       :tags-to-delete (when (seq tags-to-delete) tags-to-delete)
+                       :tags-to-add    (when (seq tags-to-add) tags-to-add)}
+         next-event? (not-every? nil? (vals next-actions))]
+     (cond
+       (and (not-empty title) (not= title old-title))
+       {:im-chan {:chan (save/im-list-rename service old-title title)
+                  :on-success (if next-event?
+                                [:lists/edit-list-title-success title next-actions]
+                                [:lists/operation-success-target])
+                  :on-failure [:lists/edit-list-failure]}
+        :db (assoc-in db [:lists :modal :error] nil)}
+
+       (and (not-empty title) next-event?) ; Title hasn't changed, but there are more things to do.
+       {:dispatch [:lists/edit-list-title-success title next-actions]
+        :db (assoc-in db [:lists :modal :error] nil)}
+
+       (not-empty title) ; Nothing has changed; signal success.
+       {:dispatch [:lists/operation-success-target nil]
+        :db (assoc-in db [:lists :modal :error] nil)}
+
+       :else
+       {:db (assoc-in db [:lists :modal :error]
+                      (cond
+                        (empty? title) "The title of a list cannot be empty"
+                        :else "Unexpected error"))}))))
+
+;; We need to make sure any change to the list title/name goes through first,
+;; as otherwise we could make changes to a different list that has the new title!
+;; (Oh boy, how we wish list webservices took a list ID instead!)
+(reg-event-fx
+ :lists/edit-list-title-success
+ (fn [{db :db} [_ title {:keys [description tags-to-delete tags-to-add]}]]
+   (let [service (get-in db [:mines (:current-mine db) :service])
+         ;; Any of these values are nil when they haven't changed.
+         chans (->> [(when description
+                       (save/im-list-update service title {:newDescription description}))
+                     (when tags-to-delete
+                       (save/im-list-remove-tag service title tags-to-delete))
+                     (when tags-to-add
+                       (save/im-list-add-tag service title tags-to-add))]
+                    (filter some?))]
+     (if (seq chans)
+       {:im-chan {:chans chans
+                  :on-success [:lists/operation-success-target]
+                  :on-failure [:lists/edit-list-failure]}
+        :db (assoc-in db [:lists :modal :error] nil)}
+       ;; This clause shouldn't run, but it's here for safety.
+       {:dispatch [:lists/operation-success-target nil]
+        :db (assoc-in db [:lists :modal :error] nil)}))))
+
+(reg-event-fx
+ :lists/edit-list-failure
+ (fn [{db :db} [_ res]] ; `res` can be a map or a vector of multiple.
+   {:db (assoc-in db [:lists :modal :error]
+                  (if-let [err (not-empty (if (sequential? res)
+                                            (->> (map :error res)
+                                                 (filter not-empty)
+                                                 (str/join \newline))
+                                            (:error res)))]
+                    err
+                    "Failed to edit list"))
+    :dispatch [:assets/fetch-lists] ; In case some changes were successful.
+    :log-error ["Edit list failure" res]}))

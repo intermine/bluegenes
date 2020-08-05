@@ -293,13 +293,14 @@
       ^{:key id}
       [modal-list-row item :subop subop :single? single?])]])
 
-(defn modal-new-list []
+(defn modal-new-list [& {:keys [edit-list?]}]
   (let [all-tags @(subscribe [:lists/all-tags])
         new-list-title @(subscribe [:lists-modal/new-list-title])
         new-list-tags @(subscribe [:lists-modal/new-list-tags])
         new-list-description @(subscribe [:lists-modal/new-list-description])]
     [:<>
-     [:p "New list"]
+     (when-not edit-list?
+       [:p "New list"])
      [:div.list-title-tags
       [:div.title-input-container
        [:label {:for "modal-new-list-title"}
@@ -312,7 +313,7 @@
          :value new-list-title}]]
       [:div
        [:label {:for "modal-new-list-tags"}
-        "Tags (optional)"]
+        (str "Tags" (when-not edit-list? " (optional)"))]
        [select-tags/main
         :id "modal-new-list-tags"
         :on-change #(dispatch [:lists-modal/set-new-list-tags %])
@@ -320,7 +321,7 @@
         :options all-tags]]]
      [:div.list-description
       [:label {:for "modal-new-list-description"}
-       "Description (optional)"]
+       (str "Description" (when-not edit-list? " (optional)"))]
       [:textarea.form-control
        {:id "modal-new-list-description"
         :rows 2
@@ -392,7 +393,10 @@
        :delete
        [modal-table list-items :single? (boolean target-list)]
        :edit
-       "TODO"
+       [:div
+        [modal-new-list :edit-list? true]
+        [:p "Current folder"]
+        [modal-select-folder]]
        (:copy :move)
        [:div
         [:div.table-container
@@ -459,6 +463,8 @@
               #(dispatch [:lists/set-operation active-modal])
               :delete
               #(dispatch [:lists/delete-lists])
+              :edit
+              #(dispatch [:lists/edit-list])
               :copy
               #(dispatch [:lists/copy-lists])
               :move
