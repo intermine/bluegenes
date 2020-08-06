@@ -27,7 +27,9 @@
                       :asc? true}
             :tree {}
             :list-operations {:selected #{}}}
-   :lists {:controls {:filters {:keywords ""
+   :lists {:pagination {:per-page 20
+                        :current-page 1}
+           :controls {:filters {:keywords ""
                                 :lists nil
                                 :date nil
                                 :type nil

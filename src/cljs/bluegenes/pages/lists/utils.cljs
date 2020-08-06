@@ -161,17 +161,17 @@
       (concat (filterf (filter (complement folder?) children-maps))
               (filter folder? children-maps))))))
 
-(defn normalize-lists [filterf sortf {:keys [by-id expanded-paths] :as denormalized}]
+(defn normalize-lists [filterf sortf {:keys [by-id expanded-paths] :as denormalized}
+                       & [{:keys [per-page current-page] :as pagination}]]
   (let [top-level-maps (vals by-id)]
     (reduce-folders
      expanded-paths
      (partial expand-folders filterf sortf denormalized)
-     (take 20 ;; TODO implement pagination
-              ;; WARNING: This should be passed as an argument from a different
-              ;; event than :lists/filtered-lists, as not to break :lists/all-selected?
-      (sortf
-       (concat (filterf (filter top-level-list? top-level-maps))
-               (filter top-level-folder? top-level-maps))))
+     (cond-> (sortf
+              (concat (filterf (filter top-level-list? top-level-maps))
+                      (filter top-level-folder? top-level-maps)))
+       pagination (->> (drop (* per-page (dec current-page)))
+                       (take per-page)))
      true)))
 
 (comment

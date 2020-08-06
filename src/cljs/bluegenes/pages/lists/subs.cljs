@@ -1,6 +1,6 @@
 (ns bluegenes.pages.lists.subs
   (:require [re-frame.core :refer [reg-sub]]
-            [bluegenes.pages.lists.utils :refer [normalize-lists folder? ->filterf ->sortf filtered-list-ids-set]]
+            [bluegenes.pages.lists.utils :refer [normalize-lists ->filterf ->sortf filtered-list-ids-set]]
             [clojure.set :as set]))
 
 (reg-sub
@@ -56,6 +56,24 @@
      (set/superset? selected-lists list-ids))))
 
 (reg-sub
+ :lists/pagination
+ :<- [:lists/root]
+ (fn [root]
+   (:pagination root)))
+
+(reg-sub
+ :lists/per-page
+ :<- [:lists/pagination]
+ (fn [pagination]
+   (:per-page pagination)))
+
+(reg-sub
+ :lists/current-page
+ :<- [:lists/pagination]
+ (fn [pagination]
+   (:current-page pagination)))
+
+(reg-sub
  :lists/controls
  :<- [:lists/root]
  (fn [root]
@@ -91,11 +109,13 @@
  :<- [:lists/expanded-paths]
  :<- [:lists/filters]
  :<- [:lists/sort]
- (fn [[items-by-id expanded-paths active-filters active-sort]]
+ :<- [:lists/pagination]
+ (fn [[items-by-id expanded-paths active-filters active-sort pagination]]
    (normalize-lists
     (->filterf active-filters)
     (->sortf active-sort :folders-first? (= :folder (:lists active-filters)))
-    {:by-id items-by-id :expanded-paths expanded-paths})))
+    {:by-id items-by-id :expanded-paths expanded-paths}
+    pagination)))
 
 (reg-sub
  :lists/no-filtered-lists?
@@ -117,8 +137,28 @@
 (reg-sub
  :lists/no-lists?
  :<- [:lists/by-id]
- (fn [lists]
-   (empty? lists)))
+ (fn [items-by-id]
+   (empty? items-by-id)))
+
+(reg-sub
+ :lists/top-level-count
+ :<- [:lists/by-id]
+ :<- [:lists/filters]
+ (fn [[items-by-id active-filters]]
+   (->> (normalize-lists
+         (->filterf active-filters)
+         identity
+         {:by-id items-by-id :expanded-paths (constantly false)})
+        (count))))
+
+(reg-sub
+ :lists/page-count
+ :<- [:lists/per-page]
+ :<- [:lists/top-level-count]
+ (fn [[per-page total-count]]
+   (if (pos? total-count)
+     (Math/ceil (/ total-count per-page))
+     0)))
 
 (reg-sub
  :lists/modal-root

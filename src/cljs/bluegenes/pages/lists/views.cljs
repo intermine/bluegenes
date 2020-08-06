@@ -69,6 +69,45 @@
          {:on-click #(dispatch [:lists/open-modal :delete])}
          "Delete all" [icon "list-delete"]]]])))
 
+(defn pagination-items [p pages]
+  (concat
+    [{:disabled (= p 1) :label "‹" :value (dec p)}]
+    (when (> p 1) [{:label 1 :value 1}])
+    (when (= p 3) [{:label 2 :value 2}])
+    (when (> p 3) [{:label "..."}])
+    (for [i (range p (min (inc pages) (+ p 3)))]
+      {:active (= i p) :label i :value i})
+    (when (< p (- pages 4)) [{:label "..."}])
+    (when (= p (- pages 4)) [{:label (dec pages) :value (dec pages)}])
+    (when (< p (- pages 2)) [{:label pages :value pages}])
+    [{:disabled (= p pages) :label "›" :value (inc p)}]))
+
+(defn pagination []
+  (let [per-page @(subscribe [:lists/per-page])
+        page-count @(subscribe [:lists/page-count])
+        current-page @(subscribe [:lists/current-page])]
+    [:div.pagination-controls
+     [:span "Rows per page"]
+     [:div.dropdown
+      [:button.btn.btn-raised.dropdown-toggle.rows-per-page
+       {:data-toggle "dropdown"}
+       per-page [icon "caret-down"]]
+      (into [:ul.dropdown-menu]
+            (map (fn [value]
+                   [:li {:class (when (= value per-page) :active)}
+                    [:a {:on-click #(dispatch [:lists/set-per-page value])}
+                     value]])
+                 [20 50 100]))]
+     (into [:ul.pagination]
+           (map (fn [{:keys [disabled active label value]}]
+                  [:li {:class (cond disabled :disabled
+                                     active :active)}
+                   [:a {:disabled disabled
+                        :on-click (when (and (not disabled) value)
+                                    #(dispatch [:lists/set-current-page value]))}
+                    label]])
+                (pagination-items current-page page-count)))]))
+
 (def list-time-formatter (time-format/formatter "dd MMM, Y"))
 
 (defn pretty-time [timestamp]
@@ -497,6 +536,7 @@
   [:div.container-fluid.lists
    [filter-lists]
    [top-controls]
+   [pagination]
    [lists]
    [no-lists]
    [bottom-controls]

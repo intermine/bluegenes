@@ -63,6 +63,18 @@
    (assoc-in lists [:controls :filters filter-name] value)))
 
 (reg-event-db
+ :lists/set-per-page
+ (path root)
+ (fn [lists [_ new-value]]
+   (assoc-in lists [:pagination :per-page] new-value)))
+
+(reg-event-db
+ :lists/set-current-page
+ (path root)
+ (fn [lists [_ new-value]]
+   (assoc-in lists [:pagination :current-page] new-value)))
+
+(reg-event-db
  :lists/select-list
  (path root)
  (fn [lists [_ list-id]]
