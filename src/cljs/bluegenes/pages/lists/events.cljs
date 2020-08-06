@@ -408,7 +408,11 @@
    (let [service (get-in db [:mines (:current-mine db) :service])
          {:keys [by-id]
           {:keys [target-id title tags description folder-path]} :modal} (:lists db)
-         {old-title :title old-tags :tags old-description :description} (get by-id target-id)
+         {old-title :title old-tags :tags old-description :description
+          authorized :authorized} (get by-id target-id)
+         ;; We want an empty string instead of nil when not defined.
+         old-description (or old-description "")
+         description     (or description "")
          path-tag (join-path folder-path)
          old-all-tags (set old-tags)
          ;; The `cond->` is to avoid conj'ing if path-tag is nil.
@@ -420,6 +424,11 @@
                        :tags-to-add    (when (seq tags-to-add) tags-to-add)}
          next-event? (not-every? nil? (vals next-actions))]
      (cond
+       (and (not authorized) (or (not= title old-title)
+                                 (not= description old-description)))
+       {:db (assoc-in db [:lists :modal :error]
+                      "You are not authorized to edit the title or description of this list.")}
+
        (and (not-empty title) (not= title old-title))
        {:im-chan {:chan (save/im-list-rename service old-title title)
                   :on-success (if next-event?
