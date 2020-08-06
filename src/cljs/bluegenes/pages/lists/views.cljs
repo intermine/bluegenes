@@ -8,7 +8,8 @@
             [oops.core :refer [oget]]
             [goog.functions :refer [debounce]]
             [bluegenes.components.select-tags :as select-tags]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [bluegenes.route :as route]))
 
 (defn filter-lists []
   (let [input (r/atom @(subscribe [:lists/keywords-filter]))
@@ -145,7 +146,15 @@
 
      [:div.lists-col
       [:div.list-detail
-       [:p.list-title title]
+       (if is-folder
+         [:button.btn.btn-link.list-title
+          {:on-click (if is-expanded
+                       #(dispatch [:lists/collapse-path path])
+                       #(dispatch [:lists/expand-path path]))}
+          title]
+         [:a.list-title
+          {:href (route/href ::route/results {:title title})}
+          title])
        [:span.list-size (str "[" size "]")]
        (if authorized
          [icon "user-circle" nil ["authorized"]]
@@ -166,16 +175,18 @@
              [:code.tag tag]))
 
      [:div.lists-col.vertical-align-cell
-      [:div.list-controls.hidden-lg
-       [:div.dropdown
-        [:button.btn.dropdown-toggle
-         {:data-toggle "dropdown"}
-         [icon "list-more"]]
-        [:div.dropdown-menu.dropdown-menu-controls
-         [:div.list-controls
-          [list-row-controls id]]]]]
-      [:div.list-controls.hidden-xs.hidden-sm.hidden-md
-       [list-row-controls id]]
+      (when-not is-folder
+        [:<>
+         [:div.list-controls.hidden-lg
+          [:div.dropdown
+           [:button.btn.dropdown-toggle
+            {:data-toggle "dropdown"}
+            [icon "list-more"]]
+           [:div.dropdown-menu.dropdown-menu-controls
+            [:div.list-controls
+             [list-row-controls id]]]]]
+         [:div.list-controls.hidden-xs.hidden-sm.hidden-md
+          [list-row-controls id]]])
       (when is-selected
         [:div.selected-list-overlay])]]))
 
