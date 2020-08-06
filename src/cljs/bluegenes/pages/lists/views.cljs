@@ -119,8 +119,7 @@
         is-expanded (and is-folder (contains? expanded-paths path))
         is-selected (contains? selected-lists id)]
     [:div.lists-row.lists-item
-     (when (or is-expanded is-last)
-       {:style {:borderBottomWidth 4}})
+     {:class (when (or is-expanded is-last) :separator)}
 
      (if is-folder
        [:div.lists-col
