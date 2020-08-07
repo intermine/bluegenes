@@ -72,16 +72,16 @@
 
 (defn pagination-items [p pages]
   (concat
-    [{:disabled (= p 1) :label "‹" :value (dec p)}]
-    (when (> p 1) [{:label 1 :value 1}])
-    (when (= p 3) [{:label 2 :value 2}])
-    (when (> p 3) [{:label "..."}])
-    (for [i (range p (min (inc pages) (+ p 3)))]
-      {:active (= i p) :label i :value i})
-    (when (< p (- pages 4)) [{:label "..."}])
-    (when (= p (- pages 4)) [{:label (dec pages) :value (dec pages)}])
-    (when (< p (- pages 2)) [{:label pages :value pages}])
-    [{:disabled (= p pages) :label "›" :value (inc p)}]))
+   [{:disabled (= p 1) :label "‹" :value (dec p)}]
+   (when (> p 1) [{:label 1 :value 1}])
+   (when (= p 3) [{:label 2 :value 2}])
+   (when (> p 3) [{:label "..."}])
+   (for [i (range p (min (inc pages) (+ p 3)))]
+     {:active (= i p) :label i :value i})
+   (when (< p (- pages 4)) [{:label "..."}])
+   (when (= p (- pages 4)) [{:label (dec pages) :value (dec pages)}])
+   (when (< p (- pages 2)) [{:label pages :value pages}])
+   [{:disabled (= p pages) :label "›" :value (inc p)}]))
 
 (defn pagination []
   (let [per-page @(subscribe [:lists/per-page])
