@@ -209,10 +209,11 @@
         [:code.start {:class (str "start-" type)}
          type])]
 
-     (into [:div.lists-col]
-           ;; Hide internal tags.
-           (for [tag (remove internal-tag? tags)]
-             [:code.tag tag]))
+     [:div.lists-col
+      (into [:div.list-tags]
+            ;; Hide internal tags.
+            (for [tag (remove internal-tag? tags)]
+              [:code.tag tag]))]
 
      [:div.lists-col.vertical-align-cell
       (when-not is-folder
@@ -315,9 +316,10 @@
      [:td
       [:code.start {:class (str "start-" type)}
        type]]
-     (into [:td]
-           (for [tag (remove internal-tag? tags)]
-             [:code.tag tag]))
+     [:td
+      (into [:div.tags]
+            (for [tag (remove internal-tag? tags)]
+              [:code.tag tag]))]
      [:td
       (case subop
         :down [:button.btn.pull-right

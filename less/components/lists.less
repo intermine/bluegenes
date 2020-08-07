@@ -19,9 +19,13 @@
         background-color: #DFE6ED;
         color: #4B5C6B;
         margin-right: @spacer/2;
+        overflow-wrap: break-word;
     }
 
     code.start {
+        // For long types like `ChromosomalDuplication`
+        overflow-wrap: break-word;
+
         color: inherit;
         background-color: @color-Nuffink;
 
@@ -289,7 +293,6 @@
         .lists-item {
             position: relative;
             transform: scale(1); // Hack to allow relative positioning within table-row.
-            line-break: anywhere;
             border-bottom: 1px solid @visible-gray;
 
             &:nth-child(2n) {
@@ -333,6 +336,7 @@
                     margin-right: auto;
                     font-weight: bold;
                     text-decoration: underline;
+                    overflow-wrap: anywhere;
                 }
 
                 .list-size {
@@ -340,7 +344,7 @@
                 }
 
                 .icon {
-                    min-width: 1em;
+                    flex-shrink: 0;
 
                     &.authorized {
                         fill: #FFEE51;
@@ -350,6 +354,12 @@
 
             .list-description {
                 font-size: 0.8em;
+                overflow-wrap: anywhere;
+            }
+
+            .list-tags {
+                display: flex;
+                flex-wrap: wrap;
             }
 
             .list-controls {
@@ -455,7 +465,12 @@
                 }
 
                 .title {
-                    line-break: anywhere;
+                    overflow-wrap: anywhere;
+                }
+
+                .tags {
+                    display: flex;
+                    flex-wrap: wrap;
                 }
             }
 
