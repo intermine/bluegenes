@@ -8,6 +8,7 @@
             [oops.core :refer [oget]]
             [goog.functions :refer [debounce]]
             [bluegenes.components.select-tags :as select-tags]
+            [bluegenes.subs.auth :as auth]
             [clojure.string :as str]
             [bluegenes.route :as route]))
 
@@ -363,7 +364,8 @@
         new-list-title @(subscribe [:lists-modal/new-list-title])
         new-list-tags @(subscribe [:lists-modal/new-list-tags])
         new-list-description @(subscribe [:lists-modal/new-list-description])
-        list-tags-support? @(subscribe [:list-tags-support?])]
+        list-tags-support? @(subscribe [:list-tags-support?])
+        logged-in? @(subscribe [::auth/authenticated?])]
     [:<>
      (when-not edit-list?
        [:p "New list"])
@@ -381,7 +383,7 @@
        [:label {:for "modal-new-list-tags"}
         (str "Tags" (when-not edit-list? " (optional)"))]
        [select-tags/main
-        :disabled (not list-tags-support?)
+        :disabled (or (not list-tags-support?) (not logged-in?))
         :id "modal-new-list-tags"
         :on-change #(dispatch [:lists-modal/set-new-list-tags %])
         :value new-list-tags
@@ -431,7 +433,9 @@
 (defn modal-select-folder []
   (let [folder-path @(subscribe [:lists-modal/folder-path])
         folder-suggestions @(subscribe [:lists-modal/folder-suggestions])
-        list-tags-support? @(subscribe [:list-tags-support?])]
+        list-tags-support? @(subscribe [:list-tags-support?])
+        logged-in? @(subscribe [::auth/authenticated?])
+        disable-tags? (or (not list-tags-support?) (not logged-in?))]
     [:div.select-folder
      [icon "modal-folder" 2]
      [:span.folder-path (str/join " / " (conj folder-path ""))]
@@ -446,9 +450,9 @@
        :onChange #(dispatch [:lists-modal/nest-folder (oget % :value)])
        :value nil ; Required or else it will keep its own state.
        :options (map (fn [v] {:value v :label v}) folder-suggestions)
-       :isDisabled (not list-tags-support?)}]
+       :isDisabled disable-tags?}]
      [:button.btn.button-folder-up
-      {:disabled (or (empty? folder-path) (not list-tags-support?))
+      {:disabled (or (empty? folder-path) disable-tags?)
        :on-click #(dispatch [:lists-modal/denest-folder])}
       [icon "modal-folder-up" nil ["folder-up"]]]]))
 
@@ -479,7 +483,8 @@
   (let [modal-open? @(subscribe [:lists/modal-open?])
         active-modal @(subscribe [:lists/active-modal])
         error-message @(subscribe [:lists-modal/error])
-        list-tags-support? @(subscribe [:list-tags-support?])]
+        list-tags-support? @(subscribe [:list-tags-support?])
+        logged-in? @(subscribe [::auth/authenticated?])]
     [:<>
      [:div.fade.modal-backdrop
       {:class (when modal-open? :show)}]
@@ -522,7 +527,11 @@
 
            (and (not list-tags-support?) (not= active-modal :delete))
            [:div.alert.alert-inverse
-            [:strong "This InterMine is running an older version which does not support adding tags or creating folders"]])]
+            [:strong "This InterMine is running an older version which does not support adding tags or creating folders"]]
+
+           (and (not logged-in?) (not= active-modal :delete))
+           [:div.alert.alert-inverse
+            [:strong "You need to login to edit tags or create folders"]])]
 
         [:div.modal-footer
          [:div.btn-toolbar.pull-right
