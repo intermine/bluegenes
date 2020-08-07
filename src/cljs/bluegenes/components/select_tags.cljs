@@ -18,7 +18,7 @@
 (def invalid-tag-message-superuser
   "Tags may only contain letters, numbers, spaces, colons and hyphens.")
 
-(defn main [& {:keys [placeholder on-change value options id]}]
+(defn main [& {:keys [placeholder on-change value options id disabled]}]
   (let [superuser? @(subscribe [::auth/superuser?])]
     [:> js/Select.Creatable
      {:placeholder (or placeholder "")
@@ -38,4 +38,5 @@
                        (not-empty)
                        (on-change)))
       :value (map (fn [v] {:value v :label v}) value)
-      :options (map (fn [v] {:value v :label v}) options)}]))
+      :options (map (fn [v] {:value v :label v}) options)
+      :isDisabled disabled}]))

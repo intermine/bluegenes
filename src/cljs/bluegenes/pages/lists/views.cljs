@@ -362,7 +362,8 @@
   (let [all-tags @(subscribe [:lists/all-tags])
         new-list-title @(subscribe [:lists-modal/new-list-title])
         new-list-tags @(subscribe [:lists-modal/new-list-tags])
-        new-list-description @(subscribe [:lists-modal/new-list-description])]
+        new-list-description @(subscribe [:lists-modal/new-list-description])
+        list-tags-support? @(subscribe [:list-tags-support?])]
     [:<>
      (when-not edit-list?
        [:p "New list"])
@@ -380,6 +381,7 @@
        [:label {:for "modal-new-list-tags"}
         (str "Tags" (when-not edit-list? " (optional)"))]
        [select-tags/main
+        :disabled (not list-tags-support?)
         :id "modal-new-list-tags"
         :on-change #(dispatch [:lists-modal/set-new-list-tags %])
         :value new-list-tags
@@ -428,7 +430,8 @@
 
 (defn modal-select-folder []
   (let [folder-path @(subscribe [:lists-modal/folder-path])
-        folder-suggestions @(subscribe [:lists-modal/folder-suggestions])]
+        folder-suggestions @(subscribe [:lists-modal/folder-suggestions])
+        list-tags-support? @(subscribe [:list-tags-support?])]
     [:div.select-folder
      [icon "modal-folder" 2]
      [:span.folder-path (str/join " / " (conj folder-path ""))]
@@ -442,9 +445,10 @@
                             invalid-folder-message)
        :onChange #(dispatch [:lists-modal/nest-folder (oget % :value)])
        :value nil ; Required or else it will keep its own state.
-       :options (map (fn [v] {:value v :label v}) folder-suggestions)}]
+       :options (map (fn [v] {:value v :label v}) folder-suggestions)
+       :isDisabled (not list-tags-support?)}]
      [:button.btn.button-folder-up
-      {:disabled (empty? folder-path)
+      {:disabled (or (empty? folder-path) (not list-tags-support?))
        :on-click #(dispatch [:lists-modal/denest-folder])}
       [icon "modal-folder-up" nil ["folder-up"]]]]))
 
@@ -474,7 +478,8 @@
 (defn modal []
   (let [modal-open? @(subscribe [:lists/modal-open?])
         active-modal @(subscribe [:lists/active-modal])
-        error-message @(subscribe [:lists-modal/error])]
+        error-message @(subscribe [:lists-modal/error])
+        list-tags-support? @(subscribe [:list-tags-support?])]
     [:<>
      [:div.fade.modal-backdrop
       {:class (when modal-open? :show)}]
@@ -510,9 +515,14 @@
            [modal-other-operation]
            nil)
 
-         (when (not-empty error-message)
+         (cond
+           (not-empty error-message)
            [:div.alert.alert-danger
-            [:strong error-message]])]
+            [:strong error-message]]
+
+           (and (not list-tags-support?) (not= active-modal :delete))
+           [:div.alert.alert-inverse
+            [:strong "This InterMine is running an older version which does not support adding tags or creating folders"]])]
 
         [:div.modal-footer
          [:div.btn-toolbar.pull-right

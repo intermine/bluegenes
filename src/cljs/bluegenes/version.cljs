@@ -14,7 +14,7 @@
 
 ;; Prior to this InterMine version, multiple TagManager's on the backend
 ;; would cause updating and retrieving of tags set on lists to be buggy.
-(def organize-support "4.1.3")
+(def list-tags-support "4.1.3")
 
 ;;;; Version numbers you *might* want to change.
 

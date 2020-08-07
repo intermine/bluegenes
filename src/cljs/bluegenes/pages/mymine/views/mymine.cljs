@@ -98,7 +98,7 @@
           (let [no-login? (not @(subscribe [:bluegenes.subs.auth/authenticated?]))
                 no-lists? (empty? @(subscribe [:lists/authorized-lists]))
                 no-support? (not (utils/compatible-version?
-                                  version/organize-support
+                                  version/list-tags-support
                                   @(subscribe [:current-intermine-version])))
                 problem? (or no-lists? no-login? no-support?)]
             [:li.hidden-xs {:class (when problem? "disabled")}
