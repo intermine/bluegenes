@@ -220,7 +220,7 @@
                   {:bluegenes.effects/http
                    ; or... ::fx/http if the namespace is referred
                    {:method :get
-                    :uri "/mymine"
+                    :uri "/api"
                     :json-params {:value 1 :another 2}
                     :on-success [:some-success-event]
                     :on-error [:some-failure-event]}})))

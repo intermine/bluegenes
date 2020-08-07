@@ -16,17 +16,6 @@
                              :identifiers []}
                 :save {:list-name nil}
                 :response nil}
-   :mymine {:dragging nil
-            :dragging-over nil
-            :selected #{}
-            :focus [:unsorted]
-            :stage-operation nil
-            :checked #{}
-            :sort-by {:key :label
-                      :type :alphanum
-                      :asc? true}
-            :tree {}
-            :list-operations {:selected #{}}}
    ;; If you change this, you should change `remove-stateful-keys-from-db` too.
    :lists {:pagination {:per-page 20
                         :current-page 1}

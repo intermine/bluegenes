@@ -20,7 +20,7 @@
 (reg-event-fx
  ::login-success
  ;; Store a user's identity and assoc their token to the service of the current mine,
- ;; then (re)fetch the user's lists and their MyMine labels
+ ;; then (re)fetch the user's lists.
  (fn [{db :db} [_ {:keys [token] :as identity}]]
    (let [current-mine (:current-mine db)]
      {:db (-> db

@@ -7,7 +7,6 @@
             [bluegenes.events.registry]
             [bluegenes.events.blog]
             [bluegenes.components.idresolver.events]
-            [bluegenes.pages.mymine.events]
             [day8.re-frame.http-fx]
             [day8.re-frame.forward-events-fx]
             [day8.re-frame.async-flow-fx]
