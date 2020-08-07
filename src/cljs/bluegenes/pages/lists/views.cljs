@@ -88,6 +88,13 @@
         current-page @(subscribe [:lists/current-page])]
     ;; Don't show pagination if there are no pages and therefore no lists.
     (when (pos? page-count)
+      ;; This is a guard to switch to the last page if the current one no
+      ;; longer exists. The right place to put it would be in :lists/initialize
+      ;; but we have to normalize-lists to tell the page count. As a future
+      ;; refactoring improvement, you could compute page count as part of
+      ;; denormalization and put it in app-db, instead of using it as a sub.
+      (when (> current-page page-count)
+        (dispatch [:lists/set-current-page page-count]))
       [:div.pagination-controls
        [:span "Rows per page"]
        [:div.dropdown
