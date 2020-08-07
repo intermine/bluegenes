@@ -64,7 +64,7 @@ jobs:
         - ~/.npm
         - ~/.cache
     - run: lein deps
-    - run: lein with-profile prod less once
+    - run: make less-prod
     - run: lein with-profile prod cljsbuild once min
     - run:
         command: lein with-profile prod run
