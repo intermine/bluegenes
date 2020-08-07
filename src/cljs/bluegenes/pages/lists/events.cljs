@@ -1,15 +1,20 @@
 (ns bluegenes.pages.lists.events
   (:require [re-frame.core :refer [reg-event-db reg-event-fx]]
             [re-frame.std-interceptors :refer [path]]
-            [bluegenes.pages.lists.utils :refer [denormalize-lists path-prefix? internal-tag? split-path join-path list->path folder? filtered-list-ids-set]]
+            [bluegenes.pages.lists.utils :refer [denormalize-lists path-prefix? internal-tag? split-path join-path list->path filtered-list-ids-set copy-list-name]]
             [imcljs.save :as save]
             [clojure.set :as set]
             [clojure.string :as str]))
 
+;; Idea for performance improvement:
+;; All lists are re-fetched via `:assets/fetch-lists` whenever something
+;; changes, although often fetching a single list would be enough. By using
+;; imcljs' `fetch/one-list` you can perhaps make things faster.
+
 (def root [:lists])
 
-;; A hash-map is more amenable to locating specific lists, so we copy the
-;; vector of lists into a id->list map.
+;; The vector of lists which the webservice gives us is not very amenable to
+;; perform computing on, so we denormalize it into suitable data structures.
 (reg-event-db
  :lists/initialize
  (fn [db]
@@ -309,35 +314,6 @@
    {:db (assoc-in db [:lists :modal :error] "Error occured when moving lists")
     :dispatch [:assets/fetch-lists] ; In case some of them were moved successfully.
     :log-error ["Move lists failure" all-res]}))
-
-(defn copy-list-name
-  "Returns a new unique list name to be used for a copied list. Usually this
-  is achieved by appending '_1', but as there might already exist a list with
-  this name, we instead find the identical list names with a '_*' postfix and
-  grab the one with the highest number. The increment of this number will then
-  be used as postfix for the new list name."
-  [by-id list-name]
-  (let [greatest-postfix-num (->> (vals by-id)
-                                  (remove folder?)
-                                  (map :name)
-                                  (filter #(str/starts-with? % (str list-name "_")))
-                                  (map #(-> % (str/split #"_") peek js/parseInt))
-                                  (apply max))
-        ;; We need to handle nil (no lists with postfix) and NaN (empty after postfix).
-        new-postfix (if (or (not (number? greatest-postfix-num))
-                            (.isNaN js/Number greatest-postfix-num))
-                      1
-                      (inc greatest-postfix-num))]
-    (str list-name "_" new-postfix)))
-
-(comment
-  (copy-list-name {1 {:name "UseCase1_transcripts_oxidativeStress_1"}} "UseCase1_transcripts_oxidativeStress_1")
-  (copy-list-name {1 {:name "foo"}} "foo")
-  (copy-list-name {1 {:name "foo_"}} "foo")
-  (copy-list-name {1 {:name "foo"} 2 {:name "foo_1"}} "foo")
-  (copy-list-name {1 {:name "foo"} 2 {:name "foo_9"}} "foo")
-  (copy-list-name {1 {:name "foo"} 2 {:name "foo_9"} 3 {:name "foo_10"}} "foo")
-  (copy-list-name {1 {:name "foo"} 2 {:name "foo_10"}} "foo"))
 
 (reg-event-fx
  :lists/copy-lists

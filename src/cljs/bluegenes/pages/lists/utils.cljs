@@ -2,8 +2,6 @@
   (:require [clojure.string :as str])
   (:import goog.date.Date))
 
-;; TODO add docstrings and unit tests
-
 (def path-tag-prefix "bgpath")
 
 (defn path-prefix? [s]
@@ -22,11 +20,10 @@
 (defn path-title [path]
   (last (split-path path)))
 
-(comment
-  (path-title "bgpath:my folder.nested folder")
-  (path-title "bgpath:my folder"))
-
-(defn when-fn [f]
+(defn when-fn
+  "Returns x when (f x) is truthy and nil otherwise.
+  Useful when using a predicate function with `some`."
+  [f]
   (fn [x]
     (when (f x) x)))
 
@@ -40,18 +37,8 @@
     (= 2 (-> path split-path count))
     false))
 
-(comment
-  (top-level-folder? {:path "bgpath:my folder"})
-  (top-level-folder? {:id "foo"})
-  (top-level-list? {:path "bgpath:my folder" :tags nil}))
-
 (defn list->path [{:keys [tags] :as _listm}]
   (some (when-fn path-prefix?) tags))
-
-(comment
-  (some #(when (path-prefix? %) %) ["foo" "bgpath:foo"])
-  (require '[re-frame.core :refer [subscribe]])
-  (def lists (:default @(subscribe [:lists]))))
 
 (defn nesting [path]
   (count (re-seq #"\." path)))
@@ -63,14 +50,10 @@
   (and (descendant-of? parent child)
        (= (nesting parent) (dec (nesting child)))))
 
-(comment
-  (child-of? "bgpath:foo.bar" "bgpath:foo.bar")
-  (child-of? "bgpath:foo.bar" "bgpath:foo.bar.baz")
-  (child-of? "bgpath:foo.bar" "bgpath:foo.bar.baz.boz")
-  (descendant-of? "bgpath:foo.bar" "bgpath:foo.bar.baz.boz")
-  (nesting "bgpath:foo.bar.baz"))
-
-(defn newest-descendant-list [path->lists path]
+(defn newest-descendant-list
+  "Takes a map from path tags to vectors of list maps, and a path; returns the
+  newest list that is in the same path, or a descendant path."
+  [path->lists path]
   (->> path->lists
        (filter (comp (some-fn (partial = path)
                               (partial descendant-of? path))
@@ -91,13 +74,13 @@
                     (range 2 (inc (count p))))))
            paths)))
 
-(comment
-  (re-seq #"(bgpath:.+\.)+" "bgpath:foo.bar.baz")
-  (let [s (split-path "bgpath:foo.bar.baz")]
-    (map (comp join-path #(subvec s 1 %)) (range 2 (inc (count s)))))
-  (ensure-subpaths '("bgpath:foo.bar" "bgpath:bar.bar")))
-
-(defn denormalize-lists [lists]
+(defn denormalize-lists
+  "Takes a sequential of list maps, as delivered by the webservice, returning
+  a map from list IDs or folder paths, to list or folder maps.
+  Folders only exist on the backend as a tag present on lists, so this process
+  realizes them into distinct maps, with metadata necessary for the interface
+  and a children key containing list IDs and folder paths that are under it."
+  [lists]
   (let [id->list (zipmap (map :id lists) lists)
         folder-paths (->> (mapcat :tags lists)
                           (distinct)
@@ -152,7 +135,10 @@
                          [x (= i (dec (count items)))])
                        items)))
 
-(defn expand-folders [filterf sortf {:keys [by-id expanded-paths] :as denormalized} children]
+(defn expand-folders
+  "Helper function for `normalize-lists` to handle children nested in folders.
+  It is mutually recursive with `reduce-folders`."
+  [filterf sortf {:keys [by-id expanded-paths] :as denormalized} children]
   (let [children-maps (mapv by-id children)]
     (reduce-folders
      expanded-paths
@@ -161,8 +147,14 @@
       (concat (filterf (filter (complement folder?) children-maps))
               (filter folder? children-maps))))))
 
-(defn normalize-lists [filterf sortf {:keys [by-id expanded-paths] :as denormalized}
-                       & [{:keys [per-page current-page] :as pagination}]]
+(defn normalize-lists
+  "Takes the denormalized lists and folders data and converts it into a flat
+  sequence of maps for rendering. Folders will be recursively expanded, with
+  children placed proceeding the parent folder maps.
+  Takes functions to filter and sort, which should be created with the helpers
+  below. Optionally takes pagination data."
+  [filterf sortf {:keys [by-id expanded-paths] :as denormalized}
+   & [{:keys [per-page current-page] :as pagination}]]
   (let [top-level-maps (vals by-id)]
     (reduce-folders
      expanded-paths
@@ -173,11 +165,6 @@
        pagination (->> (drop (* per-page (dec current-page)))
                        (take per-page)))
      true)))
-
-(comment
-  (normalize-lists identity identity {:by-id @(subscribe [:lists/by-id]) :expanded-paths #{}})
-  (normalize-lists identity identity {:by-id @(subscribe [:lists/by-id]) :expanded-paths #{"bgpath:my folder.nested folder"}})
-  (normalize-lists identity identity {:by-id @(subscribe [:lists/by-id]) :expanded-paths #{"bgpath:my folder"}}))
 
 (defn ->filterf
   "Create a filter function from the filters map in controls, to be passed to
@@ -267,3 +254,23 @@
        (remove folder?)
        (map :id)
        (set)))
+
+(defn copy-list-name
+  "Returns a new unique list name to be used for a copied list. Usually this
+  is achieved by appending '_1', but as there might already exist a list with
+  this name, we instead find the identical list names with a '_*' postfix and
+  grab the one with the highest number. The increment of this number will then
+  be used as postfix for the new list name."
+  [by-id list-name]
+  (let [greatest-postfix-num (->> (vals by-id)
+                                  (remove folder?)
+                                  (map :name)
+                                  (filter #(str/starts-with? % (str list-name "_")))
+                                  (map #(-> % (str/split #"_") peek js/parseInt))
+                                  (apply max))
+        ;; We need to handle nil (no lists with postfix) and NaN (empty after postfix).
+        new-postfix (if (or (not (number? greatest-postfix-num))
+                            (.isNaN js/Number greatest-postfix-num))
+                      1
+                      (inc greatest-postfix-num))]
+    (str list-name "_" new-postfix)))
