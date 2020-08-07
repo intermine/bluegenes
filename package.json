@@ -1,6 +1,9 @@
 {
   "name": "bluegenes",
   "version": "1.0.0",
+  "engines": {
+    "node": "10.x"
+  },
   "description": "Clojure-based GUI for InterMine",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
