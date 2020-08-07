@@ -86,27 +86,29 @@
   (let [per-page @(subscribe [:lists/per-page])
         page-count @(subscribe [:lists/page-count])
         current-page @(subscribe [:lists/current-page])]
-    [:div.pagination-controls
-     [:span "Rows per page"]
-     [:div.dropdown
-      [:button.btn.btn-raised.dropdown-toggle.rows-per-page
-       {:data-toggle "dropdown"}
-       per-page [icon "caret-down"]]
-      (into [:ul.dropdown-menu]
-            (map (fn [value]
-                   [:li {:class (when (= value per-page) :active)}
-                    [:a {:on-click #(dispatch [:lists/set-per-page value])}
-                     value]])
-                 [20 50 100]))]
-     (into [:ul.pagination]
-           (map (fn [{:keys [disabled active label value]}]
-                  [:li {:class (cond disabled :disabled
-                                     active :active)}
-                   [:a {:disabled disabled
-                        :on-click (when (and (not disabled) value)
-                                    #(dispatch [:lists/set-current-page value]))}
-                    label]])
-                (pagination-items current-page page-count)))]))
+    ;; Don't show pagination if there are no pages and therefore no lists.
+    (when (pos? page-count)
+      [:div.pagination-controls
+       [:span "Rows per page"]
+       [:div.dropdown
+        [:button.btn.btn-raised.dropdown-toggle.rows-per-page
+         {:data-toggle "dropdown"}
+         per-page [icon "caret-down"]]
+        (into [:ul.dropdown-menu]
+              (map (fn [value]
+                     [:li {:class (when (= value per-page) :active)}
+                      [:a {:on-click #(dispatch [:lists/set-per-page value])}
+                       value]])
+                   [20 50 100]))]
+       (into [:ul.pagination]
+             (map (fn [{:keys [disabled active label value]}]
+                    [:li {:class (cond disabled :disabled
+                                       active :active)}
+                     [:a {:disabled disabled
+                          :on-click (when (and (not disabled) value)
+                                      #(dispatch [:lists/set-current-page value]))}
+                      label]])
+                  (pagination-items current-page page-count)))])))
 
 (def list-time-formatter (time-format/formatter "dd MMM, Y"))
 
