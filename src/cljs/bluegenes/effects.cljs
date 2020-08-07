@@ -1,7 +1,7 @@
 (ns bluegenes.effects
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [re-frame.core :as rf :refer [dispatch reg-fx reg-cofx]]
-            [cljs.core.async :refer [<! close! put!]]
+            [cljs.core.async :as async :refer [<! close! put!]]
             [cljs-http.client :as http]
             [cognitect.transit :as t]
             [bluegenes.titles :refer [db->title]]
@@ -76,7 +76,7 @@
 (reg-fx :im-chan
         (let [previous-requests (atom {})
               active-requests (atom #{})]
-          (fn [{:keys [on-success on-failure chan abort abort-active]}]
+          (fn [{:keys [on-success on-failure chan chans abort abort-active]}]
             ;; `abort` should be used when you have a request which may be sent
             ;; multiple times, and you want new requests to replace pending
             ;; requests of the same `abort` value.
@@ -99,6 +99,7 @@
                            :body :abort})
                 (close! req)))
 
+            ;; If you change anything here, make the same change for `chans` below.
             (when chan
               (swap! active-requests conj chan)
               (go
@@ -133,7 +134,34 @@
                             ;; there's no error and we don't want to log it.
                             (and abort (nil? response)) nil
                             :else
-                            (.error js/console "Failed imcljs request" response)))))))))
+                            (.error js/console "Failed imcljs request" response))))))
+
+            ;; Similar to `chan` except there are multiple channels.
+            ;; This *should* give the same effect for a single channel when
+            ;; wrapped like [chan], but this should be tested liberally before
+            ;; you use it to supersede the above.
+            (when chans
+              (swap! active-requests into chans)
+              (go
+                (let [all-res (<! (->> (async/merge chans)
+                                       (async/reduce conj [])))
+                      all-s (map (some-fn :statusCode :status) all-res)
+                      all-valid-response? (every? (every-pred some? #(not= % "")) all-res)]
+                  (swap! active-requests #(apply disj %1 %2) chans)
+                  (cond
+                    (and all-valid-response?
+                         (every? #(< % 400) all-s)) (dispatch (conj on-success all-res))
+                    (and all-valid-response?
+                         (some #(= % 401) all-s)) (if on-failure
+                                                    (dispatch (conj on-failure all-res))
+                                                    (dispatch [:flag-invalid-token]))
+                    :else (cond
+                            (and (some #(= % 408) all-s)
+                                 (some #(= (:body %) :abort) all-res)) nil
+                            on-failure (dispatch (conj on-failure all-res))
+                            (and abort (some nil? all-res)) nil
+                            :else
+                            (.error js/console "Failed imcljs request" all-res)))))))))
 
 (defn http-fxfn
   "The :http side effect is similar to :im-chan but is more generic and is used
@@ -192,7 +220,7 @@
                   {:bluegenes.effects/http
                    ; or... ::fx/http if the namespace is referred
                    {:method :get
-                    :uri "/mymine"
+                    :uri "/api"
                     :json-params {:value 1 :another 2}
                     :on-success [:some-success-event]
                     :on-error [:some-failure-event]}})))
@@ -277,6 +305,7 @@
    (gstyle/scrollIntoContainerView (gdom/getElement template-id) nil true)))
 
 ;; Nice resource for more easing functions: https://gist.github.com/gre/1650294
+;; Update: Looks like there are some easing functions in `goog.fx.easing`.
 (defn- ease-in-out-cubic [t]
   (if (< t 0.5)
     (* 4 t t t)

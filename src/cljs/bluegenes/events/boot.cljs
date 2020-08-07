@@ -215,7 +215,12 @@
               :invalid-token?     ; Clear invalid-token-alert.
               :failed-auth?)      ; Clear flag for failing to auth with mine.
       ;; Clear chosen template category as it may not be present in new mine.
-      (update :home dissoc :active-template-category)))
+      (update :home dissoc :active-template-category)
+      ;; Set lists page number back to 1.
+      (assoc-in [:lists :pagination :current-page] 1)
+      ;; Clear lists page selected lists.
+      (update :lists assoc
+              :selected-lists #{})))
 
 (reg-event-fx
  :reboot
@@ -356,10 +361,14 @@
 
 ; Fetch lists
 
-(reg-event-db
+(reg-event-fx
  :assets/success-fetch-lists
- (fn [db [_ mine-kw lists]]
-   (assoc-in db [:assets :lists mine-kw] lists)))
+ (fn [{db :db} [_ mine-kw lists]]
+   (merge
+    {:db (assoc-in db [:assets :lists mine-kw] lists)}
+    ;; Denormalize lists right-away if you're on the lists page.
+    (when (= :lists-panel (:active-panel db))
+      {:dispatch [:lists/initialize]}))))
 
 (reg-event-fx
  :assets/fetch-lists

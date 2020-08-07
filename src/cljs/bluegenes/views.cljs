@@ -11,7 +11,7 @@
             [bluegenes.pages.reportpage.views :as reportpage]
             [bluegenes.pages.templates.views :as templates]
             [bluegenes.pages.querybuilder.views :as qb]
-            [bluegenes.pages.mymine.views.main :as mymine]
+            [bluegenes.pages.lists.views :as lists]
             [bluegenes.components.ui.alerts :as alerts]
             [bluegenes.components.idresolver.views :as idresolver]
             [bluegenes.pages.results.views :as results]
@@ -32,7 +32,7 @@
      :search-panel       search/main
      :results-panel      results/main
      :regions-panel      regions/main
-     :lists-panel        mymine/main
+     :lists-panel        lists/main
      :querybuilder-panel qb/main
      home/main)])
 

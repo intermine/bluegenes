@@ -14,6 +14,12 @@
    (:identity auth)))
 
 (reg-sub
+ ::superuser?
+ :<- [::identity]
+ (fn [identity]
+   (:superuser identity)))
+
+(reg-sub
  ::authenticated?
  :<- [::identity]
  (fn [identity]

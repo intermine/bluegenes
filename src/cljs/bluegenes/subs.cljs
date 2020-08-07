@@ -9,6 +9,9 @@
             [bluegenes.pages.profile.subs]
             [bluegenes.components.viz.subs]
             [bluegenes.pages.home.subs]
+            [bluegenes.pages.lists.subs]
+            [bluegenes.version :as version]
+            [bluegenes.utils :as utils]
             [lambdaisland.uri :refer [uri]]))
 
 (reg-sub
@@ -270,6 +273,12 @@
  :current-intermine-version
  (fn [db]
    (get-in db [:assets :intermine-version (:current-mine db)])))
+
+(reg-sub
+ :list-tags-support?
+ :<- [:current-intermine-version]
+ (fn [current-version]
+   (utils/compatible-version? version/list-tags-support current-version)))
 
 (reg-sub
  :show-mine-loader?

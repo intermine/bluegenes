@@ -85,28 +85,29 @@
   :deploy-repositories {"clojars" {:sign-releases false}}
   :codox {:language :clojurescript}
   :plugins [[lein-cljsbuild "1.1.7"]
-            [lein-less "1.7.5"]
             [org.clojure/core.unify "0.5.7"]
             [lein-codox "0.10.5"]
             [lein-ancient "0.6.15"]
             [lein-pdo "0.1.1"]
-            [lein-cljfmt "0.6.1"]]
+            [lein-cljfmt "0.6.1"]
+            [lein-shell "0.5.0"]]
 
   :cljfmt {:indents {wait-for [[:inner 0]]}}
 
   :aliases {"dev" ["do" "clean"
                    ["pdo"
-                    ["trampoline" "less" "auto"]
+                    ["shell" "make" "less"]
                     ["with-profile" "+repl" "run"]]]
             "build" ["do" "clean"
-                     ["less" "once"]
+                     ["shell" "make" "less-prod"]
                      ["with-profile" "prod" "cljsbuild" "once" "min"]]
             "prod" ["do" "build"
                     ["with-profile" "prod" "run"]]
             "deploy" ["with-profile" "+uberjar" "deploy" "clojars"]
             "format" ["cljfmt" "fix"]
             "kaocha" ["with-profile" "kaocha" "run" "-m" "kaocha.runner"]
-            "tools" ["run" "-m" "bluegenes-tool-store.tools"]}
+            "tools" ["run" "-m" "bluegenes-tool-store.tools"]
+            "less" ["shell" "make" "less"]}
 
   :min-lein-version "2.8.1"
 
@@ -121,9 +122,6 @@
   :figwheel {:css-dirs ["resources/public/css"]
              ;:ring-handler bluegenes.handler/handler
              :reload-clj-files {:cljc true}}
-
-  :less {:source-paths ["less"]
-         :target-path "resources/public/css"}
 
   :repl-options {:nrepl-middleware [cider.piggieback/wrap-cljs-repl]
                  :init (-main)

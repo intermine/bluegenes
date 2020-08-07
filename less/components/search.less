@@ -1,4 +1,3 @@
-@import "../../node_modules/bootstrap/less/bootstrap";
 @import "../variables";
 @import "../datatype-colors";
 
@@ -381,7 +380,8 @@
     }
 }
 
-.result-type {
+.result-type,
+.result-type[class*="type-"] {
     display: inline-block;
     color: @body-foreground-color;
     min-width: 7em;

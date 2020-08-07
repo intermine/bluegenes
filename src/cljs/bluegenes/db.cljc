@@ -16,21 +16,18 @@
                              :identifiers []}
                 :save {:list-name nil}
                 :response nil}
-   :mymine {:dragging nil
-            :dragging-over nil
-            :selected #{}
-            :focus [:unsorted]
-            :stage-operation nil
-            :checked #{}
-            :sort-by {:key :label
-                      :type :alphanum
-                      :asc? true}
-            :tree {}
-            :list-operations {:selected #{}}}
-   :lists {:controls {:filters {:text-filter nil
-                                :flags {:authorized nil
-                                        :favourite nil}}
-                      :sort {:title :asc}}}
+   ;; If you change this, you should change `remove-stateful-keys-from-db` too.
+   :lists {:pagination {:per-page 20
+                        :current-page 1}
+           :controls {:filters {:keywords ""
+                                :lists nil
+                                :date nil
+                                :type nil
+                                :tags nil}
+                      :sort {:column :timestamp
+                             :order :desc}}
+           :selected-lists #{}
+           :expanded-paths #{}}
 
    :qb {:root-class :Gene
         :order []

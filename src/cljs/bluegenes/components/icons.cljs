@@ -1,18 +1,30 @@
 (ns bluegenes.components.icons)
 
-;;TO ADD AN SVG: i'd recommend icomoon. get the svg symbol
-;; definition of an icon from https://icomoon.io/app/
-;; then plug it into http://htmltohiccup.herokuapp.com/ to make
-;; it hiccup, THEN paste it in here. Top tip: if your icon
-;; doesn't work, check if it's viewBox or view-box (but not viewBox)
-;; lowercase b makes react grumpy.
-
-;;TO USE AN SVG INLINE, do it like so:
-;;[:svg.icon.icon-search [:use {:xlinkHref "#icon-search"}]]
-;;The definitions of icons are below ) use the part after # in the symbol
-;;tag as identifiers.
-;;OR just go the the developer section in the cog menu (top right)
-;; of bluegenes and copy/paste the code for your icon from there
+;; - Where can I find new icons?
+;; We use many icons from https://icomoon.io/app/
+;;
+;; - How do I add a new icon from SVG?
+;; Paste the SVG markup into http://htmltohiccup.herokuapp.com/ to convert it
+;; to hiccup, then paste that in here under a new `symbol` tag. You should
+;; clean it up by removing the `:svg` parent tag, and removing every attribute
+;; other than `viewBox`. Note that the hiccup returned will specify `viewbox`
+;; with lowercase b, which React doesn't like, so make sure to uppercase the b.
+;;
+;; - How do I use an icon?
+;; We recommend using the `icon` function for this.
+;;     [icon "intermine"]
+;; You can also use the element directly.
+;;     [:svg.icon.icon-intermine [:use {:xlinkHref "#icon-intermine"}]]
+;; Find the icon name by looking at the part after # in the symbol tag.
+;;
+;; - How do I dynamically color the content of an icon?
+;; You can achieve this by using CSS variables
+;;     {:fill "var(--my-color)"}
+;; and create a CSS selector that sets it.
+;;     .active-icon {
+;;         --my-color: pink;
+;;     }
+;; Finally, you just need to have React set the class.
 
 (defn icon
   "Render the icon `icon-name` enlarged `enlarge` times with a vector of
@@ -584,6 +596,138 @@
      [:path
       {:d
        "M18 8l-4-4h-14v26h32v-22h-14zM22 22h-4v4h-4v-4h-4v-4h4v-4h4v4h4v4z"}]]
+
+    [:symbol#icon-selection
+     {:viewBox "0 0 52 52"}
+     [:path
+      {:d
+       "M22.8333 37H30.1667V33.3333H22.8333V37ZM10 15V18.6667H43V15H10ZM15.5 27.8333H37.5V24.1667H15.5V27.8333Z"}]]
+
+    [:symbol#icon-sort
+     {:viewBox "0 0 52 52"}
+     [:path
+      {:fill "var(--bottom-color)"
+       :d "M15 28.8334L25.8333 39.6667L36.6667 28.8334H15Z"}]
+     [:path
+      {:fill "var(--top-color)"
+       :d "M36.667 22.8334L25.8337 12L15.0003 22.8334L36.667 22.8334Z"}]]
+
+    [:symbol#icon-list-item
+     {:viewBox "0 0 40 23"}
+     [:path
+      {:d
+       "M0 13.3392H4.44444V8.89475H0V13.3392ZM0 22.2281H4.44444V17.7836H0V22.2281ZM0 4.4503H4.44444V0.00585938H0V4.4503ZM8.88889 13.3392H40V8.89475H8.88889V13.3392ZM8.88889 22.2281H40V17.7836H8.88889V22.2281ZM8.88889 0.00585938V4.4503H40V0.00585938H8.88889ZM0 13.3392H4.44444V8.89475H0V13.3392ZM0 22.2281H4.44444V17.7836H0V22.2281ZM0 4.4503H4.44444V0.00585938H0V4.4503ZM8.88889 13.3392H40V8.89475H8.88889V13.3392ZM8.88889 22.2281H40V17.7836H8.88889V22.2281ZM8.88889 0.00585938V4.4503H40V0.00585938H8.88889Z"}]]
+
+    [:symbol#icon-folder-item
+     {:viewBox "0 0 38 30"}
+     [:path
+      {:d
+       "M13.4438 3.75L17.1938 7.5H33.75V26.25H3.75V3.75H13.4438ZM15 0H3.75C1.6875 0 0.01875 1.6875 0.01875 3.75L0 26.25C0 28.3125 1.6875 30 3.75 30H33.75C35.8125 30 37.5 28.3125 37.5 26.25V7.5C37.5 5.4375 35.8125 3.75 33.75 3.75H18.75L15 0Z"}]]
+
+    [:symbol#icon-folder-open-item
+     {:viewBox "0 0 40 32"}
+     [:path
+      {:d
+       "M36 4H20L16 0H4C1.8 0 0.02 1.8 0.02 4L0 28C0 30.2 1.8 32 4 32H36C38.2 32 40 30.2 40 28V8C40 5.8 38.2 4 36 4ZM36 28H4V8H36V28Z"}]]
+
+    [:symbol#icon-expand-folder
+     {:viewBox "0 0 30 30"}
+     [:path {:d "M0 12.1875H30V17.1875H0V12.1875Z"}]
+     [:path
+      {:d "M12.1875 30L12.1875 0H17.1875V30H12.1875Z"}]]
+
+    [:symbol#icon-collapse-folder
+     {:viewBox "0 0 30 5"}
+     [:path {:d "M0 0H30V5H0V0Z"}]]
+
+    [:symbol#icon-new-folder
+     {:viewBox "0 0 32 26"}
+     [:path
+      {:d
+       "M28.667 3.50004H16.0003L12.8337 0.333374H3.33366C1.57616 0.333374 0.182826 1.74254 0.182826 3.50004L0.166992 22.5C0.166992 24.2575 1.57616 25.6667 3.33366 25.6667H28.667C30.4245 25.6667 31.8337 24.2575 31.8337 22.5V6.66671C31.8337 4.90921 30.4245 3.50004 28.667 3.50004ZM28.667 22.5H3.33366V3.50004H11.5195L14.6862 6.66671H28.667V22.5ZM16.0003 16.1667H19.167V19.3334H22.3337V16.1667H25.5003V13H22.3337V9.83337H19.167V13H16.0003V16.1667Z"}]]
+
+    [:symbol#icon-modal-folder
+     {:viewBox "0 0 40 40"}
+     [:path
+      {:fill "#444444",
+       :d
+       "M16.6654 6.6665H6.66536C4.83203 6.6665 3.3487 8.1665 3.3487 9.99984L3.33203 29.9998C3.33203 31.8332 4.83203 33.3332 6.66536 33.3332H33.332C35.1654 33.3332 36.6654 31.8332 36.6654 29.9998V13.3332C36.6654 11.4998 35.1654 9.99984 33.332 9.99984H19.9987L16.6654 6.6665Z"}]]
+
+    [:symbol#icon-modal-folder-up
+     {:viewBox "0 0 32 32"}
+     [:path
+      {:d
+       "M27.414 12.586l-10-10c-0.781-0.781-2.047-0.781-2.828 0l-10 10c-0.781 0.781-0.781 2.047 0 2.828s2.047 0.781 2.828 0l6.586-6.586v19.172c0 1.105 0.895 2 2 2s2-0.895 2-2v-19.172l6.586 6.586c0.39 0.39 0.902 0.586 1.414 0.586s1.024-0.195 1.414-0.586c0.781-0.781 0.781-2.047 0-2.828z"}]]
+
+    [:symbol#icon-list-copy
+     {:viewBox "0 0 28 32"}
+     [:path
+      {:d
+       "M20.3636 0H2.90909C1.30909 0 0 1.30909 0 2.90909V23.2727H2.90909V2.90909H20.3636V0ZM18.9091 5.81818H8.72727C7.12727 5.81818 5.83273 7.12727 5.83273 8.72727L5.81818 29.0909C5.81818 30.6909 7.11273 32 8.71273 32H24.7273C26.3273 32 27.6364 30.6909 27.6364 29.0909V14.5455L18.9091 5.81818ZM8.72727 29.0909V8.72727H17.4545V16H24.7273V29.0909H8.72727Z"}]]
+
+    [:symbol#icon-list-edit
+     {:viewBox "0 0 33 32"}
+     [:path
+      {:d
+       "M19.6622 10.7022L21.2978 12.3378L5.19111 28.4444H3.55556V26.8089L19.6622 10.7022ZM26.0622 0C25.6178 0 25.1556 0.177778 24.8178 0.515556L21.5644 3.76889L28.2311 10.4356L31.4844 7.18222C32.1778 6.48889 32.1778 5.36889 31.4844 4.67556L27.3244 0.515556C26.9689 0.16 26.5244 0 26.0622 0ZM19.6622 5.67111L0 25.3333V32H6.66667L26.3289 12.3378L19.6622 5.67111Z"}]]
+
+    [:symbol#icon-list-delete
+     {:viewBox "0 0 25 32"}
+     [:path
+      {:d
+       "M19.5556 10.6667V28.4444H5.33333V10.6667H19.5556ZM16.8889 0H8L6.22222 1.77778H0V5.33333H24.8889V1.77778H18.6667L16.8889 0ZM23.1111 7.11111H1.77778V28.4444C1.77778 30.4 3.37778 32 5.33333 32H19.5556C21.5111 32 23.1111 30.4 23.1111 28.4444V7.11111Z"}]]
+
+    [:symbol#icon-list-more
+     {:viewBox "0 0 48 48"}
+     [:path
+      {:d
+       "M24 16C26.2 16 28 14.2 28 12C28 9.8 26.2 8 24 8C21.8 8 20 9.8 20 12C20 14.2 21.8 16 24 16V16ZM24 20C21.8 20 20 21.8 20 24C20 26.2 21.8 28 24 28C26.2 28  28 26.2 28 24C28 21.8 26.2 20 24 20V20ZM24 32C21.8 32 20 33.8 20 36C20 38.2 21.8 40 24 40C26.2 40 28 38.2 28 36C28 33.8 26.2 32 24 32V32Z",
+       :clip-rule "evenodd",
+       :fill-rule "evenodd"}]]
+
+    [:symbol#icon-remove-list
+     {:viewBox "0 0 60 60"}
+     [:circle
+      {:stroke-width "3",
+       :stroke "#DA2837",
+       :fill "white",
+       :r "28.5",
+       :cy "30",
+       :cx "30"}]
+     [:rect
+      {:fill "#DA2837",
+       :height "5",
+       :width "33.3333",
+       :y "27.5",
+       :x "13.333"}]]
+
+    [:symbol#icon-move-down-list
+     {:viewBox "0 0 36 36"}
+     [:circle
+      {:stroke-width "3",
+       :stroke "#1FB3FB",
+       :fill "white",
+       :r "16.5",
+       :cy "18",
+       :cx "18"}]
+     [:path
+      {:fill "#1FB3FB",
+       :d
+       "M24.12 13.9999L18 20.1065L11.88 13.9999L10 15.8799L18 23.8799L26 15.8799L24.12 13.9999Z"}]]
+
+    [:symbol#icon-move-up-list
+     {:viewBox "0 0 36 36"}
+     [:circle
+      {:stroke-width "3",
+       :stroke "#1FB3FB",
+       :fill "white",
+       :r "16.5",
+       :cy "18",
+       :cx "18"}]
+     [:path
+      {:fill "#1FB3FB",
+       :d
+       "M11.88 22.88L18 16.7733L24.12 22.88L26 21L18 13L10 21L11.88 22.88Z"}]]
 
     [:symbol#icon-eye
      {:viewBox "0 0 32 32"}

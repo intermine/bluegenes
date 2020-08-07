@@ -44,7 +44,7 @@ script:
   # setup dependencies
   - npm install
   # Build CSS
-  - lein with-profile prod less once
+  - make less-prod
   # ensure a minified build completes without error
   - lein with-profile prod cljsbuild once min
   # start server

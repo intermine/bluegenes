@@ -30,7 +30,7 @@
               (ocall js/document "getElementById" "app"))
   ;; Development mode helper code snippet
   ;; Uncomment this code to keep modals open after figwheel reloads.
-  #_(-> (js/$ "#myMineOrganizeConfirm") ; Replace with your modal id.
+  #_(-> (js/$ "#myModalsID") ; Replace with your modal id.
         (.addClass "in")
         (.css "display" "block")))
 

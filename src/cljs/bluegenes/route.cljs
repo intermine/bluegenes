@@ -229,7 +229,10 @@
     ["/lists"
      {:name ::lists
       :controllers
-      [{:start #(dispatch [:set-active-panel :lists-panel])}]}]
+      [{:start (fn []
+                 (dispatch [:set-active-panel :lists-panel
+                            nil
+                            [:lists/initialize]]))}]}]
     ["/report/:type/:id"
      {:name ::report
       :controllers

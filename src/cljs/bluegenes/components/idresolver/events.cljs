@@ -193,9 +193,9 @@
                  [:assets :summary-fields
                   (get db :current-mine) (keyword object-type)])]
      {:db db
-      :dispatch-n [; Re-fetch our lists so that it shows in MyMine
+      :dispatch-n [; Re-fetch our lists so that it shows in Lists page
                    [:assets/fetch-lists]
-                                ; Show the list results in the List Analysis page
+                   ; Show the list results in the Results page
                    [:results/history+
                     {:source (get db :current-mine)
                      :type :query
