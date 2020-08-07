@@ -147,16 +147,18 @@
               [:a {:on-click #(dispatch [:lists/set-filter filter-name value])}
                label]]))]))
 
-(defn list-row-controls [list-id]
+(defn list-row-controls [list-id authorized]
   [:<>
    [:button.btn
     {:on-click #(dispatch [:lists/open-modal :copy list-id])}
     [icon "list-copy"]]
    [:button.btn
-    {:on-click #(dispatch [:lists/open-modal :edit list-id])}
+    {:on-click #(dispatch [:lists/open-modal :edit list-id])
+     :disabled (not authorized)}
     [icon "list-edit"]]
    [:button.btn
-    {:on-click #(dispatch [:lists/open-modal :delete list-id])}
+    {:on-click #(dispatch [:lists/open-modal :delete list-id])
+     :disabled (not authorized)}
     [icon "list-delete"]]])
 
 (defn list-row [item]
@@ -233,9 +235,9 @@
             [icon "list-more"]]
            [:div.dropdown-menu.dropdown-menu-controls
             [:div.list-controls
-             [list-row-controls id]]]]]
+             [list-row-controls id authorized]]]]]
          [:div.list-controls.hidden-xs.hidden-sm.hidden-md
-          [list-row-controls id]]])
+          [list-row-controls id authorized]]])
       (when is-selected
         [:div.selected-list-overlay])]]))
 
