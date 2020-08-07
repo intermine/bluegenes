@@ -215,7 +215,12 @@
               :invalid-token?     ; Clear invalid-token-alert.
               :failed-auth?)      ; Clear flag for failing to auth with mine.
       ;; Clear chosen template category as it may not be present in new mine.
-      (update :home dissoc :active-template-category)))
+      (update :home dissoc :active-template-category)
+      ;; Set lists page number back to 1.
+      (assoc-in [:lists :pagination :current-page] 1)
+      ;; Clear lists page selected lists.
+      (update :lists assoc
+              :selected-lists #{})))
 
 (reg-event-fx
  :reboot

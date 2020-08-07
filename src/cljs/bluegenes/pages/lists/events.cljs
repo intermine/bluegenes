@@ -34,6 +34,9 @@
  (fn [lists [_ path]]
    (update lists :expanded-paths (fnil disj #{}) path)))
 
+(defn set-current-page-1 [lists]
+  (assoc-in lists [:pagination :current-page] 1))
+
 ;; Note: Do not dispatch this from more than one place.
 ;; The input field which changes this value uses debouncing and internal state,
 ;; so it won't sync with this value except when first mounting.
@@ -41,7 +44,9 @@
  :lists/set-keywords-filter
  (path root)
  (fn [lists [_ keywords-string]]
-   (assoc-in lists [:controls :filters :keywords] keywords-string)))
+   (-> lists
+       (assoc-in [:controls :filters :keywords] keywords-string)
+       (set-current-page-1))))
 
 (reg-event-db
  :lists/toggle-sort
@@ -60,7 +65,9 @@
  :lists/set-filter
  (path root)
  (fn [lists [_ filter-name value]]
-   (assoc-in lists [:controls :filters filter-name] value)))
+   (-> lists
+       (assoc-in [:controls :filters filter-name] value)
+       (set-current-page-1))))
 
 (reg-event-db
  :lists/set-per-page

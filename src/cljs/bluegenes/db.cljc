@@ -27,6 +27,7 @@
                       :asc? true}
             :tree {}
             :list-operations {:selected #{}}}
+   ;; If you change this, you should change `remove-stateful-keys-from-db` too.
    :lists {:pagination {:per-page 20
                         :current-page 1}
            :controls {:filters {:keywords ""
@@ -36,6 +37,7 @@
                                 :tags nil}
                       :sort {:column :timestamp
                              :order :desc}}
+           :selected-lists #{}
            :expanded-paths #{}}
 
    :qb {:root-class :Gene
