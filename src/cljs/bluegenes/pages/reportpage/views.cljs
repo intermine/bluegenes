@@ -112,4 +112,4 @@
                   [viz/main]
                   [tools/main]
                   [collections-and-references service current-mine-name type id]
-                  [templates-for-entity service current-mine-name id]])])]))])))
+                  #_[templates-for-entity service current-mine-name id]])])]))])))
