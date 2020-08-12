@@ -80,7 +80,7 @@
 (defn main [field-map]
   [:div.report-summary
    [:div
-    [:h1 (str (:rootClass field-map) ": " (choose-title-column field-map))]]
+    [:h1.line-header (str (:rootClass field-map) ": " (choose-title-column field-map))]]
    (let [entries (zipmap (:columnHeaders field-map)
                          (first (:results field-map)))]
      (-> [:div.fields]

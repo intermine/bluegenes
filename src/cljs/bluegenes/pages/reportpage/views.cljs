@@ -22,7 +22,8 @@
                         (fn []
                           (let [result-count (get-in @data [:response :iTotalRecords])]
                             [:div
-                             [:h3 (str title (when result-count (str " (" result-count ")")))]
+                             [:h3.line-header
+                              (str title (when result-count (str " (" result-count ")")))]
                              (if (= 0 result-count)
                                [:div "No Results"]
                                [:div {:style {:background-color "white"}}
@@ -36,7 +37,7 @@
 (defn collections-and-references [service current-mine-name object-type id]
   (let [summary-fields (subscribe [:current-summary-fields])
         nonempty-collections-references (subscribe [::subs/non-empty-collections-and-references])]
-    (into [:div]
+    (into [:div.all-tables]
           (map (fn [{:keys [name referencedType displayName] :as x}]
                  ^{:key (str id (:name x))}
                  [tbl {:loc [:report-page id (:name x)]
