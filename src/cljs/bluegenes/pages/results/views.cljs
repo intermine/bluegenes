@@ -126,8 +126,7 @@
              [:div.hidden-lg
               [enrichment/enrich]]]
             [:div.col-sm-9.col-lg-7
-             [:div
-              {:style {:background-color "white"}}
+             [:div.results-table
               [tables/main [:results :table]]
               (when (and list authorized)
                 ;; Only show when results are for a list, not a query.

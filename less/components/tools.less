@@ -1,0 +1,33 @@
+@import "../variables";
+
+.tools {
+    @visible-gray: #ccc;
+
+    .tool-container {
+        background-color: @content-color-background;
+        margin-bottom: @spacer*3;
+
+        .tool-header {
+            background-color: @visible-gray;
+            padding: @spacer*1.2 @spacer*1.2 @spacer*1.2 @spacer*2.4;
+
+            .tool-title {
+                display: inline;
+                margin: 0;
+            }
+
+            .tool-toggle {
+                font-size: 2.4em;
+                font-weight: 100;
+                line-height: 0.8em;
+                padding: 0;
+                margin: 0;
+            }
+        }
+
+        .tool {
+            padding: @spacer*2 @spacer*2.4;
+            overflow: auto;
+        }
+    }
+}

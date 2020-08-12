@@ -77,3 +77,13 @@
         :load-suitable-tools {:tools tools
                               :service service
                               :entities entities}}))))
+
+(reg-event-db
+ ::collapse-tool
+ (fn [db [_ tool-name-cljs]]
+   (update-in db [:tools :collapsed] (fnil conj #{}) tool-name-cljs)))
+
+(reg-event-db
+ ::expand-tool
+ (fn [db [_ tool-name-cljs]]
+   (update-in db [:tools :collapsed] (fnil disj #{}) tool-name-cljs)))

@@ -40,3 +40,8 @@
  :<- [:model]
  (fn [[tools entities model]]
    (filter #(suitable-entities model entities (:config %)) tools)))
+
+(reg-sub
+ ::collapsed-tool?
+ (fn [db [_ tool-name-cljs]]
+   (contains? (get-in db [:tools :collapsed]) tool-name-cljs)))
