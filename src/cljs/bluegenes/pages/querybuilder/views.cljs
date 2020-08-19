@@ -89,7 +89,8 @@
           [:span.qb-label (:displayName properties)]]]))))
 
 (defn node []
-  (let [menu (subscribe [:qb/menu])]
+  (let [menu (subscribe [:qb/menu])
+        hier (subscribe [:current-model-hier])]
     (fn [model [k properties] & [trail]]
       (let [path (vec (conj trail (name k)))
             open? (get-in @menu path)
@@ -115,14 +116,18 @@
            (into [:ul]
                  (concat
                   (when (im-path/class? model str-path)
-                    (when-let [subclasses (im-path/subclasses model str-path)]
-                      (list
-                       [:li [:span
-                             (into
-                              [:select.form-control
-                               {:on-change (fn [e] (dispatch [:qb/enhance-query-choose-subclass path (oget e :target :value)]))}]
-                              (map (fn [subclass]
-                                     [:option {:value subclass} (uncamel (name subclass))]) (conj subclasses (:referencedType properties))))]])))
+                    (let [class (im-path/class model str-path)]
+                      (when-let [subclasses (seq (descendants @hier class))]
+                        [[:li
+                          [:span
+                           (into [:select.form-control
+                                  {:on-change (fn [e]
+                                                (dispatch [:qb/enhance-query-choose-subclass path (oget e :target :value)]))}]
+                                 (map (fn [subclass]
+                                        [:option {:value subclass} (uncamel (name subclass))])
+                                      ;; This adds the class itself as the first, default choice.
+                                      ;; To constrain to a subclass, you have to select one.
+                                      (conj subclasses (:referencedType properties))))]]])))
                   (if sub
                     (map (fn [i] [attribute model i path sub]) (sort (remove (comp (partial = :id) first) (im-path/attributes model sub))))
                     (map (fn [i] [attribute model i path sub]) (sort (remove (comp (partial = :id) first) (im-path/attributes model (:referencedType properties))))))
@@ -161,7 +166,9 @@
 (defn data-browser-node []
   (let [open? (reagent/atom true)]
     (fn [close! model hier tag]
-      (let [children (filter #(contains? (parents hier %) tag)
+      (let [;; To get the immediate children, we filter the descendants down to
+            ;; those which have `tag` as immediate parent.
+            children (filter #(contains? (parents hier %) tag)
                              (descendants hier tag))
             tag-count (get-in model [tag :count])
             is-nonempty (when (number? tag-count) (pos? tag-count))]

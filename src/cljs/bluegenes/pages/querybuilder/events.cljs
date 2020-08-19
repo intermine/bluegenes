@@ -325,14 +325,23 @@
    (let [current-mine-name (get db :current-mine)
          model (get-in db [:mines current-mine-name :service :model])
          all-summary-fields (get-in db [:assets :summary-fields current-mine-name])
-         summary-fields (get all-summary-fields (or (keyword subclass) (im-path/class model (join "." original-path-vec))))
+         class (im-path/class model (join "." original-path-vec))
+         summary-fields (get all-summary-fields (or (keyword subclass) class))
          adjusted-views (map (partial split-and-drop-first original-path-vec) summary-fields)]
      {:db (reduce (fn [db path-vec]
-                    (cond-> db
-                      path-vec (update-in [:qb :enhance-query] update-in path-vec deep-merge {})
-                      subclass (update-in [:qb :enhance-query] update-in (butlast path-vec) assoc :subclass subclass)
-                      path-vec (update-in [:qb :order] add-if-missing (join "." path-vec))))
-                  db adjusted-views)
+                    (if path-vec
+                      (-> db
+                          (update-in (into [:qb :enhance-query] path-vec) deep-merge {})
+                          (update-in [:qb :order] add-if-missing (join "." path-vec)))
+                      db))
+                  (cond-> db
+                    ;; Setting subclass is only done once, which is for the class we summarize.
+                    (and subclass (not= (keyword subclass) class))
+                    (assoc-in (-> [:qb :enhance-query]
+                                  (into original-path-vec)
+                                  (conj :subclass))
+                              subclass))
+                  adjusted-views)
       :dispatch [:qb/enhance-query-build-im-query true]})))
 
 (defn dissoc-in
