@@ -16,6 +16,16 @@
   [md-string]
   (some-> md-string md/md->hiccup md/component (md/hiccup-in :div :p)))
 
+;; Please do not use this for model classes. You can get results like:
+;;     "ThreePrimeUTR" -> "Three primeutr"
+;;     "ThisIsADog" -> "This isa dog"
+;; I don't think camelcasing is a reversible operation unless you explicitly
+;; specify all acronyms present (inflections.core uses this approach).
+;; Imagine "ThisIsAUTR": with the perfect implementation it would uncamel to
+;; "This is AUTR"; without defining UTR as an acronym, you wouldn't get "This
+;; is a UTR".
+;; Instead of using this function, use the `displayName` of the class, or just
+;; display the camelcased name (it isn't that bad).
 (defn uncamel
   "Uncamel case a string. Example: thisIsAString -> This is a string"
   [s]

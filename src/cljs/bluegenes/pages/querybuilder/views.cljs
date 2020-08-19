@@ -3,12 +3,11 @@
             [reagent.core :as reagent]
             [clojure.string :as string :refer [split join]]
             [oops.core :refer [ocall oget]]
-            [bluegenes.utils :refer [uncamel]]
             [bluegenes.components.ui.constraint :refer [constraint]]
             [bluegenes.components.bootstrap :refer [tooltip]]
             [imcljs.path :as im-path]
             [imcljs.query :refer [->xml]]
-            [bluegenes.components.loader :refer [mini-loader loader]]
+            [bluegenes.components.loader :refer [mini-loader]]
             [bluegenes.components.ui.results_preview :refer [preview-table]]
             [inflections.core :refer [ordinalize plural]]))
 
@@ -124,7 +123,7 @@
                                   {:on-change (fn [e]
                                                 (dispatch [:qb/enhance-query-choose-subclass path (oget e :target :value)]))}]
                                  (map (fn [subclass]
-                                        [:option {:value subclass} (uncamel (name subclass))])
+                                        [:option {:value subclass} (name subclass)])
                                       ;; This adds the class itself as the first, default choice.
                                       ;; To constrain to a subclass, you have to select one.
                                       (conj subclasses (:referencedType properties))))]]])))
@@ -261,11 +260,11 @@
           [:span.lab {:class (if class-node? "qb-class" "qb-attribute")}
            [:span.qb-label {:style {:margin-left 5}}
             [tooltip {:on-click #(dispatch [:qb/expand-path path])
-                      :title (str "Show " (uncamel k) " in the model browser")}
-             [:a (uncamel k)]]]
-           (when (and non-root-class? (not= referenced-name (uncamel k)))
+                      :title (str "Show " k " in the model browser")}
+             [:a k]]]
+           (when (and non-root-class? (not= referenced-class k))
              [:span.qb-type (str "(" referenced-name ")")])
-           (when-let [s (:subclass properties)] [:span.label.label-default (uncamel s)])
+           (when-let [s (:subclass properties)] [:span.label.label-default s])
            [:svg.icon.icon-bin
             {:on-click (if (> (count path) 1)
                          (fn [] (dispatch [:qb/enhance-query-remove-view path]))
@@ -474,7 +473,7 @@
                 (into [:div.path-parts]
                       (map (fn [part]
                              [:span.part part])
-                           (interpose ">" (map uncamel (split path ".")))))
+                           (interpose ">" (split path "."))))
                 (let [subpaths (->> (split path #"\.") (iterate drop-last) (take-while not-empty) (set))
                       outer-joined-section? (some #(contains? subpaths %)
                                                   (map #(split % #"\.") @(subscribe [:qb/joins])))]
