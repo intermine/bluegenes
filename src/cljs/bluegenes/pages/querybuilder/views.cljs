@@ -162,7 +162,9 @@
   (let [open? (reagent/atom true)]
     (fn [close! model hier tag]
       (let [children (filter #(contains? (parents hier %) tag)
-                             (descendants hier tag))]
+                             (descendants hier tag))
+            tag-count (get-in model [tag :count])
+            is-nonempty (when (number? tag-count) (pos? tag-count))]
         [:li.haschildren.qb-group
          {:class (when @open? "expanded-group")}
          [:div.group-title
@@ -178,37 +180,37 @@
              [:svg.icon.icon-plus
               {:class (when @open? "arrow-down")}
               [:use {:xlinkHref "#icon-plus"}]]])
-          [:a.qb-class
-           {:class (when (empty? children) "no-icon")
-            :on-click #(do (dispatch [:qb/set-root-class tag]) (close!))}
-           tag]
-          (when-let [count (get-in model [tag :count])]
-            (when (pos? count)
-              [:span.class-count count]))]
+          (if is-nonempty
+            [:a.qb-class
+             {:class (when (empty? children) "no-icon")
+              :on-click #(do (dispatch [:qb/set-root-class tag]) (close!))}
+             tag]
+            [:span.qb-class.empty-class
+             {:class (when (empty? children) "no-icon")}
+             tag])
+          (when is-nonempty
+            [:span.class-count tag-count])]
          (when (and (seq children) @open?)
            (into [:ul]
                  (for [child (sort children)]
                    [data-browser-node close! model hier child])))]))))
 
-(defn data-browser []
+(defn data-browser [close!]
   (let [model @(subscribe [:model])
-        hier (reduce (fn [h [child {:keys [extends]}]]
-                       (reduce #(derive %1 child %2) h (map keyword extends)))
-                     (make-hierarchy) model)]
-    (fn [close!]
-      [:div.model-browser-column
-       [:div.header-group
-        [:h4 "Data Browser"]
-        [:button.btn.btn-raised.btn-sm.browse-button
-         {:on-click close!}
-         [:svg.icon.icon-arrow-left [:use {:xlinkHref "#icon-arrow-left"}]]
-         "Back to model"]]
-       [:div.model-browser.class-browser
-        (into [:ul]
-              (for [root (->> (keys model)
-                              (filter #(empty? (parents hier %)))
-                              (sort))]
-                [data-browser-node close! model hier root]))]])))
+        hier @(subscribe [:current-model-hier])]
+    [:div.model-browser-column
+     [:div.header-group
+      [:h4 "Data Browser"]
+      [:button.btn.btn-raised.btn-sm.browse-button
+       {:on-click close!}
+       [:svg.icon.icon-arrow-left [:use {:xlinkHref "#icon-arrow-left"}]]
+       "Back to model"]]
+     [:div.model-browser.class-browser
+      (into [:ul]
+            (for [root (->> (keys model)
+                            (filter #(empty? (parents hier %)))
+                            (sort))]
+              [data-browser-node close! model hier root]))]]))
 
 (defn browser-pane []
   (let [query (subscribe [:qb/query])
