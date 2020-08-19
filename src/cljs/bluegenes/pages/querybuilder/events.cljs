@@ -513,7 +513,18 @@
 (reg-event-db
  :qb/save-preview
  (fn [db [_ results]]
-   (update db :qb assoc :preview results :fetching-preview? false)))
+   (update db :qb assoc
+           :preview results
+           :preview-error nil
+           :fetching-preview? false)))
+
+(reg-event-db
+ :qb/failure-preview
+ (fn [db [_ res]]
+   (update db :qb assoc
+           :preview nil
+           :preview-error (or (get-in res [:body :error]) (pr-str res))
+           :fetching-preview? false)))
 
 (reg-event-fx
  :qb/fetch-preview
@@ -524,6 +535,7 @@
               (update-in [:qb :preview-chan] (fnil close! (chan)))
               (assoc-in [:qb :preview-chan] new-request))
       :im-chan {:on-success [:qb/save-preview]
+                :on-failure [:qb/failure-preview]
                 :chan new-request}})))
 
 (reg-event-db

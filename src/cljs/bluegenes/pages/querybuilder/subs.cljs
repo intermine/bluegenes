@@ -40,6 +40,11 @@
    (get-in db [:qb :preview])))
 
 (reg-sub
+ :qb/preview-error
+ (fn [db]
+   (get-in db [:qb :preview-error])))
+
+(reg-sub
  :qb/fetching-preview?
  (fn [db]
    (get-in db [:qb :fetching-preview?])))

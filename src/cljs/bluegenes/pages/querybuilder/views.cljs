@@ -428,15 +428,19 @@
            [:div.query-preview-loader
             [mini-loader "tiny"]])]))))
 
-(defn preview [result-count]
-  (let [results-preview (subscribe [:qb/preview])]
+(defn preview []
+  (let [results-preview @(subscribe [:qb/preview])
+        preview-error @(subscribe [:qb/preview-error])]
     [:div.preview-container
-     (if-let [res @results-preview]
-       [preview-table
-        :loading? false ; The loader is ugly.
-        :hide-count? true
-        :query-results res]
-       [:p "No query available for generating preview."])]))
+     (cond
+       preview-error [:div
+                      [:p "Error occured when running query."]
+                      [:pre.well.text-danger preview-error]]
+       results-preview [preview-table
+                        :loading? false ; The loader is ugly.
+                        :hide-count? true
+                        :query-results results-preview]
+       :else [:p "No query available for generating preview."])]))
 
 (defn move-vec-elem
   "Moves an element in a vector `v` from index `i` to `i'`."
@@ -559,8 +563,7 @@
 (defn column-order-preview []
   (let [enhance-query (subscribe [:qb/enhance-query])
         current-mine (subscribe [:current-mine])
-        tab-index (reagent/atom 0)
-        prev (subscribe [:qb/preview])]
+        tab-index (reagent/atom 0)]
     (fn []
       [:div.panel.panel-default
        [:div.panel-body
@@ -568,7 +571,7 @@
          [:li {:class (when (= @tab-index 0) "active")} [:a {:on-click #(reset! tab-index 0)} "Preview"]]
          [:li {:class (when (= @tab-index 1) "active")} [:a {:on-click #(reset! tab-index 1)} "XML"]]]
         (case @tab-index
-          0 [preview @prev]
+          0 [preview]
           1 [xml-view])]])))
 
 (defn short-readable-path
