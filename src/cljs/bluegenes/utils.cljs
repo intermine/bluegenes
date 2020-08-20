@@ -36,6 +36,25 @@
       (string/capitalize $))
     s))
 
+;; You may think update-in serves you just fine
+;;     (update-in {} [:foo :bar] dissoc :baz)
+;; but this ends up creating nested maps all the way until the inner nil.
+;; `dissoc-in` on the other hand, won't do this, and will remove the nested
+;; maps if they don't hold any other keys than the one you wanted removed.
+(defn dissoc-in
+  "Dissociates an entry from a nested associative structure returning a new
+  nested structure. keys is a sequence of keys. Any empty maps that result
+  will not be present in the new structure."
+  [m [k & ks :as keys]]
+  (if ks
+    (if-let [nextmap (get m k)]
+      (let [newmap (dissoc-in nextmap ks)]
+        (if (seq newmap)
+          (assoc m k newmap)
+          (dissoc m k)))
+      m)
+    (dissoc m k)))
+
 (defn read-origin
   "Read the origin class from a query, and infer it if it's missing."
   [query]

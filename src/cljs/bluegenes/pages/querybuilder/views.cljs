@@ -80,8 +80,8 @@
          [:span
           {:on-click (fn []
                        (if selected?
-                         (dispatch [:qb/enhance-query-remove-view path sub])
-                         (dispatch [:qb/enhance-query-add-view path sub])))}
+                         (dispatch [:qb/enhance-query-remove-view path])
+                         (dispatch [:qb/enhance-query-add-view path])))}
           (if (get-in @enhance-query path)
             [:svg.icon.icon-checkbox-checked [:use {:xlinkHref "#icon-checkbox-checked"}]]
             [:svg.icon.icon-checkbox-unchecked [:use {:xlinkHref "#icon-checkbox-unchecked"}]])
@@ -121,7 +121,8 @@
                           [:span
                            (into [:select.form-control
                                   {:on-change (fn [e]
-                                                (dispatch [:qb/enhance-query-choose-subclass path (oget e :target :value)]))}]
+                                                (dispatch [:qb/enhance-query-choose-subclass path (oget e :target :value) (:referencedType properties)]))
+                                   :value (or sub (:referencedType properties))}]
                                  (map (fn [subclass]
                                         [:option {:value subclass} (name subclass)])
                                       ;; This adds the class itself as the first, default choice.
