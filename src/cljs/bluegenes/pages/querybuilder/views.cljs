@@ -38,10 +38,14 @@
                       :code "B"
                       :value "mad"}]})
 
+(defn sort-classes
+  [classes]
+  (sort-by (comp string/lower-case :displayName val) compare classes))
+
 (defn root-class-dropdown []
   (let [model @(subscribe [:model])
         root-class @(subscribe [:qb/root-class])
-        classes (sort-by (comp :displayName val) model)
+        classes (sort-classes model)
         preferred (filter #(contains? (-> % val :tags set) "im:preferredBagType") classes)]
     (into [:select.form-control
            {:on-change (fn [e] (dispatch [:qb/set-root-class (oget e :target :value)]))
@@ -129,11 +133,11 @@
                                       ;; To constrain to a subclass, you have to select one.
                                       (conj subclasses (:referencedType properties))))]]])))
                   (if sub
-                    (map (fn [i] [attribute model i path sub]) (sort (remove (comp (partial = :id) first) (im-path/attributes model sub))))
-                    (map (fn [i] [attribute model i path sub]) (sort (remove (comp (partial = :id) first) (im-path/attributes model (:referencedType properties))))))
+                    (map (fn [i] [attribute model i path sub]) (sort-classes (remove (comp (partial = :id) first) (im-path/attributes model sub))))
+                    (map (fn [i] [attribute model i path sub]) (sort-classes (remove (comp (partial = :id) first) (im-path/attributes model (:referencedType properties))))))
                   (if sub
-                    (map (fn [i] [node model i path false]) (sort (im-path/relationships model sub)))
-                    (map (fn [i] [node model i path false]) (sort (im-path/relationships model (:referencedType properties))))))))]))))
+                    (map (fn [i] [node model i path false]) (sort-classes (im-path/relationships model sub)))
+                    (map (fn [i] [node model i path false]) (sort-classes (im-path/relationships model (:referencedType properties))))))))]))))
 
 (defn model-browser []
   (fn [model root-class]
@@ -141,13 +145,13 @@
      (let [path [root-class]
            attributes (->> (im-path/attributes model root-class)
                            (remove (comp #{:id} key)) ; Hide id attribute.
-                           (sort))
+                           (sort-classes))
            relationships (->> (im-path/relationships model root-class)
                               ;; Make sure class is present in model.
                               ;; (If the class has no members, it won't be.)
                               (filter #(contains? (:classes model)
                                                   (-> % val :referencedType keyword)))
-                              (sort))]
+                              (sort-classes))]
        (into [:ul
               [:li [:div.model-button-group
                     [:button.btn.btn-slim
@@ -336,8 +340,10 @@
                  attributes (filter (fn [[k p]] ((complement im-path/class?) model (join "." (conj path k)))) (dissoc-keywords properties))]
              (into [:ul.tree.banana2]
                    (concat
-                    (map (fn [n] [queryview-node model n path]) (sort attributes))
-                    (map (fn [n] [queryview-node model n path]) (sort classes))))))]))))
+                    (map (fn [n] [queryview-node model n path])
+                         (sort-by (comp string/lower-case key) attributes))
+                    (map (fn [n] [queryview-node model n path])
+                         (sort-by (comp string/lower-case key) classes))))))]))))
 
 (defn example-button []
   [:button.btn.btn-primary.btn-raised
