@@ -120,18 +120,20 @@
                  (concat
                   (when (im-path/class? model str-path)
                     (let [class (im-path/class model str-path)]
-                      (when-let [subclasses (seq (descendants @hier class))]
+                      (when-let [subclasses (seq (sort (descendants @hier class)))]
                         [[:li
                           [:span
                            (into [:select.form-control
                                   {:on-change (fn [e]
                                                 (dispatch [:qb/enhance-query-choose-subclass path (oget e :target :value) (:referencedType properties)]))
-                                   :value (or sub (:referencedType properties))}]
+                                   :value (or sub (:referencedType properties))}
+                                  [:option {:value (:referencedType properties)}
+                                   (name (:referencedType properties))]
+                                  [:option {:disabled true :role "separator"}
+                                   "─────────────────────────"]]
                                  (map (fn [subclass]
                                         [:option {:value subclass} (name subclass)])
-                                      ;; This adds the class itself as the first, default choice.
-                                      ;; To constrain to a subclass, you have to select one.
-                                      (conj subclasses (:referencedType properties))))]]])))
+                                      subclasses))]]])))
                   (if sub
                     (map (fn [i] [attribute model i path sub]) (sort-classes (remove (comp (partial = :id) first) (im-path/attributes model sub))))
                     (map (fn [i] [attribute model i path sub]) (sort-classes (remove (comp (partial = :id) first) (im-path/attributes model (:referencedType properties))))))
