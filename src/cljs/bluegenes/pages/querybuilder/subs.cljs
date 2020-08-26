@@ -111,3 +111,9 @@
  :<- [:qb/im-query]
  (fn [im-query]
    (:where im-query)))
+
+(reg-sub
+ :qb/menu-type-constraints
+ :<- [:qb/menu]
+ (fn [qb-menu]
+   (con-logic/qb-menu->type-constraints qb-menu)))

@@ -228,7 +228,7 @@
 (defn browser-pane []
   (let [query (subscribe [:qb/query])
         current-model (subscribe [:current-model])
-        current-constraints (subscribe [:qb/im-query-constraints])
+        type-constraints (subscribe [:qb/menu-type-constraints])
         root-class (subscribe [:qb/root-class])
         browse-model? (reagent/atom true)]
     (when (empty? @query)
@@ -247,8 +247,7 @@
               "Browse"]]])
          (when @root-class
            [model-browser
-            (assoc @current-model
-                   :type-constraints @current-constraints)
+            (assoc @current-model :type-constraints @type-constraints)
             (name @root-class)])]
         [data-browser #(swap! browse-model? not)]))))
 
@@ -555,8 +554,7 @@
         current-constraints @(subscribe [:qb/im-query-constraints])
         constraint-value-count @(subscribe [:qb/constraint-value-count])]
     [:div
-     [queryview-browser (assoc current-model
-                               :type-constraints current-constraints)]
+     [queryview-browser (assoc current-model :type-constraints current-constraints)]
      [joins-list]
      (when (>= constraint-value-count 2)
        [logic-box])]))
