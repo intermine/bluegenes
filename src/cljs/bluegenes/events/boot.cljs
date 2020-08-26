@@ -354,18 +354,14 @@
 (reg-event-db
  :assets/success-fetch-model
  (fn [db [_ mine-kw model]]
-   (let [model' (update model :classes
-                        ;; Remove classes with a count of zero (there's no point
-                        ;; in having them and they'd show up in different places).
-                        #(into {} (filter (comp pos? :count val) %)))]
-     (-> db
-         (assoc-in [:mines mine-kw :service :model] model')
-         (assoc-in [:mines mine-kw :default-object-types]
-                   (sort (preferred-fields model')))
-         (assoc-in [:mines mine-kw :model-hier]
-                   ;; We're using the model prior to removing empty classes
-                   ;; as we want our hierarchy to be complete.
-                   (extends-hierarchy (:classes model)))))))
+   ;; We used to remove empty classes (zero count) from the model here, but
+   ;; this turned out to be a very bad idea! This is because the model is used
+   ;; to parse paths into classes, which means it has to be complete. This also
+   ;; applies to the model hierarchy.
+   (-> db
+       (assoc-in [:mines mine-kw :service :model] model)
+       (assoc-in [:mines mine-kw :default-object-types] (sort (preferred-fields model)))
+       (assoc-in [:mines mine-kw :model-hier] (extends-hierarchy (:classes model))))))
 
 (reg-event-fx
  :assets/fetch-model
