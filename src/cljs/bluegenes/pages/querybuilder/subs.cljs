@@ -105,3 +105,9 @@
  :qb/joins
  (fn [db]
    (get-in db [:qb :joins])))
+
+(reg-sub
+ :qb/im-query-constraints
+ :<- [:qb/im-query]
+ (fn [im-query]
+   (:where im-query)))

@@ -8,7 +8,6 @@
             [bluegenes.components.tools.views :as tools]
             [bluegenes.pages.reportpage.subs :as subs]
             [im-tables.views.core :as im-table]
-            [imcljs.path :as im-path]
             [bluegenes.route :as route]
             [bluegenes.components.viz.views :as viz]))
 

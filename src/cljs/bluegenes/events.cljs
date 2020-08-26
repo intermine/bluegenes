@@ -220,12 +220,12 @@
 
 (reg-event-fx
  :cache/fetch-possible-values
- (fn [{db :db} [_ path]]
+ (fn [{db :db} [_ path model]]
    (let [mine (get-in db [:mines (get db :current-mine)])
          split-path (split path ".")
          existing-value (get-in db [:mines (get db :current-mine) :possible-values split-path])]
 
-     (if (and (nil? existing-value) (not (im-path/class? (get-in mine [:service :model]) path)))
+     (if (and (nil? existing-value) (not (im-path/class? model path)))
        {:cache/fetch-possible-values-fx {:service (get mine :service)
                                          :query {:from (first split-path)
                                                  :select [path]}

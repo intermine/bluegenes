@@ -227,7 +227,8 @@
 
 (defn browser-pane []
   (let [query (subscribe [:qb/query])
-        current-mine (subscribe [:current-mine])
+        current-model (subscribe [:current-model])
+        current-constraints (subscribe [:qb/im-query-constraints])
         root-class (subscribe [:qb/root-class])
         browse-model? (reagent/atom true)]
     (when (empty? @query)
@@ -245,7 +246,10 @@
               [:svg.icon.icon-tree [:use {:xlinkHref "#icon-tree"}]]
               "Browse"]]])
          (when @root-class
-           [model-browser (:model (:service @current-mine)) (name @root-class)])]
+           [model-browser
+            (assoc @current-model
+                   :type-constraints @current-constraints)
+            (name @root-class)])]
         [data-browser #(swap! browse-model? not)]))))
 
 (defn dissoc-keywords [m]
@@ -547,10 +551,12 @@
                [:span [:code path] "will show as a subtable if present"]])))))
 
 (defn query-editor []
-  (let [current-mine @(subscribe [:current-mine])
+  (let [current-model @(subscribe [:current-model])
+        current-constraints @(subscribe [:qb/im-query-constraints])
         constraint-value-count @(subscribe [:qb/constraint-value-count])]
     [:div
-     [queryview-browser (:model (:service current-mine))]
+     [queryview-browser (assoc current-model
+                               :type-constraints current-constraints)]
      [joins-list]
      (when (>= constraint-value-count 2)
        [logic-box])]))

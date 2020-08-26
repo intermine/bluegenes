@@ -230,7 +230,7 @@
 (defn one-of? [value col] (some? (some #{value} col)))
 (def not-one-of? (complement one-of?))
 
-(defn constraint-operator []
+(defn constraint-operator
   "Creates a dropdown for a query constraint.
   :model      The intermine model to use
   :path       The path of the constraint
@@ -238,6 +238,7 @@
   :on-change  A function to call with the new operator
   :lists      (Optional) if provided, automatically disable list constraints
               if there are no lists of that type"
+  []
   (fn [& {:keys [model path op on-change on-blur lists disabled value]}]
     (let [path-class (im-path/class model path)
           any-lists-with-class? (some? (some (fn [list] (= path-class (keyword (:type list)))) lists))
@@ -292,7 +293,7 @@
     (create-class
      {:component-did-mount (fn []
                              (when (nil? @pv)
-                               (dispatch [:cache/fetch-possible-values path])))
+                               (dispatch [:cache/fetch-possible-values path model])))
       :reagent-render (fn [& {:keys [lists model path value op code on-change
                                      on-select-list on-change-operator on-remove
                                      on-blur label? possible-values typeahead? hide-code?

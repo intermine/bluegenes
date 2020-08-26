@@ -69,10 +69,11 @@
  :qb/fetch-possible-values
  (fn [{db :db} [_ view-vec]]
 
-   (let [service (get-in db [:mines (get-in db [:current-mine]) :service])
-         summary-path (im-path/adjust-path-to-last-class (:model service) (join "." view-vec))
+   (let [service (get-in db [:mines (:current-mine db) :service])
+         model (assoc (:model service) :type-constraints (get-in db [:qb :im-query :where]))
+         summary-path (im-path/adjust-path-to-last-class model (join "." view-vec))
          split-summary-path (split summary-path ".")]
-     (if (not (im-path/class? (:model service) summary-path))
+     (if (not (im-path/class? model summary-path))
        {:qb/pv {:service service
                 :query {:from (first split-summary-path)
                         :select [(last split-summary-path)]}
@@ -369,7 +370,8 @@
  :qb/enhance-query-add-summary-views
  (fn [{db :db} [_ original-path-vec subclass]]
    (let [current-mine-name (get db :current-mine)
-         model (get-in db [:mines current-mine-name :service :model])
+         model (assoc (get-in db [:mines current-mine-name :service :model])
+                      :type-constraints (get-in db [:qb :im-query :where]))
          all-summary-fields (get-in db [:assets :summary-fields current-mine-name])
          class (im-path/class model (join "." original-path-vec))
          summary-fields (get all-summary-fields (or (keyword subclass) class))
@@ -440,10 +442,12 @@
 (reg-event-fx
  :qb/enhance-query-add-constraint
  (fn [{db :db} [_ view-vec]]
-   {:db (update-in db [:qb :enhance-query] update-in (conj view-vec :constraints)
-                   (comp vec conj) {:code nil :op nil :value nil})
-    :dispatch-n [[:cache/fetch-possible-values (join "." view-vec)]
-                 [:qb/fetch-possible-values view-vec]]}))
+   (let [model (assoc (get-in db [:mines (:current-mine db) :service :model])
+                      :type-constraints (get-in db [:qb :im-query :where]))]
+     {:db (update-in db [:qb :enhance-query] update-in (conj view-vec :constraints)
+                     (comp vec conj) {:code nil :op nil :value nil})
+      :dispatch-n [[:cache/fetch-possible-values (join "." view-vec) model]
+                   [:qb/fetch-possible-values view-vec]]})))
 ;:dispatch [:qb/build-im-query]
 
 

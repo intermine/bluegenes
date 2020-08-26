@@ -32,12 +32,10 @@
     ::fx/http {:uri "/api/ids/parse"
                :method :post
                :multipart-params
-               (cond->
-                (map (fn [f] [(oget f :name) f])
-                     js-Files)
-                  ; After creating multipart params for files,
-                  ; create one for text
-                  ; if there's a value
+               (cond-> (map (fn [f] [(oget f :name) f]) js-Files)
+                 ; After creating multipart params for files,
+                 ; create one for text
+                 ; if there's a value
                  (not (string/blank? text))
                  (conj ["text" text])
                  ; And also a param for the case sensitive option
@@ -118,11 +116,9 @@
  ::update-type
  (fn [db [_ model value]]
    ;; why are we disabling organism?
-   (let [disable-organism? (when
-                            (not= value "_")
-                             (not (contains?
-                                   (path/relationships model value)
-                                   :organism)))
+   (let [disable-organism? (when (not= value "_")
+                             (not (contains? (path/relationships model value)
+                                             :organism)))
          mine-details      (get-in db [:mines (get db :current-mine)])]
      (if disable-organism?
        (update-in db [:idresolver :stage :options]

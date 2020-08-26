@@ -56,7 +56,8 @@
  :results/get-item-details
  (fn [{db :db} [_ identifier path-constraint]]
    (let [source (get-in db [:results :package :source])
-         model (get-in db [:mines source :service :model])
+         model (assoc (get-in db [:mines source :service :model])
+                      :type-constraints (get-in db [:results :package :value :where]))
          classname (keyword (path/class model path-constraint))
          summary-fields (get-in db [:assets :summary-fields source classname])
          service (get-in db [:mines source :service])
@@ -96,7 +97,8 @@
    (let [; Get the details of the current package
          {:keys [source type value] :as package} (get-in db [:results :queries title])
           ; Get the current model
-         model          (get-in db [:mines source :service :model])
+         model          (assoc (get-in db [:mines source :service :model])
+                               :type-constraints (:where value))
          service        (get-in db [:mines source :service])
          summary-fields (get-in db [:assets :summary-fields source])]
      (if (nil? package)
@@ -152,10 +154,11 @@
  :results/update-tool-entities
  (fn [{db :db} [_]]
    (let [source (get-in db [:results :package :source])
-         model  (get-in db [:mines source :service :model])
          ;; We have to reach into the im-table to get the updated query,
          ;; as it's not passed via event handlers we can intercept.
-         query  (get-in db (conj im-table-location :query))]
+         query (get-in db (conj im-table-location :query))
+         model (assoc (get-in db [:mines source :service :model])
+                      :type-constraints (:where query))]
      ;; We wouldn't need to update db if we passed query-parts directly to the
      ;; two events dispatched below (see TODO above).
      {:db (update db :results assoc
