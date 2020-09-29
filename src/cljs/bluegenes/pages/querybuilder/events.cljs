@@ -228,6 +228,18 @@
   [query-tree path-vec]
   (get-in query-tree (concat path-vec [:subclass])))
 
+(defn get-all-subclasses
+  "Get all subclasses that are present at any point when drilling down path-vec
+  into query-tree. This translates to the subclass constraints of all parent
+  classes of the path. Returns a seq of vector tuples containing the path to
+  the class with the subclass constraint and the subclass constraint value."
+  [query-tree path-vec]
+  (let [sub-paths (->> path-vec (iterate drop-last) (take-while not-empty) (rest))]
+    (keep (fn [subpath]
+            (when-let [subclass (get-subclass query-tree subpath)]
+              [subpath subclass]))
+          sub-paths)))
+
 (defn set-subclass
   "Set subclass at path-vec in query-tree."
   [query-tree path-vec subclass]
@@ -348,11 +360,13 @@
 (reg-event-fx
  :qb/enhance-query-add-view
  (fn [{db :db} [_ path-vec]]
-   (let [subclass (get-subclass (get-in db [:qb :menu]) (butlast path-vec))]
+   (let [subclasses (get-all-subclasses (get-in db [:qb :menu]) path-vec)]
      {:db (cond-> db
             path-vec (-> (assoc-in (into [:qb :enhance-query] path-vec) {})
                          (update-in [:qb :order] add-if-missing (join "." path-vec)))
-            subclass (update-in [:qb :enhance-query] set-subclass (butlast path-vec) subclass))
+            (seq subclasses) (update-in [:qb :enhance-query]
+                                        (partial reduce #(apply set-subclass %1 %2))
+                                        subclasses))
       :dispatch-n [[:qb/fetch-possible-values path-vec]
                    [:qb/enhance-query-build-im-query true]]})))
 
