@@ -1,7 +1,7 @@
 (ns bluegenes.pages.querybuilder.views
   (:require [re-frame.core :refer [subscribe dispatch]]
             [reagent.core :as reagent]
-            [clojure.string :as string :refer [split join]]
+            [clojure.string :as string :refer [split join lower-case]]
             [oops.core :refer [ocall oget]]
             [bluegenes.components.ui.constraint :refer [constraint]]
             [bluegenes.components.bootstrap :refer [tooltip]]
@@ -70,6 +70,19 @@
 (defn not-selected [selected [k attributes-map]]
   (not (within? selected (name k))))
 
+(defn display-name [model class]
+  (let [class-kw (cond-> class
+                   (string? class) keyword)]
+    (get-in model [:classes class-kw :displayName])))
+
+(defn rel-display-name [model path]
+  (let [class-kw (->> (drop-last 1 path)
+                      (im-path/walk model)
+                      last :name keyword)
+        ;; `path` can point to either an attribute or a class.
+        attrib+class (last path)]
+    (get-in (im-path/properties model class-kw) [attrib+class :displayName])))
+
 (def q {:from "Gene"
         :select ["Gene.symbol"
                  "Gene.secondaryIdentifier"
@@ -128,11 +141,12 @@
                                                 (dispatch [:qb/enhance-query-choose-subclass path (oget e :target :value) (:referencedType properties)]))
                                    :value (or sub (:referencedType properties))}
                                   [:option {:value (:referencedType properties)}
-                                   (name (:referencedType properties))]
+                                   (:displayName properties)]
                                   [:option {:disabled true :role "separator"}
                                    "─────────────────────────"]]
                                  (map (fn [subclass]
-                                        [:option {:value subclass} (name subclass)])
+                                        [:option {:value subclass}
+                                         (display-name model subclass)])
                                       subclasses))]]])))
                   (if sub
                     (map (fn [i] [attribute model i path sub]) (sort-classes (remove (comp (partial = :id) first) (im-path/attributes model sub))))
@@ -261,20 +275,24 @@
       (let [path (vec (conj trail (name k)))
             class-node? (im-path/class? model (join "." path))
             non-root-class? (and class-node? (> (count path) 1))
+            path-kw (map keyword path)
             [{referenced-name :displayName, referenced-class :name}
-             {parent-name :displayName}] (->> (map keyword path)
-                                              (im-path/walk model)
-                                              (reverse))]
+             {parent-name :displayName}] (reverse (im-path/walk model path-kw))
+            relational-name (if non-root-class?
+                              (rel-display-name model path-kw)
+                              referenced-name)]
         [:li.tree.haschildren
          [:div.flexmex
           [:span.lab {:class (if class-node? "qb-class" "qb-attribute")}
            [:span.qb-label {:style {:margin-left 5}}
             [tooltip {:on-click #(dispatch [:qb/expand-path path])
-                      :title (str "Show " k " in the model browser")}
-             [:a k]]]
-           (when (and non-root-class? (not= referenced-class k))
+                      :title (str "Show " relational-name " in the model browser")}
+             [:a relational-name]]]
+           (when (and non-root-class? (not= (lower-case referenced-class)
+                                            (lower-case k)))
              [:span.qb-type (str "(" referenced-name ")")])
-           (when-let [s (:subclass properties)] [:span.label.label-default s])
+           (when-let [s (:subclass properties)]
+             [:span.label.label-default (display-name model s)])
            [:svg.icon.icon-bin
             {:on-click (if (> (count path) 1)
                          (fn [] (dispatch [:qb/enhance-query-remove-view path]))
@@ -467,6 +485,8 @@
 
 (defn manage-columns []
   (let [order (subscribe [:qb/order])
+        current-model (subscribe [:current-model])
+        current-constraints (subscribe [:qb/im-query-constraints])
         selected* (reagent/atom nil)]
     (fn []
       (into [:div.sort-order-container
@@ -487,9 +507,15 @@
                                     (dispatch [:qb/set-order new-order])))
                  :on-drag-end (fn [] (reset! selected* nil))}
                 (into [:div.path-parts]
-                      (map (fn [part]
-                             [:span.part part])
-                           (interpose ">" (split path "."))))
+                      (let [model (assoc @current-model
+                                         :type-constraints @current-constraints)]
+                        (map (fn [part]
+                               [:span.part part])
+                             (->> (split path #"\.")
+                                  (map keyword)
+                                  (im-path/walk model)
+                                  (map :displayName)
+                                  (interpose ">")))))
                 (let [subpaths (->> (split path #"\.") (iterate drop-last) (take-while not-empty) (set))
                       outer-joined-section? (some #(contains? subpaths %)
                                                   (map #(split % #"\.") @(subscribe [:qb/joins])))]
