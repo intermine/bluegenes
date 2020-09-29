@@ -9,7 +9,7 @@
             [clojure.set :refer [difference]]
             [bluegenes.pages.querybuilder.logic
              :refer [read-logic-string remove-code vec->list append-code]]
-            [clojure.string :refer [join split blank?]]
+            [clojure.string :refer [join split blank? starts-with?]]
             [bluegenes.utils :refer [read-xml-query dissoc-in]]
             [oops.core :refer [oget]]
             [clojure.walk :refer [postwalk]]))
@@ -234,7 +234,7 @@
   classes of the path. Returns a seq of vector tuples containing the path to
   the class with the subclass constraint and the subclass constraint value."
   [query-tree path-vec]
-  (let [sub-paths (->> path-vec (iterate drop-last) (take-while not-empty) (rest))]
+  (let [sub-paths (->> path-vec (iterate drop-last) (take-while not-empty))]
     (keep (fn [subpath]
             (when-let [subclass (get-subclass query-tree subpath)]
               [subpath subclass]))
@@ -266,17 +266,26 @@
 (reg-event-fx
  :qb/enhance-query-choose-subclass
  (fn [{db :db} [_ path-vec subclass class]]
-   ;; We only want to set subclass in :enhance-query if the class is already
-   ;; added. Otherwise, the handler that adds will read the subclass from :menu.
-   (let [prev-path (get-in db (concat [:qb :enhance-query] path-vec))]
+   ;; We're setting the subclass constraint in :menu, and deleting it and its
+   ;; children from :enhance-query. The event handler that adds will read the
+   ;; subclass from :menu and add it to :enhance-query. The reason for this is
+   ;; that a subclass constraint without views is invalid. It is also to avoid
+   ;; lingering attributes from a previous subclass, that might not exist in
+   ;; the new subclass.
+   (let [prev-path (get-in db (concat [:qb :enhance-query] path-vec))
+         path-prefix (str (join "." path-vec) ".")]
      (merge
       {:db (if (= subclass class)
+             ;; Subclass constraint is being disabled.
              (-> db
                  (update-in [:qb :menu] clear-subclass path-vec)
-                 (cond-> prev-path (update-in [:qb :enhance-query] clear-subclass path-vec)))
+                 (cond-> prev-path (-> (update-in [:qb :enhance-query] dissoc-in path-vec)
+                                       (update-in [:qb :order] (partial filterv (complement #(starts-with? % path-prefix)))))))
+             ;; Subclass constraint is either being enabled or changed to a different value.
              (-> db
                  (update-in [:qb :menu] set-subclass path-vec subclass)
-                 (cond-> prev-path (update-in [:qb :enhance-query] set-subclass path-vec subclass))))}
+                 (cond-> prev-path (-> (update-in [:qb :enhance-query] dissoc-in path-vec)
+                                       (update-in [:qb :order] (partial filterv (complement #(starts-with? % path-prefix))))))))}
       ;; No point building query and fetching preview if enhance-query hasn't changed.
       (when prev-path
         {:dispatch [:qb/enhance-query-build-im-query true]})))))
@@ -389,18 +398,21 @@
          all-summary-fields (get-in db [:assets :summary-fields current-mine-name])
          class (im-path/class model (join "." original-path-vec))
          summary-fields (get all-summary-fields (or (keyword subclass) class))
-         adjusted-views (map (partial split-and-drop-first original-path-vec) summary-fields)]
-     {:db (reduce (fn [db path-vec]
-                    (if path-vec
-                      (-> db
-                          (update-in (into [:qb :enhance-query] path-vec) deep-merge {})
-                          (update-in [:qb :order] add-if-missing (join "." path-vec)))
-                      db))
-                  (cond-> db
-                    ;; Setting subclass is only done once, which is for the class we summarize.
-                    (and subclass (not= (keyword subclass) class))
-                    (update-in [:qb :enhance-query] set-subclass original-path-vec subclass))
-                  adjusted-views)
+         adjusted-views (map (partial split-and-drop-first original-path-vec) summary-fields)
+         subclasses (get-all-subclasses (get-in db [:qb :menu]) original-path-vec)]
+     {:db (-> (reduce (fn [db path-vec]
+                        (if path-vec
+                          (-> db
+                              (update-in (into [:qb :enhance-query] path-vec) deep-merge {})
+                              (update-in [:qb :order] add-if-missing (join "." path-vec)))
+                          db))
+                      db
+                      adjusted-views)
+              (cond->
+               (seq subclasses)
+               (update-in [:qb :enhance-query]
+                          (partial reduce #(apply set-subclass %1 %2))
+                          subclasses)))
       :dispatch [:qb/enhance-query-build-im-query true]})))
 
 (reg-event-fx
