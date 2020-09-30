@@ -86,7 +86,7 @@
       (fn []
         [:textarea.form-control
          {:rows (if @results 3 6)
-          :placeholder (str "Type chromosome coords here, or click [Show me an example] above.")
+          :placeholder (str "Type chromosome coords here, or click [SHOW EXAMPLE] below.")
           :value @to-search
           :on-change (fn [e]
                        (dispatch [:regions/set-to-search (oget e "target" "value")]))}])
@@ -160,7 +160,7 @@
                      (empty? (filter (fn [[name enabled?]] enabled?) (:feature-types @settings))))
           :on-click (fn [e] (dispatch [:regions/run-query])
                       (ocall (oget e "target") "blur"))
-          :title "Enter something into the 'Regions to search' box or click on [Show me an example], then click here! :)"}
+          :title "Enter something into the 'Regions to search' box or click on [SHOW EXAMPLE], then click here! :)"}
          "Search"]]]]
        ; Results section
      [checkboxes to-search settings]]))
