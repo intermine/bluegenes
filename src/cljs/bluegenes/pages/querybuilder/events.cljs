@@ -7,7 +7,7 @@
             [imcljs.fetch :as fetch]
             [imcljs.save :as save]
             [clojure.set :refer [difference]]
-            [bluegenes.pages.querybuilder.logic
+            [bluegenes.pages.querybuilder.logic :as logic
              :refer [read-logic-string remove-code vec->list append-code]]
             [clojure.string :refer [join split blank? starts-with?]]
             [bluegenes.utils :refer [read-xml-query dissoc-in]]
@@ -394,7 +394,7 @@
  (fn [{db :db} [_ original-path-vec subclass]]
    (let [current-mine-name (get db :current-mine)
          model (assoc (get-in db [:mines current-mine-name :service :model])
-                      :type-constraints (get-in db [:qb :im-query :where]))
+                      :type-constraints (logic/qb-menu->type-constraints (get-in db [:qb :menu])))
          all-summary-fields (get-in db [:assets :summary-fields current-mine-name])
          class (im-path/class model (join "." original-path-vec))
          summary-fields (get all-summary-fields (or (keyword subclass) class))

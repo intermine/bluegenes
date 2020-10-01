@@ -75,13 +75,20 @@
                    (string? class) keyword)]
     (get-in model [:classes class-kw :displayName])))
 
-(defn rel-display-name [model path]
-  (let [class-kw (->> (drop-last 1 path)
-                      (im-path/walk model)
-                      last :name keyword)
-        ;; `path` can point to either an attribute or a class.
-        attrib+class (last path)]
-    (get-in (im-path/properties model class-kw) [attrib+class :displayName])))
+;; I think we can replace this function with `im-path/walk`.
+(defn rel-prop-fn [prop]
+  (fn [model path]
+    (let [class (->> (drop-last 1 path)
+                     (im-path/walk model)
+                     (last))
+          ;; `path` can point to either an attribute or a class.
+          attrib+class (last path)
+          ;; We don't use `im-path/properties` as we need to support subclasses.
+          properties (apply merge (map class [:attributes :references :collections]))]
+      (get-in properties [attrib+class prop]))))
+
+(def rel-display-name (rel-prop-fn :displayName))
+(def rel-referenced-type (rel-prop-fn :referencedType))
 
 (def q {:from "Gene"
         :select ["Gene.symbol"
@@ -131,8 +138,11 @@
          (when open?
            (into [:ul]
                  (concat
-                  (when (im-path/class? model str-path)
-                    (let [class (im-path/class model str-path)]
+                   ;; We remove :type-constraints from the model in these two instances
+                   ;; as we want to find the subclasses of the superclass. Otherwise the
+                   ;; list of subclasses would grow smaller when one is selected.
+                  (when (im-path/class? (dissoc model :type-constraints) str-path)
+                    (let [class (im-path/class (dissoc model :type-constraints) str-path)]
                       (when-let [subclasses (seq (sort (descendants @hier class)))]
                         [[:li
                           [:span
@@ -290,7 +300,7 @@
              [:a relational-name]]]
            (when (and non-root-class? (not= (lower-case referenced-class)
                                             (lower-case k)))
-             [:span.qb-type (str "(" referenced-name ")")])
+             [:span.qb-type (str "(" (rel-referenced-type model path-kw) ")")])
            (when-let [s (:subclass properties)]
              [:span.label.label-default (display-name model s)])
            [:svg.icon.icon-bin
