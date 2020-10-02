@@ -532,11 +532,11 @@
    (let [enhance-query (get-in db [:qb :enhance-query])
          service (get-in db [:mines (get-in db [:current-mine]) :service])
          im-query (-> {:from (name (get-in db [:qb :root-class]))
-                         :select (get-in db [:qb :order])
-                         :constraintLogic (enhance-constraint-logic (get-in db [:qb :constraint-logic]))
-                         :where (concat (regular-constraints enhance-query) (subclass-constraints enhance-query))
-                         :sortOrder (get-in db [:qb :sort])
-                         :joins (vec (get-in db [:qb :joins]))}
+                       :select (get-in db [:qb :order])
+                       :constraintLogic (enhance-constraint-logic (get-in db [:qb :constraint-logic]))
+                       :where (concat (regular-constraints enhance-query) (subclass-constraints enhance-query))
+                       :sortOrder (get-in db [:qb :sort])
+                       :joins (vec (get-in db [:qb :joins]))}
                       (im-query/sterilize-query))
          query-changed? (not= im-query (get-in db [:qb :im-query]))]
        (cond-> {:db (update-in db [:qb] assoc :im-query im-query)}

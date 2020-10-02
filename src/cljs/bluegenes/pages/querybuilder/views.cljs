@@ -9,7 +9,8 @@
             [imcljs.query :refer [->xml]]
             [bluegenes.components.loader :refer [mini-loader]]
             [bluegenes.components.ui.results_preview :refer [preview-table]]
-            [inflections.core :refer [ordinalize plural]]))
+            [inflections.core :refer [ordinalize plural]]
+            [bluegenes.components.icons :refer [icon]]))
 
 (defn query=
   "Returns whether `queries` are all =, ignoring empty values like [] and nil."
@@ -181,14 +182,21 @@
        (into [:ul
               [:li [:div.model-button-group
                     [:button.btn.btn-slim
-                     {:on-click #(dispatch [:qb/enhance-query-add-summary-views [root-class]])}
-                     "Summarise"]
+                     {:on-click #(dispatch [:qb/enhance-query-add-summary-views [root-class]])
+                      :title (str "Summarise " root-class " by adding its common attributes")}
+                     [icon "summary"] "Summary"]
                     [:button.btn.btn-slim
-                     {:on-click #(dispatch [:qb/expand-all])}
-                     "Expand Selected"]
+                     {:on-click #(dispatch [:qb/expand-all])
+                      :title "Expand the Model Browser tree to show all selected attributes"}
+                     [icon "enlarge2"] "Expand"]
                     [:button.btn.btn-slim
-                     {:on-click #(dispatch [:qb/collapse-all])}
-                     "Collapse All"]]]]
+                     {:on-click #(dispatch [:qb/collapse-all])
+                      :title "Collapse the Model Browser tree to the top level"}
+                     [icon "shrink"] "Collapse"]
+                    [:button.btn.btn-slim
+                     {:on-click #(dispatch [:qb/enhance-query-clear-query])
+                      :title "Remove all selected attributes"}
+                     [icon "bin"] "Clear"]]]]
              (concat
               (map (fn [class-entry] [attribute model class-entry path]) attributes)
               (map (fn [class-entry] [node model class-entry path]) relationships))))]))
