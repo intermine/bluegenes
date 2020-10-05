@@ -89,6 +89,19 @@
 
 (def im-table-location [:results :table])
 
+(defn unorder-query-parts
+  "There's a bug with the webservices that doesn't let us sort by an attribute
+  not present in the view. This is a workaround to remove ordering, as we
+  currently don't see it as a necessary feature for Bluegenes tools/viz to have
+  ordering that is consistend with the im-table."
+  [query-parts]
+  (reduce (fn [qp k]
+            (update qp k
+                    (partial mapv
+                             #(update % :query dissoc :sortOrder :orderBy))))
+          query-parts
+          (keys query-parts)))
+
 ; Load one package at a particular index from the list analysis history collection
 (reg-event-fx
  :results/load-history
@@ -115,7 +128,7 @@
                     :package package
                     ; The index is used to highlight breadcrumbs
                     :history-index title
-                    :query-parts (q/group-views-by-class model value)
+                    :query-parts (unorder-query-parts (q/group-views-by-class model value))
                     ; Clear the enrichment results before loading any new ones
                     :enrichment-results nil)
         :dispatch-n [;; Fetch IDs to build tool entity, and then our tools.
@@ -162,7 +175,7 @@
      ;; We wouldn't need to update db if we passed query-parts directly to the
      ;; two events dispatched below (see TODO above).
      {:db (update db :results assoc
-                  :query-parts (q/group-views-by-class model query))
+                  :query-parts (unorder-query-parts (q/group-views-by-class model query)))
       :dispatch-n [[:fetch-ids-tool-entities]
                    [:enrichment/enrich]]})))
 
