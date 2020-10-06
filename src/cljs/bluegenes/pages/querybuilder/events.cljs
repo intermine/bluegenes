@@ -409,10 +409,9 @@
                       db
                       adjusted-views)
               (cond->
-               (seq subclasses)
-               (update-in [:qb :enhance-query]
-                          (partial reduce #(apply set-subclass %1 %2))
-                          subclasses)))
+               (seq subclasses) (update-in [:qb :enhance-query]
+                                           (partial reduce #(apply set-subclass %1 %2))
+                                           subclasses)))
       :dispatch [:qb/enhance-query-build-im-query true]})))
 
 (reg-event-fx
@@ -539,8 +538,8 @@
                        :joins (vec (get-in db [:qb :joins]))}
                       (im-query/sterilize-query))
          query-changed? (not= im-query (get-in db [:qb :im-query]))]
-       (cond-> {:db (update-in db [:qb] assoc :im-query im-query)}
-         (and fetch-preview?) (assoc :dispatch [:qb/fetch-preview service im-query])))))
+     (cond-> {:db (update-in db [:qb] assoc :im-query im-query)}
+       (and fetch-preview?) (assoc :dispatch [:qb/fetch-preview service im-query])))))
 
 (reg-event-fx
  :qb/set-order
