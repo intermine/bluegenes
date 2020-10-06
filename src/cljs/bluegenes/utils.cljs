@@ -121,11 +121,17 @@
   "Removes key-value pairs from an entities map which don't adhere to config.
   Can also be used to check whether a tool should be displayed, as it will
   return nil if no entity is suitable at all.
-  1. Check that the tool's API version matches this Bluegenes.
-  2. Check that the tool's model dependencies are present.
-  3. Remove entity pairs which don't match tool's accepted formats.
-  4. Pick entity pairs that match tool's classes (all when `*` wildcard is used)."
-  [model entities config]
+  1. Check that the tool's API version matches this Bluegenes
+  2. Check that the tool's model dependencies are present
+  3. Remove entity pairs which don't match tool's accepted formats
+  4. Pick entity pairs whose class match tool's classes
+     a. All entity classes match when `*` wildcard is used
+     b. Entity classes which are a subclass to a tool's class match
+        i. During a subclass match, the class in the entity is replaced with the
+           tool's class it matched with (e.g. ORF -> Gene)
+        ii. If there are multiple subclasses that match with the same tool's
+            class, only the last one is kept (due to conflicting keys)."
+  [model hier entities config]
   (when-let [{:keys [accepts classes depends version]
               :or {version 1}} config]
     (when (and (= version version/tool-api)
@@ -134,7 +140,14 @@
         (into {} (filter (comp (set accepts) :format val)) $)
         (if (some #{"*"} classes)
           $
-          (select-keys $ (map keyword classes)))
+          (into {}
+                (keep (fn [[entity-class entity-map :as entity]]
+                        (some (fn [class-kw]
+                                (cond
+                                  (= entity-class class-kw) entity
+                                  (isa? hier entity-class class-kw) [class-kw entity-map]))
+                              (map keyword classes)))
+                      $)))
         (not-empty $)))))
 
 (defn version-string->vec

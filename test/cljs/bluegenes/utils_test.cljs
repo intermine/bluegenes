@@ -1,7 +1,8 @@
 (ns bluegenes.utils-test
   (:require [cljs.test :refer-macros [deftest is are testing]]
             [bluegenes.utils :as utils]
-            [bluegenes.version :as version]))
+            [bluegenes.version :as version]
+            [bluegenes.events.boot :refer [extends-hierarchy]]))
 
 (deftest read-xml-query
   (testing "Missing fields are correctly nulled"
@@ -133,10 +134,13 @@
 
 (deftest suitable-entities
   ;; Mock for model classes. We only check that the key is present.
-  (let [model {:Gene {} :Protein {}}]
+  (let [model {:BioEntity {} :Gene {:extends ["BioEntity"]} :Protein {:extends ["BioEntity"]}
+               :ProteinCodingGene {:extends ["Gene"]} :ORF {:extends ["ProteinCodingGene"]}}
+        hier (extends-hierarchy model)]
     (with-redefs [version/tool-api 1]
       (is (= (utils/suitable-entities
               model
+              hier
               {:Gene {:class "Gene" :format "id" :value 1}
                :Protein {:class "Protein" :format "ids" :value [1 2 3]}}
               {:accepts ["id"]
@@ -145,6 +149,7 @@
           "Should remove invalid formats when accepts id")
       (is (= (utils/suitable-entities
               model
+              hier
               {:Gene {:class "Gene" :format "id" :value 1}
                :Protein {:class "Protein" :format "ids" :value [1 2 3]}}
               {:accepts ["ids"]
@@ -153,6 +158,7 @@
           "Should remove invalid formats when accepts ids")
       (is (= (utils/suitable-entities
               model
+              hier
               {:Gene {:class "Gene" :format "id" :value 1}
                :Protein {:class "Protein" :format "id" :value 2}}
               {:accepts ["id"]
@@ -161,6 +167,7 @@
           "Should filter down to config's classes")
       (is (= (utils/suitable-entities
               model
+              hier
               {:Gene {:class "Gene" :format "id" :value 1}
                :Protein {:class "Protein" :format "ids" :value [1 2 3]}}
               {:accepts ["id" "ids"]
@@ -170,6 +177,7 @@
           "Should handle wildcard in config's classes")
       (is (= (utils/suitable-entities
               model
+              hier
               {:Gene {:class "Gene" :format "id" :value 1}
                :Protein {:class "Protein" :format "ids" :value [1 2 3]}}
               {:accepts ["id" "ids"]
@@ -178,9 +186,46 @@
              {:Gene {:class "Gene" :format "id" :value 1}
               :Protein {:class "Protein" :format "ids" :value [1 2 3]}})
           "Should handle depends")
+      (testing "Handle subclasses correctly"
+        (is (= (utils/suitable-entities
+                model
+                hier
+                {:ORF {:class "ORF" :format "id" :value 1}}
+                {:accepts ["id" "ids"]
+                 :classes ["Protein" "Gene"]})
+               {:Gene {:class "ORF" :format "id" :value 1}})
+            "Should keep entities that are a subclass to one or more of classes, with the key set to the expected class")
+        (is (= (utils/suitable-entities
+                model
+                hier
+                {:ORF {:class "ORF" :format "id" :value 1}
+                 :ProteinCodingGene {:class "ProteinCodingGene" :format "ids" :value [1 2 3]}}
+                {:accepts ["id" "ids"]
+                 :classes ["Protein" "Gene"]})
+               {:Gene {:class "ProteinCodingGene" :format "ids" :value [1 2 3]}})
+            "Should keep entities that are a subclass to one or more of classes, with the last entity for a superclass overriding")
+        (is (= (utils/suitable-entities
+                model
+                hier
+                {:ORF {:class "ORF" :format "id" :value 1}}
+                {:accepts ["id" "ids"]
+                 :classes ["ORF" "Gene"]})
+               {:Gene {:class "ORF" :format "id" :value 1}
+                :ORF {:class "ORF" :format "id" :value 1}})
+            "Should keep entities that are a subclass to one or more of classes, both for matching its superclass and the class itself")
+        (is (= (utils/suitable-entities
+                model
+                hier
+                {:ORF {:class "ORF" :format "id" :value 1}
+                 :ProteinCodingGene {:class "ProteinCodingGene" :format "ids" :value [1 2 3]}
+                 :Protein {:class "Protein" :format "ids" :value [1 2 3]}}
+                {:accepts ["id" "ids"]
+                 :classes ["Protein"]})
+               {:Protein {:class "Protein" :format "ids" :value [1 2 3]}})
+            "Should remove subclass entities that are not a subclass to one or more of classes"))
       (testing "Should return nil when no entities are valid"
         (are [entities config suitable]
-             (= (utils/suitable-entities model entities config) suitable)
+             (= (utils/suitable-entities model hier entities config) suitable)
 
           {:Gene {:class "Gene" :format "id" :value 1}
            :Protein {:class "Protein" :format "id" :value 2}}
@@ -206,9 +251,16 @@
           {:accepts ["id"]
            :classes ["*"]
            :depends ["NotInModel"]}
+          nil
+
+          {:ORF {:class "ORF" :format "id" :value 1}
+           :ProteinCodingGene {:class "ProteinCodingGene" :format "ids" :value [1 2 3]}}
+          {:accepts ["id" "ids"]
+           :classes ["Protein"]}
           nil))
       (is (= (utils/suitable-entities
               model
+              hier
               {:Gene {:class "Gene" :format "id" :value 1}
                :Protein {:class "Protein" :format "id" :value 2}}
               {:accepts ["id"]
@@ -219,6 +271,7 @@
     (with-redefs [version/tool-api 2]
       (is (= (utils/suitable-entities
               model
+              hier
               {:Gene {:class "Gene" :format "id" :value 1}
                :Protein {:class "Protein" :format "id" :value 2}}
               {:accepts ["id"]
@@ -228,6 +281,7 @@
           "Should return nil when tool version is below bluegenes")
       (is (= (utils/suitable-entities
               model
+              hier
               {:Gene {:class "Gene" :format "id" :value 1}
                :Protein {:class "Protein" :format "id" :value 2}}
               {:accepts ["id"]
@@ -236,6 +290,7 @@
           "Should return nil when inferred tool version is below bluegenes")
       (is (= (utils/suitable-entities
               model
+              hier
               {:Gene {:class "Gene" :format "id" :value 1}
                :Protein {:class "Protein" :format "id" :value 2}}
               {:accepts ["id"]

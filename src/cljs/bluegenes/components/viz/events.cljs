@@ -8,9 +8,11 @@
  :viz/run-queries
  (fn [{db :db} [_]]
    (let [entities (get-in db [:tools :entities])
-         model (get-in db [:mines (:current-mine db) :service :model :classes])]
+         current-mine (get-in db [:mines (:current-mine db)])
+         model (get-in current-mine [:service :model :classes])
+         hier (get current-mine :model-hier)]
      {:dispatch-n (map (fn [{:keys [config query key]}]
-                         (when-let [entity (suitable-entities model entities config)]
+                         (when-let [entity (suitable-entities model hier entities config)]
                            [:viz/run-query key (query entity)]))
                        all-viz)})))
 
