@@ -293,7 +293,7 @@
     (create-class
      {:component-did-mount (fn []
                              (when (nil? @pv)
-                               (dispatch [:cache/fetch-possible-values path model])))
+                               (dispatch [:cache/fetch-possible-values path model false])))
       :reagent-render (fn [& {:keys [lists model path value op code on-change
                                      on-select-list on-change-operator on-remove
                                      on-blur label? possible-values typeahead? hide-code?

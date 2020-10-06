@@ -28,7 +28,6 @@
             [imcljs.path :as im-path]
             [clojure.string :refer [join split]]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
-            [imcljs.fetch :as fetch]
             [cljs-bean.core :refer [->clj]]
             [bluegenes.utils :refer [read-registry-mine]]))
 
@@ -218,17 +217,30 @@
      (go
        (dispatch [:cache/store-possible-values mine-kw summary-path (<! sum-chan)])))))
 
+(defn get-active-type-constraints [db]
+  (->> (case (:active-panel db)
+         :templates-panel (get-in db [:components :template-chooser :selected-template :where])
+         nil)
+       (filterv :type)))
+
 (reg-event-fx
  :cache/fetch-possible-values
- (fn [{db :db} [_ path model]]
-   (let [mine (get-in db [:mines (get db :current-mine)])
+ (fn [{db :db} [_ path model ?type-constraints]]
+   (let [type-constraints (if (false? ?type-constraints)
+                            (get-active-type-constraints db)
+                            ?type-constraints)
+         model (assoc model :type-constraints type-constraints)
+         mine (get-in db [:mines (get db :current-mine)])
          split-path (split path ".")
          existing-value (get-in db [:mines (get db :current-mine) :possible-values split-path])]
 
      (if (and (nil? existing-value) (not (im-path/class? model path)))
        {:cache/fetch-possible-values-fx {:service (get mine :service)
-                                         :query {:from (first split-path)
-                                                 :select [path]}
+                                         :query (merge
+                                                  {:from (first split-path)
+                                                   :select [path]}
+                                                  (when (seq type-constraints)
+                                                    {:where type-constraints}))
                                          :mine-kw (get mine :id)
                                          :summary-path path}}
        {:dispatch [:cache/store-possible-values (get mine :id) path false]}))))
