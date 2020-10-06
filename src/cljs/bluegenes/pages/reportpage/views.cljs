@@ -111,4 +111,4 @@
                   [viz/main]
                   [tools/main]
                   [collections-and-references service current-mine-name type id]
-                  #_[templates-for-entity service current-mine-name id]])])]))])))
+                  [templates-for-entity service current-mine-name id]])])]))])))
