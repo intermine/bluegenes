@@ -237,10 +237,10 @@
      (if (and (nil? existing-value) (not (im-path/class? model path)))
        {:cache/fetch-possible-values-fx {:service (get mine :service)
                                          :query (merge
-                                                  {:from (first split-path)
-                                                   :select [path]}
-                                                  (when (seq type-constraints)
-                                                    {:where type-constraints}))
+                                                 {:from (first split-path)
+                                                  :select [path]}
+                                                 (when (seq type-constraints)
+                                                   {:where type-constraints}))
                                          :mine-kw (get mine :id)
                                          :summary-path path}}
        {:dispatch [:cache/store-possible-values (get mine :id) path false]}))))
