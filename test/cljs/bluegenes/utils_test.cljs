@@ -207,15 +207,6 @@
         (is (= (utils/suitable-entities
                 model
                 hier
-                {:ORF {:class "ORF" :format "id" :value 1}}
-                {:accepts ["id" "ids"]
-                 :classes ["ORF" "Gene"]})
-               {:Gene {:class "ORF" :format "id" :value 1}
-                :ORF {:class "ORF" :format "id" :value 1}})
-            "Should keep entities that are a subclass to one or more of classes, both for matching its superclass and the class itself")
-        (is (= (utils/suitable-entities
-                model
-                hier
                 {:ORF {:class "ORF" :format "id" :value 1}
                  :ProteinCodingGene {:class "ProteinCodingGene" :format "ids" :value [1 2 3]}
                  :Protein {:class "Protein" :format "ids" :value [1 2 3]}}
