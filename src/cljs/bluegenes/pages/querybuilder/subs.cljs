@@ -40,6 +40,11 @@
    (get-in db [:qb :preview])))
 
 (reg-sub
+ :qb/preview-error
+ (fn [db]
+   (get-in db [:qb :preview-error])))
+
+(reg-sub
  :qb/fetching-preview?
  (fn [db]
    (get-in db [:qb :fetching-preview?])))
@@ -100,3 +105,15 @@
  :qb/joins
  (fn [db]
    (get-in db [:qb :joins])))
+
+(reg-sub
+ :qb/im-query-constraints
+ :<- [:qb/im-query]
+ (fn [im-query]
+   (:where im-query)))
+
+(reg-sub
+ :qb/menu-type-constraints
+ :<- [:qb/menu]
+ (fn [qb-menu]
+   (con-logic/qb-menu->type-constraints qb-menu)))

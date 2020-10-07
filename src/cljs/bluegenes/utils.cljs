@@ -16,6 +16,16 @@
   [md-string]
   (some-> md-string md/md->hiccup md/component (md/hiccup-in :div :p)))
 
+;; Please do not use this for model classes. You can get results like:
+;;     "ThreePrimeUTR" -> "Three primeutr"
+;;     "ThisIsADog" -> "This isa dog"
+;; I don't think camelcasing is a reversible operation unless you explicitly
+;; specify all acronyms present (inflections.core uses this approach).
+;; Imagine "ThisIsAUTR": with the perfect implementation it would uncamel to
+;; "This is AUTR"; without defining UTR as an acronym, you wouldn't get "This
+;; is a UTR".
+;; Instead of using this function, use the `displayName` of the class, or just
+;; display the camelcased name (it isn't that bad).
 (defn uncamel
   "Uncamel case a string. Example: thisIsAString -> This is a string"
   [s]
@@ -25,6 +35,25 @@
       (string/join " " $)
       (string/capitalize $))
     s))
+
+;; You may think update-in serves you just fine
+;;     (update-in {} [:foo :bar] dissoc :baz)
+;; but this ends up creating nested maps all the way until the inner nil.
+;; `dissoc-in` on the other hand, won't do this, and will remove the nested
+;; maps if they don't hold any other keys than the one you wanted removed.
+(defn dissoc-in
+  "Dissociates an entry from a nested associative structure returning a new
+  nested structure. keys is a sequence of keys. Any empty maps that result
+  will not be present in the new structure."
+  [m [k & ks :as keys]]
+  (if ks
+    (if-let [nextmap (get m k)]
+      (let [newmap (dissoc-in nextmap ks)]
+        (if (seq newmap)
+          (assoc m k newmap)
+          (dissoc m k)))
+      m)
+    (dissoc m k)))
 
 (defn read-origin
   "Read the origin class from a query, and infer it if it's missing."
@@ -92,11 +121,17 @@
   "Removes key-value pairs from an entities map which don't adhere to config.
   Can also be used to check whether a tool should be displayed, as it will
   return nil if no entity is suitable at all.
-  1. Check that the tool's API version matches this Bluegenes.
-  2. Check that the tool's model dependencies are present.
-  3. Remove entity pairs which don't match tool's accepted formats.
-  4. Pick entity pairs that match tool's classes (all when `*` wildcard is used)."
-  [model entities config]
+  1. Check that the tool's API version matches this Bluegenes
+  2. Check that the tool's model dependencies are present
+  3. Remove entity pairs which don't match tool's accepted formats
+  4. Pick entity pairs whose class match tool's classes
+     a. All entity classes match when `*` wildcard is used
+     b. Entity classes which are a subclass to a tool's class match
+        i. During a subclass match, the class in the entity is replaced with the
+           tool's class it matched with (e.g. ORF -> Gene)
+        ii. If there are multiple subclasses that match with the same tool's
+            class, only the last one is kept (due to conflicting keys)."
+  [model hier entities config]
   (when-let [{:keys [accepts classes depends version]
               :or {version 1}} config]
     (when (and (= version version/tool-api)
@@ -105,7 +140,14 @@
         (into {} (filter (comp (set accepts) :format val)) $)
         (if (some #{"*"} classes)
           $
-          (select-keys $ (map keyword classes)))
+          (into {}
+                (keep (fn [[entity-class entity-map :as entity]]
+                        (some (fn [class-kw]
+                                (cond
+                                  (= entity-class class-kw) entity
+                                  (isa? hier entity-class class-kw) [class-kw entity-map]))
+                              (map keyword classes)))
+                      $)))
         (not-empty $)))))
 
 (defn version-string->vec

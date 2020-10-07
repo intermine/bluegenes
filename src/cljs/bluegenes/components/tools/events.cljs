@@ -59,7 +59,9 @@
  ::load-tools
  (fn [{db :db} [_]]
    (let [tools    (get-in db [:tools :installed])
-         service  (get-in db [:mines (:current-mine db) :service])
+         mine     (get-in db [:mines (:current-mine db)])
+         hier     (get mine :model-hier)
+         service  (get mine :service)
          entities (get-in db [:tools :entities])]
      (cond
        ;; Tools aren't ready yet.
@@ -76,4 +78,5 @@
                 :success? true}
         :load-suitable-tools {:tools tools
                               :service service
+                              :hier hier
                               :entities entities}}))))

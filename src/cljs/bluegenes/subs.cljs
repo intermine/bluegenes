@@ -149,6 +149,12 @@
      (get-in current-mine [:service :model]))))
 
 (reg-sub
+ :current-model-hier
+ (fn [db]
+   (let [current-mine (get-in db [:mines (get db :current-mine)])]
+     (get current-mine :model-hier))))
+
+(reg-sub
  :assets
  (fn [db]
    (:assets db)))
