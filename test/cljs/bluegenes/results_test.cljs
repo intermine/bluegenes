@@ -1,6 +1,6 @@
 (ns bluegenes.results-test
   (:require [cljs.test :refer-macros [deftest is are testing]]
-            [bluegenes.pages.results.events :as events]))
+            [bluegenes.pages.results.events :refer [unorder-query-parts]]))
 
 (def query-parts
   {:Gene [{:path "Gene.id",
@@ -36,5 +36,5 @@
                        :where [{:path "Gene", :op "IN", :value "PL FBgg0000203: U-BOX UBIQUITIN LIGASES", :code "A"}],
                        :constraintLogic "A"}}]})
 
-(deftest unorder-query-parts
-  (is (= (events/unorder-query-parts query-parts) query-parts-unordered)))
+(deftest unorder-query-parts-test
+  (is (= (unorder-query-parts query-parts) query-parts-unordered)))
