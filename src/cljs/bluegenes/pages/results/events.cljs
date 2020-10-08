@@ -75,7 +75,6 @@
 ; and then route the browser to a URL that displays the last package in history (the one we just added)
 (reg-event-fx
  :results/history+
- (abort-spec bluegenes.specs/im-package)
  (fn [{db :db} [_ {:keys [source value type] :as package} no-route?]]
    (cond-> {:db (-> db
                     (update-in [:results :history] conj package)

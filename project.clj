@@ -135,7 +135,7 @@
                    :resource-paths ["config/dev" "tools" "config/defaults"]
                    :plugins [[lein-figwheel "0.5.19"]
                              [lein-doo "0.1.8"]]}
-             :kaocha {:dependencies [[lambdaisland/kaocha "0.0-601"]
+             :kaocha {:dependencies [[lambdaisland/kaocha "1.0.700"]
                                      [lambdaisland/kaocha-cljs "0.0-71"]]}
              :repl {:source-paths ["dev"]}
              :prod {:resource-paths ["config/prod" "tools" "config/defaults"]}
