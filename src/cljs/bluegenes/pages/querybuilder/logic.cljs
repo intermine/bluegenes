@@ -3,7 +3,8 @@
             [clojure.string :refer [split join blank? starts-with? ends-with?]]
             [oops.core :refer [ocall oget]]
             [cljs.reader :refer [read-string]]
-            [cljs.reader :refer [read-string]]))
+            [cljs.reader :refer [read-string]]
+            [clojure.zip :as z]))
 
 (defn index-of [haystack needle]
   (first (keep-indexed (fn [idx e] (when (= needle e) idx)) haystack)))
@@ -104,3 +105,29 @@
           list->vec
           group-ands
           raise))
+
+(defn find-type-constraints
+  "Returns a vector of type constraints for a zipper location."
+  ([loc] (find-type-constraints loc []))
+  ([loc type-constraints]
+   (cond
+     (z/end? loc) type-constraints
+     (when-let [?e (z/node loc)]
+       (and (map-entry? ?e) (= (key ?e) :subclass)))
+     (recur (z/next loc) (conj type-constraints
+                               {:path (->> loc z/path rest (map first) (join "."))
+                                :type (val (z/node loc))}))
+     :else (recur (z/next loc) type-constraints))))
+
+(defn qb-menu->type-constraints
+  "Parse a qb menu map (used in Model Browser) into a vector of type constraints."
+  [qb-menu]
+  (let [loc (z/zipper
+             (fn [x] (or (map? x) (map? (nth x 1))))
+             (fn [x] (seq (if (map? x) x (nth x 1))))
+             (fn [x children]
+               (if (map? x)
+                 (into {} children)
+                 (assoc x 1 (into {} children))))
+             qb-menu)]
+    (find-type-constraints loc)))

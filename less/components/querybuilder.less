@@ -444,6 +444,11 @@ div.column-container {
         font-weight: 500;
         color: @query-browser-class;
         white-space: nowrap;
+
+        .label {
+            padding: @spacer*0.1 @spacer*0.6;
+            margin-left: @spacer/2;
+        }
     }
 
     .qb-type {
@@ -591,6 +596,10 @@ div.column-container {
     .qb-class {
         font-weight: 500;
         color: @model-browser-class;
+
+        &.empty-class {
+            color: @body-foreground-color;
+        }
     }
 
     .light {
@@ -643,8 +652,16 @@ div.column-container {
         z-index: 11;
     }
 
-    .model-button-group {
-        display: flex;
+    .model-button-container {
+        padding-left: 0.6em;
+
+        .model-button-group {
+            display: flex;
+
+            .icon {
+                fill: @body-foreground-color;
+            }
+        }
     }
 }
 

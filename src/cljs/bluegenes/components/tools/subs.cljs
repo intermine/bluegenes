@@ -38,8 +38,9 @@
  :<- [::installed-tools]
  :<- [::entities]
  :<- [:model]
- (fn [[tools entities model]]
-   (filter #(suitable-entities model entities (:config %)) tools)))
+ :<- [:current-model-hier]
+ (fn [[tools entities model hier]]
+   (filter #(suitable-entities model hier entities (:config %)) tools)))
 
 (reg-sub
  ::collapsed-tool?

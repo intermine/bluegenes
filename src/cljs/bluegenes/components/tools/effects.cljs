@@ -110,11 +110,10 @@
 ;; In the latter case, it will merely call the tool's main function.
 (reg-fx
  :load-suitable-tools
- (fn [{:keys [tools service entities]}]
+ (fn [{:keys [tools service hier entities]}]
    (doseq [tool tools]
      ;; `entity` is nil if tool is not suitable to be displayed.
-     (when-let [entity (suitable-entities
-                        (get-in service [:model :classes]) entities (:config tool))]
+     (when-let [entity (suitable-entities (get-in service [:model :classes]) hier entities (:config tool))]
        (if-let [tool-id (get-in tool [:names :cljs])]
          (do (fetch-script! tool tool-id :service service :entity entity)
              (fetch-styles! tool tool-id))

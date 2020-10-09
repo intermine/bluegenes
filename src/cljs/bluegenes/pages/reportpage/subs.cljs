@@ -49,7 +49,8 @@
                                                                   (when
                                                                    (and
                                                                     (= op "LOOKUP")
-                                                                    (= report-item-type (name (im-path/class current-model path)))
+                                                                    (= report-item-type
+                                                                       (name (im-path/class (assoc current-model :type-constraints where) path)))
                                                                     (= editable true)) idx))
                                                                 where))]
 

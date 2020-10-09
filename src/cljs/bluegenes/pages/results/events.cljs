@@ -56,7 +56,8 @@
  :results/get-item-details
  (fn [{db :db} [_ identifier path-constraint]]
    (let [source (get-in db [:results :package :source])
-         model (get-in db [:mines source :service :model])
+         model (assoc (get-in db [:mines source :service :model])
+                      :type-constraints (get-in db [:results :package :value :where]))
          classname (keyword (path/class model path-constraint))
          summary-fields (get-in db [:assets :summary-fields source classname])
          service (get-in db [:mines source :service])
@@ -74,7 +75,6 @@
 ; and then route the browser to a URL that displays the last package in history (the one we just added)
 (reg-event-fx
  :results/history+
- (abort-spec bluegenes.specs/im-package)
  (fn [{db :db} [_ {:keys [source value type] :as package} no-route?]]
    (cond-> {:db (-> db
                     (update-in [:results :history] conj package)
@@ -88,6 +88,19 @@
 
 (def im-table-location [:results :table])
 
+(defn unorder-query-parts
+  "There's a bug with the webservices that doesn't let us sort by an attribute
+  not present in the view. This is a workaround to remove ordering, as we
+  currently don't see it as a necessary feature for Bluegenes tools/viz to have
+  ordering that is consistend with the im-table."
+  [query-parts]
+  (reduce (fn [qp k]
+            (update qp k
+                    (partial mapv
+                             #(update % :query dissoc :sortOrder :orderBy))))
+          query-parts
+          (keys query-parts)))
+
 ; Load one package at a particular index from the list analysis history collection
 (reg-event-fx
  :results/load-history
@@ -96,7 +109,8 @@
    (let [; Get the details of the current package
          {:keys [source type value] :as package} (get-in db [:results :queries title])
           ; Get the current model
-         model          (get-in db [:mines source :service :model])
+         model          (assoc (get-in db [:mines source :service :model])
+                               :type-constraints (:where value))
          service        (get-in db [:mines source :service])
          summary-fields (get-in db [:assets :summary-fields source])]
      (if (nil? package)
@@ -113,7 +127,7 @@
                     :package package
                     ; The index is used to highlight breadcrumbs
                     :history-index title
-                    :query-parts (q/group-views-by-class model value)
+                    :query-parts (unorder-query-parts (q/group-views-by-class model value))
                     ; Clear the enrichment results before loading any new ones
                     :enrichment-results nil)
         :dispatch-n [;; Fetch IDs to build tool entity, and then our tools.
@@ -152,14 +166,15 @@
  :results/update-tool-entities
  (fn [{db :db} [_]]
    (let [source (get-in db [:results :package :source])
-         model  (get-in db [:mines source :service :model])
          ;; We have to reach into the im-table to get the updated query,
          ;; as it's not passed via event handlers we can intercept.
-         query  (get-in db (conj im-table-location :query))]
+         query (get-in db (conj im-table-location :query))
+         model (assoc (get-in db [:mines source :service :model])
+                      :type-constraints (:where query))]
      ;; We wouldn't need to update db if we passed query-parts directly to the
      ;; two events dispatched below (see TODO above).
      {:db (update db :results assoc
-                  :query-parts (q/group-views-by-class model query))
+                  :query-parts (unorder-query-parts (q/group-views-by-class model query)))
       :dispatch-n [[:fetch-ids-tool-entities]
                    [:enrichment/enrich]]})))
 

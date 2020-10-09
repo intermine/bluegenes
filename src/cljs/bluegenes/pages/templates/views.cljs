@@ -69,27 +69,28 @@
 (defn select-template-settings
   "UI component to allow users to select template details, e.g. select a list to be in, lookup value greater than, less than, etc."
   [selected-template]
-  (let [service (subscribe [:selected-template-service])
-        row-count (subscribe [:template-chooser/count])
-        lists (subscribe [:current-lists])]
+  (let [service @(subscribe [:selected-template-service])
+        lists @(subscribe [:current-lists])
+        all-constraints (:where @selected-template)
+        model (assoc (:model service) :type-constraints all-constraints)]
     [:div.col-xs-4.border-right
      (into [:div.form]
            ; Only show editable constraints, but don't filter because we want the index!
-           (->> (keep-indexed (fn [idx con] (if (:editable con) [idx con])) (:where @selected-template))
+           (->> (keep-indexed (fn [idx con] (if (:editable con) [idx con])) all-constraints)
                 (map (fn [[idx {:keys [switched switchable] :as con}]]
                        [:div.template-constraint-container
                         [constraint
-                         :model (:model @service)
+                         :model model
                          :typeahead? true
                          :path (:path con)
                          :value (or (:value con) (:values con))
                          :op (:op con)
-                         :label (s/join " > " (take-last 2 (s/split (im-path/friendly (:model @service) (:path con)) #" > ")))
+                         :label (s/join " > " (take-last 2 (s/split (im-path/friendly model (:path con)) #" > ")))
                          :code (:code con)
                          :hide-code? true
                          :label? true
                          :disabled (= switched "OFF")
-                         :lists @lists
+                         :lists lists
                          :on-blur (fn [new-constraint]
                                     (dispatch [:template-chooser/replace-constraint
                                                idx (merge (cond-> con

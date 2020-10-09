@@ -92,6 +92,18 @@ If your tool *accepts* `ids` and takes multiple *classes*, (see [config.json](/d
 }
 ```
 
+Subclasses (descendant of a class in the model hierarchy) might also be passed to your tool if it's descendant of one of your tool's *classes*. When this happens, the key will still be its superclass which you specified in *classes*, while the subclass name can be accessed under `class`. If you want your tool to work with subclasses, you'll need to make sure that any queries you build based on imEntity sets the `from` key to this `class` (`imEntity.Gene.class` in this example).
+
+```json
+{
+  "Gene": {
+    "class": "ORF",
+    "format": "id",
+    "value": 5
+  }
+}
+```
+
 It is up to you which class you want to use in your tool, and you can even use multiple.
 
 Currently, it is not possible to receive multiple classes on the report page with *accepts* `id`. However, the Tool API allows for this should it be an option in the future.
@@ -146,7 +158,7 @@ This file provides bluegenes-specific config info. Some further config info is d
 
 Plurality (i.e. id vs ids) will help to determine which context a tool can appear (report page, list analysis page)
 
-**classes** default to `*` if this tool isn't class / objectType specific. otherwise your tool might be specific to a certain class, e.g. a gene displayer.
+**classes** default to `*` if this tool isn't class / objectType specific. Otherwise your tool might be specific to a certain class, e.g. a gene displayer. Note that a subclass of a class you specify here may be passed via *imEntity* (see its section above for more details).
 
 **columnMapping** is an important way to specify (or override) which columns should be passed to the tool by BlueGenes. As an example, for a gene tool, you might want to pass a symbol, OR a primaryIdentifier, or even secondaryIdentifier - and this might change depending in the InterMine that is fuelling the BlueGenes. Set a default likely value here, and in the future individual bluegenes administrators can override it if needed.
 

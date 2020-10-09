@@ -1,8 +1,5 @@
 (ns bluegenes.components.ui.results_preview
-  (:require [imcljs.path :as im-path]
-            [oops.core :refer [oget]]
-            [reagent.core :as reagent :refer [create-class]]
-            [bluegenes.components.loader :refer [loader]]
+  (:require [bluegenes.components.loader :refer [loader]]
             [clojure.string :refer [split join]]))
 
 (defn table-header []
@@ -16,9 +13,10 @@
                  [:td
                   (str (:value d))]) row))))
 
-(defn preview-table []
+(defn preview-table
   "Creates a dropdown for a query constraint.
   :query-results  The intermine model to use"
+  []
   (fn [& {:keys [query-results loading? hide-count?]}]
     (if loading?
       [loader]
@@ -29,8 +27,7 @@
                      [table-header h])
                    (:columnHeaders query-results)))]
        [:tbody
-        (if
-         (< (:iTotalRecords query-results) 1)
+        (if (< (:iTotalRecords query-results) 1)
           [:tr
            [:td {:col-span (count (:columnHeaders query-results))}
             [:h4 "Query returned no results"]]]

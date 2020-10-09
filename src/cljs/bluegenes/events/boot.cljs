@@ -132,7 +132,7 @@
                  :token token}}
       {:id :default
        :name nil
-       :service {:root "https://alpha.flymine.org/alpha"
+       :service {:root "https://www.flymine.org/flymine"
                  :token token}})))
 
 (defn wait-for-registry?
@@ -341,15 +341,27 @@
   (keys (filter (comp #(contains? % preferred-tag)
                       set :tags second) (:classes model))))
 
+(defn extends-hierarchy
+  "Subclasses in the model are specified via the extends key. We build a
+  first-class hierarchy type using this so we can query whether a class
+  is a subclass for another class."
+  [model-classes]
+  (reduce (fn [h [child {:keys [extends]}]]
+            (reduce #(derive %1 child %2) h (map keyword extends)))
+          (make-hierarchy)
+          model-classes))
+
 (reg-event-db
  :assets/success-fetch-model
  (fn [db [_ mine-kw model]]
-   (let [model' (update model :classes
-                        #(into {} (filter (comp pos? :count val) %)))]
-     (-> db
-         (assoc-in [:mines mine-kw :service :model] model')
-         (assoc-in [:mines mine-kw :default-object-types]
-                   (sort (preferred-fields model')))))))
+   ;; We used to remove empty classes (zero count) from the model here, but
+   ;; this turned out to be a very bad idea! This is because the model is used
+   ;; to parse paths into classes, which means it has to be complete. This also
+   ;; applies to the model hierarchy.
+   (-> db
+       (assoc-in [:mines mine-kw :service :model] model)
+       (assoc-in [:mines mine-kw :default-object-types] (sort (preferred-fields model)))
+       (assoc-in [:mines mine-kw :model-hier] (extends-hierarchy (:classes model))))))
 
 (reg-event-fx
  :assets/fetch-model

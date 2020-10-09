@@ -1,16 +1,16 @@
 (ns bluegenes.pages.querybuilder.views
   (:require [re-frame.core :refer [subscribe dispatch]]
             [reagent.core :as reagent]
-            [clojure.string :as string :refer [split join]]
+            [clojure.string :as string :refer [split join lower-case]]
             [oops.core :refer [ocall oget]]
-            [bluegenes.utils :refer [uncamel]]
             [bluegenes.components.ui.constraint :refer [constraint]]
             [bluegenes.components.bootstrap :refer [tooltip]]
             [imcljs.path :as im-path]
             [imcljs.query :refer [->xml]]
-            [bluegenes.components.loader :refer [mini-loader loader]]
+            [bluegenes.components.loader :refer [mini-loader]]
             [bluegenes.components.ui.results_preview :refer [preview-table]]
-            [inflections.core :refer [ordinalize plural]]))
+            [inflections.core :refer [ordinalize plural]]
+            [bluegenes.components.icons :refer [icon]]))
 
 (defn query=
   "Returns whether `queries` are all =, ignoring empty values like [] and nil."
@@ -39,10 +39,14 @@
                       :code "B"
                       :value "mad"}]})
 
+(defn sort-classes
+  [classes]
+  (sort-by (comp string/lower-case :displayName val) compare classes))
+
 (defn root-class-dropdown []
   (let [model @(subscribe [:model])
         root-class @(subscribe [:qb/root-class])
-        classes (sort-by (comp :displayName val) model)
+        classes (sort-classes model)
         preferred (filter #(contains? (-> % val :tags set) "im:preferredBagType") classes)]
     (into [:select.form-control
            {:on-change (fn [e] (dispatch [:qb/set-root-class (oget e :target :value)]))
@@ -67,6 +71,26 @@
 (defn not-selected [selected [k attributes-map]]
   (not (within? selected (name k))))
 
+(defn display-name [model class]
+  (let [class-kw (cond-> class
+                   (string? class) keyword)]
+    (get-in model [:classes class-kw :displayName])))
+
+;; I think we can replace this function with `im-path/walk`.
+(defn rel-prop-fn [prop]
+  (fn [model path]
+    (let [class (->> (drop-last 1 path)
+                     (im-path/walk model)
+                     (last))
+          ;; `path` can point to either an attribute or a class.
+          attrib+class (last path)
+          ;; We don't use `im-path/properties` as we need to support subclasses.
+          properties (apply merge (map class [:attributes :references :collections]))]
+      (get-in properties [attrib+class prop]))))
+
+(def rel-display-name (rel-prop-fn :displayName))
+(def rel-referenced-type (rel-prop-fn :referencedType))
+
 (def q {:from "Gene"
         :select ["Gene.symbol"
                  "Gene.secondaryIdentifier"
@@ -81,15 +105,16 @@
          [:span
           {:on-click (fn []
                        (if selected?
-                         (dispatch [:qb/enhance-query-remove-view path sub])
-                         (dispatch [:qb/enhance-query-add-view path sub])))}
+                         (dispatch [:qb/enhance-query-remove-view path])
+                         (dispatch [:qb/enhance-query-add-view path])))}
           (if (get-in @enhance-query path)
             [:svg.icon.icon-checkbox-checked [:use {:xlinkHref "#icon-checkbox-checked"}]]
             [:svg.icon.icon-checkbox-unchecked [:use {:xlinkHref "#icon-checkbox-unchecked"}]])
           [:span.qb-label (:displayName properties)]]]))))
 
 (defn node []
-  (let [menu (subscribe [:qb/menu])]
+  (let [menu (subscribe [:qb/menu])
+        hier (subscribe [:current-model-hier])]
     (fn [model [k properties] & [trail]]
       (let [path (vec (conj trail (name k)))
             open? (get-in @menu path)
@@ -114,21 +139,32 @@
          (when open?
            (into [:ul]
                  (concat
-                  (when (im-path/class? model str-path)
-                    (when-let [subclasses (im-path/subclasses model str-path)]
-                      (list
-                       [:li [:span
-                             (into
-                              [:select.form-control
-                               {:on-change (fn [e] (dispatch [:qb/enhance-query-choose-subclass path (oget e :target :value)]))}]
-                              (map (fn [subclass]
-                                     [:option {:value subclass} (uncamel (name subclass))]) (conj subclasses (:referencedType properties))))]])))
+                   ;; We remove :type-constraints from the model in these two instances
+                   ;; as we want to find the subclasses of the superclass. Otherwise the
+                   ;; list of subclasses would grow smaller when one is selected.
+                  (when (im-path/class? (dissoc model :type-constraints) str-path)
+                    (let [class (im-path/class (dissoc model :type-constraints) str-path)]
+                      (when-let [subclasses (seq (sort (descendants @hier class)))]
+                        [[:li
+                          [:span
+                           (into [:select.form-control
+                                  {:on-change (fn [e]
+                                                (dispatch [:qb/enhance-query-choose-subclass path (oget e :target :value) (:referencedType properties)]))
+                                   :value (or sub (:referencedType properties))}
+                                  [:option {:value (:referencedType properties)}
+                                   (:displayName properties)]
+                                  [:option {:disabled true :role "separator"}
+                                   "─────────────────────────"]]
+                                 (map (fn [subclass]
+                                        [:option {:value subclass}
+                                         (display-name model subclass)])
+                                      subclasses))]]])))
                   (if sub
-                    (map (fn [i] [attribute model i path sub]) (sort (remove (comp (partial = :id) first) (im-path/attributes model sub))))
-                    (map (fn [i] [attribute model i path sub]) (sort (remove (comp (partial = :id) first) (im-path/attributes model (:referencedType properties))))))
+                    (map (fn [i] [attribute model i path sub]) (sort-classes (remove (comp (partial = :id) first) (im-path/attributes model sub))))
+                    (map (fn [i] [attribute model i path sub]) (sort-classes (remove (comp (partial = :id) first) (im-path/attributes model (:referencedType properties))))))
                   (if sub
-                    (map (fn [i] [node model i path false]) (sort (im-path/relationships model sub)))
-                    (map (fn [i] [node model i path false]) (sort (im-path/relationships model (:referencedType properties))))))))]))))
+                    (map (fn [i] [node model i path false]) (sort-classes (im-path/relationships model sub)))
+                    (map (fn [i] [node model i path false]) (sort-classes (im-path/relationships model (:referencedType properties))))))))]))))
 
 (defn model-browser []
   (fn [model root-class]
@@ -136,24 +172,32 @@
      (let [path [root-class]
            attributes (->> (im-path/attributes model root-class)
                            (remove (comp #{:id} key)) ; Hide id attribute.
-                           (sort))
+                           (sort-classes))
            relationships (->> (im-path/relationships model root-class)
                               ;; Make sure class is present in model.
                               ;; (If the class has no members, it won't be.)
                               (filter #(contains? (:classes model)
                                                   (-> % val :referencedType keyword)))
-                              (sort))]
+                              (sort-classes))]
        (into [:ul
-              [:li [:div.model-button-group
-                    [:button.btn.btn-slim
-                     {:on-click #(dispatch [:qb/enhance-query-add-summary-views [root-class]])}
-                     "Summarise"]
-                    [:button.btn.btn-slim
-                     {:on-click #(dispatch [:qb/expand-all])}
-                     "Expand Selected"]
-                    [:button.btn.btn-slim
-                     {:on-click #(dispatch [:qb/collapse-all])}
-                     "Collapse All"]]]]
+              [:li.model-button-container
+               [:div.model-button-group
+                [:button.btn.btn-slim
+                 {:on-click #(dispatch [:qb/enhance-query-add-summary-views [root-class]])
+                  :title (str "Summarise " root-class " by adding its common attributes")}
+                 [icon "summary"] "Summary"]
+                [:button.btn.btn-slim
+                 {:on-click #(dispatch [:qb/expand-all])
+                  :title "Expand the Model Browser tree to show all selected attributes"}
+                 [icon "enlarge2"] "Expand"]
+                [:button.btn.btn-slim
+                 {:on-click #(dispatch [:qb/collapse-all])
+                  :title "Collapse the Model Browser tree to the top level"}
+                 [icon "shrink"] "Collapse"]
+                [:button.btn.btn-slim
+                 {:on-click #(dispatch [:qb/enhance-query-clear-query])
+                  :title "Remove all selected attributes"}
+                 [icon "bin"] "Clear"]]]]
              (concat
               (map (fn [class-entry] [attribute model class-entry path]) attributes)
               (map (fn [class-entry] [node model class-entry path]) relationships))))]))
@@ -161,8 +205,12 @@
 (defn data-browser-node []
   (let [open? (reagent/atom true)]
     (fn [close! model hier tag]
-      (let [children (filter #(contains? (parents hier %) tag)
-                             (descendants hier tag))]
+      (let [;; To get the immediate children, we filter the descendants down to
+            ;; those which have `tag` as immediate parent.
+            children (filter #(contains? (parents hier %) tag)
+                             (descendants hier tag))
+            tag-count (get-in model [tag :count])
+            is-nonempty (when (number? tag-count) (pos? tag-count))]
         [:li.haschildren.qb-group
          {:class (when @open? "expanded-group")}
          [:div.group-title
@@ -178,41 +226,42 @@
              [:svg.icon.icon-plus
               {:class (when @open? "arrow-down")}
               [:use {:xlinkHref "#icon-plus"}]]])
-          [:a.qb-class
-           {:class (when (empty? children) "no-icon")
-            :on-click #(do (dispatch [:qb/set-root-class tag]) (close!))}
-           tag]
-          (when-let [count (get-in model [tag :count])]
-            (when (pos? count)
-              [:span.class-count count]))]
+          (if is-nonempty
+            [:a.qb-class
+             {:class (when (empty? children) "no-icon")
+              :on-click #(do (dispatch [:qb/set-root-class tag]) (close!))}
+             tag]
+            [:span.qb-class.empty-class
+             {:class (when (empty? children) "no-icon")}
+             tag])
+          (when is-nonempty
+            [:span.class-count tag-count])]
          (when (and (seq children) @open?)
            (into [:ul]
                  (for [child (sort children)]
                    [data-browser-node close! model hier child])))]))))
 
-(defn data-browser []
+(defn data-browser [close!]
   (let [model @(subscribe [:model])
-        hier (reduce (fn [h [child {:keys [extends]}]]
-                       (reduce #(derive %1 child %2) h (map keyword extends)))
-                     (make-hierarchy) model)]
-    (fn [close!]
-      [:div.model-browser-column
-       [:div.header-group
-        [:h4 "Data Browser"]
-        [:button.btn.btn-raised.btn-sm.browse-button
-         {:on-click close!}
-         [:svg.icon.icon-arrow-left [:use {:xlinkHref "#icon-arrow-left"}]]
-         "Back to model"]]
-       [:div.model-browser.class-browser
-        (into [:ul]
-              (for [root (->> (keys model)
-                              (filter #(empty? (parents hier %)))
-                              (sort))]
-                [data-browser-node close! model hier root]))]])))
+        hier @(subscribe [:current-model-hier])]
+    [:div.model-browser-column
+     [:div.header-group
+      [:h4 "Data Browser"]
+      [:button.btn.btn-raised.btn-sm.browse-button
+       {:on-click close!}
+       [:svg.icon.icon-arrow-left [:use {:xlinkHref "#icon-arrow-left"}]]
+       "Back to model"]]
+     [:div.model-browser.class-browser
+      (into [:ul]
+            (for [root (->> (keys model)
+                            (filter #(empty? (parents hier %)))
+                            (sort))]
+              [data-browser-node close! model hier root]))]]))
 
 (defn browser-pane []
   (let [query (subscribe [:qb/query])
-        current-mine (subscribe [:current-mine])
+        current-model (subscribe [:current-model])
+        type-constraints (subscribe [:qb/menu-type-constraints])
         root-class (subscribe [:qb/root-class])
         browse-model? (reagent/atom true)]
     (when (empty? @query)
@@ -230,7 +279,9 @@
               [:svg.icon.icon-tree [:use {:xlinkHref "#icon-tree"}]]
               "Browse"]]])
          (when @root-class
-           [model-browser (:model (:service @current-mine)) (name @root-class)])]
+           [model-browser
+            (assoc @current-model :type-constraints @type-constraints)
+            (name @root-class)])]
         [data-browser #(swap! browse-model? not)]))))
 
 (defn dissoc-keywords [m]
@@ -243,20 +294,24 @@
       (let [path (vec (conj trail (name k)))
             class-node? (im-path/class? model (join "." path))
             non-root-class? (and class-node? (> (count path) 1))
+            path-kw (map keyword path)
             [{referenced-name :displayName, referenced-class :name}
-             {parent-name :displayName}] (->> (map keyword path)
-                                              (im-path/walk model)
-                                              (reverse))]
+             {parent-name :displayName}] (reverse (im-path/walk model path-kw))
+            relational-name (if non-root-class?
+                              (rel-display-name model path-kw)
+                              referenced-name)]
         [:li.tree.haschildren
          [:div.flexmex
           [:span.lab {:class (if class-node? "qb-class" "qb-attribute")}
            [:span.qb-label {:style {:margin-left 5}}
             [tooltip {:on-click #(dispatch [:qb/expand-path path])
-                      :title (str "Show " (uncamel k) " in the model browser")}
-             [:a (uncamel k)]]]
-           (when (and non-root-class? (not= referenced-name (uncamel k)))
-             [:span.qb-type (str "(" referenced-name ")")])
-           (when-let [s (:subclass properties)] [:span.label.label-default (uncamel s)])
+                      :title (str "Show " relational-name " in the model browser")}
+             [:a relational-name]]]
+           (when (and non-root-class? (not= (lower-case referenced-class)
+                                            (lower-case k)))
+             [:span.qb-type (str "(" (rel-referenced-type model path-kw) ")")])
+           (when-let [s (:subclass properties)]
+             [:span.label.label-default (display-name model s)])
            [:svg.icon.icon-bin
             {:on-click (if (> (count path) 1)
                          (fn [] (dispatch [:qb/enhance-query-remove-view path]))
@@ -327,8 +382,10 @@
                  attributes (filter (fn [[k p]] ((complement im-path/class?) model (join "." (conj path k)))) (dissoc-keywords properties))]
              (into [:ul.tree.banana2]
                    (concat
-                    (map (fn [n] [queryview-node model n path]) (sort attributes))
-                    (map (fn [n] [queryview-node model n path]) (sort classes))))))]))))
+                    (map (fn [n] [queryview-node model n path])
+                         (sort-by (comp string/lower-case key) attributes))
+                    (map (fn [n] [queryview-node model n path])
+                         (sort-by (comp string/lower-case key) classes))))))]))))
 
 (defn example-button []
   [:button.btn.btn-primary.btn-raised
@@ -420,15 +477,19 @@
            [:div.query-preview-loader
             [mini-loader "tiny"]])]))))
 
-(defn preview [result-count]
-  (let [results-preview (subscribe [:qb/preview])]
+(defn preview []
+  (let [results-preview @(subscribe [:qb/preview])
+        preview-error @(subscribe [:qb/preview-error])]
     [:div.preview-container
-     (if-let [res @results-preview]
-       [preview-table
-        :loading? false ; The loader is ugly.
-        :hide-count? true
-        :query-results res]
-       [:p "No query available for generating preview."])]))
+     (cond
+       preview-error [:div
+                      [:p "Error occured when running query."]
+                      [:pre.well.text-danger preview-error]]
+       results-preview [preview-table
+                        :loading? false ; The loader is ugly.
+                        :hide-count? true
+                        :query-results results-preview]
+       :else [:p "No query available for generating preview."])]))
 
 (defn move-vec-elem
   "Moves an element in a vector `v` from index `i` to `i'`."
@@ -443,6 +504,8 @@
 
 (defn manage-columns []
   (let [order (subscribe [:qb/order])
+        current-model (subscribe [:current-model])
+        current-constraints (subscribe [:qb/im-query-constraints])
         selected* (reagent/atom nil)]
     (fn []
       (into [:div.sort-order-container
@@ -463,9 +526,15 @@
                                     (dispatch [:qb/set-order new-order])))
                  :on-drag-end (fn [] (reset! selected* nil))}
                 (into [:div.path-parts]
-                      (map (fn [part]
-                             [:span.part part])
-                           (interpose ">" (map uncamel (split path ".")))))
+                      (let [model (assoc @current-model
+                                         :type-constraints @current-constraints)]
+                        (map (fn [part]
+                               [:span.part part])
+                             (->> (split path #"\.")
+                                  (map keyword)
+                                  (im-path/walk model)
+                                  (map :displayName)
+                                  (interpose ">")))))
                 (let [subpaths (->> (split path #"\.") (iterate drop-last) (take-while not-empty) (set))
                       outer-joined-section? (some #(contains? subpaths %)
                                                   (map #(split % #"\.") @(subscribe [:qb/joins])))]
@@ -526,10 +595,11 @@
                [:span [:code path] "will show as a subtable if present"]])))))
 
 (defn query-editor []
-  (let [current-mine @(subscribe [:current-mine])
+  (let [current-model @(subscribe [:current-model])
+        current-constraints @(subscribe [:qb/im-query-constraints])
         constraint-value-count @(subscribe [:qb/constraint-value-count])]
     [:div
-     [queryview-browser (:model (:service current-mine))]
+     [queryview-browser (assoc current-model :type-constraints current-constraints)]
      [joins-list]
      (when (>= constraint-value-count 2)
        [logic-box])]))
@@ -551,8 +621,7 @@
 (defn column-order-preview []
   (let [enhance-query (subscribe [:qb/enhance-query])
         current-mine (subscribe [:current-mine])
-        tab-index (reagent/atom 0)
-        prev (subscribe [:qb/preview])]
+        tab-index (reagent/atom 0)]
     (fn []
       [:div.panel.panel-default
        [:div.panel-body
@@ -560,7 +629,7 @@
          [:li {:class (when (= @tab-index 0) "active")} [:a {:on-click #(reset! tab-index 0)} "Preview"]]
          [:li {:class (when (= @tab-index 1) "active")} [:a {:on-click #(reset! tab-index 1)} "XML"]]]
         (case @tab-index
-          0 [preview @prev]
+          0 [preview]
           1 [xml-view])]])))
 
 (defn short-readable-path

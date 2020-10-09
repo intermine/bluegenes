@@ -40,7 +40,7 @@
 
       ([results options]
        (if (:title options) ;; we could tweak this further to make a nice passed-in title, too
-         [:div
+         [:div ; if you complete this component, you should assoc :type-constraints to current-model (see path/walk docstring)
           [:h4 (:displayName (first (path/walk @current-model (:class results))))]
           [table results]]
          [table results])))))
