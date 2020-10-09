@@ -1,8 +1,23 @@
 @import "../variables";
 
+.enrichment-heading {
+    color: @highlight-color;
+
+    a {
+        fill: @highlight-color;
+
+        .icon {
+            margin-left: 0;
+        }
+    }
+}
+
 .enrichment {
+    background: rgba(0,0,0,0.04);
     margin-top: @spacer*1.5;
     font-size: 0.9em;
+
+    padding: @spacer/2 @spacer;
 
     a {
         text-decoration: underline;
@@ -20,10 +35,6 @@
         color: #525252;
     }
 
-    .settings-bg {
-        background: rgba(0,0,0,0.04);
-    }
-
     .standard-enrichment-padding {
         padding: 0.5em 0.2em;
     }
@@ -33,14 +44,32 @@
         cursor: pointer;
     }
 
-    h4 {
-        .standard-enrichment-padding;
-        background: fadeout(@highlight-color, 80%);
-        color: #333;
-        font-size: 1.2em;
+    .enrichment-category {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 @spacer/2;
+
+        background: fadeout(@highlight-color, 50%);
+        color: @highlight-color-text;
+
+        h4 {
+            font-size: 1.3em;
+            font-weight: 500;
+        }
 
         &.inactive {
             background: lightgrey;
+        }
+
+        &-right-side {
+            display: flex;
+        }
+
+        .toggle-enrichment {
+            fill: @highlight-color-text;
+            padding: @spacer/4 @spacer/2;
+            font-size: 1.2em;
         }
     }
 
@@ -49,12 +78,10 @@
     }
 
     .enrichment-settings {
-        .standard-enrichment-padding;
-        .settings-bg;
         display: flex;
         flex-wrap: wrap;
         justify-content: space-between;
-        margin-bottom: @spacer/3;
+        margin-bottom: @spacer;
         //for when it breakpoint wraps underneath the table:
         @media (max-width:990px) {
             justify-content: flex-start;
@@ -73,17 +100,19 @@
         }
 
         .text-filter {
+            margin-top: @spacer/2;
             flex-grow: 1;
         }
 
         label {
             font-size: 1em;
-            margin: @spacer/2
         }
     }
 
     .enrichment-header,
     .enrichment-list {
+        background-color: @content-color-background;
+
         padding-left: 0;
         font-size: 0.9em;
         max-height: 300px;
@@ -102,14 +131,33 @@
                 color: black;
             }
         }
+    }
 
-        .col-xs-8:first-child {
-            padding-left: 0;
+    .enrichment-list {
+        display: table;
+        width: 100%;
+    }
+
+    .enrichment-header,
+    .enrichment-item {
+        display: table-row;
+
+        & > div {
+            display: table-cell;
+            padding: @spacer/4 @spacer/2;
+        }
+    }
+
+    .enrichment-item {
+        font-size: 1.1em;
+
+        &:nth-child(2n) {
+            background-color: @body-background-color;
         }
 
-        .col-xs-4:last-child {
-            padding-right: 0;
-            padding-left: 0;
+        .enrichment-p-value {
+            color: @link-color;
+            white-space: nowrap;
         }
     }
 
@@ -117,7 +165,6 @@
         width: 100%;
         display: flex;
         flex-wrap: wrap;
-        .settings-bg;
         .standard-enrichment-padding;
         .transitions;
         margin-bottom: @spacer;
@@ -159,9 +206,7 @@
     }
     h3 {display:inline}
     .enrichment-header {
-        .p-val {
-            text-align: right;
-        }
+        font-size: 1.1em;
         font-weight: bold;
     }
 

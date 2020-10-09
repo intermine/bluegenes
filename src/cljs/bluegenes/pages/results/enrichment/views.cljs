@@ -7,7 +7,8 @@
             [imcljs.path :as path]
             [bluegenes.components.bootstrap :refer [popover poppable tooltip]]
             [clojure.string :refer [split]]
-            [oops.core :refer [oget ocall]]))
+            [oops.core :refer [oget ocall]]
+            [bluegenes.components.icons :refer [icon]]))
 
 ;;==============================TODO============================
 ;; 1. some enrichment widgets have filters! Add support for this
@@ -16,8 +17,6 @@
 
 (def css-transition-group
   (reagent/adapt-react-class js/ReactTransitionGroup.CSSTransitionGroup))
-
-(def sidebar-hover (reagent/atom false))
 
 (defn popover-table []
   (fn [{:keys [results columnHeaders] :as me}]
@@ -49,36 +48,35 @@
          selected?]
       [:li.enrichment-item
        {:on-mouse-enter (fn [] (dispatch [:enrichment/get-item-details identifier pathConstraint]))}
-       [:div.container-fluid
-        [:div.row
-         [:div.col-xs-2
-          [:input
-           {:type "checkbox"
-            :checked selected?
-            :on-click (fn [e]
-                        (ocall e :stopPropagation)
-                        (on-click identifier))}]
-          matches]
-         [:div.col-xs-7
-          (let [summary-value @(subscribe [:enrichment/a-summary-values identifier])]
-            [poppable
-             {:data (if summary-value
-                      [popover-table @(subscribe [:enrichment/a-summary-values identifier])]
-                      [:span "Loading"])
-              :children [:a {:on-click
-                             (fn []
-                               (dispatch [:results/history+
-                                          {:source @current-mine
-                                           :type :query
-                                           :intent :enrichment
-                                           :value (assoc (build-matches-query
-                                                          (:pathQuery details)
-                                                          (:pathConstraint details)
-                                                          identifier)
-                                                         :title
-                                                         identifier)}]))}
-                         description]}])]
-         [:div.col-xs-3 [:span {:style {:font-size "0.8em"}} (.toExponential p-value 6)]]]]])))
+       [:div
+        [:input
+         {:type "checkbox"
+          :checked selected?
+          :on-click (fn [e]
+                      (ocall e :stopPropagation)
+                      (on-click identifier))}]]
+       [:div
+        (let [summary-value @(subscribe [:enrichment/a-summary-values identifier])]
+          [poppable
+           {:data (if summary-value
+                    [popover-table @(subscribe [:enrichment/a-summary-values identifier])]
+                    [:span "Loading"])
+            :children [:a {:on-click
+                           (fn []
+                             (dispatch [:results/history+
+                                        {:source @current-mine
+                                         :type :query
+                                         :intent :enrichment
+                                         :value (assoc (build-matches-query
+                                                        (:pathQuery details)
+                                                        (:pathConstraint details)
+                                                        identifier)
+                                                       :title
+                                                       identifier)}]))}
+                       (str description " (" matches ")")]}])]
+       [:div
+        [:span.enrichment-p-value
+         (.toExponential p-value 6)]]])))
 
 (defn has-text?
   "Return true if a label contains a string"
@@ -92,18 +90,15 @@
 (defn enrichment-results-header []
   (fn [{:keys [on-click selected?]}]
     [:div.enrichment-header
-     [:div.container-fluid
-      [:div.row
-       [:div.col-xs-2
-        {:style {:white-space "nowrap"}}
-        [:input
-         {:type "checkbox"
-          :checked selected?
-          :on-click (fn [e]
-                      (ocall e :stopPropagation) (on-click))}]
-        "Matches"]
-       [:div.col-xs-7 "Item"]
-       [:div.col-xs-3.p-val "p-value" [p-val-tooltip]]]]]))
+     [:div
+      {:style {:white-space "nowrap"}}
+      [:input
+       {:type "checkbox"
+        :checked selected?
+        :on-click (fn [e]
+                    (ocall e :stopPropagation) (on-click))}]]
+     [:div "Item (matches)"]
+     [:div "p-value" [p-val-tooltip]]]))
 
 (defn enrichment-results-preview []
   (let [text-filter (subscribe [:enrichment/text-filter])
@@ -120,38 +115,43 @@
                                 (has-text? @text-filter description))
                               results)]
         [:div.sidebar-item
-         [:h4 {:class (if (empty? results) "inactive")}
-          (get-in @config [widget-name :title])
-          (if results
-            [:span (if results (str " (" (count results) ")"))]
-            [:span [mini-loader "tiny"]])]
-         (when (not-empty results)
-           [:div
-            [:button.btn.btn-default.btn-raised.btn-xs
-             {:on-click (fn []
-                          (dispatch [:results/history+
-                                     {:source @current-mine
-                                      :type :query
-                                      :intent :enrichment
-                                      :value (assoc
-                                              (build-matches-query
-                                               (:pathQuery details)
-                                               (:pathConstraint details)
-                                               (or
-                                                   ; Build a query for only the selected identifiers
-                                                (not-empty @selected)
-                                                   ; ... unless it's empty, then use all filtered identifiers
-                                                (map :identifier filtered-results)))
-                                              :title "Enrichment Results")}]))}
-             (if (empty? @selected) "View All" "View Selected")]])
-         (cond (seq (:results details))
-               [enrichment-results-header
-                {:selected? (= (count filtered-results) (count @selected))
-                 :on-click (fn []
-                             (if (empty? @selected)
-                               (reset! selected (set (map :identifier filtered-results)))
-                               (reset! selected #{})))}])
-         (into [:ul.enrichment-list]
+
+         [:div.enrichment-category
+          [:h4 {:class (if (empty? results) "inactive")}
+           (get-in @config [widget-name :title])
+           (if results
+             [:span (if results (str " (" (count results) ")"))]
+             [:span [mini-loader "tiny"]])]
+          [:div.enrichment-category-right-side
+           (when (not-empty results)
+             [:button.btn.btn-default.btn-raised.btn-xs.view-all-enrichment
+              {:on-click (fn []
+                           (dispatch [:results/history+
+                                      {:source @current-mine
+                                       :type :query
+                                       :intent :enrichment
+                                       :value (assoc
+                                               (build-matches-query
+                                                (:pathQuery details)
+                                                (:pathConstraint details)
+                                                (or
+                                                    ; Build a query for only the selected identifiers
+                                                 (not-empty @selected)
+                                                    ; ... unless it's empty, then use all filtered identifiers
+                                                 (map :identifier filtered-results)))
+                                               :title "Enrichment Results")}]))}
+              (if (empty? @selected) "View All" "View Selected")])
+           [:button.btn.btn-link.toggle-enrichment
+            [icon "expand-folder"]]]]
+
+         (into [:ul.enrichment-list
+                (when (seq (:results details))
+                  [enrichment-results-header
+                   {:selected? (= (count filtered-results) (count @selected))
+                    :on-click (fn []
+                                (if (empty? @selected)
+                                  (reset! selected (set (map :identifier filtered-results)))
+                                  (reset! selected #{})))}])]
                (map (fn [row]
                       (let [selected? (contains? @selected (:identifier row))]
                         [enrichment-result-row row details on-click selected?]))
@@ -186,7 +186,7 @@
                       (if (or (= value "") (= value nil))
                         (dispatch [:enrichment/set-text-filter nil])
                         (dispatch [:enrichment/set-text-filter value]))))
-       :placeholder "Filter..."}]]))
+       :placeholder "Text to filter items"}]]))
 
 (defn enrichment-settings []
   [:div.sidebar-item.enrichment-settings
@@ -254,24 +254,22 @@
     ; This breaks the browser, so ignore nil paths for now. Issue #58
     (when the-path
       [:div.enrichment-column-settings.sidebar-item
-       [:div.column-display [:svg.icon.icon-table [:use {:xlinkHref "#icon-table"}]]
+       [:div.column-display
         "Enrichment column: "
         [:div.the-column (path-to-last-two-classes model the-path)]]
        (cond multiple-options? [enrichable-column-chooser enrichable-options @active-enrichment-column])])))
 
-(defn enrich []
-  (let [query-parts (subscribe [:results/query-parts])
-        value (subscribe [:enrichment/text-filter])]
-    (fn []
-      [:div.enrichment
-       {:on-mouse-enter (fn [] (reset! sidebar-hover true))
-        :on-mouse-leave (fn [] (reset! sidebar-hover false))}
-       [:h3 "Enrichment "]
-       [:a {:title "External link to enrichment documentation."
-            :target "_blank"
-            :href "http://intermine.readthedocs.io/en/latest/embedding/list-widgets/enrichment-widgets/"} "[How is this calculated? "
-        [:svg.icon.icon-external [:use {:xlinkHref "#icon-external"}]] " ] "]
-       [enrichable-column-displayer]
+(defn enrichment-help-text []
+  [:a {:title "External link to enrichment documentation."
+       :target "_blank"
+       :href "http://intermine.readthedocs.io/en/latest/embedding/list-widgets/enrichment-widgets/"}
+   [icon "info"]])
 
-       [enrichment-settings]
-       [enrichment-results]])))
+(defn enrich []
+  [:div
+   [:h3.enrichment-heading
+    "Enrichment " [enrichment-help-text]]
+   [:div.enrichment
+    [enrichable-column-displayer]
+    [enrichment-settings]
+    [enrichment-results]]])
