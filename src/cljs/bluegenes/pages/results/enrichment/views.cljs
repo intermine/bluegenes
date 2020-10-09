@@ -100,11 +100,14 @@
      [:div "Item (matches)"]
      [:div "p-value" [p-val-tooltip]]]))
 
+(def results-to-show 5)
+
 (defn enrichment-results-preview []
   (let [text-filter (subscribe [:enrichment/text-filter])
         config (subscribe [:enrichment/enrichment-config])
         selected (reagent/atom #{})
-        current-mine (subscribe [:current-mine-name])]
+        current-mine (subscribe [:current-mine-name])
+        show-more* (reagent/atom false)]
     (fn [[widget-name {:keys [results] :as details}]]
       (let [on-click (fn [v]
                        (if (contains? @selected v)
@@ -113,14 +116,16 @@
             filtered-results (filter
                               (fn [{:keys [description]}]
                                 (has-text? @text-filter description))
-                              results)]
+                              results)
+            filtered-results-count (count filtered-results)]
         [:div.sidebar-item
 
          [:div.enrichment-category
-          [:h4 {:class (if (empty? results) "inactive")}
+          {:class (when (empty? results) "inactive")}
+          [:h4
            (get-in @config [widget-name :title])
            (if results
-             [:span (if results (str " (" (count results) ")"))]
+             [:span (when results (str " (" (count results) ")"))]
              [:span [mini-loader "tiny"]])]
           [:div.enrichment-category-right-side
            (when (not-empty results)
@@ -145,9 +150,9 @@
             [icon "expand-folder"]]]]
 
          (into [:ul.enrichment-list
-                (when (seq (:results details))
+                (when (seq filtered-results)
                   [enrichment-results-header
-                   {:selected? (= (count filtered-results) (count @selected))
+                   {:selected? (= filtered-results-count (count @selected))
                     :on-click (fn []
                                 (if (empty? @selected)
                                   (reset! selected (set (map :identifier filtered-results)))
@@ -155,7 +160,15 @@
                (map (fn [row]
                       (let [selected? (contains? @selected (:identifier row))]
                         [enrichment-result-row row details on-click selected?]))
-                    filtered-results))]))))
+                    (if @show-more*
+                      filtered-results
+                      (take results-to-show filtered-results))))
+
+         (when (> filtered-results-count results-to-show)
+           [:div.show-more-results
+            [:button.btn.btn-link
+             {:on-click #(swap! show-more* not)}
+             (if @show-more* "Show less" "Show more")]])]))))
 
 (defn enrichment-results []
   (let [all-enrichment-results (subscribe [:enrichment/enrichment-results])

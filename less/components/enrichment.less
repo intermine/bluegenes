@@ -59,7 +59,7 @@
         }
 
         &.inactive {
-            background: lightgrey;
+            background: fadeout(@highlight-color, 90%);
         }
 
         &-right-side {
@@ -118,18 +118,10 @@
         max-height: 300px;
         overflow-y: auto;
 
+        margin-bottom: 0;
+
         li {
-            transition: all 0.25s ease;
             list-style-type: none;
-
-            &:not(:last-child) {
-                border-bottom: 1px dotted #c1c1c1;
-            }
-
-            &:hover {
-                background-color: white;
-                color: black;
-            }
         }
     }
 
@@ -219,6 +211,23 @@
         }
 
         div.value {}
+    }
+
+    .show-more-results {
+        display: flex;
+        justify-content: center;
+        background-color: @content-color-background;
+        padding: @spacer/4 0;
+
+        button {
+            font-size: 0.9em;
+            margin: 0;
+            padding: 0;
+        }
+    }
+
+    .sidebar-item {
+        margin-bottom: @spacer/2;
     }
 }
 
