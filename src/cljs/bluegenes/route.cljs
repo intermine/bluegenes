@@ -27,6 +27,11 @@
 ;; warning if you use a route that expects params, without specifying params.
 ;; Note that the `:mine` param is an exception to this, since it's the parent
 ;; of all routes, so it gets injected automatically from db if not specified.
+;;
+;; There is also an event you can dispatch to step back in the history.
+;; ```
+;; (dispatch [::route/go-back])
+;; ```
 
 ;; Based on the official reitit frontend-re-frame example: (2019.06.18)
 ;; https://github.com/metosin/reitit/tree/master/examples/frontend-re-frame
@@ -39,6 +44,11 @@
    {::navigate! {:k route
                  :query query
                  :params (update params :mine #(or % (:current-mine db)))}}))
+
+(reg-event-fx
+ ::go-back
+ (fn [{db :db} [_]]
+   {::go-back! {}}))
 
 ;; This event handler is for internal use by router.
 ;; Do not dispatch unless you know what you're doing!
@@ -97,13 +107,18 @@
    (:current-route db)))
 
 ;;; Effects ;;;
+;; You should dispatch the event handlers above instead of using the effects
+;; directly. Such is the way of re-frame!
 
-;; You should dispatch `::navigate` (defined above) instead of using this
-;; effect directly. Such is the way of re-frame!
 (reg-fx
  ::navigate!
  (fn [{:keys [k params query]}]
    (rfe/push-state k params query)))
+
+(reg-fx
+ ::go-back!
+ (fn [_]
+   (.back js/window.history)))
 
 (defn href
   "Return relative url for given route. Url can be used in HTML links."

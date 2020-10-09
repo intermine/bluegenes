@@ -100,3 +100,7 @@
  (fn [db]
    (get-in db [:results :description :editing?])))
 
+(reg-sub
+ :results/intent
+ (fn [db]
+   (get-in db [:results :package :intent])))
