@@ -175,8 +175,8 @@
             [:div.results-table
              [tables/main [:results :table]]]
             [viz/main]
-            #_[:div
-               [tools/main]]]
+            [:div
+             [tools/main]]]
            [:div.col-sm-3.visible-lg-block
             [enrichment/enrich]]]
          [no-results])])))

@@ -3,13 +3,19 @@
 .tools {
     @visible-gray: #ccc;
 
+    margin-bottom: @spacer*4;
+
     .tool-container {
         background-color: @content-color-background;
-        margin-bottom: @spacer*3;
+        margin-bottom: @spacer/2;
+        border: 1px solid @visible-gray;
 
         .tool-header {
             background-color: @visible-gray;
-            padding: @spacer*1.2 @spacer*1.2 @spacer*1.2 @spacer*2.4;
+            padding: @spacer @spacer @spacer @spacer*1.5;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
 
             .tool-title {
                 display: inline;
@@ -17,11 +23,10 @@
             }
 
             .tool-toggle {
-                font-size: 2.4em;
-                font-weight: 100;
-                line-height: 0.8em;
+                font-size: 1.2em;
                 padding: 0;
                 margin: 0;
+                outline: 0;
             }
         }
 
