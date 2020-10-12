@@ -107,7 +107,8 @@
         config (subscribe [:enrichment/enrichment-config])
         selected (reagent/atom #{})
         current-mine (subscribe [:current-mine-name])
-        show-more* (reagent/atom false)]
+        show-more* (reagent/atom false)
+        is-collapsed* (reagent/atom false)]
     (fn [[widget-name {:keys [results] :as details}]]
       (let [on-click (fn [v]
                        (if (contains? @selected v)
@@ -147,28 +148,33 @@
                                                :title "Enrichment Results")}]))}
               (if (empty? @selected) "View All" "View Selected")])
            [:button.btn.btn-link.toggle-enrichment
-            [icon "expand-folder"]]]]
+            {:on-click #(swap! is-collapsed* not)}
+            [icon (if @is-collapsed*
+                    "expand-folder"
+                    "collapse-folder")]]]]
 
-         (into [:ul.enrichment-list
-                (when (seq filtered-results)
-                  [enrichment-results-header
-                   {:selected? (= filtered-results-count (count @selected))
-                    :on-click (fn []
-                                (if (empty? @selected)
-                                  (reset! selected (set (map :identifier filtered-results)))
-                                  (reset! selected #{})))}])]
-               (map (fn [row]
-                      (let [selected? (contains? @selected (:identifier row))]
-                        [enrichment-result-row row details on-click selected?]))
-                    (if @show-more*
-                      filtered-results
-                      (take results-to-show filtered-results))))
+         (when-not @is-collapsed*
+           (into [:ul.enrichment-list
+                  (when (seq filtered-results)
+                    [enrichment-results-header
+                     {:selected? (= filtered-results-count (count @selected))
+                      :on-click (fn []
+                                  (if (empty? @selected)
+                                    (reset! selected (set (map :identifier filtered-results)))
+                                    (reset! selected #{})))}])]
+                 (map (fn [row]
+                        (let [selected? (contains? @selected (:identifier row))]
+                          [enrichment-result-row row details on-click selected?]))
+                      (if @show-more*
+                        filtered-results
+                        (take results-to-show filtered-results)))))
 
-         (when (> filtered-results-count results-to-show)
-           [:div.show-more-results
-            [:button.btn.btn-link
-             {:on-click #(swap! show-more* not)}
-             (if @show-more* "Show less" "Show more")]])]))))
+         (when-not @is-collapsed*
+           (when (> filtered-results-count results-to-show)
+             [:div.show-more-results
+              [:button.btn.btn-link
+               {:on-click #(swap! show-more* not)}
+               (if @show-more* "Show less" "Show more")]]))]))))
 
 (defn enrichment-results []
   (let [all-enrichment-results (subscribe [:enrichment/enrichment-results])
