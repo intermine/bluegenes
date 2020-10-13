@@ -157,6 +157,10 @@
      {:name ::home
       :controllers
       [{:start dispatch-for-home}]}]
+    ["/admin"
+     {:name ::admin
+      :controllers
+      [{:start #(dispatch [:set-active-panel :admin-panel])}]}]
     ["/profile"
      {:name ::profile
       :controllers
