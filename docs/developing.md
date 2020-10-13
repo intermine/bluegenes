@@ -2,8 +2,8 @@
 
 BlueGenes uses the [Less](http://lesscss.org/) CSS preprocessor, along with [Bootstrap 3](https://getbootstrap.com/docs/3.3/) and a fork of [Bootstrap Material Design](https://github.com/intermine/bootstrap-material-design). We recommend referencing existing markup and the following resources.
 
-- https://cdn.rawgit.com/FezVrasta/bootstrap-material-design/gh-pages-v3/index.html
-- https://cdn.rawgit.com/FezVrasta/bootstrap-material-design/gh-pages-v3/bootstrap-elements.html
+- https://cdn.rawgit.com/mdbootstrap/bootstrap-material-design/gh-pages-v3/index.html
+- https://cdn.rawgit.com/mdbootstrap/bootstrap-material-design/gh-pages-v3/bootstrap-elements.html
 - https://getbootstrap.com/docs/3.3/css/
 - https://getbootstrap.com/docs/3.3/javascript/
 
