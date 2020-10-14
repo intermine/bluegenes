@@ -504,3 +504,26 @@ textarea.hidden-clipboard {
         margin-bottom: @spacer*2.2;
     }
 }
+
+.btn.btn-fab {
+    padding: 0;
+    outline: 0;
+
+    &:hover {
+        outline: 0;
+    }
+
+    &:active {
+        outline: 0;
+    }
+
+    &.btn-default {
+        &:hover {
+            background-color: darken(#eee, 7%);
+        }
+
+        &:active {
+            background-color: lighten(#eee, 2%);
+        }
+    }
+}
