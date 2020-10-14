@@ -45,6 +45,23 @@
                     }
                 }
 
+                &.add-category {
+                    display: flex;
+                    align-items: center;
+
+                    background-color: #eee;
+                    border-radius: 4px;
+                    padding: 6px 5px;
+
+                    input {
+                        max-width: 30em;
+                    }
+
+                    button {
+                        margin: 0 @spacer/2;
+                    }
+                }
+
                 .classes {
                     margin: @spacer 0;
                     list-style: none;
@@ -61,8 +78,16 @@
                             justify-content: space-between;
                         }
 
+                        span.type {
+                            background-color: #eee;
+                            border-radius: 5px;
+                            padding: @spacer/4 @spacer/2;
+                            margin-left: @spacer/2;
+                        }
+
                         .class-options {
                             display: flex;
+                            align-items: center;
 
                             .btn-fab {
                                 box-shadow: none;
@@ -72,7 +97,7 @@
                             }
                         }
 
-                        &.add-class {
+                        &.add-child {
                             display: flex;
                             align-items: center;
 

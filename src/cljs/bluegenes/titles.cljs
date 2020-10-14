@@ -14,6 +14,7 @@
         Search [:search-results :keyword]
         Query  [:results :history-index]]
     {:home-panel         ["Home"             Mine App]
+     :admin-panel        ["Admin"            Mine App]
      :profile-panel      ["Profile"          Mine App]
      :debug-panel        [Debug "Debug"      Mine App]
      :templates-panel    ["Templates"        Mine App]

@@ -28,23 +28,31 @@
                     [:option {:disabled true :role "separator"} "─────────────────────────"]))
                 (concat [[:separator]] preferred [[:separator]] classes)))]))
 
-(defn report-categories-class [{:keys [class]}]
-  [:li.class-entry
-   class
-   [:div.btn-group-sm.class-options
-    [:button.btn.btn-default.btn-fab
-     [icon "eye" 2]]
-    [:button.btn.btn-default.btn-fab
-     [icon "move-up-list" 2]]
-    [:button.btn.btn-default.btn-fab
-     [icon "move-down-list" 2]]
-    [:button.btn.btn-default.btn-fab
-     [icon "remove-list" 2]]]])
+(defn report-categories-child [[category-index child-index]
+                               {:keys [name type collapse]}]
+  (let [dispatch-idx (fn [evt & args]
+                       (dispatch (into [evt category-index child-index] args)))]
+    [:li.class-entry
+     [:div
+      [:span name]
+      [:span.type type]]
+     [:div.btn-group-sm.class-options
+      [:button.btn.btn-default.btn-fab
+       [poppable {:data [:span (if collapse
+                                 "Header will be visible but content needs to be toggled to show"
+                                 "Header and content will be visible")]
+                  :children [icon (if collapse "eye-blocked" "eye") 2]}]]
+      [:button.btn.btn-default.btn-fab
+       [icon "move-up-list" 2]]
+      [:button.btn.btn-default.btn-fab
+       [icon "move-down-list" 2]]
+      [:button.btn.btn-default.btn-fab
+       [icon "remove-list" 2]]]]))
 
 (defn report-categories-category []
   (let [model (subscribe [:model])
         active* (reagent/atom false)]
-    (fn [{:keys [category classes]}]
+    (fn [category-index {:keys [category children]}]
       (let [remaining-classes (-> @model sort-classes keys)]
         [:li {:class (when @active* :active)}
          [:a {:on-click #(swap! active* not)}
@@ -63,36 +71,45 @@
             {:on-click #(.stopPropagation %)}
             "Delete"]]]
          (when @active*
-           [:ul.classes
-            (concat
-              (for [class classes]
-                [report-categories-class class])
-              [[:li.add-class
-                [:div.full-width
-                 [:> js/Select
-                  {:placeholder "Available classes, tools and templates"
-                   :isMulti true
-                   ; :onChange (fn [values]
-                   ;             (->> (js->clj values :keywordize-keys true)
-                   ;                  (map :value)
-                   ;                  (not-empty)
-                   ;                  (on-change)))
-                   ; :value (map (fn [v] {:value v :label v}) value)
-                   :options (map (fn [v] {:value v :label v}) remaining-classes)}]]
-                [:div.btn-group-sm
-                 [:button.btn.btn-default.btn-fab
-                  [icon "plus"]]]]])])]))))
+           (into [:ul.classes]
+                 (concat
+                   (for [[i child] (map-indexed vector children)]
+                     [report-categories-child [category-index i] child])
+                   [[:li.add-child
+                     [:div.full-width
+                      [:> js/Select
+                       {:placeholder "Available classes, tools and templates"
+                        :isMulti true
+                        ; :onChange (fn [values]
+                        ;             (->> (js->clj values :keywordize-keys true)
+                        ;                  (map :value)
+                        ;                  (not-empty)
+                        ;                  (on-change)))
+                        ; :value (map (fn [v] {:value v :label v}) value)
+                        :options (map (fn [v] {:value v :label v}) remaining-classes)}]]
+                     [:div.btn-group-sm
+                      [:button.btn.btn-default.btn-fab
+                       [icon "plus"]]]]])))]))))
 
 (defn report-categories-selector []
   (let [categories [{:category "Function"
-                     :classes [{:class "HPO"}
-                               {:class "Alleles"}]}
-                    {:category "Disease"}]]
+                     :children [{:name "HPO" :type "class" :collapse true}
+                                {:name "Alleles" :type "class"}
+                                {:name "Bluegenes GO-Term Visualization" :type "tool"}]}
+                    {:category "Disease"
+                     :children [{:name "Gene --> RMI" :type "template"}]}]]
     [:div.categories-selector
-     [:em "Click on a category to expand/collapse their children"]
+     (when (seq categories)
+       [:em "Click on a category to expand/collapse its children"])
      (into [:ul.nav.nav-pills.nav-stacked]
-           (for [category categories]
-             [report-categories-category category]))]))
+           (concat
+             (for [[i category] (map-indexed vector categories)]
+               [report-categories-category i category])
+             [[:li.add-category.input-group-sm
+               [:input.form-control.input-sm
+                {:placeholder "New category"}]
+               [:button.btn.btn-default.btn-raised.btn-xs
+                "Add category"]]]))]))
 
 (defn runnable-templates-tooltip []
   [poppable {:data [:div
