@@ -23,7 +23,7 @@
                         color: #fff;
                         background-color: fadeout(@nav-pill-color, 50%);
                         border-radius: 4px;
-                        transition: all 0.5s ease 0s;
+                        transition: background-color 0.5s ease 0s;
 
                         &:hover {
                             background-color: fadeout(@nav-pill-color, 20%);
@@ -35,6 +35,7 @@
                     display: flex;
                     align-items: center;
                     justify-content: space-between;
+                    transition: background-color 0.5s ease 0s;
 
                     & > div {
                         display: flex;
@@ -59,6 +60,19 @@
 
                     button {
                         margin: 0 @spacer/2;
+                    }
+                }
+
+                .rename-category {
+                    justify-content: start;
+                    padding: 6.5px 5px;
+
+                    input {
+                        max-width: 30em;
+                    }
+
+                    button {
+                        margin: 0 0 0 @spacer/2;
                     }
                 }
 

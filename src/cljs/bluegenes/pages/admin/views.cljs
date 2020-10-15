@@ -8,6 +8,11 @@
             [oops.core :refer [oget]]
             [bluegenes.components.bootstrap :refer [poppable]]))
 
+(defn on-enter [f]
+  (fn [e]
+    (when (= 13 (oget e :charCode))
+      (f e))))
+
 (defn report-categories-dropdown []
   (let [model @(subscribe [:model])
         categorize-class @(subscribe [::subs/categorize-class])
@@ -51,65 +56,115 @@
 
 (defn report-categories-category []
   (let [model (subscribe [:model])
-        active* (reagent/atom false)]
+        active* (reagent/atom false)
+        renaming* (reagent/atom false)
+        rename-ref* (reagent/atom nil)]
     (fn [category-index {:keys [category children]}]
       (let [remaining-classes (-> @model sort-classes keys)]
         [:li {:class (when @active* :active)}
-         [:a {:on-click #(swap! active* not)}
-          category
-          [:div
-           [:button.btn.btn-default.btn-raised.btn-xs
-            {:on-click #(.stopPropagation %)}
-            "Rename"]
-           [:button.btn.btn-default.btn-raised.btn-xs
-            {:on-click #(.stopPropagation %)}
-            "Move up"]
-           [:button.btn.btn-default.btn-raised.btn-xs
-            {:on-click #(.stopPropagation %)}
-            "Move down"]
-           [:button.btn.btn-default.btn-raised.btn-xs
-            {:on-click #(.stopPropagation %)}
-            "Delete"]]]
+         (if @renaming*
+           [:a.rename-category.input-group-sm
+            {:on-click #(swap! active* not)}
+            [:input.form-control.input-sm
+             {:ref #(when %
+                      (reset! rename-ref* %)
+                      (.focus %))
+              :placeholder category
+              :on-key-press (on-enter (fn [e]
+                                        (when-let [value (not-empty (oget e :target :value))]
+                                          (dispatch [::events/category-rename category-index value]))
+                                        (reset! renaming* false)))
+              :on-click #(.stopPropagation %)
+              :default-value category}]
+            [:button.btn.btn-default.btn-raised.btn-xs
+             {:on-click (fn [e]
+                          (.stopPropagation e)
+                          (when-let [rename-elem @rename-ref*]
+                            (when-let [value (not-empty (oget rename-elem :value))]
+                              (dispatch [::events/category-rename category-index value]))
+                            (reset! renaming* false)))}
+             "Save"]
+            [:button.btn.btn-default.btn-raised.btn-xs
+             {:on-click (fn [e]
+                          (.stopPropagation e)
+                          (reset! renaming* false))}
+             "Cancel"]]
+           [:a {:on-click #(swap! active* not)}
+            category
+            [:div
+             [:button.btn.btn-default.btn-raised.btn-xs
+              {:on-click (fn [e]
+                           (.stopPropagation e)
+                           (reset! renaming* true))}
+              "Rename"]
+             [:button.btn.btn-default.btn-raised.btn-xs
+              {:on-click (fn [e]
+                           (.stopPropagation e)
+                           (dispatch [::events/category-move-up category-index]))}
+              "Move up"]
+             [:button.btn.btn-default.btn-raised.btn-xs
+              {:on-click (fn [e]
+                           (.stopPropagation e)
+                           (dispatch [::events/category-move-down category-index]))}
+              "Move down"]
+             [:button.btn.btn-default.btn-raised.btn-xs
+              {:on-click (fn [e]
+                           (.stopPropagation e)
+                           (dispatch [::events/category-remove category-index]))}
+              "Delete"]]])
          (when @active*
-           (into [:ul.classes]
-                 (concat
-                   (for [[i child] (map-indexed vector children)]
-                     [report-categories-child [category-index i] child])
-                   [[:li.add-child
-                     [:div.full-width
-                      [:> js/Select
-                       {:placeholder "Available classes, tools and templates"
-                        :isMulti true
-                        ; :onChange (fn [values]
-                        ;             (->> (js->clj values :keywordize-keys true)
-                        ;                  (map :value)
-                        ;                  (not-empty)
-                        ;                  (on-change)))
-                        ; :value (map (fn [v] {:value v :label v}) value)
-                        :options (map (fn [v] {:value v :label v}) remaining-classes)}]]
-                     [:div.btn-group-sm
-                      [:button.btn.btn-default.btn-fab
-                       [icon "plus"]]]]])))]))))
+           [:ul.classes
+            (concat
+              (for [[i child] (map-indexed vector children)]
+                ^{:key (:id child)}
+                [report-categories-child [category-index i] child])
+              [[:li.add-child
+                {:key "addchild"}
+                [:div.full-width
+                 [:> js/Select
+                  {:placeholder "Available classes, tools and templates"
+                   :isMulti true
+                   ; :onChange (fn [values]
+                   ;             (->> (js->clj values :keywordize-keys true)
+                   ;                  (map :value)
+                   ;                  (not-empty)
+                   ;                  (on-change)))
+                   ; :value (map (fn [v] {:value v :label v}) value)
+                   :options (map (fn [v] {:value v :label v}) remaining-classes)}]]
+                [:div.btn-group-sm
+                 [:button.btn.btn-default.btn-fab
+                  [icon "plus"]]]]])])]))))
+
+#_(def example-categories
+    [{:category "Function"
+      :children [{:name "HPO" :type "class" :collapse true}
+                 {:name "Alleles" :type "class"}
+                 {:name "Bluegenes GO-Term Visualization" :type "tool"}]}
+     {:category "Disease"
+      :children [{:name "Gene --> RMI" :type "template"}]}])
 
 (defn report-categories-selector []
-  (let [categories [{:category "Function"
-                     :children [{:name "HPO" :type "class" :collapse true}
-                                {:name "Alleles" :type "class"}
-                                {:name "Bluegenes GO-Term Visualization" :type "tool"}]}
-                    {:category "Disease"
-                     :children [{:name "Gene --> RMI" :type "template"}]}]]
+  (let [categories @(subscribe [::subs/categories])
+        new-category @(subscribe [::subs/new-category])]
     [:div.categories-selector
      (when (seq categories)
        [:em "Click on a category to expand/collapse its children"])
-     (into [:ul.nav.nav-pills.nav-stacked]
-           (concat
-             (for [[i category] (map-indexed vector categories)]
-               [report-categories-category i category])
-             [[:li.add-category.input-group-sm
-               [:input.form-control.input-sm
-                {:placeholder "New category"}]
-               [:button.btn.btn-default.btn-raised.btn-xs
-                "Add category"]]]))]))
+     [:ul.nav.nav-pills.nav-stacked
+      (concat
+        (for [[i category] (map-indexed vector categories)]
+          ^{:key (:id category)}
+          [report-categories-category i category])
+        [[:li.add-category.input-group-sm
+          {:key "addcat"}
+          [:input.form-control.input-sm
+           {:ref #(when % (.focus %))
+            :placeholder "New category"
+            :on-change #(dispatch [::events/set-new-category (oget % :target :value)])
+            :on-key-press (on-enter #(dispatch [::events/category-add new-category]))
+            :value new-category}]
+          [:button.btn.btn-default.btn-raised.btn-xs
+           {:on-click #(dispatch [::events/category-add new-category])}
+           "Add category"]]])]]))
 
 (defn runnable-templates-tooltip []
   [poppable {:data [:div
