@@ -151,36 +151,33 @@
                                 (ocall (oget select-elem :select) :clearValue)))}
                 [icon "plus"]]]]])])])))
 
-#_(def example-categories
-    [{:category "Function"
-      :children [{:name "HPO" :type "class" :collapse true}
-                 {:name "Alleles" :type "class"}
-                 {:name "Bluegenes GO-Term Visualization" :type "tool"}]}
-     {:category "Disease"
-      :children [{:name "Gene --> RMI" :type "template"}]}])
-
 (defn report-categories-selector []
-  (let [categories @(subscribe [::subs/categories])
-        new-category @(subscribe [::subs/new-category])]
-    [:div.categories-selector
-     (when (seq categories)
-       [:em "Click on a category to expand/collapse its children"])
-     [:ul.nav.nav-pills.nav-stacked
-      (concat
-        (for [[i category] (map-indexed vector categories)]
-          ^{:key (:id category)}
-          [report-categories-category i category])
-        [[:li.add-category.input-group-sm
-          {:key "addcat"}
-          [:input.form-control.input-sm
-           {:ref #(when % (.focus %))
-            :placeholder "New category"
-            :on-change #(dispatch [::events/set-new-category (oget % :target :value)])
-            :on-key-press (on-enter #(dispatch [::events/category-add new-category]))
-            :value new-category}]
-          [:button.btn.btn-default.btn-raised.btn-xs
-           {:on-click #(dispatch [::events/category-add new-category])}
-           "Add category"]]])]]))
+  (let [categories (subscribe [::subs/categories])
+        new-category (subscribe [::subs/new-category])
+        input-ref* (reagent/atom nil)]
+    (fn []
+      [:div.categories-selector
+       (when (seq @categories)
+         [:em "Click on a category to expand/collapse its children"])
+       [:ul.nav.nav-pills.nav-stacked
+        (concat
+          (for [[i category] (map-indexed vector @categories)]
+            ^{:key (:id category)}
+            [report-categories-category i category])
+          [[:li.add-category.input-group-sm
+            {:key "addcat"}
+            [:input.form-control.input-sm
+             {:ref #(when % (reset! input-ref* %))
+              :placeholder "New category"
+              :on-change #(dispatch [::events/set-new-category (oget % :target :value)])
+              :on-key-press (on-enter
+                              #(do (dispatch [::events/category-add @new-category])
+                                   (some-> @input-ref* .focus)))
+              :value @new-category}]
+            [:button.btn.btn-default.btn-raised.btn-xs
+             {:on-click #(do (dispatch [::events/category-add @new-category])
+                             (some-> @input-ref* .focus))}
+             "Add category"]]])]])))
 
 (defn runnable-templates-tooltip []
   [poppable {:data [:div
