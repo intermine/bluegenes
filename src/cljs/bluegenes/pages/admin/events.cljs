@@ -58,8 +58,8 @@
  (path root)
  (fn [admin [_ cat-index]]
    (let [categories (get admin :categories)
-         max-index (dec (count categories))]
-     (if (>= cat-index max-index)
+         last-index (dec (count categories))]
+     (if (>= cat-index last-index)
        admin
        (let [cat (nth categories cat-index)]
          (assoc admin :categories
@@ -78,3 +78,51 @@
  (path root)
  (fn [admin [_ new-category]]
    (assoc admin :new-category new-category)))
+
+(reg-event-db
+ ::children-add
+ (path root)
+ (fn [admin [_ cat-index children]]
+   (update-in admin [:categories cat-index :children]
+              (fnil into [])
+              (map #(assoc % :id (gensym "child")) children))))
+
+(reg-event-db
+ ::child-remove
+ (path root)
+ (fn [admin [_ cat-index child-index]]
+   (update-in admin [:categories cat-index :children]
+              remvec child-index)))
+
+(reg-event-db
+ ::child-move-up
+ (path root)
+ (fn [admin [_ cat-index child-index]]
+   (if (zero? child-index)
+     admin
+     (let [children (get-in admin [:categories cat-index :children])
+           child (nth children child-index)]
+       (assoc-in admin [:categories cat-index :children]
+                 (-> children
+                     (remvec child-index)
+                     (addvec (dec child-index) child)))))))
+
+(reg-event-db
+ ::child-move-down
+ (path root)
+ (fn [admin [_ cat-index child-index]]
+   (let [children (get-in admin [:categories cat-index :children])
+         last-index (dec (count children))]
+     (if (>= cat-index last-index)
+       admin
+       (let [child (nth children child-index)]
+         (assoc-in admin [:categories cat-index :children]
+                   (-> children
+                       (remvec child-index)
+                       (addvec (inc child-index) child))))))))
+
+(reg-event-db
+ ::child-set-collapse
+ (path root)
+ (fn [admin [_ cat-index child-index state]]
+   (update-in admin [:categories cat-index :children child-index] assoc :collapse state)))

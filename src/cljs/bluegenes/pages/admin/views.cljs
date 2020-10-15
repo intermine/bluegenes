@@ -5,7 +5,7 @@
             [bluegenes.pages.admin.subs :as subs]
             [bluegenes.pages.querybuilder.views :refer [sort-classes filter-preferred]]
             [bluegenes.components.icons :refer [icon]]
-            [oops.core :refer [oget]]
+            [oops.core :refer [oget ocall]]
             [bluegenes.components.bootstrap :refer [poppable]]))
 
 (defn on-enter [f]
@@ -34,24 +34,28 @@
                 (concat [[:separator]] preferred [[:separator]] classes)))]))
 
 (defn report-categories-child [[category-index child-index]
-                               {:keys [name type collapse]}]
-  (let [dispatch-idx (fn [evt & args]
+                               {:keys [label type collapse]}]
+  (let [dispatch-idx (fn [[evt & args]]
                        (dispatch (into [evt category-index child-index] args)))]
     [:li.class-entry
      [:div
-      [:span name]
+      [:span label]
       [:span.type type]]
      [:div.btn-group-sm.class-options
       [:button.btn.btn-default.btn-fab
+       {:on-click #(dispatch-idx [::events/child-set-collapse (not collapse)])}
        [poppable {:data [:span (if collapse
                                  "Header will be visible but content needs to be toggled to show"
                                  "Header and content will be visible")]
                   :children [icon (if collapse "eye-blocked" "eye") 2]}]]
       [:button.btn.btn-default.btn-fab
+       {:on-click #(dispatch-idx [::events/child-move-up])}
        [icon "move-up-list" 2]]
       [:button.btn.btn-default.btn-fab
+       {:on-click #(dispatch-idx [::events/child-move-down])}
        [icon "move-down-list" 2]]
       [:button.btn.btn-default.btn-fab
+       {:on-click #(dispatch-idx [::events/child-remove])}
        [icon "remove-list" 2]]]]))
 
 (defn report-categories-category []
@@ -60,7 +64,8 @@
         available-templates (subscribe [::subs/available-template-names])
         active* (reagent/atom false)
         renaming* (reagent/atom false)
-        rename-ref* (reagent/atom nil)]
+        rename-ref* (reagent/atom nil)
+        select-ref* (reagent/atom nil)]
     (fn [category-index {:keys [category children]}]
       [:li {:class (when @active* :active)}
        (if @renaming*
@@ -125,6 +130,7 @@
                [:> js/Select
                 {:placeholder "Available classes, tools and templates"
                  :isMulti true
+                 :ref #(when % (reset! select-ref* %))
                  ; :onChange (fn [values]
                  ;             (->> (js->clj values :keywordize-keys true)
                  ;                  (map :value)
@@ -139,6 +145,10 @@
                             :options @available-templates}]}]]
               [:div.btn-group-sm
                [:button.btn.btn-default.btn-fab
+                {:on-click #(when-let [select-elem @select-ref*]
+                              (when-let [children (seq (js->clj (oget select-elem :state :value) :keywordize-keys true))]
+                                (dispatch [::events/children-add category-index children])
+                                (ocall (oget select-elem :select) :clearValue)))}
                 [icon "plus"]]]]])])])))
 
 #_(def example-categories

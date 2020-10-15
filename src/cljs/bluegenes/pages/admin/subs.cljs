@@ -34,7 +34,8 @@
    (->> tools
         (map (fn [tool]
                {:label (get-in tool [:names :human])
-                :value (get-in tool [:names :cljs])}))
+                :value (get-in tool [:names :cljs])
+                :type "tool"}))
         (sort-by (comp str/lower-case :label)))))
 
 (reg-sub
@@ -45,7 +46,9 @@
  (fn [[templates model class]]
    (->> (report-subs/runnable-templates templates model (some-> class name))
         (map (fn [[_ {:keys [title name]}]]
-               {:label title :value name}))
+               {:label title
+                :value name
+                :type "template"}))
         (sort-by (comp str/lower-case :label)))))
 
 (reg-sub
@@ -57,8 +60,12 @@
           (let [{:keys [references collections]} (get model (keyword class))]
             (->> (concat references collections)
                  (map (fn [[_ {:keys [displayName referencedType]}]]
-                        {:label displayName :value referencedType}))))
+                        {:label displayName
+                         :value referencedType
+                         :type "class"}))))
           (map (fn [[_ {:keys [displayName name]}]]
-                 {:label displayName :value name})
+                 {:label displayName
+                  :value name
+                  :type "class"})
                model))
         (sort-by (comp str/lower-case :label)))))
