@@ -21,12 +21,37 @@
          (fn [[current-mine current-templates]]
            (get current-templates current-mine)))
 
-(comment
-  "::runnable-templates:
-   Some templates can automatically be run on a report page if they meet certain conditions.
-   1. They must have a single editable constraint
-   2. That single constraint must be of type LOOKUP
-   3. That single constraint must be backed by the same class as the item on the report page")
+(defn runnable-templates
+  "Some templates can automatically be run on a report page if they meet certain conditions.
+  1. They must have a single editable constraint
+  2. That single constraint must be of type LOOKUP
+  3. That single constraint must be backed by the same class as the item on the report page"
+  [templates model & [class]]
+  ; Starting with all templates for the current mine...
+  (when (and templates model)
+    (->> templates
+         ; Only keep ones that meet the following criteria (return something other than nil)
+         (filter (fn [[_template-kw {:keys [where]}]]
+
+                   ; When we only have one editable constraint
+                   (when (= 1 (count (filter :editable where)))
+                     ; Make a list of indices that are LOOKUP, editable, and
+                     ; have a backing class of the report page item type
+
+                     (when-let [replaceable-indexes
+                                (not-empty (keep-indexed (fn [idx {:keys [path op editable]}]
+                                                           (when (and (= op "LOOKUP")
+                                                                      ;; class is an optional argument; we won't filter by it
+                                                                      ;; if the caller wants templates regardless of class.
+                                                                      (if class
+                                                                          (= class
+                                                                             (name (im-path/class (assoc model :type-constraints where) path)))
+                                                                          true)
+                                                                      (= editable true)) idx))
+                                                         where))]
+
+                       ; When that list of indices is 1, aka we only have one constraint to change
+                       (= 1 (count replaceable-indexes)))))))))
 
 (reg-sub ::runnable-templates
          :<- [::current-templates]

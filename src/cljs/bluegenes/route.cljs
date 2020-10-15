@@ -160,7 +160,9 @@
     ["/admin"
      {:name ::admin
       :controllers
-      [{:start #(dispatch [:set-active-panel :admin-panel])}]}]
+      [{:start #(dispatch [:set-active-panel :admin-panel
+                           nil
+                           [:bluegenes.components.tools.events/fetch-tools]])}]}]
     ["/profile"
      {:name ::profile
       :controllers

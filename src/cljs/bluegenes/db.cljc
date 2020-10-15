@@ -33,5 +33,4 @@
         :order []
         :qm nil
         ;;what is this??
-        :mappy {"Gene" {"secondaryIdentifier" {}, "organism" {"name" {}}, "symbol" {}}}}
-   :admin {:categorize-class "Default"}})
+        :mappy {"Gene" {"secondaryIdentifier" {}, "organism" {"name" {}}, "symbol" {}}}}})

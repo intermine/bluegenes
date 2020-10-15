@@ -24,9 +24,9 @@
       "Manage categories"]
      (into [:select.form-control
             {:id "admin__report-category"
-             :on-change #(dispatch [::events/set-categorize-class (oget % :target :value)])
-             :value categorize-class}
-            [:option {:value :Default} "Default"]]
+             :on-change #(dispatch [::events/set-categorize-class (not-empty (oget % :target :value))])
+             :value (or categorize-class "")}
+            [:option {:value ""} "Default"]]
            (map (fn [[class-kw details :as item]]
                   (if (map-entry? item)
                     [:option {:value class-kw} (:displayName details)]
@@ -55,85 +55,91 @@
        [icon "remove-list" 2]]]]))
 
 (defn report-categories-category []
-  (let [model (subscribe [:model])
+  (let [available-classes (subscribe [::subs/available-class-names])
+        available-tools (subscribe [::subs/available-tool-names])
+        available-templates (subscribe [::subs/available-template-names])
         active* (reagent/atom false)
         renaming* (reagent/atom false)
         rename-ref* (reagent/atom nil)]
     (fn [category-index {:keys [category children]}]
-      (let [remaining-classes (-> @model sort-classes keys)]
-        [:li {:class (when @active* :active)}
-         (if @renaming*
-           [:a.rename-category.input-group-sm
-            {:on-click #(swap! active* not)}
-            [:input.form-control.input-sm
-             {:ref #(when %
-                      (reset! rename-ref* %)
-                      (.focus %))
-              :placeholder category
-              :on-key-press (on-enter (fn [e]
-                                        (when-let [value (not-empty (oget e :target :value))]
-                                          (dispatch [::events/category-rename category-index value]))
-                                        (reset! renaming* false)))
-              :on-click #(.stopPropagation %)
-              :default-value category}]
-            [:button.btn.btn-default.btn-raised.btn-xs
-             {:on-click (fn [e]
-                          (.stopPropagation e)
-                          (when-let [rename-elem @rename-ref*]
-                            (when-let [value (not-empty (oget rename-elem :value))]
-                              (dispatch [::events/category-rename category-index value]))
-                            (reset! renaming* false)))}
-             "Save"]
-            [:button.btn.btn-default.btn-raised.btn-xs
-             {:on-click (fn [e]
-                          (.stopPropagation e)
-                          (reset! renaming* false))}
-             "Cancel"]]
-           [:a {:on-click #(swap! active* not)}
-            category
-            [:div
-             [:button.btn.btn-default.btn-raised.btn-xs
-              {:on-click (fn [e]
-                           (.stopPropagation e)
-                           (reset! renaming* true))}
-              "Rename"]
-             [:button.btn.btn-default.btn-raised.btn-xs
-              {:on-click (fn [e]
-                           (.stopPropagation e)
-                           (dispatch [::events/category-move-up category-index]))}
-              "Move up"]
-             [:button.btn.btn-default.btn-raised.btn-xs
-              {:on-click (fn [e]
-                           (.stopPropagation e)
-                           (dispatch [::events/category-move-down category-index]))}
-              "Move down"]
-             [:button.btn.btn-default.btn-raised.btn-xs
-              {:on-click (fn [e]
-                           (.stopPropagation e)
-                           (dispatch [::events/category-remove category-index]))}
-              "Delete"]]])
-         (when @active*
-           [:ul.classes
-            (concat
-              (for [[i child] (map-indexed vector children)]
-                ^{:key (:id child)}
-                [report-categories-child [category-index i] child])
-              [[:li.add-child
-                {:key "addchild"}
-                [:div.full-width
-                 [:> js/Select
-                  {:placeholder "Available classes, tools and templates"
-                   :isMulti true
-                   ; :onChange (fn [values]
-                   ;             (->> (js->clj values :keywordize-keys true)
-                   ;                  (map :value)
-                   ;                  (not-empty)
-                   ;                  (on-change)))
-                   ; :value (map (fn [v] {:value v :label v}) value)
-                   :options (map (fn [v] {:value v :label v}) remaining-classes)}]]
-                [:div.btn-group-sm
-                 [:button.btn.btn-default.btn-fab
-                  [icon "plus"]]]]])])]))))
+      [:li {:class (when @active* :active)}
+       (if @renaming*
+         [:a.rename-category.input-group-sm
+          {:on-click #(swap! active* not)}
+          [:input.form-control.input-sm
+           {:ref #(when %
+                    (reset! rename-ref* %)
+                    (.focus %))
+            :placeholder category
+            :on-key-press (on-enter (fn [e]
+                                      (when-let [value (not-empty (oget e :target :value))]
+                                        (dispatch [::events/category-rename category-index value]))
+                                      (reset! renaming* false)))
+            :on-click #(.stopPropagation %)
+            :default-value category}]
+          [:button.btn.btn-default.btn-raised.btn-xs
+           {:on-click (fn [e]
+                        (.stopPropagation e)
+                        (when-let [rename-elem @rename-ref*]
+                          (when-let [value (not-empty (oget rename-elem :value))]
+                            (dispatch [::events/category-rename category-index value]))
+                          (reset! renaming* false)))}
+           "Save"]
+          [:button.btn.btn-default.btn-raised.btn-xs
+           {:on-click (fn [e]
+                        (.stopPropagation e)
+                        (reset! renaming* false))}
+           "Cancel"]]
+         [:a {:on-click #(swap! active* not)}
+          category
+          [:div
+           [:button.btn.btn-default.btn-raised.btn-xs
+            {:on-click (fn [e]
+                         (.stopPropagation e)
+                         (reset! renaming* true))}
+            "Rename"]
+           [:button.btn.btn-default.btn-raised.btn-xs
+            {:on-click (fn [e]
+                         (.stopPropagation e)
+                         (dispatch [::events/category-move-up category-index]))}
+            "Move up"]
+           [:button.btn.btn-default.btn-raised.btn-xs
+            {:on-click (fn [e]
+                         (.stopPropagation e)
+                         (dispatch [::events/category-move-down category-index]))}
+            "Move down"]
+           [:button.btn.btn-default.btn-raised.btn-xs
+            {:on-click (fn [e]
+                         (.stopPropagation e)
+                         (dispatch [::events/category-remove category-index]))}
+            "Delete"]]])
+       (when @active*
+         [:ul.classes
+          (concat
+            (for [[i child] (map-indexed vector children)]
+              ^{:key (:id child)}
+              [report-categories-child [category-index i] child])
+            [[:li.add-child
+              {:key "addchild"}
+              [:div.full-width
+               [:> js/Select
+                {:placeholder "Available classes, tools and templates"
+                 :isMulti true
+                 ; :onChange (fn [values]
+                 ;             (->> (js->clj values :keywordize-keys true)
+                 ;                  (map :value)
+                 ;                  (not-empty)
+                 ;                  (on-change)))
+                 ; :value (map (fn [v] {:value v :label v}) value)
+                 :options [{:label "Classes"
+                            :options @available-classes}
+                           {:label "Tools"
+                            :options @available-tools}
+                           {:label "Templates"
+                            :options @available-templates}]}]]
+              [:div.btn-group-sm
+               [:button.btn.btn-default.btn-fab
+                [icon "plus"]]]]])])])))
 
 #_(def example-categories
     [{:category "Function"
