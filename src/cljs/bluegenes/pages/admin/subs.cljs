@@ -18,8 +18,9 @@
 (reg-sub
  ::categories
  :<- [::root]
- (fn [admin]
-   (:categories admin)))
+ :<- [::categorize-class]
+ (fn [[admin categorize]]
+   (get-in admin [:categories (or categorize :default)])))
 
 (reg-sub
  ::new-category

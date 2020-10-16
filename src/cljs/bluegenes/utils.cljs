@@ -62,6 +62,26 @@
     origin
     (first (string/split (first (:select query)) #"\."))))
 
+;; There's a reason why `remvec` and `addvec` are not part of Clojure, and
+;; that's because they are inefficient operations on the vector type! If the
+;; vector won't get very large, it's completely fine to use them. Otherwise
+;; you'll be better off with a map, set, perhaps combined with a vector, or
+;; external libs like `org.flatland/ordered`.
+
+(defn remvec
+  "Remove an element from a vector by index. Will throw if the index does not exist."
+  [v i]
+  (vec (concat (subvec v 0 i)
+               (subvec v (inc i)))))
+
+(defn addvec
+  "Add an element to a vector by index. If the index is negative, the element
+  be added to the beginning of the vector. If the index is greater than the
+  vector's length, it will be added to the end."
+  [v i e]
+  (let [[before after] (split-at i v)]
+    (vec (concat before [e] after))))
+
 (defn kw->str
   [kw]
   (if (keyword? kw)
