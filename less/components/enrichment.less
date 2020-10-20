@@ -50,8 +50,8 @@
         justify-content: space-between;
         padding: 0 @spacer/2;
 
-        background: fadeout(@highlight-color, 50%);
-        color: @highlight-color-text;
+        background: @extra-color-background;
+        color: @extra-color-text;
 
         h4 {
             font-size: 1.3em;
@@ -59,7 +59,7 @@
         }
 
         &.inactive {
-            background: fadeout(@highlight-color, 90%);
+            background: @extra-color-inactive;
         }
 
         &-right-side {

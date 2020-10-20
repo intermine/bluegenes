@@ -19,6 +19,9 @@
 //for pages ares that need to be brought forward from the background. Assume same colour text as normal.
 @content-color-background: #fff;
 @content-color-text: @body-foreground-color;
+@extra-color-background: fadeout(@highlight-color, 50%);
+@extra-color-inactive: fadeout(@highlight-color, 90%);
+@extra-color-text: @highlight-color-text;
 //to provide common styles.
 //please never pad manually, use multiples / divisons of @spacer instead.
 @border-radius: 2px;

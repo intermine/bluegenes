@@ -1,0 +1,168 @@
+@import "../variables";
+@import "../datatype-colors";
+
+.report-page {
+    // You can adjust the sizing and spacing by only changing this, as they're
+    // all relative. The original font size in the design was 1em.
+    font-size: 1em;
+
+    margin-top: @spacer*2;
+
+    width: 100%;
+    max-width: 1600px;
+
+    h1 {
+        font-weight: 500;
+    }
+
+    code.start {
+        // For long types like `ChromosomalDuplication`
+        overflow-wrap: break-word;
+
+        color: inherit;
+        background-color: @color-Nuffink;
+
+        margin-left: @spacer/2;
+
+        // If only we had CSS-in-JS [;
+        // Actually, I do think if we want to do this well, (including
+        // the 3 other places this is used) we should use inline style.
+        &.start-Gene {
+            background-color: @color-Gene;
+            color: #fff;
+        }
+        &.start-Protein {
+            background-color: @color-Protein;
+        }
+        &.start-Author,
+        &.start-Publication {
+            background-color: @color-Publication;
+        }
+        &.start-Organism {
+            background-color: @color-Organism;
+        }
+        &.start-Interaction {
+            background-color: @color-Interaction;
+        }
+        &.start-GOTerm {
+            background-color: @color-GO;
+            color: #fff;
+        }
+    }
+}
+
+.report-page .report-table {
+    font-size: 1.3em;
+
+    margin-top: @spacer*2;
+
+    &-heading {
+        margin-bottom: 0;
+        padding-bottom: @spacer/4;
+        border-bottom: 3px solid @highlight-color;
+        color: @highlight-color;
+        cursor: pointer;
+    }
+
+    &-body {
+        display: table;
+        width: 100%;
+    }
+
+    &-row {
+        display: table-row;
+
+        &:nth-child(2n-1) {
+            background-color: @content-color-background;
+
+        }
+    }
+
+    &-cell {
+        display: table-cell;
+        padding: @spacer/2 @spacer;
+        font-weight: 400;
+    }
+
+    &-header {
+        font-weight: 300;
+    }
+
+    .collapse-table {
+        font-size: 1.4em;
+        outline: 0 !important;
+
+        &,
+        .icon {
+            margin: 0;
+            padding: 0;
+        }
+
+        .icon {
+            fill: @highlight-color;
+            transition: transform 0.2s ease-in-out 0s;
+
+            &.collapsed {
+                transform: rotate(180deg);
+            }
+        }
+    }
+}
+
+.report-page .toc-container {
+    font-size: 1.1em;
+    font-weight: 400;
+
+    margin-top: @spacer*2;
+    padding-left: @spacer*2;
+
+    .toc-title {
+        font-weight: 600;
+    }
+
+    .toc {
+        &, ul {
+            list-style-type: none;
+        }
+
+        & { padding-left: 0; }
+        ul { padding-left: @spacer*2; }
+
+        li {
+            padding: @spacer/2 0;
+            border-top: 1px solid @light-contrast;
+            border-bottom: 1px solid @light-contrast;
+            margin: -1px 0 -1px 0;
+
+            &.active {
+                color: @highlight-color;
+            }
+        }
+    }
+}
+
+.report-page .sidebar {
+    margin-top: @spacer*6;
+
+    .sidebar-entry {
+        h4 {
+            font-weight: 400;
+            padding: @spacer*0.6 @spacer*0.8;
+            color: @highlight-color-text;
+            background-color: @extra-color-background;
+            border-bottom: 2px solid @light-contrast;
+            margin-bottom: 0;
+        }
+
+        ul {
+            list-style-type: none;
+            padding-left: @spacer;
+            margin-bottom: @spacer*1.5;
+        }
+
+        li {
+            padding: @spacer/2 0;
+            border-bottom: 1px solid @light-contrast;
+        }
+    }
+}
