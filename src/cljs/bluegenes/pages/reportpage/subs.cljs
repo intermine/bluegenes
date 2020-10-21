@@ -142,3 +142,25 @@
         rest
         (apply str)
         count)))
+
+(reg-sub
+ ::refs+colls
+ :<- [:current-model]
+ :<- [:panel-params]
+ (fn [[model params]]
+   (let [{:keys [classes]} model
+         object-kw (-> params :type keyword)]
+     (concat (vals (get-in classes [object-kw :collections]))
+             (vals (get-in classes [object-kw :references]))))))
+
+(reg-sub
+ ::refs+colls-by-referencedType
+ :<- [::refs+colls]
+ (fn [refs+colls]
+   (group-by :referencedType refs+colls)))
+
+(reg-sub
+ ::a-ref+coll
+ :<- [::refs+colls-by-referencedType]
+ (fn [refs+colls [_ referencedType]]
+   (first (get refs+colls (name referencedType)))))

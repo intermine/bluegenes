@@ -6,6 +6,8 @@
 ;; TODO when importing categories from webservice, make sure to add new IDs
 ;; TODO when exporting categories to webservice, make sure to remove all IDs
 ;; => use postwalk and assoc when map?
+;; - seems like we'll need to use IDs when rendering categories in report page
+;;   as well
 
 (def root [:admin])
 
