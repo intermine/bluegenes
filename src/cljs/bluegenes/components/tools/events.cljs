@@ -1,6 +1,7 @@
 (ns bluegenes.components.tools.events
   (:require [re-frame.core :as re-frame :refer [reg-event-db reg-event-fx reg-fx dispatch subscribe]]
-            [bluegenes.effects :as fx]))
+            [bluegenes.effects :as fx]
+            [bluegenes.crud.tools :as crud]))
 
 (reg-event-fx
  ::fetch-tools
@@ -13,7 +14,7 @@
 (reg-event-db
  ::success-fetch-tools
  (fn [db [_ {:keys [tools]}]]
-   (assoc-in db [:tools :installed] tools)))
+   (crud/update-installed-tools db tools)))
 
 (reg-event-fx
  ::fetch-npm-tools

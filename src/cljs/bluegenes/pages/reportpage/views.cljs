@@ -51,8 +51,10 @@
                                :type class
                                :id objectId}))}})
 
-(defn tool-report [child]
-  [:p child])
+(defn tool-report [{:keys [collapse] tool-cljs-name :value}]
+  (let [tool-details @(subscribe [::subs/a-tool tool-cljs-name])]
+    [tools/tool tool-details
+     :collapse collapse]))
 
 (defn template-report [{:keys [id collapse] template-name :value}]
   (let [summary-fields @(subscribe [:current-summary-fields])

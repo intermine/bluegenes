@@ -2,7 +2,8 @@
   (:require [re-frame.core :refer [reg-sub]]
             [imcljs.path :as im-path]
             [clojure.string :as string]
-            [bluegenes.pages.reportpage.utils :as utils]))
+            [bluegenes.pages.reportpage.utils :as utils]
+            [bluegenes.components.tools.subs :as tools-subs]))
 
 (reg-sub ::a-table
          (fn [db [_ location]]
@@ -85,3 +86,9 @@
    (let [{object-type :type object-id :id} params]
        (->> (get templates (keyword template-name))
             (utils/init-template model object-type object-id)))))
+
+(reg-sub
+ ::a-tool
+ :<- [::tools-subs/installed-tools-by-id]
+ (fn [tools-by-id [_ tool-cljs-name]]
+   (get tools-by-id tool-cljs-name)))

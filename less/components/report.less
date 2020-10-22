@@ -179,10 +179,12 @@
     }
 }
 
-.report-page .report-item {
+// Not scoped to report-page as it's also used for tools on results page.
+.report-item {
     margin: @spacer/2 0 @spacer*2 0;
     border: 1px solid @visible-gray;
     transition: margin-bottom 0.6s;
+    background-color: @content-color-background;
 
     &-collapsed {
         margin-bottom: 0;
@@ -202,7 +204,19 @@
         cursor: pointer;
     }
 
+    &-title {
+        fill: @extra-color-text;
+    }
+
     &-toggle {
         fill: @extra-color-text;
+    }
+
+    &-tool {
+        // Tools should decide themselves if they want padding.
+        // If this wasn't a good idea after all, uncomment!
+        // padding: @spacer*2 @spacer*2.4;
+        position: relative;
+        overflow: auto;
     }
 }

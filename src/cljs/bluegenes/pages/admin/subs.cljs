@@ -33,6 +33,8 @@
  ::available-tool-names
  :<- [:bluegenes.components.tools.subs/installed-tools]
  (fn [tools] ; we do not bother to support filtering by class here
+   ;; I think it would be a good idea to do it anyways (re-use `utils/suitable-tools`?)
+   ;; We just need to make sure to also support subclasses of the class.
    (->> tools
         (map (fn [tool]
                {:label (get-in tool [:names :human])

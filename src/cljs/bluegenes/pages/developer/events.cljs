@@ -1,7 +1,8 @@
 (ns bluegenes.pages.developer.events
   (:require [re-frame.core :refer [reg-event-fx reg-event-db]]
             [bluegenes.components.tools.events :as tools]
-            [bluegenes.effects :as fx]))
+            [bluegenes.effects :as fx]
+            [bluegenes.crud.tools :as tools-crud]))
 
 (reg-event-fx
  ::panel
@@ -89,9 +90,9 @@
 (reg-event-db
  ::success-tool
  (fn [db [_ {:keys [tools]}]]
-   (update db :tools assoc
-           :tool-working? false
-           :installed tools)))
+   (-> db
+       (assoc-in [:tools :tool-working?] false)
+       (tools-crud/update-installed-tools tools))))
 
 ;; This is to handle two scenarios:
 ;; 1. A different user is performing some tool operation, causing the backend
