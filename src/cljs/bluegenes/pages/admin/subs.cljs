@@ -1,7 +1,8 @@
 (ns bluegenes.pages.admin.subs
   (:require [re-frame.core :refer [reg-sub]]
             [clojure.string :as str]
-            [bluegenes.pages.reportpage.subs :as report-subs]))
+            [bluegenes.pages.reportpage.subs :as report-subs]
+            [bluegenes.pages.reportpage.utils :as report-utils]))
 
 (reg-sub
  ::root
@@ -45,7 +46,7 @@
  :<- [:current-model]
  :<- [::categorize-class]
  (fn [[templates model class]]
-   (->> (report-subs/runnable-templates templates model (some-> class name))
+   (->> (report-utils/runnable-templates templates model (some-> class name))
         (map (fn [[_ {:keys [title name]}]]
                {:label title
                 :value name

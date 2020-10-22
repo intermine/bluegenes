@@ -6,7 +6,7 @@
             [bluegenes.pages.reportpage.components.toc :as toc]
             [bluegenes.pages.reportpage.components.sidebar :as sidebar]
             [bluegenes.pages.reportpage.utils :as utils]
-            [bluegenes.components.table :as table]
+            #_[bluegenes.components.table :as table]
             [bluegenes.components.lighttable :as lighttable]
             [bluegenes.components.loader :refer [loader]]
             [bluegenes.components.tools.views :as tools]
@@ -42,31 +42,42 @@
                                :else [:div {:style {:background-color "white"}}
                                       [im-table/main loc]])])))})))
 
-(defn tool-report [value id]
-  [:p value])
+(defn ->report-table-settings [current-mine-name]
+  {:pagination {:limit 5}
+   :links {:vocab {:mine (name (or current-mine-name ""))}
+           :url (fn [{:keys [mine class objectId] :as vocab}]
+                  (route/href ::route/report
+                              {:mine mine
+                               :type class
+                               :id objectId}))}})
 
-(defn template-report [value id]
-  [:p value])
+(defn tool-report [child]
+  [:p child])
+
+(defn template-report [{:keys [id collapse] template-name :value}]
+  (let [summary-fields @(subscribe [:current-summary-fields])
+        service (:service @(subscribe [:current-mine]))
+        current-mine-name @(subscribe [:current-mine-name])
+        {:keys [title] nom :name :as template} @(subscribe [::subs/a-template template-name])]
+    [tbl {:loc [:report-page id nom]
+          :service (merge service {:summary-fields summary-fields})
+          :title title
+          :collapse collapse
+          :query template
+          :settings (->report-table-settings current-mine-name)}]))
 
 (defn class-report [{:keys [id collapse] referencedType :value}]
   (let [{object-type :type object-id :id} @(subscribe [:panel-params])
         summary-fields @(subscribe [:current-summary-fields])
         service (:service @(subscribe [:current-mine]))
         current-mine-name @(subscribe [:current-mine-name])
-        {:keys [displayName] nom :name :as ref+coll}
-        @(subscribe [::subs/a-ref+coll referencedType])]
+        {:keys [displayName] nom :name :as ref+coll} @(subscribe [::subs/a-ref+coll referencedType])]
     [tbl {:loc [:report-page id nom]
           :service (merge service {:summary-fields summary-fields})
           :title displayName
           :collapse collapse
           :query (utils/->query-ref+coll summary-fields object-type object-id ref+coll)
-          :settings {:pagination {:limit 5}
-                     :links {:vocab {:mine (name (or current-mine-name ""))}
-                             :url (fn [{:keys [mine class objectId] :as vocab}]
-                                    (route/href ::route/report
-                                                {:mine mine
-                                                 :type class
-                                                 :id objectId}))}}}]))
+          :settings (->report-table-settings current-mine-name)}]))
 
 (defn report []
   (let [categories @(subscribe [:bluegenes.pages.admin.subs/categories])]
