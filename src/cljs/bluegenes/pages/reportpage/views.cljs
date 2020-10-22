@@ -99,17 +99,23 @@
            [report-comp child])]])]))
 
 (defn heading []
-  [:h1 "BRCA1"
-   [:code.start {:class (str "start-" "Gene")} "Gene"]])
+  (let [{:keys [rootClass]} @(subscribe [::subs/report-summary])
+        title @(subscribe [::subs/report-title])]
+    [:h1 title
+     [:code.start {:class (str "start-" rootClass)} rootClass]]))
 
 (defn main []
-  [:div.container-fluid.report-page
-   [:div.row.report-row
-    [:div.col-xs-2
-     [toc/main]]
-    [:div.col-xs-8
-     [heading]
-     [report-table/summary]
-     [report]]
-    [:div.col-xs-2
-     [sidebar/main]]]])
+  (let [fetching-report? @(subscribe [:fetching-report?])
+        params @(subscribe [:panel-params])]
+    [:div.container-fluid.report-page
+     (if fetching-report?
+       [loader (str (:type params) " Report")]
+       [:div.row.report-row
+        [:div.col-xs-2
+         [toc/main]]
+        [:div.col-xs-8
+         [heading]
+         [report-table/summary]
+         [report]]
+        [:div.col-xs-2
+         [sidebar/main]]])]))

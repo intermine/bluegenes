@@ -5,6 +5,23 @@
             [bluegenes.pages.reportpage.utils :as utils]
             [bluegenes.components.tools.subs :as tools-subs]))
 
+(reg-sub
+ ::report
+ (fn [db]
+   (:report db)))
+
+(reg-sub
+ ::report-summary
+ :<- [::report]
+ (fn [report]
+   (:summary report)))
+
+(reg-sub
+ ::report-title
+ :<- [::report]
+ (fn [report]
+   (:title report)))
+
 (reg-sub ::a-table
          (fn [db [_ location]]
            (get-in db location)))
@@ -25,7 +42,7 @@
 
 (reg-sub
  ::fasta
- :<- [:report]
+ :<- [::report]
  (fn [report]
    (:fasta report)))
 

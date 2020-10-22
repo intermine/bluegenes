@@ -2,6 +2,23 @@
   (:require [clojure.string :as str]
             [imcljs.path :as im-path]))
 
+(defn title-column
+  "Find the most suitable column for a title (usually symbol or identifier)."
+  [{:keys [views results] :as _summary}]
+  (let [views->values (zipmap views (first results))]
+    (some (fn [attrib]
+            (some (fn [[view value]]
+                    (when (and value
+                               (str/ends-with? view attrib))
+                      value))
+                  views->values))
+          ["symbol"
+           "identifier"
+           "primaryIdentifier"
+           "secondaryIdentifier"
+           "name"
+           "id"])))
+
 (defn strip-class
   "Removes everything before the first dot in a path, effectively removing the root class.
   (strip-class `Gene.organism.name`)

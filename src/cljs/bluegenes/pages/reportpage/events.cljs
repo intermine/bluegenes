@@ -3,7 +3,8 @@
             [imcljs.fetch :as fetch]
             [bluegenes.components.tools.events :as tools]
             [bluegenes.effects :refer [document-title]]
-            [clojure.string :as string]))
+            [clojure.string :as string]
+            [bluegenes.pages.reportpage.utils :as utils]))
 
 (reg-event-fx
  :handle-report-summary
@@ -11,6 +12,7 @@
  (fn [{db :db} [_ summary]]
    {:db (-> db
             (assoc-in [:report :summary] summary)
+            (assoc-in [:report :title] (utils/title-column summary))
             (assoc :fetching-report? false))
     :dispatch-n [[:viz/run-queries]
                  [::tools/load-tools]]}))
@@ -18,14 +20,14 @@
 (reg-event-fx
  :fetch-report
  (fn [{db :db} [_ mine type id]]
-   (let [type-kw (keyword type)
-         service (get-in db [:mines mine :service])
+   (let [service (get-in db [:mines mine :service])
+         attribs (->> (get-in service [:model :classes (keyword type) :attributes])
+                      (mapv (comp #(str type "." %) :name val)))
          q       {:from type
-                  :select (-> db :assets :summary-fields mine type-kw)
+                  :select attribs
                   :where [{:path (str type ".id")
                            :op "="
                            :value id}]}]
-
      {:im-chan {:chan (fetch/rows service q {:format "json"})
                 :on-success [:handle-report-summary]}})))
 
