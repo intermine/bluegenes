@@ -27,22 +27,21 @@
                                (when-not @is-collapsed*
                                  (dispatch [:im-tables/load loc (dissoc data :loc)]))))
       :reagent-render (fn [{:keys [loc title]}]
-                        (fn []
-                          (let [result-count (get-in @data [:response :iTotalRecords])]
-                            [:div.report-item
-                             {:class (when @is-collapsed* :report-item-collapsed)}
-                             [:h4.report-item-heading
-                              {:on-click #(swap! is-collapsed* not)}
-                              (str title (when result-count (str " (" result-count ")")))
-                              [:span.report-item-toggle
-                               (if @is-collapsed*
-                                 [icon "expand-folder"]
-                                 [icon "collapse-folder"])]]
-                             (cond
-                               @is-collapsed* nil
-                               (= 0 result-count) [:div "No Results"]
-                               :else [:div {:style {:background-color "white"}}
-                                      [im-table/main loc]])])))})))
+                        (let [result-count (get-in @data [:response :iTotalRecords])]
+                          [:div.report-item
+                           {:class (when @is-collapsed* :report-item-collapsed)}
+                           [:h4.report-item-heading
+                            {:on-click #(swap! is-collapsed* not)}
+                            (str title (when result-count (str " (" result-count ")")))
+                            [:span.report-item-toggle
+                             (if @is-collapsed*
+                               [icon "expand-folder"]
+                               [icon "collapse-folder"])]]
+                           (cond
+                             @is-collapsed* nil
+                             (= 0 result-count) [:div "No Results"]
+                             :else [:div {:style {:background-color "white"}}
+                                    [im-table/main loc]])]))})))
 
 (defn ->report-table-settings [current-mine-name]
   {:pagination {:limit 5}
@@ -83,9 +82,9 @@
           :query (utils/->query-ref+coll summary-fields object-type object-id ref+coll)
           :settings (->report-table-settings current-mine-name)}]))
 
-(defn section [{:keys [title]} & children]
+(defn section []
   (let [collapsed* (r/atom false)]
-    (fn []
+    (fn [{:keys [title]} & children]
       (into [:div.report-table
              [:h3.report-table-heading
               {:on-click #(swap! collapsed* not)}
