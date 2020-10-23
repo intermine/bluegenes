@@ -4,7 +4,8 @@
             [bluegenes.components.tools.events :as tools]
             [bluegenes.effects :refer [document-title]]
             [clojure.string :as string]
-            [bluegenes.pages.reportpage.utils :as utils]))
+            [bluegenes.pages.reportpage.utils :as utils]
+            [bluegenes.route :as route]))
 
 (reg-event-fx
  :handle-report-summary
@@ -65,3 +66,10 @@
                    [:fetch-report (keyword mine) type id]
                    (when (= type "Gene")
                      [:fetch-fasta (keyword mine) id])]})))
+
+(reg-event-fx
+ ::open-in-region-search
+ (fn [{db :db} [_ chromosome-location]]
+   {:dispatch-n [[::route/navigate ::route/regions]
+                 [:regions/set-to-search chromosome-location]
+                 [:regions/run-query]]}))

@@ -91,6 +91,12 @@
         font-weight: 400;
     }
 
+    &-link {
+        color: @highlight-color;
+        text-decoration: underline;
+        cursor: pointer;
+    }
+
     &-header {
         font-weight: 300;
     }
@@ -112,6 +118,44 @@
             &.collapsed {
                 transform: rotate(180deg);
             }
+        }
+    }
+}
+
+.report-page .fasta-value {
+    display: flex;
+    justify-content: space-between;
+
+    .fasta-button .icon {
+        margin: 0;
+    }
+
+    .fasta-dropdown {
+        padding: 0;
+    }
+
+    .fasta-sequence {
+        background-color: @content-color-background;
+        overflow: auto;
+        width: 400px;
+        height: 200px;
+        resize: both;
+        margin: 0;
+    }
+
+    .hidden-download {
+        display: none;
+    }
+
+    .fasta-download {
+        display: flex;
+        align-items: center;
+        color: @highlight-color;
+        fill: @highlight-color;
+        text-decoration: underline;
+
+        .icon {
+            margin: 0 @spacer/4 0 0;
         }
     }
 }

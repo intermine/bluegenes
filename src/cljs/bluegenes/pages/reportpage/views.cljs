@@ -1,7 +1,6 @@
 (ns bluegenes.pages.reportpage.views
   (:require [re-frame.core :as re-frame :refer [subscribe dispatch]]
             [reagent.core :as r]
-            [bluegenes.pages.reportpage.components.summary :as summary]
             [bluegenes.pages.reportpage.components.toc :as toc]
             [bluegenes.pages.reportpage.components.sidebar :as sidebar]
             [bluegenes.pages.reportpage.utils :as utils]
@@ -9,12 +8,15 @@
             [bluegenes.components.lighttable :as lighttable]
             [bluegenes.components.loader :refer [loader]]
             [bluegenes.components.tools.views :as tools]
+            [bluegenes.pages.reportpage.events :as events]
             [bluegenes.pages.reportpage.subs :as subs]
             [im-tables.views.core :as im-table]
             [bluegenes.route :as route]
             [bluegenes.components.viz.views :as viz]
             [bluegenes.components.icons :refer [icon icon-comp]]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [bluegenes.components.bootstrap :refer [poppable]]
+            [oops.core :refer [ocall]]))
 
 (defn tbl [{:keys [loc collapse]}]
   (let [data (subscribe [::subs/a-table loc])
@@ -110,22 +112,81 @@
            ^{:key id}
            [report-comp child])]])]))
 
+(defn summary-location [[label value]]
+  [:<>
+   [:div.report-table-cell.report-table-header
+    label]
+   [:div.report-table-cell
+    [:span.report-table-link
+     {:on-click #(dispatch [::events/open-in-region-search value])}
+     [poppable {:data "Perform a search of this region"
+                :children value}]]]])
+
+(defn encode-file
+  "Encode a stringified text file such that it can be downloaded by the browser.
+  Results must be stringified - don't pass objects / vectors / arrays / whatever."
+  [data filetype]
+  (ocall js/URL "createObjectURL"
+         (js/Blob. (clj->js [data])
+                   {:type (str "text/" filetype)})))
+
+(defn fasta-download []
+  (let [id           (subscribe [::subs/fasta-identifier])
+        fasta        (subscribe [::subs/fasta])
+        download-ref (atom nil)
+        download!    #(let [el @download-ref]
+                        (ocall el :setAttribute "href" (encode-file @fasta "fasta"))
+                        (ocall el :setAttribute "download" (str @id ".fasta"))
+                        (ocall el :click))]
+    (fn []
+      [:<>
+       [:a.hidden-download {:download "download" :ref (fn [el] (reset! download-ref el))}]
+       [:a.fasta-download {:role "button" :on-click download!}
+        [icon-comp "download"]
+        "FASTA"]])))
+
+(defn summary-fasta [[label value]]
+  (let [fasta @(subscribe [::subs/fasta])]
+    [:<>
+     [:div.report-table-cell.report-table-header
+      label]
+     [:div.report-table-cell.fasta-value
+      [:span.dropdown
+       [:a.dropdown-toggle.fasta-button
+        {:data-toggle "dropdown" :role "button"}
+        [poppable {:data "Show sequence"
+                   :children [:span value [icon-comp "caret-down"]]}]]
+       [:div.dropdown-menu.fasta-dropdown
+        [:form ; Top secret technique to avoid closing the dropdown when clicking inside.
+         [:pre.fasta-sequence fasta]]]]
+      [fasta-download]]]))
+
 (defn summary []
   (let [{:keys [columnHeaders results]} @(subscribe [::subs/report-summary])
-        entries (->> (zipmap columnHeaders (first results))
-                     (filter val)
+        fasta               @(subscribe [::subs/fasta])
+        chromosome-location @(subscribe [::subs/chromosome-location])
+        fasta-length        @(subscribe [::subs/fasta-length])
+        entries (->> (concat (filter val (zipmap columnHeaders (first results)))
+                             (when (not-empty chromosome-location)
+                               [^{:type :location} ["Chromosome Location" chromosome-location]])
+                             (when fasta
+                               [^{:type :fasta} ["Sequence Length" fasta-length]]))
                      (partition-all 2))]
     [section
      {:title "Summary"}
      (into [:div.report-table-body]
            (for [row entries]
              (into [:div.report-table-row]
-                   (for [cell row]
-                     [:<>
-                      [:div.report-table-cell.report-table-header
-                       (-> cell key (str/split " > ") last)]
-                      [:div.report-table-cell
-                       (-> cell val (or "N/A"))]]))))]))
+                   (for [cell row
+                         :let [meta-type (-> cell meta :type)]]
+                     (case meta-type
+                       :location [summary-location cell]
+                       :fasta [summary-fasta cell]
+                       [:<>
+                        [:div.report-table-cell.report-table-header
+                         (-> cell key (str/split " > ") last)]
+                        [:div.report-table-cell
+                         (-> cell val (or "N/A"))]])))))]))
 
 (defn heading []
   (let [{:keys [rootClass]} @(subscribe [::subs/report-summary])
