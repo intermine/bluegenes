@@ -201,6 +201,8 @@
     margin-top: @spacer*6;
 
     .sidebar-entry {
+        overflow: hidden;
+
         h4 {
             font-weight: 400;
             padding: @spacer*0.6 @spacer*0.8;
@@ -213,12 +215,36 @@
         ul {
             list-style-type: none;
             padding-left: @spacer;
-            margin-bottom: @spacer*1.5;
+            margin-bottom: @spacer;
         }
 
         li {
             padding: @spacer/2 0;
             border-bottom: 1px solid @light-contrast;
+            position: relative;
+
+            a {
+                color: @highlight-color;
+                font-weight: 400;
+                white-space: nowrap;
+
+                .icon-background {
+                    position: absolute;
+                    top: 0;
+                    right: 0;
+                    width: 6em;
+                    height: 100%;
+                    background-image: linear-gradient(to right, fadeout(@body-background-color, 100%), @body-background-color);
+                    display: flex;
+                    justify-content: flex-end;
+                    align-items: center;
+                }
+
+                .icon {
+                    margin: 0;
+                    fill: @highlight-color;
+                }
+            }
         }
     }
 }
