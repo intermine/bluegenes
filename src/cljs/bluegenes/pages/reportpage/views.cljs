@@ -40,7 +40,7 @@
                            (cond
                              @is-collapsed* nil
                              (= 0 result-count) [:div "No Results"]
-                             :else [:div {:style {:background-color "white"}}
+                             :else [:div
                                     [im-table/main loc]])]))})))
 
 (defn ->report-table-settings [current-mine-name]
