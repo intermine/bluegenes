@@ -44,7 +44,7 @@
 
 (reg-sub
  ::available-template-names
- :<- [::report-subs/current-templates]
+ :<- [:templates]
  :<- [:current-model]
  :<- [::categorize-class]
  (fn [[templates model class]]

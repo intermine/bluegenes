@@ -22,23 +22,10 @@
  (fn [report]
    (:title report)))
 
-(reg-sub ::a-table
-         (fn [db [_ location]]
-           (get-in db location)))
-
-(reg-sub ::current-mine
-         (fn [db]
-           (get db :current-mine)))
-
-(reg-sub ::templates
-         (fn [db]
-           (get-in db [:assets :templates])))
-
-(reg-sub ::current-templates
-         :<- [::current-mine]
-         :<- [::templates]
-         (fn [[current-mine current-templates]]
-           (get current-templates current-mine)))
+(reg-sub
+ ::a-table
+ (fn [db [_ location]]
+   (get-in db location)))
 
 (reg-sub
  ::fasta
@@ -98,7 +85,7 @@
  ::a-template
  :<- [:current-model]
  :<- [:panel-params]
- :<- [::current-templates]
+ :<- [:templates]
  (fn [[model params templates] [_ template-name]]
    (let [{object-type :type object-id :id} params]
        (->> (get templates (keyword template-name))
