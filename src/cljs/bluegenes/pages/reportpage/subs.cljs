@@ -23,6 +23,12 @@
    (:title report)))
 
 (reg-sub
+ ::report-lists
+ :<- [::report]
+ (fn [report]
+   (:lists report)))
+
+(reg-sub
  ::a-table
  (fn [db [_ location]]
    (get-in db location)))

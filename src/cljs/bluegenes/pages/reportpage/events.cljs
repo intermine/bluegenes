@@ -65,7 +65,20 @@
       :dispatch-n [[::tools/fetch-tools]
                    [:fetch-report (keyword mine) type id]
                    (when (= type "Gene")
-                     [:fetch-fasta (keyword mine) id])]})))
+                     [:fetch-fasta (keyword mine) id])
+                   [::fetch-lists (keyword mine) id]]})))
+
+(reg-event-fx
+ ::fetch-lists
+ (fn [{db :db} [_ mine-kw id]]
+   (let [service (get-in db [:mines mine-kw :service])]
+     {:im-chan {:chan (fetch/lists-containing service {:id id})
+                :on-success [::handle-lists]}})))
+
+(reg-event-db
+ ::handle-lists
+ (fn [db [_ lists]]
+   (assoc-in db [:report :lists] lists)))
 
 (reg-event-fx
  ::open-in-region-search

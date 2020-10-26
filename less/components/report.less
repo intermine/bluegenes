@@ -72,7 +72,7 @@
     }
 
     &-body {
-        font-size: 1.3em;
+        font-size: 1.2em;
         display: table;
         width: 100%;
     }
@@ -202,6 +202,7 @@
 
     .sidebar-entry {
         overflow: hidden;
+        margin-bottom: @spacer*0.2;
 
         h4 {
             font-weight: 400;
@@ -212,10 +213,15 @@
             margin-bottom: 0;
         }
 
+        p {
+            padding-left: @spacer;
+            margin-top: @spacer/2;
+            font-weight: 400;
+        }
+
         ul {
             list-style-type: none;
             padding-left: @spacer;
-            margin-bottom: @spacer;
         }
 
         li {
@@ -224,10 +230,11 @@
             position: relative;
 
             a {
+                display: block;
                 font-weight: 400;
                 white-space: nowrap;
 
-                .icon-background {
+                .fade-background {
                     position: absolute;
                     top: 0;
                     right: 0;
@@ -242,6 +249,18 @@
                 .icon {
                     margin: 0;
                 }
+            }
+        }
+
+        .show-more {
+            display: flex;
+            justify-content: center;
+
+            button {
+                font-size: 0.9em;
+                margin: 0;
+                padding: @spacer/4 @spacer/2;
+                color: @highlight-color;
             }
         }
     }
