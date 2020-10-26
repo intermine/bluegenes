@@ -66,8 +66,8 @@
     &-heading {
         margin-bottom: 0;
         padding-bottom: @spacer/4;
-        border-bottom: 3px solid @highlight-color;
-        color: @highlight-color;
+        border-bottom: 3px solid @extra-color-background;
+        color: @extra-color-background;
         cursor: pointer;
     }
 
@@ -112,7 +112,7 @@
         }
 
         .icon {
-            fill: @highlight-color;
+            fill: @extra-color-background;
             transition: transform 0.2s ease-in-out 0s;
 
             &.collapsed {
@@ -191,7 +191,7 @@
             margin: -1px 0 -1px 0;
 
             &.active {
-                color: @highlight-color;
+                color: @extra-color-background;
             }
         }
     }
@@ -224,7 +224,6 @@
             position: relative;
 
             a {
-                color: @highlight-color;
                 font-weight: 400;
                 white-space: nowrap;
 
@@ -242,7 +241,6 @@
 
                 .icon {
                     margin: 0;
-                    fill: @highlight-color;
                 }
             }
         }

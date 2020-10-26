@@ -1,10 +1,10 @@
 @import "../variables";
 
 .enrichment-heading {
-    color: @highlight-color;
+    color: @extra-color-background;
 
     a {
-        fill: @highlight-color;
+        fill: @extra-color-background;
 
         .icon {
             margin-left: 0;
@@ -59,7 +59,8 @@
         }
 
         &.inactive {
-            background: @extra-color-inactive;
+            background: @extra-color-background;
+            opacity: 0.3;
         }
 
         &-right-side {

@@ -39,9 +39,13 @@
      home/main)])
 
 (defn main-panel []
-  (let [active-panel (re-frame/subscribe [:active-panel])]
+  (let [active-panel (subscribe [:active-panel])
+        main-color (subscribe [:style/header-main])
+        text-color (subscribe [:style/header-text])]
     (fn []
       [:div.approot
+       {:style {"--branding-header-main" @main-color
+                "--branding-header-text" @text-color}}
        [loader/mine-loader]
        [icons/icons]
        [nav/main]
