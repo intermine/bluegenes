@@ -41,6 +41,23 @@
                                    (str title " (" size ")")
                                    [:div.fade-background]]}]]))]))
 
+(defn data-sources []
+  (let [sources @(subscribe [::subs/report-sources])
+        {:keys [rootClass]} @(subscribe [::subs/report-summary])]
+    [entry (merge
+             {:title "Data sources"}
+             (when (empty? sources)
+               {:error (str "No data sources available for this " rootClass ".")}))
+     (doall
+      (for [{:keys [description url name id]} sources]
+        ^{:key id}
+        [:li [poppable {:data description
+                        :children [:a {:href url
+                                       :target "_blank"}
+                                   name
+                                   [:div.fade-background
+                                    [icon-comp "external"]]]}]]))]))
+
 (defn main []
   [:div.sidebar
    [lists-containing]
@@ -50,16 +67,7 @@
      [:li [:a "Dev note: Work In Progress!!!"]]
      [:li [:a "Humanmine"]]
      [:li [:a "Flymine"]]]]
-   [:div.sidebar-entry
-    [:h4 "Data sources"]
-    [:ul
-     [:li [poppable {:data "Gene family assignments for glyma.Wm82.gnm2 genes and proteins."
-                     :children [:a
-                                {:href "https://legumeinfo.org/data/public/Glycine_max/Wm82.gnm2.ann1.RVB6/"
-                                 :target "_blank"}
-                                "glyma.Wm82.gnm2.ann1.RVB6.legfed_v1_0.M65K.gfa.tsv"
-                                [:div.fade-background
-                                 [icon-comp "external"]]]}]]]]
+   [data-sources]
    [:div.sidebar-entry
     [:h4 "External resources"]
     [:ul

@@ -52,6 +52,10 @@
      {:im-chan {:chan (fetch/fasta service q)
                 :on-success [:handle-fasta]}})))
 
+(defn class-has-dataset? [model-classes class-kw]
+  (contains? (get-in model-classes [class-kw :collections])
+             :dataSets))
+
 (reg-event-fx
  :load-report
  (fn [{db :db} [_ mine type id]]
@@ -66,7 +70,10 @@
                    [:fetch-report (keyword mine) type id]
                    (when (= type "Gene")
                      [:fetch-fasta (keyword mine) id])
-                   [::fetch-lists (keyword mine) id]]})))
+                   [::fetch-lists (keyword mine) id]
+                   (when (class-has-dataset? (get-in db [:mines (keyword mine) :service :model :classes])
+                                             (keyword type))
+                     [::fetch-sources (keyword mine) type id])]})))
 
 (reg-event-fx
  ::fetch-lists
@@ -79,6 +86,37 @@
  ::handle-lists
  (fn [db [_ lists]]
    (assoc-in db [:report :lists] lists)))
+
+(reg-event-fx
+ ::fetch-sources
+ (fn [{db :db} [_ mine-kw class id]]
+   (let [service (get-in db [:mines mine-kw :service])
+         q {:from class
+            :select ["dataSets.description"
+                     "dataSets.url"
+                     "dataSets.name"
+                     "dataSets.id"]
+            :where [{:path (str class ".id")
+                     :op "="
+                     :value id}]}]
+     {:im-chan {:chan (fetch/rows service q {:format "json"})
+                :on-success [::handle-sources]}})))
+
+(defn views->results
+  "Convert a `fetch/rows` response map into a vector of maps from keys
+  corresponding to the tail of the view, and values being the pair of the key.
+  Ex. [{:name 'BioGRID interaction data set' :url 'http://www.thebiogrid.org/downloads.php'}
+       {:name 'Panther orthologue and paralogue predictions' :url 'http://pantherdb.org/'}]"
+  [{:keys [views results] :as _res}]
+  (let [concise-views (map #(-> % (string/split #"\.") last keyword)
+                           views)]
+    (mapv (partial zipmap concise-views)
+          results)))
+
+(reg-event-db
+ ::handle-sources
+ (fn [db [_ res]]
+   (assoc-in db [:report :sources] (views->results res))))
 
 (reg-event-fx
  ::open-in-region-search
