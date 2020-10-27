@@ -23,24 +23,33 @@
         is-collapsed* (r/atom collapse)]
     (r/create-class
      {:component-did-mount (fn [this]
-                             (let [{:keys [loc] :as data} (r/props this)]
+                             (let [{:keys [loc] :as props} (r/props this)]
                                (when-not @is-collapsed*
-                                 (dispatch [:im-tables/load loc (dissoc data :loc)]))))
-      :reagent-render (fn [{:keys [loc title id]}]
+                                 (dispatch [:im-tables/load loc (dissoc props :loc)]))))
+      :reagent-render (fn [{:keys [loc title id] :as props}]
+                        ;; result-count will be `nil` if query hasn't been loaded.
                         (let [result-count (get-in @data [:response :iTotalRecords])]
                           [:div.report-item
-                           {:class (when @is-collapsed* :report-item-collapsed)
+                           {:class [(when (or @is-collapsed* (zero? result-count))
+                                      :report-item-collapsed)
+                                    (when (zero? result-count)
+                                      :report-item-no-results)]
                             :id id}
                            [:h4.report-item-heading
-                            {:on-click #(swap! is-collapsed* not)}
+                            {:on-click (fn []
+                                         ;; Run query if it hasn't been run due to being collapsed.
+                                         (when (and (nil? result-count) @is-collapsed*)
+                                           (dispatch [:im-tables/load loc (dissoc props :loc)]))
+                                         (swap! is-collapsed* not))}
                             (str title (when result-count (str " (" result-count ")")))
-                            [:span.report-item-toggle
-                             (if @is-collapsed*
-                               [icon "expand-folder"]
-                               [icon "collapse-folder"])]]
+                            (when ((some-fn nil? pos?) result-count)
+                              [:span.report-item-toggle
+                               (if @is-collapsed*
+                                 [icon "expand-folder"]
+                                 [icon "collapse-folder"])])]
                            (cond
                              @is-collapsed* nil
-                             (= 0 result-count) [:div "No Results"]
+                             (zero? result-count) nil
                              :else [:div
                                     [im-table/main loc]])]))})))
 
