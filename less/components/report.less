@@ -160,6 +160,16 @@
     }
 }
 
+.report-page .toc-hide-heading {
+    // Covers the TOC heading if scrolled to the top of the page, to avoid
+    // displaying the same heading in two places.
+    position: absolute;
+    top: @spacer;
+    width: 100%;
+    height: @spacer*3;
+    z-index: 100;
+    background-color: @body-background-color;
+}
 .report-page .toc-container {
     font-size: 1.1em;
     font-weight: 400;

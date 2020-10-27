@@ -33,20 +33,22 @@
         {:keys [rootClass]} @(subscribe [::subs/report-summary])
         title @(subscribe [::subs/report-title])
         active-toc @(subscribe [::subs/report-active-toc])]
-    [:div.toc-container
-     [:a.toc-heading {:on-click #(scroll-into-view! nil)}
-      [:h4.toc-title title
-       [:code.start {:class (str "start-" rootClass)} rootClass]]]
-     (into [:ul.toc]
-           (for [{:keys [category children] parent-id :id}
-                 (cons {:category "Summary" :id utils/pre-section-id} categories)]
-             [:<>
-              [:a {:on-click #(scroll-into-view! (str parent-id))
-                   :class (when (= active-toc (str parent-id)) :active)}
-               [:li category]]
-              (when (seq children)
-                (into [:ul]
-                      (for [{:keys [label id]} children]
-                        [:a {:on-click #(scroll-into-view! (str id) (str parent-id))
-                             :class (when (= active-toc (str id)) :active)}
-                         [:li label]])))]))]))
+    [:<>
+     [:div.toc-hide-heading]
+     [:div.toc-container
+      [:a.toc-heading {:on-click #(scroll-into-view! nil)}
+       [:h4.toc-title title
+        [:code.start {:class (str "start-" rootClass)} rootClass]]]
+      (into [:ul.toc]
+            (for [{:keys [category children] parent-id :id}
+                  (cons {:category "Summary" :id utils/pre-section-id} categories)]
+              [:<>
+               [:a {:on-click #(scroll-into-view! (str parent-id))
+                    :class (when (= active-toc (str parent-id)) :active)}
+                [:li category]]
+               (when (seq children)
+                 (into [:ul]
+                       (for [{:keys [label id]} children]
+                         [:a {:on-click #(scroll-into-view! (str id) (str parent-id))
+                              :class (when (= active-toc (str id)) :active)}
+                          [:li label]])))]))]]))
