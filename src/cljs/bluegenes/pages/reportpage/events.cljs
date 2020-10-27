@@ -144,10 +144,10 @@
       (loop [ids ids]
         (when (seq ids)
           (let [id (first ids)
-                top (-> (gdom/getElement id)
-                        (ocall :getBoundingClientRect)
-                        (oget :top))]
-            (if (pos? top)
+                top (some-> (gdom/getElement id)
+                            (ocall :getBoundingClientRect)
+                            (oget :top))]
+            (if (pos? ^number top) ; We'll get a nil warning without the typehint.
               (when (not= id @last-scrolled-id*)
                 (reset! last-scrolled-id* id)
                 (dispatch [::set-active-toc id]))
