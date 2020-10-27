@@ -172,8 +172,12 @@
     top: @spacer;
     z-index: 10;
 
-    .toc-title {
-        font-weight: 600;
+    .toc-heading {
+        text-decoration: none;
+
+        .toc-title {
+            font-weight: 600;
+        }
     }
 
     .toc {
@@ -184,15 +188,20 @@
         & { padding-left: 0; }
         ul { padding-left: @spacer*2; }
 
+        a {
+            font-weight: 300;
+
+            &.active {
+                font-weight: 400;
+                color: @extra-color-background;
+            }
+        }
+
         li {
             padding: @spacer/2 0;
             border-top: 1px solid @light-contrast;
             border-bottom: 1px solid @light-contrast;
             margin: -1px 0 -1px 0;
-
-            &.active {
-                color: @extra-color-background;
-            }
         }
     }
 }

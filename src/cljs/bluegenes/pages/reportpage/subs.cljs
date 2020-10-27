@@ -35,6 +35,12 @@
    (:sources report)))
 
 (reg-sub
+ ::report-active-toc
+ :<- [::report]
+ (fn [report]
+   (:active-toc report)))
+
+(reg-sub
  ::a-table
  (fn [db [_ location]]
    (get-in db location)))

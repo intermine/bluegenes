@@ -261,9 +261,11 @@
         :start (fn [{{:keys [mine type id]} :path}]
                  (dispatch [:clear-ids-tool-entity])
                  (dispatch [:viz/clear])
+                 (dispatch [:bluegenes.pages.reportpage.events/start-scroll-handling])
                  (dispatch [:set-active-panel :reportpage-panel
                             {:type type, :id id, :format "id", :mine mine}
-                            [:load-report mine type id]]))}]}]]])
+                            [:load-report mine type id]]))
+        :stop #(dispatch [:bluegenes.pages.reportpage.events/stop-scroll-handling])}]}]]])
 ;; You can do initialisations by adding a :start function to :controllers.
 ;; :start (fn [& params] (js/console.log "Entering page"))
 ;; Teardowns can also be done by using the :stop key.

@@ -2,6 +2,8 @@
   (:require [clojure.string :as str]
             [imcljs.path :as im-path]))
 
+(def ^:const pre-section-id "summary")
+
 (defn title-column
   "Find the most suitable column for a title (usually symbol or identifier)."
   [{:keys [views results] :as _summary}]

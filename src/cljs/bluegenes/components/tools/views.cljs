@@ -12,7 +12,7 @@
   ;; We don't have a nil state so we use an atom to check if the user has
   ;; overridden the layout-provided collapse value.
   (let [override-collapse* (reagent/atom nil)]
-    (fn [{{:keys [cljs human]} :names} & {:keys [collapse]}]
+    (fn [{{:keys [cljs human]} :names} & {:keys [collapse id]}]
       (let [collapsed? (or @(subscribe [::subs/collapsed-tool? cljs])
                            (and (not @override-collapse*)
                                 collapse))
@@ -22,7 +22,8 @@
         ;; Please avoid changing the markup that follows. Its structure is
         ;; copied to each tool's demo.html so they get a similar styling.
         [:div.report-item
-         {:class (when collapsed? :report-item-collapsed)}
+         {:class (when collapsed? :report-item-collapsed)
+          :id id}
          [:h4.report-item-heading
           {:on-click (fn []
                        (reset! override-collapse* true)

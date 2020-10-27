@@ -26,10 +26,11 @@
                              (let [{:keys [loc] :as data} (r/props this)]
                                (when-not @is-collapsed*
                                  (dispatch [:im-tables/load loc (dissoc data :loc)]))))
-      :reagent-render (fn [{:keys [loc title]}]
+      :reagent-render (fn [{:keys [loc title id]}]
                         (let [result-count (get-in @data [:response :iTotalRecords])]
                           [:div.report-item
-                           {:class (when @is-collapsed* :report-item-collapsed)}
+                           {:class (when @is-collapsed* :report-item-collapsed)
+                            :id id}
                            [:h4.report-item-heading
                             {:on-click #(swap! is-collapsed* not)}
                             (str title (when result-count (str " (" result-count ")")))
@@ -52,10 +53,11 @@
                                :type class
                                :id objectId}))}})
 
-(defn tool-report [{:keys [collapse] tool-cljs-name :value}]
+(defn tool-report [{:keys [collapse id] tool-cljs-name :value}]
   (let [tool-details @(subscribe [::subs/a-tool tool-cljs-name])]
     [tools/tool tool-details
-     :collapse collapse]))
+     :collapse collapse
+     :id id]))
 
 (defn template-report [{:keys [id collapse] template-name :value}]
   (let [summary-fields @(subscribe [:current-summary-fields])
@@ -67,7 +69,8 @@
           :title title
           :collapse collapse
           :query template
-          :settings (->report-table-settings current-mine-name)}]))
+          :settings (->report-table-settings current-mine-name)
+          :id id}]))
 
 (defn class-report [{:keys [id collapse] referencedType :value}]
   (let [{object-type :type object-id :id} @(subscribe [:panel-params])
@@ -80,12 +83,13 @@
           :title displayName
           :collapse collapse
           :query (utils/->query-ref+coll summary-fields object-type object-id ref+coll)
-          :settings (->report-table-settings current-mine-name)}]))
+          :settings (->report-table-settings current-mine-name)
+          :id id}]))
 
 (defn section []
   (let [collapsed* (r/atom false)]
-    (fn [{:keys [title]} & children]
-      (into [:div.report-table
+    (fn [{:keys [title id]} & children]
+      (into [:div.report-table {:id id}
              [:h3.report-table-heading
               {:on-click #(swap! collapsed* not)}
               title
@@ -101,7 +105,8 @@
            :when (seq children)] ; No point having a section without children.
        ^{:key id}
        [section
-        {:title category}
+        {:title category
+         :id id}
         [:div
          (for [{:keys [label value type collapse id] :as child} children
                :let [report-comp (case type
@@ -172,7 +177,8 @@
                                [^{:type :fasta} ["Sequence Length" fasta-length]]))
                      (partition-all 2))]
     [section
-     {:title "Summary"}
+     {:title "Summary"
+      :id utils/pre-section-id}
      (into [:div.report-table-body]
            (for [row entries]
              (into [:div.report-table-row]

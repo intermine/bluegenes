@@ -1,11 +1,13 @@
 (ns bluegenes.pages.reportpage.events
-  (:require [re-frame.core :as re-frame :refer [reg-event-db reg-event-fx]]
+  (:require [re-frame.core :as re-frame :refer [reg-event-db reg-event-fx dispatch]]
             [imcljs.fetch :as fetch]
             [bluegenes.components.tools.events :as tools]
             [bluegenes.effects :refer [document-title]]
             [clojure.string :as string]
             [bluegenes.pages.reportpage.utils :as utils]
-            [bluegenes.route :as route]))
+            [bluegenes.route :as route]
+            [goog.dom :as gdom]
+            [oops.core :refer [oget ocall]]))
 
 (reg-event-fx
  :handle-report-summary
@@ -14,6 +16,7 @@
    {:db (-> db
             (assoc-in [:report :summary] summary)
             (assoc-in [:report :title] (utils/title-column summary))
+            (assoc-in [:report :active-toc] utils/pre-section-id)
             (assoc :fetching-report? false))
     :dispatch-n [[:viz/run-queries]
                  [::tools/load-tools]]}))
@@ -124,3 +127,57 @@
    {:dispatch-n [[::route/navigate ::route/regions]
                  [:regions/set-to-search chromosome-location]
                  [:regions/run-query]]}))
+
+(reg-event-db
+ ::set-active-toc
+ (fn [db [_ active-toc-id]]
+   (assoc-in db [:report :active-toc] active-toc-id)))
+
+(defn scrollspy
+  "Returns a function (partially applied with a seq of string element IDs) to
+  be called on document scroll. Will go through every element until it finds
+  one that hasn't been scrolled passed, then dispatches an event with its ID."
+  [ids]
+  ;; Predefined top section is always initial value.
+  (let [last-scrolled-id* (atom utils/pre-section-id)]
+    (fn [_evt]
+      (loop [ids ids]
+        (when (seq ids)
+          (let [id (first ids)
+                top (-> (gdom/getElement id)
+                        (ocall :getBoundingClientRect)
+                        (oget :top))]
+            (if (pos? top)
+              (when (not= id @last-scrolled-id*)
+                (reset! last-scrolled-id* id)
+                (dispatch [::set-active-toc id]))
+              (recur (rest ids)))))))))
+
+(defn categories->ids
+  "Returns a seq of all the IDs of sections/categories and their children, in
+  order of placement from top to bottom."
+  [cats]
+  (concat [(symbol utils/pre-section-id)] ; Predefined section on the report page.
+          (mapcat #(cons (:id %) (map :id (:children %))) cats)))
+
+;; Working around crappy DOM API... (we have to create an anonymous function to
+;; pass arguments to the listener, and keep a reference to that so we can
+;; remove it later)
+(defonce scrollspy-fn* (atom nil))
+
+(reg-event-fx
+ ::start-scroll-handling
+ (fn [{db :db} [_]]
+   ;; TODO reading categories from db like here is not how we want to do it......
+   (let [ids (->> (get-in db [:admin :categories (or (get-in db [:admin :categorize-class])
+                                                     :default)])
+                  (categories->ids)
+                  (map str))]
+     (.addEventListener js/window "scroll" (reset! scrollspy-fn* (scrollspy ids)))
+     {})))
+
+(reg-event-fx
+ ::stop-scroll-handling
+ (fn [_ [_]]
+   (.removeEventListener js/window "scroll" @scrollspy-fn*)
+   {}))
