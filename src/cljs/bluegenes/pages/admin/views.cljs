@@ -176,7 +176,8 @@
               :value @new-category}]
             [:button.btn.btn-default.btn-raised.btn-xs
              {:on-click #(do (dispatch [::events/category-add @new-category])
-                             (some-> @input-ref* .focus))}
+                             (some-> @input-ref* .focus))
+              :disabled (empty? @new-category)}
              "Add category"]]])]])))
 
 (defn runnable-templates-tooltip []
