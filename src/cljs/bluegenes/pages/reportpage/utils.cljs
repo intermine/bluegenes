@@ -19,6 +19,7 @@
            "primaryIdentifier"
            "secondaryIdentifier"
            "name"
+           "title"
            "id"])))
 
 (defn strip-class

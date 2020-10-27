@@ -205,7 +205,8 @@
 (defn heading []
   (let [{:keys [rootClass]} @(subscribe [::subs/report-summary])
         title @(subscribe [::subs/report-title])]
-    [:h1 title
+    [:h1.report-page-heading
+     title
      [:code.start {:class (str "start-" rootClass)} rootClass]]))
 
 (defn main []
@@ -214,12 +215,15 @@
     [:div.container-fluid.report-page
      (if fetching-report?
        [loader (str (:type params) " Report")]
-       [:div.row.report-row
-        [:div.col-xs-2
-         [toc/main]]
-        [:div.col-xs-8
-         [heading]
-         [summary]
-         [report]]
-        [:div.col-xs-2
-         [sidebar/main]]])]))
+       [:<>
+        [:div.row
+         [:div.col-xs-8.col-xs-offset-2
+          [heading]]]
+        [:div.row.report-row
+         [:div.col-xs-2
+          [toc/main]]
+         [:div.col-xs-8
+          [summary]
+          [report]]
+         [:div.col-xs-2
+          [sidebar/main]]]])]))
