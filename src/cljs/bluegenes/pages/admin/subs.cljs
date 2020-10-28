@@ -1,7 +1,6 @@
 (ns bluegenes.pages.admin.subs
-  (:require [re-frame.core :refer [reg-sub]]
+  (:require [re-frame.core :refer [reg-sub subscribe]]
             [clojure.string :as str]
-            [bluegenes.pages.reportpage.subs :as report-subs]
             [bluegenes.pages.reportpage.utils :as report-utils]))
 
 (reg-sub
@@ -46,8 +45,7 @@
  ::available-template-names
  :<- [:templates]
  :<- [:current-model]
- :<- [::categorize-class]
- (fn [[templates model class]]
+ (fn [[templates model] [_ class]]
    (->> (report-utils/runnable-templates templates model (some-> class name))
         (map (fn [[_ {:keys [title name]}]]
                {:label title
@@ -58,8 +56,7 @@
 (reg-sub
  ::available-class-names
  :<- [:model]
- :<- [::categorize-class]
- (fn [[model class]]
+ (fn [model [_ class]]
    (->> (if class
           (let [{:keys [references collections]} (get model (keyword class))]
             (->> (concat references collections)
@@ -73,3 +70,12 @@
                   :type "class"})
                model))
         (sort-by (comp str/lower-case :label)))))
+
+(reg-sub
+ ::categories-fallback
+ (fn [[_ class]]
+   [(subscribe [::available-tool-names class])
+    (subscribe [::available-template-names class])
+    (subscribe [::available-class-names class])])
+ (fn [[tools templates classes] [_ _class]]
+   (report-utils/fallback-layout tools classes templates)))

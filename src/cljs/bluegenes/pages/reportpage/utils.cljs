@@ -1,6 +1,7 @@
 (ns bluegenes.pages.reportpage.utils
   (:require [clojure.string :as str]
-            [imcljs.path :as im-path]))
+            [imcljs.path :as im-path]
+            [bluegenes.pages.admin.events :refer [new-category new-child]]))
 
 (def ^:const pre-section-id "summary")
 
@@ -94,3 +95,14 @@
                :value object-id
                :path (str constraint-path ".id")
                :op "=")))
+
+(defn fallback-layout
+  "Autogenerates a reasonable report page layout when a human hasn't created one."
+  [tools classes templates]
+  (cond-> []
+    (seq tools) (conj (update (new-category "Visualizations")
+                              :children into (map #(new-child % :collapse true) tools)))
+    (seq classes) (conj (update (new-category "Data")
+                                :children into (map new-child classes)))
+    (seq templates) (conj (update (new-category "Templates")
+                                  :children into (map new-child templates)))))

@@ -167,12 +167,8 @@
 
 (reg-event-fx
  ::start-scroll-handling
- (fn [{db :db} [_]]
-   ;; TODO reading categories from db like here is not how we want to do it......
-   (let [ids (->> (get-in db [:admin :categories (or (get-in db [:admin :categorize-class])
-                                                     :default)])
-                  (categories->ids)
-                  (map str))]
+ (fn [{db :db} [_ categories]]
+   (let [ids (map str (categories->ids categories))]
      (.addEventListener js/window "scroll" (reset! scrollspy-fn* (scrollspy ids)))
      {})))
 

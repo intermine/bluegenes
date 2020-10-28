@@ -108,7 +108,8 @@
             (when-not @collapsed* children)))))
 
 (defn report []
-  (let [categories @(subscribe [:bluegenes.pages.admin.subs/categories])]
+  (let [{:keys [rootClass]} @(subscribe [::subs/report-summary])
+        categories @(subscribe [:current-mine/report-layout rootClass])]
     [:div
      (for [{:keys [category id children]} categories
            :when (seq children)] ; No point having a section without children.

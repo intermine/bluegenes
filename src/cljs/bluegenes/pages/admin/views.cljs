@@ -13,7 +13,7 @@
     (when (= 13 (oget e :charCode))
       (f e))))
 
-(defn report-categories-dropdown []
+(defn report-layout-dropdown []
   (let [model @(subscribe [:model])
         categorize-class @(subscribe [::subs/categorize-class])
         classes (sort-classes model)
@@ -21,7 +21,7 @@
     [:div.input-group.categories-dropdown
      [:label.control-label
       {:for "admin__report-category"}
-      "Manage categories"]
+      "Manage layout"]
      (into [:select.form-control
             {:id "admin__report-category"
              :on-change #(dispatch [::events/set-categorize-class (not-empty (oget % :target :value))])
@@ -33,8 +33,7 @@
                     [:option {:disabled true :role "separator"} "─────────────────────────"]))
                 (concat [[:separator]] preferred [[:separator]] classes)))]))
 
-(defn report-categories-child [[category-index child-index]
-                               {:keys [label type collapse]}]
+(defn report-layout-child [[category-index child-index] {:keys [label type collapse]}]
   (let [dispatch-idx (fn [[evt & args]]
                        (dispatch (into [evt category-index child-index] args)))]
     [:li.class-entry
@@ -58,10 +57,11 @@
        {:on-click #(dispatch-idx [::events/child-remove])}
        [icon "remove-list" 2]]]]))
 
-(defn report-categories-category []
-  (let [available-classes (subscribe [::subs/available-class-names])
-        available-tools (subscribe [::subs/available-tool-names])
-        available-templates (subscribe [::subs/available-template-names])
+(defn report-layout-category []
+  (let [cat-class (subscribe [::subs/categorize-class])
+        available-classes (subscribe [::subs/available-class-names @cat-class])
+        available-tools (subscribe [::subs/available-tool-names @cat-class])
+        available-templates (subscribe [::subs/available-template-names @cat-class])
         active* (reagent/atom false)
         renaming* (reagent/atom false)
         rename-ref* (reagent/atom nil)
@@ -123,7 +123,7 @@
           (concat
             (for [[i child] (map-indexed vector children)]
               ^{:key (:id child)}
-              [report-categories-child [category-index i] child])
+              [report-layout-child [category-index i] child])
             [[:li.add-child
               {:key "addchild"}
               [:div.full-width
@@ -151,7 +151,7 @@
                                 (ocall (oget select-elem :select) :clearValue)))}
                 [icon "plus"]]]]])])])))
 
-(defn report-categories-selector []
+(defn report-layout-selector []
   (let [categories (subscribe [::subs/categories])
         new-category (subscribe [::subs/new-category])
         input-ref* (reagent/atom nil)]
@@ -163,7 +163,7 @@
         (concat
           (for [[i category] (map-indexed vector @categories)]
             ^{:key (:id category)}
-            [report-categories-category i category])
+            [report-layout-category i category])
           [[:li.add-category.input-group-sm
             {:key "addcat"}
             [:input.form-control.input-sm
@@ -189,13 +189,16 @@
                      [:li "That single constraint must be backed by the same class as the item on the report page"]]]
              :children [icon "info"]}])
 
-(defn report-categories []
+(defn report-layout []
   [:div.well.well-lg
-   [:h3 "Report page categories"]
+   [:h3 "Report page layout"]
    [:p "Create categories containing classes (references/collections in the model), tools (visualizations) and/or runnable templates " [runnable-templates-tooltip] ", to be used to determine the layout of report pages. You can create a " [:strong "default"] " layout that applies to all report pages, and fine-tune the layout for " [:strong "class-specific"] " report pages (e.g. for class " [:em "Gene"] ")."]
-   [report-categories-dropdown]
-   [report-categories-selector]])
+   [report-layout-dropdown]
+   [report-layout-selector]
+   [:button.btn.btn-primary.btn-raised
+    {:on-click #(dispatch [::events/save-layout])}
+    "Save changes"]])
 
 (defn main []
   [:div.admin-page.container
-   [report-categories]])
+   [report-layout]])

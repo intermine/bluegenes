@@ -17,6 +17,14 @@
  (fn [admin [_ class-kw]]
    (assoc admin :categorize-class class-kw)))
 
+;; TODO once ws is ready, this should POST it and save it on successful response.
+;; (handle failure by showing error in view)
+(reg-event-db
+ ::save-layout
+ (fn [db [_]]
+   (assoc-in db [:mines (:current-mine db) :report-layout]
+             (get-in db (concat root [:categories])))))
+
 (defn get-categorize-class [admin]
   (or (get admin :categorize-class)
       ;; This is to replace `nil` when the dropdown is set to Default.  It's a
@@ -55,6 +63,11 @@
   {:category cat-name
    :id (gensym "cat")
    :children []})
+
+(defn new-child [child & {:keys [collapse]}]
+  (assoc child
+         :id (gensym "child")
+         :collapse collapse))
 
 (reg-event-db
  ::category-add
@@ -115,7 +128,7 @@
  (fn [admin [_ cat-index children]]
    (to-children admin cat-index :update
                 (fnil into [])
-                (map #(assoc % :id (gensym "child")) children))))
+                (map new-child children))))
 
 (reg-event-db
  ::child-remove

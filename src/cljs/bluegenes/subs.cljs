@@ -1,5 +1,5 @@
 (ns bluegenes.subs
-  (:require [re-frame.core :refer [reg-sub]]
+  (:require [re-frame.core :refer [reg-sub subscribe]]
             [bluegenes.pages.results.enrichment.subs]
             [clojure.string :refer [ends-with?]]
             [bluegenes.pages.querybuilder.subs]
@@ -193,6 +193,15 @@
  :<- [:current-mine]
  (fn [current-mine]
    (:credits current-mine)))
+
+(reg-sub
+ :current-mine/report-layout
+ (fn [[_ class]]
+   [(subscribe [:current-mine])
+    (subscribe [:bluegenes.pages.admin.subs/categories-fallback class])])
+ (fn [[current-mine fallback-layout] [_ class]]
+   (or (get-in current-mine [:report-layout (or (some-> class name) :default)])
+       fallback-layout)))
 
 (reg-sub
  :current-mine-human-name
