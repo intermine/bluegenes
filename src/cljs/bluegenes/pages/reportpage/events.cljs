@@ -18,8 +18,7 @@
             (assoc-in [:report :title] (utils/title-column summary))
             (assoc-in [:report :active-toc] utils/pre-section-id)
             (assoc :fetching-report? false))
-    :dispatch-n [[:viz/run-queries]
-                 [::tools/load-tools]]}))
+    :dispatch-n [[:viz/run-queries]]}))
 
 (reg-event-fx
  :fetch-report
@@ -69,8 +68,7 @@
               (assoc :fetching-report? true)
               (dissoc :report)
               (assoc-in [:tools :entities (keyword type)] entity))
-      :dispatch-n [[::tools/fetch-tools]
-                   [:fetch-report (keyword mine) type id]
+      :dispatch-n [[:fetch-report (keyword mine) type id]
                    (when (= type "Gene")
                      [:fetch-fasta (keyword mine) id])
                    [::fetch-lists (keyword mine) id]
