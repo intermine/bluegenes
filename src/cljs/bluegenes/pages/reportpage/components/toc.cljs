@@ -46,12 +46,15 @@
             [:code.start {:class (str "start-" rootClass)} rootClass]]]
           (into [:ul.toc]
                 (for [{:keys [category children] parent-id :id}
-                      (cons {:category "Summary" :id utils/pre-section-id} @categories)]
+                      (cons {:category utils/pre-section-title :id utils/pre-section-id} @categories)
+                      :when (or (= parent-id utils/pre-section-id)
+                                (seq children))] ; No point having a section without children.
                   [:<>
                    [:a {:on-click #(scroll-into-view! (str parent-id))
                         :class (when (= active-toc (str parent-id)) :active)}
                     [:li category]]
                    (when (and (seq children)
+                              ;; Only show children if they or their parent is active.
                               (or (= active-toc (str parent-id))
                                   (some #{active-toc} (map (comp str :id) children))))
                      (into [:ul]

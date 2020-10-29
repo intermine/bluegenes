@@ -3,6 +3,9 @@
             [imcljs.path :as im-path]
             [bluegenes.pages.admin.events :refer [new-category new-child]]))
 
+;; We have a special section that we prepend to all report pages. To keep
+;; things consistent and easy to change, we only define its properties below.
+(def ^:const pre-section-title "Summary")
 (def ^:const pre-section-id "summary")
 
 (defn title-column

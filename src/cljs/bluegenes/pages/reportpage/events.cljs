@@ -142,8 +142,10 @@
       (loop [ids ids]
         (when (seq ids)
           (let [id (first ids)
-                ;; An element can be nil if its section is collapsed, in which
-                ;; case we should skip to the next ID.
+                ;; An element can be nil in the following scenarios
+                ;; - it's a category with a collapsed parent section
+                ;; - it's a section with no children (and therefore not shown)
+                ;; in which case we should skip to the next ID.
                 top (some-> (gdom/getElement id)
                             (ocall :getBoundingClientRect)
                             (oget :top))]

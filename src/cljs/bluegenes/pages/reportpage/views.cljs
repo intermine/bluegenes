@@ -187,7 +187,7 @@
                                [^{:type :fasta} ["Sequence Length" fasta-length]]))
                      (partition-all 2))]
     [section
-     {:title "Summary"
+     {:title utils/pre-section-title
       :id utils/pre-section-id}
      (into [:div.report-table-body]
            (for [row entries]

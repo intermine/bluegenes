@@ -200,7 +200,8 @@
    [(subscribe [:current-mine])
     (subscribe [:bluegenes.pages.admin.subs/categories-fallback class])])
  (fn [[current-mine fallback-layout] [_ class]]
-   (or (get-in current-mine [:report-layout (or (some-> class name) :default)])
+   (or (not-empty (get-in current-mine [:report-layout (some-> class name)]))
+       (not-empty (get-in current-mine [:report-layout :default]))
        fallback-layout)))
 
 (reg-sub
