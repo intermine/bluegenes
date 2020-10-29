@@ -66,7 +66,13 @@
                                (or (= active-toc (str parent-id))
                                    (some #{active-toc} (map (comp str :id) children))))
                       (into [:ul]
-                            (for [{:keys [label id]} children]
+                            (for [{:keys [label id type value]} children
+                                  ;; For the default layout, the label will be general for the model instead of the
+                                  ;; specific ref/coll for this class (e.g.  Protein instead of Isoforms). For this
+                                  ;; reason, we get the displayName from the ref/coll.
+                                  :let [label (case type
+                                                "class" (:displayName @(subscribe [::subs/a-ref+coll value]))
+                                                label)]]
                               [:a {:on-click #(scroll-into-view! (str id) (str parent-id))
                                    :class (when (= active-toc (str id)) :active)}
                                [:li label]])))])))]]))))
