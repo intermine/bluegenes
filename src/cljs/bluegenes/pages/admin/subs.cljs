@@ -1,6 +1,7 @@
 (ns bluegenes.pages.admin.subs
   (:require [re-frame.core :refer [reg-sub subscribe]]
             [clojure.string :as str]
+            [bluegenes.utils :refer [suitable-entities]]
             [bluegenes.pages.reportpage.utils :as report-utils]))
 
 (reg-sub
@@ -31,10 +32,16 @@
 (reg-sub
  ::available-tool-names
  :<- [:bluegenes.components.tools.subs/installed-tools]
- (fn [tools] ; we do not bother to support filtering by class here
-   ;; I think it would be a good idea to do it anyways (re-use `utils/suitable-tools`?)
-   ;; We just need to make sure to also support subclasses of the class.
-   (->> tools
+ :<- [:model]
+ :<- [:current-model-hier]
+ (fn [[tools model-classes model-hier] [_ class]]
+   (->> (cond->> tools
+          (not-empty class)
+          (filter #(suitable-entities model-classes
+                                      model-hier
+                                      {(keyword class) {:class (name class)
+                                                        :format "id"}}
+                                      (:config %))))
         (map (fn [tool]
                {:label (get-in tool [:names :human])
                 :value (get-in tool [:names :cljs])

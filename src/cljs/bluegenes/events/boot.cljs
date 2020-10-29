@@ -40,6 +40,7 @@
                           [:assets/fetch-intermine-version]
                           [:assets/fetch-web-service-version]
                           [:assets/fetch-release-version]
+                          ;; Errors for tool fetching are handled separately.
                           [:bluegenes.components.tools.events/fetch-tools]]}
             ;; Wait for all events that indicate our assets have been fetched successfully.
             {:when :seen-all-of?
