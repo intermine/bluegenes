@@ -111,20 +111,34 @@
   (let [{:keys [rootClass]} @(subscribe [::subs/report-summary])
         categories @(subscribe [:current-mine/report-layout rootClass])]
     [:div
-     (for [{:keys [category id children]} categories
-           :when (seq children)] ; No point having a section without children.
-       ^{:key id}
-       [section
-        {:title category
-         :id id}
-        [:div
-         (for [{:keys [label value type collapse id] :as child} children
-               :let [report-comp (case type
-                                   "class" class-report
-                                   "template" template-report
-                                   "tool" tool-report)]]
-           ^{:key id}
-           [report-comp child])]])]))
+     (doall
+      (for [{:keys [category id children]} categories
+            ;; This might seem heavy, but most of the signal graph is already
+            ;; cached due to `:current-mine/report-layout` subscribing to the
+            ;; fallback layout.  What this does is make sure report item is
+            ;; "available" for this class (mostly to avoid showing parts of the
+            ;; default layout that doesn't apply to this class).
+            :let [children (filter (fn [{:keys [type value]}]
+                                     (contains? (case type
+                                                  "class"    @(subscribe [::subs/ref+coll-for-class? rootClass])
+                                                  "template" @(subscribe [::subs/template-for-class? rootClass])
+                                                  "tool"     @(subscribe [::subs/tool-for-class? rootClass]))
+                                                value))
+                                   children)]
+            :when (seq children)] ; No point having a section without children.
+        ^{:key id}
+        [section
+         {:title category
+          :id id}
+         [:div
+          (doall
+           (for [{:keys [_label _value type _collapse id] :as child} children
+                 :let [report-comp (case type
+                                     "class"    class-report
+                                     "template" template-report
+                                     "tool"     tool-report)]]
+             ^{:key id}
+             [report-comp child]))]]))]))
 
 (defn summary-location [[label value]]
   [:<>

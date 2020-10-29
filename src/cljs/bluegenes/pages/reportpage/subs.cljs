@@ -1,5 +1,5 @@
 (ns bluegenes.pages.reportpage.subs
-  (:require [re-frame.core :refer [reg-sub]]
+  (:require [re-frame.core :refer [reg-sub subscribe]]
             [imcljs.path :as im-path]
             [clojure.string :as string]
             [bluegenes.pages.reportpage.utils :as utils]
@@ -114,3 +114,24 @@
  :<- [::tools-subs/installed-tools-by-id]
  (fn [tools-by-id [_ tool-cljs-name]]
    (get tools-by-id tool-cljs-name)))
+
+(reg-sub
+ ::tool-for-class?
+ (fn [[_ class]]
+   (subscribe [:bluegenes.pages.admin.subs/available-tool-names class]))
+ (fn [tools [_ _class]]
+   (into #{} (map :value tools))))
+
+(reg-sub
+ ::template-for-class?
+ (fn [[_ class]]
+   (subscribe [:bluegenes.pages.admin.subs/available-template-names class]))
+ (fn [templates [_ _class]]
+   (into #{} (map :value templates))))
+
+(reg-sub
+ ::ref+coll-for-class?
+ (fn [[_ class]]
+   (subscribe [:bluegenes.pages.admin.subs/available-class-names class]))
+ (fn [refs+colls [_ _class]]
+   (into #{} (map :value refs+colls))))
