@@ -39,7 +39,8 @@
                           [:assets/fetch-summary-fields]
                           [:assets/fetch-intermine-version]
                           [:assets/fetch-web-service-version]
-                          [:assets/fetch-release-version]]}
+                          [:assets/fetch-release-version]
+                          [:bluegenes.components.tools.events/fetch-tools]]}
             ;; Wait for all events that indicate our assets have been fetched successfully.
             {:when :seen-all-of?
              :events [:assets/success-fetch-model
