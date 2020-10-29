@@ -72,8 +72,8 @@
   (let [summary-fields @(subscribe [:current-summary-fields])
         service (:service @(subscribe [:current-mine]))
         current-mine-name @(subscribe [:current-mine-name])
-        {:keys [title] nom :name :as template} @(subscribe [::subs/a-template template-name])]
-    [tbl {:loc [:report-page id nom]
+        {:keys [title] :as template} @(subscribe [::subs/a-template template-name])]
+    [tbl {:loc [:report :im-tables id]
           :service (merge service {:summary-fields summary-fields})
           :title title
           :collapse collapse
@@ -86,8 +86,8 @@
         summary-fields @(subscribe [:current-summary-fields])
         service (:service @(subscribe [:current-mine]))
         current-mine-name @(subscribe [:current-mine-name])
-        {:keys [displayName] nom :name :as ref+coll} @(subscribe [::subs/a-ref+coll referencedType])]
-    [tbl {:loc [:report-page id nom]
+        {:keys [displayName] :as ref+coll} @(subscribe [::subs/a-ref+coll referencedType])]
+    [tbl {:loc [:report :im-tables id]
           :service (merge service {:summary-fields summary-fields})
           :title displayName
           :collapse collapse
