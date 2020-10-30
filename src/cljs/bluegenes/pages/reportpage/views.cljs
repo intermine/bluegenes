@@ -189,6 +189,14 @@
          [:pre.fasta-sequence fasta]]]]
       [fasta-download]]]))
 
+(defn anchor-if-url [x]
+  (if (string? x)
+    (let [s (str/trim x)]
+      (if (re-matches #"https?://[^\s]*" s)
+        [:a {:href s :target "_blank"} s]
+        x))
+    x))
+
 (defn summary []
   (let [{:keys [columnHeaders results]} @(subscribe [::subs/report-summary])
         fasta               @(subscribe [::subs/fasta])
@@ -215,7 +223,7 @@
                         [:div.report-table-cell.report-table-header
                          (-> cell key (str/split " > ") last)]
                         [:div.report-table-cell
-                         (-> cell val (or "N/A"))]])))))
+                         (-> cell val (or "N/A") anchor-if-url)]])))))
      [:div.hidden-lg
       [sidebar/main]]]))
 
