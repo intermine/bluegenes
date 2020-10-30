@@ -267,7 +267,7 @@
  (fn [{db :db} [_ list-name res]]
    {:db (assoc-in db [:lists :modal :error]
                   (str "Failed to create list " list-name
-                       (when-let [error (:error res)]
+                       (when-let [error (get-in res [:body :error])]
                          (str ": " error))))
     :log-error ["List set operation failure" res]}))
 
@@ -475,10 +475,10 @@
  (fn [{db :db} [_ res]] ; `res` can be a map or a vector of multiple.
    {:db (assoc-in db [:lists :modal :error]
                   (if-let [err (not-empty (if (sequential? res)
-                                            (->> (map :error res)
+                                            (->> (map #(get-in % [:body :error]) res)
                                                  (filter not-empty)
                                                  (str/join \newline))
-                                            (:error res)))]
+                                            (get-in res [:body :error])))]
                     err
                     "Failed to edit list"))
     :dispatch [:assets/fetch-lists] ; In case some changes were successful.
