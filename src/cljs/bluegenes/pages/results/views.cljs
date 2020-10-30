@@ -159,7 +159,8 @@
 (defn main
   "Result page for a list or query."
   []
-  (let [are-there-results? (subscribe [:results/are-there-results?])]
+  (let [are-there-results? (subscribe [:results/are-there-results?])
+        intent (subscribe [:results/intent])]
     (fn []
       [:div.container-fluid.results
        (if @are-there-results?
@@ -171,7 +172,9 @@
            [:div.col-sm-9.col-lg-7
             [:h2.results-heading "Query Results"]
             [back-button]
-            [query-details]
+            ;; Query details is only interesting if it's a saved list.
+            (when (= @intent :list)
+              [query-details])
             [:div.results-table
              [tables/main [:results :table]]]
             [viz/main]
