@@ -11,7 +11,7 @@
 (defn entry []
   (let [show-all* (reagent/atom false)]
     (fn [{:keys [title error]} children]
-      [:div.sidebar-entry
+      [:div.sidebar-entry.col-sm-6.col-lg-12
        [:h4 title]
        (when error
          [:p error])
@@ -60,23 +60,25 @@
 
 (defn main []
   [:div.sidebar
-   [lists-containing]
-   [:div.sidebar-entry
-    [:h4 "Other mines"]
-    [:ul
-     [:li [:a "Dev note: Work In Progress!!!"]]
-     [:li [:a "Humanmine"]]
-     [:li [:a "Flymine"]]]]
-   [data-sources]
-   [:div.sidebar-entry
-    [:h4 "External resources"]
-    [:ul
-     [:li [:a "Dev note: Work In Progress!!!"
-           [:div.fade-background
-            [icon-comp "external"]]]]
-     [:li [:a "Ensembl"
-           [:div.fade-background
-            [icon-comp "external"]]]]
-     [:li [:a "BioGRID"
-           [:div.fade-background
-            [icon-comp "external"]]]]]]])
+   [:div.row
+    [lists-containing]
+    [:div.sidebar-entry.col-sm-6.col-lg-12
+     [:h4 "Other mines"]
+     [:ul
+      [:li [:a "Dev note: Work In Progress!!!"]]
+      [:li [:a "Humanmine"]]
+      [:li [:a "Flymine"]]]]
+    [:div.clearfix.visible-sm-block.visible-md-block]
+    [data-sources]
+    [:div.sidebar-entry.col-sm-6.col-lg-12
+     [:h4 "External resources"]
+     [:ul
+      [:li [:a "Dev note: Work In Progress!!!"
+            [:div.fade-background
+             [icon-comp "external"]]]]
+      [:li [:a "Ensembl"
+            [:div.fade-background
+             [icon-comp "external"]]]]
+      [:li [:a "BioGRID"
+            [:div.fade-background
+             [icon-comp "external"]]]]]]]])

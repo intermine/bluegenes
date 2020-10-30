@@ -215,7 +215,9 @@
                         [:div.report-table-cell.report-table-header
                          (-> cell key (str/split " > ") last)]
                         [:div.report-table-cell
-                         (-> cell val (or "N/A"))]])))))]))
+                         (-> cell val (or "N/A"))]])))))
+     [:div.hidden-lg
+      [sidebar/main]]]))
 
 (defn heading []
   (let [{:keys [rootClass]} @(subscribe [::subs/report-summary])
@@ -237,8 +239,8 @@
         [:div.row.report-row
          [:div.col-xs-2
           [toc/main]]
-         [:div.col-xs-8
+         [:div.col-xs-10.col-lg-8
           [summary]
           [report]]
-         [:div.col-xs-2
+         [:div.col-lg-2.visible-lg-block
           [sidebar/main]]]])]))
