@@ -310,23 +310,40 @@
  (fn [[registry current-mine]]
    (not-empty (get-in registry [current-mine :maintainerEmail]))))
 
-;;;; Styling
+;;;; Branding
 
 (reg-sub
- :style/colors
- :<- [:registry]
- :<- [:current-mine-name]
- (fn [[registry current-mine]]
-   (get-in registry [current-mine :colors])))
+ :branding
+ :<- [:current-mine]
+ (fn [current-mine]
+   (get current-mine :branding)))
 
 (reg-sub
- :style/header-main
- :<- [:style/colors]
+ :branding/images
+ :<- [:branding]
+ (fn [branding]
+   (get branding :images)))
+
+(reg-sub
+ :branding/logo
+ :<- [:branding/images]
+ (fn [images]
+   (get images :logo)))
+
+(reg-sub
+ :branding/colors
+ :<- [:branding]
+ (fn [branding]
+   (get branding :colors)))
+
+(reg-sub
+ :branding/header-main
+ :<- [:branding/colors]
  (fn [colors]
    (get-in colors [:header :main])))
 
 (reg-sub
- :style/header-text
- :<- [:style/colors]
+ :branding/header-text
+ :<- [:branding/colors]
  (fn [colors]
    (get-in colors [:header :text])))

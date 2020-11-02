@@ -16,8 +16,9 @@
   [details & {:keys [class]}]
   [:img
    {:class class
-    :src (or (get-in details [:images :logo])
-             (str (get-in details [:service :root]) logo-path))}])
+    :src (or (get-in details [:images :logo]) ; Path when it's from registry.
+             (get-in details [:branding :images :logo]) ; Path when it's the current mine.
+             (str (get-in details [:service :root]) logo-path))}]) ; Fallback path.
 
 (defn update-form [atom key evt]
   (swap! atom assoc key (oget evt :target :value)))
@@ -97,7 +98,7 @@
         [anonymous]))))
 
 (defn active-mine-logo [current-mine]
-  (let [logo    (get-in current-mine [:logo])
+  (let [logo    (get-in current-mine [:branding :images :logo])
         service (get-in current-mine [:service :root])]
     [:img.active-mine-image
      {:src (or logo (str service logo-path))}]))
@@ -168,8 +169,8 @@
 
 (defn main []
   (let [active-panel (subscribe [:active-panel])
-        main-color (subscribe [:style/header-main])
-        text-color (subscribe [:style/header-text])
+        main-color (subscribe [:branding/header-main])
+        text-color (subscribe [:branding/header-text])
         classes (fn [panel-key large-screen?]
                   [(when (= @active-panel panel-key) "active")
                    (when large-screen? "hidden-xs")])]

@@ -40,8 +40,8 @@
 
 (defn main-panel []
   (let [active-panel (subscribe [:active-panel])
-        main-color (subscribe [:style/header-main])
-        text-color (subscribe [:style/header-text])]
+        main-color (subscribe [:branding/header-main])
+        text-color (subscribe [:branding/header-text])]
     (fn []
       [:div.approot
        {:style {"--branding-header-main" @main-color

@@ -30,8 +30,6 @@
    :rss                          (get-in web-properties [:project :rss])
    :citation                     (parse-citation (get-in web-properties [:project :citation]))
    :credits                      (get-in web-properties [:project :credits])
-   ;;this needs to be passed in as an arg or pulled from the branding endpoint.
-   :icon                         "icon-intermine"
    :idresolver-example           (let [ids (get-in web-properties [:bag :example :identifiers])]
                                    ;; ids can be one of the following:
                                    ;;     {:default "foo bar"

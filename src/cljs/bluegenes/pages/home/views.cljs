@@ -123,10 +123,12 @@
              neighbourhood]))))
 
 (defn get-fg-color [mine-details]
-  (get-in mine-details [:colors :header :text]))
+  (or (get-in mine-details [:colors :header :text])
+      (get-in mine-details [:branding :colors :header :text])))
 
 (defn get-bg-color [mine-details]
-  (get-in mine-details [:colors :header :main]))
+  (or (get-in mine-details [:colors :header :main])
+      (get-in mine-details [:branding :colors :header :main])))
 
 (defn mine-selector-entry [[mine-key details] & {:keys [active?]}]
   (let [{:keys [name]} details]

@@ -40,6 +40,7 @@
                           [:assets/fetch-intermine-version]
                           [:assets/fetch-web-service-version]
                           [:assets/fetch-release-version]
+                          [:assets/fetch-branding]
                           ;; Errors for tool fetching are handled separately.
                           [:bluegenes.components.tools.events/fetch-tools]]}
             ;; Wait for all events that indicate our assets have been fetched successfully.
@@ -53,7 +54,8 @@
                       :assets/success-fetch-widgets
                       :assets/success-fetch-intermine-version
                       :assets/success-fetch-web-service-version
-                      :assets/success-fetch-release-version]
+                      :assets/success-fetch-release-version
+                      :assets/success-fetch-branding]
              :dispatch [:boot/finalize]
              :halt? true}
             ;; Handle the case where one or more assets fail to fetch.
@@ -127,6 +129,7 @@
   You can specify `:token my-token` if you want to reuse an existing token."
   [& {:keys [token]}]
   (let [{:keys [serviceRoot mineName]} (->clj js/serverVars)]
+    ;; Only `serviceRoot` is necessary; the rest gets overwritten when fetching webservices.
     (if serviceRoot
       {:id :default
        :name mineName
@@ -512,6 +515,20 @@
  :assets/success-fetch-release-version
  (fn [db [_ mine-kw version]]
    (assoc-in db [:assets :release-version mine-kw] version)))
+
+(reg-event-fx
+ :assets/fetch-branding
+ (fn [{db :db} [evt]]
+   {:im-chan
+    {:chan (fetch/branding
+            (get-in db [:mines (:current-mine db) :service]))
+     :on-success [:assets/success-fetch-branding (:current-mine db)]
+     :on-failure [:assets/failure evt]}}))
+
+(reg-event-db
+ :assets/success-fetch-branding
+ (fn [db [_ mine-kw branding-properties]]
+   (assoc-in db [:mines mine-kw :branding] branding-properties)))
 
 (reg-event-fx
  :assets/failure
