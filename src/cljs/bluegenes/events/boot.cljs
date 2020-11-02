@@ -231,11 +231,16 @@
     :dispatch [:authentication/init]
     :async-flow (boot-flow :wait-registry? false)}))
 
+;; Note that failed-auth? can mean there's no connection to the mine.
 (reg-event-fx
  :finished-loading-assets
  (fn [{db :db}]
    (let [dispatch-after-boot (:dispatch-after-boot db)
+         ;; We want to block navigation on failed auth, as this could cause a
+         ;; crash when opening a page that expects a mine to be connected.
          failed-auth? (:failed-auth? db)
+         ;; If we're going to change panel, we'll wait with :hide-intro-loader
+         ;; until it's done (otherwise there will be a flash of the home page).
          will-change-panel? (contains? (set (map first dispatch-after-boot))
                                        :do-active-panel)]
      (cond-> {:db (-> db
@@ -244,7 +249,10 @@
               :mine-loader false}
        (and (some? dispatch-after-boot)
             (not failed-auth?)) (assoc :dispatch-n dispatch-after-boot)
-       (not will-change-panel?) (assoc :hide-intro-loader nil)))))
+       (or (not will-change-panel?)
+           ;; Even if we're supposed to show a different panel, we'll show the
+           ;; homepage instead on failed auth (navigation will be blocked).
+           failed-auth?) (assoc :hide-intro-loader nil)))))
 
 (reg-event-fx
  :verify-web-service-version
