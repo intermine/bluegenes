@@ -10,9 +10,11 @@
 
 (reg-event-db
  ::init
- (path root)
- (fn [admin [_]]
-   (dissoc admin :responses)))
+ (fn [db [_]]
+   (let [persisted-cats (get-in db [:mines (:current-mine db) :report-layout])]
+     (-> db
+         (update-in root dissoc :responses)
+         (assoc-in (concat root [:categories]) persisted-cats)))))
 
 (reg-event-db
  ::set-categorize-class
