@@ -18,7 +18,8 @@
   [bg-properties]
   {:report-layout (some-> (get bg-properties :layout.report) read-prop import-categories)})
 
-;; TODO Should we check that you're admin first at the clientside?
+;; Note that making changes to bluegenes-properties will fail on the InterMine
+;; backend if you're not authenticated as an admin.
 
 (reg-event-fx
  :property/save
@@ -69,7 +70,6 @@
               (assoc-in [:assets :bg-properties mine-kw] bg-props))
       :dispatch on-success})))
 
-;; TODO handle older mines without this ws
 (reg-event-fx
  :assets/fetch-bg-properties
  (fn [{db :db} [evt]]
@@ -77,13 +77,16 @@
          service      (get-in db [:mines current-mine :service])]
      {:im-chan {:chan (fetch/bluegenes-properties service)
                 :on-success [:assets/success-fetch-bg-properties current-mine]
-                :on-failure [:assets/failure evt]}})))
+                ;; Older mines don't have this webservice, so no errors, no worries!
+                :on-failure [:assets/success-fetch-bg-properties current-mine]}})))
 
 (reg-event-db
  :assets/success-fetch-bg-properties
  (fn [db [_ mine-kw bg-properties]]
-   (-> db
-       ;; We read stuff from our mine.
-       (update-in [:mines mine-kw] merge (bg-properties-to-bluegenes bg-properties))
-       ;; And compare stuff from our assets.
-       (assoc-in [:assets :bg-properties mine-kw] bg-properties))))
+   (if bg-properties ; Nil when webservice isn't present.
+     (-> db
+         ;; We read stuff from our mine.
+         (update-in [:mines mine-kw] merge (bg-properties-to-bluegenes bg-properties))
+         ;; And compare stuff from our assets.
+         (assoc-in [:assets :bg-properties mine-kw] bg-properties))
+     db)))

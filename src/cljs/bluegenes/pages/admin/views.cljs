@@ -131,12 +131,6 @@
                 {:placeholder "Available classes, tools and templates"
                  :isMulti true
                  :ref #(when % (reset! select-ref* %))
-                 ; :onChange (fn [values]
-                 ;             (->> (js->clj values :keywordize-keys true)
-                 ;                  (map :value)
-                 ;                  (not-empty)
-                 ;                  (on-change)))
-                 ; :value (map (fn [v] {:value v :label v}) value)
                  :options [{:label "Classes"
                             :options @available-classes}
                            {:label "Tools"
