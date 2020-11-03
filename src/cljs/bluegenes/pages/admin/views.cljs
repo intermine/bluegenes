@@ -200,7 +200,7 @@
        [:div.alert.alert-warning
         [:strong "This InterMine is running an older version which does not support saving BlueGenes layouts. You will still be able to create layouts for testing, but they will disappear when refreshing or closing the browser tab. The layouts you create will also not be available to other users."]])
      [:button.btn.btn-primary.btn-raised
-      {:on-click #(dispatch [::events/save-layout])}
+      {:on-click #(dispatch [::events/save-layout bg-properties-support?])}
       "Save changes"]]))
 
 (defn main []

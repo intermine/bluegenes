@@ -6,6 +6,8 @@
             [bluegenes.events.auth]
             [bluegenes.events.registry]
             [bluegenes.events.blog]
+            [bluegenes.events.webproperties]
+            [bluegenes.events.bgproperties]
             [bluegenes.components.idresolver.events]
             [day8.re-frame.http-fx]
             [day8.re-frame.forward-events-fx]

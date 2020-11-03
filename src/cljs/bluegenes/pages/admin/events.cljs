@@ -3,11 +3,8 @@
             [re-frame.std-interceptors :refer [path]]
             [bluegenes.utils :refer [addvec remvec]]))
 
-;; TODO when importing categories from webservice, make sure to add new IDs
-;; TODO when exporting categories to webservice, make sure to remove all IDs
-;; => use postwalk and assoc when map?
-;; - seems like we'll need to use IDs when rendering categories in report page
-;;   as well
+(def ^:const category-id-prefix "cat")
+(def ^:const child-id-prefix "child")
 
 (def root [:admin])
 
@@ -17,13 +14,39 @@
  (fn [admin [_ class-kw]]
    (assoc admin :categorize-class class-kw)))
 
+(defn import-categories
+  "Import persisted categories, adding newly generated IDs to categories and children."
+  [cats]
+  (into {}
+        (map (fn [cat-kv]
+               (update cat-kv 1
+                       (partial mapv (fn [cat]
+                                       (-> cat
+                                           (assoc :id (gensym category-id-prefix))
+                                           (update :children (partial mapv #(assoc % :id (gensym child-id-prefix))))))))))
+        cats))
+
+(defn export-categories
+  "Export categories for persisting, removing IDs from categories and children."
+  [cats]
+  (into {}
+        (map (fn [cat-kv]
+               (update cat-kv 1
+                       (partial mapv (fn [cat]
+                                       (-> cat
+                                           (dissoc :id)
+                                           (update :children (partial mapv #(dissoc % :id)))))))))
+        cats))
+
 ;; TODO once ws is ready, this should POST it and save it on successful response.
 ;; (handle failure by showing error in view)
-(reg-event-db
+(reg-event-fx
  ::save-layout
- (fn [db [_]]
-   (assoc-in db [:mines (:current-mine db) :report-layout]
-             (get-in db (concat root [:categories])))))
+ (fn [{db :db} [_ bg-properties-support?]]
+   (let [categories (get-in db (concat root [:categories]))]
+     (if bg-properties-support?
+       {:dispatch [:property/save :layout.report (export-categories categories)]}
+       {:db (assoc-in db [:mines (:current-mine db) :report-layout] categories)}))))
 
 (defn get-categorize-class [admin]
   (or (get admin :categorize-class)
@@ -61,12 +84,12 @@
 
 (defn new-category [cat-name]
   {:category cat-name
-   :id (gensym "cat")
+   :id (gensym category-id-prefix)
    :children []})
 
 (defn new-child [child & {:keys [collapse]}]
   (assoc child
-         :id (gensym "child")
+         :id (gensym child-id-prefix)
          :collapse collapse))
 
 (reg-event-db

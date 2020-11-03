@@ -3,7 +3,6 @@
             [bluegenes.db :as db]
             [imcljs.fetch :as fetch]
             [imcljs.auth :as auth]
-            [bluegenes.events.webproperties]
             [bluegenes.events.registry :as registry]
             [bluegenes.route :as route]
             [bluegenes.utils :as utils]
@@ -31,6 +30,7 @@
             {:when :seen?
              :events :authentication/store-token
              :dispatch-n [[:assets/fetch-web-properties]
+                          [:assets/fetch-bg-properties]
                           [:assets/fetch-model]
                           [:assets/fetch-lists]
                           [:assets/fetch-class-keys]
@@ -47,6 +47,7 @@
             {:when :seen-all-of?
              :events [:assets/success-fetch-model
                       :assets/success-fetch-web-properties
+                      :assets/success-fetch-bg-properties
                       :assets/success-fetch-lists
                       :assets/success-fetch-class-keys
                       :assets/success-fetch-templates
