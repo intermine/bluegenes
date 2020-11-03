@@ -190,7 +190,8 @@
              :children [icon "info"]}])
 
 (defn report-layout []
-  (let [bg-properties-support? @(subscribe [:bg-properties-support?])]
+  (let [bg-properties-support? @(subscribe [:bg-properties-support?])
+        response @(subscribe [::subs/responses :report-layout])]
     [:div.well.well-lg
      [:h3 "Report page layout"]
      [:p "Create categories containing classes (references/collections in the model), tools (visualizations) and/or runnable templates " [runnable-templates-tooltip] ", to be used to determine the layout of report pages. You can create a " [:strong "default"] " layout that applies to all report pages, and fine-tune the layout for " [:strong "class-specific"] " report pages (e.g. for class " [:em "Gene"] ")."]
@@ -199,9 +200,12 @@
      (when (not bg-properties-support?)
        [:div.alert.alert-warning
         [:strong "This InterMine is running an older version which does not support saving BlueGenes layouts. You will still be able to create layouts for testing, but they will disappear when refreshing or closing the browser tab. The layouts you create will also not be available to other users."]])
-     [:button.btn.btn-primary.btn-raised
-      {:on-click #(dispatch [::events/save-layout bg-properties-support?])}
-      "Save changes"]]))
+     [:div.flex-row
+      [:button.btn.btn-primary.btn-raised
+       {:on-click #(dispatch [::events/save-layout bg-properties-support?])}
+       "Save changes"]
+      (when-let [{:keys [type message]} response]
+        [:p {:class type} message])]]))
 
 (defn main []
   [:div.admin-page.container

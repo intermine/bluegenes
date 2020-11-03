@@ -9,6 +9,12 @@
  (fn [db]
    (:admin db)))
 
+(reg-sub
+ ::responses
+ :<- [::root]
+ (fn [admin [_ kw]]
+   (get-in admin [:responses kw])))
+
 ;; Note that this is nil when set to "Default".
 (reg-sub
  ::categorize-class

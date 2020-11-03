@@ -9,6 +9,12 @@
 (def root [:admin])
 
 (reg-event-db
+ ::init
+ (path root)
+ (fn [admin [_]]
+   (dissoc admin :responses)))
+
+(reg-event-db
  ::set-categorize-class
  (path root)
  (fn [admin [_ class-kw]]
@@ -38,15 +44,32 @@
                                            (update :children (partial mapv #(dissoc % :id)))))))))
         cats))
 
-;; TODO once ws is ready, this should POST it and save it on successful response.
-;; (handle failure by showing error in view)
 (reg-event-fx
  ::save-layout
  (fn [{db :db} [_ bg-properties-support?]]
    (let [categories (get-in db (concat root [:categories]))]
      (if bg-properties-support?
-       {:dispatch [:property/save :layout.report (export-categories categories)]}
+       {:dispatch [:property/save :layout.report (export-categories categories)
+                   {:on-success [::save-layout-success]
+                    :on-failure [::save-layout-failure]}]}
        {:db (assoc-in db [:mines (:current-mine db) :report-layout] categories)}))))
+
+(reg-event-db
+ ::save-layout-success
+ (path root)
+ (fn [admin [_]]
+   (assoc-in admin [:responses :report-layout]
+             {:type :success
+              :message "Successfully saved changes to report page layout."})))
+
+(reg-event-db
+ ::save-layout-failure
+ (path root)
+ (fn [admin [_ res]]
+   (assoc-in admin [:responses :report-layout]
+             {:type :failure
+              :message (str "Failed to save changes to report page layout. "
+                            (not-empty (get-in res [:body :error])))})))
 
 (defn get-categorize-class [admin]
   (or (get admin :categorize-class)
