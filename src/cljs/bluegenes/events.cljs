@@ -52,6 +52,8 @@
                              :panel-params panel-params)}
            ;; Hide intro loader if this is the first panel change.
            (nil? (:active-panel db)) (assoc :hide-intro-loader nil)
+           ;; Ensure that `:fetching-report?` is set to true *before* the panel change.
+           (= active-panel :reportpage-panel) (assoc-in [:db :fetching-report?] true)
            ;; Dispatch any events paired with the panel change.
            evt (assoc :dispatch evt))
          {:dispatch-n [[::route/navigate ::route/home]

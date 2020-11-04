@@ -86,18 +86,20 @@
   ; include ".id" on the end.  Don't make the assumption that it's
   ; <report-item-type>.id as a query's root might not be the same class as the
   ; object on the report page
-  (let [replaceable-indexes (not-empty (keep-indexed (fn [idx {:keys [path op editable :as constraint]}]
-                                                       (when (and (= op "LOOKUP")
-                                                                  (= object-type
-                                                                     (name (im-path/class (assoc current-model :type-constraints where) path)))
-                                                                  (= editable true))
-                                                         idx))
-                                                     where))
-        constraint-path (get-in template-details [:where (first replaceable-indexes) :path])]
-    (update-in template-details [:where (first replaceable-indexes)] assoc
-               :value object-id
-               :path (str constraint-path ".id")
-               :op "=")))
+  (let [replaceable-index (first (keep-indexed (fn [idx {:keys [path op editable :as constraint]}]
+                                                 (when (and (= op "LOOKUP")
+                                                            (= object-type
+                                                               (name (im-path/class (assoc current-model :type-constraints where) path)))
+                                                            (= editable true))
+                                                   idx))
+                                               where))]
+    (if (number? replaceable-index)
+      (-> template-details
+          (update-in [:where replaceable-index :path] str ".id")
+          (update-in [:where replaceable-index] assoc
+                     :value object-id
+                     :op "="))
+      template-details)))
 
 (defn fallback-layout
   "Autogenerates a reasonable report page layout when a human hasn't created one."
