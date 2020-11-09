@@ -287,6 +287,12 @@
    (utils/compatible-version? version/list-tags-support current-version)))
 
 (reg-sub
+ :oauth-support?
+ :<- [:current-intermine-version]
+ (fn [current-version]
+   (utils/compatible-version? version/oauth-support current-version)))
+
+(reg-sub
  :show-mine-loader?
  (fn [db]
    (get db :show-mine-loader?)))

@@ -158,13 +158,17 @@
          selected-mine (-> (.. js/window -location -pathname)
                            (clojure.string/split #"/")
                            second
-                           keyword)
+                           keyword
+                           (or :default))
+         ;; Check if there are messages to display related to OAuth.
+         init-events (some-> js/initVars ->clj :events not-empty)
          init-db
          (-> db/default-db
              ;; Add default mine, either as is configured when attached to an
              ;; InterMine instance, or as an empty placeholder.
              (assoc-in [:mines :default] (init-mine-defaults))
-             (assoc :current-mine (or selected-mine :default)))
+             (assoc :current-mine selected-mine)
+             (cond-> init-events (assoc :dispatch-after-boot init-events)))
          ;; Get data previously persisted to local storage.
          {:keys [mines assets version] :as state} (:local-store cofx)
          ;; We always want `init-mine-defaults` to override the :default mine
@@ -189,7 +193,11 @@
                      ;; by `:assets/success-fetch-summary-fields`.
                      :fetching-assets? true))
          wait-registry? (wait-for-registry? db)]
-     {:db db
+     {:db (if-let [oauth-token (some-> js/initVars ->clj :token not-empty)]
+            ;; There will be a token here if the user logged in via OAuth; it
+            ;; should take precedence over everything else.
+            (assoc-in db [:mines selected-mine :service :token] oauth-token)
+            db)
       :dispatch-n (if wait-registry?
                     ;; Wait with authentication until registry is loaded.
                     [[::registry/load-other-mines]]

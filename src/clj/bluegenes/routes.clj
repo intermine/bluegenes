@@ -20,4 +20,6 @@
     (context "/ids" [] ids/routes)
     (context "/rss" [] rss/routes))
 
-  (GET "*" [] (index/index)))
+  (GET "*" {{:keys [init] :as session} :session}
+       (-> (response (index/index init))
+           (assoc :session (dissoc session :init)))))

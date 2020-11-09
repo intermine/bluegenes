@@ -1,8 +1,37 @@
 (ns bluegenes.ws.auth
-  (:require [compojure.core :refer [POST defroutes]]
+  (:require [compojure.core :refer [POST defroutes GET]]
             [imcljs.auth :as im-auth]
             [cheshire.core :as cheshire]
-            [ring.util.http-response :as response]))
+            [ring.util.http-response :as response]
+            [taoensso.timbre :as timbre]
+            [ring.middleware.params :refer [wrap-params]]
+            [ring.middleware.keyword-params :refer [wrap-keyword-params]]))
+
+;; You may notice that we keep session data on the backend, although this data
+;; is currently not used (except for OAuth 2.0, which only depends on the
+;; session data added in `oauth2authenticator`). This is because the frontend
+;; does most of the requests by itself. There are some trade-offs with this:
+;;
+;; - For most requests, an OPTIONS preflight request has to be sent prior to
+;; the actual request, incurring a performance penalty (hopefully the majority
+;; of BlueGenes instances will be hosted on the same domain as the InterMine
+;; instances they'll use the most, avoiding the preflight request)
+;;
+;; - The auth data stored to localStorage can be read by nefarious JS code that
+;; sneaks in (XSS; one such path is by installing a malicious BlueGenes tool)
+;;
+;; The obvious alternative would be to only have the BlueGenes backend handle
+;; authentication by using sessions. However, this would mean that all requests
+;; would have to be proxied by the backend, (essentially adding a detour to
+;; every request) another big performance penalty (although this would avoid
+;; preflight requests completely).
+;;
+;; The optimal solution would be to have each InterMine instance handle
+;; sessions themselves, not requiring that BlueGenes keep any authentication
+;; data. Was this approach tried before and deemed too difficult? Or was the
+;; "client manages token" approach chosen by default for historical reasons, as
+;; each API client has been doing this. At some point we might raise this
+;; question again...
 
 (defn logout
   "Log the user out by clearing the session. Also sends a request to the InterMine
@@ -83,7 +112,44 @@
           (response/not-found {:stack-trace error
                                :error "Unable to reach remote server"}))))))
 
+(defn oauth2authenticator
+  [{{:keys [service mine-id provider]} :params :as _req}]
+  (try
+    (-> (response/ok (im-auth/oauth2authenticator service provider))
+        (assoc :session {:service service
+                         :mine-id mine-id}))
+    (catch Exception e
+      ;; Forward the error response to client so it can handle it.
+      (ex-data e))))
+
+;; TODO remove logging
+;; TODO pass renamed list data to session.init as well
+(defn oauth2callback
+  [{{:keys [provider state code]} :params
+    {:keys [service mine-id]} :session}]
+  (try
+    (let [res (im-auth/oauth2callback service {:provider provider :state state :code code})
+          token (get-in res [:output :token])]
+      (timbre/infof "Got oauth2callback response: %s" (pr-str res))
+      (-> (response/found (str "/" mine-id))
+          (assoc :session {:identity (assoc service :token token)
+                           :init {:token token}})))
+    (catch Exception e
+      (timbre/errorf "oauth2callback error: %s" (pr-str (ex-data e)))
+      (let [{:keys [body]} (ex-data e)
+            {:keys [error]} (cheshire/parse-string body true)]
+        (-> (response/found (str "/" mine-id))
+            (assoc :session {:init {:events [[:messages/add
+                                              {:style "warning"
+                                               :markup (str "Failed to login using OAuth 2.0"
+                                                          (when (not-empty error)
+                                                            (str ": " error)))}]]}}))))))
+
 (defroutes routes
-  (POST "/logout" session logout)
-  (POST "/login" session handle-auth)
-  (POST "/register" session register))
+  (POST "/logout" [] logout)
+  (POST "/login" [] handle-auth)
+  (POST "/register" [] register)
+  (POST "/oauth2authenticator" [] oauth2authenticator)
+  (wrap-params
+   (wrap-keyword-params
+    (GET "/oauth2callback" [] oauth2callback))))

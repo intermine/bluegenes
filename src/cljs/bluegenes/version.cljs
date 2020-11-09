@@ -12,6 +12,9 @@
 ;;https://github.com/intermine/intermine/issues/1482
 (def minimum-intermine 27)
 
+;; Signing in through a third-party OAuth 2.0 provider was added in this version.
+(def oauth-support "5.0.0")
+
 ;; Prior to this InterMine version, multiple TagManager's on the backend
 ;; would cause updating and retrieving of tags set on lists to be buggy.
 (def list-tags-support "4.1.3")

@@ -37,7 +37,8 @@
   (let [credentials    (reagent/atom {:username nil :password nil})
         register?      (reagent/atom false)
         current-mine   (subscribe [:current-mine])
-        auth-values    (subscribe [:bluegenes.subs.auth/auth])]
+        auth-values    (subscribe [:bluegenes.subs.auth/auth])
+        oauth-support? (subscribe [:oauth-support?])]
     (fn []
       (let [{:keys [error? thinking? message]} @auth-values
             submit-fn #(dispatch [(if @register?
@@ -84,6 +85,13 @@
               :on-click submit-fn}
              [mine-icon @current-mine :class "mine-logo"]
              (if @register? "Register" "Login")]]
+           (when @oauth-support?
+             [:button.btn.btn-primary.btn-raised
+              {:type "button"
+               :on-click (fn [e]
+                           (.preventDefault e)
+                           (dispatch [:bluegenes.events.auth/oauth2 "GOOGLE"]))}
+              "Login using Google"])
            (when error?
              [:div.alert.alert-danger.error-box message])]]]))))
 

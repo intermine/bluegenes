@@ -42,7 +42,7 @@
   [:style
    "#csscompiling{position:fixed;bottom:0;right:0;padding:20px;height:100px;width:400px;background-color:#FFA726;}"])
 
-(defn head []
+(defn head [& [init-vars]]
   [:head
    loader-style
    css-compiling-style
@@ -64,6 +64,9 @@
                            :mineName        (:bluegenes-default-mine-name env)
                            :version         (or (second (re-find #"app-(.*)\.js" bundle-path))
                                                 "dev")})
+         ";")
+    (str "var initVars="
+         (generate-string init-vars)
          ";")]
   ; Javascript:
    [:link {:rel "shortcut icon" :href "https://raw.githubusercontent.com/intermine/design-materials/f5f00be4/logos/intermine/fav32x32.png" :type "image/png"}]
@@ -97,9 +100,9 @@
 
 (defn index
   "Hiccup markup that generates the landing page and loads the necessary assets."
-  []
+  [& [init-vars]]
   (html5
-   (head)
+   (head init-vars)
    [:body
     (css-compiler)
     (loader)

@@ -1,7 +1,8 @@
 (ns bluegenes.events.auth
   (:require [re-frame.core :refer [reg-event-db reg-event-fx]]
             [bluegenes.effects :as fx]
-            [bluegenes.route :as route]))
+            [bluegenes.route :as route]
+            [imcljs.auth :as im-auth]))
 
 (reg-event-fx
  ::login
@@ -95,3 +96,37 @@
    (update-in db [:mines (:current-mine db) :auth] assoc
               :error? false
               :message nil)))
+
+(reg-event-fx
+ ::oauth2
+ (fn [{db :db} [_ provider]]
+   (let [current-mine (:current-mine db)
+         service (get-in db [:mines current-mine :service])]
+     {:db (update-in db [:mines current-mine :auth] assoc
+                     :error? false)
+      ::fx/http {:uri "/api/auth/oauth2authenticator"
+                 :method :post
+                 :on-success [::oauth2-success provider]
+                 :on-failure [::oauth2-failure]
+                 :on-unauthorised [::oauth2-failure]
+                 :transit-params {:service (select-keys service [:root :token])
+                                  :mine-id (name current-mine)
+                                  :provider provider}}})))
+
+(defn get-origin []
+  (let [loc (.-location js/window)]
+    (str (.-protocol loc) "//" (.-host loc))))
+
+(reg-event-fx
+ ::oauth2-success
+ (fn [{db :db} [_ provider link]]
+   {:external-redirect (str link "&redirect_uri="
+                            (js/encodeURIComponent (str (get-origin) "/api/auth/oauth2callback"
+                                                        "?provider=" provider)))}))
+
+(reg-event-db
+ ::oauth2-failure
+ (fn [db [_ res]]
+   (update-in db [:mines (:current-mine db) :auth] assoc
+              :error? true
+              :message (get-in res [:body :error]))))

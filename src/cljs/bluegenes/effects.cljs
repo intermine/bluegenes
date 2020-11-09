@@ -330,3 +330,8 @@
    (.error js/console
            (str "bluegenes: " error-string)
            (clj->js data-map))))
+
+(reg-fx
+ :external-redirect
+ (fn [url]
+   (.assign js/window.location url)))
