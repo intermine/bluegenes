@@ -102,29 +102,30 @@
      [:path.path1
       {:d
        "M10 14v8h-4v-8h4zM16 6v16h-4v-16h4zM32 24v2h-32v-24h2v22h30zM22 10v12h-4v-12h4zM28 4v18h-4v-18h4z"}]]
-    [:symbol#icon-venn-disjunction
-     {:viewBox "0 -4 26 26"}
-     {:fill-rule "evenodd",
-      :fill "none",
-      :stroke-width "1",
-      :stroke "none"}
-     [:g#icon-list-disjunction
+    [:svg#icon-venn-disjunction
+     {:viewBox "-5 0 160 100"}
+     [:g#icon-venn-disjunction-g
       {:transform "translate(1.000000, 1.000000)"}
-      [:path.path1
-       {:fill-rule "nonzero",
-        :fill "#AAAAAA",
+      [:circle
+       {:stroke "black",
+        :fill "rgb(170,170,170)",
+        :stroke-width "5",
+        :cy "50",
+        :cx "50",
+        :r "50"}]
+      [:circle
+       {:stroke "black",
+        :fill "rgb(170,170,170)",
+        :stroke-width "5",
+        :cy "50",
+        :cx "100",
+        :r "50"}]
+      [:path#path-diff
+       {:stroke-width "5",
         :d
-        "M12,14.9297396 C10.8233059,15.6104216 9.4571477,16 8,16 C3.581728,16 0,12.418272 0,8 C0,3.581728 3.581728,0 8,0 C9.4571477,0 10.8233059,0.389578385 12,1.07026042 C13.1766941,0.389578385 14.5428523,0 16,0 C20.41824,0 24,3.581728 24,8 C24,12.418272 20.41824,16 16,16 C14.5428523,16 13.1766941,15.6104216 12,14.9297396 Z M12,14.9297396 C14.391204,13.5465002 16,10.9611243 16,8 C16,5.0388757 14.391204,2.45349982 12,1.07026042 C9.60879602,2.45349982 8,5.0388757 8,8 C8,10.9611243 9.60879602,13.5465002 12,14.9297396 Z"}]
-      [:path.path2
-       {:stroke-width "0.8",
-        :stroke "#000000",
-        :d
-        "M16,8 C16,12.418272 12.418272,16 8,16 C3.581728,16 0,12.418272 0,8 C0,3.581728 3.581728,0 8,0 C12.418272,0 16,3.581728 16,8"}]
-      [:path.path3
-       {:stroke-width "0.8",
-        :stroke "#000000",
-        :d
-        "M24,8 C24,12.418272 20.41824,16 16,16 C11.581728,16 8,12.418272 8,8 C8,3.581728 11.581728,0 16,0 C20.41824,0 24,3.581728 24,8"}]]]
+        "M 75.015625 6.7617188 A 50 50 0 0 0 50 50 A 50 50 0 0 0 74.984375 93.238281 A 50 50 0 0 0 100 50 A 50 50 0 0 0 75.015625 6.7617188 z ",
+        :fill "white",
+        :stroke "black"}]]]
 
     [:symbol#icon-user-times {:view-box "0 0 32 28"}
      [:title "user-times"]
@@ -136,43 +137,81 @@
      [:path {:d
              "M17.906 17.391c1.313-1.406 2.109-3.328 2.109-5.391 0-3.328-2.063-6.234-5.016-7.406v0.422c0 1.078-0.938 1.969-2.016 1.969h-1.969v2.016c0 0.563-0.469 0.984-1.031 0.984h-1.969v2.016h6c0.563 0 0.984 0.422 0.984 0.984v3h0.984c0.891 0 1.641 0.609 1.922 1.406zM11.016 19.922v-1.922c-1.078 0-2.016-0.938-2.016-2.016v-0.984l-4.781-4.781c-0.141 0.563-0.234 1.172-0.234 1.781 0 4.078 3.094 7.453 7.031 7.922zM12 2.016c5.531 0 9.984 4.453 9.984 9.984s-4.453 9.984-9.984 9.984-9.984-4.453-9.984-9.984 4.453-9.984 9.984-9.984z"}]]
 
-    [:symbol#icon-venn-combine
-     {:viewBox "0 -4 26 26"}
-     {:fill-rule "evenodd",
-      :fill "none",
-      :stroke-width "1",
-      :stroke "none"}
+    [:svg#icon-venn-combine
+     {:viewBox "-5 0 160 100"}
+     "\n{:fill-rule \"evenodd\",\n:fill \"none\",\n:stroke-width \"1\",:stroke \"none\"}\n"
      [:g#icon-venn-combine-g
       {:transform "translate(1.000000, 1.000000)"}
-      [:path.path1
-       {:fill-rule "nonzero",
-        :fill "#AAAAAA",
+      [:circle
+       {:stroke "black",
+        :fill "rgba(170,170,170,1)",
+        :stroke-width "5",
+        :cy "50",
+        :cx "50",
+        :r "50"}]
+      [:circle
+       {:stroke "black",
+        :fill "rgba(170,170,170,1)",
+        :stroke-width "5",
+        :cy "50",
+        :cx "100",
+        :r "50"}]
+      [:path#path-diff
+       {:stroke-width "5",
         :d
-        "M12,14.9297396 C10.8233059,15.6104216 9.4571477,16 8,16 C3.581728,16 0,12.418272 0,8 C0,3.581728 3.581728,0 8,0 C9.4571477,0 10.8233059,0.389578385 12,1.07026042 C13.1766941,0.389578385 14.5428523,0 16,0 C20.41824,0 24,3.581728 24,8 C24,12.418272 20.41824,16 16,16 C14.5428523,16 13.1766941,15.6104216 12,14.9297396 Z"}]
-      [:path.path2
-       {:stroke-width "0.8",
-        :stroke "#000000",
+        "M 75.015625 6.7617188 A 50 50 0 0 0 50 50 A 50 50 0 0 0 74.984375 93.238281 A 50 50 0 0 0 100 50 A 50 50 0 0 0 75.015625 6.7617188 z ",
+        :fill "rgba(170,170,170,1)",
+        :stroke "black"}]]]
+
+    [:svg#icon-venn-difference
+     {:viewBox "-5 0 160 100"}
+     [:g#icon-venn-difference-g
+      {:transform "translate(1.000000, 1.000000)"}
+      [:circle
+       {:stroke "black",
+        :fill "rgb(170,170,170)",
+        :stroke-width "5",
+        :cy "50",
+        :cx "50",
+        :r "50"}]
+      [:circle
+       {:stroke "black",
+        :fill "white",
+        :stroke-width "5",
+        :cy "50",
+        :cx "100",
+        :r "50"}]
+      [:path#path-diff
+       {:stroke-width "5",
         :d
-        "M12,14.9297396 C10.8233059,15.6104216 9.4571477,16 8,16 C3.581728,16 0,12.418272 0,8 C0,3.581728 3.581728,0 8,0 C9.4571477,0 10.8233059,0.389578385 12,1.07026042 C13.1766941,0.389578385 14.5428523,0 16,0 C20.41824,0 24,3.581728 24,8 C24,12.418272 20.41824,16 16,16 C14.5428523,16 13.1766941,15.6104216 12,14.9297396 Z"}]]]
+        "M 75.015625 6.7617188 A 50 50 0 0 0 50 50 A 50 50 0 0 0 74.984375 93.238281 A 50 50 0 0 0 100 50 A 50 50 0 0 0 75.015625 6.7617188 z ",
+        :fill "white",
+        :stroke "black"}]]]
 
-    [:symbol#icon-venn-difference
+    [:svg#icon-venn-intersection
      {:viewBox "-5 0 160 100"}
-     [:title "Subtract one list from another"]
-
-     [:circle.venn-full
-      {:r 50 :cx 50 :cy 50 :stroke-width 5 :fill "rgba(0,0,0,0.3)" :stroke "black"}]
-     [:circle.venn-hollow
-      {:r 50 :cx 100 :cy 50 :stroke-width 5 :fill "rgb(247,247,247)" :stroke "black"}]]
-
-    [:symbol#icon-venn-intersection
-     {:viewBox "-5 0 160 100"}
-
-     [:circle
-      {:r 50 :cx 50 :cy 50 :stroke-width 5 :fill "transparent" :stroke "black"}]
-     [:circle
-      {:r 50 :cx 100 :cy 50 :stroke-width 5 :fill "transparent" :stroke "black"}]
-
-     [:path {:d "M 75.015625 6.7617188 A 50 50 0 0 0 50 50 A 50 50 0 0 0 74.984375 93.238281 A 50 50 0 0 0 100 50 A 50 50 0 0 0 75.015625 6.7617188 z " :fill "rgb(170,170,170)" :stroke "black"}]]
+     [:g#icon-venn-intersection-g
+      {:transform "translate(1.000000, 1.000000)"}
+      [:circle
+       {:stroke "black",
+        :fill "white",
+        :stroke-width "5",
+        :cy "50",
+        :cx "50",
+        :r "50"}]
+      [:circle
+       {:stroke "black",
+        :fill "white",
+        :stroke-width "5",
+        :cy "50",
+        :cx "100",
+        :r "50"}]
+      [:path#path-diff
+       {:stroke-width "5",
+        :d
+        "M 75.015625 6.7617188 A 50 50 0 0 0 50 50 A 50 50 0 0 0 74.984375 93.238281 A 50 50 0 0 0 100 50 A 50 50 0 0 0 75.015625 6.7617188 z ",
+        :fill "rgba(170,170,170,1)",
+        :stroke "black"}]]]
 
     [:symbol#icon-floppy-disk
      {:viewBox "0 0 16 16"}
