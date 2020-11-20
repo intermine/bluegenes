@@ -55,6 +55,7 @@
 
 (defn ->report-table-settings [current-mine-name]
   {:pagination {:limit 5}
+   :compact true
    :links {:vocab {:mine (name (or current-mine-name ""))}
            :url (fn [{:keys [mine class objectId] :as vocab}]
                   (route/href ::route/report
