@@ -218,3 +218,13 @@
  (fn [admin [_ cat-index child-index state]]
    (to-child admin cat-index child-index :update
              assoc :collapse state)))
+
+(reg-event-db
+ ::child-set-description
+ (path root)
+ (fn [admin [_ cat-index child-index text]]
+   (if (seq text)
+     (to-child admin cat-index child-index :update
+               assoc :description text)
+     (to-child admin cat-index child-index :update
+               dissoc :description))))

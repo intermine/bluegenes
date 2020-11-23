@@ -33,29 +33,61 @@
                     [:option {:disabled true :role "separator"} "─────────────────────────"]))
                 (concat [[:separator]] preferred [[:separator]] classes)))]))
 
-(defn report-layout-child [[category-index child-index] {:keys [label type collapse]}]
-  (let [dispatch-idx (fn [[evt & args]]
-                       (dispatch (into [evt category-index child-index] args)))]
-    [:li.class-entry
-     [:div
-      [:span label]
-      [:span.type type]]
-     [:div.btn-group-sm.class-options
-      [:button.btn.btn-default.btn-fab
-       {:on-click #(dispatch-idx [::events/child-set-collapse (not collapse)])}
-       [poppable {:data [:span (if collapse
-                                 "Header will be visible but content needs to be toggled to show"
-                                 "Header and content will be visible")]
-                  :children [icon (if collapse "eye-blocked" "eye") 2]}]]
-      [:button.btn.btn-default.btn-fab
-       {:on-click #(dispatch-idx [::events/child-move-up])}
-       [icon "move-up-list" 2]]
-      [:button.btn.btn-default.btn-fab
-       {:on-click #(dispatch-idx [::events/child-move-down])}
-       [icon "move-down-list" 2]]
-      [:button.btn.btn-default.btn-fab
-       {:on-click #(dispatch-idx [::events/child-remove])}
-       [icon "remove-list" 2]]]]))
+(defn report-layout-child [_ {:keys [description]}]
+  (let [edit-description* (reagent/atom false)
+        description* (reagent/atom (or description ""))]
+    (fn [[category-index child-index] {:keys [label type collapse description]}]
+      (let [dispatch-idx (fn [[evt & args]]
+                           (dispatch (into [evt category-index child-index] args)))]
+        [:<>
+         [:li.class-entry
+          [:div
+           [:span label]
+           [:span.type type]]
+          [:div.btn-group-sm.class-options
+           [:button.btn.btn-default.btn-fab
+            {:on-click (fn [_evt]
+                         (swap! edit-description* not)
+                         (reset! description* description))}
+            [poppable {:data [:span (if (seq description)
+                                      "Edit the description that can be viewed from header"
+                                      "Add a description that can be viewed from header")]
+                       :children [icon "info" 2 (when (seq description) [:enabled-icon])]}]]
+           [:button.btn.btn-default.btn-fab
+            {:on-click #(dispatch-idx [::events/child-set-collapse (not collapse)])}
+            [poppable {:data [:span (if collapse
+                                      "Header will be visible but content needs to be toggled to show"
+                                      "Header and content will be visible")]
+                       :children [icon (if collapse "eye-blocked" "eye") 2 (when-not collapse [:enabled-icon])]}]]
+           [:button.btn.btn-default.btn-fab
+            {:on-click #(dispatch-idx [::events/child-move-up])}
+            [icon "move-up-list" 2]]
+           [:button.btn.btn-default.btn-fab
+            {:on-click #(dispatch-idx [::events/child-move-down])}
+            [icon "move-down-list" 2]]
+           [:button.btn.btn-default.btn-fab
+            {:on-click #(dispatch-idx [::events/child-remove])}
+            [icon "remove-list" 2]]]]
+         (when @edit-description*
+           [:div
+            [:textarea.form-control.class-description
+             {:rows 2
+              :autoFocus true
+              :placeholder (str "Describe the contents of this " type " (markdown supported).")
+              :value @description*
+              :on-change #(reset! description* (oget % :target :value))}]
+            [:div.btn-group.btn-group-lg
+             [:button.btn.btn-primary.btn-raised.btn-sm
+              {:on-click (fn [_evt]
+                           (dispatch-idx [::events/child-set-description @description*])
+                           (reset! edit-description* false))}
+              "Save"]
+             [:button.btn.btn-default.btn-raised.btn-sm
+              {:on-click (fn [_evt]
+                           (dispatch-idx [::events/child-set-description nil])
+                           (reset! description* "")
+                           (reset! edit-description* false))}
+              "Clear"]]])]))))
 
 (defn report-layout-category []
   (let [cat-class (subscribe [::subs/categorize-class])
