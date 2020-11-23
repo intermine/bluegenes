@@ -241,3 +241,9 @@
                                        [:span subpart])
                                      (string/split part #"<-+"))))
                    (string/split s #"-+>")))))
+
+(defn clean-tool-name
+  "Most tools have a name starting with 'BlueGenes' which is frankly not very
+  useful, so we remove it."
+  [human-name]
+  (string/replace human-name #"(?i)^bluegenes\s*" ""))

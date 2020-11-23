@@ -9,7 +9,8 @@
             [goog.fx.dom :as gfx]
             [goog.fx.easing :as geasing]
             [goog.style :as gstyle]
-            [oops.core :refer [ocall oget]]))
+            [oops.core :refer [ocall oget]]
+            [bluegenes.utils :refer [clean-tool-name]]))
 
 (defn scroll-into-view! [id & [parent-id]]
   ;; If the table's parent section is collapsed, we scroll to the parent instead.
@@ -72,6 +73,7 @@
                                   ;; reason, we get the displayName from the ref/coll.
                                   :let [label (case type
                                                 "class" (:displayName @(subscribe [::subs/a-ref+coll value]))
+                                                "tool" (clean-tool-name label)
                                                 label)]]
                               [:a {:on-click #(scroll-into-view! (str id) (str parent-id))
                                    :class (when (= active-toc (str id)) :active)}
