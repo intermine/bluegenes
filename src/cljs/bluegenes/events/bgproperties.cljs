@@ -1,5 +1,5 @@
 (ns bluegenes.events.bgproperties
-  (:require [re-frame.core :refer [reg-event-db reg-event-fx]]
+  (:require [re-frame.core :refer [reg-event-db reg-event-fx reg-fx]]
             [imcljs.fetch :as fetch]
             [imcljs.save :as save]
             [cljs.reader :as reader]
@@ -80,13 +80,23 @@
                 ;; Older mines don't have this webservice, so no errors, no worries!
                 :on-failure [:assets/success-fetch-bg-properties current-mine]}})))
 
-(reg-event-db
+;; The below effect reassures any mine admin paying attention to the CORS
+;; errors in the browser console. Older mines without `/bluegenes-properties`
+;; respond with a 302 redirect to `Location /{mine}/begin.do;jsessionid=XXXX`.
+;; Luckily the only side-effect of this is the logged CORS and failed requests.
+(reg-fx
+ ::bg-properties-missing
+ (fn [{:keys [mine-kw]}]
+   (.warn js/console
+          (str "BlueGenes Warning: " (name mine-kw) " is running an older InterMine version without the `/bluegenes-properties` web service. Some features may be missing (more details are displayed on the affected pages). You may see CORS errors and failed requests in the browser console, but these can be safely ignored."))))
+
+(reg-event-fx
  :assets/success-fetch-bg-properties
- (fn [db [_ mine-kw bg-properties]]
+ (fn [{db :db} [_ mine-kw bg-properties]]
    (if bg-properties ; Nil when webservice isn't present.
-     (-> db
-         ;; We read stuff from our mine.
-         (update-in [:mines mine-kw] merge (bg-properties-to-bluegenes bg-properties))
-         ;; And compare stuff from our assets.
-         (assoc-in [:assets :bg-properties mine-kw] bg-properties))
-     db)))
+     {:db (-> db
+              ;; We read stuff from our mine.
+              (update-in [:mines mine-kw] merge (bg-properties-to-bluegenes bg-properties))
+              ;; And compare stuff from our assets.
+              (assoc-in [:assets :bg-properties mine-kw] bg-properties))}
+     {::bg-properties-missing {:mine-kw mine-kw}})))
