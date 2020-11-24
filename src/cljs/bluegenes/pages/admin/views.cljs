@@ -88,6 +88,11 @@
               "Save"]
              [:button.btn.btn-default.btn-raised.btn-sm
               {:on-click (fn [_evt]
+                           (reset! edit-description* false)
+                           (reset! description* description))}
+              "Cancel"]
+             [:button.btn.btn-warning.btn-raised.btn-sm
+              {:on-click (fn [_evt]
                            (dispatch-idx [::events/child-set-description nil])
                            (reset! description* "")
                            (reset! edit-description* false))}
