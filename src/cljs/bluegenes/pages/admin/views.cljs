@@ -145,7 +145,7 @@
                          (.stopPropagation e)
                          (dispatch [::events/category-move-down category-index]))}
             "Move down"]
-           [:button.btn.btn-default.btn-raised.btn-xs
+           [:button.btn.btn-danger.btn-raised.btn-xs
             {:on-click (fn [e]
                          (.stopPropagation e)
                          (dispatch [::events/category-remove category-index]))}
@@ -217,7 +217,8 @@
 
 (defn report-layout []
   (let [bg-properties-support? @(subscribe [:bg-properties-support?])
-        response @(subscribe [::subs/responses :report-layout])]
+        response @(subscribe [::subs/responses :report-layout])
+        dirty? @(subscribe [::subs/dirty?])]
     [:div.well.well-lg
      [:h3 "Report page layout"]
      [:p "Create categories containing classes (references/collections in the model), tools (visualizations) and/or runnable templates " [runnable-templates-tooltip] ", to be used to determine the layout of report pages. You can create a " [:strong "default"] " layout that applies to all report pages, and fine-tune the layout for " [:strong "class-specific"] " report pages (e.g. for class " [:em "Gene"] ")."]
@@ -230,6 +231,8 @@
       [:button.btn.btn-primary.btn-raised
        {:on-click #(dispatch [::events/save-layout bg-properties-support?])}
        "Save changes"]
+      (when dirty?
+        [:p.failure "You have unsaved changes!"])
       (when-let [{:keys [type message]} response]
         [:p {:class type} message])]]))
 

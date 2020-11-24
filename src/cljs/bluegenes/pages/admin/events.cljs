@@ -14,7 +14,8 @@
    (let [persisted-cats (get-in db [:mines (:current-mine db) :report-layout])]
      (-> db
          (update-in root dissoc :responses)
-         (assoc-in (concat root [:categories]) persisted-cats)))))
+         (assoc-in (concat root [:categories]) persisted-cats)
+         (assoc-in (concat root [:clean-hash]) (hash persisted-cats))))))
 
 (reg-event-db
  ::set-categorize-class
@@ -51,10 +52,13 @@
  (fn [{db :db} [_ bg-properties-support?]]
    (let [categories (get-in db (concat root [:categories]))]
      (if bg-properties-support?
-       {:dispatch [:property/save :layout.report (export-categories categories)
+       {:db (assoc-in db (concat root [:clean-hash]) (hash categories))
+        :dispatch [:property/save :layout.report (export-categories categories)
                    {:on-success [::save-layout-success]
                     :on-failure [::save-layout-failure]}]}
-       {:db (assoc-in db [:mines (:current-mine db) :report-layout] categories)}))))
+       {:db (-> db
+                (assoc-in (concat root [:clean-hash]) (hash categories))
+                (assoc-in [:mines (:current-mine db) :report-layout] categories))}))))
 
 (reg-event-db
  ::save-layout-success

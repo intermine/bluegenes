@@ -36,6 +36,12 @@
    (:new-category admin)))
 
 (reg-sub
+ ::dirty?
+ :<- [::root]
+ (fn [admin]
+   (not= (:clean-hash admin) (hash (:categories admin)))))
+
+(reg-sub
  ::available-tool-names
  :<- [:bluegenes.components.tools.subs/installed-tools]
  :<- [:model]
