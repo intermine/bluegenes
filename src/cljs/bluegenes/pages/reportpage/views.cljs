@@ -3,7 +3,7 @@
             [reagent.core :as r]
             [bluegenes.pages.reportpage.components.toc :as toc]
             [bluegenes.pages.reportpage.components.sidebar :as sidebar]
-            [bluegenes.pages.reportpage.utils :as utils]
+            [bluegenes.pages.reportpage.utils :as utils :refer [description-dropdown]]
             #_[bluegenes.components.table :as table]
             [bluegenes.components.lighttable :as lighttable]
             [bluegenes.components.loader :refer [loader]]
@@ -26,7 +26,7 @@
                              (let [{:keys [loc] :as props} (r/props this)]
                                (when-not @is-collapsed*
                                  (dispatch [:im-tables/load loc (dissoc props :loc)]))))
-      :reagent-render (fn [{:keys [loc title id] :as props}]
+      :reagent-render (fn [{:keys [loc title id description] :as props}]
                         ;; result-count will be `nil` if query hasn't been loaded.
                         (let [result-count (get-in @data [:response :iTotalRecords])]
                           [:div.report-item
@@ -41,7 +41,9 @@
                                          (when (and (nil? result-count) @is-collapsed*)
                                            (dispatch [:im-tables/load loc (dissoc props :loc)]))
                                          (swap! is-collapsed* not))}
-                            (str title (when result-count (str " (" result-count ")")))
+                            [:span.report-item-title
+                             (str title (when result-count (str " (" result-count ")")))
+                             (when description [description-dropdown description])]
                             (when ((some-fn nil? pos?) result-count)
                               [:span.report-item-toggle
                                (if @is-collapsed*
@@ -63,13 +65,14 @@
                                :type class
                                :id objectId}))}})
 
-(defn tool-report [{:keys [collapse id] tool-cljs-name :value}]
+(defn tool-report [{:keys [collapse id description] tool-cljs-name :value}]
   (let [tool-details @(subscribe [::subs/a-tool tool-cljs-name])]
     [tools/tool tool-details
      :collapse collapse
-     :id id]))
+     :id id
+     :description description]))
 
-(defn template-report [{:keys [id collapse] template-name :value}]
+(defn template-report [{:keys [id collapse description] template-name :value}]
   (let [summary-fields @(subscribe [:current-summary-fields])
         service (:service @(subscribe [:current-mine]))
         current-mine-name @(subscribe [:current-mine-name])
@@ -78,11 +81,12 @@
           :service (merge service {:summary-fields summary-fields})
           :title title
           :collapse collapse
+          :description description
           :query template
           :settings (->report-table-settings current-mine-name)
           :id id}]))
 
-(defn class-report [{:keys [id collapse] referencedType :value}]
+(defn class-report [{:keys [id collapse description] referencedType :value}]
   (let [{object-type :type object-id :id} @(subscribe [:panel-params])
         summary-fields @(subscribe [:current-summary-fields])
         service (:service @(subscribe [:current-mine]))
@@ -92,6 +96,7 @@
           :service (merge service {:summary-fields summary-fields})
           :title displayName
           :collapse collapse
+          :description description
           :query (utils/->query-ref+coll summary-fields object-type object-id ref+coll)
           :settings (->report-table-settings current-mine-name)
           :id id}]))
@@ -133,7 +138,7 @@
           :id id}
          [:div
           (doall
-           (for [{:keys [_label _value type _collapse id] :as child} children
+           (for [{:keys [_label _value type _collapse _description id] :as child} children
                  :let [report-comp (case type
                                      "class"    class-report
                                      "template" template-report

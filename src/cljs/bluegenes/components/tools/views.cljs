@@ -6,7 +6,8 @@
             [clojure.string :as str]
             [bluegenes.components.icons :refer [icon]]
             [bluegenes.components.bootstrap :refer [poppable]]
-            [bluegenes.utils :refer [clean-tool-name]]))
+            [bluegenes.utils :refer [clean-tool-name]]
+            [bluegenes.pages.reportpage.utils :refer [description-dropdown]]))
 
 ;; The following component may be used by itself to display one tool.
 (defn tool [{{:keys [cljs]} :names :as tool-details} & {:keys [collapse id]}]
@@ -19,7 +20,7 @@
     (when-not (or collapse @collapsed-tool?)
       (dispatch [::events/init-tool tool-details (str id "-" cljs)]))
 
-    (fn [{{:keys [cljs human]} :names :as tool-details} & {:keys [collapse id]}]
+    (fn [{{:keys [cljs human]} :names :as tool-details} & {:keys [collapse id description]}]
       (let [collapsed? (or @collapsed-tool?
                            (and (not @override-collapse*)
                                 collapse))]
@@ -41,6 +42,7 @@
                        (reset! override-collapse* true))}
           [:span.report-item-title
            (clean-tool-name human)
+           (when description [description-dropdown description])
            [poppable {:data [:span "This is a visualization and may take longer to load. If you click to collapse, it will stay hidden on all pages until you expand it again."]
                       :children [icon "bar-chart"]}]]
           [:span.report-item-toggle

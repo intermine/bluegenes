@@ -1,7 +1,10 @@
 (ns bluegenes.pages.reportpage.utils
   (:require [clojure.string :as str]
             [imcljs.path :as im-path]
-            [bluegenes.pages.admin.events :refer [new-category new-child]]))
+            [bluegenes.pages.admin.events :refer [new-category new-child]]
+            [bluegenes.components.bootstrap :refer [poppable]]
+            [bluegenes.utils :refer [md-element]]
+            [bluegenes.components.icons :refer [icon]]))
 
 ;; We have a special section that we prepend to all report pages. To keep
 ;; things consistent and easy to change, we only define its properties below.
@@ -111,3 +114,19 @@
                                 :children into (map new-child classes)))
     (seq templates) (conj (update (new-category "Templates")
                                   :children into (map new-child templates)))))
+
+(defn description-dropdown
+  "Dropdown and poppable element for use inside a report item heading to show a
+  markdown description."
+  [text]
+  [:span.dropdown
+   [:a.dropdown-toggle
+    {:data-toggle "dropdown"
+     :role "button"
+     :on-click #(.stopPropagation %)}
+    [poppable {:data (md-element text)
+               :children [icon "info"]}]]
+   [:div.dropdown-menu.report-item-description
+    [:form {:on-submit #(.preventDefault %)
+            :on-click #(.stopPropagation %)}
+     (md-element text)]]])

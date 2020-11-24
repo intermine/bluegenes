@@ -1,20 +1,36 @@
 (ns bluegenes.utils
   (:require [clojure.string :as string]
             [clojure.data.xml :as xml]
+            [clojure.walk :as walk]
             [imcljs.query :as im-query]
             [bluegenes.version :as version]
             [bluegenes.components.icons :refer [icon]]
             [markdown-to-hiccup.core :as md]))
 
+(defn hiccup-anchors-newtab
+  "Add target=_blank to all anchor elements, so all links open in new tabs."
+  [hiccup]
+  (walk/postwalk (fn [e] (if (and (map? e) (contains? e :href))
+                           (assoc e :target "_blank")
+                           e))
+                 hiccup))
+
 (defn md-paragraph
   "Returns the `[:p]` hiccup for a specified markdown string paragraph.
   Usage:
-      [:div (parse-markdown \"Foo *bar* [baz](http://baz.com)\")]
+      [:div (md-paragraph \"Foo *bar* [baz](http://baz.com)\")]
   Note that only the first paragraph in the markdown string will be parsed;
   any other elements before or after will be ignored, and so will any proceeding
   paragraphs."
   [md-string]
-  (some-> md-string md/md->hiccup md/component (md/hiccup-in :div :p)))
+  (->> (some-> md-string md/md->hiccup md/component (md/hiccup-in :div :p))
+       (hiccup-anchors-newtab)))
+
+(defn md-element
+  "Returns hiccup for a specified markdown string, with a containing div."
+  [md-string]
+  (->> (some-> md-string md/md->hiccup md/component)
+       (hiccup-anchors-newtab)))
 
 ;; Please do not use this for model classes. You can get results like:
 ;;     "ThreePrimeUTR" -> "Three primeutr"
