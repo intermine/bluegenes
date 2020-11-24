@@ -6,7 +6,8 @@
             [bluegenes.pages.querybuilder.views :refer [sort-classes filter-preferred]]
             [bluegenes.components.icons :refer [icon]]
             [oops.core :refer [oget ocall]]
-            [bluegenes.components.bootstrap :refer [poppable]]))
+            [bluegenes.components.bootstrap :refer [poppable]]
+            [bluegenes.utils :refer [md-element]]))
 
 (defn on-enter [f]
   (fn [e]
@@ -35,7 +36,8 @@
 
 (defn report-layout-child [_ {:keys [description]}]
   (let [edit-description* (reagent/atom false)
-        description* (reagent/atom (or description ""))]
+        description* (reagent/atom (or description ""))
+        show-preview* (reagent/atom false)]
     (fn [[category-index child-index] {:keys [label type collapse description]}]
       (let [dispatch-idx (fn [[evt & args]]
                            (dispatch (into [evt category-index child-index] args)))]
@@ -70,6 +72,8 @@
             [icon "remove-list" 2]]]]
          (when @edit-description*
            [:div
+            (when @show-preview*
+              [md-element @description*])
             [:textarea.form-control.class-description
              {:rows 2
               :autoFocus true
@@ -87,7 +91,13 @@
                            (dispatch-idx [::events/child-set-description nil])
                            (reset! description* "")
                            (reset! edit-description* false))}
-              "Clear"]]])]))))
+              "Clear"]
+             [:label.description-preview-checkbox
+              [:input
+               {:type "checkbox"
+                :checked @show-preview*
+                :on-change #(swap! show-preview* not)}]
+              "Show preview"]]])]))))
 
 (defn report-layout-category []
   (let [cat-class (subscribe [::subs/categorize-class])
