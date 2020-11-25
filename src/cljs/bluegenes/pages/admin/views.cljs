@@ -246,9 +246,10 @@
       [:button.btn.btn-primary.btn-raised
        {:on-click #(dispatch [::events/save-layout bg-properties-support?])}
        "Save changes"]
-      (when dirty?
-        [:p.failure "You have unsaved changes!"])
-      (when-let [{:keys [type message]} response]
+      (when-let [{:keys [type message]} (if dirty?
+                                          {:type "failure"
+                                           :message "You have unsaved changes!"}
+                                          response)]
         [:p {:class type} message])]]))
 
 (defn main []
