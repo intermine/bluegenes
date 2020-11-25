@@ -168,29 +168,29 @@
        (when @active*
          [:ul.classes
           (concat
-            (for [[i child] (map-indexed vector children)]
-              ^{:key (:id child)}
-              [report-layout-child [category-index i] child])
-            [[:li.add-child
-              {:key "addchild"}
-              [:div.full-width
-               [:> js/Select
-                {:placeholder "Available classes, tools and templates"
-                 :isMulti true
-                 :ref #(when % (reset! select-ref* %))
-                 :options [{:label "Classes"
-                            :options @available-classes}
-                           {:label "Tools"
-                            :options @available-tools}
-                           {:label "Templates"
-                            :options @available-templates}]}]]
-              [:div.btn-group-sm
-               [:button.btn.btn-default.btn-fab
-                {:on-click #(when-let [select-elem @select-ref*]
-                              (when-let [children (seq (js->clj (oget select-elem :state :value) :keywordize-keys true))]
-                                (dispatch [::events/children-add category-index children])
-                                (ocall (oget select-elem :select) :clearValue)))}
-                [icon "plus"]]]]])])])))
+           (for [[i child] (map-indexed vector children)]
+             ^{:key (:id child)}
+             [report-layout-child [category-index i] child])
+           [[:li.add-child
+             {:key "addchild"}
+             [:div.full-width
+              [:> js/Select
+               {:placeholder "Available classes, tools and templates"
+                :isMulti true
+                :ref #(when % (reset! select-ref* %))
+                :options [{:label "Classes"
+                           :options @available-classes}
+                          {:label "Tools"
+                           :options @available-tools}
+                          {:label "Templates"
+                           :options @available-templates}]}]]
+             [:div.btn-group-sm
+              [:button.btn.btn-default.btn-fab
+               {:on-click #(when-let [select-elem @select-ref*]
+                             (when-let [children (seq (js->clj (oget select-elem :state :value) :keywordize-keys true))]
+                               (dispatch [::events/children-add category-index children])
+                               (ocall (oget select-elem :select) :clearValue)))}
+               [icon "plus"]]]]])])])))
 
 (defn report-layout-selector []
   (let [categories (subscribe [::subs/categories])
@@ -202,24 +202,24 @@
          [:em "Click on a category to expand/collapse its children"])
        [:ul.nav.nav-pills.nav-stacked
         (concat
-          (for [[i category] (map-indexed vector @categories)]
-            ^{:key (:id category)}
-            [report-layout-category i category])
-          [[:li.add-category.input-group-sm
-            {:key "addcat"}
-            [:input.form-control.input-sm
-             {:ref #(when % (reset! input-ref* %))
-              :placeholder "New category"
-              :on-change #(dispatch [::events/set-new-category (oget % :target :value)])
-              :on-key-press (on-enter
-                              #(do (dispatch [::events/category-add @new-category])
-                                   (some-> @input-ref* .focus)))
-              :value @new-category}]
-            [:button.btn.btn-default.btn-raised.btn-xs
-             {:on-click #(do (dispatch [::events/category-add @new-category])
-                             (some-> @input-ref* .focus))
-              :disabled (empty? @new-category)}
-             "Add category"]]])]])))
+         (for [[i category] (map-indexed vector @categories)]
+           ^{:key (:id category)}
+           [report-layout-category i category])
+         [[:li.add-category.input-group-sm
+           {:key "addcat"}
+           [:input.form-control.input-sm
+            {:ref #(when % (reset! input-ref* %))
+             :placeholder "New category"
+             :on-change #(dispatch [::events/set-new-category (oget % :target :value)])
+             :on-key-press (on-enter
+                            #(do (dispatch [::events/category-add @new-category])
+                                 (some-> @input-ref* .focus)))
+             :value @new-category}]
+           [:button.btn.btn-default.btn-raised.btn-xs
+            {:on-click #(do (dispatch [::events/category-add @new-category])
+                            (some-> @input-ref* .focus))
+             :disabled (empty? @new-category)}
+            "Add category"]]])]])))
 
 (defn runnable-templates-tooltip []
   [poppable {:data [:div

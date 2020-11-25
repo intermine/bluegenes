@@ -71,9 +71,9 @@
                                                                       ;; class is an optional argument; we won't filter by it
                                                                       ;; if the caller wants templates regardless of class.
                                                                       (if class
-                                                                          (= class
-                                                                             (name (im-path/class (assoc model :type-constraints where) path)))
-                                                                          true)
+                                                                        (= class
+                                                                           (name (im-path/class (assoc model :type-constraints where) path)))
+                                                                        true)
                                                                       (= editable true))
                                                              idx))
                                                          where))]

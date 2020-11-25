@@ -106,8 +106,8 @@
  :<- [:templates]
  (fn [[model params templates] [_ template-name]]
    (let [{object-type :type object-id :id} params]
-       (->> (get templates (keyword template-name))
-            (utils/init-template model object-type object-id)))))
+     (->> (get templates (keyword template-name))
+          (utils/init-template model object-type object-id)))))
 
 (reg-sub
  ::a-tool

@@ -165,21 +165,21 @@
       [:div.container-fluid.results
        (if @are-there-results?
          [:div.row
-           [:div.col-sm-3.col-lg-2
-            [query-history]
-            [:div.hidden-lg
-             [enrichment/enrich]]]
-           [:div.col-sm-9.col-lg-7
-            [:h2.results-heading "Query Results"]
-            [back-button]
-            ;; Query details is only interesting if it's a saved list.
-            (when (= @intent :list)
-              [query-details])
-            [:div.results-table
-             [tables/main [:results :table]]]
-            [viz/main]
-            [:div
-             [tools/main]]]
-           [:div.col-sm-3.visible-lg-block
+          [:div.col-sm-3.col-lg-2
+           [query-history]
+           [:div.hidden-lg
             [enrichment/enrich]]]
+          [:div.col-sm-9.col-lg-7
+           [:h2.results-heading "Query Results"]
+           [back-button]
+            ;; Query details is only interesting if it's a saved list.
+           (when (= @intent :list)
+             [query-details])
+           [:div.results-table
+            [tables/main [:results :table]]]
+           [viz/main]
+           [:div
+            [tools/main]]]
+          [:div.col-sm-3.visible-lg-block
+           [enrichment/enrich]]]
          [no-results])])))

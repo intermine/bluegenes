@@ -30,9 +30,9 @@
   (let [lists @(subscribe [::subs/report-lists])
         {:keys [rootClass]} @(subscribe [::subs/report-summary])]
     [entry (merge
-             {:title "Lists"}
-             (when (empty? lists)
-               {:error (str "This " rootClass " isn't in any lists.")}))
+            {:title "Lists"}
+            (when (empty? lists)
+              {:error (str "This " rootClass " isn't in any lists.")}))
      (doall
       (for [{:keys [title size id description]} lists]
         ^{:key id}
@@ -45,9 +45,9 @@
   (let [sources @(subscribe [::subs/report-sources])
         {:keys [rootClass]} @(subscribe [::subs/report-summary])]
     [entry (merge
-             {:title "Data sources"}
-             (when (empty? sources)
-               {:error (str "No data sources available for this " rootClass ".")}))
+            {:title "Data sources"}
+            (when (empty? sources)
+              {:error (str "No data sources available for this " rootClass ".")}))
      (doall
       (for [{:keys [description url name id]} sources]
         ^{:key id}
