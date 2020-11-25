@@ -1,0 +1,353 @@
+@import "../variables";
+@import "../datatype-colors";
+
+.report-page {
+    // You can adjust the sizing and spacing by only changing this, as they're
+    // all relative. The original font size in the design was 1em.
+    font-size: 1em;
+
+    margin-top: @spacer*2;
+    margin-bottom: @spacer*4;
+
+    width: 100%;
+    max-width: 1800px;
+    padding-left: 0;
+
+    &-heading {
+        font-weight: 500;
+        margin: 0;
+        margin-bottom: -@spacer/2;
+    }
+
+    code.start {
+        // For long types like `ChromosomalDuplication`
+        overflow-wrap: break-word;
+
+        color: inherit;
+        background-color: @color-Nuffink;
+
+        margin-left: @spacer/2;
+
+        // If only we had CSS-in-JS [;
+        // Actually, I do think if we want to do this well, (including
+        // the 3 other places this is used) we should use inline style.
+        &.start-Gene {
+            background-color: @color-Gene;
+            color: #fff;
+        }
+        &.start-Protein {
+            background-color: @color-Protein;
+        }
+        &.start-Author,
+        &.start-Publication {
+            background-color: @color-Publication;
+        }
+        &.start-Organism {
+            background-color: @color-Organism;
+        }
+        &.start-Interaction {
+            background-color: @color-Interaction;
+        }
+        &.start-GOTerm {
+            background-color: @color-GO;
+            color: #fff;
+        }
+    }
+
+    // We need this so the cols occupy the full height (equal to the tallest
+    // col) such that side elements may be sticky.
+    .report-row {
+        display: flex;
+        flex-flow: row wrap;
+    }
+}
+
+.report-page .report-table {
+    margin-top: @spacer*3.5;
+
+    &-heading {
+        margin-bottom: 0;
+        padding-bottom: @spacer/4;
+        border-bottom: 3px solid @extra-color-background;
+        color: @extra-color-background;
+        cursor: pointer;
+    }
+
+    &-body {
+        font-size: 1.2em;
+        display: table;
+        width: 100%;
+    }
+
+    &-row {
+        display: table-row;
+
+        &:nth-child(2n-1) {
+            background-color: @content-color-background;
+        }
+    }
+
+    &-cell {
+        display: table-cell;
+        padding: @spacer/2 @spacer;
+        font-weight: 400;
+    }
+
+    &-link {
+        color: @highlight-color;
+        text-decoration: underline;
+        cursor: pointer;
+    }
+
+    &-header {
+        font-weight: 300;
+    }
+
+    .collapse-table {
+        font-size: 1.4em;
+        outline: 0 !important;
+
+        &,
+        .icon {
+            margin: 0;
+            padding: 0;
+        }
+
+        .icon {
+            fill: @extra-color-background;
+            transition: transform 0.2s ease-in-out 0s;
+
+            &.collapsed {
+                transform: rotate(180deg);
+            }
+        }
+    }
+}
+
+.report-page .fasta-value {
+    display: flex;
+    justify-content: space-between;
+
+    .fasta-button .icon {
+        margin: 0;
+    }
+
+    .fasta-dropdown {
+        padding: 0;
+    }
+
+    .fasta-sequence {
+        background-color: @content-color-background;
+        overflow: auto;
+        width: 400px;
+        height: 200px;
+        resize: both;
+        margin: 0;
+    }
+
+    .hidden-download {
+        display: none;
+    }
+
+    .fasta-download {
+        display: flex;
+        align-items: center;
+        color: @highlight-color;
+        fill: @highlight-color;
+        text-decoration: underline;
+
+        .icon {
+            margin: 0 @spacer/4 0 0;
+        }
+    }
+}
+
+.report-page .toc-hide-heading {
+    // Covers the TOC heading if scrolled to the top of the page, to avoid
+    // displaying the same heading in two places.
+    position: absolute;
+    top: 0;
+    width: 100%;
+    height: @spacer*3;
+    z-index: 100;
+    background-color: @body-background-color;
+}
+.report-page .toc-container {
+    font-size: 1.1em;
+    font-weight: 400;
+
+    padding-left: @spacer*2;
+
+    // Stick to top when scrolling past it.
+    position: sticky;
+    top: @spacer;
+    z-index: 10;
+
+    .toc-heading {
+        text-decoration: none;
+
+        .toc-title {
+            line-height: 1.4;
+            font-weight: 600;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+    }
+
+    .toc {
+        &, ul {
+            list-style-type: none;
+        }
+
+        & { padding-left: 0; }
+        ul { padding-left: @spacer*2; }
+
+        a {
+            font-weight: 300;
+
+            &.active {
+                font-weight: bold;
+                color: @extra-color-background;
+
+                transition: all 0.3s ease;
+
+                li {
+                    border-bottom-color: @extra-color-background;
+                }
+            }
+        }
+
+        li {
+            padding: @spacer/2 0;
+            border-bottom: 1px solid @light-contrast;
+        }
+    }
+}
+
+.report-page .sidebar {
+    margin-top: @spacer*2;
+
+    .sidebar-entry {
+        margin-bottom: @spacer*0.2;
+
+        h4 {
+            font-weight: 400;
+            padding: @spacer*0.6 @spacer*0.8;
+            color: @extra-color-text;
+            background-color: @extra-color-background;
+            border-bottom: 2px solid @light-contrast;
+            margin-bottom: 0;
+        }
+
+        p {
+            padding-left: @spacer;
+            margin-top: @spacer/2;
+            font-weight: 400;
+        }
+
+        ul {
+            list-style-type: none;
+            padding-left: @spacer;
+            overflow: hidden;
+        }
+
+        li {
+            padding: @spacer/2 0;
+            border-bottom: 1px solid @light-contrast;
+            position: relative;
+
+            a {
+                display: block;
+                font-weight: 400;
+                white-space: nowrap;
+
+                .fade-background {
+                    position: absolute;
+                    top: 0;
+                    right: 0;
+                    width: 6em;
+                    height: 100%;
+                    background-image: linear-gradient(to right, fadeout(@body-background-color, 100%), @body-background-color);
+                    display: flex;
+                    justify-content: flex-end;
+                    align-items: center;
+                }
+
+                .icon {
+                    margin: 0;
+                }
+            }
+        }
+
+        .show-more {
+            display: flex;
+            justify-content: center;
+
+            button {
+                font-size: 0.9em;
+                margin: 0;
+                padding: @spacer/4 @spacer/2;
+                color: @highlight-color;
+            }
+        }
+    }
+}
+
+// Not scoped to report-page as it's also used for tools on results page.
+.report-item {
+    margin: @spacer/2 0 @spacer*2 0;
+    border: 1px solid @visible-gray;
+    transition: margin-bottom 0.6s;
+    background-color: @content-color-background;
+
+    &-collapsed {
+        margin-bottom: 0;
+    }
+
+    &-no-results {
+        opacity: 0.2;
+    }
+
+    &-heading {
+        font-size: 1.2em;
+        padding: @spacer*0.7 @spacer;
+        margin: 0;
+        color: @extra-color-text;
+        background-color: @extra-color-background;
+        font-weight: 600;
+
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        cursor: pointer;
+    }
+
+    &-title {
+        fill: @extra-color-text;
+    }
+
+    &-description {
+        padding: @spacer/2 @spacer/2;
+        cursor: auto;
+        font-weight: normal;
+        line-height: @spacer*1.4;
+        min-width: 300px;
+
+        a {
+            color: @highlight-color;
+        }
+    }
+
+    &-toggle {
+        fill: @extra-color-text;
+    }
+
+    &-tool {
+        // Tools should decide themselves if they want padding.
+        // If this wasn't a good idea after all, uncomment!
+        // padding: @spacer*2 @spacer*2.4;
+        position: relative;
+        overflow: auto;
+    }
+}

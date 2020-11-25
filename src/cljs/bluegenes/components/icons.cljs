@@ -36,6 +36,18 @@
                  classes)}
    [:use {:xlinkHref (str "#icon-" icon-name)}]])
 
+(defn icon-comp
+  "Render the icon `icon-name` enlarged `enlarge` times with a vector of
+  class names `classes` appended."
+  [icon-name & {:keys [enlarge classes] :as props}]
+  [:svg.icon
+   (merge
+    (dissoc props :enlarge :classes)
+    {:class (into [(str "icon-" icon-name)
+                   (when (number? enlarge) (str "icon-" enlarge "x"))]
+                  classes)})
+   [:use {:xlinkHref (str "#icon-" icon-name)}]])
+
 (defn icons []
   [:svg
    {:version "1.1"
@@ -61,6 +73,14 @@
     [:symbol#icon-chevron-left {:view-box "0 0 14 32"}
      [:title "chevron-left"]
      [:path {:d "M14 10l-4-4-10 10 10 10 4-4-6-6 6-6z"}]]
+
+    [:symbol#icon-chevron-up
+     {:viewBox "0 0 34 34"}
+     [:path
+      {:d
+       "M10.4833 21.8167L17 15.3L23.5167 21.8167L25.5 19.8333L17 11.3333L8.5 19.8333L10.4833 21.8167Z",
+       :clip-rule "evenodd",
+       :fill-rule "evenodd"}]]
 
     [:symbol#icon-document-list {:view-box "0 0 32 32"}
      [:title "document-list"]
@@ -390,7 +410,6 @@
 
     [:symbol#icon-info
      {:view-box "0 0 16 16"}
-     [:title "info"]
      [:path.path1
       {:d
        "M7 4.75c0-0.412 0.338-0.75 0.75-0.75h0.5c0.412 0 0.75 0.338 0.75 0.75v0.5c0 0.412-0.338 0.75-0.75 0.75h-0.5c-0.412 0-0.75-0.338-0.75-0.75v-0.5z"}]

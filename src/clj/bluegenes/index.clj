@@ -48,9 +48,9 @@
    css-compiling-style
    [:title "InterMine 2.0 BlueGenes"]
    (include-css "https://cdnjs.cloudflare.com/ajax/libs/gridlex/2.2.0/gridlex.min.css")
-   (include-css "https://cdn.intermine.org/js/intermine/im-tables/2.0.0/main.sandboxed.css")
    (include-css "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css")
    (include-css "/css/site.css")
+   (include-css "/css/im-tables.css")
    (include-css "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css")
    (include-css "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css")
    ; Meta data:

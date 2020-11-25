@@ -6,6 +6,8 @@
             [bluegenes.events.auth]
             [bluegenes.events.registry]
             [bluegenes.events.blog]
+            [bluegenes.events.webproperties]
+            [bluegenes.events.bgproperties]
             [bluegenes.components.idresolver.events]
             [day8.re-frame.http-fx]
             [day8.re-frame.forward-events-fx]
@@ -34,7 +36,8 @@
 ;; If a requirement exists for the target panel, it will be called with the db
 ;; as argument and its return value decides whether the panel will be changed.
 (let [requirements
-      {:profile-panel #(map? (get-in % [:mines (:current-mine %) :auth :identity]))}]
+      {:profile-panel #(map? (get-in % [:mines (:current-mine %) :auth :identity]))
+       :admin-panel #(get-in % [:mines (:current-mine %) :auth :identity :superuser])}]
   ;; Change the main panel to a new view.
   (reg-event-fx
    :do-active-panel
@@ -49,11 +52,16 @@
                              :panel-params panel-params)}
            ;; Hide intro loader if this is the first panel change.
            (nil? (:active-panel db)) (assoc :hide-intro-loader nil)
+           ;; Ensure that `:fetching-report?` is set to true *before* the panel change.
+           (= active-panel :reportpage-panel) (assoc-in [:db :fetching-report?] true)
            ;; Dispatch any events paired with the panel change.
            evt (assoc :dispatch evt))
          {:dispatch-n [[::route/navigate ::route/home]
                        [:messages/add
-                        {:markup [:span "You need to be logged in to access this page."]
+                        {:markup (case active-panel
+                                   :profile-panel [:span "You need to be logged in to access this page."]
+                                   :admin-panel [:span "You need to be a superuser to access this page."]
+                                   [:span "You don't have access to this page."])
                          :style "warning"}]]})))))
 
 ; A buffer between booting and changing the view. We only change the view

@@ -17,6 +17,7 @@
             [bluegenes.pages.results.views :as results]
             [bluegenes.pages.regions.views :as regions]
             [bluegenes.pages.profile.views :as profile]
+            [bluegenes.pages.admin.views :as admin]
             [bluegenes.components.loader :as loader]))
 
 (enable-console-print!)
@@ -24,6 +25,7 @@
 (defn show-panel [panel-name]
   [(case panel-name
      :home-panel         home/main
+     :admin-panel        admin/main
      :profile-panel      profile/main
      :debug-panel        dev/debug-panel
      :templates-panel    templates/main
@@ -37,9 +39,13 @@
      home/main)])
 
 (defn main-panel []
-  (let [active-panel (re-frame/subscribe [:active-panel])]
+  (let [active-panel (subscribe [:active-panel])
+        main-color (subscribe [:branding/header-main])
+        text-color (subscribe [:branding/header-text])]
     (fn []
       [:div.approot
+       {:style {"--branding-header-main" @main-color
+                "--branding-header-text" @text-color}}
        [loader/mine-loader]
        [icons/icons]
        [nav/main]

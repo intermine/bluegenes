@@ -1,5 +1,5 @@
 (ns bluegenes.subs
-  (:require [re-frame.core :refer [reg-sub]]
+  (:require [re-frame.core :refer [reg-sub subscribe]]
             [bluegenes.pages.results.enrichment.subs]
             [clojure.string :refer [ends-with?]]
             [bluegenes.pages.querybuilder.subs]
@@ -123,18 +123,6 @@
  (fn [db _]
    (:fetching-report? db)))
 
-; TODO - This is used by the report page. There must be a better way.
-(reg-sub
- :runnable-templates
- (fn [db _]
-   (:templates (:report db))))
-
-; TODO - This is used by the report page. There must be a better way.
-(reg-sub
- :collections
- (fn [db _]
-   (:collections (:report db))))
-
 (reg-sub
  :model
  (fn [db _]
@@ -174,12 +162,6 @@
  (fn [db [_ class-kw]]
    (get-in db [:assets :summary-fields (:current-mine db)])))
 
-; TODO - This is used by the report page. There must be a better way.
-(reg-sub
- :report
- (fn [db _]
-   (:report db)))
-
 (reg-sub
  :progress-bar-percent
  (fn [db _]
@@ -211,6 +193,16 @@
  :<- [:current-mine]
  (fn [current-mine]
    (:credits current-mine)))
+
+(reg-sub
+ :current-mine/report-layout
+ (fn [[_ class]]
+   [(subscribe [:current-mine])
+    (subscribe [:bluegenes.pages.admin.subs/categories-fallback class])])
+ (fn [[current-mine fallback-layout] [_ class]]
+   (or (not-empty (get-in current-mine [:report-layout (some-> class name)]))
+       (not-empty (get-in current-mine [:report-layout :default]))
+       fallback-layout)))
 
 (reg-sub
  :current-mine-human-name
@@ -287,6 +279,12 @@
    (utils/compatible-version? version/list-tags-support current-version)))
 
 (reg-sub
+ :bg-properties-support?
+ :<- [:current-intermine-version]
+ (fn [current-version]
+   (utils/compatible-version? version/bg-properties-support current-version)))
+
+(reg-sub
  :show-mine-loader?
  (fn [db]
    (get db :show-mine-loader?)))
@@ -312,23 +310,40 @@
  (fn [[registry current-mine]]
    (not-empty (get-in registry [current-mine :maintainerEmail]))))
 
-;;;; Styling
+;;;; Branding
 
 (reg-sub
- :style/colors
- :<- [:registry]
- :<- [:current-mine-name]
- (fn [[registry current-mine]]
-   (get-in registry [current-mine :colors])))
+ :branding
+ :<- [:current-mine]
+ (fn [current-mine]
+   (get current-mine :branding)))
 
 (reg-sub
- :style/header-main
- :<- [:style/colors]
+ :branding/images
+ :<- [:branding]
+ (fn [branding]
+   (get branding :images)))
+
+(reg-sub
+ :branding/logo
+ :<- [:branding/images]
+ (fn [images]
+   (get images :logo)))
+
+(reg-sub
+ :branding/colors
+ :<- [:branding]
+ (fn [branding]
+   (get branding :colors)))
+
+(reg-sub
+ :branding/header-main
+ :<- [:branding/colors]
  (fn [colors]
    (get-in colors [:header :main])))
 
 (reg-sub
- :style/header-text
- :<- [:style/colors]
+ :branding/header-text
+ :<- [:branding/colors]
  (fn [colors]
    (get-in colors [:header :text])))

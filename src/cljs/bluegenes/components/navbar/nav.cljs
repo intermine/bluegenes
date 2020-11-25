@@ -16,20 +16,23 @@
   [details & {:keys [class]}]
   [:img
    {:class class
-    :src (or (get-in details [:images :logo])
-             (str (get-in details [:service :root]) logo-path))}])
+    :src (or (get-in details [:images :logo]) ; Path when it's from registry.
+             (get-in details [:branding :images :logo]) ; Path when it's the current mine.
+             (str (get-in details [:service :root]) logo-path))}]) ; Fallback path.
 
 (defn update-form [atom key evt]
   (swap! atom assoc key (oget evt :target :value)))
 
 (defn logged-in []
-  (let [identity (subscribe [:bluegenes.subs.auth/identity])]
+  (let [{:keys [username superuser]} @(subscribe [:bluegenes.subs.auth/identity])]
     [:li.logon.dropdown.success.primary-nav
      [:a.dropdown-toggle {:data-toggle "dropdown" :role "button"}
       [:svg.icon.icon-2x.icon-user-circle [:use {:xlinkHref "#icon-user-circle"}]]
       [:svg.icon.icon-caret-down [:use {:xlinkHref "#icon-caret-down"}]]]
      [:ul.dropdown-menu.profile-dropdown
-      [:li.email [:span (:username @identity)]]
+      [:li.email [:span username]]
+      (when superuser
+        [:li [:a {:href (route/href ::route/admin)} "Admin"]])
       [:li [:a {:href (route/href ::route/profile)} "Profile"]]
       [:li [:a {:on-click #(dispatch [:bluegenes.events.auth/logout])} "Logout"]]]]))
 
@@ -95,7 +98,7 @@
         [anonymous]))))
 
 (defn active-mine-logo [current-mine]
-  (let [logo    (get-in current-mine [:logo])
+  (let [logo    (get-in current-mine [:branding :images :logo])
         service (get-in current-mine [:service :root])]
     [:img.active-mine-image
      {:src (or logo (str service logo-path))}]))
@@ -166,8 +169,8 @@
 
 (defn main []
   (let [active-panel (subscribe [:active-panel])
-        main-color (subscribe [:style/header-main])
-        text-color (subscribe [:style/header-text])
+        main-color (subscribe [:branding/header-main])
+        text-color (subscribe [:branding/header-text])
         classes (fn [panel-key large-screen?]
                   [(when (= @active-panel panel-key) "active")
                    (when large-screen? "hidden-xs")])]

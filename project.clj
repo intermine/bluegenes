@@ -78,8 +78,8 @@
                  [cljsjs/vega-embed "6.0.0-0"]
 
                  ; Intermine Assets
-                 [org.intermine/im-tables "0.10.1"]
-                 [org.intermine/imcljs "1.2.0"]
+                 [org.intermine/im-tables "0.11.0"]
+                 [org.intermine/imcljs "1.3.0"]
                  [org.intermine/bluegenes-tool-store "0.2.0"]]
 
   :deploy-repositories {"clojars" {:sign-releases false}}
@@ -94,20 +94,22 @@
 
   :cljfmt {:indents {wait-for [[:inner 0]]}}
 
-  :aliases {"dev" ["do" "clean"
+  :aliases {"assets" ["run" "-m" "bluegenes.prep/prepare-assets"]
+            "dev" ["do" "clean," "assets,"
                    ["pdo"
                     ["shell" "make" "less"]
                     ["with-profile" "+repl" "run"]]]
-            "build" ["do" "clean"
+            "build" ["do" "clean," "assets,"
                      ["shell" "make" "less-prod"]
                      ["with-profile" "prod" "cljsbuild" "once" "min"]]
-            "prod" ["do" "build"
+            "prod" ["do" "build,"
                     ["with-profile" "prod" "run"]]
             "deploy" ["with-profile" "+uberjar" "deploy" "clojars"]
             "format" ["cljfmt" "fix"]
             "kaocha" ["with-profile" "kaocha" "run" "-m" "kaocha.runner"]
             "tools" ["run" "-m" "bluegenes-tool-store.tools"]
-            "less" ["shell" "make" "less"]}
+            "less" ["do" "assets,"
+                    ["shell" "make" "less"]]}
 
   :min-lein-version "2.8.1"
 

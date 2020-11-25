@@ -16,6 +16,12 @@
 ;; would cause updating and retrieving of tags set on lists to be buggy.
 (def list-tags-support "4.1.3")
 
+;; From this InterMine version, the `/bluegenes-properties` webservice was
+;; added to act as a generic key-value store for BlueGenes. Many new features
+;; depend on this and will show a useful warning with fallback behaviour if not
+;; available.
+(def bg-properties-support "5.0.0")
+
 ;;;; Version numbers you *might* want to change.
 
 ;; This is the current Tool API version. Increment this when you're forced to

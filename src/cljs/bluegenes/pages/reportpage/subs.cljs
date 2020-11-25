@@ -1,97 +1,53 @@
 (ns bluegenes.pages.reportpage.subs
-  (:require [re-frame.core :refer [reg-sub]]
+  (:require [re-frame.core :refer [reg-sub subscribe]]
             [imcljs.path :as im-path]
-            [clojure.string :as string]))
+            [clojure.string :as string]
+            [bluegenes.pages.reportpage.utils :as utils]
+            [bluegenes.components.tools.subs :as tools-subs]))
 
-(reg-sub ::a-table
-         (fn [db [_ location]]
-           (get-in db location)))
+(reg-sub
+ ::report
+ (fn [db]
+   (:report db)))
 
-(reg-sub ::current-mine
-         (fn [db]
-           (get db :current-mine)))
+(reg-sub
+ ::report-summary
+ :<- [::report]
+ (fn [report]
+   (:summary report)))
 
-(reg-sub ::templates
-         (fn [db]
-           (get-in db [:assets :templates])))
+(reg-sub
+ ::report-title
+ :<- [::report]
+ (fn [report]
+   (:title report)))
 
-(reg-sub ::current-templates
-         :<- [::current-mine]
-         :<- [::templates]
-         (fn [[current-mine current-templates]]
-           (get current-templates current-mine)))
+(reg-sub
+ ::report-lists
+ :<- [::report]
+ (fn [report]
+   (:lists report)))
 
-(comment
-  "::runnable-templates:
-   Some templates can automatically be run on a report page if they meet certain conditions.
-   1. They must have a single editable constraint
-   2. That single constraint must be of type LOOKUP
-   3. That single constraint must be backed by the same class as the item on the report page")
+(reg-sub
+ ::report-sources
+ :<- [::report]
+ (fn [report]
+   (:sources report)))
 
-(reg-sub ::runnable-templates
-         :<- [::current-templates]
-         :<- [:current-model]
-         :<- [:panel-params]
-         (fn [[current-templates current-model {report-item-type :type report-item-id :id}]]
-           ; Starting with all templates for the current mine...
-           (when (and current-templates current-model)
-             (->> current-templates
-                  ; Only keep ones that meet the following criteria (return something other than nil)
-                  (keep (fn [[template-kw {:keys [where tags] :as template-details}]]
+(reg-sub
+ ::report-active-toc
+ :<- [::report]
+ (fn [report]
+   (:active-toc report)))
 
-                          ; When we only have one editable constraint
-                          (when (= 1 (count (filter :editable where)))
-                            ; Make a list of indices that are LOOKUP, editable, and
-                            ; have a backing class of the report page item type
-
-                            (when-let [replaceable-indexes
-                                       (not-empty (keep-indexed (fn [idx {:keys [path op editable :as constraint]}]
-                                                                  (when
-                                                                   (and
-                                                                    (= op "LOOKUP")
-                                                                    (= report-item-type
-                                                                       (name (im-path/class (assoc current-model :type-constraints where) path)))
-                                                                    (= editable true)) idx))
-                                                                where))]
-
-                              ; When that list of indices is 1, aka we only have one constraint to change
-                              (when (= 1 (count replaceable-indexes))
-
-                                ; Update that particular index with the report page item id and change the op to =
-                                ; and also update the path (which ends on a class) to include ".id" on the end.
-                                ; Don't make the assumption that it's <report-item-type>.id
-                                ; as a query's root might not be the same class as the object on the report page
-                                (let [constraint-path (get-in template-details [:where (first replaceable-indexes) :path])]
-
-                                  [template-kw (update-in template-details [:where (first replaceable-indexes)] assoc
-                                                          :value report-item-id
-                                                          :path (str constraint-path ".id")
-                                                          :op "=")]))))))
-                  ; And return just the vals
-                  (map
-
-                   last)))))
-
-(reg-sub ::current-templates
-         :<- [::current-mine]
-         :<- [::templates]
-         (fn [[current-mine current-templates]]
-           (get current-templates current-mine)))
-
-(reg-sub ::non-empty-collections-and-references
-         :<- [:current-model]
-         :<- [:panel-params]
-         :<- [:report]
-         (fn [[model params]]
-           (let [collections (vals (get-in model [:classes (keyword (:type params)) :collections]))
-                 references (vals (get-in model [:classes (keyword (:type params)) :references]))
-                 non-empty-collections (filter (fn [c] (> (get-in model [:classes (keyword (:referencedType c)) :count]) 0)) collections)
-                 non-empty-references (filter (fn [c] (> (get-in model [:classes (keyword (:referencedType c)) :count]) 0)) references)]
-             (concat non-empty-references non-empty-collections))))
+(reg-sub
+ ::a-table
+ (fn [db [_ location]]
+   (get-in db location)))
 
 (reg-sub
  ::fasta
- :<- [:report]
+ :<- [::report]
  (fn [report]
    (:fasta report)))
 
@@ -117,3 +73,65 @@
         rest
         (apply str)
         count)))
+
+(reg-sub
+ ::refs+colls
+ :<- [:current-model]
+ :<- [:panel-params]
+ (fn [[model params]]
+   (let [{:keys [classes]} model
+         object-kw (-> params :type keyword)]
+     (concat (vals (get-in classes [object-kw :collections]))
+             (vals (get-in classes [object-kw :references]))))))
+
+(reg-sub
+ ::refs+colls-by-referencedType
+ :<- [::refs+colls]
+ (fn [refs+colls]
+   (group-by :referencedType refs+colls)))
+
+(reg-sub
+ ::a-ref+coll
+ :<- [::refs+colls-by-referencedType]
+ (fn [refs+colls [_ referencedType]]
+   ;; If there are multiple identical referencedType among one class' combined
+   ;; references and collections, this could lead to only one of them being
+   ;; displayed (we should verify if this is possible).
+   (first (get refs+colls (name referencedType)))))
+
+(reg-sub
+ ::a-template
+ :<- [:current-model]
+ :<- [:panel-params]
+ :<- [:templates]
+ (fn [[model params templates] [_ template-name]]
+   (let [{object-type :type object-id :id} params]
+     (->> (get templates (keyword template-name))
+          (utils/init-template model object-type object-id)))))
+
+(reg-sub
+ ::a-tool
+ :<- [::tools-subs/installed-tools-by-id]
+ (fn [tools-by-id [_ tool-cljs-name]]
+   (get tools-by-id tool-cljs-name)))
+
+(reg-sub
+ ::tool-for-class?
+ (fn [[_ class]]
+   (subscribe [:bluegenes.pages.admin.subs/available-tool-names class]))
+ (fn [tools [_ _class]]
+   (into #{} (map :value tools))))
+
+(reg-sub
+ ::template-for-class?
+ (fn [[_ class]]
+   (subscribe [:bluegenes.pages.admin.subs/available-template-names class]))
+ (fn [templates [_ _class]]
+   (into #{} (map :value templates))))
+
+(reg-sub
+ ::ref+coll-for-class?
+ (fn [[_ class]]
+   (subscribe [:bluegenes.pages.admin.subs/available-class-names class]))
+ (fn [refs+colls [_ _class]]
+   (into #{} (map :value refs+colls))))

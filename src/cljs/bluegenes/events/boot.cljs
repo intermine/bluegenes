@@ -3,7 +3,6 @@
             [bluegenes.db :as db]
             [imcljs.fetch :as fetch]
             [imcljs.auth :as auth]
-            [bluegenes.events.webproperties]
             [bluegenes.events.registry :as registry]
             [bluegenes.route :as route]
             [bluegenes.utils :as utils]
@@ -31,6 +30,7 @@
             {:when :seen?
              :events :authentication/store-token
              :dispatch-n [[:assets/fetch-web-properties]
+                          [:assets/fetch-bg-properties]
                           [:assets/fetch-model]
                           [:assets/fetch-lists]
                           [:assets/fetch-class-keys]
@@ -39,11 +39,15 @@
                           [:assets/fetch-summary-fields]
                           [:assets/fetch-intermine-version]
                           [:assets/fetch-web-service-version]
-                          [:assets/fetch-release-version]]}
+                          [:assets/fetch-release-version]
+                          [:assets/fetch-branding]
+                          ;; Errors for tool fetching are handled separately.
+                          [:bluegenes.components.tools.events/fetch-tools]]}
             ;; Wait for all events that indicate our assets have been fetched successfully.
             {:when :seen-all-of?
              :events [:assets/success-fetch-model
                       :assets/success-fetch-web-properties
+                      :assets/success-fetch-bg-properties
                       :assets/success-fetch-lists
                       :assets/success-fetch-class-keys
                       :assets/success-fetch-templates
@@ -51,7 +55,8 @@
                       :assets/success-fetch-widgets
                       :assets/success-fetch-intermine-version
                       :assets/success-fetch-web-service-version
-                      :assets/success-fetch-release-version]
+                      :assets/success-fetch-release-version
+                      :assets/success-fetch-branding]
              :dispatch [:boot/finalize]
              :halt? true}
             ;; Handle the case where one or more assets fail to fetch.
@@ -125,6 +130,7 @@
   You can specify `:token my-token` if you want to reuse an existing token."
   [& {:keys [token]}]
   (let [{:keys [serviceRoot mineName]} (->clj js/serverVars)]
+    ;; Only `serviceRoot` is necessary; the rest gets overwritten when fetching webservices.
     (if serviceRoot
       {:id :default
        :name mineName
@@ -229,11 +235,16 @@
     :dispatch [:authentication/init]
     :async-flow (boot-flow :wait-registry? false)}))
 
+;; Note that failed-auth? can mean there's no connection to the mine.
 (reg-event-fx
  :finished-loading-assets
  (fn [{db :db}]
    (let [dispatch-after-boot (:dispatch-after-boot db)
+         ;; We want to block navigation on failed auth, as this could cause a
+         ;; crash when opening a page that expects a mine to be connected.
          failed-auth? (:failed-auth? db)
+         ;; If we're going to change panel, we'll wait with :hide-intro-loader
+         ;; until it's done (otherwise there will be a flash of the home page).
          will-change-panel? (contains? (set (map first dispatch-after-boot))
                                        :do-active-panel)]
      (cond-> {:db (-> db
@@ -242,7 +253,10 @@
               :mine-loader false}
        (and (some? dispatch-after-boot)
             (not failed-auth?)) (assoc :dispatch-n dispatch-after-boot)
-       (not will-change-panel?) (assoc :hide-intro-loader nil)))))
+       (or (not will-change-panel?)
+           ;; Even if we're supposed to show a different panel, we'll show the
+           ;; homepage instead on failed auth (navigation will be blocked).
+           failed-auth?) (assoc :hide-intro-loader nil)))))
 
 (reg-event-fx
  :verify-web-service-version
@@ -502,6 +516,20 @@
  :assets/success-fetch-release-version
  (fn [db [_ mine-kw version]]
    (assoc-in db [:assets :release-version mine-kw] version)))
+
+(reg-event-fx
+ :assets/fetch-branding
+ (fn [{db :db} [evt]]
+   {:im-chan
+    {:chan (fetch/branding
+            (get-in db [:mines (:current-mine db) :service]))
+     :on-success [:assets/success-fetch-branding (:current-mine db)]
+     :on-failure [:assets/failure evt]}}))
+
+(reg-event-db
+ :assets/success-fetch-branding
+ (fn [db [_ mine-kw branding-properties]]
+   (assoc-in db [:mines mine-kw :branding] branding-properties)))
 
 (reg-event-fx
  :assets/failure

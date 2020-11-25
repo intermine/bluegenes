@@ -118,3 +118,11 @@
          (do (fetch-script! tool tool-id :service service :entity entity)
              (fetch-styles! tool tool-id))
          (.error js/console "%cTool API: No cljs name provided for %s" "background:#ccc;border-bottom:solid 3px indianred; border-radius:2px;" (get-in tool [:names :npm])))))))
+
+(reg-fx
+ :load-tool
+ (fn [{:keys [tool tool-id service hier entities]}]
+   ;; `entity` is nil if tool is not suitable to be displayed.
+   (when-let [entity (suitable-entities (get-in service [:model :classes]) hier entities (:config tool))]
+     (fetch-script! tool tool-id :service service :entity entity)
+     (fetch-styles! tool tool-id))))

@@ -1,0 +1,147 @@
+@import "../variables";
+
+.admin-page {
+    padding: 2*@spacer 0;
+
+    @nav-pill-color: rgb(3, 155, 229);
+
+    p .icon {
+        margin: 0;
+    }
+
+    .flex-row {
+        display: flex;
+        align-items: baseline;
+    }
+
+    .categories-dropdown {
+        max-width: 20em;
+    }
+
+    .categories-selector {
+        margin-top: @spacer;
+        margin-bottom: @spacer*2;
+
+        .nav-stacked {
+            & > li {
+                &:not(.active) {
+                    & > a {
+                        color: #fff;
+                        background-color: fadeout(@nav-pill-color, 50%);
+                        border-radius: 4px;
+                        transition: background-color 0.5s ease 0s;
+
+                        &:hover {
+                            background-color: fadeout(@nav-pill-color, 20%);
+                        }
+                    }
+                }
+
+                & > a {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    transition: background-color 0.5s ease 0s;
+
+                    & > div {
+                        display: flex;
+
+                        button {
+                            margin: 0 @spacer/4;
+                        }
+                    }
+                }
+
+                &.add-category {
+                    display: flex;
+                    align-items: center;
+
+                    background-color: #eee;
+                    border-radius: 4px;
+                    padding: 6px 5px;
+
+                    input {
+                        max-width: 30em;
+                    }
+
+                    button {
+                        margin: 0 @spacer/2;
+                    }
+                }
+
+                .rename-category {
+                    justify-content: start;
+                    padding: 6.5px 5px;
+
+                    input {
+                        max-width: 30em;
+                    }
+
+                    button {
+                        margin: 0 0 0 @spacer/2;
+                    }
+                }
+
+                .classes {
+                    margin: @spacer 0;
+                    list-style: none;
+                    font-size: 1.1em;
+
+                    li {
+                        margin: @spacer 0;
+
+                        &.class-entry {
+                            border-bottom: 1px solid black;
+
+                            display: flex;
+                            align-items: center;
+                            justify-content: space-between;
+                        }
+
+                        span.type {
+                            background-color: #eee;
+                            border-radius: 5px;
+                            padding: @spacer/4 @spacer/2;
+                            margin-left: @spacer/2;
+                        }
+
+                        .class-options {
+                            display: flex;
+                            align-items: center;
+
+                            .btn-fab {
+                                box-shadow: none;
+                                background-color: white;
+                                &:hover { background-color: darken(white,10%); }
+                                &:active { background-color: darken(white,20%); }
+                            }
+                        }
+
+                        &.add-child {
+                            display: flex;
+                            align-items: center;
+
+                            max-width: 40em;
+
+                            .btn-group-sm {
+                                margin-left: @spacer;
+                            }
+                        }
+
+                        .enabled-icon {
+                            fill: @nav-pill-color;
+                        }
+                    }
+
+                    .class-description {
+                        resize: vertical;
+                    }
+
+                    .description-preview-checkbox {
+                        margin-left: @spacer;
+                    }
+                }
+            }
+        }
+    }
+}
