@@ -78,8 +78,8 @@
                  [cljsjs/vega-embed "6.0.0-0"]
 
                  ; Intermine Assets
-                 [org.intermine/im-tables "0.10.1"]
-                 [org.intermine/imcljs "1.2.0"]
+                 [org.intermine/im-tables "0.11.0"]
+                 [org.intermine/imcljs "1.3.0"]
                  [org.intermine/bluegenes-tool-store "0.2.0"]]
 
   :deploy-repositories {"clojars" {:sign-releases false}}
