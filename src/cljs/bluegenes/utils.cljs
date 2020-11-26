@@ -248,13 +248,15 @@
 
 (defn ascii->svg-arrows
   "Replaces arrows in template titles with prettier svg icons."
-  [s]
+  [s & {:keys [max-length]}]
   (flatten-seq
    (interpose [icon "arrow-right"]
               (map (fn [part]
                      (interpose [icon "arrow-left"]
                                 (map (fn [subpart]
-                                       [:span subpart])
+                                       [:span (if (and (number? max-length) (> (count subpart) max-length))
+                                                (str (subs subpart 0 max-length) "...")
+                                                subpart)])
                                      (string/split part #"<-+"))))
                    (string/split s #"-+>")))))
 
