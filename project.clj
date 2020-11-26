@@ -94,22 +94,26 @@
 
   :cljfmt {:indents {wait-for [[:inner 0]]}}
 
-  :aliases {"assets" ["run" "-m" "bluegenes.prep/prepare-assets"]
-            "dev" ["do" "clean," "assets,"
-                   ["pdo"
-                    ["shell" "make" "less"]
-                    ["with-profile" "+repl" "run"]]]
-            "build" ["do" "clean," "assets,"
-                     ["shell" "make" "less-prod"]
-                     ["with-profile" "prod" "cljsbuild" "once" "min"]]
-            "prod" ["do" "build,"
-                    ["with-profile" "prod" "run"]]
-            "deploy" ["with-profile" "+uberjar" "deploy" "clojars"]
-            "format" ["cljfmt" "fix"]
-            "kaocha" ["with-profile" "kaocha" "run" "-m" "kaocha.runner"]
-            "tools" ["run" "-m" "bluegenes-tool-store.tools"]
-            "less" ["do" "assets,"
-                    ["shell" "make" "less"]]}
+  :aliases ~(let [compile-less ["npx" "lessc" "less/site.less" "resources/public/css/site.css"]
+                  compile-less-prod (conj compile-less "-x")
+                  watch-less ["npx" "chokidar" "less/**/*.less" "-c" (clojure.string/join " " compile-less) "--initial"]
+                  watch-less-silent (conj watch-less "--silent")]
+              {"assets" ["run" "-m" "bluegenes.prep/prepare-assets"]
+               "dev" ["do" "clean," "assets,"
+                      ["pdo"
+                       (into ["shell"] watch-less-silent)
+                       ["with-profile" "+repl" "run"]]]
+               "build" ["do" "clean," "assets,"
+                        (into ["shell"] compile-less-prod)
+                        ["with-profile" "prod" "cljsbuild" "once" "min"]]
+               "prod" ["do" "build,"
+                       ["with-profile" "prod" "run"]]
+               "deploy" ["with-profile" "+uberjar" "deploy" "clojars"]
+               "format" ["cljfmt" "fix"]
+               "kaocha" ["with-profile" "kaocha" "run" "-m" "kaocha.runner"]
+               "tools" ["run" "-m" "bluegenes-tool-store.tools"]
+               "less" ["do" "assets,"
+                       (into ["shell"] watch-less)]})
 
   :min-lein-version "2.8.1"
 
