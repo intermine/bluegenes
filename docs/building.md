@@ -38,17 +38,11 @@ However, all the output will be thrown into one terminal. If you wish to keep th
 
 We use [less](http://lesscss.org/) to write our styles.
 
-If you only want the CSS to be compiled once, run:
+You can compile the Less sources to CSS with the below command:
 
-    make less-prod
+    lein less
 
-Note: in this case you will have to manually recompile the CSS files after each change.
-
-If you will be changing the CSS files continuously, you can automatically recompile the CSS files after each change using:
-
-    make less
-
-The browser page will automatically reload the updated CSS.
+It will run in watch mode, recompiling the CSS after every change until you exit it with *Ctrl+C*. The browser page will automatically reload the updated CSS.
 
 ### Make Leiningen reload code changes in the browser
 
