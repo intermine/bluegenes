@@ -211,6 +211,12 @@
                           [:label.control-label "Filter by description"]
                           [template-filter filter-state]]])})))
 
+(defn top-scroll []
+  [:div.top-scroll
+   {:on-click #(dispatch [:scroll-to-top])
+    :title "Scroll to top"}
+   [:span.top-arrow]])
+
 (defn main []
   (let [im-templates (subscribe [:templates-by-category])
         filter-state (reagent/atom nil)
@@ -252,4 +258,5 @@
                           [:div.row
                            [:div.col-xs-12.templates
                             [:div.template-list
-                             [templates @im-templates]]]]]])})))
+                             [templates @im-templates]]]]]
+                         [top-scroll]])})))
