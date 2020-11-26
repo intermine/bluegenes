@@ -35,6 +35,11 @@
                     :style "warning"}]}))))
 
 (reg-event-db
+ :template-chooser/clear-template
+ (fn [db [_]]
+   (update db :components dissoc :template-chooser)))
+
+(reg-event-db
  :template-chooser/set-category-filter
  (fn [db [_ id]]
    (assoc-in db [:components :template-chooser :selected-template-category] id)))
