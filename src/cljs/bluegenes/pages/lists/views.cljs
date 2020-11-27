@@ -334,11 +334,11 @@
       (case subop
         :down [:button.btn.pull-right
                {:type "button"
-                :on-click #(dispatch [:lists-modal/subtract-list id])}
+                :on-click #(dispatch [:lists-modal/keep-list id])}
                [icon "move-down-list" 2]]
         :up   [:button.btn.pull-right
                {:type "button"
-                :on-click #(dispatch [:lists-modal/keep-list id])}
+                :on-click #(dispatch [:lists-modal/subtract-list id])}
                [icon "move-up-list" 2]]
         nil)
       (when-not single?
@@ -414,12 +414,12 @@
 
        (:subtract)
        [:div.subtract-container
-        [:p "The new list will contain items from these lists"]
+        [:p "The items from these lists"]
         [:div.table-container
-         [modal-table @(subscribe [:lists-modal/keep-lists-details]) :subop :down]]
-        [:p "that are not present in these lists"]
+         [modal-table @(subscribe [:lists-modal/subtract-lists-details]) :subop :down]]
+        [:p "will be removed from these lists to give the new list."]
         [:div.table-container
-         [modal-table @(subscribe [:lists-modal/subtract-lists-details]) :subop :up]]])
+         [modal-table @(subscribe [:lists-modal/keep-lists-details]) :subop :up]]])
 
      [modal-new-list]]))
 

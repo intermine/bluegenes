@@ -189,14 +189,14 @@
       {:transform "translate(1.000000, 1.000000)"}
       [:circle
        {:stroke "black",
-        :fill "rgb(170,170,170)",
+        :fill "white",
         :stroke-width "5",
         :cy "50",
         :cx "50",
         :r "50"}]
       [:circle
        {:stroke "black",
-        :fill "white",
+        :fill "rgb(170,170,170)",
         :stroke-width "5",
         :cy "50",
         :cx "100",

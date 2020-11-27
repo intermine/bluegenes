@@ -139,8 +139,8 @@
                  (assoc lists :modal
                         {:active modal-kw
                          :open? true
-                         :keep-lists (pop selected-lists)
-                         :subtract-lists (vector (peek selected-lists))}))
+                         :subtract-lists (pop selected-lists)
+                         :keep-lists (vector (peek selected-lists))}))
      ;; Edit modal needs the list fields preset.
      :edit (let [{:keys [title tags description] :as listm} (get (:by-id lists) ?list-id)]
              (assoc lists :modal
