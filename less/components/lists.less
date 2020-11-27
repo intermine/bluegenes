@@ -420,7 +420,7 @@
         pointer-events: none;
 
         &.show {
-            opacity: 0.15;
+            opacity: 0.5;
         }
     }
 
@@ -454,6 +454,24 @@
         .modal-content {
             max-height: 80vh;
             overflow: auto;
+        }
+
+        .modal-header {
+            .modal-title {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0 @spacer/2;
+
+                & > span {
+                    display: flex;
+                    align-items: center;
+                }
+
+                .change-set-operation {
+                    font-size: 1em;
+                }
+            }
         }
 
         .modal-body {

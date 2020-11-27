@@ -12,6 +12,25 @@
             [clojure.string :as str]
             [bluegenes.route :as route]))
 
+(def set-operations [:combine :intersect :difference :subtract])
+
+(def set-operations->assets
+  {:combine {:text "Combine lists"
+             :icon [icon "venn-combine"]}
+   :intersect {:text "Intersect lists"
+               :icon [icon "venn-intersection"]}
+   :difference {:text "Difference lists"
+                :icon [icon "venn-disjunction"]}
+   :subtract {:text "Subtract lists"
+              :icon [icon "venn-difference"]}})
+
+(defn find-set-op [f set-op]
+  (let [target-index (some (fn [[i op]]
+                             (when (= op set-op) (f i)))
+                           (map-indexed vector set-operations))]
+    (when (contains? set-operations target-index)
+      (get set-operations target-index))))
+
 (defn filter-lists []
   (let [input (r/atom @(subscribe [:lists/keywords-filter]))
         debounced (debounce #(dispatch [:lists/set-keywords-filter %]) 500)
@@ -31,23 +50,13 @@
 
 (defn top-controls []
   (let [insufficient-selected (not @(subscribe [:lists/selected-operation?]))]
-    [:div.top-controls
-     [:button.btn.btn-raised
-      {:disabled insufficient-selected
-       :on-click #(dispatch [:lists/open-modal :combine])}
-      "Combine lists" [icon "venn-combine"]]
-     [:button.btn.btn-raised
-      {:disabled insufficient-selected
-       :on-click #(dispatch [:lists/open-modal :intersect])}
-      "Intersect lists" [icon "venn-intersection"]]
-     [:button.btn.btn-raised
-      {:disabled insufficient-selected
-       :on-click #(dispatch [:lists/open-modal :difference])}
-      "Difference lists" [icon "venn-disjunction"]]
-     [:button.btn.btn-raised
-      {:disabled insufficient-selected
-       :on-click #(dispatch [:lists/open-modal :subtract])}
-      "Subtract lists" [icon "venn-difference"]]]))
+    (into [:div.top-controls]
+          (for [set-op set-operations]
+            [:button.btn.btn-raised
+             {:disabled insufficient-selected
+              :on-click #(dispatch [:lists/open-modal set-op])}
+             (get-in set-operations->assets [set-op :text])
+             (get-in set-operations->assets [set-op :icon])]))))
 
 (defn bottom-controls []
   (let [list-count (count @(subscribe [:lists/selected-lists]))]
@@ -504,15 +513,31 @@
           "×"]
          [:h3.modal-title.text-center
           (case active-modal
-            :combine "Combine lists"
-            :intersect "Intersect lists"
-            :difference "Difference lists"
-            :subtract "Subtract lists"
+            (:combine :intersect :difference :subtract)
+            [:button.btn.btn-slim.change-set-operation
+             (if-let [prev-set-op (find-set-op dec active-modal)]
+               {:on-click #(dispatch [:lists/open-modal prev-set-op])}
+               {:disabled true})
+             [icon "chevron-left"]]
+            [:span])
+          (case active-modal
+            (:combine :intersect :difference :subtract)
+            [:span
+             (get-in set-operations->assets [active-modal :text])
+             (get-in set-operations->assets [active-modal :icon])]
             :delete "Delete list(s)"
             :edit "Edit list"
             :copy "Copy list(s)"
             :move "Move list(s)"
-            nil)]]
+            nil)
+          (case active-modal
+            (:combine :intersect :difference :subtract)
+            [:button.btn.btn-slim.change-set-operation
+             (if-let [next-set-op (find-set-op inc active-modal)]
+               {:on-click #(dispatch [:lists/open-modal next-set-op])}
+               {:disabled true})
+             [icon "chevron-right"]]
+            [:span])]]
 
         [:div.modal-body
          (case active-modal
