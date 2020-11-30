@@ -10,7 +10,8 @@
             [bluegenes.components.select-tags :as select-tags]
             [bluegenes.subs.auth :as auth]
             [clojure.string :as str]
-            [bluegenes.route :as route]))
+            [bluegenes.route :as route]
+            [bluegenes.components.bootstrap :refer [poppable]]))
 
 (def set-operations [:combine :intersect :difference :subtract])
 
@@ -40,7 +41,9 @@
                       (debounced value)))]
     (fn []
       [:div.filter-lists
-       [:h2 "Filter lists"]
+       [:h2 "Lists"
+        [poppable {:data "When you upload lists, duplicates are removed and the naming of the items standardised. This means that you can do set operations correctly on lists of the same type (e.g. genes), such as finding the intersection between two (or more) lists, and subtracting lists. See the options below - selecting an option provides further guidance and explanation."
+                   :children [icon "info"]}]]
        [:div.filter-input
         [:input {:type "text"
                  :placeholder "Search for keywords"
