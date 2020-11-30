@@ -418,7 +418,12 @@
         (case active-modal
           :combine [:p "The new list will contain " [:em "all items"] " from the following lists"]
           :intersect [:p "The new list will contain only " [:em "items common"] " to all the following lists"]
-          :difference [:p "The new list will contain only " [:em "items unique"] " to each of the following lists"])
+          :difference [:p "The new list will contain only " [:em "items unique"] " to each of the following lists"
+                       (when-let [selected-lists (not-empty @(subscribe [:lists/selected-lists]))]
+                         (when (> (count selected-lists) 2)
+                           [:a.notice {:href "https://en.wikipedia.org/wiki/Symmetric_difference" :target "_blank"}
+                            " (this will perform a mathematical symmetric difference, which means members of an odd amount of lists will be kept)"
+                            [icon "external"]]))])
         [modal-table @(subscribe [:lists/selected-lists-details])]]
 
        (:subtract)
