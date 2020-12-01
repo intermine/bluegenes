@@ -233,6 +233,7 @@
         border-collapse: collapse;
         border: 1px solid @visible-gray;
         width: 100%;
+        position: relative;
 
         .lists-row {
             display: table-row;
@@ -296,6 +297,31 @@
             }
         }
 
+        .new-lists {
+            &-alert {
+                position: absolute;
+                left: 0;
+                right: 0;
+                transform: translateY(-1px);
+
+                background-color: fadeout(@highlight-color, 40%);
+                font-weight: 400;
+
+                &, a {
+                    color: @highlight-color-text;
+                }
+
+                a {
+                    text-decoration: underline;
+                }
+            }
+
+            &-alert, &-dummy {
+                padding: @spacer/4 @spacer/2;
+                border-bottom: 1px solid @visible-gray;
+            }
+        }
+
         .lists-item {
             position: relative;
             transform: scale(1); // Hack to allow relative positioning within table-row.
@@ -324,8 +350,25 @@
             }
 
             .list-icon {
-                font-size: @icon-size;
-                margin-top: 3px;
+                display: inline-block;
+                position: relative;
+
+                .icon {
+                    font-size: @icon-size;
+                    margin-top: 1px;
+                }
+
+                &.new::before {
+                    position: absolute;
+                    right: 0;
+                    display: inline-block;
+                    content: '';
+                    height: 8px;
+                    width: 8px;
+                    border-radius: 50%;
+                    background-color: red;
+                    z-index: 1;
+                }
             }
 
             .list-actions {
@@ -362,6 +405,9 @@
             .list-description {
                 font-size: 0.8em;
                 overflow-wrap: anywhere;
+            }
+
+            .list-timestamp {
             }
 
             .list-tags {

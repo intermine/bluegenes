@@ -11,7 +11,8 @@
             [bluegenes.subs.auth :as auth]
             [clojure.string :as str]
             [bluegenes.route :as route]
-            [bluegenes.components.bootstrap :refer [poppable]]))
+            [bluegenes.components.bootstrap :refer [poppable]]
+            [goog.string :as gstring]))
 
 (def set-operations [:combine :intersect :difference :subtract])
 
@@ -45,7 +46,8 @@
         [poppable {:data "When you upload lists, duplicates are removed and the naming of the items standardised. This means that you can do set operations correctly on lists of the same type (e.g. genes), such as finding the intersection between two (or more) lists, and subtracting lists. See the options below - selecting an option provides further guidance and explanation."
                    :children [icon "info"]}]]
        [:div.filter-input
-        [:input {:type "text"
+        [:input {:id "lists-keyword-filter"
+                 :type "text"
                  :placeholder "Search for keywords"
                  :on-change on-change
                  :value @input}]
@@ -178,9 +180,11 @@
                 path is-last]} item
         expanded-paths @(subscribe [:lists/expanded-paths])
         selected-lists @(subscribe [:lists/selected-lists])
+        new-lists @(subscribe [:lists/new-lists])
         is-folder (folder? item)
         is-expanded (and is-folder (contains? expanded-paths path))
-        is-selected (contains? selected-lists id)]
+        is-selected (contains? selected-lists id)
+        is-new (contains? new-lists {:id id})]
     [:div.lists-row.lists-item
      {:class (when (or is-expanded is-last) :separator)}
 
@@ -194,9 +198,10 @@
            [:button.btn
             {:on-click #(dispatch [:lists/expand-path path])}
             [icon "expand-folder"]])
-         (if is-expanded
-           [icon "folder-open-item" nil ["list-icon"]]
-           [icon "folder-item" nil ["list-icon"]])]]
+         [:span.list-icon
+          (if is-expanded
+            [icon "folder-open-item"]
+            [icon "folder-item"])]]]
        [:div.lists-col
         [:input {:type "checkbox"
                  :checked is-selected
@@ -204,7 +209,9 @@
                                           :lists/select-list
                                           :lists/deselect-list)
                                         id])}]
-        [icon "list-item" nil ["list-icon"]]])
+        [:span.list-icon
+         {:class (when is-new :new)}
+         [icon "list-item"]]])
 
      [:div.lists-col
       [:div.list-detail
@@ -224,7 +231,8 @@
       [:p.list-description description]]
 
      [:div.lists-col
-      (pretty-time timestamp)]
+      [:span.list-timestamp
+       (pretty-time timestamp)]]
 
      [:div.lists-col
       (when-not is-folder
@@ -258,7 +266,8 @@
         lists-selection @(subscribe [:lists/filter :lists])
         all-types @(subscribe [:lists/all-types])
         all-tags @(subscribe [:lists/all-tags])
-        all-selected? @(subscribe [:lists/all-selected?])]
+        all-selected? @(subscribe [:lists/all-selected?])
+        new-hidden-lists @(subscribe [:lists/new-hidden-lists])]
     [:section.lists-table
 
      [:header.lists-row.lists-headers
@@ -312,6 +321,24 @@
          (cons {:label "All" :value nil}
                (map (fn [tag] {:label tag :value tag}) all-tags))]]]
       [:div.lists-col]]
+
+     (when (seq new-hidden-lists)
+       (let [amount (count new-hidden-lists)
+             plural? (> amount 2)]
+         [:div.lists-row
+          [:div.new-lists-alert.text-center
+           (str "You have " amount " new list"
+                (when plural? "s")
+                " that "
+                (if plural? "aren't" "isn't")
+                " visible under the active filters. ")
+           [:a {:role "button"
+                :on-click #(dispatch [:lists/show-new-lists])}
+            "Click here"]
+           " to clear filters."]
+          ;; There's no colspan with CSS Tables so we use the dummy element
+          ;; below to occupy space, and absolute positioning for the above.
+          [:div.new-lists-dummy (gstring/unescapeEntities "&nbsp;")]]))
 
      (for [{:keys [id] :as item} filtered-lists]
        ^{:key id}

@@ -1,10 +1,13 @@
 (ns bluegenes.pages.lists.events
-  (:require [re-frame.core :refer [reg-event-db reg-event-fx]]
+  (:require [re-frame.core :refer [reg-event-db reg-event-fx reg-fx]]
             [re-frame.std-interceptors :refer [path]]
-            [bluegenes.pages.lists.utils :refer [denormalize-lists path-prefix? internal-tag? split-path join-path list->path filtered-list-ids-set copy-list-name]]
+            [bluegenes.pages.lists.utils :refer [denormalize-lists normalize-lists path-prefix? internal-tag? split-path join-path list->path filtered-list-ids-set copy-list-name ->filterf folder?]]
             [imcljs.save :as save]
             [clojure.set :as set]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [bluegenes.db :refer [default-db]]
+            [goog.dom :as gdom]
+            [oops.core :refer [oset!]]))
 
 ;; Idea for performance improvement:
 ;; All lists are re-fetched via `:assets/fetch-lists` whenever something
@@ -19,13 +22,36 @@
  :lists/initialize
  (fn [db]
    (let [all-lists (get-in db [:assets :lists (:current-mine db)])
-         all-tags (->> all-lists (mapcat :tags) distinct)]
+         all-tags (->> all-lists (mapcat :tags) distinct)
+         old-by-id (get-in db (concat root [:by-id]))
+         new-by-id (denormalize-lists all-lists)
+         new-lists (if (empty? old-by-id)
+                     #{}
+                     (-> (set/difference (->> new-by-id vals set (set/select (complement folder?)))
+                                         (->> old-by-id vals set (set/select (complement folder?))))
+                         (set/project [:id])))]
      (update-in db root assoc
-                :by-id (denormalize-lists all-lists)
+                :by-id new-by-id
                 :all-tags (->> all-tags (remove internal-tag?) sort)
                 :all-types (->> all-lists (map :type) distinct sort)
                 :all-paths (->> (filter path-prefix? all-tags)
-                                (map (comp #(subvec % 1) split-path)))))))
+                                (map (comp #(subvec % 1) split-path)))
+                :new-lists new-lists
+                :new-hidden-lists (if (empty? new-lists)
+                                    #{}
+                                    (let [visible-lists (-> (->> (normalize-lists
+                                                                  (->filterf (get-in db (concat root [:controls :filters])))
+                                                                  identity
+                                                                  {:by-id new-by-id :expanded-paths (constantly true)})
+                                                                 (set)
+                                                                 (set/select (complement folder?)))
+                                                            (set/project [:id]))]
+                                      (set/difference new-lists visible-lists)))))))
+;; We have to do a bit of heavy lifting to compute :new-lists and
+;; :new-hidden-lists (respectively; red icon to indicate a newly changed list,
+;; and alert to indicate newly changed lists not visible under current
+;; filters). I have thought about this a lot and explored other approaches, but
+;; this looks to be the best way.
 
 (reg-event-db
  :lists/expand-path
@@ -42,6 +68,9 @@
 (defn set-current-page-1 [lists]
   (assoc-in lists [:pagination :current-page] 1))
 
+(defn clear-new-hidden-lists [lists]
+  (update lists :new-hidden-lists empty))
+
 ;; Note: Do not dispatch this from more than one place.
 ;; The input field which changes this value uses debouncing and internal state,
 ;; so it won't sync with this value except when first mounting.
@@ -51,7 +80,8 @@
  (fn [lists [_ keywords-string]]
    (-> lists
        (assoc-in [:controls :filters :keywords] keywords-string)
-       (set-current-page-1))))
+       (set-current-page-1)
+       (clear-new-hidden-lists))))
 
 (reg-event-db
  :lists/toggle-sort
@@ -72,7 +102,24 @@
  (fn [lists [_ filter-name value]]
    (-> lists
        (assoc-in [:controls :filters filter-name] value)
-       (set-current-page-1))))
+       (set-current-page-1)
+       (clear-new-hidden-lists))))
+
+;; We don't want to make the keyword filter a controlled input as we want to be
+;; able to debounce its event. Leading to this lesser evil of DOM manipulation.
+(reg-fx
+ ::clear-keyword-filter
+ (fn [_]
+   (oset! (gdom/getElement "lists-keyword-filter") :value "")))
+
+(reg-event-fx
+ :lists/show-new-lists
+ (fn [{db :db} [_]]
+   (let [default-filters (get-in default-db (concat root [:controls :filters]))]
+     {:db (-> db
+              (assoc-in (concat root [:controls :filters]) default-filters)
+              (update-in root clear-new-hidden-lists))
+      ::clear-keyword-filter {}})))
 
 (reg-event-db
  :lists/set-per-page
@@ -249,7 +296,7 @@
 ;; Doesn't have `set-` in its name as it's dispatched by all successful events.
 (reg-event-fx
  :lists/operation-success
- (fn [{db :db} [_ res]] ; Note that `res` can be nil or a collection of responses.
+ (fn [{db :db} [_ res]] ; Note that `res` can be nil or a vector of responses.
    {:dispatch-n [[:lists/close-modal]
                  [:lists/clear-selected]
                  [:assets/fetch-lists]]}))
@@ -257,7 +304,7 @@
 ;; Identical to above except it uses `clear-target` instead of `clear-selected`.
 (reg-event-fx
  :lists/operation-success-target
- (fn [{db :db} [_ res]] ; Note that `res` can be nil or a collection of responses.
+ (fn [{db :db} [_ res]] ; Note that `res` can be nil or a vector of responses.
    {:dispatch-n [[:lists/close-modal]
                  [:lists/clear-target]
                  [:assets/fetch-lists]]}))
