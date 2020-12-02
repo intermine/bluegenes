@@ -17,7 +17,7 @@
             [bluegenes.components.viz.views :as viz]
             [bluegenes.components.icons :refer [icon]]
             [bluegenes.pages.lists.utils :refer [internal-tag?]]
-            [bluegenes.pages.lists.views :refer [pretty-time]]))
+            [bluegenes.pages.lists.views :refer [pretty-timestamp]]))
 
 (def custom-time-formatter (time-format/formatter "dd MMM, yy HH:mm"))
 
@@ -147,7 +147,7 @@
           (if authorized
             [icon "user-circle" nil ["authorized"]]
             [icon "globe"])]
-         [:span (pretty-time timestamp)]
+         [:span (pretty-timestamp timestamp)]
          [:code.start {:class (str "start-" type)} type]
          (into [:div.list-tags]
                ;; Hide internal tags.

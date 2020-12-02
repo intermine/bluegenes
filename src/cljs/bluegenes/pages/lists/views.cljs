@@ -12,7 +12,8 @@
             [clojure.string :as str]
             [bluegenes.route :as route]
             [bluegenes.components.bootstrap :refer [poppable]]
-            [goog.string :as gstring]))
+            [goog.string :as gstring])
+  (:import goog.date.Date))
 
 (def set-operations [:combine :intersect :difference :subtract])
 
@@ -132,11 +133,31 @@
                       label]])
                   (pagination-items current-page page-count)))])))
 
-(def list-time-formatter (time-format/formatter "dd MMM, Y"))
+(def list-time-formatter (time-format/formatters :mysql))
+(def list-date-formatter (time-format/formatter "dd MMM, Y"))
 
-(defn pretty-time [timestamp]
-  (time-format/unparse list-time-formatter
-                       (time-coerce/from-long timestamp)))
+(let [minute 60000
+      hour 3.6e+6
+      day 8.64e+7]
+  (defn pretty-timestamp [ts]
+    (let [now (.getTime (js/Date.))
+          ago (- now ts)
+          today (.getTime (Date.)) ; Uses goog.date.Date for midnight time.
+          yesterday (- today day)]
+      (cond
+        (< ago minute) "Just now"
+        (< ago hour) (let [amount (quot ago minute)]
+                       (str amount " min" (when (> amount 1) "s") " ago"))
+        (>= ts today) (let [amount (quot ago hour)]
+                        (str amount " hour" (when (> amount 1) "s") " ago"))
+        (>= ts yesterday) "Yesterday"
+        :else (time-format/unparse list-date-formatter
+                                   (time-coerce/from-long ts))))))
+
+(defn readable-time [ts]
+  [poppable {:data (time-format/unparse list-time-formatter
+                                        (time-coerce/from-long ts))
+             :children (pretty-timestamp ts)}])
 
 (defn sort-button [column]
   (let [active-sort @(subscribe [:lists/sort])]
@@ -232,7 +253,7 @@
 
      [:div.lists-col
       [:span.list-timestamp
-       (pretty-time timestamp)]]
+       [readable-time timestamp]]]
 
      [:div.lists-col
       (when-not is-folder
@@ -361,7 +382,7 @@
   (let [{:keys [id title timestamp type tags]} item]
     [:tr
      [:td.title title]
-     [:td (pretty-time timestamp)]
+     [:td [readable-time timestamp]]
      [:td
       [:code.start {:class (str "start-" type)}
        type]]

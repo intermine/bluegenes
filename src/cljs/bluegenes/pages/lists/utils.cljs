@@ -204,6 +204,9 @@
    ;; Filter by date.
    (if (nil? date)
      identity
+     ;; This uses `goog.date.Date` instead of `js/Date`. The main difference is
+     ;; that the former defaults to midnight of the current date, while the
+     ;; latter defaults to the current time in UTC.
      (let [now (.getTime (Date.))]
        (partial filter (case date
                          :day   (comp #(> (+ % 8.64e+7) now) :timestamp)
