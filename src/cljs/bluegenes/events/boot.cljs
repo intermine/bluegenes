@@ -225,8 +225,10 @@
       ;; Set lists page number back to 1.
       (assoc-in [:lists :pagination :current-page] 1)
       ;; Clear lists page selected lists.
-      (update :lists assoc
-              :selected-lists #{})))
+      (update-in [:lists :selected-lists] empty)
+      ;; The old by-id map is used to detect newly added lists.
+      ;; During a mine change, this will mean all lists, which we don't want.
+      (update-in [:lists :by-id] empty)))
 
 (reg-event-fx
  :reboot
