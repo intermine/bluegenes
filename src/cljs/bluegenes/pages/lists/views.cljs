@@ -445,6 +445,9 @@
        [:label {:for "modal-new-list-tags"}
         (str "Tags" (when-not edit-list? " (optional)"))]
        [select-tags/main
+        :disabled-tooltip (cond
+                            (not list-tags-support?) "This InterMine is running an older version which does not support adding tags"
+                            (not logged-in?) "You need to login to edit tags")
         :disabled (or (not list-tags-support?) (not logged-in?))
         :id "modal-new-list-tags"
         :on-change #(dispatch [:lists-modal/set-new-list-tags %])
@@ -502,22 +505,28 @@
         folder-suggestions @(subscribe [:lists-modal/folder-suggestions])
         list-tags-support? @(subscribe [:list-tags-support?])
         logged-in? @(subscribe [::auth/authenticated?])
-        disable-tags? (or (not list-tags-support?) (not logged-in?))]
+        disable-tags? (or (not list-tags-support?) (not logged-in?))
+        select [:> js/Select.Creatable
+                {:className "folder-selector"
+                 :placeholder "Choose folder"
+                 :isValidNewOption #(valid-folder? %1)
+                 :formatCreateLabel #(str "Create new \"" % "\" folder")
+                 :noOptionsMessage #(if ((some-fn empty? valid-folder?) (oget % :inputValue))
+                                      "No existing folders"
+                                      invalid-folder-message)
+                 :onChange #(dispatch [:lists-modal/nest-folder (oget % :value)])
+                 :value nil ; Required or else it will keep its own state.
+                 :options (map (fn [v] {:value v :label v}) folder-suggestions)
+                 :isDisabled disable-tags?}]]
     [:div.select-folder
      [icon "modal-folder" 2]
      [:span.folder-path (str/join " / " (conj folder-path ""))]
-     [:> js/Select.Creatable
-      {:className "folder-selector"
-       :placeholder "Choose folder"
-       :isValidNewOption #(valid-folder? %1)
-       :formatCreateLabel #(str "Create new \"" % "\" folder")
-       :noOptionsMessage #(if ((some-fn empty? valid-folder?) (oget % :inputValue))
-                            "No existing folders"
-                            invalid-folder-message)
-       :onChange #(dispatch [:lists-modal/nest-folder (oget % :value)])
-       :value nil ; Required or else it will keep its own state.
-       :options (map (fn [v] {:value v :label v}) folder-suggestions)
-       :isDisabled disable-tags?}]
+     (if disable-tags?
+       [poppable {:data (cond
+                          (not list-tags-support?) "This InterMine is running an older version which does not support creating folders"
+                          (not logged-in?) "You need to login to create folders")
+                  :children select}]
+       select)
      [:button.btn.button-folder-up
       {:disabled (or (empty? folder-path) disable-tags?)
        :on-click #(dispatch [:lists-modal/denest-folder])}
@@ -603,18 +612,9 @@
            [modal-other-operation]
            nil)
 
-         (cond
-           (not-empty error-message)
+         (when (not-empty error-message)
            [:div.alert.alert-danger
-            [:strong error-message]]
-
-           (and (not list-tags-support?) (not= active-modal :delete))
-           [:div.alert.alert-inverse
-            [:strong "This InterMine is running an older version which does not support adding tags or creating folders"]]
-
-           (and (not logged-in?) (not= active-modal :delete))
-           [:div.alert.alert-inverse
-            [:strong "You need to login to edit tags or create folders"]])]
+            [:strong error-message]])]
 
         [:div.modal-footer
          [:div.btn-toolbar.pull-right
