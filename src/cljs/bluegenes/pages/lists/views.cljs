@@ -5,7 +5,7 @@
             [bluegenes.pages.lists.utils :refer [folder? internal-tag?]]
             [cljs-time.format :as time-format]
             [cljs-time.coerce :as time-coerce]
-            [oops.core :refer [oget]]
+            [oops.core :refer [oget oset!]]
             [goog.functions :refer [debounce]]
             [bluegenes.components.select-tags :as select-tags]
             [bluegenes.subs.auth :as auth]
@@ -517,7 +517,12 @@
                  :onChange #(dispatch [:lists-modal/nest-folder (oget % :value)])
                  :value nil ; Required or else it will keep its own state.
                  :options (map (fn [v] {:value v :label v}) folder-suggestions)
-                 :isDisabled disable-tags?}]]
+                 :isDisabled disable-tags?
+                 ;; The two lines below makes it use a React portal to attach the element to
+                 ;; the document body. This means it won't disappear at modal-body edges,
+                 ;; which are set to overflow:auto to facilitate scrolling.
+                 :styles {:menuPortal (fn [base] (oset! base :zIndex 9999))}
+                 :menuPortalTarget js/document.body}]]
     [:div.select-folder
      [icon "modal-folder" 2]
      [:span.folder-path (str/join " / " (conj folder-path ""))]

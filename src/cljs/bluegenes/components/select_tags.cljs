@@ -1,6 +1,6 @@
 (ns bluegenes.components.select-tags
   (:require [re-frame.core :refer [subscribe]]
-            [oops.core :refer [oget]]
+            [oops.core :refer [oget oset!]]
             [bluegenes.subs.auth :as auth]
             [bluegenes.components.bootstrap :refer [poppable]]))
 
@@ -40,7 +40,12 @@
                                   (on-change)))
                  :value (map (fn [v] {:value v :label v}) value)
                  :options (map (fn [v] {:value v :label v}) options)
-                 :isDisabled disabled}]]
+                 :isDisabled disabled
+                 ;; The two lines below makes it use a React portal to attach the element to
+                 ;; the document body. This means it won't disappear at modal-body edges,
+                 ;; which are set to overflow:auto to facilitate scrolling.
+                 :styles {:menuPortal (fn [base] (oset! base :zIndex 9999))}
+                 :menuPortalTarget js/document.body}]]
     (if (and disabled (seq disabled-tooltip))
       [poppable {:data disabled-tooltip
                  :children select}]
