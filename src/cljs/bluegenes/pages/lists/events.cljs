@@ -71,6 +71,10 @@
 (defn clear-new-hidden-lists [lists]
   (update lists :new-hidden-lists empty))
 
+(defn reset-filters [lists]
+  (let [default-filters (get-in default-db (concat root [:controls :filters]))]
+    (assoc-in lists [:controls :filters] default-filters)))
+
 ;; Note: Do not dispatch this from more than one place.
 ;; The input field which changes this value uses debouncing and internal state,
 ;; so it won't sync with this value except when first mounting.
@@ -113,13 +117,18 @@
    (oset! (gdom/getElement "lists-keyword-filter") :value "")))
 
 (reg-event-fx
+ :lists/reset-filters
+ (fn [{db :db} [_]]
+   {:db (update-in db root reset-filters)
+    ::clear-keyword-filter {}}))
+
+(reg-event-fx
  :lists/show-new-lists
  (fn [{db :db} [_]]
-   (let [default-filters (get-in default-db (concat root [:controls :filters]))]
-     {:db (-> db
-              (assoc-in (concat root [:controls :filters]) default-filters)
-              (update-in root clear-new-hidden-lists))
-      ::clear-keyword-filter {}})))
+   {:db (-> db
+            (update-in root reset-filters)
+            (update-in root clear-new-hidden-lists))
+    ::clear-keyword-filter {}}))
 
 (reg-event-db
  :lists/set-per-page

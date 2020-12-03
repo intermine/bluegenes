@@ -376,7 +376,12 @@
          no-lists? [:h3 (str mine-name " has no public lists available")]
          no-filtered-lists? [:h3 "No list matches active filters"])
        [:hr]
-       [:p "You may have lists saved to your account. Login to access them."]])))
+       [:p "You may have lists saved to your account. Login to access them."]
+       [:hr]
+       [:p [:a {:role "button"
+                :on-click #(dispatch [:lists/reset-filters])}
+            "Click here"]
+        " to clear all filters."]])))
 
 (defn modal-list-row [item & {:keys [subop single?]}]
   (let [{:keys [id title timestamp type tags]} item]
