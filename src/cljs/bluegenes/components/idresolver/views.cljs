@@ -706,24 +706,29 @@
           [:div.bars
            (when (> (- matches converted) 0)
              [:div.bar.bar-success
-              {:style {:flex (* 100 (/ (+ matches converted) all))}}
+              {:style {:flex (* 100 (/ (+ matches converted) all))}
+               :on-click #(dispatch [::evts/update-option :review-tab :matches])}
               (str (- matches converted)
                    (str " Match" (when (> (- matches converted) 1) "es")))])
            (when (> converted 0)
              [:div.bar.bar-success
-              {:style {:flex (* 100 (/ (+ matches converted) all))}}
+              {:style {:flex (* 100 (/ (+ matches converted) all))}
+               :on-click #(dispatch [::evts/update-option :review-tab :converted])}
               (str converted " Converted")])
            (when (> other 0)
              [:div.bar.bar-success
-              {:style {:flex (* 100 (/ other all))}}
+              {:style {:flex (* 100 (/ other all))}
+               :on-click #(dispatch [::evts/update-option :review-tab :other])}
               (str other " Synonym" (when (> other 1) "s"))])
            (when (> duplicates 0)
              [:div.bar.bar-warning
-              {:style {:flex (* 100 (/ duplicates all))}}
+              {:style {:flex (* 100 (/ duplicates all))}
+               :on-click #(dispatch [::evts/update-option :review-tab :issues])}
               (str duplicates " Ambiguous")])
            (when (> notFound 0)
              [:div.bar.bar-danger
-              {:style {:flex (* 100 (/ notFound all))}}
+              {:style {:flex (* 100 (/ notFound all))}
+               :on-click #(dispatch [::evts/update-option :review-tab :notFound])}
               (str notFound " Not Found")])]]
 
          (when (not= duplicates 0)
@@ -821,7 +826,7 @@
     (fn []
       (if (= nil @resolution-response)
         (if @in-progress?
-          [:div [loader]]
+          [:div.wizard-loader [loader]]
           (dispatch [::route/navigate ::route/upload-step {:step "input"}]))
         [review-step]))))
 
