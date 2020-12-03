@@ -378,10 +378,11 @@
        [:hr]
        [:p "You may have lists saved to your account. Login to access them."]
        [:hr]
-       [:p [:a {:role "button"
-                :on-click #(dispatch [:lists/reset-filters])}
-            "Click here"]
-        " to clear all filters."]])))
+       (when-not no-lists?
+         [:p [:a {:role "button"
+                  :on-click #(dispatch [:lists/reset-filters])}
+              "Click here"]
+          " to clear all filters."])])))
 
 (defn modal-list-row [item & {:keys [subop single?]}]
   (let [{:keys [id title timestamp type tags]} item]
