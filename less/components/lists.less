@@ -633,3 +633,18 @@
         }
     }
 }
+
+// The following is to work around multiple Firefox bugs related to
+// `position:relative` and `transform:scale(1)` (which is a hack to allow
+// relative positioning within `display:table-row`) causing a 1px border to not
+// be rendered. A 2px border will instead get rendered as a 1px border.
+@-moz-document url-prefix() {
+    .lists .lists-table {
+        border-right-width: 2px;
+    }
+
+    .lists .lists-table .lists-item {
+        border-bottom-width: 2px;
+    }
+}
+
