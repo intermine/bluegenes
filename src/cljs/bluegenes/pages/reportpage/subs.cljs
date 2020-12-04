@@ -41,6 +41,12 @@
    (:active-toc report)))
 
 (reg-sub
+ ::report-filter-text
+ :<- [::report]
+ (fn [report]
+   (or (:filter-text report) "")))
+
+(reg-sub
  ::a-table
  (fn [db [_ location]]
    (get-in db location)))

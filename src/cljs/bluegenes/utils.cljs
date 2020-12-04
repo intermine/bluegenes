@@ -265,3 +265,19 @@
   useful, so we remove it."
   [human-name]
   (string/replace human-name #"(?i)^bluegenes\s*" ""))
+
+(defn highlight-substring
+  "Extracts all instances of substring (case-insensitive) in a string as span
+  elements with a `text-highlight` CSS class."
+  [s substr]
+  (let [re (re-pattern (str "(?i)" substr))
+        fragments (map (fn [s] (if (empty? s) nil [:span s])) (string/split s re))
+        excerpts (map (fn [s] [:span.text-highlight s]) (re-seq re s))
+        length (max (count fragments) (count excerpts))
+        pad-fragments (- length (count fragments))
+        pad-excerpts (- length (count excerpts))]
+    (remove nil?
+            (interleave (cond-> fragments
+                          (pos? pad-fragments) (concat (repeat pad-fragments nil)))
+                        (cond-> excerpts
+                          (pos? pad-excerpts) (concat (repeat pad-excerpts nil)))))))

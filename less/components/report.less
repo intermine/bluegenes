@@ -19,6 +19,10 @@
         margin-bottom: -@spacer/2;
     }
 
+    &-filter {
+        padding-left: @spacer*1.8;
+    }
+
     code.start {
         // For long types like `ChromosomalDuplication`
         overflow-wrap: break-word;
@@ -221,6 +225,11 @@
         li {
             padding: @spacer/2 0;
             border-bottom: 1px solid @light-contrast;
+
+            .text-highlight {
+                font-weight: bold;
+                color: @highlight-color;
+            }
         }
     }
 }

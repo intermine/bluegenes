@@ -16,7 +16,8 @@
             [bluegenes.components.icons :refer [icon icon-comp]]
             [clojure.string :as str]
             [bluegenes.components.bootstrap :refer [poppable]]
-            [oops.core :refer [ocall]]))
+            [oops.core :refer [ocall oget]]
+            [goog.functions :refer [debounce]]))
 
 (defn tbl [{:keys [loc collapse]}]
   (let [data (subscribe [::subs/a-table loc])
@@ -115,7 +116,8 @@
 
 (defn report []
   (let [{:keys [rootClass]} @(subscribe [::subs/report-summary])
-        categories @(subscribe [:current-mine/report-layout rootClass])]
+        categories @(subscribe [:current-mine/report-layout rootClass])
+        filter-text @(subscribe [::subs/report-filter-text])]
     [:div
      (doall
       (for [{:keys [category id children]} categories
@@ -124,12 +126,16 @@
             ;; fallback layout.  What this does is make sure report item is
             ;; "available" for this class (mostly to avoid showing parts of the
             ;; default layout that doesn't apply to this class).
-            :let [children (filter (fn [{:keys [type value]}]
-                                     (contains? (case type
-                                                  "class"    @(subscribe [::subs/ref+coll-for-class? rootClass])
-                                                  "template" @(subscribe [::subs/template-for-class? rootClass])
-                                                  "tool"     @(subscribe [::subs/tool-for-class? rootClass]))
-                                                value))
+            :let [children (filter (fn [{:keys [type value] :as child}]
+                                     (and (contains? (case type
+                                                       "class"    @(subscribe [::subs/ref+coll-for-class? rootClass])
+                                                       "template" @(subscribe [::subs/template-for-class? rootClass])
+                                                       "tool"     @(subscribe [::subs/tool-for-class? rootClass]))
+                                                     value)
+                                          (if (not-empty filter-text)
+                                            (let [label (toc/parse-item-name child)]
+                                              (str/includes? (str/lower-case label) (str/lower-case filter-text)))
+                                            true)))
                                    children)]
             :when (seq children)] ; No point having a section without children.
         ^{:key id}
@@ -233,6 +239,21 @@
      [:div.hidden-lg
       [sidebar/main]]]))
 
+(defn filter-input []
+  (let [input (r/atom @(subscribe [::subs/report-filter-text]))
+        debounced (debounce #(dispatch [::events/set-filter-text %]) 500)
+        on-change (fn [e]
+                    (let [value (oget e :target :value)]
+                      (reset! input value)
+                      (debounced value)))]
+    (fn []
+      [:div.report-page-filter
+       [:input.form-control
+        {:type "text"
+         :placeholder "Find keywords..."
+         :on-change on-change
+         :value @input}]])))
+
 (defn heading []
   (let [{:keys [rootClass]} @(subscribe [::subs/report-summary])
         title @(subscribe [::subs/report-title])]
@@ -248,7 +269,9 @@
        [loader (str (:type params) " Report")]
        [:<>
         [:div.row
-         [:div.col-xs-8.col-xs-offset-2
+         [:div.col-xs-2
+          [filter-input]]
+         [:div.col-xs-8
           [heading]]]
         [:div.row.report-row
          [:div.col-xs-2

@@ -131,6 +131,11 @@
  (fn [db [_ active-toc-id]]
    (assoc-in db [:report :active-toc] active-toc-id)))
 
+(reg-event-db
+ ::set-filter-text
+ (fn [db [_ text]]
+   (assoc-in db [:report :filter-text] text)))
+
 (defn scrollspy
   "Returns a function (partially applied with a seq of string element IDs) to
   be called on document scroll. Will go through every element until it finds

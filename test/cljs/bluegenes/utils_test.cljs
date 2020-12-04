@@ -326,3 +326,12 @@
       [4 2 10] [4 2 9] false
       [4 2 10] [4 3 0] true
       [4 1 3] [4 2 0] true)))
+
+(deftest highlight-substring
+  (testing "Handles common cases and edge cases"
+    (are [in out] (= (utils/highlight-substring in "rna") out)
+      "miRNA Targets" [[:span "mi"] [:span.text-highlight "RNA"] [:span " Targets"]]
+      "Rna Seq Results" [[:span.text-highlight "Rna"] [:span " Seq Results"]]
+      "microRNA (miRNA)" [[:span "micro"] [:span.text-highlight "RNA"] [:span " (mi"] [:span.text-highlight "RNA"] [:span ")"]]
+      "seq result rna" [[:span "seq result "] [:span.text-highlight "rna"]]
+      "RnaRNA" [[:span.text-highlight "Rna"] [:span.text-highlight "RNA"]])))
