@@ -115,10 +115,11 @@
          summary-fields (get-in db [:assets :summary-fields source])]
      (if (nil? package)
        ;; The query result doesn't exist. Fail gracefully!
-       (do
-         (.error js/console
-                 (str "[:results/load-history] The list titled " title " does not exist in db."))
-         {})
+       ;; This should only happen when trying to access a list that doesn't exist via deep linking.
+       {:dispatch-n [[::route/navigate ::route/lists]
+                     [:messages/add
+                      {:markup [:span "Failed to find a list with the name: " [:em title]]
+                       :style "danger"}]]}
        ; Store the values in app-db.
        ; TODO - 99% of this can be factored out by passing the package to the :enrichment/enrich and parsing it there
        {:db (update db :results assoc
