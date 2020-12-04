@@ -29,10 +29,8 @@
                             [:td.value (get (first results) idx)]]) columnHeaders))]]))
 
 (defn p-val-tooltip []
-  [tooltip {:title
-            "The p-value is the probability that result occurs by chance, thus a lower p-value indicates greater enrichment."}
-   [:svg.icon.icon-question
-    [:use {:xlinkHref "#icon-question"}]]])
+  [poppable {:data "The p-value is the probability that result occurs by chance, thus a lower p-value indicates greater enrichment."
+             :children [icon "question"]}])
 
 (defn build-matches-query [query path-constraint identifier]
   (update-in (js->clj (.parse js/JSON query) :keywordize-keys true) [:where]
@@ -279,10 +277,10 @@
        (cond multiple-options? [enrichable-column-chooser enrichable-options @active-enrichment-column])])))
 
 (defn enrichment-help-text []
-  [:a {:title "External link to enrichment documentation."
-       :target "_blank"
-       :href "http://intermine.readthedocs.io/en/latest/embedding/list-widgets/enrichment-widgets/"}
-   [icon "info"]])
+  [poppable {:data "External link to enrichment documentation."
+             :children [:a {:target "_blank"
+                            :href "http://intermine.readthedocs.io/en/latest/embedding/list-widgets/enrichment-widgets/"}
+                        [icon "info"]]}])
 
 (defn enrich []
   [:div
