@@ -13,12 +13,25 @@
  :handle-report-summary
  [document-title]
  (fn [{db :db} [_ summary]]
-   {:db (-> db
-            (assoc-in [:report :summary] summary)
-            (assoc-in [:report :title] (utils/title-column summary))
-            (assoc-in [:report :active-toc] utils/pre-section-id)
-            (assoc :fetching-report? false))
-    :dispatch-n [[:viz/run-queries]]}))
+   (if (seq (:results summary))
+     {:db (-> db
+              (assoc-in [:report :summary] summary)
+              (assoc-in [:report :title] (utils/title-column summary))
+              (assoc-in [:report :active-toc] utils/pre-section-id)
+              (assoc :fetching-report? false))
+      :dispatch-n [[:viz/run-queries]]}
+     ;; No results mean the object ID likely doesn't exist.
+     {:db (-> db
+              (assoc-in [:report :error] {:type :not-found})
+              (assoc :fetching-report? false))})))
+
+(reg-event-db
+ :fetch-report-failure
+ (fn [db [_ res]]
+   (-> db
+       (assoc-in [:report :error] {:type :ws-failure
+                                   :message (get-in res [:body :error])})
+       (assoc :fetching-report? false))))
 
 (reg-event-fx
  :fetch-report
@@ -32,7 +45,8 @@
                            :op "="
                            :value id}]}]
      {:im-chan {:chan (fetch/rows service q {:format "json"})
-                :on-success [:handle-report-summary]}})))
+                :on-success [:handle-report-summary]
+                :on-failure [:fetch-report-failure]}})))
 
 (reg-event-db
  :handle-fasta

@@ -17,6 +17,12 @@
    (:summary report)))
 
 (reg-sub
+ ::report-error
+ :<- [::report]
+ (fn [report]
+   (:error report)))
+
+(reg-sub
  ::report-title
  :<- [::report]
  (fn [report]

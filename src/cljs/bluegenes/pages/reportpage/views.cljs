@@ -261,23 +261,42 @@
      title
      [:code.start {:class (str "start-" rootClass)} rootClass]]))
 
+(defn invalid-object []
+  (let [{error-type :type ?message :message} @(subscribe [::subs/report-error])]
+    [:div.row
+     [:div.col-xs-8.col-xs-offset-2
+      [:div.well.well-lg.invalid-object-container
+       [:h2 (case error-type
+              :not-found "Object not found"
+              :ws-failure "Failed to retrieve object")]
+       [:p (case error-type
+             :not-found "It may have existed before and been assigned a new ID after a database rebuild. If you remember one of its identifiers, you can search for it. You can also see if any lists contain it. Please export a permanent URL next time you want to keep a link to an object."
+             :ws-failure "This may be due to a network error, invalid URL or server issues. Please verify that the URL is correct and try again later.")]
+       (when-let [msg (not-empty ?message)]
+         [:pre msg])
+       [:a.btn.btn-primary.btn-lg
+        {:href (route/href ::route/home)}
+        "Go to homepage"]]]]))
+
 (defn main []
   (let [fetching-report? @(subscribe [:fetching-report?])
+        error @(subscribe [::subs/report-error])
         params @(subscribe [:panel-params])]
     [:div.container-fluid.report-page
-     (if fetching-report?
-       [loader (str (:type params) " Report")]
-       [:<>
-        [:div.row
-         [:div.col-xs-2
-          [filter-input]]
-         [:div.col-xs-8
-          [heading]]]
-        [:div.row.report-row
-         [:div.col-xs-2
-          [toc/main]]
-         [:div.col-xs-10.col-lg-8
-          [summary]
-          [report]]
-         [:div.col-lg-2.visible-lg-block
-          [sidebar/main]]]])]))
+     (cond
+       fetching-report? [loader (str (:type params) " Report")]
+       error [invalid-object]
+       :else [:<>
+              [:div.row
+               [:div.col-xs-2
+                [filter-input]]
+               [:div.col-xs-8
+                [heading]]]
+              [:div.row.report-row
+               [:div.col-xs-2
+                [toc/main]]
+               [:div.col-xs-10.col-lg-8
+                [summary]
+                [report]]
+               [:div.col-lg-2.visible-lg-block
+                [sidebar/main]]]])]))
