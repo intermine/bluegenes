@@ -20,8 +20,6 @@
    {:dispatch-n [[:qb/fetch-saved-queries]
                  [:qb/clear-import-result]]}))
 
-(def loc [:qb :qm])
-
 (def not-blank? (complement blank?))
 
 (defn drop-nth
@@ -81,31 +79,6 @@
                 :store-in view-vec}}
        {:dispatch [:qb/store-possible-values view-vec false]}))))
 
-(reg-event-fx
- :qb/add-constraint
- (fn [{db :db} [_ view-vec]]
-   {:db (update-in db loc update-in (conj view-vec :constraints)
-                   (comp vec conj) {:code nil :op nil :value nil})
-    :dispatch [:qb/build-im-query]}))
-
-(reg-event-fx
- :qb/remove-constraint
- (fn [{db :db} [_ path idx]]
-   {:db (update-in db loc update-in (conj path :constraints) drop-nth idx)
-    :dispatch [:qb/build-im-query]}))
-
-; Do not re-count because this fires on every keystroke!
-; Instead, attach (dispatch [:qb/count-query]) to the :on-blur of the constraints component
-(reg-event-db
- :qb/update-constraint
- (fn [db [_ path idx constraint]]
-   (let [updated-constraint (cond-> constraint
-                              (and
-                               (blank? (:code constraint))
-                               (not-blank? (:value constraint))) (assoc :code (next-available-const-code (get-in db [:qb :enhance-query])))
-                              (blank? (:value constraint)) (dissoc :code))]
-     (update-in db loc assoc-in (reduce conj path [:constraints idx]) updated-constraint))))
-
 (reg-event-db
  :qb/update-constraint-logic
  (fn [db [_ logic]]
@@ -133,22 +106,11 @@
     (flatten (reduce (fn [t n] (conj t (serialize-constraints n total (str trail (if trail ".") k)))) total children))
     (conj total (map (fn [n] (assoc n :path (str trail (if trail ".") k))) constraints))))
 
-(reg-event-db
- :qb/success-count
- (fn [db [_ count]]
-   db))
-
 (defn extract-constraints [[k value] total views]
   (let [new-total (conj total k)]
     (if-let [children (not-empty (select-keys value (filter (complement keyword?) (keys value))))] ; Keywords are reserved for flags
       (into [] (mapcat (fn [c] (extract-constraints c new-total (conj views (assoc value :path new-total)))) children))
       (conj views (assoc value :path new-total)))))
-
-(reg-event-db
- :qb/success-summary
- (fn [db [_ dot-path summary]]
-   (let [v (vec (butlast (split dot-path ".")))]
-     (update-in db loc assoc-in (conj v :id-count) summary))))
 
 (defn remove-keyword-keys
   "Removes all keys from a map that are keywords.
@@ -167,27 +129,40 @@
        (mapcat (fn [[k v]] (class-paths model [k v] (conj running k) total)) children)
        total))))
 
-(defn view-map [model q]
-  (->> (map (fn [v] (split v ".")) (:select q))
-       (reduce (fn [total next] (assoc-in total next {:visible true})) {})))
+(defn with-views [q query-map]
+  (reduce (fn [m path]
+            (assoc-in m path {:visible true}))
+          query-map
+          (map #(split % ".") (:select q))))
 
-(defn with-constraints [model q query-map]
-  (reduce (fn [total next]
-            (let [path (conj (vec (split (:path next) ".")) :constraints)]
-              (update-in total path (comp vec conj) (dissoc next :path)))) query-map (:where q)))
+(defn with-constraints [q query-map]
+  (reduce (fn [m {:keys [path] :as constraint}]
+            (let [path (concat (split path ".") [:constraints])]
+              (update-in m path (fnil conj []) (dissoc constraint :path))))
+          query-map
+          (filter (complement :type) (:where q))))
 
-(defn treeify [model q]
-  (->> (view-map model q)
-       (with-constraints model q)))
+(defn with-subclasses [q query-map]
+  (reduce (fn [m {:keys [path] :as constraint}]
+            (let [path (concat (split path ".") [:subclass])]
+              (assoc-in m path (:type constraint))))
+          query-map
+          (filter :type (:where q))))
+
+(defn treeify [q]
+  (->> {}
+       (with-views q)
+       (with-constraints q)
+       (with-subclasses q)))
 
 (reg-event-fx
  :qb/load-query
  (fn [{db :db} [_ query]]
-   (let [model (get-in db [:mines (get-in db [:current-mine]) :service :model])
-         query (im-query/sterilize-query query)]
+   (let [query (im-query/sterilize-query query)
+         tree (treeify query)]
      {:db (update db :qb assoc
-                  :enhance-query (treeify model query)
-                  :menu (treeify model query)
+                  :enhance-query tree
+                  :menu tree
                   :order (:select query)
                   :root-class (keyword (:from query))
                   :constraint-logic (read-logic-string (:constraintLogic query))
@@ -197,19 +172,16 @@
 
 (reg-event-fx
  :qb/set-root-class
- (fn [{db :db} [_ root-class-kw]]
-   (let [model (get-in db [:mines (get-in db [:current-mine]) :service :model])]
-     {:db (update db :qb assoc
-                  :constraint-logic nil
-                  :query-is-valid? false
-                  :order []
-                  :sort []
-                  :joins #{}
-                  :preview nil
-                  :im-query nil
-                  :enhance-query {}
-                  :root-class (keyword root-class-kw)
-                  :qm {root-class-kw {:visible true}})})))
+ (fn [{db :db} [_ root-class]]
+   {:db (update db :qb assoc
+                :constraint-logic nil
+                :order []
+                :sort []
+                :joins #{}
+                :preview nil
+                :im-query nil
+                :enhance-query {}
+                :root-class (keyword root-class))}))
 
 (reg-event-db
  :qb/expand-path

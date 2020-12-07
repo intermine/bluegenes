@@ -4,11 +4,6 @@
             [bluegenes.pages.querybuilder.logic :as con-logic]))
 
 (reg-sub
- :qb/query
- (fn [db]
-   (into (sorted-map) (get-in db [:qb :qm]))))
-
-(reg-sub
  :qb/constraint-logic
  (fn [db]
    (join "" (drop-last (rest (apply vector (str (con-logic/vec->list (get-in db [:qb :constraint-logic])))))))))

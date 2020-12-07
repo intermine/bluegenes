@@ -47,16 +47,21 @@
      [:div.preview-table-container
       [preview-table
        :query-results @results-preview]]
-     [:button.btn.btn-primary.btn-raised.view-results
-      {:type "button"
-       :disabled (zero? results-count)
-       :on-click (fn [] (dispatch [:templates/send-off-query]))}
-      (cond
-        loading? "Loading"
-        (zero? results-count) "No Results"
-        :else (str "View "
-                   results-count
-                   (if (> results-count 1) " rows" " row")))]]))
+     [:div.btn-group
+      [:button.btn.btn-primary.btn-raised.view-results
+       {:type "button"
+        :disabled (zero? results-count)
+        :on-click (fn [] (dispatch [:templates/send-off-query]))}
+       (cond
+         loading? "Loading"
+         (zero? results-count) "No Results"
+         :else (str "View "
+                    results-count
+                    (if (> results-count 1) " rows" " row")))]
+      [:button.btn.btn-default.btn-raised
+       {:type "button"
+        :on-click (fn [] (dispatch [:templates/edit-query]))}
+       "Edit query"]]]))
 
 (defn toggle []
   (fn [{:keys [status on-change]}]
