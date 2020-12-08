@@ -107,23 +107,15 @@
  (fn [[model params]]
    (let [{:keys [classes]} model
          object-kw (-> params :type keyword)]
-     (concat (vals (get-in classes [object-kw :collections]))
-             (vals (get-in classes [object-kw :references]))))))
-
-(reg-sub
- ::refs+colls-by-referencedType
- :<- [::refs+colls]
- (fn [refs+colls]
-   (group-by :referencedType refs+colls)))
+     ;; This merge assumes there are no identical keys across collections and references.
+     (merge (get-in classes [object-kw :collections])
+            (get-in classes [object-kw :references])))))
 
 (reg-sub
  ::a-ref+coll
- :<- [::refs+colls-by-referencedType]
- (fn [refs+colls [_ referencedType]]
-   ;; If there are multiple identical referencedType among one class' combined
-   ;; references and collections, this could lead to only one of them being
-   ;; displayed (we should verify if this is possible).
-   (first (get refs+colls (name referencedType)))))
+ :<- [::refs+colls]
+ (fn [refs+colls [_ name]]
+   (get refs+colls (keyword name))))
 
 (reg-sub
  ::a-template

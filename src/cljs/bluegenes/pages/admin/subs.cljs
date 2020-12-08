@@ -79,9 +79,9 @@
    (->> (if class
           (let [{:keys [references collections]} (get model (keyword class))]
             (->> (concat references collections)
-                 (map (fn [[_ {:keys [displayName referencedType]}]]
+                 (map (fn [[_ {:keys [displayName name]}]]
                         {:label displayName
-                         :value referencedType
+                         :value name
                          :type "class"}))))
           (map (fn [[_ {:keys [displayName name]}]]
                  {:label displayName

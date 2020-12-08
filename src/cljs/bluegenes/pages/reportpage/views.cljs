@@ -87,12 +87,12 @@
           :settings (->report-table-settings current-mine-name)
           :id id}]))
 
-(defn class-report [{:keys [id collapse description] referencedType :value}]
+(defn class-report [{:keys [id collapse description] nom :value}]
   (let [{object-type :type object-id :id} @(subscribe [:panel-params])
         summary-fields @(subscribe [:current-summary-fields])
         service (:service @(subscribe [:current-mine]))
         current-mine-name @(subscribe [:current-mine-name])
-        {:keys [displayName] :as ref+coll} @(subscribe [::subs/a-ref+coll referencedType])]
+        {:keys [displayName] :as ref+coll} @(subscribe [::subs/a-ref+coll nom])]
     [tbl {:loc [:report :im-tables id]
           :service (merge service {:summary-fields summary-fields})
           :title displayName
