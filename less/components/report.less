@@ -95,8 +95,7 @@
         display: table-cell;
         padding: @spacer/2 @spacer;
         font-weight: 400;
-        // We need this to linebreak long strings like Chromosome Location.
-        overflow-wrap: anywhere;
+        overflow-wrap: break-word;
     }
 
     &-link {
@@ -107,6 +106,7 @@
 
     &-header {
         font-weight: 300;
+        overflow-wrap: break-word;
     }
 
     .collapse-table {

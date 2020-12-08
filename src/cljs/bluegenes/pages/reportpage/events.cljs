@@ -7,19 +7,56 @@
             [bluegenes.pages.reportpage.utils :as utils]
             [bluegenes.route :as route]
             [goog.dom :as gdom]
-            [oops.core :refer [oget ocall]]))
+            [oops.core :refer [oget ocall]]
+            [bluegenes.utils :refer [rows->maps]]))
+
+(reg-event-fx
+ :fetch-fasta
+ (fn [{db :db} [_ mine-kw type id]]
+   (let [service (get-in db [:mines mine-kw :service])
+         q {:from type
+            :select [(str type ".id")]
+            :where [{:path (str type ".id")
+                     :op "="
+                     :value id}]}]
+     {:im-chan {:chan (fetch/fasta service q)
+                :on-success [:handle-fasta]}})))
+
+(reg-event-db
+ :handle-fasta
+ (fn [db [_ fasta]]
+   (cond-> db
+     ;; If there's no FASTA the API will return "Nothing was found for export".
+     (string/starts-with? fasta ">")
+     (assoc-in [:report :fasta] fasta))))
+
+(defn class-has-fasta? [hier class-kw]
+  (or (= class-kw :Protein)
+      (isa? hier class-kw :SequenceFeature)))
+
+(defn fasta-too-long? [summary]
+  (let [length (get-in (rows->maps summary) [0 :length])]
+    (if (number? length)
+      (> length 1e6)
+      true))) ; There's likely no FASTA available if it has no length.
 
 (reg-event-fx
  :handle-report-summary
  [document-title]
- (fn [{db :db} [_ summary]]
+ (fn [{db :db} [_ mine-kw type id summary]]
    (if (seq (:results summary))
-     {:db (-> db
-              (assoc-in [:report :summary] summary)
-              (assoc-in [:report :title] (utils/title-column summary))
-              (assoc-in [:report :active-toc] utils/pre-section-id)
-              (assoc :fetching-report? false))
-      :dispatch-n [[:viz/run-queries]]}
+     (let [has-fasta (class-has-fasta? (get-in db [:mines mine-kw :model-hier]) (keyword type))
+           too-long-fasta (and has-fasta (fasta-too-long? summary))]
+       {:db (-> db
+                (assoc-in [:report :summary] summary)
+                (assoc-in [:report :title] (utils/title-column summary))
+                (assoc-in [:report :active-toc] utils/pre-section-id)
+                (cond-> too-long-fasta
+                  (assoc-in [:report :fasta] :too-long))
+                (assoc :fetching-report? false))
+        :dispatch-n [[:viz/run-queries]
+                     (when (and has-fasta (not too-long-fasta))
+                       [:fetch-fasta mine-kw type id])]})
      ;; No results mean the object ID likely doesn't exist.
      {:db (-> db
               (assoc-in [:report :error] {:type :not-found})
@@ -35,8 +72,8 @@
 
 (reg-event-fx
  :fetch-report
- (fn [{db :db} [_ mine type id]]
-   (let [service (get-in db [:mines mine :service])
+ (fn [{db :db} [_ mine-kw type id]]
+   (let [service (get-in db [:mines mine-kw :service])
          attribs (->> (get-in service [:model :classes (keyword type) :attributes])
                       (mapv (comp #(str type "." %) :name val)))
          q       {:from type
@@ -45,32 +82,8 @@
                            :op "="
                            :value id}]}]
      {:im-chan {:chan (fetch/rows service q {:format "json"})
-                :on-success [:handle-report-summary]
+                :on-success [:handle-report-summary mine-kw type id]
                 :on-failure [:fetch-report-failure]}})))
-
-(reg-event-db
- :handle-fasta
- (fn [db [_ fasta]]
-   (cond-> db
-     ;; If there's no FASTA the API will return "Nothing was found for export".
-     (string/starts-with? fasta ">")
-     (assoc-in [:report :fasta] fasta))))
-
-(reg-event-fx
- :fetch-fasta
- (fn [{db :db} [_ mine-kw type id]]
-   (let [service (get-in db [:mines mine-kw :service])
-         q {:from type
-            :select [(str type ".id")]
-            :where [{:path (str type ".id")
-                     :op "="
-                     :value id}]}]
-     {:im-chan {:chan (fetch/fasta service q)
-                :on-success [:handle-fasta]}})))
-
-(defn class-has-fasta? [hier class-kw]
-  (or (= class-kw :Protein)
-      (isa? hier class-kw :SequenceFeature)))
 
 (defn class-has-dataset? [model-classes class-kw]
   (contains? (get-in model-classes [class-kw :collections])
@@ -87,9 +100,6 @@
               (dissoc :report)
               (assoc-in [:tools :entities (keyword type)] entity))
       :dispatch-n [[:fetch-report (keyword mine) type id]
-                   (when (class-has-fasta? (get-in db [:mines (keyword mine) :model-hier])
-                                           (keyword type))
-                     [:fetch-fasta (keyword mine) type id])
                    [::fetch-lists (keyword mine) id]
                    (when (class-has-dataset? (get-in db [:mines (keyword mine) :service :model :classes])
                                              (keyword type))

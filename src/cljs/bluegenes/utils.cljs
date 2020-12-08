@@ -281,3 +281,12 @@
                           (pos? pad-fragments) (concat (repeat pad-fragments nil)))
                         (cond-> excerpts
                           (pos? pad-excerpts) (concat (repeat pad-excerpts nil)))))))
+
+(defn rows->maps
+  "Takes an `imcljs.fetch/rows` response and transforms it into a vector of
+  maps, with the last portion of the path as keyword keys ('Gene.symbol' -> :symbol)."
+  [res]
+  (let [views (map (comp keyword #(re-find #"[^\.]+$" %)) (:views res))]
+    (mapv (fn [result]
+            (zipmap views result))
+          (:results res))))

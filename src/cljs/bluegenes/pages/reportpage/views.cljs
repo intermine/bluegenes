@@ -190,16 +190,25 @@
     [:<>
      [:div.report-table-cell.report-table-header
       label]
-     [:div.report-table-cell.fasta-value
-      [:span.dropdown
-       [:a.dropdown-toggle.fasta-button
-        {:data-toggle "dropdown" :role "button"}
-        [poppable {:data "Show sequence"
-                   :children [:span value [icon-comp "caret-down"]]}]]
-       [:div.dropdown-menu.fasta-dropdown
-        [:form ; Top secret technique to avoid closing the dropdown when clicking inside.
-         [:pre.fasta-sequence fasta]]]]
-      [fasta-download]]]))
+     (if (= fasta :too-long)
+       ;; Fasta exists but is too long and should be fetched manually.
+       (let [{:keys [mine type id]} @(subscribe [:panel-params])]
+         [:div.report-table-cell.fasta-value
+          [:a.fasta-download
+           {:role "button"
+            :on-click #(dispatch [:fetch-fasta (keyword mine) type id])}
+           [icon-comp "my-data"]
+           "LOAD FASTA"]])
+       [:div.report-table-cell.fasta-value
+        [:span.dropdown
+         [:a.dropdown-toggle.fasta-button
+          {:data-toggle "dropdown" :role "button"}
+          [poppable {:data "Show sequence"
+                     :children [:span value [icon-comp "caret-down"]]}]]
+         [:div.dropdown-menu.fasta-dropdown
+          [:form ; Top secret technique to avoid closing the dropdown when clicking inside.
+           [:pre.fasta-sequence fasta]]]]
+        [fasta-download]])]))
 
 (defn anchor-if-url [x]
   (if (string? x)

@@ -57,6 +57,7 @@
  (fn [db [_ location]]
    (get-in db location)))
 
+;; This can be a string with the fasta response or :too-long
 (reg-sub
  ::fasta
  :<- [::report]
@@ -67,24 +68,37 @@
  ::fasta-identifier
  :<- [::fasta]
  (fn [fasta]
-   (-> (string/split fasta #"[ \n]")
-       (first)
-       (subs 1))))
+   (when (string? fasta)
+     (-> (string/split fasta #"[ \n]")
+         (first)
+         (subs 1)))))
 
 (reg-sub
  ::chromosome-location
  :<- [::fasta]
  (fn [fasta]
-   (second (string/split fasta #"[ \n]"))))
+   (when (string? fasta)
+      ;; This handles the case where Chromosome Location is missing entirely (like on Proteins).
+     (let [loc (-> (string/split-lines fasta)
+                   (first)
+                   (string/split #"[ \n]")
+                   (second))]
+       (if (= loc "-")
+         ;; Chromosome FASTA have a dash where you'd expect the chromosome location.
+         ;; For now, we only want to avoid breakage, so we pretend it doesn't have one.
+         nil
+         loc)))))
 
+;; TODO do not calculate manually and instead use :length ?
 (reg-sub
  ::fasta-length
  :<- [::fasta]
  (fn [fasta]
-   (->> (string/split-lines fasta)
-        rest
-        (apply str)
-        count)))
+   (when (string? fasta)
+     (->> (string/split-lines fasta)
+          rest
+          (apply str)
+          count))))
 
 (reg-sub
  ::refs+colls
