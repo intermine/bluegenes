@@ -95,6 +95,8 @@
         display: table-cell;
         padding: @spacer/2 @spacer;
         font-weight: 400;
+        // We need this to linebreak long strings like Chromosome Location.
+        overflow-wrap: anywhere;
     }
 
     &-link {
@@ -131,6 +133,7 @@
 .report-page .fasta-value {
     display: flex;
     justify-content: space-between;
+    white-space: nowrap;
 
     .fasta-button .icon {
         margin: 0;

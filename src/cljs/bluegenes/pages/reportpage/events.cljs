@@ -58,15 +58,19 @@
 
 (reg-event-fx
  :fetch-fasta
- (fn [{db :db} [_ mine id]]
-   (let [service (get-in db [:mines mine :service])
-         q {:from "Gene"
-            :select ["Gene.id"]
-            :where [{:path "Gene.id"
+ (fn [{db :db} [_ mine-kw type id]]
+   (let [service (get-in db [:mines mine-kw :service])
+         q {:from type
+            :select [(str type ".id")]
+            :where [{:path (str type ".id")
                      :op "="
                      :value id}]}]
      {:im-chan {:chan (fetch/fasta service q)
                 :on-success [:handle-fasta]}})))
+
+(defn class-has-fasta? [hier class-kw]
+  (or (= class-kw :Protein)
+      (isa? hier class-kw :SequenceFeature)))
 
 (defn class-has-dataset? [model-classes class-kw]
   (contains? (get-in model-classes [class-kw :collections])
@@ -83,8 +87,9 @@
               (dissoc :report)
               (assoc-in [:tools :entities (keyword type)] entity))
       :dispatch-n [[:fetch-report (keyword mine) type id]
-                   (when (= type "Gene")
-                     [:fetch-fasta (keyword mine) id])
+                   (when (class-has-fasta? (get-in db [:mines (keyword mine) :model-hier])
+                                           (keyword type))
+                     [:fetch-fasta (keyword mine) type id])
                    [::fetch-lists (keyword mine) id]
                    (when (class-has-dataset? (get-in db [:mines (keyword mine) :service :model :classes])
                                              (keyword type))
