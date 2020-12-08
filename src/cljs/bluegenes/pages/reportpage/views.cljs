@@ -107,9 +107,9 @@
     (fn [{:keys [title id]} & children]
       (into [:div.report-table {:id id}
              [:h3.report-table-heading
-              {:on-click #(swap! collapsed* not)}
               title
               [:button.btn.btn-link.pull-right.collapse-table
+               {:on-click #(swap! collapsed* not)}
                [icon-comp "chevron-up"
                 :classes [(when @collapsed* "collapsed")]]]]]
             (when-not @collapsed* children)))))
