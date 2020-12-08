@@ -315,11 +315,12 @@
 
 (reg-fx
  :scroll-to-top
- (fn [_]
+ (fn [{:keys [ms]
+       :or {ms 500}}]
    (let [doc-elem (gdom/getDocumentScrollElement)
          current-scroll (clj->js ((juxt #(oget % :x) #(oget % :y))
                                   (gdom/getDocumentScroll)))]
-     (doto (gfx/Scroll. doc-elem current-scroll #js [0 0] 500 ease-in-out-cubic)
+     (doto (gfx/Scroll. doc-elem current-scroll #js [0 0] ms ease-in-out-cubic)
        (.play)))))
 
 ;; Currently this only logs to console, but in the future we can decide to

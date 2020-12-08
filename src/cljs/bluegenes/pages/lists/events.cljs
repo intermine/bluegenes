@@ -136,11 +136,11 @@
  (fn [lists [_ new-value]]
    (assoc-in lists [:pagination :per-page] new-value)))
 
-(reg-event-db
+(reg-event-fx
  :lists/set-current-page
- (path root)
- (fn [lists [_ new-value]]
-   (assoc-in lists [:pagination :current-page] new-value)))
+ (fn [{db :db} [_ new-value scroll-top?]]
+   (cond-> {:db (assoc-in db (concat root [:pagination :current-page]) new-value)}
+     scroll-top? (assoc :scroll-to-top {:ms 0}))))
 
 (reg-event-db
  :lists/select-list

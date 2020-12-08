@@ -133,6 +133,22 @@
                       label]])
                   (pagination-items current-page page-count)))])))
 
+(defn pagination-bottom []
+  (let [page-count @(subscribe [:lists/page-count])
+        current-page @(subscribe [:lists/current-page])]
+    ;; Don't show pagination if there are no pages and therefore no lists.
+    (when (pos? page-count)
+      [:div.pagination-controls.pagination-bottom
+       (into [:ul.pagination]
+             (map (fn [{:keys [disabled active label value]}]
+                    [:li {:class (cond disabled :disabled
+                                       active :active)}
+                     [:a {:disabled disabled
+                          :on-click (when (and (not disabled) value)
+                                      #(dispatch [:lists/set-current-page value true]))}
+                      label]])
+                  (pagination-items current-page page-count)))])))
+
 (def list-time-formatter (time-format/formatters :mysql))
 (def list-date-formatter (time-format/formatter "dd MMM, Y"))
 
@@ -663,5 +679,6 @@
    [pagination]
    [lists]
    [no-lists]
+   [pagination-bottom]
    [bottom-controls]
    [modal]])
