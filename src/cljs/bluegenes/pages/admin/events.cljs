@@ -78,11 +78,7 @@
                             (not-empty (get-in res [:body :error])))})))
 
 (defn get-categorize-class [admin]
-  (or (get admin :categorize-class)
-      ;; This is to replace `nil` when the dropdown is set to Default.  It's a
-      ;; keyword instead of string so it won't conflict if there happens to be
-      ;; a real class called Default, and lower case to distinguish it further.
-      :default))
+  (get admin :categorize-class))
 
 ;; We don't want to repeatedly encode the structure of categories into all our
 ;; events, so we create utility functions to make things more stratified.
