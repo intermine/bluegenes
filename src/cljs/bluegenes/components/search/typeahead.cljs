@@ -119,7 +119,7 @@
           {:on-click #(navigate-to-full-results)}
           [:use {:xlinkHref "#icon-search"}]]
          (cond
-           @error
+           (and @error (not-empty @search-term))
            [:div.dropdown-menu.quicksearch
             [:div.alert.alert-danger
              [:h4 "Search error "
@@ -137,4 +137,11 @@
                      (let [active-selection (subscribe [:quicksearch-selected-index])
                            is-active?       (= index @active-selection)]
                        [suggestion result is-active?]))
-                   @results))])])})))
+                   @results))]
+
+           (and (not-empty @search-term)
+                (some? @results))
+           [:div.dropdown-menu.quicksearch
+            [:div.list-group
+             [:div.list-group-item.active
+              [:h4 "No results"]]]])])})))
