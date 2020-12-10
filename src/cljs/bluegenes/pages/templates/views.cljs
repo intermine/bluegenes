@@ -10,7 +10,8 @@
             [oops.core :refer [oget ocall]]
             [bluegenes.components.loader :refer [mini-loader]]
             [bluegenes.utils :refer [ascii-arrows ascii->svg-arrows]]
-            [bluegenes.pages.templates.helpers :refer [categories-from-tags]]))
+            [bluegenes.pages.templates.helpers :refer [categories-from-tags]]
+            [bluegenes.components.top-scroll :as top-scroll]))
 
 (defn categories []
   (let [categories (subscribe [:template-chooser-categories])
@@ -218,12 +219,6 @@
                           [:label.control-label "Filter by description"]
                           [template-filter filter-state]]])})))
 
-(defn top-scroll []
-  [:div.top-scroll
-   {:on-click #(dispatch [:scroll-to-top])
-    :title "Scroll to top"}
-   [:span.top-arrow]])
-
 (defn main []
   (let [im-templates (subscribe [:templates-by-category])
         filter-state (reagent/atom nil)
@@ -266,4 +261,4 @@
                            [:div.col-xs-12.templates
                             [:div.template-list
                              [templates @im-templates]]]]]
-                         [top-scroll]])})))
+                         [top-scroll/main]])})))

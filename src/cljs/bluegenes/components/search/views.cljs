@@ -5,7 +5,8 @@
             [re-frame.core :as re-frame :refer [subscribe dispatch]]
             [oops.core :refer [ocall oget]]
             [bluegenes.route :as route]
-            [reagent.core :as reagent]))
+            [reagent.core :as reagent]
+            [bluegenes.components.top-scroll :as top-scroll]))
 
 (defn results-display
   "Iterate through results and output one row per result using result-row to format. Filtered results aren't output. "
@@ -91,7 +92,8 @@
        :else [:div.noresponse
               [:svg.icon.icon-info [:use {:xlinkHref "#icon-info"}]] "Try searching for something in the search box above - perhaps a gene, a protein, or a GO Term."])
      (when @loading?
-       [:div.noresponse [loader "results"]])]))
+       [:div.noresponse [loader "results"]])
+     [top-scroll/main]]))
 
 (defn main []
   [search-form])
