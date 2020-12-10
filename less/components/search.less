@@ -92,13 +92,18 @@
 
     .noresponse {
         text-align: center;
-        margin-top: 1em;
+        padding-top: 2em;
     }
 
     .badresponse {
         .search-header h4 {
             font-weight: bold;
         }
+    }
+
+    // Make sure the scroll-top element is near the bottom when there's little content.
+    .noresponse, .response {
+        min-height: ~"calc(100% - 80px)";
     }
 
     .response {

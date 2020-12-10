@@ -77,6 +77,7 @@
     [:div.search-fullscreen
      [input-new-term]
      (cond
+       @loading? [:div.noresponse [loader "results"]]
        @error [:div.response.badresponse
                [:div.results
                 [:div.search-header
@@ -91,8 +92,6 @@
                                     [results-display]]
        :else [:div.noresponse
               [:svg.icon.icon-info [:use {:xlinkHref "#icon-info"}]] "Try searching for something in the search box above - perhaps a gene, a protein, or a GO Term."])
-     (when @loading?
-       [:div.noresponse [loader "results"]])
      [top-scroll/main]]))
 
 (defn main []
