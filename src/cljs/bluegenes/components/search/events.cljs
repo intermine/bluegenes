@@ -64,6 +64,14 @@
          new-facets (merge-filtered-facets filters old-facets facets :fresh true)]
      (assoc-in db [:search-results :facets] new-facets))))
 
+(reg-event-db
+ :search/failure
+ (fn [db [_ res]]
+   (update db :search-results assoc
+           :loading? false
+           :error {:type "failure"
+                   :message (get-in res [:body :error])})))
+
 (reg-event-fx
  :search/save-results
  (fn [{db :db} [_
@@ -82,6 +90,7 @@
        {:db (update db :search-results assoc
                     :results results
                     :loading? false
+                    :error nil
                     :facets facets)
         :im-chan {:chan (fetch/quicksearch service search-term {:size 0})
                   :on-success [:search/save-facets]}}
@@ -94,6 +103,7 @@
          (cond-> {:db (update db :search-results assoc
                               :results results
                               :loading? false
+                              :error nil
                               :facets new-facets)}
            ;; If we just removed a filter, we also need to do an empty search
            ;; to get the correct facets for the activated filters.
@@ -106,6 +116,7 @@
        {:db (update db :search-results assoc
                     :results results
                     :loading? false
+                    :error nil
                     :highlight-results (:highlight-results (:search-results db))
                     :facets facets)}))))
 
@@ -157,7 +168,8 @@
                 :on-success [:search/save-results
                              {:new-search? new-search?
                               :active-filter? active-filters?
-                              :removed-filter? removed-filter?}]}})))
+                              :removed-filter? removed-filter?}]
+                :on-failure [:search/failure]}})))
 
 (reg-event-fx
  :search/set-active-filter

@@ -70,6 +70,11 @@
 
 ;; See bottom of namespace for effect registrations and examples  on how to use them
 
+;; Artificial HTTP response to indicate that a request has been aborted.
+(def abort-response
+  {:status 408
+   :success false
+   :body :abort})
 ;; The :im-chan side effect is used to read a value from a channel that
 ;; represents an HTTP request and dispatches events depending on the status of
 ;; that request's response.
@@ -81,10 +86,7 @@
             ;; multiple times, and you want new requests to replace pending
             ;; requests of the same `abort` value.
             (when abort
-              ; Look for a request stored in the state keyed by whatever value is in 'abort'
-              ; and close it
-              (some-> @previous-requests (get abort) close!)
-              ; Swap the old value for the new value
+              (some-> @previous-requests (get abort) (doto (put! abort-response) (close!)))
               (swap! previous-requests assoc abort chan))
 
             ;; `abort-active` is different from `abort` in that instead of being
@@ -92,11 +94,7 @@
             ;; active requests, without invoking their `on-failure` function.
             (when abort-active
               (doseq [req @active-requests]
-                ;; Create an artificial HTTP response to indicate that this
-                ;; request has been aborted.
-                (put! req {:status 408
-                           :success false
-                           :body :abort})
+                (put! req abort-response)
                 (close! req)))
 
             ;; If you change anything here, make the same change for `chans` below.
@@ -129,10 +127,6 @@
 
                             on-failure (dispatch (conj on-failure response))
 
-                            ;; If `abort` is specified, it's possible that this request's
-                            ;; channel was closed by a subsequent request. In this case,
-                            ;; there's no error and we don't want to log it.
-                            (and abort (nil? response)) nil
                             :else
                             (.error js/console "Failed imcljs request" response))))))
 

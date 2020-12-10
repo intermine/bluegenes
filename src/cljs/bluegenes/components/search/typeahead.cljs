@@ -86,6 +86,7 @@
 (defn main []
   (reagent/create-class
    (let [results     (subscribe [:suggestion-results])
+         error       (subscribe [:suggestion-error])
          search-term (subscribe [:search-term])]
      {:component-did-mount
       (fn [e]
@@ -117,7 +118,17 @@
          [:svg.icon.icon-search.search-button
           {:on-click #(navigate-to-full-results)}
           [:use {:xlinkHref "#icon-search"}]]
-         (when (> (count @results) 0)
+         (cond
+           @error
+           [:div.dropdown-menu.quicksearch
+            [:div.alert.alert-danger
+             [:h4 "Search error "
+              [:code
+               (if-let [msg (-> @error :message not-empty)]
+                 msg
+                 "Please check your connection and try again later.")]]]]
+
+           (> (count @results) 0)
            [:div.dropdown-menu.quicksearch
             [show-all-results]
             (into [:div.list-group]

@@ -72,15 +72,25 @@
   []
   (let [results (subscribe [:search/full-results])
         loading? (subscribe [:search/loading?])
+        error (subscribe [:search/error])
         search-term (subscribe [:search-term])]
     [:div.search-fullscreen
      [input-new-term]
-     (if (some? (:results @results))
-       [:div.response
-        [filters/facet-display results @search-term]
-        [results-display]]
-       [:div.noresponse
-        [:svg.icon.icon-info [:use {:xlinkHref "#icon-info"}]] "Try searching for something in the search box above - perhaps a gene, a protein, or a GO Term."])
+     (cond
+       @error [:div.response.badresponse
+               [:div.results
+                [:div.search-header
+                 [:h4 "Search returned an error"]]
+                [:div.empty-results
+                 [:code
+                  (if-let [msg (-> @error :message not-empty)]
+                    msg
+                    "This is likely due to network issues. Please check your connection and try again later.")]]]]
+       (some? (:results @results)) [:div.response
+                                    [filters/facet-display results @search-term]
+                                    [results-display]]
+       :else [:div.noresponse
+              [:svg.icon.icon-info [:use {:xlinkHref "#icon-info"}]] "Try searching for something in the search box above - perhaps a gene, a protein, or a GO Term."])
      (when @loading?
        [:div.noresponse [loader "results"]])]))
 

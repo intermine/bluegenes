@@ -17,6 +17,11 @@
    (:suggestion-results db)))
 
 (reg-sub
+ :suggestion-error
+ (fn [db _]
+   (:suggestion-error db)))
+
+(reg-sub
  :search/full-results
  (fn [db]
    (:search-results db)))
@@ -62,6 +67,12 @@
  :<- [:search/full-results]
  (fn [full-results]
    (:loading? full-results)))
+
+(reg-sub
+ :search/error
+ :<- [:search/full-results]
+ (fn [full-results]
+   (:error full-results)))
 
 (reg-sub
  :search/keyword
