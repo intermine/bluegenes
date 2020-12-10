@@ -268,21 +268,26 @@
 
 (defn highlight-substring
   "Extracts all instances of substring (case-insensitive) in a string as span
-  elements with a unique CSS class (defaults to .text-highlight)."
+  elements with a unique CSS class (defaults to .text-highlight). Will return
+  a sequential of span elements, meaning you'll want to use it with into."
   ([s substr]
    (highlight-substring s substr :text-highlight))
   ([s substr css-class]
-   (let [re (re-pattern (str "(?i)" substr))
-         fragments (map (fn [s] (if (empty? s) nil [:span s])) (string/split s re))
-         excerpts (map (fn [s] [:span {:class css-class} s]) (re-seq re s))
-         length (max (count fragments) (count excerpts))
-         pad-fragments (- length (count fragments))
-         pad-excerpts (- length (count excerpts))]
-     (remove nil?
-             (interleave (cond-> fragments
-                           (pos? pad-fragments) (concat (repeat pad-fragments nil)))
-                         (cond-> excerpts
-                           (pos? pad-excerpts) (concat (repeat pad-excerpts nil))))))))
+   (cond
+     (empty? s) []
+     (empty? substr) [[:span s]]
+     :else
+     (let [re (re-pattern (str "(?i)" substr))
+           fragments (map (fn [s] (if (empty? s) nil [:span s])) (string/split s re))
+           excerpts (map (fn [s] [:span {:class css-class} s]) (re-seq re s))
+           length (max (count fragments) (count excerpts))
+           pad-fragments (- length (count fragments))
+           pad-excerpts (- length (count excerpts))]
+       (remove nil?
+               (interleave (cond-> fragments
+                             (pos? pad-fragments) (concat (repeat pad-fragments nil)))
+                           (cond-> excerpts
+                             (pos? pad-excerpts) (concat (repeat pad-excerpts nil)))))))))
 
 (defn rows->maps
   "Takes an `imcljs.fetch/rows` response and transforms it into a vector of
