@@ -4,7 +4,9 @@
             [re-frame.core :as re-frame :refer [subscribe dispatch]]
             [dommy.core :as dommy :refer-macros [sel1]]
             [bluegenes.route :as route]
-            [oops.core :refer [oget]]))
+            [oops.core :refer [oget]]
+            [bluegenes.utils :refer [highlight-substring]]
+            [clojure.string :as str]))
 
 (defn navigate-to-report
   "Navigate to the report page for the given item and reset the UI"
@@ -26,8 +28,7 @@
   []
   (let [search-term (subscribe [:search-term])]
     (fn [item is-active?]
-      (let [info   (clojure.string/join " " (interpose ", " (vals (:fields item))))
-            parsed (clojure.string/split info (re-pattern (str "(?i)" @search-term)))]
+      (let [info (str/join " " (interpose ", " (vals (:fields item))))]
         [:div.list-group-item.quicksearch-result
          {:on-mouse-down
           (fn [e]
@@ -37,9 +38,8 @@
           :class (cond is-active? "active ")}
          [:div.row-content {:class (str "type type-" (:type item))}
           [:h4.list-group-item-heading (:type item)]
-          (into
-           [:div.list-group-item-text]
-           (interpose [:span.highlight @search-term] (map (fn [part] [:span part]) parsed)))]]))))
+          (into [:div.list-group-item-text]
+                (highlight-substring info @search-term :highlight))]]))))
 
 (defn monitor-enter-key [e]
   (let [keycode          (.-charCode e)
