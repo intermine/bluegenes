@@ -55,7 +55,7 @@
       {:on-submit (fn [evt]
                     ;; Don't submit the form; that just makes a redirect.
                     (ocall evt :preventDefault)
-                    (when (some? search-term)
+                    (when (not-empty search-term)
                       ;; Set :suggestion-results to nil to force a :bounce-search next
                       ;; time we try to show suggestions, to avoid outdated results.
                       (dispatch [:handle-suggestions])
