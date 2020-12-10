@@ -12,8 +12,6 @@
   "Iterate through results and output one row per result using result-row to format. Filtered results aren't output. "
   []
   (let [results         (subscribe [:search/results])
-        active-filter?  (subscribe [:search/active-filter?])
-        some-selected?  (subscribe [:search/some-selected?])
         search-keyword  (subscribe [:search/keyword])
         empty-filter?   (subscribe [:search/empty-filter?])
         total-count     (subscribe [:search/total-results-count])]
@@ -25,13 +23,8 @@
       (fn []
         [:div.results
          [:div.search-header
-          [:h4 (str @total-count " results for '" @search-keyword "'")]
+          [:h4 (str @total-count " results for '" @search-keyword "'")]]
 
-          (when (and @active-filter? @some-selected?)
-            [:a.cta {:on-click (fn [e]
-                                 (ocall e :preventDefault)
-                                 (dispatch [:search/to-results]))}
-             "View selected results in a table"])]
          [:form
           (doall (for [result @results]
                    ^{:key (:id result)}
@@ -74,25 +67,51 @@
         loading? (subscribe [:search/loading?])
         error (subscribe [:search/error])
         search-term (subscribe [:search-term])]
-    [:div.search-fullscreen
-     [input-new-term]
-     (cond
-       @loading? [:div.noresponse [loader "results"]]
-       @error [:div.response.badresponse
-               [:div.results
-                [:div.search-header
-                 [:h4 "Search returned an error"]]
-                [:div.empty-results
-                 [:code
-                  (if-let [msg (-> @error :message not-empty)]
-                    msg
-                    "This is likely due to network issues. Please check your connection and try again later.")]]]]
-       (some? (:results @results)) [:div.response
-                                    [filters/facet-display results @search-term]
-                                    [results-display]]
-       :else [:div.noresponse
-              [:svg.icon.icon-info [:use {:xlinkHref "#icon-info"}]] "Try searching for something in the search box above - perhaps a gene, a protein, or a GO Term."])
-     [top-scroll/main]]))
+    (fn []
+      [:div.search-fullscreen
+       [input-new-term]
+       (cond
+         @loading? [:div.noresponse [loader "results"]]
+         @error [:div.response.badresponse
+                 [:div.results
+                  [:div.search-header
+                   [:h4 "Search returned an error"]]
+                  [:div.empty-results
+                   [:code
+                    (if-let [msg (-> @error :message not-empty)]
+                      msg
+                      "This is likely due to network issues. Please check your connection and try again later.")]]]]
+         (some? (:results @results)) [:div.response
+                                      [filters/facet-display results @search-term]
+                                      [results-display]]
+         :else [:div.noresponse
+                [:svg.icon.icon-info [:use {:xlinkHref "#icon-info"}]] "Try searching for something in the search box above - perhaps a gene, a protein, or a GO Term."])])))
+
+(defn selected-dialog []
+  (let [active-filter? (subscribe [:search/active-filter?])
+        some-selected? (subscribe [:search/some-selected?])
+        selected-count (subscribe [:search/selected-count])
+        selected-type (subscribe [:search/selected-type])]
+    (fn []
+      (when (and @active-filter? @some-selected?)
+        [:div.selected-dialog
+         [:div.well
+          [:h4 (str "Selected " @selected-count " " @selected-type
+                    (when (> @selected-count 1) "s"))]
+          [:hr]
+          [:button.btn.btn-primary.btn-raised.btn-block
+           {:on-click (fn [e]
+                        (ocall e :preventDefault)
+                        (dispatch [:search/to-results]))}
+           "View in a table"]
+          [:button.btn.btn-default.btn-raised.btn-block
+           {:on-click (fn [e]
+                        (ocall e :preventDefault)
+                        (dispatch [:search/clear-selected]))}
+           "Clear selection"]]]))))
 
 (defn main []
-  [search-form])
+  [:div.container-fluid.search-page
+   [search-form]
+   [selected-dialog]
+   [top-scroll/main]])

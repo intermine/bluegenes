@@ -92,6 +92,18 @@
    (some? (seq all-selected))))
 
 (reg-sub
+ :search/selected-count
+ :<- [:search/all-selected]
+ (fn [all-selected _]
+   (count all-selected)))
+
+(reg-sub
+ :search/selected-type
+ :<- [:search/all-selected]
+ (fn [all-selected _]
+   (-> all-selected first :type)))
+
+(reg-sub
  :search/total-results-count
  :<- [:search/full-results]
  (fn [full-results]

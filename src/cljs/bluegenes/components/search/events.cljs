@@ -195,19 +195,20 @@
 (reg-event-fx
  :search/to-results
  (fn [{:keys [db]}]
-   (let [filters      (get-in db [:search-results :active-filters])
-         object-type  (:Category filters :Gene)
-         ids          (mapv :id (get-in db [:search :selected-results]))
+   (let [search-term  (get-in db [:search-results :keyword])
+         all-selected (get-in db [:search :selected-results])
+         object-type  (-> all-selected first :type)
+         ids          (mapv :id all-selected)
          current-mine (:current-mine db)
-         summary-fields (get-in db [:assets :summary-fields current-mine object-type])]
+         summary-fields (get-in db [:assets :summary-fields current-mine (keyword object-type)])]
      {:dispatch [:results/history+
                  {:source current-mine
                   :type :query
                   :intent :search
-                  :value {:title "Search Results"
-                          :from (name object-type)
+                  :value {:title (str "Selected " object-type " for '" search-term "'")
+                          :from object-type
                           :select summary-fields
-                          :where [{:path (str (name object-type) ".id")
+                          :where [{:path (str object-type ".id")
                                    :op "ONE OF"
                                    :values ids}]}}]})))
 
@@ -220,6 +221,11 @@
  :search/deselect-result
  (fn [db [_ result]]
    (update-in db [:search :selected-results] disj result)))
+
+(reg-event-db
+ :search/clear-selected
+ (fn [db [_]]
+   (update-in db [:search :selected-results] empty)))
 
 (declare scrolled-past?)
 
