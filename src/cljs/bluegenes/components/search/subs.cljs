@@ -57,12 +57,6 @@
    (some? (:Category filters))))
 
 (reg-sub
- :search/highlight?
- :<- [:search/full-results]
- (fn [full-results]
-   (:highlight-results full-results)))
-
-(reg-sub
  :search/loading?
  :<- [:search/full-results]
  (fn [full-results]

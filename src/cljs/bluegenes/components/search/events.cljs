@@ -117,7 +117,6 @@
                     :results results
                     :loading? false
                     :error nil
-                    :highlight-results (:highlight-results (:search-results db))
                     :facets facets)}))))
 
 (defn active-filters->facet-query
@@ -211,11 +210,6 @@
                           :where [{:path (str (name object-type) ".id")
                                    :op "ONE OF"
                                    :values ids}]}}]})))
-
-(reg-event-db
- :search/highlight-results
- (fn [db [_ highlight?]]
-   (assoc-in db [:search-results :highlight-results] highlight?)))
 
 (reg-event-db
  :search/select-result

@@ -14,7 +14,6 @@
         active-filter?  (subscribe [:search/active-filter?])
         some-selected?  (subscribe [:search/some-selected?])
         search-keyword  (subscribe [:search/keyword])
-        search-term     (subscribe [:search-term])
         empty-filter?   (subscribe [:search/empty-filter?])
         total-count     (subscribe [:search/total-results-count])]
     (reagent/create-class
@@ -35,7 +34,7 @@
          [:form
           (doall (for [result @results]
                    ^{:key (:id result)}
-                   [resulthandler/result-row {:result result :search-term @search-term}]))]
+                   [resulthandler/result-row {:result result :search-term @search-keyword}]))]
 
          (cond
            @empty-filter?
