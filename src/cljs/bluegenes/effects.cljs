@@ -97,6 +97,7 @@
                 (put! req abort-response)
                 (close! req)))
 
+            ;; === ***WARNING*** READ THE BELOW LINE ***WARNING*** ===
             ;; If you change anything here, make the same change for `chans` below.
             (when chan
               (swap! active-requests conj chan)
@@ -153,7 +154,6 @@
                             (and (some #(= % 408) all-s)
                                  (some #(= (:body %) :abort) all-res)) nil
                             on-failure (dispatch (conj on-failure all-res))
-                            (and abort (some nil? all-res)) nil
                             :else
                             (.error js/console "Failed imcljs request" all-res)))))))))
 
