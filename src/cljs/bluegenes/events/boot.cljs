@@ -216,7 +216,11 @@
   [db]
   ;; Perhaps we should consider settings `:assets` to `{}` here as well?
   (-> db
-      (dissoc :regions :idresolver :results :qb
+      ;; Other mines might have a different model, so we reset the querybuilder.
+      (assoc :qb (:qb db/default-db))
+      ;; The below were undocumented; please add a comment for each of them
+      ;; when you learn why they're there.
+      (dissoc :regions :idresolver :results
               :suggestion-results ; Avoid showing old results belonging to previous mine.
               :invalid-token?     ; Clear invalid-token-alert.
               :failed-auth?)      ; Clear flag for failing to auth with mine.
