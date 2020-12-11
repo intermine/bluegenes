@@ -319,6 +319,7 @@
       :im-chan (if token
                  {:chan (auth/who-am-i? service token)
                   :on-success [:authentication/store-token token]
+                  :on-unauthorised [:authentication/invalid-token (boolean auth-token)]
                   :on-failure [:authentication/invalid-token (boolean auth-token)]}
                  {:chan (fetch/session service)
                   :on-success [:authentication/store-token]

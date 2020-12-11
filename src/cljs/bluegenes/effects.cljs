@@ -81,7 +81,7 @@
 (reg-fx :im-chan
         (let [previous-requests (atom {})
               active-requests (atom #{})]
-          (fn [{:keys [on-success on-failure chan chans abort abort-active]}]
+          (fn [{:keys [on-success on-failure on-unauthorised chan chans abort abort-active]}]
             ;; `abort` should be used when you have a request which may be sent
             ;; multiple times, and you want new requests to replace pending
             ;; requests of the same `abort` value.
@@ -119,8 +119,8 @@
                     (and valid-response?
                          (< s 400)) (dispatch (conj on-success response))
                     (and valid-response?
-                         (= s 401)) (if on-failure
-                                      (dispatch (conj on-failure response))
+                         (= s 401)) (if on-unauthorised
+                                      (dispatch (conj on-unauthorised response))
                                       (dispatch [:flag-invalid-token]))
                     :else (cond
                             ;; Don't invoke `on-failure` if request was aborted.
@@ -147,8 +147,8 @@
                     (and all-valid-response?
                          (every? #(< % 400) all-s)) (dispatch (conj on-success all-res))
                     (and all-valid-response?
-                         (some #(= % 401) all-s)) (if on-failure
-                                                    (dispatch (conj on-failure all-res))
+                         (some #(= % 401) all-s)) (if on-unauthorised
+                                                    (dispatch (conj on-unauthorised all-res))
                                                     (dispatch [:flag-invalid-token]))
                     :else (cond
                             (and (some #(= % 408) all-s)
