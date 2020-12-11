@@ -38,7 +38,7 @@
   "Helper: fetch a result from the data model, adding a highlight."
   [row-data selector]
   (let [row        (:fields (:result row-data))
-        string     (get row (keyword selector))
+        string     (str (get row (keyword selector)))
         term       (:search-term row-data)]
     (when (not-empty string)
       (into [:span]
@@ -52,18 +52,18 @@
 (defmethod result-row "Gene" [row-data]
   [row-structure row-data
    (fn []
-     [:div.details [:ul
-                    [:li [:h6 "Organism"] [:span.organism (show row-data "organism.name")]]
-                    [:li [:h6 " Symbol: "] (show row-data "symbol")]
-                    (let [fields    (get-in row-data [:result :fields])
-                          primary   (:primaryIdentifier fields)
-                          secondary (:secondaryIdentifier fields)]
-                      [:li.ids [:h6 " Identifiers: "]
-                       (cond primary
-                             (show row-data "primaryIdentifier"))
-
-                       (cond (and secondary primary) ", ")
-                       (cond secondary (show row-data "secondaryIdentifier"))])]])])
+     [:div.details
+      [:ul
+       [:li [:h6 "Organism"] [:span.organism (show row-data "organism.name")]]
+       [:li [:h6 " Symbol: "] (show row-data "symbol")]
+       (let [fields    (get-in row-data [:result :fields])
+             primary   (:primaryIdentifier fields)
+             secondary (:secondaryIdentifier fields)]
+         [:li.ids [:h6 " Identifiers: "]
+          (cond primary
+                (show row-data "primaryIdentifier"))
+          (cond (and secondary primary) ", ")
+          (cond secondary (show row-data "secondaryIdentifier"))])]])])
 
 (defmethod result-row "Protein" [row-data]
   [row-structure row-data
@@ -87,21 +87,15 @@
   [row-structure row-data
    (fn []
      [:div.details
-      (show row-data "name")])])
+      [:ul
+       [:li (show row-data "name")]]])])
 
 ;; format a row in a readable way when no other templates apply.
-;; Adds 'name: description' default first rows if present.
 (defmethod result-row :default [row-data]
-  (let [details (:fields (:result row-data))]
-    [row-structure row-data
-     (fn []
-       [:div.details
-        (when (contains? details :name)
-          [:span.name (show row-data "name")])
-        (when (contains? details :description)
-          [:span.description (show row-data "description")])
-        (into [:ul]
-              (comp (filter (comp (complement #{:name :description}) key))
-                    (map (fn [[k v]]
-                           [:li [:h6.default-description k] [:div.default-value v]])))
-              details)])]))
+  [row-structure row-data
+   (fn []
+     [:div.details
+      (into [:ul]
+            (map (fn [[k _]]
+                   [:li [:h6.default-description k] [:div.default-value (show row-data k)]]))
+            (:fields (:result row-data)))])])
