@@ -29,7 +29,11 @@
                          :identity identity
                          :message nil
                          :error? false)
-              (assoc-in [:mines current-mine :service :token] token))
+              (assoc-in [:mines current-mine :service :token] token)
+              ;; The old by-id map is used to detect newly added lists.
+              ;; We clear it here as otherwise all the lists belonging to the
+              ;; user will be annotated as new.
+              (update-in [:lists :by-id] empty))
       :dispatch-n [[:save-login current-mine identity]
                    [:assets/fetch-lists]]})))
 

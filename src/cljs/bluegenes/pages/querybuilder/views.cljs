@@ -264,13 +264,10 @@
               [data-browser-node close! model hier root]))]]))
 
 (defn browser-pane []
-  (let [query (subscribe [:qb/query])
-        current-model (subscribe [:current-model])
+  (let [current-model (subscribe [:current-model])
         type-constraints (subscribe [:qb/menu-type-constraints])
         root-class (subscribe [:qb/root-class])
         browse-model? (reagent/atom true)]
-    (when (empty? @query)
-      (dispatch [:qb/set-root-class "Gene"]))
     (fn []
       (if @browse-model?
         [:div.model-browser-column

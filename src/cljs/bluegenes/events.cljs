@@ -171,8 +171,9 @@
 (reg-event-db
  :handle-suggestions
  (fn [db [_ results]]
-   (assoc db :suggestion-results
-          (:results results))))
+   (-> db
+       (assoc :suggestion-results (:results results))
+       (dissoc :suggestion-error))))
 
 (reg-event-fx
  :bounce-search
@@ -185,7 +186,15 @@
        {:db (assoc db :search-term term)
         :im-chan {:chan (fetch/quicksearch service term {:size 5})
                   :abort :quicksearch
-                  :on-success [:handle-suggestions]}}))))
+                  :on-success [:handle-suggestions]
+                  :on-failure [:bounce-search-failure]}}))))
+
+(reg-event-db
+ :bounce-search-failure
+ (fn [db [_ res]]
+   (assoc db :suggestion-error
+          {:type "failure"
+           :message (get-in res [:body :error])})))
 
 (reg-event-db
  :cache/store-organisms

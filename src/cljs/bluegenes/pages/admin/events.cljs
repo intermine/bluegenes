@@ -1,7 +1,7 @@
 (ns bluegenes.pages.admin.events
   (:require [re-frame.core :refer [reg-event-db reg-fx reg-event-fx]]
             [re-frame.std-interceptors :refer [path]]
-            [bluegenes.utils :refer [addvec remvec]]))
+            [bluegenes.utils :refer [addvec remvec dissoc-in]]))
 
 (def ^:const category-id-prefix "cat")
 (def ^:const child-id-prefix "child")
@@ -78,11 +78,7 @@
                             (not-empty (get-in res [:body :error])))})))
 
 (defn get-categorize-class [admin]
-  (or (get admin :categorize-class)
-      ;; This is to replace `nil` when the dropdown is set to Default.  It's a
-      ;; keyword instead of string so it won't conflict if there happens to be
-      ;; a real class called Default, and lower case to distinguish it further.
-      :default))
+  (get admin :categorize-class))
 
 ;; We don't want to repeatedly encode the structure of categories into all our
 ;; events, so we create utility functions to make things more stratified.
@@ -92,7 +88,8 @@
         in-f (case in-kw
                :get get-in
                :update update-in
-               :assoc assoc-in)]
+               :assoc assoc-in
+               :dissoc dissoc-in)]
     (apply in-f admin (concat [:categories target-class] path) args)))
 
 (defn to-categories [admin in-kw & args]
@@ -133,7 +130,11 @@
  ::category-remove
  (path root)
  (fn [admin [_ cat-index]]
-   (to-categories admin :update remvec cat-index)))
+   (let [cats (to-categories admin :get)
+         cats (remvec cats cat-index)]
+     (if (empty? cats)
+       (to-categories admin :dissoc)
+       (to-categories admin :assoc cats)))))
 
 (reg-event-db
  ::category-move-up

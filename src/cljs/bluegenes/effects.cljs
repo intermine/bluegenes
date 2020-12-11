@@ -70,21 +70,23 @@
 
 ;; See bottom of namespace for effect registrations and examples  on how to use them
 
+;; Artificial HTTP response to indicate that a request has been aborted.
+(def abort-response
+  {:status 408
+   :success false
+   :body :abort})
 ;; The :im-chan side effect is used to read a value from a channel that
 ;; represents an HTTP request and dispatches events depending on the status of
 ;; that request's response.
 (reg-fx :im-chan
         (let [previous-requests (atom {})
               active-requests (atom #{})]
-          (fn [{:keys [on-success on-failure chan chans abort abort-active]}]
+          (fn [{:keys [on-success on-failure on-unauthorised chan chans abort abort-active]}]
             ;; `abort` should be used when you have a request which may be sent
             ;; multiple times, and you want new requests to replace pending
             ;; requests of the same `abort` value.
             (when abort
-              ; Look for a request stored in the state keyed by whatever value is in 'abort'
-              ; and close it
-              (some-> @previous-requests (get abort) close!)
-              ; Swap the old value for the new value
+              (some-> @previous-requests (get abort) (doto (put! abort-response) (close!)))
               (swap! previous-requests assoc abort chan))
 
             ;; `abort-active` is different from `abort` in that instead of being
@@ -92,13 +94,10 @@
             ;; active requests, without invoking their `on-failure` function.
             (when abort-active
               (doseq [req @active-requests]
-                ;; Create an artificial HTTP response to indicate that this
-                ;; request has been aborted.
-                (put! req {:status 408
-                           :success false
-                           :body :abort})
+                (put! req abort-response)
                 (close! req)))
 
+            ;; === ***WARNING*** READ THE BELOW LINE ***WARNING*** ===
             ;; If you change anything here, make the same change for `chans` below.
             (when chan
               (swap! active-requests conj chan)
@@ -120,8 +119,8 @@
                     (and valid-response?
                          (< s 400)) (dispatch (conj on-success response))
                     (and valid-response?
-                         (= s 401)) (if on-failure
-                                      (dispatch (conj on-failure response))
+                         (= s 401)) (if on-unauthorised
+                                      (dispatch (conj on-unauthorised response))
                                       (dispatch [:flag-invalid-token]))
                     :else (cond
                             ;; Don't invoke `on-failure` if request was aborted.
@@ -129,10 +128,6 @@
 
                             on-failure (dispatch (conj on-failure response))
 
-                            ;; If `abort` is specified, it's possible that this request's
-                            ;; channel was closed by a subsequent request. In this case,
-                            ;; there's no error and we don't want to log it.
-                            (and abort (nil? response)) nil
                             :else
                             (.error js/console "Failed imcljs request" response))))))
 
@@ -152,14 +147,13 @@
                     (and all-valid-response?
                          (every? #(< % 400) all-s)) (dispatch (conj on-success all-res))
                     (and all-valid-response?
-                         (some #(= % 401) all-s)) (if on-failure
-                                                    (dispatch (conj on-failure all-res))
+                         (some #(= % 401) all-s)) (if on-unauthorised
+                                                    (dispatch (conj on-unauthorised all-res))
                                                     (dispatch [:flag-invalid-token]))
                     :else (cond
                             (and (some #(= % 408) all-s)
                                  (some #(= (:body %) :abort) all-res)) nil
                             on-failure (dispatch (conj on-failure all-res))
-                            (and abort (some nil? all-res)) nil
                             :else
                             (.error js/console "Failed imcljs request" all-res)))))))))
 
@@ -315,11 +309,12 @@
 
 (reg-fx
  :scroll-to-top
- (fn [_]
+ (fn [{:keys [ms]
+       :or {ms 500}}]
    (let [doc-elem (gdom/getDocumentScrollElement)
          current-scroll (clj->js ((juxt #(oget % :x) #(oget % :y))
                                   (gdom/getDocumentScroll)))]
-     (doto (gfx/Scroll. doc-elem current-scroll #js [0 0] 500 ease-in-out-cubic)
+     (doto (gfx/Scroll. doc-elem current-scroll #js [0 0] ms ease-in-out-cubic)
        (.play)))))
 
 ;; Currently this only logs to console, but in the future we can decide to

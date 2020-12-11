@@ -17,7 +17,7 @@
             [bluegenes.components.viz.views :as viz]
             [bluegenes.components.icons :refer [icon]]
             [bluegenes.pages.lists.utils :refer [internal-tag?]]
-            [bluegenes.pages.lists.views :refer [pretty-time]]))
+            [bluegenes.pages.lists.views :refer [pretty-timestamp]]))
 
 (def custom-time-formatter (time-format/formatter "dd MMM, yy HH:mm"))
 
@@ -39,13 +39,6 @@
                    [tooltip
                     {:title title}
                     adjusted-title]])) @history))])))
-
-(defn no-results
-  "Show an appropriate message when the list does not exist."
-  []
-  [:div "Hmmm. There are no results. How did this happen? Whoopsie! "
-   [:a {:href (route/href ::route/home)}
-    "There's no place like home."]])
 
 (defn query-history
   "Gives an overview of recent queries or lists, allowing you to jump between them."
@@ -147,7 +140,7 @@
           (if authorized
             [icon "user-circle" nil ["authorized"]]
             [icon "globe"])]
-         [:span (pretty-time timestamp)]
+         [:span (pretty-timestamp timestamp)]
          [:code.start {:class (str "start-" type)} type]
          (into [:div.list-tags]
                ;; Hide internal tags.
@@ -163,7 +156,7 @@
         intent (subscribe [:results/intent])]
     (fn []
       [:div.container-fluid.results
-       (if @are-there-results?
+       (when @are-there-results?
          [:div.row
           [:div.col-sm-3.col-lg-2
            [query-history]
@@ -181,5 +174,4 @@
            [:div
             [tools/main]]]
           [:div.col-sm-3.visible-lg-block
-           [enrichment/enrich]]]
-         [no-results])])))
+           [enrichment/enrich]]])])))

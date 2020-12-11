@@ -9,7 +9,9 @@
             [bluegenes.components.ui.results_preview :refer [preview-table]]
             [oops.core :refer [oget ocall]]
             [bluegenes.components.loader :refer [mini-loader]]
-            [bluegenes.utils :refer [ascii-arrows ascii->svg-arrows]]))
+            [bluegenes.utils :refer [ascii-arrows ascii->svg-arrows]]
+            [bluegenes.pages.templates.helpers :refer [categories-from-tags]]
+            [bluegenes.components.top-scroll :as top-scroll]))
 
 (defn categories []
   (let [categories (subscribe [:template-chooser-categories])
@@ -46,16 +48,21 @@
      [:div.preview-table-container
       [preview-table
        :query-results @results-preview]]
-     [:button.btn.btn-primary.btn-raised.view-results
-      {:type "button"
-       :disabled (zero? results-count)
-       :on-click (fn [] (dispatch [:templates/send-off-query]))}
-      (cond
-        loading? "Loading"
-        (zero? results-count) "No Results"
-        :else (str "View "
-                   results-count
-                   (if (> results-count 1) " rows" " row")))]]))
+     [:div.btn-group
+      [:button.btn.btn-primary.btn-raised.view-results
+       {:type "button"
+        :disabled (zero? results-count)
+        :on-click (fn [] (dispatch [:templates/send-off-query]))}
+       (cond
+         loading? "Loading"
+         (zero? results-count) "No Results"
+         :else (str "View "
+                    results-count
+                    (if (> results-count 1) " rows" " row")))]
+      [:button.btn.btn-default.btn-raised
+       {:type "button"
+        :on-click (fn [] (dispatch [:templates/edit-query]))}
+       "Edit query"]]]))
 
 (defn toggle []
   (fn [{:keys [status on-change]}]
@@ -114,19 +121,20 @@
 
 (defn tags
   "UI element to visually output all aspect tags into each template card for easy scanning / identification of tags.
-  ** Expects: vector of strings 'im:aspect:thetag'.
-  ** Will output 'thetag'.
-  ** Won't output any other tag types or formats"
+  ** Expects: vector of strings 'im:aspect:thetag'."
   [tagvec]
-  (let [aspects (for [tag (filter #(s/starts-with? % "im:aspect:") tagvec)
-                      :let [[_ tag-name] (re-matches #"im:aspect:(.*)" tag)]
-                      :when (not-empty tag-name)]
-                  [:span.tag-type {:class (str "type-" tag-name)} tag-name])]
+  (let [aspects (for [category (categories-from-tags tagvec)]
+                  [:span.tag-type
+                   {:class (str "type-" category)
+                    :on-click (fn [evt]
+                                (.stopPropagation evt)
+                                (dispatch [:template-chooser/set-category-filter category]))}
+                   category])]
     ;; This element should still be present even when it has no contents.
     ;; The "View >>" button is absolute positioned, so otherwise it would
     ;; overlap with the template's description.
     (into [:div.template-tags]
-          (when (not-empty aspects)
+          (when (seq aspects)
             (cons "Categories: " aspects)))))
 
 (defn template
@@ -252,4 +260,5 @@
                           [:div.row
                            [:div.col-xs-12.templates
                             [:div.template-list
-                             [templates @im-templates]]]]]])})))
+                             [templates @im-templates]]]]]
+                         [top-scroll/main]])})))

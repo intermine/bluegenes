@@ -26,6 +26,10 @@
     padding-top: 102px;
 }
 
+// Make sure the scroll-top element is near the bottom when there's little content.
+.template-container {
+    min-height: ~"calc(100% - 135px)";
+}
 
 .template-component-container {
     width: 100%;
@@ -392,6 +396,11 @@
             margin: 0 0 0 0.2em;
             border-width: 0 0 3px 0;
             border-radius: 2px;
+            cursor: pointer;
+
+            &:hover {
+                cursor: pointer;
+            }
         }
     }
 

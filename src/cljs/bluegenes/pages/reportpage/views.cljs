@@ -16,7 +16,8 @@
             [bluegenes.components.icons :refer [icon icon-comp]]
             [clojure.string :as str]
             [bluegenes.components.bootstrap :refer [poppable]]
-            [oops.core :refer [ocall]]))
+            [oops.core :refer [ocall oget]]
+            [goog.functions :refer [debounce]]))
 
 (defn tbl [{:keys [loc collapse]}]
   (let [data (subscribe [::subs/a-table loc])
@@ -86,12 +87,12 @@
           :settings (->report-table-settings current-mine-name)
           :id id}]))
 
-(defn class-report [{:keys [id collapse description] referencedType :value}]
+(defn class-report [{:keys [id collapse description] nom :value}]
   (let [{object-type :type object-id :id} @(subscribe [:panel-params])
         summary-fields @(subscribe [:current-summary-fields])
         service (:service @(subscribe [:current-mine]))
         current-mine-name @(subscribe [:current-mine-name])
-        {:keys [displayName] :as ref+coll} @(subscribe [::subs/a-ref+coll referencedType])]
+        {:keys [displayName] :as ref+coll} @(subscribe [::subs/a-ref+coll nom])]
     [tbl {:loc [:report :im-tables id]
           :service (merge service {:summary-fields summary-fields})
           :title displayName
@@ -106,16 +107,17 @@
     (fn [{:keys [title id]} & children]
       (into [:div.report-table {:id id}
              [:h3.report-table-heading
-              {:on-click #(swap! collapsed* not)}
               title
               [:button.btn.btn-link.pull-right.collapse-table
+               {:on-click #(swap! collapsed* not)}
                [icon-comp "chevron-up"
                 :classes [(when @collapsed* "collapsed")]]]]]
             (when-not @collapsed* children)))))
 
 (defn report []
   (let [{:keys [rootClass]} @(subscribe [::subs/report-summary])
-        categories @(subscribe [:current-mine/report-layout rootClass])]
+        categories @(subscribe [:current-mine/report-layout rootClass])
+        filter-text @(subscribe [::subs/report-filter-text])]
     [:div
      (doall
       (for [{:keys [category id children]} categories
@@ -124,12 +126,16 @@
             ;; fallback layout.  What this does is make sure report item is
             ;; "available" for this class (mostly to avoid showing parts of the
             ;; default layout that doesn't apply to this class).
-            :let [children (filter (fn [{:keys [type value]}]
-                                     (contains? (case type
-                                                  "class"    @(subscribe [::subs/ref+coll-for-class? rootClass])
-                                                  "template" @(subscribe [::subs/template-for-class? rootClass])
-                                                  "tool"     @(subscribe [::subs/tool-for-class? rootClass]))
-                                                value))
+            :let [children (filter (fn [{:keys [type value] :as child}]
+                                     (and (contains? (case type
+                                                       "class"    @(subscribe [::subs/ref+coll-for-class? rootClass])
+                                                       "template" @(subscribe [::subs/template-for-class? rootClass])
+                                                       "tool"     @(subscribe [::subs/tool-for-class? rootClass]))
+                                                     value)
+                                          (if (not-empty filter-text)
+                                            (let [label (toc/parse-item-name child)]
+                                              (str/includes? (str/lower-case label) (str/lower-case filter-text)))
+                                            true)))
                                    children)]
             :when (seq children)] ; No point having a section without children.
         ^{:key id}
@@ -184,16 +190,25 @@
     [:<>
      [:div.report-table-cell.report-table-header
       label]
-     [:div.report-table-cell.fasta-value
-      [:span.dropdown
-       [:a.dropdown-toggle.fasta-button
-        {:data-toggle "dropdown" :role "button"}
-        [poppable {:data "Show sequence"
-                   :children [:span value [icon-comp "caret-down"]]}]]
-       [:div.dropdown-menu.fasta-dropdown
-        [:form ; Top secret technique to avoid closing the dropdown when clicking inside.
-         [:pre.fasta-sequence fasta]]]]
-      [fasta-download]]]))
+     (if (= fasta :too-long)
+       ;; Fasta exists but is too long and should be fetched manually.
+       (let [{:keys [mine type id]} @(subscribe [:panel-params])]
+         [:div.report-table-cell.fasta-value
+          [:a.fasta-download
+           {:role "button"
+            :on-click #(dispatch [:fetch-fasta (keyword mine) type id])}
+           [icon-comp "my-data"]
+           "LOAD FASTA"]])
+       [:div.report-table-cell.fasta-value
+        [:span.dropdown
+         [:a.dropdown-toggle.fasta-button
+          {:data-toggle "dropdown" :role "button"}
+          [poppable {:data "Show sequence"
+                     :children [:span value [icon-comp "caret-down"]]}]]
+         [:div.dropdown-menu.fasta-dropdown
+          [:form ; Top secret technique to avoid closing the dropdown when clicking inside.
+           [:pre.fasta-sequence fasta]]]]
+        [fasta-download]])]))
 
 (defn anchor-if-url [x]
   (if (string? x)
@@ -233,6 +248,21 @@
      [:div.hidden-lg
       [sidebar/main]]]))
 
+(defn filter-input []
+  (let [input (r/atom @(subscribe [::subs/report-filter-text]))
+        debounced (debounce #(dispatch [::events/set-filter-text %]) 500)
+        on-change (fn [e]
+                    (let [value (oget e :target :value)]
+                      (reset! input value)
+                      (debounced value)))]
+    (fn []
+      [:div.report-page-filter
+       [:input.form-control
+        {:type "text"
+         :placeholder "Find keywords..."
+         :on-change on-change
+         :value @input}]])))
+
 (defn heading []
   (let [{:keys [rootClass]} @(subscribe [::subs/report-summary])
         title @(subscribe [::subs/report-title])]
@@ -240,21 +270,42 @@
      title
      [:code.start {:class (str "start-" rootClass)} rootClass]]))
 
+(defn invalid-object []
+  (let [{error-type :type ?message :message} @(subscribe [::subs/report-error])]
+    [:div.row
+     [:div.col-xs-8.col-xs-offset-2
+      [:div.well.well-lg.invalid-object-container
+       [:h2 (case error-type
+              :not-found "Object not found"
+              :ws-failure "Failed to retrieve object")]
+       [:p (case error-type
+             :not-found "It may have existed before and been assigned a new ID after a database rebuild. If you remember one of its identifiers, you can search for it. You can also see if any lists contain it. Please export a permanent URL next time you want to keep a link to an object."
+             :ws-failure "This may be due to a network error, invalid URL or server issues. Please verify that the URL is correct and try again later.")]
+       (when-let [msg (not-empty ?message)]
+         [:pre msg])
+       [:a.btn.btn-primary.btn-lg
+        {:href (route/href ::route/home)}
+        "Go to homepage"]]]]))
+
 (defn main []
   (let [fetching-report? @(subscribe [:fetching-report?])
+        error @(subscribe [::subs/report-error])
         params @(subscribe [:panel-params])]
     [:div.container-fluid.report-page
-     (if fetching-report?
-       [loader (str (:type params) " Report")]
-       [:<>
-        [:div.row
-         [:div.col-xs-8.col-xs-offset-2
-          [heading]]]
-        [:div.row.report-row
-         [:div.col-xs-2
-          [toc/main]]
-         [:div.col-xs-10.col-lg-8
-          [summary]
-          [report]]
-         [:div.col-lg-2.visible-lg-block
-          [sidebar/main]]]])]))
+     (cond
+       fetching-report? [loader (str (:type params) " Report")]
+       error [invalid-object]
+       :else [:<>
+              [:div.row
+               [:div.col-xs-2
+                [filter-input]]
+               [:div.col-xs-8
+                [heading]]]
+              [:div.row.report-row
+               [:div.col-xs-2
+                [toc/main]]
+               [:div.col-xs-10.col-lg-8
+                [summary]
+                [report]]
+               [:div.col-lg-2.visible-lg-block
+                [sidebar/main]]]])]))

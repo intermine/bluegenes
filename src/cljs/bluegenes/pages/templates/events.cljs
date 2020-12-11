@@ -3,7 +3,8 @@
   (:require [re-frame.core :refer [reg-event-db reg-event-fx reg-fx dispatch subscribe]]
             [re-frame.events]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
-            [imcljs.fetch :as fetch]))
+            [imcljs.fetch :as fetch]
+            [bluegenes.route :as route]))
 
 ; Predictable function used to filter active constraints
 (def not-disabled-predicate (comp (partial not= "OFF") :switched))
@@ -11,7 +12,7 @@
 (defn remove-switchedoff-constraints
   "Filter the constraints of a query map and only keep those with a :switched value other than OFF"
   [query]
-  (update query :where #(filter not-disabled-predicate %)))
+  (update query :where #(filterv not-disabled-predicate %)))
 
 (reg-event-fx
  :template-chooser/choose-template
@@ -35,6 +36,11 @@
                     :style "warning"}]}))))
 
 (reg-event-db
+ :template-chooser/clear-template
+ (fn [db [_]]
+   (update db :components dissoc :template-chooser)))
+
+(reg-event-db
  :template-chooser/set-category-filter
  (fn [db [_ id]]
    (assoc-in db [:components :template-chooser :selected-template-category] id)))
@@ -53,6 +59,13 @@
                 :type :query
                 :intent :template
                 :value (remove-switchedoff-constraints (get-in db [:components :template-chooser :selected-template]))}]}))
+
+(reg-event-fx
+ :templates/edit-query
+ (fn [{db :db} [_]]
+   {:db db
+    :dispatch-n [[::route/navigate ::route/querybuilder]
+                 [:qb/load-query (remove-switchedoff-constraints (get-in db [:components :template-chooser :selected-template]))]]}))
 
 (defn one-of? [col value] (some? (some #{value} col)))
 (defn should-update? [old-op new-op]

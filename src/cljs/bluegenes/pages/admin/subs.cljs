@@ -2,7 +2,8 @@
   (:require [re-frame.core :refer [reg-sub subscribe]]
             [clojure.string :as str]
             [bluegenes.utils :refer [suitable-entities]]
-            [bluegenes.pages.reportpage.utils :as report-utils]))
+            [bluegenes.pages.reportpage.utils :as report-utils]
+            [bluegenes.pages.querybuilder.views :refer [sort-classes filter-preferred]]))
 
 (reg-sub
  ::root
@@ -15,7 +16,6 @@
  (fn [admin [_ kw]]
    (get-in admin [:responses kw])))
 
-;; Note that this is nil when set to "Default".
 (reg-sub
  ::categorize-class
  :<- [::root]
@@ -23,11 +23,21 @@
    (:categorize-class admin)))
 
 (reg-sub
+ ::categorize-options
+ :<- [:model]
+ (fn [model]
+   (let [classes (sort-classes model)
+         preferred (filter-preferred classes)]
+     (if (seq preferred)
+       (concat preferred [[:separator]] classes)
+       classes))))
+
+(reg-sub
  ::categories
  :<- [::root]
  :<- [::categorize-class]
  (fn [[admin categorize]]
-   (get-in admin [:categories (or categorize :default)])))
+   (get-in admin [:categories categorize])))
 
 (reg-sub
  ::new-category
@@ -79,9 +89,9 @@
    (->> (if class
           (let [{:keys [references collections]} (get model (keyword class))]
             (->> (concat references collections)
-                 (map (fn [[_ {:keys [displayName referencedType]}]]
+                 (map (fn [[_ {:keys [displayName name]}]]
                         {:label displayName
-                         :value referencedType
+                         :value name
                          :type "class"}))))
           (map (fn [[_ {:keys [displayName name]}]]
                  {:label displayName

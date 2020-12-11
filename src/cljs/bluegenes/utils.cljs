@@ -248,13 +248,15 @@
 
 (defn ascii->svg-arrows
   "Replaces arrows in template titles with prettier svg icons."
-  [s]
+  [s & {:keys [max-length]}]
   (flatten-seq
    (interpose [icon "arrow-right"]
               (map (fn [part]
                      (interpose [icon "arrow-left"]
                                 (map (fn [subpart]
-                                       [:span subpart])
+                                       [:span (if (and (number? max-length) (> (count subpart) max-length))
+                                                (str (subs subpart 0 max-length) "...")
+                                                subpart)])
                                      (string/split part #"<-+"))))
                    (string/split s #"-+>")))))
 
@@ -263,3 +265,35 @@
   useful, so we remove it."
   [human-name]
   (string/replace human-name #"(?i)^bluegenes\s*" ""))
+
+(defn highlight-substring
+  "Extracts all instances of substring (case-insensitive) in a string as span
+  elements with a unique CSS class (defaults to .text-highlight). Will return
+  a sequential of span elements, meaning you'll want to use it with into."
+  ([s substr]
+   (highlight-substring s substr :text-highlight))
+  ([s substr css-class]
+   (cond
+     (empty? s) []
+     (empty? substr) [[:span s]]
+     :else
+     (let [re (re-pattern (str "(?i)" substr))
+           fragments (map (fn [s] (if (empty? s) nil [:span s])) (string/split s re))
+           excerpts (map (fn [s] [:span {:class css-class} s]) (re-seq re s))
+           length (max (count fragments) (count excerpts))
+           pad-fragments (- length (count fragments))
+           pad-excerpts (- length (count excerpts))]
+       (remove nil?
+               (interleave (cond-> fragments
+                             (pos? pad-fragments) (concat (repeat pad-fragments nil)))
+                           (cond-> excerpts
+                             (pos? pad-excerpts) (concat (repeat pad-excerpts nil)))))))))
+
+(defn rows->maps
+  "Takes an `imcljs.fetch/rows` response and transforms it into a vector of
+  maps, with the last portion of the path as keyword keys ('Gene.symbol' -> :symbol)."
+  [res]
+  (let [views (map (comp keyword #(re-find #"[^\.]+$" %)) (:views res))]
+    (mapv (fn [result]
+            (zipmap views result))
+          (:results res))))

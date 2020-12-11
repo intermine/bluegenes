@@ -19,6 +19,10 @@
         margin-bottom: -@spacer/2;
     }
 
+    &-filter {
+        padding-left: @spacer*1.8;
+    }
+
     code.start {
         // For long types like `ChromosomalDuplication`
         overflow-wrap: break-word;
@@ -70,7 +74,6 @@
         padding-bottom: @spacer/4;
         border-bottom: 3px solid @extra-color-background;
         color: @extra-color-background;
-        cursor: pointer;
     }
 
     &-body {
@@ -91,6 +94,7 @@
         display: table-cell;
         padding: @spacer/2 @spacer;
         font-weight: 400;
+        overflow-wrap: break-word;
     }
 
     &-link {
@@ -101,6 +105,7 @@
 
     &-header {
         font-weight: 300;
+        overflow-wrap: break-word;
     }
 
     .collapse-table {
@@ -127,6 +132,7 @@
 .report-page .fasta-value {
     display: flex;
     justify-content: space-between;
+    white-space: nowrap;
 
     .fasta-button .icon {
         margin: 0;
@@ -221,6 +227,11 @@
         li {
             padding: @spacer/2 0;
             border-bottom: 1px solid @light-contrast;
+
+            .text-highlight {
+                font-weight: bold;
+                color: @highlight-color;
+            }
         }
     }
 }
@@ -290,6 +301,16 @@
                 padding: @spacer/4 @spacer/2;
                 color: @highlight-color;
             }
+        }
+    }
+}
+
+.report-page .invalid-object {
+    &-container {
+        margin-top: @spacer;
+
+        h2 {
+            margin-top: 0;
         }
     }
 }

@@ -30,8 +30,11 @@
            :selected-lists #{}
            :expanded-paths #{}}
 
-   :qb {:root-class :Gene
+   :qb {:constraint-logic nil
         :order []
-        :qm nil
-        ;;what is this??
-        :mappy {"Gene" {"secondaryIdentifier" {}, "organism" {"name" {}}, "symbol" {}}}}})
+        :sort []
+        :joins #{}
+        :preview nil
+        :im-query nil
+        :enhance-query {}
+        :root-class :Gene}})

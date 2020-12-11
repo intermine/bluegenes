@@ -7,32 +7,20 @@
             [bluegenes.pages.reportpage.utils :as utils]
             [bluegenes.route :as route]
             [goog.dom :as gdom]
-            [oops.core :refer [oget ocall]]))
+            [oops.core :refer [oget ocall]]
+            [bluegenes.utils :refer [rows->maps]]))
 
 (reg-event-fx
- :handle-report-summary
- [document-title]
- (fn [{db :db} [_ summary]]
-   {:db (-> db
-            (assoc-in [:report :summary] summary)
-            (assoc-in [:report :title] (utils/title-column summary))
-            (assoc-in [:report :active-toc] utils/pre-section-id)
-            (assoc :fetching-report? false))
-    :dispatch-n [[:viz/run-queries]]}))
-
-(reg-event-fx
- :fetch-report
- (fn [{db :db} [_ mine type id]]
-   (let [service (get-in db [:mines mine :service])
-         attribs (->> (get-in service [:model :classes (keyword type) :attributes])
-                      (mapv (comp #(str type "." %) :name val)))
-         q       {:from type
-                  :select attribs
-                  :where [{:path (str type ".id")
-                           :op "="
-                           :value id}]}]
-     {:im-chan {:chan (fetch/rows service q {:format "json"})
-                :on-success [:handle-report-summary]}})))
+ :fetch-fasta
+ (fn [{db :db} [_ mine-kw type id]]
+   (let [service (get-in db [:mines mine-kw :service])
+         q {:from type
+            :select [(str type ".id")]
+            :where [{:path (str type ".id")
+                     :op "="
+                     :value id}]}]
+     {:im-chan {:chan (fetch/fasta service q)
+                :on-success [:handle-fasta]}})))
 
 (reg-event-db
  :handle-fasta
@@ -42,17 +30,60 @@
      (string/starts-with? fasta ">")
      (assoc-in [:report :fasta] fasta))))
 
+(defn class-has-fasta? [hier class-kw]
+  (or (= class-kw :Protein)
+      (isa? hier class-kw :SequenceFeature)))
+
+(defn fasta-too-long? [summary]
+  (let [length (get-in (rows->maps summary) [0 :length])]
+    (if (number? length)
+      (> length 1e6)
+      true))) ; There's likely no FASTA available if it has no length.
+
 (reg-event-fx
- :fetch-fasta
- (fn [{db :db} [_ mine id]]
-   (let [service (get-in db [:mines mine :service])
-         q {:from "Gene"
-            :select ["Gene.id"]
-            :where [{:path "Gene.id"
-                     :op "="
-                     :value id}]}]
-     {:im-chan {:chan (fetch/fasta service q)
-                :on-success [:handle-fasta]}})))
+ :handle-report-summary
+ [document-title]
+ (fn [{db :db} [_ mine-kw type id summary]]
+   (if (seq (:results summary))
+     (let [has-fasta (class-has-fasta? (get-in db [:mines mine-kw :model-hier]) (keyword type))
+           too-long-fasta (and has-fasta (fasta-too-long? summary))]
+       {:db (-> db
+                (assoc-in [:report :summary] summary)
+                (assoc-in [:report :title] (utils/title-column summary))
+                (assoc-in [:report :active-toc] utils/pre-section-id)
+                (cond-> too-long-fasta
+                  (assoc-in [:report :fasta] :too-long))
+                (assoc :fetching-report? false))
+        :dispatch-n [[:viz/run-queries]
+                     (when (and has-fasta (not too-long-fasta))
+                       [:fetch-fasta mine-kw type id])]})
+     ;; No results mean the object ID likely doesn't exist.
+     {:db (-> db
+              (assoc-in [:report :error] {:type :not-found})
+              (assoc :fetching-report? false))})))
+
+(reg-event-db
+ :fetch-report-failure
+ (fn [db [_ res]]
+   (-> db
+       (assoc-in [:report :error] {:type :ws-failure
+                                   :message (get-in res [:body :error])})
+       (assoc :fetching-report? false))))
+
+(reg-event-fx
+ :fetch-report
+ (fn [{db :db} [_ mine-kw type id]]
+   (let [service (get-in db [:mines mine-kw :service])
+         attribs (->> (get-in service [:model :classes (keyword type) :attributes])
+                      (mapv (comp #(str type "." %) :name val)))
+         q       {:from type
+                  :select attribs
+                  :where [{:path (str type ".id")
+                           :op "="
+                           :value id}]}]
+     {:im-chan {:chan (fetch/rows service q {:format "json"})
+                :on-success [:handle-report-summary mine-kw type id]
+                :on-failure [:fetch-report-failure]}})))
 
 (defn class-has-dataset? [model-classes class-kw]
   (contains? (get-in model-classes [class-kw :collections])
@@ -69,8 +100,6 @@
               (dissoc :report)
               (assoc-in [:tools :entities (keyword type)] entity))
       :dispatch-n [[:fetch-report (keyword mine) type id]
-                   (when (= type "Gene")
-                     [:fetch-fasta (keyword mine) id])
                    [::fetch-lists (keyword mine) id]
                    (when (class-has-dataset? (get-in db [:mines (keyword mine) :service :model :classes])
                                              (keyword type))
@@ -130,6 +159,11 @@
  ::set-active-toc
  (fn [db [_ active-toc-id]]
    (assoc-in db [:report :active-toc] active-toc-id)))
+
+(reg-event-db
+ ::set-filter-text
+ (fn [db [_ text]]
+   (assoc-in db [:report :filter-text] text)))
 
 (defn scrollspy
   "Returns a function (partially applied with a seq of string element IDs) to

@@ -326,3 +326,19 @@
       [4 2 10] [4 2 9] false
       [4 2 10] [4 3 0] true
       [4 1 3] [4 2 0] true)))
+
+(deftest highlight-substring
+  (testing "Handles common cases and edge cases"
+    (are [in out] (= (utils/highlight-substring in "rna") out)
+      "miRNA Targets" [[:span "mi"] [:span {:class :text-highlight} "RNA"] [:span " Targets"]]
+      "Rna Seq Results" [[:span {:class :text-highlight} "Rna"] [:span " Seq Results"]]
+      "microRNA (miRNA)" [[:span "micro"] [:span {:class :text-highlight} "RNA"] [:span " (mi"] [:span {:class :text-highlight} "RNA"] [:span ")"]]
+      "seq result rna" [[:span "seq result "] [:span {:class :text-highlight} "rna"]]
+      "RnaRNA" [[:span {:class :text-highlight} "Rna"] [:span {:class :text-highlight} "RNA"]]
+      "something unrelated" [[:span "something unrelated"]]))
+  (is (= (utils/highlight-substring "something unrelated" "") [[:span "something unrelated"]])
+      "Returns the string inside a span element in a sequential if substring is empty")
+  (is (= (utils/highlight-substring "" "rna") [])
+      "Returns an empty sequential if string is empty")
+  (is (= (utils/highlight-substring "" "") [])
+      "Returns an empty sequential if string and substring are empty"))

@@ -64,6 +64,14 @@
          new-facets (merge-filtered-facets filters old-facets facets :fresh true)]
      (assoc-in db [:search-results :facets] new-facets))))
 
+(reg-event-db
+ :search/failure
+ (fn [db [_ res]]
+   (update db :search-results assoc
+           :loading? false
+           :error {:type "failure"
+                   :message (get-in res [:body :error])})))
+
 (reg-event-fx
  :search/save-results
  (fn [{db :db} [_
@@ -82,6 +90,7 @@
        {:db (update db :search-results assoc
                     :results results
                     :loading? false
+                    :error nil
                     :facets facets)
         :im-chan {:chan (fetch/quicksearch service search-term {:size 0})
                   :on-success [:search/save-facets]}}
@@ -94,6 +103,7 @@
          (cond-> {:db (update db :search-results assoc
                               :results results
                               :loading? false
+                              :error nil
                               :facets new-facets)}
            ;; If we just removed a filter, we also need to do an empty search
            ;; to get the correct facets for the activated filters.
@@ -106,7 +116,7 @@
        {:db (update db :search-results assoc
                     :results results
                     :loading? false
-                    :highlight-results (:highlight-results (:search-results db))
+                    :error nil
                     :facets facets)}))))
 
 (defn active-filters->facet-query
@@ -157,7 +167,8 @@
                 :on-success [:search/save-results
                              {:new-search? new-search?
                               :active-filter? active-filters?
-                              :removed-filter? removed-filter?}]}})))
+                              :removed-filter? removed-filter?}]
+                :on-failure [:search/failure]}})))
 
 (reg-event-fx
  :search/set-active-filter
@@ -184,26 +195,22 @@
 (reg-event-fx
  :search/to-results
  (fn [{:keys [db]}]
-   (let [filters      (get-in db [:search-results :active-filters])
-         object-type  (:Category filters :Gene)
-         ids          (mapv :id (get-in db [:search :selected-results]))
+   (let [search-term  (get-in db [:search-results :keyword])
+         all-selected (get-in db [:search :selected-results])
+         object-type  (-> all-selected first :type)
+         ids          (mapv :id all-selected)
          current-mine (:current-mine db)
-         summary-fields (get-in db [:assets :summary-fields current-mine object-type])]
+         summary-fields (get-in db [:assets :summary-fields current-mine (keyword object-type)])]
      {:dispatch [:results/history+
                  {:source current-mine
                   :type :query
                   :intent :search
-                  :value {:title "Search Results"
-                          :from (name object-type)
+                  :value {:title (str "Selected " object-type " for '" search-term "'")
+                          :from object-type
                           :select summary-fields
-                          :where [{:path (str (name object-type) ".id")
+                          :where [{:path (str object-type ".id")
                                    :op "ONE OF"
                                    :values ids}]}}]})))
-
-(reg-event-db
- :search/highlight-results
- (fn [db [_ highlight?]]
-   (assoc-in db [:search-results :highlight-results] highlight?)))
 
 (reg-event-db
  :search/select-result
@@ -214,6 +221,11 @@
  :search/deselect-result
  (fn [db [_ result]]
    (update-in db [:search :selected-results] disj result)))
+
+(reg-event-db
+ :search/clear-selected
+ (fn [db [_]]
+   (update-in db [:search :selected-results] empty)))
 
 (declare scrolled-past?)
 

@@ -17,16 +17,6 @@
   [:div.active-filter filt
    [remove-filter facet filt]])
 
-(defn controls []
-  [:form.controls
-   [:label
-    [:input {:type "checkbox" :on-click
-             (fn [e]
-       ;;toggle highlight.
-               (re-frame/dispatch [:search/highlight-results (oget e "target" "checked")]))}]
-    [:span.checkbox-material [:span.check]]
-    "Highlight search terms in results (experimental, may be sluggish)"]])
-
 (defn facet-path->human
   "Takes a facet keyword path and converts it to a readable format.
   (E.g. `:organism.shortName` => `Organism`
@@ -75,5 +65,4 @@
        (into [:div]
              (for [facet facet-names]
                ^{:key facet}
-               [facet-filters facet]))
-       [controls]])))
+               [facet-filters facet]))])))

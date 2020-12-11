@@ -10,7 +10,8 @@
             [goog.fx.easing :as geasing]
             [goog.style :as gstyle]
             [oops.core :refer [ocall oget]]
-            [bluegenes.utils :refer [clean-tool-name]]))
+            [bluegenes.utils :refer [clean-tool-name highlight-substring]]
+            [clojure.string :as str]))
 
 (defn scroll-into-view! [id & [parent-id]]
   ;; If the table's parent section is collapsed, we scroll to the parent instead.
@@ -28,6 +29,12 @@
                          geasing/inAndOut)
         (.play)))))
 
+(defn parse-item-name [{:keys [type label value]}]
+  (case type
+    "class" (:displayName @(subscribe [::subs/a-ref+coll value]))
+    "tool" (clean-tool-name label)
+    label))
+
 (defn main []
   (let [summary (subscribe [::subs/report-summary])
         {:keys [rootClass]} @summary
@@ -38,7 +45,8 @@
 
     (fn []
       (let [title @(subscribe [::subs/report-title])
-            active-toc @(subscribe [::subs/report-active-toc])]
+            active-toc @(subscribe [::subs/report-active-toc])
+            filter-text @(subscribe [::subs/report-filter-text])]
         [:<>
          [:div.toc-hide-heading]
          [:div.toc-container
@@ -49,12 +57,16 @@
                 (doall
                  (for [{:keys [category children] parent-id :id}
                        (cons {:category utils/pre-section-title :id utils/pre-section-id} @categories)
-                       :let [children (filter (fn [{:keys [type value]}]
-                                                (contains? (case type
-                                                             "class"    @(subscribe [::subs/ref+coll-for-class? rootClass])
-                                                             "template" @(subscribe [::subs/template-for-class? rootClass])
-                                                             "tool"     @(subscribe [::subs/tool-for-class? rootClass]))
-                                                           value))
+                       :let [children (filter (fn [{:keys [type value] :as child}]
+                                                (and (contains? (case type
+                                                                  "class"    @(subscribe [::subs/ref+coll-for-class? rootClass])
+                                                                  "template" @(subscribe [::subs/template-for-class? rootClass])
+                                                                  "tool"     @(subscribe [::subs/tool-for-class? rootClass]))
+                                                                value)
+                                                     (if (not-empty filter-text)
+                                                       (let [label (parse-item-name child)]
+                                                         (str/includes? (str/lower-case label) (str/lower-case filter-text)))
+                                                       true)))
                                               children)]
                        :when (or (= parent-id utils/pre-section-id)
                                  (seq children))]
@@ -63,18 +75,18 @@
                          :class (when (= active-toc (str parent-id)) :active)}
                      [:li category]]
                     (when (and (seq children)
-                               ;; Only show children if they or their parent is active.
-                               (or (= active-toc (str parent-id))
+                               ;; Only show children if filter is active, or they or their parent is active.
+                               (or (not-empty filter-text)
+                                   (= active-toc (str parent-id))
                                    (some #{active-toc} (map (comp str :id) children))))
                       (into [:ul]
-                            (for [{:keys [label id type value]} children
+                            (for [{:keys [id] :as child} children
                                   ;; For the default layout, the label will be general for the model instead of the
                                   ;; specific ref/coll for this class (e.g.  Protein instead of Isoforms). For this
                                   ;; reason, we get the displayName from the ref/coll.
-                                  :let [label (case type
-                                                "class" (:displayName @(subscribe [::subs/a-ref+coll value]))
-                                                "tool" (clean-tool-name label)
-                                                label)]]
+                                  :let [label (parse-item-name child)]]
                               [:a {:on-click #(scroll-into-view! (str id) (str parent-id))
                                    :class (when (= active-toc (str id)) :active)}
-                               [:li label]])))])))]]))))
+                               (if (not-empty filter-text)
+                                 (into [:li] (highlight-substring label filter-text))
+                                 [:li label])])))])))]]))))

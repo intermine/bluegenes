@@ -115,25 +115,22 @@
   stripping folders without children. A folder can only exist if it has
   children, so if there are no children, they have likely become filtered away,
   in which case there's no point in showing this folder. Also adds an
-  `:is-last` key to each item to mark when a folder ends."
-  [expanded-paths expand-children items & [top-level?]]
-  (reduce (fn [items [{:keys [path children] :as item} last-child?]]
-            (let [item?last (cond-> item
-                              (and last-child? (not top-level?))
-                              (assoc :is-last true))]
-              (if (folder? item)
-                (let [expanded (expand-children children)]
-                  (cond
-                    ;; `expanded-paths` can be a set or function.
-                    (and (expanded-paths path)
-                         (seq expanded)) (into items (cons item expanded))
-                    (seq expanded)       (conj items item?last)
-                    :else                items))
-                (conj items item?last))))
+  `:is-last` key to the last child of a folder."
+  [expanded-paths expand-children items]
+  (reduce (fn [items {:keys [path children] :as item}]
+            (if (folder? item)
+              (let [expanded (expand-children children)]
+                (cond
+                  ;; `expanded-paths` can be a set or function.
+                  (and (expanded-paths path)
+                       (seq expanded)) (into items (cons item
+                                                         (update expanded (-> expanded count dec)
+                                                                 assoc :is-last true)))
+                  (seq expanded)       (conj items item)
+                  :else                items))
+              (conj items item)))
           []
-          (map-indexed (fn [i x]
-                         [x (= i (dec (count items)))])
-                       items)))
+          items))
 
 (defn expand-folders
   "Helper function for `normalize-lists` to handle children nested in folders.
@@ -163,8 +160,7 @@
               (concat (filterf (filter top-level-list? top-level-maps))
                       (filter top-level-folder? top-level-maps)))
        pagination (->> (drop (* per-page (dec current-page)))
-                       (take per-page)))
-     true)))
+                       (take per-page))))))
 
 (defn ->filterf
   "Create a filter function from the filters map in controls, to be passed to
@@ -208,6 +204,9 @@
    ;; Filter by date.
    (if (nil? date)
      identity
+     ;; This uses `goog.date.Date` instead of `js/Date`. The main difference is
+     ;; that the former defaults to midnight of the current date, while the
+     ;; latter defaults to the current time in UTC.
      (let [now (.getTime (Date.))]
        (partial filter (case date
                          :day   (comp #(> (+ % 8.64e+7) now) :timestamp)

@@ -216,7 +216,11 @@
   [db]
   ;; Perhaps we should consider settings `:assets` to `{}` here as well?
   (-> db
-      (dissoc :regions :idresolver :results :qb
+      ;; Other mines might have a different model, so we reset the querybuilder.
+      (assoc :qb (:qb db/default-db))
+      ;; The below were undocumented; please add a comment for each of them
+      ;; when you learn why they're there.
+      (dissoc :regions :idresolver :results
               :suggestion-results ; Avoid showing old results belonging to previous mine.
               :invalid-token?     ; Clear invalid-token-alert.
               :failed-auth?)      ; Clear flag for failing to auth with mine.
@@ -225,8 +229,10 @@
       ;; Set lists page number back to 1.
       (assoc-in [:lists :pagination :current-page] 1)
       ;; Clear lists page selected lists.
-      (update :lists assoc
-              :selected-lists #{})))
+      (update-in [:lists :selected-lists] empty)
+      ;; The old by-id map is used to detect newly added lists.
+      ;; During a mine change, this will mean all lists, which we don't want.
+      (update-in [:lists :by-id] empty)))
 
 (reg-event-fx
  :reboot
@@ -317,6 +323,7 @@
       :im-chan (if token
                  {:chan (auth/who-am-i? service token)
                   :on-success [:authentication/store-token token]
+                  :on-unauthorised [:authentication/invalid-token (boolean auth-token)]
                   :on-failure [:authentication/invalid-token (boolean auth-token)]}
                  {:chan (fetch/session service)
                   :on-success [:authentication/store-token]

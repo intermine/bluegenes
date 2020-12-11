@@ -159,24 +159,22 @@
          object-type (get-in db [:idresolver :stage :options :type])
          service     (get-in db [:mines (get db :current-mine) :service])
          list-name   (get-in db [:idresolver :save :list-name])]
-     {:im-chan
-      {:chan
-       (save/im-list-from-query
-        service
-        list-name
-        {:from object-type
-         :select [(str object-type ".id")]
-         :where [{:path (str object-type ".id")
-                  :op "ONE OF"
-                  :values (->>
-                           MATCH
-                           (concat (mapcat :matches OTHER))
-                           (concat (mapcat :matches TYPE_CONVERTED))
-                           (concat
-                            (mapcat (fn [{matches :matches}]
-                                      (filter :keep? matches)) DUPLICATE))
-                           (map :id))}]})
-       :on-success [::save-list-success list-name object-type]}})))
+     {:im-chan {:chan (save/im-list-from-query
+                       service
+                       list-name
+                       {:from object-type
+                        :select [(str object-type ".id")]
+                        :where [{:path (str object-type ".id")
+                                 :op "ONE OF"
+                                 :values (->> MATCH
+                                              (concat (mapcat :matches OTHER))
+                                              (concat (mapcat :matches TYPE_CONVERTED))
+                                              (concat (mapcat (fn [{matches :matches}]
+                                                                (filter :keep? matches))
+                                                              DUPLICATE))
+                                              (map :id))}]})
+                :on-success [::save-list-success list-name object-type]
+                :on-failure [::save-list-failure]}})))
 
 (reg-event-fx
  ::save-list-success
@@ -202,6 +200,16 @@
                              :where [{:path object-type
                                       :op "IN"
                                       :value list-name}]}}]]})))
+
+(reg-event-fx
+ ::save-list-failure
+ (fn [{db :db} [_ res]]
+   {:dispatch [:messages/add
+               {:markup [:span [:strong "Failed to save list: "]
+                         [:code (if-let [err (not-empty (get-in res [:body :error]))]
+                                  err
+                                  "Please check your connection and try again later.")]]
+                :style "danger"}]}))
 
 (defn validate-default-organism [db mine-details]
   " this handles the fact that a mine could be misconfigured

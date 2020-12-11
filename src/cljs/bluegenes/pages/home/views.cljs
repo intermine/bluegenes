@@ -46,7 +46,7 @@
           [:li
            (into [:a {:href (route/href ::route/template {:template name})}]
                  (if (ascii-arrows title)
-                   (ascii->svg-arrows title)
+                   (ascii->svg-arrows title :max-length 35)
                    [[:span title]]))]))]
       [:a.more-queries {:href (route/href ::route/templates)}
        "More queries here"]

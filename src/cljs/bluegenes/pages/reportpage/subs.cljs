@@ -17,6 +17,12 @@
    (:summary report)))
 
 (reg-sub
+ ::report-error
+ :<- [::report]
+ (fn [report]
+   (:error report)))
+
+(reg-sub
  ::report-title
  :<- [::report]
  (fn [report]
@@ -41,10 +47,17 @@
    (:active-toc report)))
 
 (reg-sub
+ ::report-filter-text
+ :<- [::report]
+ (fn [report]
+   (or (:filter-text report) "")))
+
+(reg-sub
  ::a-table
  (fn [db [_ location]]
    (get-in db location)))
 
+;; This can be a string with the fasta response or :too-long
 (reg-sub
  ::fasta
  :<- [::report]
@@ -55,24 +68,37 @@
  ::fasta-identifier
  :<- [::fasta]
  (fn [fasta]
-   (-> (string/split fasta #"[ \n]")
-       (first)
-       (subs 1))))
+   (when (string? fasta)
+     (-> (string/split fasta #"[ \n]")
+         (first)
+         (subs 1)))))
 
 (reg-sub
  ::chromosome-location
  :<- [::fasta]
  (fn [fasta]
-   (second (string/split fasta #"[ \n]"))))
+   (when (string? fasta)
+      ;; This handles the case where Chromosome Location is missing entirely (like on Proteins).
+     (let [loc (-> (string/split-lines fasta)
+                   (first)
+                   (string/split #"[ \n]")
+                   (second))]
+       (if (= loc "-")
+         ;; Chromosome FASTA have a dash where you'd expect the chromosome location.
+         ;; For now, we only want to avoid breakage, so we pretend it doesn't have one.
+         nil
+         loc)))))
 
+;; TODO do not calculate manually and instead use :length ?
 (reg-sub
  ::fasta-length
  :<- [::fasta]
  (fn [fasta]
-   (->> (string/split-lines fasta)
-        rest
-        (apply str)
-        count)))
+   (when (string? fasta)
+     (->> (string/split-lines fasta)
+          rest
+          (apply str)
+          count))))
 
 (reg-sub
  ::refs+colls
@@ -81,23 +107,15 @@
  (fn [[model params]]
    (let [{:keys [classes]} model
          object-kw (-> params :type keyword)]
-     (concat (vals (get-in classes [object-kw :collections]))
-             (vals (get-in classes [object-kw :references]))))))
-
-(reg-sub
- ::refs+colls-by-referencedType
- :<- [::refs+colls]
- (fn [refs+colls]
-   (group-by :referencedType refs+colls)))
+     ;; This merge assumes there are no identical keys across collections and references.
+     (merge (get-in classes [object-kw :collections])
+            (get-in classes [object-kw :references])))))
 
 (reg-sub
  ::a-ref+coll
- :<- [::refs+colls-by-referencedType]
- (fn [refs+colls [_ referencedType]]
-   ;; If there are multiple identical referencedType among one class' combined
-   ;; references and collections, this could lead to only one of them being
-   ;; displayed (we should verify if this is possible).
-   (first (get refs+colls (name referencedType)))))
+ :<- [::refs+colls]
+ (fn [refs+colls [_ name]]
+   (get refs+colls (keyword name))))
 
 (reg-sub
  ::a-template
