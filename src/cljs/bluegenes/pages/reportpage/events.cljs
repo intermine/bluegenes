@@ -8,7 +8,8 @@
             [bluegenes.route :as route]
             [goog.dom :as gdom]
             [oops.core :refer [oget ocall]]
-            [bluegenes.utils :refer [rows->maps]]))
+            [bluegenes.utils :refer [rows->maps]]
+            [bluegenes.interceptors :refer [origin]]))
 
 (reg-event-fx
  :fetch-fasta
@@ -214,3 +215,33 @@
  (fn [_ [_]]
    (.removeEventListener js/window "scroll" @scrollspy-fn*)
    {}))
+
+(reg-event-fx
+ ::generate-permanent-url
+ (fn [{db :db} [_]]
+   (let [object-id (get-in db [:panel-params :id])
+         service (get-in db [:mines (:current-mine db) :service])]
+     {:db (assoc-in db [:report :share] nil)
+      :im-chan {:chan (fetch/permanent-url service object-id)
+                :on-success [::show-permanent-url]
+                :on-failure [::show-permanent-url-error]}})))
+
+(reg-event-fx
+ ::show-permanent-url
+ [(origin)]
+ (fn [{db :db origin :origin} [_ url]]
+   ;; url can't be an empty string; on-failure would be called instead.
+   (let [lookup-string (re-find #"[^/]+$" url)
+         ;; The webservice returns the JSP webapp URL. We only grab the last
+         ;; part of the URL and use that to build a BlueGenes permanent URL.
+         bluegenes-url
+         (str origin (js/decodeURIComponent ; href automatically URI encodes the ':' character.
+                      (route/href ::route/share {:lookup lookup-string})))]
+     {:db (assoc-in db [:report :share] {:status :success
+                                         :url bluegenes-url})})))
+
+(reg-event-db
+ ::show-permanent-url-error
+ (fn [db [_ res]]
+   (assoc-in db [:report :share] {:status :failure
+                                  :error (get-in res [:body :error])})))

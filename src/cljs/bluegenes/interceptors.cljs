@@ -36,3 +36,17 @@
    :id :clear-tooltips
    :after (fn [context] (ocall (js/$ ".popover") "remove") context)))
 
+(defn- get-origin
+  "Returns a string representing the origin URL of the webapp."
+  []
+  (let [loc (.-location js/window)]
+    (str (.-protocol loc) "//" (.-host loc))))
+
+(defn origin
+  "Provides a re-frame interceptor that adds an :origin key to the context,
+  containing the origin URL of the webapp."
+  []
+  (re-frame.core/->interceptor
+   :id :origin
+   :before (fn [context]
+             (assoc-in context [:coeffects :origin] (get-origin)))))
