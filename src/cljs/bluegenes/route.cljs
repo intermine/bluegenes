@@ -208,10 +208,6 @@
          :start (fn [{{:keys [step]} :path}]
                   (dispatch [:set-active-panel :upload-panel
                              {:step (keyword step)}]))}]}]]
-    ["/explore"
-     {:name ::explore
-      :controllers
-      [{:start #(dispatch [:set-active-panel :explore-panel])}]}]
     ["/search"
      {:name ::search
       :controllers
