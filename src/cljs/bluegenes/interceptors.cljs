@@ -20,7 +20,10 @@
              (let [[_ data] (get-in context [:coeffects :event])]
                (if-not (s/valid? spec data)
                  (do
-                   (throw (s/explain-str spec data))
+                   ;; This used to be a `throw`, but that means the enqueue
+                   ;; after it won't get returned, leading to a compiler
+                   ;; warning (and perhaps unintended behaviour).
+                   (.error js/console (s/explain-str spec data))
                    (-> context
                        (dissoc :queue)
                        (re-frame.core/enqueue [])))
