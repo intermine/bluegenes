@@ -267,7 +267,13 @@
                  (dispatch [:set-active-panel :reportpage-panel
                             {:type type, :id id, :format "id", :mine mine}
                             [:load-report mine type id]]))
-        :stop #(dispatch [:bluegenes.pages.reportpage.events/stop-scroll-handling])}]}]]])
+        :stop #(dispatch [:bluegenes.pages.reportpage.events/stop-scroll-handling])}]}]
+    ["/share/:lookup"
+     {:name ::share
+      :controllers
+      [{:parameters {:path [:mine :lookup]}
+        :start (fn [{{:keys [mine lookup]} :path}]
+                 (dispatch [:handle-permanent-url mine lookup]))}]}]]])
 ;; You can do initialisations by adding a :start function to :controllers.
 ;; :start (fn [& params] (js/console.log "Entering page"))
 ;; Teardowns can also be done by using the :stop key.

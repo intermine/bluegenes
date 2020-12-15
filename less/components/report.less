@@ -261,6 +261,16 @@
             list-style-type: none;
             padding-left: @spacer;
             overflow: hidden;
+
+            &.sidebar-actions {
+                overflow: visible;
+
+                .permanent-url-container {
+                    padding: @spacer/4 @spacer/2;
+
+                    p { padding: 0; }
+                }
+            }
         }
 
         li {
@@ -285,8 +295,15 @@
                     align-items: center;
                 }
 
-                .icon {
+                .icon-external {
                     margin: 0;
+                }
+
+                &.sidebar-action {
+                    display: flex;
+                    align-items: center;
+                    color: @highlight-color;
+                    fill: @highlight-color;
                 }
             }
         }

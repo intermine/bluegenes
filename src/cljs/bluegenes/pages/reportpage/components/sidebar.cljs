@@ -4,9 +4,54 @@
             [bluegenes.components.icons :refer [icon-comp]]
             [bluegenes.components.bootstrap :refer [poppable]]
             [bluegenes.pages.reportpage.subs :as subs]
-            [bluegenes.route :as route]))
+            [bluegenes.pages.reportpage.events :as events]
+            [bluegenes.route :as route]
+            [bluegenes.components.loader :refer [mini-loader]]
+            [oops.core :refer [ocall]]))
 
 (def ^:const entries-to-show 5)
+
+(defn generate-permanent-url []
+  (let [{:keys [status url error]} @(subscribe [::subs/share])
+        input-ref* (atom nil)]
+    [:li [:span.dropdown
+          [:a.sidebar-action.dropdown-toggle
+           {:data-toggle "dropdown"
+            :role "button"
+            :on-click #(dispatch [::events/generate-permanent-url])}
+           [icon-comp "price-tag"] "Copy permanent URL"]
+          [:div.dropdown-menu.dropdown-menu-right
+           (if status
+             [:form {:on-submit #(.preventDefault %)}
+              (case status
+                :success [:div.permanent-url-container
+                          [:p "Paste it anywhere you wish to have a reference to this report. The URL will continue to work through database rebuilds and will return the report for this object."]
+                          [:input.form-control
+                           {:type "text"
+                            :ref #(some->> % (reset! input-ref*))
+                            :autoFocus true
+                            :readOnly true
+                            :style {:width (* (count url) 8)}
+                            :value url}]
+                          [:button.btn.btn-raised
+                           {:on-click (fn [_]
+                                        (when-let [input-el @input-ref*]
+                                          (.focus input-el)
+                                          (.select input-el)
+                                          (try
+                                            (ocall js/document :execCommand "copy")
+                                            (catch js/Error _))))}
+                           "Copy"]]
+                :failure [:div.permanent-url-container
+                          [:p.failure "Failed to generate permanent URL."
+                           (when-let [err (not-empty error)]
+                             [:code err])]])]
+             [mini-loader])]]]))
+
+(defn actions []
+  [:div.sidebar-entry.col-sm-12
+   [:ul.sidebar-actions
+    [generate-permanent-url]]])
 
 (defn entry []
   (let [show-all* (reagent/atom false)]
@@ -61,6 +106,7 @@
 (defn main []
   [:div.sidebar
    [:div.row
+    [actions]
     [lists-containing]
     [:div.sidebar-entry.col-sm-6.col-lg-12
      [:h4 "Other mines"]

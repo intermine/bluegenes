@@ -153,3 +153,9 @@
    (subscribe [:bluegenes.pages.admin.subs/available-class-names class]))
  (fn [refs+colls [_ _class]]
    (into #{} (map :value refs+colls))))
+
+(reg-sub
+ ::share
+ :<- [::report]
+ (fn [report]
+   (:share report)))

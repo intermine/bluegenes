@@ -28,7 +28,7 @@
             [bluegenes.route :as route]
             [imcljs.fetch :as fetch]
             [imcljs.path :as im-path]
-            [clojure.string :refer [join split]]
+            [clojure.string :as str :refer [join split]]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
             [cljs-bean.core :refer [->clj]]
             [bluegenes.utils :refer [read-registry-mine]]))
@@ -325,3 +325,37 @@
  :scroll-to-top
  (fn [{db :db} [_]]
    {:scroll-to-top {}}))
+
+(reg-event-fx
+ :handle-permanent-url
+ (fn [{db :db} [_ mine lookup-string]]
+   (let [[object-type identifier] (split lookup-string #":")
+         object-type (str/capitalize object-type)
+         service (get-in db [:mines (keyword mine) :service])
+         q {:from object-type
+            :select [(str object-type ".id")]
+            :where [{:path object-type
+                     :op "LOOKUP"
+                     :value identifier}]}]
+     {:im-chan {:chan (fetch/rows service q)
+                :on-success [:redirect-to-report-page lookup-string]
+                :on-failure [:notify-invalid-permanent-url lookup-string]}})))
+
+(reg-event-fx
+ :redirect-to-report-page
+ (fn [{db :db} [_ lookup-string res]]
+   (if-let [object-id (get-in res [:results 0 0])]
+     {:dispatch [::route/navigate ::route/report {:type (:rootClass res)
+                                                  :id object-id}]}
+     {:dispatch [:notify-invalid-permanent-url lookup-string res]})))
+
+(reg-event-fx
+ :notify-invalid-permanent-url
+ (fn [{db :db} [_ lookup-string res]]
+   {:dispatch-n [[::route/navigate ::route/home]
+                 [:messages/add
+                  {:markup [:span "The object referenced by the permanent URL " [:em lookup-string] " does not seem to be in the database anymore. "
+                            (when-let [err (not-empty (get-in res [:body :error]))]
+                              [:code err])]
+                   :style "warning"
+                   :timeout 0}]]}))
