@@ -12,7 +12,8 @@
             [cljs-time.core :as time]
             [cljs-time.coerce :as time-coerce]
             [bluegenes.route :as route]
-            [bluegenes.components.tools.events :as tools]))
+            [bluegenes.components.tools.events :as tools]
+            [bluegenes.effects :refer [document-title]]))
 
 (comment
   "To automatically display some results in this section (the Results / List Analysis page),
@@ -104,7 +105,7 @@
 ; Load one package at a particular index from the list analysis history collection
 (reg-event-fx
  :results/load-history
- [(clear-tooltips)] ; This clears any existing tooltips on the screen when the event fires
+ [(clear-tooltips) document-title]
  (fn [{db :db} [_ title]]
    (let [; Get the details of the current package
          {:keys [source type value] :as package} (get-in db [:results :queries title])
