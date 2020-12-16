@@ -5,7 +5,8 @@
             [oops.core :refer [oget ocall]]
             [bluegenes.components.progress_bar :as progress-bar]
             [bluegenes.route :as route]
-            [bluegenes.components.ui.inputs :refer [password-input]]))
+            [bluegenes.components.ui.inputs :refer [password-input]]
+            [bluegenes.components.icons :refer [icon-comp]]))
 
 (def ^:const logo-path "/model/images/logo.png")
 
@@ -162,6 +163,22 @@
     {:class (classes :querybuilder-panel large-screen?)}
     [:a {:href (route/href ::route/querybuilder)}
      "Query\u00A0Builder"]]
+   (when @(subscribe [:results/have-been-queries?])
+     [:li.queries-container.hidden-xs.hidden-sm
+      {:class (classes :results-panel large-screen?)}
+      [:a.dropdown-toggle.queries-button
+       {:data-toggle "dropdown" :role "button"}
+       ;; This has the same height as the *visible* icon, so it ensures the icon
+       ;; in the middle is centered.
+       [icon-comp "caret-down" :classes [:invisible]]
+       [icon-comp "document-list" :enlarge 2]
+       [icon-comp "caret-down"]]
+      (into [:ul.dropdown-menu.results-dropdown]
+            (for [[title {:keys [display-title]}]
+                  @(subscribe [:results/historical-queries])]
+              [:li
+               [:a {:on-click #(dispatch [::route/navigate ::route/results {:title title}])}
+                (or display-title title)]]))])
    [:li.primary-nav.hidden-md.hidden-lg
     {:class (classes :search-panel large-screen?)}
     [:a {:href (route/href ::route/search)}
