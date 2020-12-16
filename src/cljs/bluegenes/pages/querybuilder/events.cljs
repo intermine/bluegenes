@@ -9,7 +9,7 @@
             [clojure.set :refer [difference]]
             [bluegenes.pages.querybuilder.logic :as logic
              :refer [read-logic-string remove-code vec->list append-code]]
-            [clojure.string :refer [join split blank? starts-with?]]
+            [clojure.string :as str :refer [join split blank? starts-with?]]
             [bluegenes.utils :refer [read-xml-query dissoc-in]]
             [oops.core :refer [oget]]
             [clojure.walk :refer [postwalk]]))
@@ -327,7 +327,8 @@
                   :type :query
                   :intent :query
                   :value (assoc query
-                                :title (str title " " (hash query)))
+                                :title (-> (str/replace title " " "_")
+                                           (str "_" (hash query))))
                   :display-title title}]})))
 
 (defn within? [col item]
