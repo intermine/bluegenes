@@ -48,7 +48,8 @@
          [mini-loader "tiny"]])]
      [:div.preview-table-container
       [preview-table
-       :query-results @results-preview]]
+       :query-results @results-preview
+       :loading? loading?]]
      [:div.btn-group
       [:button.btn.btn-primary.btn-raised.view-results
        {:type "button"
