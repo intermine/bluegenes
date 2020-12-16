@@ -11,7 +11,8 @@
         Name   [:report :title]
         Debug  [:debug-panel]
         Search [:search-results :keyword]
-        Query  [:results :history-index]]
+        Query  #(or (get-in % [:results :package :display-title])
+                    (get-in % [:results :history-index]))]
     {:home-panel         ["Home"             Mine App]
      :admin-panel        ["Admin"            Mine App]
      :profile-panel      ["Profile"          Mine App]
