@@ -47,9 +47,12 @@
                       [:template-chooser/fetch-preview]]}
         (when scroll?
           {:scroll-to-template (name id)}))
-       {:dispatch [:messages/add
-                   {:markup [:span "The template " [:em (name id)] " does not exist."]
-                    :style "warning"}]}))))
+       ;; Template can't be found.
+       {:dispatch-n [[::route/navigate ::route/templates]
+                     [:messages/add
+                      {:markup [:span "The template " [:em (name id)] " does not exist. It's possible the ID has changed. Use the text filter above to find a template with a similar name."]
+                       :style "warning"
+                       :timeout 0}]]}))))
 
 (reg-event-db
  :template-chooser/deselect-template
