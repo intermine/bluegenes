@@ -160,8 +160,12 @@
             [:div.body
              [select-template-settings selected-template]
              [preview-results]])
-          (when (not selected?)
-            [:button.view "View >>"])
+          (if selected?
+            [:button.view
+             {:on-click #(dispatch [:template-chooser/deselect-template])}
+             "Close <<"]
+            [:button.view
+             "View >>"])
           [tags (:tags query)]]]))))
 
 (defn templates
