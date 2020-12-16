@@ -137,6 +137,8 @@
        [:a {:href (route/href ::route/debug {:panel "main"})}
         ">_ Developer"]])]))
 
+(def queries-to-show 10)
+
 (defn nav-buttons [classes & {:keys [large-screen?]}]
   [:<>
    [:li.primary-nav.hidden-xs
@@ -174,11 +176,11 @@
        [icon-comp "document-list" :enlarge 2]
        [icon-comp "caret-down"]]
       (into [:ul.dropdown-menu.results-dropdown]
-            (for [[title {:keys [display-title]}]
-                  @(subscribe [:results/historical-queries])]
-              [:li
-               [:a {:on-click #(dispatch [::route/navigate ::route/results {:title title}])}
-                (or display-title title)]]))])
+            (let [queries @(subscribe [:results/historical-queries])]
+              (for [[title {:keys [display-title]}] (take queries-to-show queries)]
+                [:li
+                 [:a {:on-click #(dispatch [::route/navigate ::route/results {:title title}])}
+                  (or display-title title)]])))])
    [:li.primary-nav.hidden-md.hidden-lg
     {:class (classes :search-panel large-screen?)}
     [:a {:href (route/href ::route/search)}
