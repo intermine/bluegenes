@@ -1,7 +1,7 @@
 (ns bluegenes.pages.lists.views
   (:require [re-frame.core :refer [subscribe dispatch]]
             [reagent.core :as r]
-            [bluegenes.components.icons :refer [icon]]
+            [bluegenes.components.icons :refer [icon icon-comp]]
             [bluegenes.pages.lists.utils :refer [folder? internal-tag?]]
             [cljs-time.format :as time-format]
             [cljs-time.coerce :as time-coerce]
@@ -486,8 +486,14 @@
         :value new-list-description}]]]))
 
 (defn modal-set-operation []
-  (let [active-modal @(subscribe [:lists/active-modal])]
+  (let [active-modal @(subscribe [:lists/active-modal])
+        different-types? @(subscribe [:lists/selected-lists-different-types?])]
     [:<>
+     (when different-types?
+       [:div.alert.alert-warning.extra-message
+        [icon-comp "info" :enlarge 2]
+        [:p "You are performing a set operation on lists of different types. This will create a new list of the common ancestor type, if one exists. Unless this is your intention, we recommend opening the lists and saving them again as the same type."]])
+
      (case active-modal
        (:combine :intersect :difference)
        [:div
