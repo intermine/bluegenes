@@ -66,6 +66,18 @@
             display: flex;
             overflow: auto;
         }
+        .queries-container {
+            flex-grow: 0;
+        }
+        .queries-button {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+
+            .icon {
+                fill: inherit;
+            }
+        }
         li {
             min-height: 3*@spacer;
             flex-grow: 1;
@@ -135,9 +147,6 @@
                             background: darken(@highlight-color, 3%);
                             .transitions;
                         }
-                    }
-                    &.special {
-                        border-top: solid 1px @highlight-color;
                     }
                 }
                 li a.current {
@@ -235,6 +244,31 @@
                 border-top: none;
                 right: auto;
                 width: 100%;
+            }
+
+            &.results-dropdown {
+                top: 68px;
+                border-top: none;
+                right: auto;
+
+                max-width: 40vh;
+
+                & > li {
+                    min-height: auto;
+                    transition-duration: 0.1s;
+
+                    & > a {
+                        white-space: nowrap;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                    }
+
+                    &:hover, & > a:hover {
+                        color: @highlight-color-text;
+                        background-color: @highlight-color;
+                        transition-duration: 0.1s;
+                    }
+                }
             }
         }
 

@@ -78,6 +78,12 @@
         (sort-by (comp :last-executed second) >))))
 
 (reg-sub
+ :results/have-been-queries?
+ :<- [:results/historical-queries]
+ (fn [queries]
+   (some? (seq queries))))
+
+(reg-sub
  :results/historical-custom-queries
  :<- [:results/historical-queries]
  (fn [queries]

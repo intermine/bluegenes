@@ -210,6 +210,13 @@
    (map by-id selected-lists)))
 
 (reg-sub
+ :lists/selected-lists-different-types?
+ :<- [:lists/selected-lists-details]
+ (fn [lists]
+   (->> (map :type lists)
+        (apply not=))))
+
+(reg-sub
  :lists-modal/new-list-tags
  :<- [:lists/modal-root]
  (fn [modal]

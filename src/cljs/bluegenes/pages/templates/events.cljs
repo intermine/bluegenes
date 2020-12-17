@@ -6,6 +6,22 @@
             [imcljs.fetch :as fetch]
             [bluegenes.route :as route]))
 
+;; This effect handler is used from routes and has different behaviour
+;; depending on if it's called from a different panel, or the template panel.
+(reg-event-fx
+ :template-chooser/open-template
+ (fn [{db :db} [_ id]]
+   (if (= :templates-panel (:active-panel db))
+     {:dispatch [:template-chooser/choose-template id]}
+     {:dispatch-n [[:template-chooser/clear-template]
+                   [:set-active-panel :templates-panel
+                    nil
+                    ;; flush-dom makes the event wait for the page to update first.
+                    ;; This is because we'll be scrolling to the template, so the
+                    ;; element needs to be present first.
+                    ^:flush-dom [:template-chooser/choose-template id
+                                 {:scroll? true}]]]})))
+
 ; Predictable function used to filter active constraints
 (def not-disabled-predicate (comp (partial not= "OFF") :switched))
 
@@ -31,10 +47,19 @@
                       [:template-chooser/fetch-preview]]}
         (when scroll?
           {:scroll-to-template (name id)}))
-       {:dispatch [:messages/add
-                   {:markup [:span "The template " [:em (name id)] " does not exist."]
-                    :style "warning"}]}))))
+       ;; Template can't be found.
+       {:dispatch-n [[::route/navigate ::route/templates]
+                     [:messages/add
+                      {:markup [:span "The template " [:em (name id)] " does not exist. It's possible the ID has changed. Use the text filter above to find a template with a similar name."]
+                       :style "warning"
+                       :timeout 0}]]}))))
 
+(reg-event-db
+ :template-chooser/deselect-template
+ (fn [db [_]]
+   (update-in db [:components :template-chooser] select-keys
+              [:selected-template-category :text-filter])))
+;; Above keeps category and text filter, while the below clears them.
 (reg-event-db
  :template-chooser/clear-template
  (fn [db [_]]

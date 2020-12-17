@@ -5,7 +5,8 @@
             [oops.core :refer [oget ocall]]
             [bluegenes.components.progress_bar :as progress-bar]
             [bluegenes.route :as route]
-            [bluegenes.components.ui.inputs :refer [password-input]]))
+            [bluegenes.components.ui.inputs :refer [password-input]]
+            [bluegenes.components.icons :refer [icon-comp]]))
 
 (def ^:const logo-path "/model/images/logo.png")
 
@@ -33,6 +34,8 @@
       [:li.email [:span username]]
       (when superuser
         [:li [:a {:href (route/href ::route/admin)} "Admin"]])
+      (when superuser
+        [:li [:a {:href (route/href ::route/tools)} "Tools"]])
       [:li [:a {:href (route/href ::route/profile)} "Profile"]]
       [:li [:a {:on-click #(dispatch [:bluegenes.events.auth/logout])} "Logout"]]]]))
 
@@ -125,16 +128,14 @@
       [active-mine-logo current-mine]
       [:span.hidden-xs (:name current-mine)]
       [:svg.icon.icon-caret-down [:use {:xlinkHref "#icon-caret-down"}]]]
-     (conj
-      (into [:ul.dropdown-menu.mine-picker]
-            (map (fn [[mine-key details]]
-                   ^{:key mine-key}
-                   [mine-entry mine-key details
-                    :current? (= mine-key current-mine-name)])
-                 (sort-by (comp :name val) registry-with-default)))
-      [:li.special
-       [:a {:href (route/href ::route/debug {:panel "main"})}
-        ">_ Developer"]])]))
+     (into [:ul.dropdown-menu.mine-picker]
+           (map (fn [[mine-key details]]
+                  ^{:key mine-key}
+                  [mine-entry mine-key details
+                   :current? (= mine-key current-mine-name)])
+                (sort-by (comp :name val) registry-with-default)))]))
+
+(def queries-to-show 10)
 
 (defn nav-buttons [classes & {:keys [large-screen?]}]
   [:<>
@@ -162,6 +163,22 @@
     {:class (classes :querybuilder-panel large-screen?)}
     [:a {:href (route/href ::route/querybuilder)}
      "Query\u00A0Builder"]]
+   (when @(subscribe [:results/have-been-queries?])
+     [:li.queries-container.hidden-xs.hidden-sm
+      {:class (classes :results-panel large-screen?)}
+      [:a.dropdown-toggle.queries-button
+       {:data-toggle "dropdown" :role "button"}
+       ;; This has the same height as the *visible* icon, so it ensures the icon
+       ;; in the middle is centered.
+       [icon-comp "caret-down" :classes [:invisible]]
+       [icon-comp "document-list" :enlarge 2]
+       [icon-comp "caret-down"]]
+      (into [:ul.dropdown-menu.results-dropdown]
+            (let [queries @(subscribe [:results/historical-queries])]
+              (for [[title {:keys [display-title]}] (take queries-to-show queries)]
+                [:li
+                 [:a {:on-click #(dispatch [::route/navigate ::route/results {:title title}])}
+                  (or display-title title)]])))])
    [:li.primary-nav.hidden-md.hidden-lg
     {:class (classes :search-panel large-screen?)}
     [:a {:href (route/href ::route/search)}

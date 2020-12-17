@@ -311,11 +311,9 @@
         position: relative;
         min-height: @spacer*7;
 
-        .transitions;
+        cursor: pointer;
 
-        :hover {
-            cursor: pointer;
-        }
+        .transitions;
 
         .title {
             font-size: 1.4em;
@@ -366,15 +364,7 @@
             box-shadow: 0 2px 5px -1px rgba(0,0,0,0.33);
 
             // remove pointer from selected template
-            :hover {
-                cursor: default;
-            }
-
-            .input-group {
-                :hover {
-                    cursor: pointer;
-                }
-            }
+            cursor: default;
         }
     }
 
@@ -397,10 +387,6 @@
             border-width: 0 0 3px 0;
             border-radius: 2px;
             cursor: pointer;
-
-            &:hover {
-                cursor: pointer;
-            }
         }
     }
 
@@ -413,6 +399,7 @@
         border: none;
         background-color: #039BE5;
         color: #FFFFFF;
+        z-index: 1;
     }
 }
 

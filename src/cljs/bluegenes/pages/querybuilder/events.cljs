@@ -9,7 +9,7 @@
             [clojure.set :refer [difference]]
             [bluegenes.pages.querybuilder.logic :as logic
              :refer [read-logic-string remove-code vec->list append-code]]
-            [clojure.string :refer [join split blank? starts-with?]]
+            [clojure.string :as str :refer [join split blank? starts-with?]]
             [bluegenes.utils :refer [read-xml-query dissoc-in]]
             [oops.core :refer [oget]]
             [clojure.walk :refer [postwalk]]))
@@ -320,15 +320,16 @@
 (reg-event-fx
  :qb/export-query
  (fn [{db :db} [_]]
-   {:db db
-    :dispatch [:results/history+
-               {:source (get-in db [:current-mine])
-                :type :query
-                :intent :query
-                :value (assoc
-                        (get-in db [:qb :im-query])
-                        :title (str "Custom Query " (hash (get-in db [:qb :im-query]))))
-                :display-title "Custom Query"}]}))
+   (let [query (get-in db [:qb :im-query])
+         title (str "Custom " (:from query) " Query")]
+     {:dispatch [:results/history+
+                 {:source (get-in db [:current-mine])
+                  :type :query
+                  :intent :query
+                  :value (assoc query
+                                :title (-> (str/replace title " " "_")
+                                           (str "_" (hash query))))
+                  :display-title title}]})))
 
 (defn within? [col item]
   (some? (some #{item} col)))

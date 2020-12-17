@@ -165,6 +165,13 @@
                             nil
                             [:bluegenes.pages.admin.events/init]])
                  (dispatch [:bluegenes.components.tools.events/fetch-tools]))}]}]
+    ["/tools"
+     {:name ::tools
+      :controllers
+      [{:start (fn []
+                 (dispatch [:set-active-panel :tools-panel
+                            nil
+                            [:bluegenes.pages.tools.events/init]]))}]}]
     ["/profile"
      {:name ::profile
       :controllers
@@ -188,14 +195,9 @@
       :controllers
       [{:parameters {:path [:template]}
         :start (fn [{{:keys [template]} :path}]
-                 (dispatch [:template-chooser/clear-template])
-                 (dispatch [:set-active-panel :templates-panel
-                            nil
-                            ;; flush-dom makes the event wait for the page to update first.
-                            ;; This is because we'll be scrolling to the template, so the
-                            ;; element needs to be present first.
-                            ^:flush-dom [:template-chooser/choose-template (keyword template)
-                                         {:scroll? true}]]))}]}]
+                 (dispatch [:template-chooser/open-template (keyword template)]))
+        :stop (fn []
+                (dispatch [:template-chooser/deselect-template]))}]}]
     ["/upload"
      [""
       {:name ::upload

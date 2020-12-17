@@ -11,7 +11,8 @@
             [bluegenes.components.loader :refer [mini-loader]]
             [bluegenes.utils :refer [ascii-arrows ascii->svg-arrows]]
             [bluegenes.pages.templates.helpers :refer [categories-from-tags]]
-            [bluegenes.components.top-scroll :as top-scroll]))
+            [bluegenes.components.top-scroll :as top-scroll]
+            [bluegenes.route :as route]))
 
 (defn categories []
   (let [categories (subscribe [:template-chooser-categories])
@@ -47,7 +48,8 @@
          [mini-loader "tiny"]])]
      [:div.preview-table-container
       [preview-table
-       :query-results @results-preview]]
+       :query-results @results-preview
+       :loading? loading?]]
      [:div.btn-group
       [:button.btn.btn-primary.btn-raised.view-results
        {:type "button"
@@ -149,7 +151,7 @@
           {:class (when selected? "selected")
            :id (name id)
            :on-click #(when (not selected?)
-                        (dispatch [:template-chooser/choose-template id]))}
+                        (dispatch [::route/navigate ::route/template {:template (name id)}]))}
           (into [:h4]
                 (if (ascii-arrows title)
                   (ascii->svg-arrows title)
@@ -160,8 +162,12 @@
             [:div.body
              [select-template-settings selected-template]
              [preview-results]])
-          (when (not selected?)
-            [:button.view "View >>"])
+          (if selected?
+            [:button.view
+             {:on-click #(dispatch [::route/navigate ::route/templates])}
+             "Close <<"]
+            [:button.view
+             "View >>"])
           [tags (:tags query)]]]))))
 
 (defn templates

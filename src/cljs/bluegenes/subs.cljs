@@ -10,6 +10,8 @@
             [bluegenes.components.viz.subs]
             [bluegenes.pages.home.subs]
             [bluegenes.pages.lists.subs]
+            [bluegenes.pages.tools.subs]
+            [bluegenes.pages.developer.subs]
             [bluegenes.version :as version]
             [bluegenes.utils :as utils]
             [lambdaisland.uri :refer [uri]]))

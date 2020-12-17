@@ -1,10 +1,18 @@
-(ns bluegenes.pages.developer.tools
+(ns bluegenes.pages.tools.view
   (:require [re-frame.core :as re-frame :refer [dispatch subscribe]]
             [bluegenes.components.tools.subs :as tools-subs]
-            [bluegenes.pages.developer.events :as events]
+            [bluegenes.pages.tools.events :as events]
             [bluegenes.version :as version]
             [bluegenes.components.viz.views :refer [all-viz]]
             [bluegenes.utils :refer [md-paragraph]]))
+
+;; You may notice that this page is only linked from the admin's profile
+;; dropdown, but there's no guard to stop logged in or anonymous users from
+;; accessing it directly by URL. This is intentional, as having it linked for
+;; regular users seems misleading, but it still may be useful to access if
+;; you're not an admin. It contains no secret information, and no harm can be
+;; done as the bluegenes-tool-store backend will verify that you're admin
+;; before doing anything.
 
 (defn action [func]
   (fn [e]
@@ -51,7 +59,8 @@
     (when-not supported?
       [:div.tool-alert
        [:p (str "This tool will not show on " mine-name " as it doesn't support: ")
-        (into [:<> (interpose " " (map #(vector :code %) unsupported))])
+        (into [:<>]
+              (interpose " " (map #(vector :code %) unsupported)))
         ". However, it may be shown for other mines."]])))
 
 (defn output-tool-version
@@ -140,12 +149,12 @@
             [:div.tool-data
              "Included with BlueGenes"]]])))
 
-(defn tool-store
+(defn main
   "Page structure for tool store UI"
   []
   (let [installed-tools (subscribe [::tools-subs/installed-tools])
         remaining-tools (subscribe [::tools-subs/remaining-tools])]
-    [:div.tool-store
+    [:div.tool-store.container
      [:h1 "Tool Store"]
      [:div
       (when (seq @installed-tools)
