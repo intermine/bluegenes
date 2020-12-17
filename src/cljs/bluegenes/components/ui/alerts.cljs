@@ -3,7 +3,7 @@
             [reagent.core :as r]))
 
 (defn tool-operation-alert []
-  (let [working? @(subscribe [:bluegenes.pages.developer.subs/tool-working?])]
+  (let [working? @(subscribe [:bluegenes.pages.tools.subs/tool-working?])]
     (when working?
       [:div.alert-container
        [:div.alert.alert-info

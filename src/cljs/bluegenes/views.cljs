@@ -18,6 +18,7 @@
             [bluegenes.pages.regions.views :as regions]
             [bluegenes.pages.profile.views :as profile]
             [bluegenes.pages.admin.views :as admin]
+            [bluegenes.pages.tools.view :as tools]
             [bluegenes.components.loader :as loader]))
 
 (enable-console-print!)
@@ -28,6 +29,7 @@
      :admin-panel        admin/main
      :profile-panel      profile/main
      :debug-panel        dev/debug-panel
+     :tools-panel        tools/main
      :templates-panel    templates/main
      :reportpage-panel   reportpage/main
      :upload-panel       idresolver/main

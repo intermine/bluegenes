@@ -22,6 +22,8 @@
             [bluegenes.pages.profile.events]
             [bluegenes.pages.home.events]
             [bluegenes.pages.lists.events]
+            [bluegenes.pages.developer.events]
+            [bluegenes.pages.tools.events]
             [bluegenes.components.viz.events]
             [bluegenes.effects :refer [document-title]]
             [bluegenes.components.tools.effects]

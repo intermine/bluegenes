@@ -165,6 +165,13 @@
                             nil
                             [:bluegenes.pages.admin.events/init]])
                  (dispatch [:bluegenes.components.tools.events/fetch-tools]))}]}]
+    ["/tools"
+     {:name ::tools
+      :controllers
+      [{:start (fn []
+                 (dispatch [:set-active-panel :tools-panel
+                            nil
+                            [:bluegenes.pages.tools.events/init]]))}]}]
     ["/profile"
      {:name ::profile
       :controllers

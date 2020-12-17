@@ -17,6 +17,7 @@
      :admin-panel        ["Admin"            Mine App]
      :profile-panel      ["Profile"          Mine App]
      :debug-panel        [Debug "Debug"      Mine App]
+     :tools-panel        ["Tool Store"       Mine App]
      :templates-panel    ["Templates"        Mine App]
      :reportpage-panel   [Name Type "Report" Mine App]
      :upload-panel       ["Upload"           Mine App]

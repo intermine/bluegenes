@@ -34,6 +34,8 @@
       [:li.email [:span username]]
       (when superuser
         [:li [:a {:href (route/href ::route/admin)} "Admin"]])
+      (when superuser
+        [:li [:a {:href (route/href ::route/tools)} "Tools"]])
       [:li [:a {:href (route/href ::route/profile)} "Profile"]]
       [:li [:a {:on-click #(dispatch [:bluegenes.events.auth/logout])} "Logout"]]]]))
 
