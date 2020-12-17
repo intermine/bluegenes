@@ -45,3 +45,9 @@
  :regions/to-search
  (fn [db]
    (get-in db [:regions :to-search])))
+
+(reg-sub
+ :regions/example-search
+ :<- [:current-mine]
+ (fn [mine]
+   (:regionsearch-example mine)))
