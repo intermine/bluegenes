@@ -126,16 +126,12 @@
       [active-mine-logo current-mine]
       [:span.hidden-xs (:name current-mine)]
       [:svg.icon.icon-caret-down [:use {:xlinkHref "#icon-caret-down"}]]]
-     (conj
-      (into [:ul.dropdown-menu.mine-picker]
-            (map (fn [[mine-key details]]
-                   ^{:key mine-key}
-                   [mine-entry mine-key details
-                    :current? (= mine-key current-mine-name)])
-                 (sort-by (comp :name val) registry-with-default)))
-      [:li.special
-       [:a {:href (route/href ::route/debug {:panel "main"})}
-        ">_ Developer"]])]))
+     (into [:ul.dropdown-menu.mine-picker]
+           (map (fn [[mine-key details]]
+                  ^{:key mine-key}
+                  [mine-entry mine-key details
+                   :current? (= mine-key current-mine-name)])
+                (sort-by (comp :name val) registry-with-default)))]))
 
 (def queries-to-show 10)
 
