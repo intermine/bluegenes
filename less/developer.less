@@ -22,35 +22,32 @@
   }
 
   .icon-view {
-    border-collapse: collapse;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      grid-gap: @spacer;
 
-    .icon {
-      font-size: 2*@spacer;
-
-      &.icon-venn-combine {
-        fill: rgba(0,0,0,0);
+      .icon {
+          font-size: 2*@spacer;
+          margin: 4px;
+          flex-shrink: 0;
       }
 
-      &.icon-venn-disjunction {
-        fill: rgba(0,0,0,0);
+      .icon-container {
+          display: flex;
+          justify-content: flex-start;
+          align-items: center;
+          background: rgba(0, 0, 0, 0.04);
+
+          .icon-name {
+              background: #eee;
+              border-radius: 2px;
+              border: solid 1px rgba(0, 0, 0, 0.2);
+              font-family: courier, mono;
+              margin-left: @spacer/2;
+              padding: @spacer/8 @spacer/4;
+              white-space: nowrap;
+          }
       }
-      margin: 4px;
-    }
-
-    .code {
-      background: #eee;
-      border-radius: 2px;
-      border: solid 1px rgba(0, 0, 0, 0.2);
-      font-family: courier, mono;
-    }
-
-    td {
-      padding: 2px;
-    }
-
-    tr:nth-child(even) {
-      background: rgba(0, 0, 0, 0.1);
-    }
   }
 
   .dev-navigation {
