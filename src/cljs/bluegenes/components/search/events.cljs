@@ -9,6 +9,10 @@
   "The amount of results we should fetch at a time."
   50)
 
+(def results-max-size
+  "The highest amount of results the webservice allows us to fetch at a time."
+  100)
+
 (reg-event-db
  :search/set-search-term
  (fn [db [_ search-term]]
@@ -227,6 +231,23 @@
  (fn [db [_]]
    (update-in db [:search :selected-results] empty)))
 
+(reg-event-fx
+ :search/select-all-results
+ (fn [{db :db} [_]]
+   (let [{results-count :count results-fetched :results} (:search-results db)]
+     ;; Should never really be less than, but keep it for safety!
+     (if (<= results-count (count results-fetched))
+       ;; We have already fetched all the results, so no need for a request.
+       {:db (-> db
+                (assoc-in [:search-results :loading-remaining?] false)
+                (assoc-in [:search :selected-results] (set results-fetched)))}
+       ;; Fetch remaining results as we don't know their IDs. As the search
+       ;; webservice limits you to a maximum of `results-max-size` at a time,
+       ;; this could lead to multiple subsequent requests.
+       {:db (assoc-in db [:search-results :loading-remaining?] true)
+        :dispatch [:search/remaining-results
+                   {:on-success [:search/select-all-results]}]}))))
+
 (declare scrolled-past?)
 
 (reg-event-fx
@@ -248,23 +269,50 @@
 (reg-event-fx
  :search/more-results
  (fn [{db :db} [_]]
-   (let [{filters :active-filters, results :results, loading-more? :loading-more?
-          total :count, search-term :keyword} (:search-results db)
+   (let [{filters :active-filters, results :results, total :count, search-term :keyword
+          :keys [loading-more? loading-remaining?]} (:search-results db)
          connection (get-in db [:mines (get db :current-mine) :service])]
      (if (and (< (count results) total)
-              (not loading-more?))
+              (not loading-more?)
+              (not loading-remaining?))
        {:db (assoc-in db [:search-results :loading-more?] true)
         :im-chan {:chan (fetch/quicksearch connection
                                            search-term
                                            (merge
                                             {:size results-batch-size
-                                             :start (* (int (/ (count results)
-                                                               results-batch-size))
-                                                       results-batch-size)}
+                                             :start (count results)}
                                             (when (some? (seq filters))
                                               (active-filters->facet-query filters))))
                   :on-success [:search/save-more-results]}}
        {}))))
+
+(reg-event-fx
+ :search/save-remaining-results
+ (fn [{db :db} [_ {:keys [on-success]} {:keys [results]}]]
+   {:db (update-in db [:search-results :results] into results)
+    :dispatch on-success}))
+
+;; You could get duplicate results if you manage to click the "Select all"
+;; button just as you scrolled to the bottom of the page, with more results to
+;; load. Simplest way to fix would be to make [:search-results :results] a set.
+;; I will not do this now, as it's such an edge case bug.
+(reg-event-fx
+ :search/remaining-results
+ (fn [{db :db} [_ {:keys [on-success]}]]
+   (let [{filters :active-filters, results :results
+          total :count, search-term :keyword} (:search-results db)
+         connection (get-in db [:mines (get db :current-mine) :service])]
+     (if (< (count results) total)
+       {:im-chan {:chan (fetch/quicksearch connection
+                                           search-term
+                                           (merge
+                                            {:size results-max-size
+                                             :start (count results)}
+                                            (when (some? (seq filters))
+                                              (active-filters->facet-query filters))))
+                  :on-success [:search/save-remaining-results
+                               {:on-success on-success}]}}
+       {:dispatch on-success}))))
 
 (defn scrolled-past?
   "Whether the user has scrolled past the point where we want to load more."

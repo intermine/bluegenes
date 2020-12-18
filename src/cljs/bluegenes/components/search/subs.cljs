@@ -63,6 +63,12 @@
    (:loading? full-results)))
 
 (reg-sub
+ :search/loading-remaining?
+ :<- [:search/full-results]
+ (fn [full-results]
+   (:loading-remaining? full-results)))
+
+(reg-sub
  :search/error
  :<- [:search/full-results]
  (fn [full-results]

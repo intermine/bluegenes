@@ -1,5 +1,5 @@
 (ns bluegenes.components.search.views
-  (:require [bluegenes.components.loader :refer [loader]]
+  (:require [bluegenes.components.loader :refer [loader mini-loader]]
             [bluegenes.components.search.resultrow :as resulthandler]
             [bluegenes.components.search.filters :as filters]
             [re-frame.core :as re-frame :refer [subscribe dispatch]]
@@ -91,7 +91,8 @@
   (let [active-filter? (subscribe [:search/active-filter?])
         some-selected? (subscribe [:search/some-selected?])
         selected-count (subscribe [:search/selected-count])
-        selected-type (subscribe [:search/selected-type])]
+        selected-type (subscribe [:search/selected-type])
+        loading-remaining? (subscribe [:search/loading-remaining?])]
     (fn []
       (when (and @active-filter? @some-selected?)
         [:div.selected-dialog
@@ -104,6 +105,14 @@
                         (ocall e :preventDefault)
                         (dispatch [:search/to-results]))}
            "View in a table"]
+          [:button.btn.btn-default.btn-raised.btn-block
+           {:disabled @loading-remaining?
+            :on-click (fn [e]
+                        (ocall e :preventDefault)
+                        (dispatch [:search/select-all-results]))}
+           (if @loading-remaining?
+             [mini-loader "tiny"]
+             "Select all")]
           [:button.btn.btn-default.btn-raised.btn-block
            {:on-click (fn [e]
                         (ocall e :preventDefault)
