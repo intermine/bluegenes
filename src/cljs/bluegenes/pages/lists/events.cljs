@@ -31,6 +31,7 @@
                                          (->> old-by-id vals set (set/select (complement folder?))))
                          (set/project [:id])))]
      (update-in db root assoc
+                :fetching-lists? false
                 :by-id new-by-id
                 :all-tags (->> all-tags (remove internal-tag?) sort)
                 :all-types (->> all-lists (map :type) distinct sort)

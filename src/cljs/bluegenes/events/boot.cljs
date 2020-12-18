@@ -6,7 +6,8 @@
             [bluegenes.events.registry :as registry]
             [bluegenes.route :as route]
             [bluegenes.utils :as utils]
-            [cljs-bean.core :refer [->clj]]))
+            [cljs-bean.core :refer [->clj]]
+            [bluegenes.pages.lists.events :as lists]))
 
 (defn boot-flow
   "Produces a set of re-frame instructions that load all of InterMine's assets into BlueGenes
@@ -403,16 +404,16 @@
     (when (= :lists-panel (:active-panel db))
       {:dispatch [:lists/initialize]}))))
 
+;; This event is also dispatched externally from bluegenes.pages.lists.events.
 (reg-event-fx
  :assets/fetch-lists
  (fn [{db :db} [evt]]
-   {:db db
-    :im-chan
-    {:chan (fetch/lists
-            (get-in db [:mines (:current-mine db) :service])
-            {:showTags true})
-     :on-success [:assets/success-fetch-lists (:current-mine db)]
-     :on-failure [:assets/failure evt]}}))
+   {:db (assoc-in db (concat lists/root [:fetching-lists?]) true)
+    :im-chan {:chan (fetch/lists
+                     (get-in db [:mines (:current-mine db) :service])
+                     {:showTags true})
+              :on-success [:assets/success-fetch-lists (:current-mine db)]
+              :on-failure [:assets/failure evt]}}))
 
 ; Fetch class keys
 

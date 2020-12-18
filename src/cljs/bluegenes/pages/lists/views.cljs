@@ -2,6 +2,7 @@
   (:require [re-frame.core :refer [subscribe dispatch]]
             [reagent.core :as r]
             [bluegenes.components.icons :refer [icon icon-comp]]
+            [bluegenes.components.loader :refer [mini-loader]]
             [bluegenes.pages.lists.utils :refer [folder? internal-tag?]]
             [cljs-time.format :as time-format]
             [cljs-time.coerce :as time-coerce]
@@ -304,7 +305,8 @@
         all-types @(subscribe [:lists/all-types])
         all-tags @(subscribe [:lists/all-tags])
         all-selected? @(subscribe [:lists/all-selected?])
-        new-hidden-lists @(subscribe [:lists/new-hidden-lists])]
+        new-hidden-lists @(subscribe [:lists/new-hidden-lists])
+        fetching-lists? @(subscribe [:lists/fetching?])]
     [:section.lists-table
 
      [:header.lists-row.lists-headers
@@ -357,7 +359,15 @@
          :tags
          (cons {:label "All" :value nil}
                (map (fn [tag] {:label tag :value tag}) all-tags))]]]
-      [:div.lists-col]]
+      [:div.lists-col
+       [:div.list-header
+        [:button.btn.refresh-button
+         {:disabled fetching-lists?
+          :on-click #(dispatch [:assets/fetch-lists])}
+         (if fetching-lists?
+           [mini-loader "tiny"]
+           [poppable {:data "Refresh lists"
+                      :children [icon-comp "refresh"]}])]]]]
 
      (when (seq new-hidden-lists)
        (let [amount (count new-hidden-lists)

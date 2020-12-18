@@ -297,6 +297,30 @@
                             }
                         }
                     }
+
+                    .refresh-button {
+                        padding: @spacer/4;
+                        margin-right: @spacer/2;
+
+                        position: relative;
+
+                        &:hover,
+                        &:focus {
+                            background-color: transparent;
+                            outline: none;
+                        }
+
+                        .mini-loader {
+                            // It will expand the container height if we don't
+                            // use absolute positioning.
+                            position: absolute;
+                            right: @spacer/2;
+                        }
+
+                        .icon {
+                            font-size: 1.6em;
+                        }
+                    }
                 }
             }
         }

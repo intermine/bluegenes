@@ -15,6 +15,12 @@
    (:by-id root)))
 
 (reg-sub
+ :lists/fetching?
+ :<- [:lists/root]
+ (fn [root]
+   (:fetching-lists? root)))
+
+(reg-sub
  :lists/all-tags
  :<- [:lists/root]
  (fn [root]
