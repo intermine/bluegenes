@@ -2,36 +2,18 @@
   (:require [hiccup.page :refer [include-js include-css html5]]
             [config.core :refer [env]]
             [cheshire.core :refer [generate-string]]
-            [clojure.java.io :as io]
-            [clojure.string :as string]
-            [clojure.edn :as edn]))
+            [bluegenes.utils :as utils]))
 
 ;; Hello dear maker of the internet. You want to edit *this* file for prod,
 ;; NOT resources/public/index.html.
 
-(def fingerprints
-  "Reads manifest.edn which is produced by the ClojureScript compiler's
-  `:fingerprint` option. This is a map from target path to the compiled
-  path with the fingerprinted filename."
-  (try (some->> "public/js/compiled/manifest.edn"
-                io/resource
-                slurp
-                edn/read-string
-                ;; Replace backslashes with forward slashes in case of Windows.
-                (reduce-kv
-                 (fn [m k v]
-                   (assoc m
-                          (string/replace k #"\\" "/")
-                          (string/replace v #"\\" "/")))
-                 {}))
-       (catch Exception _)))
+(def bundle-path (-> (utils/read-fingerprints) (utils/get-bundle-path)))
+(def bundle-hash (utils/parse-bundle-hash bundle-path))
 
-(def bundle-path
-  "Uses the fingerprinted filename if available, and otherwise falls back
-  to the default."
-  (or (some-> (get fingerprints "resources/public/js/compiled/app.js")
-              (string/replace #"resources/public" ""))
-      "/js/compiled/app.js"))
+(def bluegenes-css (cond-> "/css/site.css"
+                     (not= bundle-hash "dev") (utils/insert-filename-css bundle-hash)))
+(def im-tables-css (cond-> "/css/im-tables.css"
+                     (not= bundle-hash "dev") (utils/insert-filename-css bundle-hash)))
 
 ; A pure CSS loading animation to be displayed before the bluegenes javascript is read:
 (def loader-style
@@ -49,8 +31,8 @@
    [:title "InterMine 2.0 BlueGenes"]
    (include-css "https://cdnjs.cloudflare.com/ajax/libs/gridlex/2.2.0/gridlex.min.css")
    (include-css "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css")
-   (include-css "/css/site.css")
-   (include-css "/css/im-tables.css")
+   (include-css bluegenes-css)
+   (include-css im-tables-css)
    (include-css "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css")
    (include-css "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css")
    ; Meta data:
@@ -62,8 +44,7 @@
          (generate-string {:googleAnalytics (:google-analytics env)
                            :serviceRoot     (:bluegenes-default-service-root env)
                            :mineName        (:bluegenes-default-mine-name env)
-                           :version         (or (second (re-find #"app-(.*)\.js" bundle-path))
-                                                "dev")})
+                           :version         bundle-hash})
          ";")]
   ; Javascript:
    [:link {:rel "shortcut icon" :href "https://raw.githubusercontent.com/intermine/design-materials/f5f00be4/logos/intermine/fav32x32.png" :type "image/png"}]

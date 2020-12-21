@@ -99,13 +99,15 @@
                   watch-less ["npx" "chokidar" "less/**/*.less" "-c" (clojure.string/join " " compile-less) "--initial"]
                   watch-less-silent (conj watch-less "--silent")]
               {"assets" ["run" "-m" "bluegenes.prep/prepare-assets"]
+               "fingerprint-css" ["run" "-m" "bluegenes.prep/fingerprint-css"]
                "dev" ["do" "clean," "assets,"
                       ["pdo"
                        (into ["shell"] watch-less-silent)
                        ["with-profile" "+repl" "run"]]]
                "build" ["do" "clean," "assets,"
                         (into ["shell"] compile-less-prod)
-                        ["with-profile" "prod" "cljsbuild" "once" "min"]]
+                        ["with-profile" "prod" "cljsbuild" "once" "min"]
+                        "fingerprint-css"]
                "prod" ["do" "build,"
                        ["with-profile" "prod" "run"]]
                "deploy" ["with-profile" "+uberjar" "deploy" "clojars"]
