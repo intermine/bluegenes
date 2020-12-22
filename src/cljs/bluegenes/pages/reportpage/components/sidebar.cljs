@@ -25,10 +25,16 @@
              [:form {:on-submit #(.preventDefault %)}
               (case status
                 :success [:div.permanent-url-container
-                          [:p "Paste it anywhere you wish to have a reference to this report. The URL will continue to work through database rebuilds and will return the report for this object."]
+                          [:p "Save this permanent URL to keep a reference to this report.  The URL will continue to work even when new versions of the database are released."
+                           [poppable {:data "Permanent URLs use identifiers unique to the object, and need to be resolved to an object ID by InterMine. This makes them less suitable than object IDs for daily use, but allows them to stay valid in new versions of the database."
+                                      :children [icon-comp "info"]}]]
                           [:input.form-control
                            {:type "text"
-                            :ref #(some->> % (reset! input-ref*))
+                            :ref (fn [el]
+                                   (when el
+                                     (reset! input-ref* el)
+                                     (.focus el)
+                                     (.select el)))
                             :autoFocus true
                             :readOnly true
                             :style {:width (* (count url) 8)}
