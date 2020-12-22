@@ -11,7 +11,7 @@
 
 (def ^:const entries-to-show 5)
 
-(defn generate-permanent-url []
+(defn generate-permanent-url [collapsed?]
   (let [{:keys [status url error]} @(subscribe [::subs/share])
         input-ref* (atom nil)]
     [:li [:span.dropdown
@@ -20,7 +20,8 @@
             :role "button"
             :on-click #(dispatch [::events/generate-permanent-url])}
            [icon-comp "price-tag"] "Copy permanent URL"]
-          [:div.dropdown-menu.dropdown-menu-right
+          [:div.dropdown-menu
+           {:class (when-not collapsed? :dropdown-menu-right)}
            (if status
              [:form {:on-submit #(.preventDefault %)}
               (case status
@@ -54,10 +55,9 @@
                              [:code err])]])]
              [mini-loader])]]]))
 
-(defn actions []
-  [:div.sidebar-entry.col-sm-12
-   [:ul.sidebar-actions
-    [generate-permanent-url]]])
+(defn actions [collapsed?]
+  [:ul.sidebar-actions
+   [generate-permanent-url collapsed?]])
 
 (defn entry []
   (let [show-all* (reagent/atom false)]
@@ -112,7 +112,10 @@
 (defn main []
   [:div.sidebar
    [:div.row
-    [actions]
+    [:div.sidebar-entry.col-sm-12.visible-lg-block
+     [actions false]]
+    [:div.sidebar-entry.col-sm-12.visible-sm-block.visible-md-block
+     [actions true]]
     [lists-containing]
     [:div.sidebar-entry.col-sm-6.col-lg-12
      [:h4 "Other mines"]
