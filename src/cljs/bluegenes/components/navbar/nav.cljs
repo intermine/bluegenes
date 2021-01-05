@@ -39,59 +39,130 @@
       [:li [:a {:href (route/href ::route/profile)} "Profile"]]
       [:li [:a {:on-click #(dispatch [:bluegenes.events.auth/logout])} "Logout"]]]]))
 
+(defn reset-password-form [{:keys [credentials on-back]}]
+  (let [{:keys [error? thinking? message]} @(subscribe [:bluegenes.subs.auth/auth])
+        current-mine @(subscribe [:current-mine])
+        submit-fn #(dispatch [:bluegenes.events.auth/request-reset-password (:username @credentials)])]
+    [:form.login-form
+     [:h2 (str "Reset password on " (:name current-mine))]
+     [:div.form-group
+      [:label "Email"]
+      [:input.form-control
+       {:type "text"
+        :id "email"
+        :value (:username @credentials)
+        :on-change (partial update-form credentials :username)
+        :on-key-up #(when (= 13 (oget % :keyCode))
+                      (submit-fn))}]]
+     [:button.btn.btn-primary.btn-raised.btn-block
+      {:type "button"
+       :on-click submit-fn}
+      [mine-icon current-mine :class "mine-logo"]
+      "Reset password"]
+     [:a.btn-block.text-center
+      {:role "button"
+       :on-click #(do (dispatch [:bluegenes.events.auth/clear-error])
+                      (on-back))}
+      "Back to login"]
+     (when error?
+       [:div.alert.alert-danger.error-box message])]))
+
+(defn register-form [{:keys [credentials on-back]}]
+  (let [{:keys [error? thinking? message]} @(subscribe [:bluegenes.subs.auth/auth])
+        current-mine @(subscribe [:current-mine])
+        submit-fn #(dispatch [:bluegenes.events.auth/register
+                              (assoc @credentials
+                                     :service (:service current-mine)
+                                     :mine-id (:id current-mine))])]
+    [:form.login-form
+     [:h2 (str "Register on " (:name current-mine))]
+     [:div.form-group
+      [:label "Email"]
+      [:input.form-control
+       {:type "text"
+        :id "email"
+        :value (:username @credentials)
+        :on-change (partial update-form credentials :username)
+        :on-key-up #(when (= 13 (oget % :keyCode))
+                      (submit-fn))}]]
+     [password-input {:value (:password @credentials)
+                      :on-change (partial update-form credentials :password)
+                      :on-submit submit-fn}]
+     [:button.btn.btn-primary.btn-raised.btn-block
+      {:type "button"
+       :on-click submit-fn}
+      [mine-icon current-mine :class "mine-logo"]
+      "Register"]
+     [:a.btn-block.text-center
+      {:role "button"
+       :on-click #(do (dispatch [:bluegenes.events.auth/clear-error])
+                      (on-back))}
+      "Back to login"]
+     (when error?
+       [:div.alert.alert-danger.error-box message])]))
+
+(defn login-form [{:keys [credentials on-reset-password on-register]}]
+  (let [{:keys [error? thinking? message]} @(subscribe [:bluegenes.subs.auth/auth])
+        current-mine @(subscribe [:current-mine])
+        submit-fn #(dispatch [:bluegenes.events.auth/login
+                              (assoc @credentials
+                                     :service (:service current-mine)
+                                     :mine-id (:id current-mine))])]
+    [:form.login-form
+     [:h2 (str "Login to " (:name current-mine))]
+     [:div.form-group
+      [:label "Email"]
+      [:input.form-control
+       {:type "text"
+        :id "email"
+        :value (:username @credentials)
+        :on-change (partial update-form credentials :username)
+        :on-key-up #(when (= 13 (oget % :keyCode))
+                      (submit-fn))}]]
+     [password-input {:value (:password @credentials)
+                      :on-change (partial update-form credentials :password)
+                      :on-submit submit-fn}]
+     [:button.btn.btn-primary.btn-raised.btn-block
+      {:type "button"
+       :on-click submit-fn}
+      [mine-icon current-mine :class "mine-logo"]
+      "Login"]
+     [:a.btn-block.text-center
+      {:role "button"
+       :on-click #(do (dispatch [:bluegenes.events.auth/clear-error])
+                      (on-reset-password))}
+      "Forgot your password?"]
+     [:a.btn-block.text-center
+      {:role "button"
+       :on-click #(do (dispatch [:bluegenes.events.auth/clear-error])
+                      (on-register))}
+      "Create new account"]
+     (when error?
+       [:div.alert.alert-danger.error-box message])]))
+
 (defn anonymous []
-  (let [credentials    (reagent/atom {:username nil :password nil})
-        register?      (reagent/atom false)
-        current-mine   (subscribe [:current-mine])
-        auth-values    (subscribe [:bluegenes.subs.auth/auth])]
+  (let [credentials (reagent/atom {:username nil :password nil})
+        state* (reagent/atom :login)]
     (fn []
-      (let [{:keys [error? thinking? message]} @auth-values
-            submit-fn #(dispatch [(if @register?
-                                    :bluegenes.events.auth/register
-                                    :bluegenes.events.auth/login)
-                                  (assoc @credentials
-                                         :service (:service @current-mine)
-                                         :mine-id (:id @current-mine))])]
-        [:li.logon.primary-nav.dropdown.warning
-         ;; Always show login dialog and not registration dialog, when first opened.
-         {:ref (fn [evt] (some-> evt js/$
-                                 (ocall :off "hide.bs.dropdown")
-                                 (ocall :on  "hide.bs.dropdown"
-                                        #(do (reset! register? false) nil))))}
-         [:a.dropdown-toggle
-          {:data-toggle "dropdown" :role "button"}
-          [:span "LOGIN"]
-          [:svg.icon.icon-caret-down [:use {:xlinkHref "#icon-caret-down"}]]]
-         [:div.dropdown-menu.login-form-dropdown
-          [:form.login-form
-           [:h2 (str (if @register? "Create an account for " "Login to ")
-                     (:name @current-mine))]
-           [:div.form-group
-            [:label "Email Address"]
-            [:input.form-control
-             {:type "text"
-              :id "email"
-              :value (:username @credentials)
-              :on-change (partial update-form credentials :username)
-              :on-key-up #(when (= 13 (oget % :keyCode))
-                            (submit-fn))}]]
-           [password-input {:value (:password @credentials)
-                            :on-change (partial update-form credentials :password)
-                            :on-submit submit-fn}]
-           [:div.register-or-login
-            [:div.other-action
-             [:a {:on-click #(do (dispatch [:bluegenes.events.auth/clear-error])
-                                 (swap! register? not))}
-              (if @register?
-                "I already have an account"
-                "I don't have an account")]]
-            [:button.btn.btn-primary.btn-raised
-             {:type "button"
-              :on-click submit-fn}
-             [mine-icon @current-mine :class "mine-logo"]
-             (if @register? "Register" "Login")]]
-           (when error?
-             [:div.alert.alert-danger.error-box message])]]]))))
+      [:li.logon.primary-nav.dropdown.warning
+       ;; Always show login dialog and not registration dialog, when first opened.
+       {:ref (fn [evt] (some-> evt js/$
+                               (ocall :off "hide.bs.dropdown")
+                               (ocall :on  "hide.bs.dropdown"
+                                      #(do (reset! state* :login) nil))))}
+       [:a.dropdown-toggle
+        {:data-toggle "dropdown" :role "button"}
+        [:span "LOGIN"]
+        [:svg.icon.icon-caret-down [:use {:xlinkHref "#icon-caret-down"}]]]
+       [:div.dropdown-menu.login-form-dropdown
+        (case @state*
+          :login [login-form {:credentials credentials
+                              :on-reset-password #(reset! state* :reset-password)
+                              :on-register #(reset! state* :register)}]
+          :register [register-form {:credentials credentials
+                                    :on-back #(reset! state* :login)}]
+          :reset-password [reset-password-form {:credentials credentials
+                                                :on-back #(reset! state* :login)}])]])))
 
 (defn user []
   (let [authed? (subscribe [:bluegenes.subs.auth/authenticated?])]

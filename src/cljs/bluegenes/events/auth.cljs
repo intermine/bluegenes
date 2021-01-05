@@ -1,7 +1,9 @@
 (ns bluegenes.events.auth
   (:require [re-frame.core :refer [reg-event-db reg-event-fx]]
             [bluegenes.effects :as fx]
-            [bluegenes.route :as route]))
+            [bluegenes.route :as route]
+            [imcljs.auth :as im-auth]
+            [bluegenes.interceptors :refer [origin]]))
 
 (reg-event-fx
  ::login
@@ -92,6 +94,16 @@
                :on-failure [::login-failure]
                :on-unauthorised [::login-failure]
                :transit-params credentials}}))
+
+(reg-event-fx
+ ::request-reset-password
+ [(origin)]
+ (fn [{db :db origin :origin} [_ email]]
+   (let [service (get-in db [:mines (:current-mine db) :service])
+         redirectUrl (str origin (route/href ::route/home))]
+     {:im-chan {:chan (im-auth/request-password-reset service email redirectUrl)
+                :on-success ::request-reset-password-success
+                :on-failure ::request-reset-password-failure}})))
 
 (reg-event-db
  ::clear-error
