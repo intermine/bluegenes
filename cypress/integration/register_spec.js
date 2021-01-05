@@ -2,7 +2,7 @@ describe("Registration Tests", function () {
   beforeEach(() => {
     cy.visit("/");
     cy.contains("LOGIN").click();
-    cy.get("form").contains("I don't have an account").click();
+    cy.get("form").contains("Create new account").click();
 
     cy.server();
     cy.route("POST", "/api/auth/register").as("auth");
