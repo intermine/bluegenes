@@ -19,25 +19,27 @@
             [bluegenes.pages.profile.views :as profile]
             [bluegenes.pages.admin.views :as admin]
             [bluegenes.pages.tools.view :as tools]
+            [bluegenes.pages.resetpassword.views :as resetpassword]
             [bluegenes.components.loader :as loader]))
 
 (enable-console-print!)
 
 (defn show-panel [panel-name]
   [(case panel-name
-     :home-panel         home/main
-     :admin-panel        admin/main
-     :profile-panel      profile/main
-     :debug-panel        dev/debug-panel
-     :tools-panel        tools/main
-     :templates-panel    templates/main
-     :reportpage-panel   reportpage/main
-     :upload-panel       idresolver/main
-     :search-panel       search/main
-     :results-panel      results/main
-     :regions-panel      regions/main
-     :lists-panel        lists/main
-     :querybuilder-panel qb/main
+     :home-panel           home/main
+     :admin-panel          admin/main
+     :profile-panel        profile/main
+     :debug-panel          dev/debug-panel
+     :tools-panel          tools/main
+     :templates-panel      templates/main
+     :reportpage-panel     reportpage/main
+     :upload-panel         idresolver/main
+     :search-panel         search/main
+     :results-panel        results/main
+     :regions-panel        regions/main
+     :lists-panel          lists/main
+     :querybuilder-panel   qb/main
+     :reset-password-panel resetpassword/main
      home/main)])
 
 (defn main-panel []

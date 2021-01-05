@@ -271,7 +271,14 @@
       :controllers
       [{:parameters {:path [:mine :lookup]}
         :start (fn [{{:keys [mine lookup]} :path}]
-                 (dispatch [:handle-permanent-url mine lookup]))}]}]]])
+                 (dispatch [:handle-permanent-url mine lookup]))}]}]
+    ["/resetpassword"
+     {:name ::resetpassword
+      :controllers
+      [{:parameters {:query [:token]}
+        :start (fn [{{:keys [token]} :query}]
+                 (dispatch [:set-active-panel :reset-password-panel
+                            {:token token}]))}]}]]])
 ;; You can do initialisations by adding a :start function to :controllers.
 ;; :start (fn [& params] (js/console.log "Entering page"))
 ;; Teardowns can also be done by using the :stop key.

@@ -100,10 +100,22 @@
  [(origin)]
  (fn [{db :db origin :origin} [_ email]]
    (let [service (get-in db [:mines (:current-mine db) :service])
-         redirectUrl (str origin (route/href ::route/home))]
+         redirectUrl (str origin (route/href ::route/resetpassword))]
      {:im-chan {:chan (im-auth/request-password-reset service email redirectUrl)
                 :on-success ::request-reset-password-success
                 :on-failure ::request-reset-password-failure}})))
+;; TODO create success and failure event handlers
+;; TODO handle older mine without webservice
+
+(reg-event-fx
+ ::reset-password
+ (fn [{db :db} [_ new-password token]]
+   (let [service (get-in db [:mines (:current-mine db) :service])]
+     {:im-chan {:chan (im-auth/password-reset service new-password token)
+                :on-success ::reset-password-success
+                :on-failure ::reset-password-failure
+                :on-unauthorised ::reset-password-failure}})))
+;; TODO create success and failure event handlers
 
 (reg-event-db
  ::clear-error
