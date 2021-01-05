@@ -44,7 +44,7 @@
         current-mine @(subscribe [:current-mine])
         submit-fn #(dispatch [:bluegenes.events.auth/request-reset-password (:username @credentials)])]
     [:form.login-form
-     [:h2 (str "Reset password on " (:name current-mine))]
+     [:h2 (str "Recover password on " (:name current-mine))]
      [:div.form-group
       [:label "Email"]
       [:input.form-control
@@ -58,7 +58,7 @@
       {:type "button"
        :on-click submit-fn}
       [mine-icon current-mine :class "mine-logo"]
-      "Reset password"]
+      "Send recovery link"]
      [:a.btn-block.text-center
       {:role "button"
        :on-click #(do (dispatch [:bluegenes.events.auth/clear-error])
