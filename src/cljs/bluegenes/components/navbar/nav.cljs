@@ -40,7 +40,8 @@
       [:li [:a {:on-click #(dispatch [:bluegenes.events.auth/logout])} "Logout"]]]]))
 
 (defn reset-password-form [{:keys [credentials on-back]}]
-  (let [{:keys [error? thinking? message]} @(subscribe [:bluegenes.subs.auth/auth])
+  (let [{:keys [error? thinking? message]
+         success? :request-reset-success?} @(subscribe [:bluegenes.subs.auth/auth])
         current-mine @(subscribe [:current-mine])
         submit-fn #(dispatch [:bluegenes.events.auth/request-reset-password (:username @credentials)])]
     [:form.login-form
@@ -54,8 +55,9 @@
         :on-change (partial update-form credentials :username)
         :on-key-up #(when (= 13 (oget % :keyCode))
                       (submit-fn))}]]
-     (when error?
-       [:div.alert.alert-danger.error-box message])
+     (cond
+       error? [:div.alert.alert-danger.error-box message]
+       success? [:div.alert.alert-success.error-box "Email with password recovery link has been sent"])
      [:button.btn.btn-primary.btn-raised.btn-block
       {:type "button"
        :on-click submit-fn}
@@ -146,10 +148,13 @@
     (fn []
       [:li.logon.primary-nav.dropdown.warning
        ;; Always show login dialog and not registration dialog, when first opened.
+       ;; Also clear any errors that may linger from a previous interaction.
        {:ref (fn [evt] (some-> evt js/$
                                (ocall :off "hide.bs.dropdown")
                                (ocall :on  "hide.bs.dropdown"
-                                      #(do (reset! state* :login) nil))))}
+                                      #(do (reset! state* :login)
+                                           (dispatch [:bluegenes.events.auth/clear-error])
+                                           nil))))}
        [:a.dropdown-toggle
         {:data-toggle "dropdown" :role "button"}
         [:span "LOGIN"]

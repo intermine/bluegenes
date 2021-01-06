@@ -277,6 +277,7 @@
       :controllers
       [{:parameters {:query [:token]}
         :start (fn [{{:keys [token]} :query}]
+                 (dispatch [:bluegenes.events.auth/clear-reset-password-page])
                  (dispatch [:set-active-panel :reset-password-panel
                             {:token token}]))}]}]]])
 ;; You can do initialisations by adding a :start function to :controllers.
