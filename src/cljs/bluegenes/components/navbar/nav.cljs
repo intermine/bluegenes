@@ -54,6 +54,8 @@
         :on-change (partial update-form credentials :username)
         :on-key-up #(when (= 13 (oget % :keyCode))
                       (submit-fn))}]]
+     (when error?
+       [:div.alert.alert-danger.error-box message])
      [:button.btn.btn-primary.btn-raised.btn-block
       {:type "button"
        :on-click submit-fn}
@@ -63,9 +65,7 @@
       {:role "button"
        :on-click #(do (dispatch [:bluegenes.events.auth/clear-error])
                       (on-back))}
-      "Back to login"]
-     (when error?
-       [:div.alert.alert-danger.error-box message])]))
+      "Back to login"]]))
 
 (defn register-form [{:keys [credentials on-back]}]
   (let [{:keys [error? thinking? message]} @(subscribe [:bluegenes.subs.auth/auth])
@@ -88,6 +88,8 @@
      [password-input {:value (:password @credentials)
                       :on-change (partial update-form credentials :password)
                       :on-submit submit-fn}]
+     (when error?
+       [:div.alert.alert-danger.error-box message])
      [:button.btn.btn-primary.btn-raised.btn-block
       {:type "button"
        :on-click submit-fn}
@@ -97,9 +99,7 @@
       {:role "button"
        :on-click #(do (dispatch [:bluegenes.events.auth/clear-error])
                       (on-back))}
-      "Back to login"]
-     (when error?
-       [:div.alert.alert-danger.error-box message])]))
+      "Back to login"]]))
 
 (defn login-form [{:keys [credentials on-reset-password on-register]}]
   (let [{:keys [error? thinking? message]} @(subscribe [:bluegenes.subs.auth/auth])
@@ -122,6 +122,8 @@
      [password-input {:value (:password @credentials)
                       :on-change (partial update-form credentials :password)
                       :on-submit submit-fn}]
+     (when error?
+       [:div.alert.alert-danger.error-box message])
      [:button.btn.btn-primary.btn-raised.btn-block
       {:type "button"
        :on-click submit-fn}
@@ -136,9 +138,7 @@
       {:role "button"
        :on-click #(do (dispatch [:bluegenes.events.auth/clear-error])
                       (on-register))}
-      "Create new account"]
-     (when error?
-       [:div.alert.alert-danger.error-box message])]))
+      "Create new account"]]))
 
 (defn anonymous []
   (let [credentials (reagent/atom {:username nil :password nil})
