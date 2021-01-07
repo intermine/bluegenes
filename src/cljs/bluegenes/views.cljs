@@ -1,6 +1,5 @@
 (ns bluegenes.views
-  (:require [re-frame.core :as re-frame :refer [subscribe dispatch]]
-            [json-html.core :as json-html]
+  (:require [re-frame.core :as re-frame :refer [subscribe]]
             [bluegenes.pages.developer.devhome :as dev]
             [bluegenes.components.navbar.nav :as nav]
             [bluegenes.components.footer.views :as footer]
@@ -19,7 +18,8 @@
             [bluegenes.pages.profile.views :as profile]
             [bluegenes.pages.admin.views :as admin]
             [bluegenes.pages.tools.view :as tools]
-            [bluegenes.components.loader :as loader]))
+            [bluegenes.components.loader :as loader]
+            [bluegenes.error :refer [error-boundary]]))
 
 (enable-console-print!)
 
@@ -45,12 +45,13 @@
         main-color (subscribe [:branding/header-main])
         text-color (subscribe [:branding/header-text])]
     (fn []
-      [:div.approot
-       {:style {"--branding-header-main" @main-color
-                "--branding-header-text" @text-color}}
-       [loader/mine-loader]
-       [icons/icons]
-       [nav/main]
-       [:main [show-panel @active-panel]]
-       [footer/main]
-       [alerts/main]])))
+      [error-boundary
+       [:div.approot
+        {:style {"--branding-header-main" @main-color
+                 "--branding-header-text" @text-color}}
+        [loader/mine-loader]
+        [icons/icons]
+        [nav/main]
+        [:main [show-panel @active-panel]]
+        [footer/main]
+        [alerts/main]]])))
