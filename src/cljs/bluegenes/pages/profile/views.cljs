@@ -5,7 +5,30 @@
             [bluegenes.pages.profile.events :as events]
             [bluegenes.pages.profile.subs :as subs]
             [bluegenes.components.loader :refer [mini-loader]]
-            [bluegenes.components.ui.inputs :refer [password-input]]))
+            [bluegenes.components.ui.inputs :refer [password-input]]
+            [bluegenes.version :refer [proper-login-support]]
+            [bluegenes.utils :refer [version-string->vec]]))
+
+(defn generate-api-key []
+  (let [bg-uses-api-key? (-> @(subscribe [:api-version]) version-string->vec first (< proper-login-support))
+        response @(subscribe [::subs/responses :generate-api-key])]
+    [:div.settings-group
+     [:h3 "API access key"]
+     [:p "You can access the features of the InterMine API securely using an API access key. A key uniquely identifies you to the webservice, without requiring you to transmit your username or password. At any time you can change, or delete your API key, without having to change your password. If you do not yet have an API key, click on the button below to generate a new token."]
+     [:p [:strong "Note: "] "Generating a new API key will invalidate any existing one. If you wish to reuse an API key, you should save it in a safe place. You will only be able to view the API key for the length of this session."]
+     (if bg-uses-api-key?
+       [:pre.token-box @(subscribe [:active-token])]
+       [:pre.token-box (or @(subscribe [::subs/api-key]) "-")])
+     [:div.save-button.flex-row
+      [:button.btn.btn-primary.btn-raised
+       {:type "button"
+        :disabled (or bg-uses-api-key? @(subscribe [::subs/requests :generate-api-key]))
+        :on-click #(dispatch [::events/generate-api-key])}
+       "Generate a new API key"]
+      (if bg-uses-api-key?
+        [:p.failure "Generating a new API key is not supported in this version of InterMine."]
+        (when-let [{:keys [type message]} response]
+          [:p {:class type} message]))]]))
 
 (defn password-settings []
   (let [old-password (r/atom "")
@@ -146,5 +169,6 @@
 (defn main []
   [:div.profile-page.container
    [user-preferences]
+   [generate-api-key]
    [password-settings]
    [delete-account]])
