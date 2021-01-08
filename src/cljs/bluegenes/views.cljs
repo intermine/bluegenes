@@ -12,7 +12,8 @@
             [bluegenes.pages.querybuilder.views :as qb]
             [bluegenes.pages.lists.views :as lists]
             [bluegenes.components.ui.alerts :as alerts]
-            [bluegenes.components.idresolver.views :as idresolver]
+            [bluegenes.pages.upload.views :as upload]
+            [bluegenes.pages.upgrade.views :as upgrade]
             [bluegenes.pages.results.views :as results]
             [bluegenes.pages.regions.views :as regions]
             [bluegenes.pages.profile.views :as profile]
@@ -32,7 +33,8 @@
      :tools-panel        tools/main
      :templates-panel    templates/main
      :reportpage-panel   reportpage/main
-     :upload-panel       idresolver/main
+     :upload-panel       upload/main
+     :upgrade-panel      upgrade/main
      :search-panel       search/main
      :results-panel      results/main
      :regions-panel      regions/main

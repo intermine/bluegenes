@@ -210,6 +210,14 @@
          :start (fn [{{:keys [step]} :path}]
                   (dispatch [:set-active-panel :upload-panel
                              {:step (keyword step)}]))}]}]]
+    ["/upgrade"
+     {:name ::upgrade
+      :controllers
+      [{:parameters {:query [:name]}
+        :start (fn [{{:keys [name]} :query}]
+                 (dispatch [:set-active-panel :upgrade-panel
+                            nil
+                            [:bluegenes.components.idresolver.events/resolve-identifiers {:name name}]]))}]}]
     ["/search"
      {:name ::search
       :controllers

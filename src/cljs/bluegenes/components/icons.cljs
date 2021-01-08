@@ -57,7 +57,6 @@
    [:defs
     ;; Gradients are used in CSS fill: url(#upgradeGradient);
     [:linearGradient#upgradeGradient
-     {:gradienttransform "rotate(90)"}
      [:stop {:stop-color "#0CAC01", :offset "5%"}]
      [:stop {:stop-color "#0CAC01", :offset "20%"}]
      [:stop {:stop-color "#23F106", :offset "95%"}]]

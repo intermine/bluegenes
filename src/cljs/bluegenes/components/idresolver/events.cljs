@@ -44,30 +44,29 @@
 
 (reg-event-fx
  ::store-parsed-response
- (fn [{db :db} [_ options response]]
+ (fn [{db :db} [_ options {:keys [identifiers] :as response}]]
    {:db (update db :idresolver
                 #(-> %
                      (assoc-in [:stage :status :action] nil)
                      (assoc-in [:stage :flags :parsed] true)
                      (assoc :to-resolve response)))
-    :dispatch [::resolve-identifiers options (:identifiers response)]}))
+    :dispatch-n [[::resolve-identifiers
+                  {:identifiers identifiers
+                   :case-sensitive (:case-sensitive options)
+                   :type (:type options)
+                   :extra (:organism options)}]
+                 [::route/navigate ::route/upload-step {:step "save"}]]}))
 
 (reg-event-fx
  ::resolve-identifiers
- (fn [{db :db} [_ options identifiers]]
+ (fn [{db :db} [_ body]]
    (let [service (get-in db [:mines (get db :current-mine) :service])]
      {:db (-> db
               (assoc-in [:idresolver :stage :view] :review)
               (assoc-in [:idresolver :stage :options :review-tab] :matches)
               (update :idresolver dissoc :response))
-      :im-chan {:chan (fetch/resolve-identifiers
-                       service
-                       {:identifiers identifiers
-                        :case-sensitive (:case-sensitive options)
-                        :type (:type options)
-                        :extra (:organism options)})
-                :on-success [::store-identifiers]}
-      :dispatch [::route/navigate ::route/upload-step {:step "save"}]})))
+      :im-chan {:chan (fetch/resolve-identifiers service body)
+                :on-success [::store-identifiers]}})))
 
 (def time-formatter (time-format/formatter "dd MMM yyyy HH:mm:ss"))
 

@@ -199,11 +199,11 @@
               [:a {:on-click #(dispatch [:lists/set-filter filter-name value])}
                label]]))]))
 
-(defn list-row-controls [list-id authorized status]
+(defn list-row-controls [{:keys [list-id authorized status name]}]
   [:<>
    (when (= status "TO_UPGRADE")
-     [:button.btn
-      {:on-click #(js/alert "TODO")}
+     [:a.btn
+      {:href (route/href ::route/upgrade nil {:name name})}
       [icon "arrow-up"]])
    [:button.btn
     {:on-click #(dispatch [:lists/open-modal :copy list-id])}
@@ -300,9 +300,9 @@
             [icon "list-more"]]
            [:div.dropdown-menu.dropdown-menu-controls
             [:div.list-controls
-             [list-row-controls id authorized status]]]]]
+             [list-row-controls item]]]]]
          [:div.list-controls.hidden-xs.hidden-sm.hidden-md
-          [list-row-controls id authorized status]]])
+          [list-row-controls item]]])
       (when is-selected
         [:div.selected-list-overlay])]]))
 
