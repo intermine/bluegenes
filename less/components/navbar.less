@@ -250,24 +250,55 @@
                 top: 68px;
                 border-top: none;
                 right: auto;
+                padding: 0;
 
-                max-width: 40vh;
+                // To stop it from expanding past the width of the page.
+                max-width: 35vw;
 
-                & > li {
-                    min-height: auto;
-                    transition-duration: 0.1s;
+                .list-group-item {
+                    border-left: 3px solid @highlight-color;
+                    border-top: solid 1px rgba(0, 0, 0, 0.1);
+                    padding: @spacer/2 @spacer;
+                    color: rgb(68, 68, 68);
+                    transition-duration: 0s;
 
-                    & > a {
-                        white-space: nowrap;
-                        overflow: hidden;
-                        text-overflow: ellipsis;
+                    &.results-heading {
+                        border-left: 3px solid transparent;
+                        background-color: #eaeaea;
+                        padding-bottom: 0;
+
+                        .list-group-item-heading {
+                            color: #000;
+                        }
                     }
 
-                    &:hover, & > a:hover {
-                        color: @highlight-color-text;
-                        background-color: @highlight-color;
-                        transition-duration: 0.1s;
+                    &:not(:first-child):hover {
+                            background: #ddd;
                     }
+                }
+
+                .list-group-item-content {
+                    display: block;
+                    text-align: left;
+                    font-size: 0.8em;
+                    padding: 0;
+                    cursor: default;
+
+                    &:focus, &:hover {
+                        box-shadow: none;
+                    }
+                }
+
+                .list-group-item-heading {
+                    font-size: 1.6em;
+                    font-weight: 300;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                }
+
+                .list-group-item-text {
+                    color: rgb(68, 68, 68);
                 }
             }
         }

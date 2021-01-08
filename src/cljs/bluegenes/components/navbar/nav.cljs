@@ -6,7 +6,8 @@
             [bluegenes.components.progress_bar :as progress-bar]
             [bluegenes.route :as route]
             [bluegenes.components.ui.inputs :refer [password-input]]
-            [bluegenes.components.icons :refer [icon-comp]]))
+            [bluegenes.components.icons :refer [icon-comp]]
+            [bluegenes.time :as time]))
 
 (def ^:const logo-path "/model/images/logo.png")
 
@@ -135,7 +136,7 @@
                    :current? (= mine-key current-mine-name)])
                 (sort-by (comp :name val) registry-with-default)))]))
 
-(def queries-to-show 10)
+(def queries-to-show 5)
 
 (defn nav-buttons [classes & {:keys [large-screen?]}]
   [:<>
@@ -173,12 +174,17 @@
        [icon-comp "caret-down" :classes [:invisible]]
        [icon-comp "document-list" :enlarge 2]
        [icon-comp "caret-down"]]
-      (into [:ul.dropdown-menu.results-dropdown]
+      (into [:ul.dropdown-menu.results-dropdown.list-group
+             [:li.list-group-item.results-heading
+              [:div.list-group-item-content
+               [:h4.list-group-item-heading "Recent queries"]]]]
             (let [queries @(subscribe [:results/historical-queries])]
-              (for [[title {:keys [display-title]}] (take queries-to-show queries)]
-                [:li
-                 [:a {:on-click #(dispatch [::route/navigate ::route/results {:title title}])}
-                  (or display-title title)]])))])
+              (for [[title {:keys [display-title] :as query}] (take queries-to-show queries)]
+                [:li.list-group-item
+                 [:a.list-group-item-content
+                  {:on-click #(dispatch [::route/navigate ::route/results {:title title}])}
+                  [:div.list-group-item-heading (or display-title title)]
+                  [:div.list-group-item-text (time/format-query query)]]])))])
    [:li.primary-nav.hidden-md.hidden-lg
     {:class (classes :search-panel large-screen?)}
     [:a {:href (route/href ::route/search)}
