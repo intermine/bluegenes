@@ -156,18 +156,23 @@
  (fn [db [_ value]]
    (assoc-in db [:idresolver :save :list-name] value)))
 
+(defn resolution-matches-ids
+  "Takes the matches map of a successful ID resolution job response and returns
+  a seq of object IDs. The included objects will be those successfully matched
+  (excluding wildcards), in addition to duplicate/ambiguous matches that the
+  user checked to keep."
+  [{:keys [OTHER DUPLICATE TYPE_CONVERTED MATCH]}]
+  (map :id
+       (concat (mapcat (comp #(filter :keep? %) :matches) DUPLICATE)
+               (mapcat :matches TYPE_CONVERTED)
+               (mapcat :matches OTHER)
+               MATCH)))
+
 (reg-event-fx
  ::upgrade-list
  (fn [{db :db} [_ list-name]]
-   (let [{:keys [OTHER DUPLICATE TYPE_CONVERTED MATCH]} (get-in db [:idresolver :response :matches])
-         service (get-in db [:mines (get db :current-mine) :service])
-         ids (->> MATCH
-                  (concat (mapcat :matches OTHER))
-                  (concat (mapcat :matches TYPE_CONVERTED))
-                  (concat (mapcat (fn [{matches :matches}]
-                                    (filter :keep? matches))
-                                  DUPLICATE))
-                  (map :id))]
+   (let [service (get-in db [:mines (get db :current-mine) :service])
+         ids (resolution-matches-ids (get-in db [:idresolver :response :matches]))]
      {:im-chan {:chan (save/im-list-upgrade service list-name ids)
                 :on-success [::upgrade-list-success list-name]
                 :on-failure [::upgrade-list-failure list-name]}})))
@@ -193,8 +198,7 @@
 (reg-event-fx
  ::save-list
  (fn [{db :db} [_]]
-   (let [{:keys [OTHER WILDCARD DUPLICATE TYPE_CONVERTED MATCH]}
-         (get-in db [:idresolver :response :matches])
+   (let [ids (resolution-matches-ids (get-in db [:idresolver :response :matches]))
          object-type (get-in db [:idresolver :stage :options :type])
          service     (get-in db [:mines (get db :current-mine) :service])
          list-name   (get-in db [:idresolver :save :list-name])]
@@ -205,13 +209,7 @@
                         :select [(str object-type ".id")]
                         :where [{:path (str object-type ".id")
                                  :op "ONE OF"
-                                 :values (->> MATCH
-                                              (concat (mapcat :matches OTHER))
-                                              (concat (mapcat :matches TYPE_CONVERTED))
-                                              (concat (mapcat (fn [{matches :matches}]
-                                                                (filter :keep? matches))
-                                                              DUPLICATE))
-                                              (map :id))}]})
+                                 :values ids}]})
                 :on-success [::save-list-success list-name object-type]
                 :on-failure [::save-list-failure]}})))
 
