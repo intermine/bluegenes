@@ -11,7 +11,8 @@
         Name   [:report :title]
         Search [:search-results :keyword]
         Query  #(or (get-in % [:results :package :display-title])
-                    (get-in % [:results :history-index]))]
+                    (get-in % [:results :history-index]))
+        List   [:panel-params :upgrade-list]]
     {:home-panel         ["Home"             Mine App]
      :admin-panel        ["Admin"            Mine App]
      :profile-panel      ["Profile"          Mine App]
@@ -20,6 +21,7 @@
      :templates-panel    ["Templates"        Mine App]
      :reportpage-panel   [Name Type "Report" Mine App]
      :upload-panel       ["Upload"           Mine App]
+     :upgrade-panel      ["Upgrade" List     Mine App]
      :search-panel       [Search "Search"    Mine App]
      :results-panel      [Query "Results"    Mine App]
      :regions-panel      ["Region Search"    Mine App]
