@@ -64,9 +64,15 @@
      {:db (-> db
               (assoc-in [:idresolver :stage :view] :review)
               (assoc-in [:idresolver :stage :options :review-tab] :matches)
-              (update :idresolver dissoc :response))
+              (update :idresolver dissoc :response :error))
       :im-chan {:chan (fetch/resolve-identifiers service body)
-                :on-success [::store-identifiers]}})))
+                :on-success [::store-identifiers]
+                :on-failure [::resolve-identifiers-failure]}})))
+
+(reg-event-db
+ ::resolve-identifiers-failure
+ (fn [db [_ res]]
+   (assoc-in db [:idresolver :error] res)))
 
 (def time-formatter (time-format/formatter "dd MMM yyyy HH:mm:ss"))
 
@@ -279,7 +285,8 @@
                                :organism organism}
                      :status nil
                      :flags nil}
-             :response nil}))))
+             :response nil
+             :error nil}))))
 
 (reg-event-fx
  ::load-example

@@ -9,6 +9,7 @@
 
 (defn main []
   (let [resolution-response @(subscribe [::subs/resolution-response])
+        resolution-error @(subscribe [::subs/resolution-error])
         {:keys [upgrade-list]} @(subscribe [:panel-params])]
     [:div.container.idresolverupload
      [:div.wizard.list-upgrade
@@ -16,15 +17,22 @@
        {:href (route/href ::route/lists)}
        [icon "chevron-left"]
        "Abandon changes and return to Lists"]
-      (if (nil? resolution-response)
-        [:div.wizard-body
-         [:div.wizard-loader [loader "IDENTIFIERS"]]]
-        [:div.wizard-body
-         [:h3.upgrade-header [:span "Upgrading:"] [:span.list-name upgrade-list]]
-         [:hr.upgrade-divider]
-         [idresolver/main :upgrade? true]
-         [:hr.upgrade-divider]
-         [:div.upgrade-footer
-          [:button.btn.btn-primary.btn-raised.btn-lg
-           {:on-click #(dispatch [::evts/upgrade-list upgrade-list])}
-           (str "Upgrade and save " upgrade-list)]]])]]))
+      (cond
+        resolution-error [:div.wizard-body
+                          [:h3.upgrade-header
+                           [:span "Failed to resolve identifiers for: "]
+                           [:span.list-name upgrade-list]]
+                          [:code (if-let [err (not-empty (get-in resolution-error [:body :error]))]
+                                   err
+                                   "Please check your connection and try again later.")]]
+        (nil? resolution-response) [:div.wizard-body
+                                    [:div.wizard-loader [loader "IDENTIFIERS"]]]
+        :else [:div.wizard-body
+               [:h3.upgrade-header [:span "Upgrading:"] [:span.list-name upgrade-list]]
+               [:hr.upgrade-divider]
+               [idresolver/main :upgrade? true]
+               [:hr.upgrade-divider]
+               [:div.upgrade-footer
+                [:button.btn.btn-primary.btn-raised.btn-lg
+                 {:on-click #(dispatch [::evts/upgrade-list upgrade-list])}
+                 (str "Upgrade and save " upgrade-list)]]])]]))
