@@ -299,13 +299,26 @@
 
 (defn review-step []
   (let [resolution-response (subscribe [::subs/resolution-response])
+        resolution-error (subscribe [::subs/resolution-error])
         in-progress? (subscribe [::subs/in-progress?])]
     (fn []
-      (if (= nil @resolution-response)
-        (if @in-progress?
-          [:div.wizard-loader [loader]]
-          (dispatch [::route/navigate ::route/upload-step {:step "input"}]))
-        [idresolver/main]))))
+      (cond
+        @resolution-error [:div.guidance-and-title
+                           [:h2 "Error occurred when resolving identifiers"]
+                           [:code (if-let [err (not-empty (get-in @resolution-error [:body :error]))]
+                                    err
+                                    "Please check your connection and try again later.")]
+                           [:hr]
+                           [:button.btn.btn-primary.btn-raised
+                            {:on-click (fn [] (dispatch [::evts/reset]))}
+                            "Reset"]]
+
+        (some? @resolution-response) [idresolver/main]
+
+        @in-progress? [:div.wizard-loader [loader "IDENTIFIERS"]]
+
+        ;; Side-effects in view are bad. This should be done from event handler instead.
+        :else (dispatch [::route/navigate ::route/upload-step {:step "input"}])))))
 
 (defn breadcrumbs []
   (let [response (subscribe [::subs/resolution-response])]
