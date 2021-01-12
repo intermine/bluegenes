@@ -216,7 +216,7 @@
       [{:parameters {:query [:name]}
         :start (fn [{{:keys [name]} :query}]
                  (dispatch [:set-active-panel :upgrade-panel
-                            nil
+                            {:upgrade-list name}
                             [:bluegenes.components.idresolver.events/resolve-identifiers {:name name}]]))}]}]
     ["/search"
      {:name ::search

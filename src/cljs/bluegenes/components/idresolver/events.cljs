@@ -151,6 +151,40 @@
    (assoc-in db [:idresolver :save :list-name] value)))
 
 (reg-event-fx
+ ::upgrade-list
+ (fn [{db :db} [_ list-name]]
+   (let [{:keys [OTHER DUPLICATE TYPE_CONVERTED MATCH]} (get-in db [:idresolver :response :matches])
+         service (get-in db [:mines (get db :current-mine) :service])
+         ids (->> MATCH
+                  (concat (mapcat :matches OTHER))
+                  (concat (mapcat :matches TYPE_CONVERTED))
+                  (concat (mapcat (fn [{matches :matches}]
+                                    (filter :keep? matches))
+                                  DUPLICATE))
+                  (map :id))]
+     {:im-chan {:chan (save/im-list-upgrade service list-name ids)
+                :on-success [::upgrade-list-success list-name]
+                :on-failure [::upgrade-list-failure list-name]}})))
+
+(reg-event-fx
+ ::upgrade-list-success
+ (fn [{db :db} [_ list-name _res]]
+   {:dispatch-n [; Re-fetch our lists so that it shows in Lists page
+                 [:assets/fetch-lists]
+                 [::route/navigate ::route/results {:title list-name}]]}))
+
+(reg-event-fx
+ ::upgrade-list-failure
+ (fn [{db :db} [_ list-name res]]
+   {:dispatch [:messages/add
+               {:markup [:span [:strong "Failed to upgrade and save " [:em list-name]] " "
+                         [:code (if-let [err (not-empty (get-in res [:body :error]))]
+                                  err
+                                  "Please check your connection and try again later.")]]
+                :timeout 10000
+                :style "danger"}]}))
+
+(reg-event-fx
  ::save-list
  (fn [{db :db} [_]]
    (let [{:keys [OTHER WILDCARD DUPLICATE TYPE_CONVERTED MATCH]}
@@ -208,6 +242,7 @@
                          [:code (if-let [err (not-empty (get-in res [:body :error]))]
                                   err
                                   "Please check your connection and try again later.")]]
+                :timeout 10000
                 :style "danger"}]}))
 
 (defn validate-default-organism [db mine-details]

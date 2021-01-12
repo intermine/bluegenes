@@ -404,7 +404,7 @@
         stats (subscribe [::subs/stats])]
     (when (pos? (:duplicates @stats))
       (dispatch [::evts/update-option :review-tab :issues]))
-    (fn []
+    (fn [& {:keys [upgrade?]}]
       (let [{:keys [matches issues notFound converted duplicates all other]} @stats]
         [:div
          [:div.flex-progressbar
@@ -454,20 +454,22 @@
                [:use {:xlinkHref "#icon-duplicate"}]]
               (str " Ambiguous (" duplicates ")")]
              " tab"]])
-         [:div.save-list
-          [:label "List Name"
-           [:input
-            {:type "text"
-             :value @list-name
-             :on-change (fn [e]
-                          (dispatch
-                           [::evts/update-list-name
-                            (oget e :target :value)]))}]]
-          [:button.cta
-           {:on-click (fn [] (dispatch [::evts/save-list]))}
-           [:svg.icon.icon-floppy-disk
-            [:use {:xlinkHref "#icon-floppy-disk"}]]
-           "Save List"]]
+
+         (when-not upgrade?
+           [:div.save-list
+            [:label "List Name"
+             [:input
+              {:type "text"
+               :value @list-name
+               :on-change (fn [e]
+                            (dispatch
+                             [::evts/update-list-name
+                              (oget e :target :value)]))}]]
+            [:button.cta
+             {:on-click (fn [] (dispatch [::evts/save-list]))}
+             [:svg.icon.icon-floppy-disk
+              [:use {:xlinkHref "#icon-floppy-disk"}]]
+             "Save List"]])
 
          [:ul.nav.nav-tabs.id-resolver-tabs
           (when (> matches 0)
