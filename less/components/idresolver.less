@@ -60,6 +60,7 @@
     background-color: white;
     font-size: 16px;
     overflow: hidden;
+    margin-bottom: @spacer/2;
 
     .title {
       display: flex;
@@ -512,5 +513,51 @@
     margin-top: 10px;
     border: none;
     background-color: transparent;
+  }
+
+  .list-upgrade {
+
+      .back-button {
+          display: flex;
+          align-items: center;
+          text-transform: none;
+          font-weight: 500;
+          text-decoration: underline;
+          font-size: 1.4em;
+          color: @notice-me;
+          fill: @notice-me;
+          padding-left: 0;
+
+          .icon {
+              margin: 0 @spacer/4 0 0;
+          }
+      }
+
+      .upgrade-header {
+          display: flex;
+          justify-content: center;
+          margin-top: @spacer/2;
+
+          & > span {
+              margin: @spacer/8;
+          }
+
+          .list-name {
+              font-weight: 400;
+          }
+      }
+
+      .upgrade-divider {
+          margin-bottom: 0;
+      }
+
+      .upgrade-footer {
+          display: flex;
+          justify-content: flex-end;
+
+          .btn {
+              margin-bottom: 0;
+          }
+      }
   }
 }

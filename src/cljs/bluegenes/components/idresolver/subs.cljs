@@ -29,6 +29,10 @@
          (fn [db]
            (not-empty (get-in db [:idresolver :response]))))
 
+(reg-sub ::resolution-error
+         (fn [db]
+           (get-in db [:idresolver :error])))
+
 (reg-sub ::list-name
          (fn [db]
            (get-in db [:idresolver :save :list-name])))

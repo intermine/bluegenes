@@ -199,8 +199,12 @@
               [:a {:on-click #(dispatch [:lists/set-filter filter-name value])}
                label]]))]))
 
-(defn list-row-controls [list-id authorized]
+(defn list-row-controls [{:keys [list-id authorized status name]}]
   [:<>
+   (when (= status "TO_UPGRADE")
+     [:a.btn
+      {:href (route/href ::route/upgrade nil {:name name})}
+      [icon "arrow-up"]])
    [:button.btn
     {:on-click #(dispatch [:lists/open-modal :copy list-id])}
     [icon "list-copy"]]
@@ -214,7 +218,7 @@
     [icon "list-delete"]]])
 
 (defn list-row [item]
-  (let [{:keys [id title size authorized description timestamp type tags
+  (let [{:keys [id title size authorized description timestamp type tags status
                 path is-last]} item
         expanded-paths @(subscribe [:lists/expanded-paths])
         selected-lists @(subscribe [:lists/selected-lists])
@@ -253,15 +257,18 @@
 
      [:div.lists-col
       [:div.list-detail
-       (if is-folder
-         [:button.btn.btn-link.list-title
-          {:on-click (if is-expanded
-                       #(dispatch [:lists/collapse-path path])
-                       #(dispatch [:lists/expand-path path]))}
-          title]
-         [:a.list-title
-          {:href (route/href ::route/results {:title title})}
-          title])
+       (cond
+         is-folder [:button.btn.btn-link.list-title
+                    {:on-click (if is-expanded
+                                 #(dispatch [:lists/collapse-path path])
+                                 #(dispatch [:lists/expand-path path]))}
+                    title]
+         (= status "TO_UPGRADE") [poppable {:data "This list contains outdated identifiers. Use the green arrow to the far right to start the upgrade process."
+                                            :options {:class [:list-title :disabled]}
+                                            :children title}]
+         :else [:a.list-title
+                {:href (route/href ::route/results {:title title})}
+                title])
        [:span.list-size (str "[" size "]")]
        (if authorized
          [icon "user-circle" nil ["authorized"]]
@@ -293,9 +300,9 @@
             [icon "list-more"]]
            [:div.dropdown-menu.dropdown-menu-controls
             [:div.list-controls
-             [list-row-controls id authorized]]]]]
+             [list-row-controls item]]]]]
          [:div.list-controls.hidden-xs.hidden-sm.hidden-md
-          [list-row-controls id authorized]]])
+          [list-row-controls item]]])
       (when is-selected
         [:div.selected-list-overlay])]]))
 
@@ -323,7 +330,8 @@
                       nil "All"
                       :private "Private only"
                       :public "Public only"
-                      :folder "Folders first")
+                      :folder "Folders first"
+                      :upgrade "Need upgrade")
                     ")")]
         [sort-button :title]
         [selection-button
@@ -331,7 +339,8 @@
          [{:label "All" :value nil}
           {:label "Private only" :value :private}
           {:label "Public only" :value :public}
-          {:label "Folders first" :value :folder}]]]]
+          {:label "Folders first" :value :folder}
+          {:label "Need upgrade" :value :upgrade}]]]]
       [:div.lists-col
        [:div.list-header
         [:span "Date"]

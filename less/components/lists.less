@@ -415,6 +415,12 @@
                     font-weight: bold;
                     text-decoration: underline;
                     overflow-wrap: anywhere;
+
+                    &.disabled {
+                        color: fadeout(@body-foreground-color, 35%);
+                        text-decoration: none;
+                        cursor: default;
+                    }
                 }
 
                 .list-size {
@@ -447,6 +453,11 @@
                 display: flex;
                 justify-content: flex-end;
 
+                a.btn {
+                    margin: 0;
+                    padding: 0;
+                }
+
                 .icon {
                     font-size: @icon-size;
 
@@ -454,6 +465,9 @@
                         font-size: 2em;
                     }
 
+                    &.icon-arrow-up {
+                        fill: url(#upgradeGradient);
+                    }
                     &.icon-list-copy,
                     &.icon-list-edit,
                     &.icon-list-more {
