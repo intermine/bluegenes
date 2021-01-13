@@ -1,2 +1,5 @@
 {;; Where BlueGenes tools are installed.
- :bluegenes-tool-path "./tools"}
+ :bluegenes-tool-path "./tools"
+ :bluegenes-default-service-root "https://www.flymine.org/flymine"
+ :bluegenes-default-mine-name "FlyMine"
+ :bluegenes-default-namespace "flymine"}

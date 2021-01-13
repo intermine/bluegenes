@@ -5,7 +5,9 @@
             [bluegenes.ws.auth :as auth]
             [bluegenes.ws.ids :as ids]
             [bluegenes.ws.rss :as rss]
-            [bluegenes.index :as index]))
+            [bluegenes.ws.lookup :as lookup]
+            [bluegenes.index :as index]
+            [config.core :refer [env]]))
 
 ; Define the top level URL routes for the server
 (defroutes routes
@@ -20,4 +22,12 @@
     (context "/ids" [] ids/routes)
     (context "/rss" [] rss/routes))
 
-  (GET "*" [] (index/index)))
+  (context (str "/" (:bluegenes-default-namespace env)) []
+    (GET ["/:lookup" :lookup #"[^:/.]+:[^:/.]+"] [lookup] (lookup/ws lookup)))
+
+  ;; One of BlueGenes' web service could have added some data we want passed on
+  ;; to the frontend to session.init, in which case we make sure to pass it on
+  ;; and remove it (as it gets "consumed") from the session.
+  (GET "*" {{:keys [init] :as session} :session}
+       (-> (response (index/index init))
+           (assoc :session (dissoc session :init)))))

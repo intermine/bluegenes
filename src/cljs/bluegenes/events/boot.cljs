@@ -7,6 +7,7 @@
             [bluegenes.route :as route]
             [bluegenes.utils :as utils]
             [cljs-bean.core :refer [->clj]]
+            [cljs.reader :as reader]
             [bluegenes.pages.lists.events :as lists]))
 
 (defn boot-flow
@@ -132,15 +133,10 @@
   [& {:keys [token]}]
   (let [{:keys [serviceRoot mineName]} (->clj js/serverVars)]
     ;; Only `serviceRoot` is necessary; the rest gets overwritten when fetching webservices.
-    (if serviceRoot
-      {:id :default
-       :name mineName
-       :service {:root serviceRoot
-                 :token token}}
-      {:id :default
-       :name nil
-       :service {:root "https://www.flymine.org/flymine"
-                 :token token}})))
+    {:id :default
+     :name mineName
+     :service {:root serviceRoot
+               :token token}}))
 
 (defn wait-for-registry?
   "If the URL corresponds to a non-default mine, we will have to fetch the
@@ -166,12 +162,14 @@
                            (clojure.string/split #"/")
                            second
                            keyword)
+         init-events (some-> js/initVars reader/read-string :events not-empty)
          init-db
          (-> db/default-db
              ;; Add default mine, either as is configured when attached to an
              ;; InterMine instance, or as an empty placeholder.
              (assoc-in [:mines :default] (init-mine-defaults))
-             (assoc :current-mine (or selected-mine :default)))
+             (assoc :current-mine (or selected-mine :default))
+             (cond-> init-events (assoc :dispatch-after-boot init-events)))
          ;; Get data previously persisted to local storage.
          {:keys [mines assets version] :as state} (:local-store cofx)
          ;; We always want `init-mine-defaults` to override the :default mine
