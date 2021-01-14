@@ -112,7 +112,12 @@
 (defn back-button []
   (let [intent @(subscribe [:results/intent])]
     [:button.btn.btn-link.back-button
-     {:on-click #(dispatch [::route/go-back])}
+     {:on-click #(dispatch (case intent
+                             :query [::route/navigate ::route/querybuilder]
+                             :search [::route/navigate ::route/search]
+                             :list [::route/navigate ::route/lists]
+                             :template [::route/navigate ::route/templates]
+                             [::route/go-back]))}
      [icon "chevron-left"]
      (str "Back to "
           (case intent

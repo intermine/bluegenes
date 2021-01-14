@@ -9,7 +9,7 @@
 
 ;; This email is used if no maintainerEmail is available, or when we wish to
 ;; CC support (ie. when the failure is caused by a software problem).
-(def support-email "info@intermine.org")
+(def support-email "support@intermine.org")
 
 (defn mailto-string [error]
   (let [maintainer-email (or @(subscribe [:registry/email]) support-email)
@@ -20,7 +20,7 @@
          "?subject=" (gstring/urlEncode "[BLUEGENES] - Uncaught error")
          "&cc=" support-email
          "&body=" (gstring/urlEncode
-                   (str "We encountered an error in BlueGenes.
+                   (str "Description:
 
 page: " current-url "
 service: " service-url "
@@ -55,7 +55,7 @@ ERROR: " error)))))
       [:div
        [:h1 "Something went wrong!"]
        [:h4 "BlueGenes experienced an uncaught error"]]]
-     [:p "This could indicate a bug in BlueGenes or the InterMine instance returning malformed data. If you think BlueGenes should be able to handle this error, please send a pre-filled bug report by clicking the button below. Any description of what you were doing before this happened would be very helpful."]
+     [:p "This could indicate a bug in BlueGenes or the InterMine instance returning malformed data. If you think BlueGenes should be able to handle this error, please send the pre-filled bug report below by clicking the button below. This will open an email: any description of what you were doing before this happened would be very helpful."]
      [:p "Use the " [:em "Reset"] " button below to start BlueGenes from a blank slate."]
      [:pre.text-danger error-text]
      [:div.button-group

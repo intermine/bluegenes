@@ -7,7 +7,8 @@
             [bluegenes.route :as route]
             [bluegenes.components.ui.inputs :refer [password-input]]
             [bluegenes.components.icons :refer [icon-comp]]
-            [bluegenes.time :as time]))
+            [bluegenes.time :as time]
+            [clojure.string :as str]))
 
 (def ^:const logo-path "/model/images/logo.png")
 
@@ -172,19 +173,22 @@
        ;; This has the same height as the *visible* icon, so it ensures the icon
        ;; in the middle is centered.
        [icon-comp "caret-down" :classes [:invisible]]
-       [icon-comp "document-list" :enlarge 2]
+       [:span "Activity"]
        [icon-comp "caret-down"]]
       (into [:ul.dropdown-menu.results-dropdown.list-group
              [:li.list-group-item.results-heading
               [:div.list-group-item-content
-               [:h4.list-group-item-heading "Recent queries"]]]]
+               [:h4.list-group-item-heading "Recent activity"]]]]
             (let [queries @(subscribe [:results/historical-queries])]
-              (for [[title {:keys [display-title] :as query}] (take queries-to-show queries)]
+              (for [[title {:keys [display-title intent] :as query}] (take queries-to-show queries)]
                 [:li.list-group-item
                  [:a.list-group-item-content
                   {:on-click #(dispatch [::route/navigate ::route/results {:title title}])}
                   [:div.list-group-item-heading (or display-title title)]
-                  [:div.list-group-item-text (time/format-query query)]]])))])
+                  [:div.list-group-item-text
+                   (time/format-query query)
+                   (when intent
+                     (str " - " (-> intent name str/capitalize)))]]])))])
    [:li.primary-nav.hidden-md.hidden-lg
     {:class (classes :search-panel large-screen?)}
     [:a {:href (route/href ::route/search)}

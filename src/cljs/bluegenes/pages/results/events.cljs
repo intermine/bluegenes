@@ -123,15 +123,17 @@
                        :style "danger"}]]}
        ; Store the values in app-db.
        ; TODO - 99% of this can be factored out by passing the package to the :enrichment/enrich and parsing it there
-       {:db (update db :results assoc
-                    :table nil
-                    :query value
-                    :package package
-                    ; The index is used to highlight breadcrumbs
-                    :history-index title
-                    :query-parts (unorder-query-parts (q/group-views-by-class model value))
-                    ; Clear the enrichment results before loading any new ones
-                    :enrichment-results nil)
+       {:db (-> db
+                (assoc-in [:results :queries title :last-executed] (time-coerce/to-long (time/now)))
+                (update :results assoc
+                        :table nil
+                        :query value
+                        :package package
+                        ; The index is used to highlight breadcrumbs
+                        :history-index title
+                        :query-parts (unorder-query-parts (q/group-views-by-class model value))
+                        ; Clear the enrichment results before loading any new ones
+                        :enrichment-results nil))
         :dispatch-n [; Fetch IDs to build tool entity
                      [:fetch-ids-tool-entities]
                      ; Fire the enrichment event (see the TODO above)
