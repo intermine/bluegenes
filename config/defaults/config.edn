@@ -2,4 +2,7 @@
  :bluegenes-tool-path "./tools"
  :bluegenes-default-service-root "https://www.flymine.org/flymine"
  :bluegenes-default-mine-name "FlyMine"
- :bluegenes-default-namespace "flymine"}
+ :bluegenes-default-namespace "flymine"
+ :bluegenes-additional-mines [{:root "https://www.humanmine.org/humanmine"
+                               :name "HumanMine"
+                               :namespace "humanmine"}]}

@@ -1,5 +1,5 @@
 (ns bluegenes.routes
-  (:require [compojure.core :refer [GET defroutes context]]
+  (:require [compojure.core :as compojure :refer [GET defroutes context]]
             [compojure.route :refer [resources]]
             [ring.util.response :refer [response]]
             [bluegenes.ws.auth :as auth]
@@ -22,8 +22,14 @@
     (context "/ids" [] ids/routes)
     (context "/rss" [] rss/routes))
 
-  (context (str "/" (:bluegenes-default-namespace env)) []
-    (GET ["/:lookup" :lookup #"[^:/.]+:[^:/.]+"] [lookup] (lookup/ws lookup)))
+  (apply compojure/routes
+         (for [{mine-ns :namespace :as mine}
+               (concat [{:root (:bluegenes-default-service-root env)
+                         :name (:bluegenes-default-mine-name env)
+                         :namespace (:bluegenes-default-namespace env)}]
+                       (:bluegenes-additional-mines env))]
+           (context (str "/" mine-ns) []
+             (GET ["/:lookup" :lookup #"[^:/.]+:[^:/.]+"] [lookup] (lookup/ws lookup mine)))))
 
   ;; One of BlueGenes' web service could have added some data we want passed on
   ;; to the frontend to session.init, in which case we make sure to pass it on
