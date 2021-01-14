@@ -173,12 +173,12 @@
        ;; This has the same height as the *visible* icon, so it ensures the icon
        ;; in the middle is centered.
        [icon-comp "caret-down" :classes [:invisible]]
-       [icon-comp "document-list" :enlarge 2]
+       [:span "Activity"]
        [icon-comp "caret-down"]]
       (into [:ul.dropdown-menu.results-dropdown.list-group
              [:li.list-group-item.results-heading
               [:div.list-group-item-content
-               [:h4.list-group-item-heading "Recent queries"]]]]
+               [:h4.list-group-item-heading "Recent activity"]]]]
             (let [queries @(subscribe [:results/historical-queries])]
               (for [[title {:keys [display-title intent] :as query}] (take queries-to-show queries)]
                 [:li.list-group-item
