@@ -29,5 +29,5 @@
   ;; to the frontend to session.init, in which case we make sure to pass it on
   ;; and remove it (as it gets "consumed") from the session.
   (GET "*" {{:keys [init] :as session} :session}
-       (-> (response (index/index init))
-           (assoc :session (dissoc session :init)))))
+    (-> (response (index/index init))
+        (assoc :session (dissoc session :init)))))
