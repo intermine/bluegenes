@@ -2,7 +2,7 @@
   (:require-macros [cljs.core.async.macros :refer [go]])
   (:require [re-frame.core :as re-frame :refer [reg-event-db reg-fx reg-event-fx dispatch subscribe inject-cofx]]
             [im-tables.events]
-            [bluegenes.events.boot]
+            [bluegenes.events.boot :refer [server-vars]]
             [bluegenes.events.auth]
             [bluegenes.events.registry]
             [bluegenes.events.blog]
@@ -102,7 +102,7 @@
      ;; the next time the client boots to make sure the local storage data
      ;; and the client version number are aligned.
      {:persist [:bluegenes/state
-                (assoc saved-keys :version (:version (->clj js/serverVars)))]})))
+                (assoc saved-keys :version (:version @server-vars))]})))
 
 (reg-event-fx
  :save-login

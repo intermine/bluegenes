@@ -10,6 +10,9 @@
             [cljs.reader :as reader]
             [bluegenes.pages.lists.events :as lists]))
 
+(def server-vars (delay (some-> js/serverVars reader/read-string)))
+(def init-vars (delay (some-> js/initVars reader/read-string)))
+
 (defn boot-flow
   "Produces a set of re-frame instructions that load all of InterMine's assets into BlueGenes
   See https://github.com/Day8/re-frame-async-flow-fx
@@ -131,12 +134,10 @@
   default mine config.
   You can specify `:token my-token` if you want to reuse an existing token."
   [& {:keys [token]}]
-  (let [{:keys [serviceRoot mineName]} (->clj js/serverVars)]
-    ;; Only `serviceRoot` is necessary; the rest gets overwritten when fetching webservices.
-    {:id :default
-     :name mineName
-     :service {:root serviceRoot
-               :token token}}))
+  {:id (:bluegenes-default-namespace @server-vars)
+   :name (:bluegenes-default-mine-name @server-vars)
+   :service {:root (:bluegenes-default-service-root @server-vars)
+             :token token}})
 
 (defn wait-for-registry?
   "If the URL corresponds to a non-default mine, we will have to fetch the
@@ -162,7 +163,7 @@
                            (clojure.string/split #"/")
                            second
                            keyword)
-         init-events (some-> js/initVars reader/read-string :events not-empty)
+         init-events (some-> @init-vars :events not-empty)
          init-db
          (-> db/default-db
              ;; Add default mine, either as is configured when attached to an
@@ -184,7 +185,7 @@
               ;; Only use data from local storage if it's non-empty and the
               ;; client version matches.
               (and (seq state)
-                   (= version (:version (->clj js/serverVars))))
+                   (= version (:version @server-vars)))
               (assoc :mines updated-mines
                      :assets assets
                      ;; This needs to be true so we can block `:set-active-panel`
@@ -280,7 +281,7 @@
 (reg-event-fx
  :start-analytics
  (fn [{db :db}]
-   (let [analytics-id (:googleAnalytics (->clj js/serverVars))
+   (let [analytics-id (:google-analytics @server-vars)
          analytics-enabled? (not (clojure.string/blank? analytics-id))]
      (if analytics-enabled?
         ;;set tracker up if we have a tracking id
