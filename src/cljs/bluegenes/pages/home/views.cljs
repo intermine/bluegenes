@@ -12,7 +12,7 @@
 
 (defn mine-intro []
   (let [mine-name @(subscribe [:current-mine-human-name])
-        description @(subscribe [:registry/description])]
+        description @(subscribe [:current-mine/description])]
     [:div.row.section.mine-intro
      [:div.col-xs-10.col-xs-offset-1
       [:h2.text-center.text-uppercase.mine-name mine-name]

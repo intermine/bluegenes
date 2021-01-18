@@ -175,6 +175,12 @@
    (:credits current-mine)))
 
 (reg-sub
+ :current-mine/description
+ :<- [:current-mine]
+ (fn [current-mine]
+   (:description current-mine)))
+
+(reg-sub
  :current-mine/report-layout
  (fn [[_ class]]
    [(subscribe [:current-mine])
