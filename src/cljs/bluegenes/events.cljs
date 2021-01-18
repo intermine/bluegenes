@@ -2,7 +2,8 @@
   (:require-macros [cljs.core.async.macros :refer [go]])
   (:require [re-frame.core :as re-frame :refer [reg-event-db reg-fx reg-event-fx dispatch subscribe inject-cofx]]
             [im-tables.events]
-            [bluegenes.events.boot :refer [server-vars]]
+            [bluegenes.config :refer [server-vars]]
+            [bluegenes.events.boot]
             [bluegenes.events.auth]
             [bluegenes.events.registry]
             [bluegenes.events.blog]
@@ -133,9 +134,9 @@
    (let [mine-kw         (keyword mine)
          different-mine? (not= mine-kw (:current-mine db))
          not-home?       (not= (:active-panel db) :home-panel)
-         in-registry?    (contains? (:registry db) mine-kw)
          in-mines?       (contains? (:mines db) mine-kw)
-         mine-m          (get-in db [:registry mine-kw])
+         registry-mine   (get-in db [:registry mine-kw])
+         conf-mine       (get-in db [:env :mines mine-kw])
          active-flow?    (some? (:boot-flow db))]
      (if different-mine?
        (cond-> {:db (assoc db
@@ -149,11 +150,9 @@
                 ;; Switching mine always involves a reboot.
                 :dispatch-n [[:messages/clear]
                              [:reboot]]}
-         ;; This does not run for the `:default` mine, as it isn't part of the
-         ;; registry. This is good as we don't want to overwrite it anyways.
-         (and in-registry?
-              (not in-mines?)) (assoc-in [:db :mines mine-kw]
-                                         (read-registry-mine mine-m))
+         ;; Add mine if it's missing.
+         (not in-mines?) (assoc-in [:db :mines mine-kw]
+                                   (or conf-mine (read-registry-mine registry-mine)))
          ;; Switch to home page.
          not-home? (update :db assoc
                            :active-panel :home-panel

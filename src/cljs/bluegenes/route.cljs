@@ -6,7 +6,8 @@
             [reitit.coercion.spec :as rcs]
             [reitit.frontend :as rf]
             [reitit.frontend.controllers :as rfc]
-            [reitit.frontend.easy :as rfe]))
+            [reitit.frontend.easy :as rfe]
+            [bluegenes.config :refer [read-default-ns]]))
 
 ;; # Quickstart guide:
 ;; (aka. I just want to route something but don't want to read all this code!)
@@ -298,7 +299,7 @@
     (dispatch [::navigated new-match])
     ;; We end up here when the URL path is empty, so we'll set default mine.
     ;; (Usually this would be dispatched by the `/:mine` controller.)
-    (do (dispatch [:set-current-mine :default])
+    (do (dispatch [:set-current-mine (read-default-ns)])
         (dispatch-for-home))))
 
 (def router

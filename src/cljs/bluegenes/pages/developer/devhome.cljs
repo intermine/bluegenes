@@ -7,7 +7,7 @@
             [bluegenes.route :as route]
             [cljs-bean.core :refer [->clj]]
             [bluegenes.version :as version]
-            [bluegenes.events.boot :refer [server-vars]]))
+            [bluegenes.config :refer [server-vars]]))
 
 (defn nav
   "Buttons to choose which mine you're using."

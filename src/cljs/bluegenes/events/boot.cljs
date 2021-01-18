@@ -1,17 +1,12 @@
 (ns bluegenes.events.boot
-  (:require [re-frame.core :refer [reg-event-db reg-event-fx subscribe inject-cofx]]
+  (:require [re-frame.core :refer [reg-event-db reg-event-fx inject-cofx]]
             [bluegenes.db :as db]
             [imcljs.fetch :as fetch]
             [imcljs.auth :as auth]
-            [bluegenes.events.registry :as registry]
             [bluegenes.route :as route]
             [bluegenes.utils :as utils]
-            [cljs-bean.core :refer [->clj]]
-            [cljs.reader :as reader]
-            [bluegenes.pages.lists.events :as lists]))
-
-(def server-vars (delay (some-> js/serverVars reader/read-string)))
-(def init-vars (delay (some-> js/initVars reader/read-string)))
+            [bluegenes.pages.lists.events :as lists]
+            [bluegenes.config :refer [server-vars init-vars read-default-ns]]))
 
 (defn boot-flow
   "Produces a set of re-frame instructions that load all of InterMine's assets into BlueGenes
@@ -29,7 +24,7 @@
            some?
            [(when wait-registry?
               {:when :seen?
-               :events ::registry/success-fetch-registry
+               :events :bluegenes.events.registry/success-fetch-registry
                :dispatch [:authentication/init]})
             ;; Wait for token as some assets need it for private data (eg. lists, queries).
             {:when :seen?
@@ -128,29 +123,44 @@
 
      (.error js/console (str "Unhandled forwarded im-tables event " evt-id)))))
 
+(defn init-configured-mine
+  [{:keys [root name namespace]}]
+  {:id (keyword namespace)
+   :name name
+   :service {:root root}})
+
 (defn init-mine-defaults
   "If this bluegenes instance is coupled with InterMine, load the intermine's
   config directly from env variables passed to bluegenes. Otherwise, create a
   default mine config.
   You can specify `:token my-token` if you want to reuse an existing token."
   [& {:keys [token]}]
-  {:id (:bluegenes-default-namespace @server-vars)
+  {:id (read-default-ns)
    :name (:bluegenes-default-mine-name @server-vars)
    :service {:root (:bluegenes-default-service-root @server-vars)
              :token token}})
 
 (defn wait-for-registry?
-  "If the URL corresponds to a non-default mine, we will have to fetch the
+  "If the URL corresponds to a non-configured mine, we will have to fetch the
   registry and look for the mine with the same namespace, (user will be
   redirected to the default mine if it doesn't exist) before we attempt
   authentication. Returns whether this is the case."
-  [db]
+  [db config-ns-set]
   (let [current-mine (:current-mine db)
-        default? (= current-mine :default)
-        ;; There might exist a scenario where it would be better to check for
-        ;; the mine to be present in :mines instead of the registry.
+        configured? (contains? config-ns-set current-mine)
+        ;; Registry will only be empty for the initial boot, not for reboots.
         in-registry? (contains? (:registry db) current-mine)]
-    (not (or default? in-registry?))))
+    (if (:hide-registry-mines @server-vars)
+      false
+      (not (or configured? in-registry?)))))
+
+(defn init-config-mines []
+  (->> (:bluegenes-additional-mines @server-vars)
+       (map init-configured-mine)
+       (into [(init-mine-defaults)])
+       (reduce (fn [mines {:keys [id] :as mine}]
+                 (assoc mines id mine))
+               {})))
 
 ;; Boot the application.
 (reg-event-fx
@@ -164,23 +174,27 @@
                            second
                            keyword)
          init-events (some-> @init-vars :events not-empty)
+         configured-mines (init-config-mines)
+         all-config-ns (keys configured-mines)
+         default-ns (read-default-ns)
          init-db
          (-> db/default-db
+             (assoc-in [:env :mines] configured-mines)
              ;; Add default mine, either as is configured when attached to an
              ;; InterMine instance, or as an empty placeholder.
-             (assoc-in [:mines :default] (init-mine-defaults))
-             (assoc :current-mine (or selected-mine :default))
+             (assoc-in [:mines default-ns] (init-mine-defaults))
+             (assoc :current-mine (or selected-mine default-ns))
              (cond-> init-events (assoc :dispatch-after-boot init-events)))
          ;; Get data previously persisted to local storage.
          {:keys [mines assets version] :as state} (:local-store cofx)
-         ;; We always want `init-mine-defaults` to override the :default mine
+         ;; The token for the default mine is a special case. The persisted map
+         ;; for the default will always be overwritten, so we pass it to
+         ;; init-mine-defaults here to put it back in there.
+         persisted-default-token (get-in state [:mines default-ns :service :token])
+         ;; We always want `init-mine-defaults` to override the default mine
          ;; saved in local storage, as a coupled intermine instance should
          ;; always take priority.
-         persisted-default-token (get-in state [:mines :default :service :token])
-         ;; The token for :default mine is a special case. The persisted map
-         ;; for :default will always be overwritten, so we pass it to
-         ;; init-mine-defaults here to put it back in there.
-         updated-mines (assoc mines :default (init-mine-defaults :token persisted-default-token))
+         updated-mines (assoc mines default-ns (init-mine-defaults :token persisted-default-token))
          db (cond-> init-db
               ;; Only use data from local storage if it's non-empty and the
               ;; client version matches.
@@ -194,14 +208,14 @@
                      ;; on `db :assets :summary-fields` before it gets populated
                      ;; by `:assets/success-fetch-summary-fields`.
                      :fetching-assets? true))
-         wait-registry? (wait-for-registry? db)]
+         wait-registry? (wait-for-registry? db (set all-config-ns))]
      {:db db
       :dispatch-n (if wait-registry?
                     ;; Wait with authentication until registry is loaded.
-                    [[::registry/load-other-mines]]
+                    [[:bluegenes.events.registry/load-other-mines]]
                     ;; Do both at the same time!
                     [[:authentication/init]
-                     [::registry/load-other-mines]])
+                     [:bluegenes.events.registry/load-other-mines]])
       ;; Start the timer for showing the loading dialog.
       :mine-loader true
       ;; Boot the application asynchronously

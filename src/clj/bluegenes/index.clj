@@ -46,7 +46,7 @@
      (str "var serverVars="
           (let [server-vars (merge (select-keys env [:google-analytics
                                                      :bluegenes-default-service-root :bluegenes-default-mine-name :bluegenes-default-namespace
-                                                     :bluegenes-additional-mines])
+                                                     :bluegenes-additional-mines :hide-registry-mines])
                                    {:version bundle-hash})]
             (str \' (pr-str server-vars) \'))
           ";")

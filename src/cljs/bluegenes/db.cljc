@@ -2,7 +2,7 @@
 
 (def default-db
   {:current-route nil
-   :current-mine :default
+   :current-mine nil
    :fetching-assets? true
    :fetching-report? true
    :quicksearch-selected-index -1 ;;this defaults to select all in the quicksearch

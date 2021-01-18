@@ -5,4 +5,5 @@
  :bluegenes-default-namespace "flymine"
  :bluegenes-additional-mines [{:root "https://www.humanmine.org/humanmine"
                                :name "HumanMine"
-                               :namespace "humanmine"}]}
+                               :namespace "humanmine"}]
+ :hide-registry-mines false}
