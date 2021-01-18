@@ -54,10 +54,11 @@
                         mines)
          current-mine (:current-mine db)
          db-with-registry (assoc db :registry registry)
-         default-ns (read-default-ns)]
+         default-ns (read-default-ns)
+         config-mines (get-in db [:env :mines])]
      (cond
-       ;; Don't do anything special if the mine is the default.
-       (= current-mine default-ns)
+       ;; Don't do anything special if the mine is from config.
+       (contains? config-mines current-mine)
        {:db db-with-registry}
        ;; Change to the default mine if the target mine does not exist.
        (not (contains? registry current-mine))
@@ -66,7 +67,7 @@
                    {:markup [:span (str "Your mine has been changed to the default as your selected mine '" (name current-mine) "' was not present in the registry.")]
                     :style "warning"}]}
        ;; Fill in the mine details if it's missing.
-       ;; (This happens when we use a registry mine.)
+       ;; (This happens when we load a registry mine at boot.)
        (nil? (get-in db-with-registry [:mines current-mine]))
        {:db (assoc-in db-with-registry [:mines current-mine]
                       (read-registry-mine (get registry current-mine)))}

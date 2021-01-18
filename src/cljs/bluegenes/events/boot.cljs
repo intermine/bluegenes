@@ -144,9 +144,9 @@
   registry and look for the mine with the same namespace, (user will be
   redirected to the default mine if it doesn't exist) before we attempt
   authentication. Returns whether this is the case."
-  [db config-ns-set]
+  [db]
   (let [current-mine (:current-mine db)
-        configured? (contains? config-ns-set current-mine)
+        configured? (contains? (get-in db [:env :mines]) current-mine)
         ;; Registry will only be empty for the initial boot, not for reboots.
         in-registry? (contains? (:registry db) current-mine)]
     (if (:hide-registry-mines @server-vars)
@@ -168,20 +168,19 @@
  (fn [cofx _]
    (let [;; We have to set the db current-mine using `window.location` as the
          ;; router won't have dispatched `:set-current-mine` before later on.
-         selected-mine (-> (.. js/window -location -pathname)
-                           (str/split #"/")
-                           (second)
-                           (keyword))
+         current-mine (-> (.. js/window -location -pathname)
+                          (str/split #"/")
+                          (second)
+                          (keyword)
+                          (or (read-default-ns)))
          init-events (some-> @init-vars :events not-empty)
-         configured-mines (init-config-mines)
-         all-config-ns (keys configured-mines)
-         default-ns (read-default-ns)
+         config-mines (init-config-mines)
          init-db (-> db/default-db
-                     (assoc-in [:env :mines] configured-mines)
-                     (assoc-in [:mines default-ns] (init-mine-defaults))
-                     (assoc :current-mine (or selected-mine default-ns))
+                     (assoc-in [:env :mines] config-mines)
+                     (assoc-in [:mines current-mine] (get config-mines current-mine))
+                     (assoc :current-mine current-mine)
                      (cond->
-                       init-events (assoc :dispatch-after-boot init-events)))
+                      init-events (assoc :dispatch-after-boot init-events)))
          ;; Load data previously persisted to local storage.
          {:keys [assets version] :as state} (:local-store cofx)
          db (cond-> init-db
@@ -190,7 +189,7 @@
               (and (seq state)
                    (= version (:version @server-vars)))
               (assoc :assets assets))
-         wait-registry? (wait-for-registry? db (set all-config-ns))]
+         wait-registry? (wait-for-registry? db)]
      {:db db
       :dispatch-n (if wait-registry?
                     ;; Wait with authentication until registry is loaded.

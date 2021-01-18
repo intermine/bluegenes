@@ -147,7 +147,6 @@
                            :current? (= mine-key current-mine-name)])
                         (sort-by (comp :name val) registry))))]))
 
-
 (def queries-to-show 5)
 
 (defn nav-buttons [classes & {:keys [large-screen?]}]
