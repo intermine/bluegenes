@@ -1,9 +1,17 @@
-{;; Where BlueGenes tools are installed.
+{;; See docs/configuring.md for information on these fields.
+ :server-port 5000
+ :logging-level :info
+ :google-analytics nil
  :bluegenes-tool-path "./tools"
  :bluegenes-default-service-root "https://www.flymine.org/flymine"
  :bluegenes-default-mine-name "FlyMine"
  :bluegenes-default-namespace "flymine"
- :bluegenes-additional-mines [{:root "https://www.humanmine.org/humanmine"
+ :bluegenes-additional-mines [
+                              {
+                               :root "https://www.humanmine.org/humanmine"
                                :name "HumanMine"
-                               :namespace "humanmine"}]
- :hide-registry-mines false}
+                               :namespace "humanmine"
+                               }
+                              ]
+ :hide-registry-mines false
+ }

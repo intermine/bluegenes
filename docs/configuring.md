@@ -4,13 +4,15 @@
 
 | Envvar | Description | Default |
 | ------ | ----------- | ------- |
-| SERVER_PORT | Port used by web server | 5000 |
+| SERVER_PORT | Port to be used by BlueGenes web server | 5000 |
 | LOGGING_LEVEL | Minimum level for logging | :info |
 | GOOGLE_ANALYTICS | Google Analytics tracking ID | nil |
-| JWT_SECRET | Secret for signing JSON Web Tokens | nil |
-| BLUEGENES_DEFAULT_SERVICE_ROOT | InterMine service that is default | https://alpha.flymine.org/alpha/ |
-| BLUEGENES_DEFAULT_MINE_NAME | Optional default mine name to display until it gets fetched | FlyMine |
-| BLUEGENES_TOOL_PATH | Server directory where BlueGenes tools are installed | ./tools |
+| BLUEGENES_TOOL_PATH | Directory on server where BlueGenes tools are installed | ./tools |
+| BLUEGENES_DEFAULT_SERVICE_ROOT | Default InterMine service to run API requests against | https://www.flymine.org/flymine |
+| BLUEGENES_DEFAULT_MINE_NAME | Mine name to display for default mine | FlyMine |
+| BLUEGENES_DEFAULT_NAMESPACE | Namespace of the default mine | flymine |
+| BLUEGENES_ADDITIONAL_MINES | Additional mines managed by this BlueGenes instance | [{:root "https://www.humanmine.org/humanmine" :name "HumanMine" :namespace "humanmine"}] |
+| HIDE_REGISTRY_MINES | Disable acquiring and displaying mines from the public InterMine registry | false |
 
 ## How to configure
 
@@ -18,7 +20,7 @@ BlueGenes supports the many methods of specifying configuration keys provided by
 
 ### Configuration via `config.edn` files
 
-Copy and paste the code from the `.template` files in `config/dev/` and `config/prod/`, tweak it to match your preferences, and save it as `config.edn` in the same folder.
+Copy and paste `config/defaults/config.edn` to `config/dev/config.edn` or `config/prod/config.edn` and tweak it to match your preferences. When building an uberjar or docker image, `config/prod/config.edn` will be bundled and its values used as defaults unless overridden by the other methods documented in the link above.
 
 ### Analytics (optional)
 
