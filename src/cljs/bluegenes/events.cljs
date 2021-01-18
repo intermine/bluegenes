@@ -92,13 +92,12 @@
 (reg-event-fx
  :save-state
  (fn [{db :db}]
-   ;; So this saves assets and current mine to the db. We don't do any complex
-   ;; caching right now - every boot or mine change, these will be loaded
-   ;; afresh and applied on top. It *does* mean that the assets can be used
-   ;; before they are loaded.  why isn't there caching? because it gets very
-   ;; complex deciding what and when to expire, so it's not really a minimum
-   ;; use case feature.
-   (let [saved-keys (select-keys db [:current-mine :mines :assets])]
+   ;; We don't do any complex caching right now - on initial boot, these will
+   ;; be loaded afresh and applied on top. It *does* mean that the assets can
+   ;; be used before they are loaded.  Why isn't there caching? Because it gets
+   ;; very complex deciding what and when to expire, so it's not really a
+   ;; minimum use case feature.
+   (let [saved-keys (select-keys db [:assets])]
      ;; Attach the client version to the saved state. This will be checked
      ;; the next time the client boots to make sure the local storage data
      ;; and the client version number are aligned.
