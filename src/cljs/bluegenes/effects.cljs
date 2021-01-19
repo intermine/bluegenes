@@ -325,3 +325,9 @@
    (.error js/console
            (str "bluegenes: " error-string)
            (clj->js data-map))))
+
+;; This is ONLY for use during boot, prior to the router being started.
+(reg-fx
+ :change-route
+ (fn [new-path]
+   (.replaceState js/window.history nil "" (str "/" new-path))))

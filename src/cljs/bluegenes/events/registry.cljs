@@ -4,7 +4,8 @@
             [clojure.string :as string]
             [bluegenes.utils :refer [read-registry-mine]]
             [bluegenes.version :as version]
-            [bluegenes.config :refer [server-vars read-default-ns]]))
+            [bluegenes.config :refer [server-vars read-default-ns]]
+            [bluegenes.route :as route]))
 
 (reg-event-fx
  ;; these are the intermines we'll allow users to switch to
@@ -62,10 +63,14 @@
        {:db db-with-registry}
        ;; Change to the default mine if the target mine does not exist.
        (not (contains? registry current-mine))
-       {:db (assoc db-with-registry :current-mine default-ns)
+       {:db (-> db-with-registry
+                (assoc :current-mine default-ns)
+                (assoc-in [:mines default-ns] (get-in db [:env :mines default-ns])))
         :dispatch [:messages/add
-                   {:markup [:span (str "Your mine has been changed to the default as your selected mine '" (name current-mine) "' was not present in the registry.")]
-                    :style "warning"}]}
+                   {:markup [:span "Your mine has been changed to the default as your selected mine " [:em (name current-mine)] " was not present in the registry."]
+                    :style "warning"
+                    :timeout 0}]
+        :change-route (name default-ns)}
        ;; Fill in the mine details if it's missing.
        ;; (This happens when we load a registry mine at boot.)
        (nil? (get-in db-with-registry [:mines current-mine]))

@@ -120,12 +120,14 @@
 ;; :bluegenes.events.registry/success-fetch-registry
 ;;   Makes sure that mine service data is populated. It can be empty in the
 ;;   case of a fresh boot where a non-default mine is selected.
-;; bluegenes.events.boot/wait-for-registry?
+;; :boot
 ;;   Makes sure that the async boot-flow waits for the above event when
 ;;   necessary, before proceeding with events that may require the data.
 ;; :set-current-mine
 ;;   Sets current-mine, fills in mine service data when it's available from the
 ;;   registry, and makes sure to reboot when mine is switched after booting.
+;; Note that we don't rely on this event handler when booting, evident by the
+;; `different-mine?` clause.
 (reg-event-fx
  :set-current-mine
  [document-title]

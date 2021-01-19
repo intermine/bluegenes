@@ -39,8 +39,7 @@
      :results-panel      results/main
      :regions-panel      regions/main
      :lists-panel        lists/main
-     :querybuilder-panel qb/main
-     home/main)])
+     :querybuilder-panel qb/main)])
 
 (defn main-panel []
   (let [active-panel (subscribe [:active-panel])
@@ -48,12 +47,16 @@
         text-color (subscribe [:branding/header-text])]
     (fn []
       [error-boundary
-       [:div.approot
-        {:style {"--branding-header-main" @main-color
-                 "--branding-header-text" @text-color}}
-        [loader/mine-loader]
-        [icons/icons]
-        [nav/main]
-        [:main [show-panel @active-panel]]
-        [footer/main]
-        [alerts/main]]])))
+       ;; We don't start the router until later, which causes any internal
+       ;; links rendered to throw. There's also no point rendering as a loader
+       ;; will cover all of this.
+       (when (some? @active-panel)
+         [:div.approot
+          {:style {"--branding-header-main" @main-color
+                   "--branding-header-text" @text-color}}
+          [loader/mine-loader]
+          [icons/icons]
+          [nav/main]
+          [:main [show-panel @active-panel]]
+          [footer/main]
+          [alerts/main]])])))

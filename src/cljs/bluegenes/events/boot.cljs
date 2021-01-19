@@ -1,5 +1,5 @@
 (ns bluegenes.events.boot
-  (:require [re-frame.core :refer [reg-event-db reg-event-fx inject-cofx]]
+  (:require [re-frame.core :refer [reg-event-db reg-event-fx inject-cofx reg-fx]]
             [bluegenes.db :as db]
             [imcljs.fetch :as fetch]
             [imcljs.auth :as auth]
@@ -79,7 +79,8 @@
  :boot/finalize
  (fn [_ [_ & {:keys [failed-assets?]}]]
    {:dispatch-n
-    [;; Verify InterMine web service version.
+    [[::start-router]
+     ;; Verify InterMine web service version.
      [:verify-web-service-version]
      ;; Start Google Analytics.
      [:start-analytics]
@@ -139,20 +140,6 @@
    :name (:bluegenes-default-mine-name @server-vars)
    :service {:root (:bluegenes-default-service-root @server-vars)}})
 
-(defn wait-for-registry?
-  "If the URL corresponds to a non-configured mine, we will have to fetch the
-  registry and look for the mine with the same namespace, (user will be
-  redirected to the default mine if it doesn't exist) before we attempt
-  authentication. Returns whether this is the case."
-  [db]
-  (let [current-mine (:current-mine db)
-        configured? (contains? (get-in db [:env :mines]) current-mine)
-        ;; Registry will only be empty for the initial boot, not for reboots.
-        in-registry? (contains? (:registry db) current-mine)]
-    (if (:hide-registry-mines @server-vars)
-      false
-      (not (or configured? in-registry?)))))
-
 (defn init-config-mines []
   (->> (:bluegenes-additional-mines @server-vars)
        (map init-configured-mine)
@@ -166,18 +153,20 @@
  :boot
  [(inject-cofx :local-store :bluegenes/state)]
  (fn [cofx _]
-   (let [;; We have to set the db current-mine using `window.location` as the
+   (let [default-ns (read-default-ns)
+         ;; We have to set the db current-mine using `window.location` as the
          ;; router won't have dispatched `:set-current-mine` before later on.
          current-mine (-> (.. js/window -location -pathname)
                           (str/split #"/")
                           (second)
                           (keyword)
-                          (or (read-default-ns)))
+                          (or default-ns))
          init-events (some-> @init-vars :events not-empty)
          config-mines (init-config-mines)
+         mine (get config-mines current-mine)
          init-db (-> db/default-db
                      (assoc-in [:env :mines] config-mines)
-                     (assoc-in [:mines current-mine] (get config-mines current-mine))
+                     (assoc-in [:mines current-mine] mine)
                      (assoc :current-mine current-mine)
                      (cond->
                       init-events (assoc :dispatch-after-boot init-events)))
@@ -189,20 +178,34 @@
               (and (seq state)
                    (= version (:version @server-vars)))
               (assoc :assets assets))
-         wait-registry? (wait-for-registry? db)]
-     {:db db
-      :dispatch-n (if wait-registry?
-                    ;; Wait with authentication until registry is loaded.
-                    [[:bluegenes.events.registry/load-other-mines]]
-                    ;; Do both at the same time!
-                    [[:authentication/init]
-                     [:bluegenes.events.registry/load-other-mines]])
-      ;; Start the timer for showing the loading dialog.
-      :mine-loader true
-      ;; Boot the application asynchronously
-      :async-flow (boot-flow :wait-registry? wait-registry?)
-      ;; Register an event sniffer for im-tables
-      :forward-events (im-tables-events-forwarder)})))
+         no-registry? (:hide-registry-mines @server-vars)
+         wait-registry? (if no-registry? false (empty? mine))]
+     (merge
+      {:db db
+       ;; Start the timer for showing the loading dialog.
+       :mine-loader true
+       ;; Boot the application asynchronously
+       :async-flow (boot-flow :wait-registry? wait-registry?)
+       ;; Register an event sniffer for im-tables
+       :forward-events (im-tables-events-forwarder)}
+      (cond
+        (and (empty? mine) no-registry?) ; Nonexistent mine.
+        {:db (-> db
+                 (assoc :current-mine default-ns)
+                 (assoc-in [:mines default-ns] (get config-mines default-ns)))
+         :dispatch-n [[:authentication/init]
+                      [:messages/add
+                       {:markup [:span "Your mine has been changed to the default as your selected mine " [:em (name current-mine)] " has not been configured."]
+                        :style "warning"
+                        :timeout 0}]]
+         :change-route (name default-ns)}
+        no-registry? ; Valid mine.
+        {:dispatch [:authentication/init]}
+        wait-registry? ; Registry mine.
+        {:dispatch [:bluegenes.events.registry/load-other-mines]}
+        :else ; Valid mine and registry active.
+        {:dispatch-n [[:authentication/init]
+                      [:bluegenes.events.registry/load-other-mines]]})))))
 
 (defn remove-stateful-keys-from-db
   "Any tools / components that have mine-specific state should lose that
@@ -235,6 +238,16 @@
    {:db (assoc (remove-stateful-keys-from-db db) :fetching-assets? true)
     :dispatch [:authentication/init]
     :async-flow (boot-flow :wait-registry? false)}))
+
+(reg-fx
+ ::start-router-fx
+ (fn [_]
+   (route/init-routes!)))
+
+(reg-event-fx
+ ::start-router
+ (fn [_ _]
+   {::start-router-fx {}}))
 
 ;; Note that failed-auth? can mean there's no connection to the mine.
 (reg-event-fx
