@@ -24,37 +24,45 @@
   [:style
    "#csscompiling{position:fixed;bottom:0;right:0;padding:20px;height:100px;width:400px;background-color:#FFA726;}"])
 
-(defn head []
-  [:head
-   loader-style
-   css-compiling-style
-   [:title "InterMine 2.0 BlueGenes"]
-   (include-css "https://cdnjs.cloudflare.com/ajax/libs/gridlex/2.2.0/gridlex.min.css")
-   (include-css "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css")
-   (include-css bluegenes-css)
-   (include-css im-tables-css)
-   (include-css "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css")
-   (include-css "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css")
-   ; Meta data:
-   [:meta {:charset "utf-8"}]
-   [:meta {:content "width=device-width, initial-scale=1", :name "viewport"}]
-   ;;outputting clj-based vars for use in the cljs:
-   [:script
-    (str "var serverVars="
-         (generate-string {:googleAnalytics (:google-analytics env)
-                           :serviceRoot     (:bluegenes-default-service-root env)
-                           :mineName        (:bluegenes-default-mine-name env)
-                           :version         bundle-hash})
-         ";")]
+(defn head
+  ([]
+   (head nil))
+  ([init-vars]
+   [:head
+    loader-style
+    css-compiling-style
+    [:title "InterMine 2.0 BlueGenes"]
+    (include-css "https://cdnjs.cloudflare.com/ajax/libs/gridlex/2.2.0/gridlex.min.css")
+    (include-css "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css")
+    (include-css bluegenes-css)
+    (include-css im-tables-css)
+    (include-css "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css")
+    (include-css "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css")
+    ; Meta data:
+    [:meta {:charset "utf-8"}]
+    [:meta {:content "width=device-width, initial-scale=1", :name "viewport"}]
+    ;;outputting clj-based vars for use in the cljs:
+    [:script
+     (str "var serverVars="
+          (generate-string {:googleAnalytics (:google-analytics env)
+                            :serviceRoot     (:bluegenes-default-service-root env)
+                            :mineName        (:bluegenes-default-mine-name env)
+                            :version         bundle-hash})
+          ";")
+     (str "var initVars="
+          (if (map? init-vars)
+            (str \' (pr-str init-vars) \')
+            "null")
+          ";")]
   ; Javascript:
-   [:link {:rel "shortcut icon" :href "https://raw.githubusercontent.com/intermine/design-materials/f5f00be4/logos/intermine/fav32x32.png" :type "image/png"}]
-   [:script {:src "https://cdn.intermine.org/js/intermine/imjs/3.15.0/im.min.js"}]
-   [:script {:crossorigin "anonymous"
-             :integrity "sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s="
-             :src "https://code.jquery.com/jquery-3.1.0.min.js"}]
-   [:script {:crossorigin "anonymous"
-             :src "https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"}]
-   [:script {:src "https://apis.google.com/js/api.js"}]])
+    [:link {:rel "shortcut icon" :href "https://raw.githubusercontent.com/intermine/design-materials/f5f00be4/logos/intermine/fav32x32.png" :type "image/png"}]
+    [:script {:src "https://cdn.intermine.org/js/intermine/imjs/3.15.0/im.min.js"}]
+    [:script {:crossorigin "anonymous"
+              :integrity "sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s="
+              :src "https://code.jquery.com/jquery-3.1.0.min.js"}]
+    [:script {:crossorigin "anonymous"
+              :src "https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"}]
+    [:script {:src "https://apis.google.com/js/api.js"}]]))
 
 (defn loader []
   [:div#wrappy
@@ -78,14 +86,16 @@
 
 (defn index
   "Hiccup markup that generates the landing page and loads the necessary assets."
-  []
-  (html5
-   (head)
-   [:body
-    (css-compiler)
-    (loader)
-    [:div#app]
-    [:script {:src bundle-path}]
-    ;; Call the constructor of the bluegenes client and pass in the user's
-    ;; optional identity as an object.
-    [:script "bluegenes.core.init();"]]))
+  ([]
+   (index nil))
+  ([init-vars]
+   (html5
+    (head init-vars)
+    [:body
+     (css-compiler)
+     (loader)
+     [:div#app]
+     [:script {:src bundle-path}]
+     ;; Call the constructor of the bluegenes client and pass in the user's
+     ;; optional identity as an object.
+     [:script "bluegenes.core.init();"]])))
