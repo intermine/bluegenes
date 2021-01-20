@@ -2,7 +2,11 @@
 
 (def default-db
   {:current-route nil
-   :current-mine :default
+   :current-mine nil
+   ;; fetching assets needs to be true so we can block `:set-active-panel`
+   ;; event until we have `:finished-loading-assets`, as some routes might
+   ;; attempt to build a query which is dependent on `db.assets.summary-fields`
+   ;; before it gets populated by `:assets/success-fetch-summary-fields`.
    :fetching-assets? true
    :fetching-report? true
    :quicksearch-selected-index -1 ;;this defaults to select all in the quicksearch

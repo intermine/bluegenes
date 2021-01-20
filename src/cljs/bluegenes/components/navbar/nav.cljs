@@ -8,7 +8,8 @@
             [bluegenes.components.ui.inputs :refer [password-input]]
             [bluegenes.components.icons :refer [icon-comp]]
             [bluegenes.time :as time]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [bluegenes.config :refer [read-default-ns]]))
 
 (def ^:const logo-path "/model/images/logo.png")
 
@@ -112,30 +113,39 @@
   "Output a single mine in the mine picker"
   [mine-key details & {:keys [current?]}]
   [:li
-   {:title (:description details)}
+   (when-let [desc (not-empty (:description details))]
+     {:title desc})
    [:a (if current?
          {:class "current"}
          {:href (route/href ::route/home {:mine mine-key})})
     [mine-icon details]
     (str (:name details)
-         (when (= mine-key :default)
+         (when (= mine-key (read-default-ns))
            " (default)"))]])
 
 (defn mine-picker []
-  (let [current-mine-name     @(subscribe [:current-mine-name])
-        current-mine          @(subscribe [:current-mine])
-        registry-with-default @(subscribe [:registry-with-default])]
+  (let [current-mine-name @(subscribe [:current-mine-name])
+        current-mine @(subscribe [:current-mine])
+        registry @(subscribe [:registry-wo-configured-mines])
+        configured-mines @(subscribe [:env/mines])]
     [:li.minename.mine-settings.dropdown.primary-nav
      [:a.dropdown-toggle {:data-toggle "dropdown" :role "button"}
       [active-mine-logo current-mine]
       [:span.hidden-xs (:name current-mine)]
       [:svg.icon.icon-caret-down [:use {:xlinkHref "#icon-caret-down"}]]]
      (into [:ul.dropdown-menu.mine-picker]
-           (map (fn [[mine-key details]]
-                  ^{:key mine-key}
-                  [mine-entry mine-key details
-                   :current? (= mine-key current-mine-name)])
-                (sort-by (comp :name val) registry-with-default)))]))
+           (concat (map (fn [[mine-key details]]
+                          ^{:key mine-key}
+                          [mine-entry mine-key details
+                           :current? (= mine-key current-mine-name)])
+                        (sort-by (comp :name val) configured-mines))
+                   (when (seq registry)
+                     [[:li.header [:h4 "Registry mines"]]])
+                   (map (fn [[mine-key details]]
+                          ^{:key mine-key}
+                          [mine-entry mine-key details
+                           :current? (= mine-key current-mine-name)])
+                        (sort-by (comp :name val) registry))))]))
 
 (def queries-to-show 5)
 

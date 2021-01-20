@@ -6,7 +6,8 @@
             [reitit.coercion.spec :as rcs]
             [reitit.frontend :as rf]
             [reitit.frontend.controllers :as rfc]
-            [reitit.frontend.easy :as rfe]))
+            [reitit.frontend.easy :as rfe]
+            [bluegenes.config :refer [read-default-ns]]))
 
 ;; # Quickstart guide:
 ;; (aka. I just want to route something but don't want to read all this code!)
@@ -90,15 +91,6 @@
                        ;; Hence, we need to dispatch `:results/load-history` manually.
                        [:results/load-history list-name]]})))))
 
-(defn dispatch-for-home
-  "Called when opening the home page.
-  This function is defined by itself as it needs to be referenced both in the
-  routes and when booting with no route match (i.e. empty URL path)."
-  []
-  (dispatch [:set-active-panel :home-panel
-             nil
-             [:bluegenes.events.blog/fetch-rss]]))
-
 ;;; Subscriptions ;;;
 
 (reg-sub
@@ -156,7 +148,10 @@
     [""
      {:name ::home
       :controllers
-      [{:start dispatch-for-home}]}]
+      [{:start (fn []
+                 (dispatch [:set-active-panel :home-panel
+                            nil
+                            [:bluegenes.events.blog/fetch-rss]]))}]}]
     ["/admin"
      {:name ::admin
       :controllers
@@ -296,10 +291,8 @@
   ;; - Handle actual navigation.
   (if new-match
     (dispatch [::navigated new-match])
-    ;; We end up here when the URL path is empty, so we'll set default mine.
-    ;; (Usually this would be dispatched by the `/:mine` controller.)
-    (do (dispatch [:set-current-mine :default])
-        (dispatch-for-home))))
+    ;; We end up here when the URL path is empty.
+    (dispatch [::navigate ::home {:mine (name (read-default-ns))}])))
 
 (def router
   (rf/router

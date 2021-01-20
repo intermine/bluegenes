@@ -32,12 +32,12 @@
 
 (reg-sub
  :home/mines-by-neighbourhood
- :<- [:registry-with-default]
+ :<- [:registry+configured-mines]
  :<- [:home/active-mine-neighbourhood]
- (fn [[registry active-neighbourhood]]
+ (fn [[mines active-neighbourhood]]
    (cond->> (sort-by #(or (-> % val :name)
                           (-> % key name str/capitalize))
-                     registry)
+                     mines)
      ((every-pred not-empty (partial not= "All")) active-neighbourhood)
      (filter #(contains? (-> % val :neighbours set) active-neighbourhood)))))
 
@@ -53,10 +53,10 @@
 (reg-sub
  :home/preview-mine
  :<- [:home/active-preview-mine]
- :<- [:registry-with-default]
+ :<- [:registry+configured-mines]
  :<- [:home/mines-by-neighbourhood]
- (fn [[active-preview-mine registry sorted-mines]]
-   (get registry active-preview-mine (-> sorted-mines rand-nth val))))
+ (fn [[active-preview-mine mines sorted-mines]]
+   (get mines active-preview-mine (-> sorted-mines rand-nth val))))
 
 ;; Be wary that this can return `false`, which many seq functions throw on.
 (reg-sub

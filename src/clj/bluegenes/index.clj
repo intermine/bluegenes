@@ -44,10 +44,11 @@
     ;;outputting clj-based vars for use in the cljs:
     [:script
      (str "var serverVars="
-          (generate-string {:googleAnalytics (:google-analytics env)
-                            :serviceRoot     (:bluegenes-default-service-root env)
-                            :mineName        (:bluegenes-default-mine-name env)
-                            :version         bundle-hash})
+          (let [server-vars (merge (select-keys env [:google-analytics
+                                                     :bluegenes-default-service-root :bluegenes-default-mine-name :bluegenes-default-namespace
+                                                     :bluegenes-additional-mines :hide-registry-mines])
+                                   {:version bundle-hash})]
+            (str \' (pr-str server-vars) \'))
           ";")
      (str "var initVars="
           (if (map? init-vars)

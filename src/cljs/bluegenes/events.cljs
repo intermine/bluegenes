@@ -2,6 +2,7 @@
   (:require-macros [cljs.core.async.macros :refer [go]])
   (:require [re-frame.core :as re-frame :refer [reg-event-db reg-fx reg-event-fx dispatch subscribe inject-cofx]]
             [im-tables.events]
+            [bluegenes.config :refer [server-vars]]
             [bluegenes.events.boot]
             [bluegenes.events.auth]
             [bluegenes.events.registry]
@@ -91,18 +92,17 @@
 (reg-event-fx
  :save-state
  (fn [{db :db}]
-   ;; So this saves assets and current mine to the db. We don't do any complex
-   ;; caching right now - every boot or mine change, these will be loaded
-   ;; afresh and applied on top. It *does* mean that the assets can be used
-   ;; before they are loaded.  why isn't there caching? because it gets very
-   ;; complex deciding what and when to expire, so it's not really a minimum
-   ;; use case feature.
-   (let [saved-keys (select-keys db [:current-mine :mines :assets])]
+   ;; We don't do any complex caching right now - on initial boot, these will
+   ;; be loaded afresh and applied on top. It *does* mean that the assets can
+   ;; be used before they are loaded.  Why isn't there caching? Because it gets
+   ;; very complex deciding what and when to expire, so it's not really a
+   ;; minimum use case feature.
+   (let [saved-keys (select-keys db [:assets])]
      ;; Attach the client version to the saved state. This will be checked
      ;; the next time the client boots to make sure the local storage data
      ;; and the client version number are aligned.
      {:persist [:bluegenes/state
-                (assoc saved-keys :version (:version (->clj js/serverVars)))]})))
+                (assoc saved-keys :version (:version @server-vars))]})))
 
 (reg-event-fx
  :save-login
@@ -120,12 +120,14 @@
 ;; :bluegenes.events.registry/success-fetch-registry
 ;;   Makes sure that mine service data is populated. It can be empty in the
 ;;   case of a fresh boot where a non-default mine is selected.
-;; bluegenes.events.boot/wait-for-registry?
+;; :boot
 ;;   Makes sure that the async boot-flow waits for the above event when
 ;;   necessary, before proceeding with events that may require the data.
 ;; :set-current-mine
 ;;   Sets current-mine, fills in mine service data when it's available from the
 ;;   registry, and makes sure to reboot when mine is switched after booting.
+;; Note that we don't rely on this event handler when booting, evident by the
+;; `different-mine?` clause.
 (reg-event-fx
  :set-current-mine
  [document-title]
@@ -133,9 +135,9 @@
    (let [mine-kw         (keyword mine)
          different-mine? (not= mine-kw (:current-mine db))
          not-home?       (not= (:active-panel db) :home-panel)
-         in-registry?    (contains? (:registry db) mine-kw)
          in-mines?       (contains? (:mines db) mine-kw)
-         mine-m          (get-in db [:registry mine-kw])
+         registry-mine   (get-in db [:registry mine-kw])
+         conf-mine       (get-in db [:env :mines mine-kw])
          active-flow?    (some? (:boot-flow db))]
      (if different-mine?
        (cond-> {:db (assoc db
@@ -149,11 +151,9 @@
                 ;; Switching mine always involves a reboot.
                 :dispatch-n [[:messages/clear]
                              [:reboot]]}
-         ;; This does not run for the `:default` mine, as it isn't part of the
-         ;; registry. This is good as we don't want to overwrite it anyways.
-         (and in-registry?
-              (not in-mines?)) (assoc-in [:db :mines mine-kw]
-                                         (read-registry-mine mine-m))
+         ;; Add mine if it's missing.
+         (not in-mines?) (assoc-in [:db :mines mine-kw]
+                                   (or conf-mine (read-registry-mine registry-mine)))
          ;; Switch to home page.
          not-home? (update :db assoc
                            :active-panel :home-panel

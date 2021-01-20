@@ -2,7 +2,8 @@
   (:require [re-frame.core :refer [reg-event-fx reg-event-db]]
             [bluegenes.components.tools.events :as tools]
             [bluegenes.effects :as fx]
-            [bluegenes.crud.tools :as tools-crud]))
+            [bluegenes.crud.tools :as tools-crud]
+            [bluegenes.config :refer [read-default-ns]]))
 
 (reg-event-fx
  ::init
@@ -78,7 +79,7 @@
       ::fx/http (update request :json-params assoc
                         ;; We don't use the current-mine, as the privilege
                         ;; check only runs on the configured default root.
-                        :service (select-keys (get-in db [:mines :default :service])
+                        :service (select-keys (get-in db [:mines (read-default-ns) :service])
                                               [:root :token]))})))
 
 (reg-event-db
