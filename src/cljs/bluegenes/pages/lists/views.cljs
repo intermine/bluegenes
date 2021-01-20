@@ -199,21 +199,21 @@
               [:a {:on-click #(dispatch [:lists/set-filter filter-name value])}
                label]]))]))
 
-(defn list-row-controls [{:keys [list-id authorized status name]}]
+(defn list-row-controls [{:keys [id authorized status name]}]
   [:<>
    (when (= status "TO_UPGRADE")
      [:a.btn
       {:href (route/href ::route/upgrade nil {:name name})}
       [icon "arrow-up"]])
    [:button.btn
-    {:on-click #(dispatch [:lists/open-modal :copy list-id])}
+    {:on-click #(dispatch [:lists/open-modal :copy id])}
     [icon "list-copy"]]
    [:button.btn
-    {:on-click #(dispatch [:lists/open-modal :edit list-id])
+    {:on-click #(dispatch [:lists/open-modal :edit id])
      :disabled (not authorized)}
     [icon "list-edit"]]
    [:button.btn
-    {:on-click #(dispatch [:lists/open-modal :delete list-id])
+    {:on-click #(dispatch [:lists/open-modal :delete id])
      :disabled (not authorized)}
     [icon "list-delete"]]])
 
