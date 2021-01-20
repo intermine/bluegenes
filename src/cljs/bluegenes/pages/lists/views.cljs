@@ -206,7 +206,8 @@
       {:href (route/href ::route/upgrade nil {:name name})}
       [icon "arrow-up"]])
    [:button.btn
-    {:on-click #(dispatch [:lists/open-modal :copy id])}
+    {:on-click #(dispatch [:lists/open-modal :copy id])
+     :disabled (= status "TO_UPGRADE")}
     [icon "list-copy"]]
    [:button.btn
     {:on-click #(dispatch [:lists/open-modal :edit id])
@@ -246,6 +247,7 @@
             [icon "folder-item"])]]]
        [:div.lists-col
         [:input {:type "checkbox"
+                 :disabled (= status "TO_UPGRADE")
                  :checked is-selected
                  :on-change #(dispatch [(if (oget % :target :checked)
                                           :lists/select-list
