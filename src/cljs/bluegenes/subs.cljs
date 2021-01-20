@@ -208,12 +208,16 @@
  (fn [[assets mine-keyword]]
    (get-in assets [:intermine-version mine-keyword])))
 
+;; Returned as number, due to mostly being used in comparisons for checking
+;; compatibility.
 (reg-sub
  :api-version
  :<- [:assets]
  :<- [:current-mine-name]
  (fn [[assets mine-keyword]]
-   (get-in assets [:web-service-version mine-keyword])))
+   (-> (get-in assets [:web-service-version mine-keyword])
+       (utils/version-string->vec)
+       (first))))
 
 (reg-sub
  :release-version
