@@ -12,7 +12,7 @@
 
 (defn mine-intro []
   (let [mine-name @(subscribe [:current-mine-human-name])
-        description @(subscribe [:registry/description])]
+        description @(subscribe [:current-mine/description])]
     [:div.row.section.mine-intro
      [:div.col-xs-10.col-xs-offset-1
       [:h2.text-center.text-uppercase.mine-name mine-name]
@@ -142,14 +142,22 @@
      [:span (or name "default")]
      [icon "plus" nil [:pull-right]]]))
 
+(defn get-mine-ns
+  "Return the mine namespace as a keyword.
+  Handles both mines from the registry and config."
+  [mine]
+  (if (contains? mine :namespace)
+    (keyword (:namespace mine))
+    (:id mine)))
+
 (defn mine-selector-preview []
   (let [{:keys [description name] :as preview-mine} @(subscribe [:home/preview-mine])
-        mine-ns (-> preview-mine :namespace keyword)]
+        mine-ns (get-mine-ns preview-mine)]
     [:div.col-xs-10.col-xs-offset-1.col-sm-offset-0.col-sm-3.mine-preview
      {:style {:color (get-fg-color preview-mine)
               :background-color (get-bg-color preview-mine)}}
      [:h4.text-center name]
-     [:p description]
+     (md-paragraph description)
      [:div.preview-image
       [mine-icon preview-mine :class "img-responsive"]]
      [:button.btn.btn-block
@@ -161,8 +169,8 @@
       (str "Switch to " name)]]))
 
 (defn mine-selector []
-  (let [registry-mines @(subscribe [:home/mines-by-neighbourhood])
-        active-ns (-> @(subscribe [:home/preview-mine]) :namespace keyword)]
+  (let [mines @(subscribe [:home/mines-by-neighbourhood])
+        active-ns (get-mine-ns @(subscribe [:home/preview-mine]))]
     [:div.row.section
      [:div.col-xs-12
       [:h2.text-center.text-uppercase "InterMine for all"]]
@@ -171,7 +179,7 @@
       [:div.row.mine-selector-body
        [:div.col-xs-12.col-sm-9.mine-selector-entries
         [:div.row
-         (for [mine registry-mines]
+         (for [mine mines]
            ^{:key (key mine)}
            [mine-selector-entry mine :active? (= active-ns (key mine))])]]
        [mine-selector-preview]]]]))

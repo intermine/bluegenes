@@ -26,7 +26,7 @@
         short-version     (nth (re-matches #"v?([0-9\.]+)-.*" version/release) 1 "dev")
         ;; Note that the following versions can be nil when switching mines.
         intermine-version (some-> @(subscribe [:version]) pretty-version)
-        api-version       (some-> @(subscribe [:api-version]) pretty-version)
+        api-version       @(subscribe [:api-version])
         release-version   (when-let [v @(subscribe [:release-version])]
                             (nth (re-find #"\"(.*)\"" v) 1 (str/trim v)))]
     [:footer.footer

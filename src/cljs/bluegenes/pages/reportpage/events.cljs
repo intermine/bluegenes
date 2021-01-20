@@ -8,8 +8,7 @@
             [bluegenes.route :as route]
             [goog.dom :as gdom]
             [oops.core :refer [oget ocall]]
-            [bluegenes.utils :refer [rows->maps]]
-            [bluegenes.interceptors :refer [origin]]))
+            [bluegenes.utils :refer [rows->maps]]))
 
 (reg-event-fx
  :fetch-fasta
@@ -218,27 +217,24 @@
 
 (reg-event-fx
  ::generate-permanent-url
- (fn [{db :db} [_]]
-   (let [object-id (get-in db [:panel-params :id])
-         service (get-in db [:mines (:current-mine db) :service])]
-     {:db (assoc-in db [:report :share] nil)
-      :im-chan {:chan (fetch/permanent-url service object-id)
-                :on-success [::show-permanent-url]
-                :on-failure [::show-permanent-url-error]}})))
+ (fn [{db :db} [_ api-version]]
+   (if (>= api-version 30)
+     (let [{:keys [id type]} (:panel-params db)
+           service (get-in db [:mines (:current-mine db) :service])
+           ?options (when (= api-version 30)
+                      {:type type})]
+       {:db (assoc-in db [:report :share] nil)
+        :im-chan {:chan (fetch/permanent-url service id ?options)
+                  :on-success [::show-permanent-url]
+                  :on-failure [::show-permanent-url-error]}})
+     {:dispatch [::show-permanent-url-error
+                 {:body {:error (str "This feature isn't supported on " (name (:current-mine db)) " due to using an InterMine API version below 30.")}}]})))
 
-(reg-event-fx
+(reg-event-db
  ::show-permanent-url
- [(origin)]
- (fn [{db :db origin :origin} [_ url]]
-   ;; url can't be an empty string; on-failure would be called instead.
-   (let [lookup-string (re-find #"[^/]+$" url)
-         ;; The webservice returns the JSP webapp URL. We only grab the last
-         ;; part of the URL and use that to build a BlueGenes permanent URL.
-         bluegenes-url
-         (str origin (js/decodeURIComponent ; href automatically URI encodes the ':' character.
-                      (route/href ::route/share {:lookup lookup-string})))]
-     {:db (assoc-in db [:report :share] {:status :success
-                                         :url bluegenes-url})})))
+ (fn [db [_ url]]
+   (assoc-in db [:report :share] {:status :success
+                                  :url url})))
 
 (reg-event-db
  ::show-permanent-url-error

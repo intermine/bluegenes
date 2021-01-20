@@ -20,3 +20,8 @@
  ::preferences
  (fn [db]
    (get-in db [:profile :preferences])))
+
+(reg-sub
+ ::api-key
+ (fn [db]
+   (get-in db [:profile :api-key])))

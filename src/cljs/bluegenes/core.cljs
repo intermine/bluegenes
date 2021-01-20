@@ -5,9 +5,9 @@
             [im-tables.core]
             [bluegenes.events]
             [bluegenes.subs]
-            [bluegenes.route :as route]
+            [bluegenes.route]
             [bluegenes.views :as views]
-            [bluegenes.config :as config]
+            [bluegenes.config]
             [bluegenes.pages.templates.core]
             [cljsjs.google-analytics]
             [cljsjs.react-transition-group]
@@ -25,7 +25,6 @@
 
 (defn mount-root []
   (re-frame/clear-subscription-cache!)
-  (route/init-routes!)
   (dom/render [views/main-panel]
               (ocall js/document "getElementById" "app"))
   ;; Development mode helper code snippet

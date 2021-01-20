@@ -10,16 +10,13 @@
             [oops.core :refer [oget oget+ ocall oset!]]
             [json-html.core :as json-html]
             [im-tables.views.core :as tables]
-            [cljs-time.format :as time-format]
-            [cljs-time.coerce :as time-coerce]
             [bluegenes.route :as route]
+            [bluegenes.time :as time]
             [bluegenes.components.tools.views :as tools]
             [bluegenes.components.viz.views :as viz]
             [bluegenes.components.icons :refer [icon]]
             [bluegenes.pages.lists.utils :refer [internal-tag?]]
             [bluegenes.pages.lists.views :refer [pretty-timestamp]]))
-
-(def custom-time-formatter (time-format/formatter "dd MMM, yy HH:mm"))
 
 (defn adjust-str-to-length [length string]
   (if (< length (count string)) (str (clojure.string/join (take (- length 3) string)) "...") string))
@@ -49,12 +46,12 @@
       [:div
        [:h3 [:i.fa.fa-clock-o] " Recent Queries"]
        (into [:ul.history-list]
-             (map (fn [[title {:keys [source value last-executed display-title]}]]
+             (map (fn [[title {:keys [source value display-title] :as query}]]
                     [:li.history-item
                      {:class (when (= title @current-query) "active")
                       :on-click #(dispatch [::route/navigate ::route/results {:title title}])}
                      [:div.title (or display-title title)]
-                     [:div.time (time-format/unparse custom-time-formatter (time-coerce/from-long last-executed))]])
+                     [:div.time (time/format-query query)]])
                   @historical-queries))])))
 
 #_(defn description-input
@@ -115,7 +112,12 @@
 (defn back-button []
   (let [intent @(subscribe [:results/intent])]
     [:button.btn.btn-link.back-button
-     {:on-click #(dispatch [::route/go-back])}
+     {:on-click #(dispatch (case intent
+                             :query [::route/navigate ::route/querybuilder]
+                             :search [::route/navigate ::route/search]
+                             :list [::route/navigate ::route/lists]
+                             :template [::route/navigate ::route/templates]
+                             [::route/go-back]))}
      [icon "chevron-left"]
      (str "Back to "
           (case intent

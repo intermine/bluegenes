@@ -6,7 +6,10 @@
             [bluegenes.components.progress_bar :as progress-bar]
             [bluegenes.route :as route]
             [bluegenes.components.ui.inputs :refer [password-input]]
-            [bluegenes.components.icons :refer [icon-comp]]))
+            [bluegenes.components.icons :refer [icon-comp]]
+            [bluegenes.time :as time]
+            [clojure.string :as str]
+            [bluegenes.config :refer [read-default-ns]]))
 
 (def ^:const logo-path "/model/images/logo.png")
 
@@ -186,32 +189,41 @@
   "Output a single mine in the mine picker"
   [mine-key details & {:keys [current?]}]
   [:li
-   {:title (:description details)}
+   (when-let [desc (not-empty (:description details))]
+     {:title desc})
    [:a (if current?
          {:class "current"}
          {:href (route/href ::route/home {:mine mine-key})})
     [mine-icon details]
     (str (:name details)
-         (when (= mine-key :default)
+         (when (= mine-key (read-default-ns))
            " (default)"))]])
 
 (defn mine-picker []
-  (let [current-mine-name     @(subscribe [:current-mine-name])
-        current-mine          @(subscribe [:current-mine])
-        registry-with-default @(subscribe [:registry-with-default])]
+  (let [current-mine-name @(subscribe [:current-mine-name])
+        current-mine @(subscribe [:current-mine])
+        registry @(subscribe [:registry-wo-configured-mines])
+        configured-mines @(subscribe [:env/mines])]
     [:li.minename.mine-settings.dropdown.primary-nav
      [:a.dropdown-toggle {:data-toggle "dropdown" :role "button"}
       [active-mine-logo current-mine]
       [:span.hidden-xs (:name current-mine)]
       [:svg.icon.icon-caret-down [:use {:xlinkHref "#icon-caret-down"}]]]
      (into [:ul.dropdown-menu.mine-picker]
-           (map (fn [[mine-key details]]
-                  ^{:key mine-key}
-                  [mine-entry mine-key details
-                   :current? (= mine-key current-mine-name)])
-                (sort-by (comp :name val) registry-with-default)))]))
+           (concat (map (fn [[mine-key details]]
+                          ^{:key mine-key}
+                          [mine-entry mine-key details
+                           :current? (= mine-key current-mine-name)])
+                        (sort-by (comp :name val) configured-mines))
+                   (when (seq registry)
+                     [[:li.header [:h4 "Registry mines"]]])
+                   (map (fn [[mine-key details]]
+                          ^{:key mine-key}
+                          [mine-entry mine-key details
+                           :current? (= mine-key current-mine-name)])
+                        (sort-by (comp :name val) registry))))]))
 
-(def queries-to-show 10)
+(def queries-to-show 5)
 
 (defn nav-buttons [classes & {:keys [large-screen?]}]
   [:<>
@@ -247,14 +259,22 @@
        ;; This has the same height as the *visible* icon, so it ensures the icon
        ;; in the middle is centered.
        [icon-comp "caret-down" :classes [:invisible]]
-       [icon-comp "document-list" :enlarge 2]
+       [:span "Activity"]
        [icon-comp "caret-down"]]
-      (into [:ul.dropdown-menu.results-dropdown]
+      (into [:ul.dropdown-menu.results-dropdown.list-group
+             [:li.list-group-item.results-heading
+              [:div.list-group-item-content
+               [:h4.list-group-item-heading "Recent activity"]]]]
             (let [queries @(subscribe [:results/historical-queries])]
-              (for [[title {:keys [display-title]}] (take queries-to-show queries)]
-                [:li
-                 [:a {:on-click #(dispatch [::route/navigate ::route/results {:title title}])}
-                  (or display-title title)]])))])
+              (for [[title {:keys [display-title intent] :as query}] (take queries-to-show queries)]
+                [:li.list-group-item
+                 [:a.list-group-item-content
+                  {:on-click #(dispatch [::route/navigate ::route/results {:title title}])}
+                  [:div.list-group-item-heading (or display-title title)]
+                  [:div.list-group-item-text
+                   (time/format-query query)
+                   (when intent
+                     (str " - " (-> intent name str/capitalize)))]]])))])
    [:li.primary-nav.hidden-md.hidden-lg
     {:class (classes :search-panel large-screen?)}
     [:a {:href (route/href ::route/search)}
