@@ -154,12 +154,22 @@
          query-changed? (not= query (get-in db [:components :template-chooser :previously-ran]))
          new-db (update-in db [:components :template-chooser] assoc
                            :preview-chan count-chan
-
                            :previously-ran query)]
      (cond-> {:db new-db}
-       query-changed? (assoc-in [:db :components :template-chooser :fetching-preview?] true)
-       query-changed? (assoc :im-chan {:chan count-chan
-                                       :on-success [:template-chooser/store-results-preview]})))))
+       query-changed? (-> (update-in [:db :components :template-chooser] assoc
+                                     :fetching-preview? true
+                                     :preview-error nil)
+                          (assoc :im-chan {:chan count-chan
+                                           :on-success [:template-chooser/store-results-preview]
+                                           :on-failure [:template-chooser/fetch-preview-failure]}))))))
+
+(reg-event-db
+ :template-chooser/fetch-preview-failure
+ (fn [db [_ res]]
+   (update-in db [:components :template-chooser] assoc
+              :fetching-preview? false
+              :preview-error (or (get-in res [:body :error])
+                                 "Error occurred when running template."))))
 
 (reg-fx
  :template-chooser/pipe-count

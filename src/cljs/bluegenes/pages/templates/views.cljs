@@ -35,11 +35,14 @@
 
 (defn preview-results
   "Preview results of template as configured by the user or default config"
-  [results-preview fetching-preview]
-  (let [fetching-preview? (subscribe [:template-chooser/fetching-preview?])
-        results-preview (subscribe [:template-chooser/results-preview])
-        loading? (or @fetching-preview? (nil? @results-preview))
-        results-count (:iTotalRecords @results-preview)]
+  []
+  (let [fetching-preview? @(subscribe [:template-chooser/fetching-preview?])
+        results-preview @(subscribe [:template-chooser/results-preview])
+        preview-error @(subscribe [:template-chooser/preview-error])
+        loading? (if preview-error
+                   false
+                   (or fetching-preview? (nil? results-preview)))
+        results-count (:iTotalRecords results-preview)]
     [:div.col-xs-8.preview
      [:div.preview-header
       [:h4 "Results Preview"]
@@ -47,17 +50,19 @@
         [:div.preview-header-loader
          [mini-loader "tiny"]])]
      [:div.preview-table-container
-      [preview-table
-       :query-results @results-preview
-       :loading? loading?]]
+      (cond
+        preview-error [:div
+                       [:pre.well.text-danger preview-error]]
+        :else [preview-table
+               :query-results results-preview
+               :loading? loading?])]
      [:div.btn-group
       [:button.btn.btn-primary.btn-raised.view-results
        {:type "button"
-        :disabled (zero? results-count)
         :on-click (fn [] (dispatch [:templates/send-off-query]))}
        (cond
          loading? "Loading"
-         (zero? results-count) "No Results"
+         (or preview-error (zero? results-count)) "Open in results page"
          :else (str "View "
                     results-count
                     (if (> results-count 1) " rows" " row")))]

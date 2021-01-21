@@ -30,6 +30,11 @@
    (get-in db [:components :template-chooser :results-preview])))
 
 (reg-sub
+ :template-chooser/preview-error
+ (fn [db]
+   (get-in db [:components :template-chooser :preview-error])))
+
+(reg-sub
  :template-chooser/counting?
  (fn [db]
    (get-in db [:components :template-chooser :counting?])))
