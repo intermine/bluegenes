@@ -120,11 +120,6 @@
    (get category->templates category)))
 
 (reg-sub
- :selected-template-name
- (fn [db _]
-   (-> db :components :template-chooser :selected-template :name)))
-
-(reg-sub
  :template-chooser/model
  (fn [db _]
    (:model (:assets db))))
@@ -133,6 +128,11 @@
  :selected-template
  (fn [db _]
    (get-in db [:components :template-chooser :selected-template])))
+
+(reg-sub
+ :selected-template-name
+ (fn [db _]
+   (get-in db [:components :template-chooser :selected-template-name])))
 
 (reg-sub
  :selected-template-category

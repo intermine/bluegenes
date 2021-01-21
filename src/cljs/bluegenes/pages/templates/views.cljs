@@ -82,10 +82,11 @@
 
 (defn select-template-settings
   "UI component to allow users to select template details, e.g. select a list to be in, lookup value greater than, less than, etc."
-  [selected-template]
-  (let [service @(subscribe [:selected-template-service])
+  []
+  (let [selected-template @(subscribe [:selected-template])
+        service @(subscribe [:selected-template-service])
         lists @(subscribe [:current-lists])
-        all-constraints (:where @selected-template)
+        all-constraints (:where selected-template)
         model (assoc (:model service) :type-constraints all-constraints)]
     [:div.col-xs-4.border-right
      (into [:div.form]
@@ -146,34 +147,33 @@
 
 (defn template
   "UI element for a single template."
-  []
-  (let [selected-template (subscribe [:selected-template])]
-    (fn [[id query]]
-      (let [title (:title query)
-            selected? (= (name id) (:name @selected-template))]
-        [:div.grid-1
-         [:div.col.ani.template
-          {:class (when selected? "selected")
-           :id (name id)
-           :on-click #(when (not selected?)
-                        (dispatch [::route/navigate ::route/template {:template (name id)}]))}
-          (into [:h4]
-                (if (ascii-arrows title)
-                  (ascii->svg-arrows title)
-                  [[:span title]]))
-          [:div.description
-           {:dangerouslySetInnerHTML {:__html (:description query)}}]
-          (when selected?
-            [:div.body
-             [select-template-settings selected-template]
-             [preview-results]])
-          (if selected?
-            [:button.view
-             {:on-click #(dispatch [::route/navigate ::route/templates])}
-             "Close <<"]
-            [:button.view
-             "View >>"])
-          [tags (:tags query)]]]))))
+  [[id query]]
+  (let [title (:title query)
+        selected-template-name @(subscribe [:selected-template-name])
+        selected? (= id selected-template-name)]
+    [:div.grid-1
+     [:div.col.ani.template
+      {:class (when selected? "selected")
+       :id (name id)
+       :on-click #(when (not selected?)
+                    (dispatch [::route/navigate ::route/template {:template (name id)}]))}
+      (into [:h4]
+            (if (ascii-arrows title)
+              (ascii->svg-arrows title)
+              [[:span title]]))
+      [:div.description
+       {:dangerouslySetInnerHTML {:__html (:description query)}}]
+      (when selected?
+        [:div.body
+         [select-template-settings]
+         [preview-results]])
+      (if selected?
+        [:button.view
+         {:on-click #(dispatch [::route/navigate ::route/templates])}
+         "Close <<"]
+        [:button.view
+         "View >>"])
+      [tags (:tags query)]]]))
 
 (defn templates
   "Outputs all the templates that match the user's chosen filters."
