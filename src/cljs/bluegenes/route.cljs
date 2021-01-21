@@ -7,7 +7,8 @@
             [reitit.frontend :as rf]
             [reitit.frontend.controllers :as rfc]
             [reitit.frontend.easy :as rfe]
-            [bluegenes.config :refer [read-default-ns]]))
+            [bluegenes.config :refer [read-default-ns]]
+            [clojure.string :as str]))
 
 ;; # Quickstart guide:
 ;; (aka. I just want to route something but don't want to read all this code!)
@@ -299,8 +300,20 @@
   ;; - Handle actual navigation.
   (if new-match
     (dispatch [::navigated new-match])
-    ;; We end up here when the URL path is empty.
-    (dispatch [::navigate ::home {:mine (name (read-default-ns))}])))
+    ;; We end up here when there are no matches (empty or invalid path).
+    ;; This does not apply when the path references a nonexistent mine.
+    (let [paths (str/split (.. js/window -location -pathname) #"/")
+          target-mine (-> paths
+                          (second)
+                          (or (name (read-default-ns))))]
+      (dispatch [::navigate ::home {:mine target-mine}])
+      (when (> (count paths) 2)
+        (dispatch [:messages/add
+                   {:markup [:span "You have been redirected to the home page as the path "
+                             [:em (->> paths (drop 2) (str/join "/"))]
+                             " could not be resolved."]
+                    :style "warning"
+                    :timeout 0}])))))
 
 (def router
   (rf/router
