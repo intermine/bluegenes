@@ -4,6 +4,10 @@ describe("Registration Tests", function () {
     cy.contains("LOGIN").click();
     cy.get("form").contains("Create new account").click();
 
+    // Without this wait, cypress could get the element *before* the form
+    // changes, then complain that it no longer exists when trying to type.
+    cy.wait(200);
+
     cy.server();
     cy.route("POST", "/api/auth/register").as("auth");
   });
