@@ -470,10 +470,10 @@
          updated-constraint (cond-> (constraint/clear-constraint-value old-constraint constraint)
                               add-code? (assoc :code (next-available-const-code (get-in db [:qb :enhance-query])))
                               remove-code? (dissoc :code))]
-       (cond-> db
-         updated-constraint (assoc-in constraint-path updated-constraint)
-         add-code? (update-in [:qb :constraint-logic] append-code (symbol (:code updated-constraint)))
-         remove-code? (update-in [:qb :constraint-logic] remove-code (symbol (:code constraint)))))))
+     (cond-> db
+       updated-constraint (assoc-in constraint-path updated-constraint)
+       add-code? (update-in [:qb :constraint-logic] append-code (symbol (:code updated-constraint)))
+       remove-code? (update-in [:qb :constraint-logic] remove-code (symbol (:code constraint)))))))
 
 (reg-event-db
  :qb/enhance-query-clear-query
