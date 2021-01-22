@@ -41,7 +41,7 @@
         preview-error @(subscribe [:template-chooser/preview-error])
         loading? (if preview-error
                    false
-                   (or fetching-preview? (nil? results-preview)))
+                   fetching-preview?)
         results-count (:iTotalRecords results-preview)]
     [:div.col-xs-8.preview
      [:div.preview-header
@@ -62,7 +62,8 @@
         :on-click (fn [] (dispatch [:templates/send-off-query]))}
        (cond
          loading? "Loading"
-         (or preview-error (zero? results-count)) "Open in results page"
+         (or preview-error
+             (< results-count 1)) "Open in results page"
          :else (str "View "
                     results-count
                     (if (> results-count 1) " rows" " row")))]
