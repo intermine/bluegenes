@@ -67,9 +67,28 @@
                  :applies-to #{"java.lang.String" "java.lang.Boolean" "java.lang.Integer" "java.lang.Double" "java.lang.Float" "java.util.Date"}
                  :no-value? true}])
 
+;; Helpers that are used externally.
+
 (def operators-no-value
   "Set of operators that don't require a value."
   (set (map :op (filter :no-value? operators))))
+
+(defn satisfied-constraint?
+  "Returns true if the passed constraint has the argument required by the operator, else false."
+  [{:keys [value values type op] :as _constraint}]
+  (or (contains? operators-no-value op)
+      (and (some? op) (or (some? value) (some? values)))
+      (and (nil? op) (some? type))))
+
+(defn list-op? [op]
+  (contains? #{"IN" "NOT IN"} op))
+
+(defn clear-constraint-value
+  "If operator changes between list and non-list, clear value."
+  [{old-op :op :as _old-constraint} {new-op :op :as constraint}]
+  (case [(list-op? old-op) (list-op? new-op)]
+    ([true false] [false true]) (assoc constraint :value nil)
+    constraint))
 
 ; Make NodeList javascript objects seqable (can be used with map / reduce etc)
 (extend-type js/NodeList

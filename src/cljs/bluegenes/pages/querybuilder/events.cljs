@@ -309,8 +309,7 @@
   ([[k {:keys [constraints] :as properties}] trail total-constraints]
    (let [next-trail (into [] (conj trail k))
          next-constraints (reduce (fn [total next]
-                                    ; Only collect constraints with a code!
-                                    (if (:code next)
+                                    (if (and (:code next) (constraint/satisfied-constraint? next))
                                       (conj total (assoc next :path (join "." next-trail)))
                                       total))
                                   total-constraints constraints)]
@@ -473,15 +472,15 @@
          remove-code? (and (blank? (:value constraint))
                            (blank? (:values constraint))
                            (not (contains? constraint/operators-no-value (:op constraint)))
-                           (:code constraint))]
-     (let [updated-constraint
-           (cond-> constraint
-             add-code? (assoc :code (next-available-const-code (get-in db [:qb :enhance-query])))
-             remove-code? (dissoc :code))]
+                           (:code constraint))
+         old-constraint (get-in db (concat [:qb :enhance-query] path [:constraints idx]))
+         updated-constraint (cond-> (constraint/clear-constraint-value old-constraint constraint)
+                              add-code? (assoc :code (next-available-const-code (get-in db [:qb :enhance-query])))
+                              remove-code? (dissoc :code))]
        (cond-> db
-         updated-constraint (update-in [:qb :enhance-query] assoc-in (reduce conj path [:constraints idx]) updated-constraint)
+         updated-constraint (assoc-in (concat [:qb :enhance-query] path [:constraints idx]) updated-constraint)
          add-code? (update-in [:qb :constraint-logic] append-code (symbol (:code updated-constraint)))
-         remove-code? (update-in [:qb :constraint-logic] remove-code (symbol (:code constraint))))))))
+         remove-code? (update-in [:qb :constraint-logic] remove-code (symbol (:code constraint)))))))
 
 (reg-event-db
  :qb/enhance-query-clear-query
