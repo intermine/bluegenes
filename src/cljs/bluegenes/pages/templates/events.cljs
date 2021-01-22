@@ -4,7 +4,8 @@
             [re-frame.events]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
             [imcljs.fetch :as fetch]
-            [bluegenes.route :as route]))
+            [bluegenes.route :as route]
+            [bluegenes.components.ui.constraint :as constraint]))
 
 ;; This effect handler is used from routes and has different behaviour
 ;; depending on if it's called from a different panel, or the template panel.
@@ -92,39 +93,40 @@
     :dispatch-n [[::route/navigate ::route/querybuilder]
                  [:qb/load-query (remove-switchedoff-constraints (get-in db [:components :template-chooser :selected-template]))]]}))
 
-(defn one-of? [col value] (some? (some #{value} col)))
-(defn should-update? [old-op new-op]
-  (or
-   (and
-    (one-of? ["IN" "NOT IN"] old-op)
-    (one-of? ["IN" "NOT IN"] new-op))
-   (and (not (one-of? ["IN" "NOT IN"] old-op)) (not (one-of? ["IN" "NOT IN"] new-op)))))
+(defn satisfied-constraint?
+  "Returns true if the passed constraint has the argument required by the operator, else false."
+  [{:keys [value values type op] :as _constraint}]
+  (or (contains? constraint/operators-no-value op)
+      (and (some? op) (or (some? value) (some? values)))
+      (and (nil? op) (some? type))))
+
+(defn list-op? [op]
+  (contains? #{"IN" "NOT IN"} op))
+
+(defn clear-constraint-value
+  "If operator changes between list and non-list, clear value."
+  [{old-op :op :as _old-constraint} {new-op :op :as constraint}]
+  (case [(list-op? old-op) (list-op? new-op)]
+    ([true false] [false true]) (assoc constraint :value nil)
+    constraint))
 
 (reg-event-fx
  :template-chooser/replace-constraint
- (fn [{db :db} [_ index new-constraint]]
+ (fn [{db :db} [_ index {new-op :op :as new-constraint}]]
    (let [constraint-location [:components :template-chooser :selected-template :where index]
-         old-constraint (get-in db constraint-location)]
-      ; Only fetch the query results if the operator hasn't change from a LIST to a VALUE or vice versa
-     (if (should-update? (:op old-constraint) (:op new-constraint))
-       {:db (assoc-in db constraint-location new-constraint)}
-         ;:dispatch-n [[:template-chooser/run-count]
-         ;             [:template-chooser/fetch-preview]]
-
-       {:db (-> db
-                (assoc-in constraint-location (assoc new-constraint :value nil))
-                (assoc-in [:components :template-chooser :results-preview] nil))}))))
+         {old-op :op :as old-constraint} (get-in db constraint-location)]
+     {:db (-> db
+              (assoc-in constraint-location (clear-constraint-value old-constraint new-constraint))
+              (cond->
+               (not= old-op new-op) (assoc-in [:components :template-chooser :results-preview] nil)))})))
 
 (reg-event-fx
  :template-chooser/update-preview
- (fn [{db :db} [_ index new-constraint]]
-
-   (let [constraint-location [:components :template-chooser :selected-template :where index]
-         old-constraint (get-in db constraint-location)]
-      ; Only fetch the query results if the operator hasn't change from a LIST to a VALUE or vice versa
-     {:db db
-      :dispatch-n [[:template-chooser/run-count]
-                   [:template-chooser/fetch-preview]]})))
+ (fn [{db :db} [_ _index new-constraint]]
+   (if (satisfied-constraint? new-constraint)
+     {:dispatch-n [[:template-chooser/run-count]
+                   [:template-chooser/fetch-preview]]}
+     {:db (assoc-in db [:components :template-chooser :results-preview] nil)})))
 
 (reg-event-db
  :template-chooser/update-count
@@ -154,12 +156,22 @@
          query-changed? (not= query (get-in db [:components :template-chooser :previously-ran]))
          new-db (update-in db [:components :template-chooser] assoc
                            :preview-chan count-chan
-
                            :previously-ran query)]
      (cond-> {:db new-db}
-       query-changed? (assoc-in [:db :components :template-chooser :fetching-preview?] true)
-       query-changed? (assoc :im-chan {:chan count-chan
-                                       :on-success [:template-chooser/store-results-preview]})))))
+       query-changed? (-> (update-in [:db :components :template-chooser] assoc
+                                     :fetching-preview? true
+                                     :preview-error nil)
+                          (assoc :im-chan {:chan count-chan
+                                           :on-success [:template-chooser/store-results-preview]
+                                           :on-failure [:template-chooser/fetch-preview-failure]}))))))
+
+(reg-event-db
+ :template-chooser/fetch-preview-failure
+ (fn [db [_ res]]
+   (update-in db [:components :template-chooser] assoc
+              :fetching-preview? false
+              :preview-error (or (get-in res [:body :error])
+                                 "Error occurred when running template."))))
 
 (reg-fx
  :template-chooser/pipe-count
