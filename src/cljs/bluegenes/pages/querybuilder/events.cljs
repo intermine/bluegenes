@@ -12,7 +12,8 @@
             [clojure.string :as str :refer [join split blank? starts-with?]]
             [bluegenes.utils :refer [read-xml-query dissoc-in]]
             [oops.core :refer [oget]]
-            [clojure.walk :refer [postwalk]]))
+            [clojure.walk :refer [postwalk]]
+            [bluegenes.components.ui.constraint :as constraint]))
 
 (reg-event-fx
  ::load-querybuilder
@@ -465,8 +466,14 @@
 (reg-event-db
  :qb/enhance-query-update-constraint
  (fn [db [_ path idx constraint]]
-   (let [add-code? (and (blank? (:code constraint)) (or (not-blank? (:value constraint)) (not-blank? (:values constraint))))
-         remove-code? (and (blank? (:value constraint)) (blank? (:values constraint)) (:code constraint))]
+   (let [add-code? (and (blank? (:code constraint))
+                        (or (not-blank? (:value constraint))
+                            (not-blank? (:values constraint))
+                            (contains? constraint/operators-no-value (:op constraint))))
+         remove-code? (and (blank? (:value constraint))
+                           (blank? (:values constraint))
+                           (not (contains? constraint/operators-no-value (:op constraint)))
+                           (:code constraint))]
      (let [updated-constraint
            (cond-> constraint
              add-code? (assoc :code (next-available-const-code (get-in db [:qb :enhance-query])))
