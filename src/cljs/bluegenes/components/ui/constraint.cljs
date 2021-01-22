@@ -73,12 +73,14 @@
   "Set of operators that don't require a value."
   (set (map :op (filter :no-value? operators))))
 
+(def not-blank? (complement blank?))
+
 (defn satisfied-constraint?
   "Returns true if the passed constraint has the argument required by the operator, else false."
   [{:keys [value values type op] :as _constraint}]
   (or (contains? operators-no-value op)
-      (and (some? op) (or (some? value) (some? values)))
-      (and (nil? op) (some? type))))
+      (and (not-blank? op) (or (not-blank? value) (not-blank? values)))
+      (and (nil? op) (not-blank? type))))
 
 (defn list-op? [op]
   (contains? #{"IN" "NOT IN"} op))

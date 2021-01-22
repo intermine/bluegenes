@@ -21,8 +21,6 @@
    {:dispatch-n [[:qb/fetch-saved-queries]
                  [:qb/clear-import-result]]}))
 
-(def not-blank? (complement blank?))
-
 (defn drop-nth
   "remove elem in coll"
   [coll pos]
@@ -309,7 +307,7 @@
   ([[k {:keys [constraints] :as properties}] trail total-constraints]
    (let [next-trail (into [] (conj trail k))
          next-constraints (reduce (fn [total next]
-                                    (if (and (:code next) (constraint/satisfied-constraint? next))
+                                    (if (constraint/satisfied-constraint? next)
                                       (conj total (assoc next :path (join "." next-trail)))
                                       total))
                                   total-constraints constraints)]
@@ -460,25 +458,20 @@
       :dispatch [:qb/enhance-query-build-im-query true]})))
 ;:dispatch [:qb/build-im-query]
 
-;; Having both `:value` and `:values` keys makes this bug-prone. If we find we need
-;; to refactor this, we should merge it into a single polymorphic `:value` key.
 (reg-event-db
  :qb/enhance-query-update-constraint
  (fn [db [_ path idx constraint]]
    (let [add-code? (and (blank? (:code constraint))
-                        (or (not-blank? (:value constraint))
-                            (not-blank? (:values constraint))
-                            (contains? constraint/operators-no-value (:op constraint))))
-         remove-code? (and (blank? (:value constraint))
-                           (blank? (:values constraint))
-                           (not (contains? constraint/operators-no-value (:op constraint)))
-                           (:code constraint))
-         old-constraint (get-in db (concat [:qb :enhance-query] path [:constraints idx]))
+                        (constraint/satisfied-constraint? constraint))
+         remove-code? (and (not (blank? (:code constraint)))
+                           (not (constraint/satisfied-constraint? constraint)))
+         constraint-path (concat [:qb :enhance-query] path [:constraints idx])
+         old-constraint (get-in db constraint-path)
          updated-constraint (cond-> (constraint/clear-constraint-value old-constraint constraint)
                               add-code? (assoc :code (next-available-const-code (get-in db [:qb :enhance-query])))
                               remove-code? (dissoc :code))]
        (cond-> db
-         updated-constraint (assoc-in (concat [:qb :enhance-query] path [:constraints idx]) updated-constraint)
+         updated-constraint (assoc-in constraint-path updated-constraint)
          add-code? (update-in [:qb :constraint-logic] append-code (symbol (:code updated-constraint)))
          remove-code? (update-in [:qb :constraint-logic] remove-code (symbol (:code constraint)))))))
 
