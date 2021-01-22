@@ -45,9 +45,10 @@
   []
   (let [text-filter-atom (reagent/atom nil)]
     (fn [& {:keys [value lists restrict-type on-change disabled]}]
-      (let [type-filter    (partial has-type? restrict-type)
+      (let [status-filter  #(= "CURRENT" (:status %))
+            type-filter    (partial has-type? restrict-type)
             text-filter    (partial has-text? @text-filter-atom)
-            suitable-lists (filter type-filter lists)
+            suitable-lists (filter (every-pred status-filter type-filter) lists)
             filtered-lists (filter text-filter suitable-lists)]
         [:div.dropdown.list-dropdown
          [:button.btn.btn-raised.btn-default.dropdown-toggle
