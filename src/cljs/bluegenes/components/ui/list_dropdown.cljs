@@ -25,7 +25,7 @@
           (map (fn [{:keys [name title size]}]
                  [:li
                   {:on-click (partial on-change name)}
-                  [:a [:span title] [:span.size (str " (" size ")")]]])) lists)))
+                  [:a [:span.list-selection title] [:span.size (str " (" size ")")]]])) lists)))
 
 (defn text-filter-form []
   (fn [text-filter-atom]
