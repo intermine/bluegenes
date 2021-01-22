@@ -53,7 +53,11 @@
          [:button.btn.btn-raised.btn-default.dropdown-toggle
           {:disabled disabled
            :data-toggle "dropdown"}
-          (str (or value "Choose a list") " ") [:span.caret]]
+          [:span.list-name
+           (when value
+             {:title value})
+           (or value "Choose a list")]
+          [:span.caret]]
          [:div.dropdown-menu.dropdown-mixed-content
           (if (seq suitable-lists)
             [:div.container-fluid
