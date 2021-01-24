@@ -9,7 +9,7 @@
 | GOOGLE_ANALYTICS | Google Analytics tracking ID | nil |
 | JWT_SECRET | Secret for signing JSON Web Tokens | nil |
 | BLUEGENES_DEFAULT_SERVICE_ROOT | InterMine service that is default | https://alpha.flymine.org/alpha/ |
-| BLUEGENES_DEFAULT_MINE_NAME | Optional default mine name to display until it gets fetched | FlyMine |
+| BLUEGENES_DEFAULT_MINE_NAME | Optional default mine name to be displayed until it gets fetched | FlyMine |
 | BLUEGENES_TOOL_PATH | Server directory where BlueGenes tools are installed | ./tools |
 
 ## How to configure
