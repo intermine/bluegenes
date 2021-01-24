@@ -1,5 +1,3 @@
-
-
 ## For more details about writing tools, see:
 
 - [tool admin/installation guide](tools.md)
