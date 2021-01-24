@@ -1,12 +1,12 @@
 # Local build
 
-Start by installing the dependencies in [System Requirements](/docs/building.md#system-requirements), then [Download NPM dependencies](/docs/building.md#download-npm-dependencies) and finally run the command in [Running a dev environment](/docs/building.md#running-a-dev-environment). For more information, refer to the rest of this document or the [FAQ](/docs/useful-faqs.md).
+Start by installing the dependencies in [System Requirements](/docs/building.md#system-requirements), then [Download NPM dependencies](/docs/building.md#download-npm-dependencies) and finally, run the command in [Running a dev environment](/docs/building.md#running-a-dev-environment). For more information, refer to the rest of this document or the [FAQ](/docs/useful-faqs.md).
 
 ## System Requirements
 
 * Java 8-11 (we recommend [OpenJDK](https://adoptopenjdk.net/))
 * Latest [Leiningen](https://leiningen.org/)
-* Latest supported [nodejs](https://nodejs.org/).  You can check your version using `node -v`). We recommend installing node using [nvm](https://github.com/creationix/nvm)
+* Latest supported [nodejs](https://nodejs.org/). You can check your version using `node -v`. We recommend installing node using [nvm](https://github.com/creationix/nvm)
 * Latest supported [npm](https://www.npmjs.com/)
 
 ## Download NPM dependencies
@@ -15,7 +15,7 @@ Start by installing the dependencies in [System Requirements](/docs/building.md#
 
 ## Quickstart
 
-These commands are explained in more depth below, but if you know what you want here's a quick reference of the most useful ones.
+These commands are explained in more depth below, but if you know what you want, here's a quick reference of the most useful ones.
 
     lein dev         # start dev server with hot-reloading
     lein repl        # start dev server with hot-reloading and nrepl (no clean or css)
@@ -32,13 +32,13 @@ You can start a complete developer environment with automatic compilation of Les
 
     lein dev
 
-However, all the output will be thrown into one terminal. If you wish to keep the processes separate, you can start them each individually by following the instructions below.
+However, all the output will be thrown into one terminal. If you wish to keep the processes separate, you can start them individually by following the instructions below.
 
 ### Compile the CSS
 
 We use [less](http://lesscss.org/) to write our styles.
 
-You can compile the Less sources to CSS with the below command:
+You can compile the Less sources to CSS with the command below:
 
     lein less
 
@@ -46,21 +46,19 @@ It will run in watch mode, recompiling the CSS after every change until you exit
 
 ### Make Leiningen reload code changes in the browser
 
-
     lein figwheel dev
 
 Note: if you use `lein run` or any alias calling it like `dev` or `repl`, Figwheel will be started automatically.
 
 ### Start the web server
 
-If you have OpenJDK 8:
+If you have OpenJDK 8, run this command:
 
     lein with-profile +dev run
 
-If you have OpenJDK 9:
+If you have OpenJDK 9, run this command:
 
     lein with-profile +java9 figwheel
-
 
 By default, the web server will be started on http://localhost:5000/. To change this value, edit the corresponding `config.edn`.
 
@@ -101,14 +99,14 @@ Cypress also has a really useful interface for debugging failing tests:
 
 ## Testing a minified instance before deploying:
 
-Most of the time, we develop with uncompressed files - it's faster for hot reloads. But for production, we want things to be extra fast on load and we don't hot-reload changes, so it's better to present minified files that have had all un-necessary code stripped. Clojure uses Google Closure tools (yes, Clojure uses Closure) to minify things.
+Most of the time, we develop with uncompressed files since it's faster for hot reloads. But for production, we want things to be extra fast on load and we don't hot-reload changes, so it's better to present minified files that have had all un-necessary code stripped. Clojure uses Google Closure tools (yes, Clojure uses Closure) to minify things.
 
-Sometimes the Closure compiler is overzealous and removes something we actually wanted to keep. To check what your work looks like in a minified build, run this in the terminal (I'd recommend closing any existing lein run / lein figwheel sessions first).
+Sometimes the Closure compiler is overzealous and removes something we actually want to keep. To check what your work looks like in a minified build, run this in the terminal (I'd recommend closing any existing lein run / lein figwheel sessions first).
 
     lein with-profile prod cljsbuild once min
     lein with-profile prod run
 
-There is also a shortcut that in addition cleans and compiles CSS.
+There is also a shortcut that in addition, cleans and compiles CSS.
 
     lein prod
 
@@ -144,12 +142,12 @@ Once dokku is configured on your remote host, you'll need to add your public key
     git remote add dokku dokku@your-host:bluegenes
     git push dokku master
 
-If you want to deploy a different branch, you can use `git push dokku dev:master` (replace *dev* with the branch you wish to deploy from).
+If you want to deploy a different branch, you can use `git push dokku dev:master` (replace *dev* with the branch you wish to deploy from) instead.
 
 #### Deploying docker images to dokku instance
 
 You can also deploy docker images that you build locally, to the dokku instance. This is useful since it's much quicker and avoids the extra load on the dokku server from building.
-Make sure `youruser` on `dokku-server` is part of the `docker` group. This allows you to stream the file, instead of manually transferring it through ssh.
+Make sure `youruser` on `dokku-server` is part of the `docker` group. This allows you to stream the file instead of manually transferring it through ssh.
 
 ```
 lein uberjar
@@ -159,7 +157,7 @@ ssh youruser@dokku-server
 sudo dokku tags:deploy appname v1
 ```
 
-Note that the tag `v1` needs to be unique for each deployment. It is common to use a version string and increment it for each deployment (might may not necessarily correspond with version releases). See the [dokku documentation](http://dokku.viewdocs.io/dokku/deployment/methods/images/#deploying-an-image-from-ci) for more information.
+Note that the tag `v1` needs to be unique for each deployment. It is common to use a version string and increment it for each deployment (might not necessarily correspond with version releases). See the [dokku documentation](http://dokku.viewdocs.io/dokku/deployment/methods/images/#deploying-an-image-from-ci) for more information.
 
 ### Uberjar
 
@@ -169,11 +167,11 @@ To compile and package BlueGenes into an executable jar, run the following comma
 
     lein uberjar
 
-Then, to start the application, execute the jar and pass in a [`config.edn` file](/docs/configuring.md):
+Then, to start the application, execute the jar and pass in a [`config.edn` file](/docs/configuring.md) like so:
 
     java -jar -Dconfig="config/prod/config.edn" target/bluegenes.jar
 
-(For security reasons, the `config.edn` file used to execute the jar can be located anywhere, including your home directory.)
+For security reasons, the `config.edn` file used to execute the jar can be located anywhere, including your home directory.
 
 
 ### Launching your uberjar with InterMine
@@ -187,7 +185,7 @@ By default, it launches the latest BlueGenes release from Clojars. If you want t
 
 Official BlueGenes releases can be deployed to [Clojars](https://clojars.org/), under the [org.intermine Clojars organisation](https://clojars.org/groups/org.intermine).
 
-When deploying BlueGenes to Clojars, the JAR file should include all compiled assets: this includes JavaScript, less, and vendor libraries. This allows other projects to include BlueGenes as a dependency and deploy the client and server without needing to compile BlueGenes.
+When deploying BlueGenes to Clojars, the JAR file should include all compiled assets. This includes JavaScript, less, and vendor libraries. This allows other projects to include BlueGenes as a dependency and deploy the client and server without needing to compile BlueGenes.
 
 To deploy a compiled JAR to Clojars, simply use the `deploy` alias which automatically includes the `uberjar` profile and targets Clojars.
 
@@ -198,20 +196,20 @@ To deploy a compiled JAR to Clojars, simply use the `deploy` alias which automat
 The release process is a combination of the above commands, with some additional steps. Generally, you'll want to do the following.
 
 1. Update the version number in **project.clj**.
-1. Commit this change and tag it using `git tag -a v1.0.0 -m "Release v1.0.0"`, replacing *1.0.0* with your version number.
-1. Push your commit and tag using `git push origin` followed by `git push origin v1.0.0` (again replace *1.0.0* with your version number). Make sure that you push to the intermine repository, not just your fork!
-1. Deploy a new uberjar to Clojars with `lein deploy`.
-1. Push a new docker image to dockerhub.
+2. Commit this change and tag it using `git tag -a v1.0.0 -m "Release v1.0.0"`, replacing *1.0.0* with your version number.
+3. Push your commit and tag it using `git push origin` followed by `git push origin v1.0.0` (again, replace *1.0.0* with your version number). Make sure that you push to the intermine repository, not just your fork!
+4. Deploy a new uberjar to Clojars with `lein deploy`.
+5. Push a new docker image to dockerhub.
     1. `lein uberjar`
-    1. `docker build -t bluegenes .`
-    1. `docker tag bluegenes intermine/bluegenes:latest`
-    1. `docker tag bluegenes intermine/bluegenes:1.0.0` (remember to use your correct version number)
-    1. `docker push intermine/bluegenes`
-1. Deploy the latest release to dokku with `git push dokku dev:master`.
+    2. `docker build -t bluegenes .`
+    3. `docker tag bluegenes intermine/bluegenes:latest`
+    4. `docker tag bluegenes intermine/bluegenes:1.0.0` (remember to use your correct version number)
+    5. `docker push intermine/bluegenes`
+6. Deploy the latest release to dokku with `git push dokku dev:master`.
 
 # Troubleshooting
 
-1. When things get weird, you might consider clearing both your browser's and BlueGene's cache data. To clear BlueGenes', click on the cog in the top right, then "developer". There should be a big blue button that clears local storage.
+1. When things get weird, you might consider clearing both your browser's and BlueGene's cache data. To clear BlueGenes', click on the cog at the top right, then "developer". There should be a big blue button that clears local storage.
 2. Verify what branch you have checked out. `dev` is our main development branch, whereas `master` is our production branch.
 3. Verify that the InterMine web services ("InterMines") you are using are running the latest InterMine release. You will find a list of InterMines and their current version under the key `intermine_version` in the [InterMine registry](http://registry.intermine.org/service/instances). The changelog for InterMine release versions is [available on GitHub](https://github.com/intermine/intermine/releases).
 4. Remember that you can always change which InterMine you're using in BlueGenes by using the cog (top right).
