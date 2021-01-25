@@ -87,15 +87,13 @@ Open up src/index.js and take a quick look. There's a lot of dummy / example cod
 
 You can read more about the arguments for this method in the [tool API docs](tool-api.md). In this tutorial, we'll use these args:
 
-- `service` provides the URL and token for communicating with a mine,
-- `imEntity` provides the details of the report page we're looking at - i.e. it might be that the tool is being passed the objectid of a gene, or the accession of a protein...
-- `el` - the id of the html element we can attach any text / visualisations to.
+- `service` provides the URL and token for communicating with a mine.
+- `imEntity` provides the details of the report page we're looking at i.e. it might be that the tool is being passed the objectid of a gene, or the accession of a protein.
+- `el` is the id of the html element we can attach any text / visualisations to.
 
-Let's write some code. Remember the query we looked up, earlier? We want to use
-imjs to load the query results and then display them on the page. Let's copy the
- query into index.js and print the results to the console to see if it works like we hoped.
+Let's write some code. Remember the query we looked up earlier? We want to use imjs to load the query results and then display them on the page. Let's copy the query into index.js and print the results to the console to see if it works like we hoped.
 
- Here's my first pass at index.js, deleting all the boilerplate and logging my query to the console:
+Here's my first pass at index.js, deleting all the boilerplate and logging my query to the console:
 
 ```javascript
 //make sure to export main, with the signature
@@ -130,7 +128,7 @@ export function main (el, service, imEntity, state, config) {
 Note the use of `imEntity` to form the query. You might be wondering where this data is coming from.
 When you're using BlueGenes, it'll be passed automatically from BlueGenes to your tool. Since we're just working in standalone mode at the minute, hop over to demo.html instead to see what's being passed over as arguments. You can tweak the `dataToInitialiseToolWith` variable to make sure it reflects sample data you want to work with. You can also change the mine URL if needed!
 
-Set your `dataToInitialiseToolWith` variable in demo.html to look like this. You may need to tweak the id depending on which InterMine you are using. (To get an id in a JSP-based InterMine, go to a report page and grab it from the URL. The url in the code snippet below came from this report page: [http://www.humanmine.org/humanmine/report.do?id=1276963](http://www.humanmine.org/humanmine/report.do?id=1276963))
+Set your `dataToInitialiseToolWith` variable in demo.html to look like below. You may need to tweak the id depending on which InterMine you are using. (To get an id in a JSP-based InterMine, go to a report page and grab it from the URL. The url in the code snippet below came from this report page: [http://www.humanmine.org/humanmine/report.do?id=1276963](http://www.humanmine.org/humanmine/report.do?id=1276963))
 
 ```javascript
 dataToInitialiseToolWith = {
@@ -146,8 +144,7 @@ dataToInitialiseToolWith = {
 
 Okay, now that we have our sample data set up and some code, let's test if it works!
 
-In your console, you'll need to bundle your js file. To do so, run `npm run build`. You should notice that we now have a folder called `dist` which contains a file: `bundle.js`. How can we inspect to see if it is working or not? Well, we've included a handy little server for just this purpose! To test it out, run `npm run dev` and then navigate to
-[http://localhost:3456](http://localhost:3456). If everything went well, you should see a white screen, and your query results logged to the [javascript console](https://www.digitalocean.com/community/tutorials/how-to-use-the-javascript-developer-console). Great! It should look roughly like this:
+In your console, you'll need to bundle your js file. To do so, run `npm run build`. You should notice that we now have a folder called `dist` which contains the file `bundle.js`. How can we inspect to see if it is working or not? Well, we've included a handy little server for just this purpose! To test it out, run `npm run dev` and then navigate to [http://localhost:3456](http://localhost:3456). If everything went well, you should see a white screen, and your query results logged to the [javascript console](https://www.digitalocean.com/community/tutorials/how-to-use-the-javascript-developer-console). Great! It should look roughly like this:
 
 ![output of console log, showing an array of GO terms associated with the Gene we searched for.](img/console-log-preview-tutorial.png)
 
@@ -299,7 +296,7 @@ We've added a few minimal style rules here to show the GO terms in a column layo
 }
 ```
 
-In order for the less to affect the page, we need to compile it into CSS. In your console, run
+In order for the less to affect the page, we need to compile it into CSS. In your console, run:
 
 ```bash
 npm run less
@@ -309,7 +306,7 @@ Now, if you refresh your demo.html page, you should see the new css applied! You
 
 ### Releasing your tool and using it in BlueGenes.
 
-At this point, you should have a basic functional tool that consumes InterMine data and looks nice when you visit http://localhost:3456 - well done! So you'll probably want to test it in BlueGenes now, right? You have two ways to do this:
+At this point, you should have a basic functional tool that consumes InterMine data and looks nice when you visit http://localhost:3456. Well done! You'll probably want to test it in BlueGenes now, right? You have two ways to do this:
 
 - for tools under development, like this one, the easiest thing to do is [use npm to install your new tool from its path](tools.md#development-tools) in the bluegenes tool folder.
 - for tools that are release ready (perhaps because you've tested them via the method above), you can [release the tool on npm](https://docs.npmjs.com/cli/publish). This will make the tool available for others. To install a tool that's released via NPM, see our [installing published tools guide](tools.md#published-tools).
