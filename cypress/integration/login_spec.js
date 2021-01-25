@@ -19,6 +19,8 @@ describe("Authentication Tests", function() {
 		});
 
     cy.getCookie("ring-session").should('exist');
+
+    cy.wait(500);
     cy.get(".logon.dropdown").click();
     cy.get(".logon.dropdown").contains("test_user@mail_account").should('be.visible');
     cy.get(".logon.dropdown").contains('Logout').click();

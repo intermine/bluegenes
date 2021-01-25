@@ -93,37 +93,20 @@
     :dispatch-n [[::route/navigate ::route/querybuilder]
                  [:qb/load-query (remove-switchedoff-constraints (get-in db [:components :template-chooser :selected-template]))]]}))
 
-(defn satisfied-constraint?
-  "Returns true if the passed constraint has the argument required by the operator, else false."
-  [{:keys [value values type op] :as _constraint}]
-  (or (contains? constraint/operators-no-value op)
-      (and (some? op) (or (some? value) (some? values)))
-      (and (nil? op) (some? type))))
-
-(defn list-op? [op]
-  (contains? #{"IN" "NOT IN"} op))
-
-(defn clear-constraint-value
-  "If operator changes between list and non-list, clear value."
-  [{old-op :op :as _old-constraint} {new-op :op :as constraint}]
-  (case [(list-op? old-op) (list-op? new-op)]
-    ([true false] [false true]) (assoc constraint :value nil)
-    constraint))
-
 (reg-event-fx
  :template-chooser/replace-constraint
  (fn [{db :db} [_ index {new-op :op :as new-constraint}]]
    (let [constraint-location [:components :template-chooser :selected-template :where index]
          {old-op :op :as old-constraint} (get-in db constraint-location)]
      {:db (-> db
-              (assoc-in constraint-location (clear-constraint-value old-constraint new-constraint))
+              (assoc-in constraint-location (constraint/clear-constraint-value old-constraint new-constraint))
               (cond->
                (not= old-op new-op) (assoc-in [:components :template-chooser :results-preview] nil)))})))
 
 (reg-event-fx
  :template-chooser/update-preview
  (fn [{db :db} [_ _index new-constraint]]
-   (if (satisfied-constraint? new-constraint)
+   (if (constraint/satisfied-constraint? new-constraint)
      {:dispatch-n [[:template-chooser/run-count]
                    [:template-chooser/fetch-preview]]}
      {:db (assoc-in db [:components :template-chooser :results-preview] nil)})))
