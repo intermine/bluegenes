@@ -2,7 +2,8 @@
   (:require [hiccup.page :refer [include-js include-css html5]]
             [config.core :refer [env]]
             [cheshire.core :refer [generate-string]]
-            [bluegenes.utils :as utils]))
+            [bluegenes.utils :as utils]
+            [imcljs.fetch :as im-fetch]))
 
 ;; Hello dear maker of the internet. You want to edit *this* file for prod,
 ;; NOT resources/public/index.html.
@@ -26,8 +27,10 @@
 
 (defn head
   ([]
-   (head nil))
+   (head nil {}))
   ([init-vars]
+   (head init-vars {}))
+  ([init-vars options]
    [:head
     loader-style
     css-compiling-style
@@ -63,7 +66,14 @@
               :src "https://code.jquery.com/jquery-3.1.0.min.js"}]
     [:script {:crossorigin "anonymous"
               :src "https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"}]
-    [:script {:src "https://apis.google.com/js/api.js"}]]))
+    [:script {:src "https://apis.google.com/js/api.js"}]
+    (when-let [semantic-markup-type (:semantic-markup options)]
+      (let [service {:root (get-in options [:mine :root])}]
+        [:script {:type "application/ld+json"}
+         (generate-string
+           (case semantic-markup-type
+             :home (im-fetch/semantic-markup service "homepage")
+             :report (im-fetch/semantic-markup service "reportpage" {:id (:object-id options)})))]))]))
 
 (defn loader []
   [:div#wrappy
@@ -88,10 +98,12 @@
 (defn index
   "Hiccup markup that generates the landing page and loads the necessary assets."
   ([]
-   (index nil))
+   (index nil {}))
   ([init-vars]
+   (index init-vars {}))
+  ([init-vars options]
    (html5
-    (head init-vars)
+    (head init-vars options)
     [:body
      (css-compiler)
      (loader)
