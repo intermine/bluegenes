@@ -13,89 +13,89 @@
 ; These are what appear in a constraint drop down in order. Each map contains:
 ;  :op         - The syntax found in InterMine Query Language
 ;  :label      - A more friendly version to display to users
-;  :applies-to - The Java type that represents the field in InterMine
+;  :applies-to - The Java types that represents the field in InterMine
 (def operators [{:op "LOOKUP"
                  :label "Lookup"
-                 :applies-to [nil]}
+                 :applies-to #{nil}}
                 {:op "IN"
                  :label "In list"
-                 :applies-to [nil]}
+                 :applies-to #{nil}}
                 {:op "NOT IN"
                  :label "Not in list"
-                 :applies-to [nil]}
+                 :applies-to #{nil}}
                 {:op "="
                  :label "="
-                 :applies-to ["java.lang.String" "java.lang.Boolean" "java.lang.Integer" "java.lang.Double" "java.lang.Float" "java.util.Date"]}
+                 :applies-to #{"java.lang.String" "java.lang.Boolean" "java.lang.Integer" "java.lang.Double" "java.lang.Float" "java.util.Date"}}
                 {:op "!="
                  :label "!="
-                 :applies-to ["java.lang.String" "java.lang.Boolean" "java.lang.Integer" "java.lang.Double" "java.lang.Float" "java.util.Date"]}
-                {:op "CONTAINS"
-                 :label "Contains"
-                 :applies-to ["java.lang.String"]}
+                 :applies-to #{"java.lang.String" "java.lang.Boolean" "java.lang.Integer" "java.lang.Double" "java.lang.Float" "java.util.Date"}}
                 {:op "<"
                  :label "<"
-                 :applies-to ["java.lang.Integer" "java.lang.Double" "java.lang.Float" "java.util.Date"]}
+                 :applies-to #{"java.lang.Integer" "java.lang.Double" "java.lang.Float" "java.util.Date"}}
                 {:op "<="
                  :label "<="
-                 :applies-to ["java.lang.Integer" "java.lang.Double" "java.lang.Float" "java.util.Date"]}
+                 :applies-to #{"java.lang.Integer" "java.lang.Double" "java.lang.Float" "java.util.Date"}}
                 {:op ">"
                  :label ">"
-                 :applies-to ["java.lang.Integer" "java.lang.Double" "java.lang.Float" "java.util.Date"]}
+                 :applies-to #{"java.lang.Integer" "java.lang.Double" "java.lang.Float" "java.util.Date"}}
                 {:op ">="
                  :label ">="
-                 :applies-to ["java.lang.Integer" "java.lang.Double" "java.lang.Float" "java.util.Date"]}
+                 :applies-to #{"java.lang.Integer" "java.lang.Double" "java.lang.Float" "java.util.Date"}}
+                {:op "CONTAINS"
+                 :label "Contains"
+                 :applies-to #{"java.lang.String"}}
                 {:op "LIKE"
                  :label "Like"
-                 :applies-to ["java.lang.String"]}
+                 :applies-to #{"java.lang.String"}}
                 {:op "NOT LIKE"
                  :label "Not like"
-                 :applies-to ["java.lang.String"]}
+                 :applies-to #{"java.lang.String"}}
                 {:op "ONE OF"
                  :label "One of"
-                 :applies-to ["java.lang.String"]}
+                 :applies-to #{"java.lang.String"}
+                 :multiple-values? true}
                 {:op "NONE OF"
                  :label "None of"
-                 :applies-to ["java.lang.String"]}])
+                 :applies-to #{"java.lang.String"}
+                 :multiple-values? true}
+                {:op "IS NULL"
+                 :label "Null"
+                 :applies-to #{"java.lang.String" "java.lang.Boolean" "java.lang.Integer" "java.lang.Double" "java.lang.Float" "java.util.Date"}
+                 :no-value? true}
+                {:op "IS NOT NULL"
+                 :label "Not null"
+                 :applies-to #{"java.lang.String" "java.lang.Boolean" "java.lang.Integer" "java.lang.Double" "java.lang.Float" "java.util.Date"}
+                 :no-value? true}])
 
-(defn applies-to?
-  "Given a field type (ex java.lang.Double) return all constraint maps that support that type"
-  [type op]
-  (some true? (map (partial = type) (:applies-to op))))
+;; Helpers that are used externally.
 
-(defn constraint-label
-  "Return the label for a given operator.
-  This looks a little complicated because we want our constraints to have order
-  so we need to filter the collection, get the first constraint map (they should all be unique anyway)
-  then gets its label"
-  [op]
-  (:label (first (filter #(= op (:op %)) operators))))
+(def operators-no-value
+  "Set of operators that don't require a value."
+  (set (map :op (filter :no-value? operators))))
 
-(defn has-text?
-  "Return true v contains a string"
-  [string v]
-  (if string
-    (if v
-      (re-find (re-pattern (str "(?i)" string)) v)
-      false)
-    true))
+(def not-blank? (complement blank?))
 
-(defn has-three-matching-letters?
-  "Return true if v contains a string and that string is 3 or more characters.
-  (Silly but it speeds up text filtering)"
-  [string v]
-  (if (and string (>= (count string) 3))
-    (if v
-      (re-find (re-pattern (str "(?i)" string)) v)
-      false)
-    false))
+(defn satisfied-constraint?
+  "Returns true if the passed constraint has the argument required by the operator, else false."
+  [{:keys [value values type op] :as _constraint}]
+  (or (contains? operators-no-value op)
+      (and (not-blank? op) (or (not-blank? value) (not-blank? values)))
+      (and (nil? op) (not-blank? type))))
+
+(defn list-op? [op]
+  (contains? #{"IN" "NOT IN"} op))
+
+(defn clear-constraint-value
+  "If operator changes between list and non-list, clear value."
+  [{old-op :op :as _old-constraint} {new-op :op :as constraint}]
+  (case [(list-op? old-op) (list-op? new-op)]
+    ([true false] [false true]) (assoc constraint :value nil)
+    constraint))
 
 ; Make NodeList javascript objects seqable (can be used with map / reduce etc)
 (extend-type js/NodeList
   ISeqable
   (-seq [array] (array-seq array 0)))
-
-(defn set-text-value [node value]
-  (when node (-> (sel1 node :input) (dommy/set-value! value))))
 
 (def fmt "yyyy-MM-dd")
 (def date-fmt (time-format/formatter fmt))
@@ -205,30 +205,28 @@
              _allow-possible-values possible-values disabled op on-select-list]
       :as props}]
   (cond
+    (operators-no-value op)
+    nil
+
     (= type "java.util.Date")
     [date-constraint-input props]
 
     (and (not= type "java.lang.Integer")
          typeahead?
          (seq? possible-values)
-         (or (= op "=")
-             (= op "!=")))
+         (#{"=" "!="} op))
     [select-constraint-input props]
 
-    (and (and typeahead? (seq? possible-values))
-         (or (= op "ONE OF")
-             (= op "NONE OF")))
+    (and typeahead?
+         (seq? possible-values)
+         (#{"ONE OF" "NONE OF"} op))
     [select-multiple-constraint-input props]
 
-    (or (= op "IN")
-        (= op "NOT IN"))
+    (#{"IN" "NOT IN"} op)
     [list-constraint-input props]
 
     :else
     [text-constraint-input props]))
-
-(defn one-of? [value col] (some? (some #{value} col)))
-(def not-one-of? (complement one-of?))
 
 (defn constraint-operator
   "Creates a dropdown for a query constraint.
@@ -249,14 +247,15 @@
               :value op
               :on-change (fn [e]
                            (let [new-op (oget e :target :value)]
-                             (if (and (one-of? new-op ["IN" "NOT IN"]) (not-one-of? op ["IN" "NOT IN"]))
+                             (if (and (contains? #{"IN" "NOT IN"} new-op)
+                                      (not (contains? #{"IN" "NOT IN"} op)))
                                (on-change (oget e :target :value))
                                ; Only fire the on-blur event when the operator has not changed from
                                ; a non-list operator to a list-operator.
                                ; Switching from "= Protein Domain" to "IN Protein Domain" doesn't make sense!
                                (on-blur (oget e :target :value)))))}]
             (as-> operators $
-              (filter (partial applies-to? (im-path/data-type model path)) $)
+              (filter #(contains? (:applies-to %) (im-path/data-type model path)) $)
               #_(cond->> $
                   disable-lists? (remove (comp #{"IN" "NOT IN"} :op)))
               (map (fn [{:keys [op label] :as operator}]
@@ -277,7 +276,7 @@
 (defn multi->single [v]
   (cond-> v (seq? v) first))
 
-(defn constraint [& {:keys [model path]}]
+(defn constraint
   "Creates a button group that represents a query constraint.
   :model      The Intermine model to use
   :path       The path of the constraint
@@ -287,8 +286,8 @@
   :on-change  A function to call with the new constraint
   :on-remove A function to call with the constraint is removed
   :label?     If true then include the path as a label
-  :hide-code?     If true then do not show the code letter
-  "
+  :hide-code?     If true then do not show the code letter"
+  [& {:keys [model path]}]
   (let [pv (subscribe [:current-possible-values path])]
     (create-class
      {:component-did-mount (fn []
@@ -348,54 +347,4 @@
                              (when on-remove
                                [:svg.icon.icon-bin
                                 {:on-click (fn [op] (on-remove {:path path :value value :op op}))}
-                                [:use {:xlinkHref "#icon-bin"}]])]]]
-                          #_[:div.constraint-component
-                             [:div.input-group.constraint-input
-                              [constraint-operator
-                               :model model
-                               :path path
-                               :disabled disabled
-                                ; Default to an OP if one has not been given
-                               :op op
-                               :lists lists
-                               :on-change (fn [op]
-                                            (if (or (= op "ONE OF") (= op "NONE OF"))
-                                              ((or on-change-operator on-change) {:code code :path path :values (single->multi value) :op op})
-                                              ((or on-change-operator on-change) {:code code :path path :value (multi->single value) :op op})))]
-                              [:div
-                               [:span.constraint-component-label label]
-                               (cond
-                                  ; If this is a LIST constraint then show a list dropdown
-                                 (or (= op "IN")
-                                     (= op "NOT IN")) [list-dropdown
-                                                       :value value
-                                                       :lists lists
-                                                       :disabled disabled
-                                                       :restrict-type (im-path/class model path)
-                                                       :on-change (fn [list]
-                                                                    ((or on-select-list on-change) {:path path :value list :code code :op op}))]
-                                  ; Otherwise show a text input
-                                 :else [constraint-input
-                                        :model model
-                                        :value value
-                                        :op op
-                                        :typeahead? typeahead?
-                                        :path path
-                                        :disabled disabled
-                                        :type (im-path/data-type model path)
-                                        :allow-possible-values (and (not= op "IN") (not= op "NOT IN"))
-                                        :possible-values @pv
-                                        :on-change (fn [val]
-                                                     (if (and (some? val) (or (= op "ONE OF") (= op "NONE OF")))
-                                                       (on-change {:path path :values val :op op :code code})
-                                                       (on-change {:path path :value val :op op :code code})))
-                                        :on-blur (fn [val]
-                                                   (if (and (some? val) (or (= op "ONE OF") (= op "NONE OF")))
-                                                     ((or on-blur on-change) {:path path :values val :op op :code code})
-                                                     ((or on-blur on-change) {:path path :value val :op op :code code})))])]
-                              (when (and code (not hide-code?)) [:span.constraint-label code])]
-                             (when on-remove
-
-                               [:svg.icon.icon-bin
-                                {:on-click (fn [op] (on-remove {:path path :value value :op op}))}
-                                [:use {:xlinkHref "#icon-bin"}]])]))})))
+                                [:use {:xlinkHref "#icon-bin"}]])]]]))})))

@@ -16,6 +16,7 @@
 
     .error-box {
         margin-top: @spacer;
+        margin-bottom: 0;
         animation: login-error-fadein 1s;
     }
 
@@ -28,27 +29,18 @@
     }
 
     a {
+        font-size: 1.2em;
         color: @body-foreground-color;
+
+        &.btn-block {
+            margin-top: @spacer;
+        }
     }
 
-    .register-or-login {
-        display: flex;
-        align-items: center;
-        justify-content: flex-end;
-
-        .mine-logo {
-            width: @spacer*2;
-            max-height: @spacer*2;
-            margin-right: @spacer/2;
-        }
-
-        .other-action {
-            margin-right: @spacer;
-        }
-
-        button {
-            margin-top: 0;
-        }
+    .mine-logo {
+        width: @spacer*2;
+        max-height: @spacer*2;
+        margin-right: @spacer/2;
     }
 }
 

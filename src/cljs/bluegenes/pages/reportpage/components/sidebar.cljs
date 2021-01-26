@@ -13,12 +13,13 @@
 
 (defn generate-permanent-url [collapsed?]
   (let [{:keys [status url error]} @(subscribe [::subs/share])
+        api-version @(subscribe [:api-version])
         input-ref* (atom nil)]
     [:li [:span.dropdown
           [:a.sidebar-action.dropdown-toggle
            {:data-toggle "dropdown"
             :role "button"
-            :on-click #(dispatch [::events/generate-permanent-url])}
+            :on-click #(dispatch [::events/generate-permanent-url api-version])}
            [icon-comp "price-tag"] "Copy permanent URL"]
           [:div.dropdown-menu
            {:class (when-not collapsed? :dropdown-menu-right)}

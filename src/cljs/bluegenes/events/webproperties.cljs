@@ -23,6 +23,7 @@
   "Map intermine web properties to bluegenes properties"
   [web-properties]
   {:name                         (get-in web-properties [:project :title])
+   :description                  (get-in web-properties [:project :subTitle])
    :default-organism             (get-in web-properties [:genomicRegionSearch :defaultOrganisms])
    ;;todo - set sane default programmatically or default to first.
    :default-selected-object-type (first (get-in web-properties [:genomicRegionSearch :defaultOrganisms]))

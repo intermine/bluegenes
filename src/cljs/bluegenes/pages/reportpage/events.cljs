@@ -217,13 +217,18 @@
 
 (reg-event-fx
  ::generate-permanent-url
- (fn [{db :db} [_]]
-   (let [object-id (get-in db [:panel-params :id])
-         service (get-in db [:mines (:current-mine db) :service])]
-     {:db (assoc-in db [:report :share] nil)
-      :im-chan {:chan (fetch/permanent-url service object-id)
-                :on-success [::show-permanent-url]
-                :on-failure [::show-permanent-url-error]}})))
+ (fn [{db :db} [_ api-version]]
+   (if (>= api-version 30)
+     (let [{:keys [id type]} (:panel-params db)
+           service (get-in db [:mines (:current-mine db) :service])
+           ?options (when (= api-version 30)
+                      {:type type})]
+       {:db (assoc-in db [:report :share] nil)
+        :im-chan {:chan (fetch/permanent-url service id ?options)
+                  :on-success [::show-permanent-url]
+                  :on-failure [::show-permanent-url-error]}})
+     {:dispatch [::show-permanent-url-error
+                 {:body {:error (str "This feature isn't supported on " (name (:current-mine db)) " due to using an InterMine API version below 30.")}}]})))
 
 (reg-event-db
  ::show-permanent-url

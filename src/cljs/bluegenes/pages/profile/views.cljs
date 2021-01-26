@@ -6,11 +6,10 @@
             [bluegenes.pages.profile.subs :as subs]
             [bluegenes.components.loader :refer [mini-loader]]
             [bluegenes.components.ui.inputs :refer [password-input]]
-            [bluegenes.version :refer [proper-login-support]]
-            [bluegenes.utils :refer [version-string->vec]]))
+            [bluegenes.version :refer [proper-login-support]]))
 
 (defn generate-api-key []
-  (let [bg-uses-api-key? (-> @(subscribe [:api-version]) version-string->vec first (< proper-login-support))
+  (let [bg-uses-api-key? (< @(subscribe [:api-version]) proper-login-support)
         response @(subscribe [::subs/responses :generate-api-key])]
     [:div.settings-group
      [:h3 "API access key"]

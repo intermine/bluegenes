@@ -19,6 +19,7 @@
             [bluegenes.pages.profile.views :as profile]
             [bluegenes.pages.admin.views :as admin]
             [bluegenes.pages.tools.view :as tools]
+            [bluegenes.pages.resetpassword.views :as resetpassword]
             [bluegenes.components.loader :as loader]
             [bluegenes.error :refer [error-boundary]]))
 
@@ -26,21 +27,21 @@
 
 (defn show-panel [panel-name]
   [(case panel-name
-     :home-panel         home/main
-     :admin-panel        admin/main
-     :profile-panel      profile/main
-     :debug-panel        dev/debug-panel
-     :tools-panel        tools/main
-     :templates-panel    templates/main
-     :reportpage-panel   reportpage/main
-     :upload-panel       upload/main
-     :upgrade-panel      upgrade/main
-     :search-panel       search/main
-     :results-panel      results/main
-     :regions-panel      regions/main
-     :lists-panel        lists/main
-     :querybuilder-panel qb/main
-     home/main)])
+     :home-panel           home/main
+     :admin-panel          admin/main
+     :profile-panel        profile/main
+     :debug-panel          dev/debug-panel
+     :tools-panel          tools/main
+     :templates-panel      templates/main
+     :reportpage-panel     reportpage/main
+     :upload-panel         upload/main
+     :upgrade-panel        upgrade/main
+     :search-panel         search/main
+     :results-panel        results/main
+     :regions-panel        regions/main
+     :lists-panel          lists/main
+     :querybuilder-panel   qb/main
+     :reset-password-panel resetpassword/main)])
 
 (defn main-panel []
   (let [active-panel (subscribe [:active-panel])
@@ -48,12 +49,16 @@
         text-color (subscribe [:branding/header-text])]
     (fn []
       [error-boundary
-       [:div.approot
-        {:style {"--branding-header-main" @main-color
-                 "--branding-header-text" @text-color}}
-        [loader/mine-loader]
-        [icons/icons]
-        [nav/main]
-        [:main [show-panel @active-panel]]
-        [footer/main]
-        [alerts/main]]])))
+       ;; We don't start the router until later, which causes any internal
+       ;; links rendered to throw. There's also no point rendering as a loader
+       ;; will cover all of this.
+       (when (some? @active-panel)
+         [:div.approot
+          {:style {"--branding-header-main" @main-color
+                   "--branding-header-text" @text-color}}
+          [loader/mine-loader]
+          [icons/icons]
+          [nav/main]
+          [:main [show-panel @active-panel]]
+          [footer/main]
+          [alerts/main]])])))

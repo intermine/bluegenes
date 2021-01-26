@@ -119,7 +119,6 @@
                     padding: 0.6 * @spacer 0.8*@spacer;
                     box-sizing: border-box;
                 }
-                li,
                 li a {
                     .transitions;
                     background: @body-background-color;
@@ -149,6 +148,15 @@
                 li a.current {
                     background-color: @active-entry-color;
                     font-weight: bold;
+                }
+                li.header {
+                    padding: 0.2*@spacer 0.8*@spacer;
+                    background-color: #ddd;
+
+                    h4 {
+                        text-align: left;
+                        font-size: 1.2em;
+                    }
                 }
             }
         }

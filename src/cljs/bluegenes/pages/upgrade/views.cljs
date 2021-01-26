@@ -22,9 +22,12 @@
                           [:h3.upgrade-header
                            [:span "Failed to resolve identifiers for: "]
                            [:span.list-name upgrade-list]]
-                          [:code (if-let [err (not-empty (get-in resolution-error [:body :error]))]
-                                   err
-                                   "Please check your connection and try again later.")]]
+                          [:code (if (= resolution-error "")
+                                   ;; It's weird, but really the only way to check for missing web service as older versions will redirect to webapp.
+                                   "This mine doesn't support upgrading lists from BlueGenes. Please contact the maintainers to update their InterMine version, or upgrade the list from the legacy webapp instead."
+                                   (if-let [err (not-empty (get-in resolution-error [:body :error]))]
+                                     err
+                                     "Please check your connection and try again later."))]]
         (nil? resolution-response) [:div.wizard-body
                                     [:div.wizard-loader [loader "IDENTIFIERS"]]]
         :else [:div.wizard-body
