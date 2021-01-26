@@ -55,3 +55,18 @@
             :name (:bluegenes-default-mine-name env)
             :namespace (:bluegenes-default-namespace env)}]
           (:bluegenes-additional-mines env)))
+
+(defn- timeout
+  [req]
+  (assoc req
+         :socket-timeout 3000
+         :connection-timeout 3000))
+
+(defn wrap-timeout
+  "Middleware which adds a short timeout to the request."
+  [client]
+  (fn
+    ([req]
+     (client (timeout req)))
+    ([req respond raise]
+     (client (timeout req) respond raise))))

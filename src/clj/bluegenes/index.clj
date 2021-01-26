@@ -1,9 +1,11 @@
 (ns bluegenes.index
   (:require [hiccup.page :refer [include-js include-css html5]]
+            [taoensso.timbre :as timbre :refer [warnf]]
             [config.core :refer [env]]
             [cheshire.core :refer [generate-string]]
             [bluegenes.utils :as utils]
-            [imcljs.fetch :as im-fetch]))
+            [imcljs.fetch :as im-fetch]
+            [clj-http.client :refer [with-middleware]]))
 
 ;; Hello dear maker of the internet. You want to edit *this* file for prod,
 ;; NOT resources/public/index.html.
@@ -71,9 +73,18 @@
       (let [service {:root (get-in options [:mine :root])}]
         [:script {:type "application/ld+json"}
          (generate-string
-           (case semantic-markup-type
-             :home (im-fetch/semantic-markup service "homepage")
-             :report (im-fetch/semantic-markup service "reportpage" {:id (:object-id options)})))]))]))
+           (try
+             ;; We won't be able to return the HTML before this finishes.
+             ;; wrap-request gives us the default middleware, to which we add
+             ;; wrap-timeout for a very short HTTP request timeout.
+             (with-middleware [#'clj-http.client/wrap-request
+                               #'utils/wrap-timeout]
+               (case semantic-markup-type
+                 :home (im-fetch/semantic-markup service "homepage")
+                 :report (im-fetch/semantic-markup service "reportpage" {:id (:object-id options)})))
+             (catch Exception e
+               (warnf "Failed to acquire semantic markup: %s" (pr-str (.getMessage e)))
+               nil)))]))]))
 
 (defn loader []
   [:div#wrappy
