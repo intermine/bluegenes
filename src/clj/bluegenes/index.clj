@@ -5,7 +5,8 @@
             [cheshire.core :refer [generate-string]]
             [bluegenes.utils :as utils]
             [imcljs.fetch :as im-fetch]
-            [clj-http.client :refer [with-middleware]]))
+            [clj-http.client :refer [with-middleware]]
+            [clojure.core.cache.wrapped :as cache]))
 
 ;; Hello dear maker of the internet. You want to edit *this* file for prod,
 ;; NOT resources/public/index.html.
@@ -26,6 +27,31 @@
 (def css-compiling-style
   [:style
    "#csscompiling{position:fixed;bottom:0;right:0;padding:20px;height:100px;width:400px;background-color:#FFA726;}"])
+
+(defonce smhp-cache
+  ^{:doc
+    "Semantic markup homepage cache. You'll have to restart BlueGenes to clear
+    this when updating the semantic markup (which should be a manual process and
+    happen rarely). If you're wondering why we're not using core.memoize instead,
+    it's because that doesn't handle exceptions well."}
+  (cache/lru-cache-factory {} :threshold 32))
+
+(defn fetch-semantic-markup
+  "Run an HTTP request to fetch semantic markup to be included with the HTML.
+  As this blocks the initial HTTP response, we use a cache and a short timeout."
+  [{:keys [semantic-markup object-id] {:keys [root]} :mine :as _options}]
+  (let [service {:root root}]
+    (try
+      (with-middleware [#'clj-http.client/wrap-request ; default middleware
+                        #'utils/wrap-timeout] ; very short request timeout
+        (case semantic-markup
+          :home (cache/lookup-or-miss smhp-cache service #(im-fetch/semantic-markup % "homepage"))
+          :report (im-fetch/semantic-markup service "reportpage" {:id object-id})))
+      (catch Exception e
+        (warnf "Failed to acquire semantic markup for %s: %s"
+               (str (name semantic-markup) object-id)
+               (pr-str (.getMessage e)))
+        nil))))
 
 (defn head
   ([]
@@ -69,22 +95,9 @@
     [:script {:crossorigin "anonymous"
               :src "https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"}]
     [:script {:src "https://apis.google.com/js/api.js"}]
-    (when-let [semantic-markup-type (:semantic-markup options)]
-      (let [service {:root (get-in options [:mine :root])}]
-        [:script {:type "application/ld+json"}
-         (generate-string
-           (try
-             ;; We won't be able to return the HTML before this finishes.
-             ;; wrap-request gives us the default middleware, to which we add
-             ;; wrap-timeout for a very short HTTP request timeout.
-             (with-middleware [#'clj-http.client/wrap-request
-                               #'utils/wrap-timeout]
-               (case semantic-markup-type
-                 :home (im-fetch/semantic-markup service "homepage")
-                 :report (im-fetch/semantic-markup service "reportpage" {:id (:object-id options)})))
-             (catch Exception e
-               (warnf "Failed to acquire semantic markup: %s" (pr-str (.getMessage e)))
-               nil)))]))]))
+    (when (:semantic-markup options)
+      [:script {:type "application/ld+json"}
+       (generate-string (fetch-semantic-markup options))])]))
 
 (defn loader []
   [:div#wrappy

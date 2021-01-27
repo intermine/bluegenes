@@ -12,6 +12,7 @@
                  [org.clojure/clojure "1.10.1"]
                  [org.clojure/clojurescript "1.10.520"]
                  [org.clojure/core.async "1.0.567"]
+                 [org.clojure/core.cache "0.8.2"]
 
                  ; MVC
                  [re-frame "0.12.0"]
