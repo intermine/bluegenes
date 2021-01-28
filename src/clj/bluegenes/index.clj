@@ -1,8 +1,12 @@
 (ns bluegenes.index
   (:require [hiccup.page :refer [include-js include-css html5]]
+            [taoensso.timbre :as timbre :refer [warnf]]
             [config.core :refer [env]]
             [cheshire.core :refer [generate-string]]
-            [bluegenes.utils :as utils]))
+            [bluegenes.utils :as utils]
+            [imcljs.fetch :as im-fetch]
+            [clj-http.client :refer [with-middleware]]
+            [clojure.core.cache.wrapped :as cache]))
 
 ;; Hello dear maker of the internet. You want to edit *this* file for prod,
 ;; NOT resources/public/index.html.
@@ -24,10 +28,37 @@
   [:style
    "#csscompiling{position:fixed;bottom:0;right:0;padding:20px;height:100px;width:400px;background-color:#FFA726;}"])
 
+(defonce smhp-cache
+  ^{:doc
+    "Semantic markup homepage cache. You'll have to restart BlueGenes to clear
+    this when updating the semantic markup (which should be a manual process and
+    happen rarely). If you're wondering why we're not using core.memoize instead,
+    it's because that doesn't handle exceptions well."}
+  (cache/lru-cache-factory {} :threshold 32))
+
+(defn fetch-semantic-markup
+  "Run an HTTP request to fetch semantic markup to be included with the HTML.
+  As this blocks the initial HTTP response, we use a cache and a short timeout."
+  [{:keys [semantic-markup object-id] {:keys [root]} :mine :as _options}]
+  (let [service {:root root}]
+    (try
+      (with-middleware [#'clj-http.client/wrap-request ; default middleware
+                        #'utils/wrap-timeout] ; very short request timeout
+        (case semantic-markup
+          :home (cache/lookup-or-miss smhp-cache service #(im-fetch/semantic-markup % "homepage"))
+          :report (im-fetch/semantic-markup service "reportpage" {:id object-id})))
+      (catch Exception e
+        (warnf "Failed to acquire semantic markup for %s: %s"
+               (str (name semantic-markup) object-id)
+               (pr-str (.getMessage e)))
+        nil))))
+
 (defn head
   ([]
-   (head nil))
+   (head nil {}))
   ([init-vars]
+   (head init-vars {}))
+  ([init-vars options]
    [:head
     loader-style
     css-compiling-style
@@ -63,7 +94,10 @@
               :src "https://code.jquery.com/jquery-3.1.0.min.js"}]
     [:script {:crossorigin "anonymous"
               :src "https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"}]
-    [:script {:src "https://apis.google.com/js/api.js"}]]))
+    [:script {:src "https://apis.google.com/js/api.js"}]
+    (when (:semantic-markup options)
+      [:script {:type "application/ld+json"}
+       (generate-string (fetch-semantic-markup options))])]))
 
 (defn loader []
   [:div#wrappy
@@ -88,10 +122,12 @@
 (defn index
   "Hiccup markup that generates the landing page and loads the necessary assets."
   ([]
-   (index nil))
+   (index nil {}))
   ([init-vars]
+   (index init-vars {}))
+  ([init-vars options]
    (html5
-    (head init-vars)
+    (head init-vars options)
     [:body
      (css-compiler)
      (loader)

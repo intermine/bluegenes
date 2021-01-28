@@ -6,34 +6,53 @@
             [bluegenes.ws.ids :as ids]
             [bluegenes.ws.rss :as rss]
             [bluegenes.ws.lookup :as lookup]
-            [bluegenes.index :as index]
-            [config.core :refer [env]]))
+            [bluegenes.index :refer [index]]
+            [config.core :refer [env]]
+            [bluegenes.utils :refer [env->mines]]))
+
+(defn with-init
+  "One of BlueGenes' web service could have added some data we want passed on
+  to the frontend to session.init, in which case we make sure to pass it on
+  and remove it (as it gets 'consumed') from the session."
+  [options {{:keys [init] :as session} :session}]
+  (-> (response (index init options))
+      (assoc :session (dissoc session :init))))
 
 ; Define the top level URL routes for the server
-(defroutes routes
-  ;;serve compiled files, i.e. js, css, from the resources folder
-  (resources "/")
+(def routes
+  (compojure/let-routes [mines (env->mines env)]
+    ;;serve compiled files, i.e. js, css, from the resources folder
+    (resources "/")
 
-  (GET "/version" [] (response {:version "0.1.0"}))
+    (GET "/version" [] (response {:version "0.1.0"}))
 
-  ; Anything within this route is the API web service:
-  (context "/api" []
-    (context "/auth" [] auth/routes)
-    (context "/ids" [] ids/routes)
-    (context "/rss" [] rss/routes))
+    ;; Anything within this context is the API web service.
+    (context "/api" []
+      (context "/auth" [] auth/routes)
+      (context "/ids" [] ids/routes)
+      (context "/rss" [] rss/routes))
 
-  (apply compojure/routes
-         (for [{mine-ns :namespace :as mine}
-               (concat [{:root (:bluegenes-default-service-root env)
-                         :name (:bluegenes-default-mine-name env)
-                         :namespace (:bluegenes-default-namespace env)}]
-                       (:bluegenes-additional-mines env))]
-           (context (str "/" mine-ns) []
-             (GET ["/:lookup" :lookup #"[^:/.]+:[^:/.]+"] [lookup] (lookup/ws lookup mine)))))
+    ;; Dynamic routes for handling permanent URL resolution on configured mines.
+    (apply compojure/routes
+           (for [{mine-ns :namespace :as mine} mines]
+             (context (str "/" mine-ns) []
+               (GET ["/:lookup" :lookup #"[^:/.]+:[^:/.]+"] [lookup]
+                 (lookup/ws lookup mine)))))
 
-  ;; One of BlueGenes' web service could have added some data we want passed on
-  ;; to the frontend to session.init, in which case we make sure to pass it on
-  ;; and remove it (as it gets "consumed") from the session.
-  (GET "*" {{:keys [init] :as session} :session}
-    (-> (response (index/index init))
-        (assoc :session (dissoc session :init)))))
+    ;; Passes options to index for including semantic markup with HTML.
+    (GET "/" []
+      (partial with-init {:semantic-markup :home
+                          :mine (first mines)}))
+    (apply compojure/routes
+           (apply concat
+                  (for [{mine-ns :namespace :as mine} mines]
+                    [(GET (str "/" mine-ns) []
+                       (partial with-init {:semantic-markup :home
+                                           :mine mine}))
+                     (GET (str "/" mine-ns "/report/:class/:id") [id]
+                       (partial with-init {:semantic-markup :report
+                                           :mine mine
+                                           :object-id id}))])))
+
+    (GET "*" []
+      (partial with-init {}))))
