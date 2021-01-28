@@ -1,4 +1,4 @@
-# Bluegenes Tool API Spec
+# Bluegenes Tool API Specifications
 
 BlueGenes is built in Clojure and ClojureScript, but we don't want to re-write all existing browser data vis and analysis tools, so we've built a way to integrate JavaScript tools into our pages.
 
@@ -28,7 +28,7 @@ You may optionally also have additional folders, including node_modules, if need
 
 ### dist
 
-Put all of your prod-ready bundled files in here. Ideally this should be no more than two things:
+Put all of your prod-ready bundled files in here. Ideally, this should be no more than two things:
 
 - **bundle.js**, contains your entire application, with all dependencies bundled in, excluding im.js which is available on the window.
 - **style.css**, optional. Use if any additional styles are required. If your file isn't called style.css, make sure to specify the file name in config json.
@@ -39,9 +39,9 @@ Where do the bundled files come from? Probably the src directory. This is the fo
 
 #### index.js
 
-This is the preferred entry point to build dist/bundle.js. May import external libraries or node modules if needed. [See bluegenesProtVista example ](https://github.com/intermine/bluegenesProtVista/tree/master/src). Make sure to export an object that matches your tool name and has a main method - e.g. for bluegenesProtVista, there is an exposed method called `bluegenesProtvista.main()`.
+This is the preferred entry point to build dist/bundle.js. May import external libraries or node modules if needed. [See bluegenesProtVista example](https://github.com/intermine/bluegenesProtVista/tree/master/src). Make sure to export an object that matches your tool name and has a main method - e.g. for bluegenesProtVista, there is an exposed method called `bluegenesProtvista.main()`.
 
-The signature of the main method should look have the following signature:
+The signature of the main method should have the following signature:
 
 ```javascript
 var myApp.main = function(el, service, imEntity, state, config, navigate) {
@@ -50,7 +50,7 @@ var myApp.main = function(el, service, imEntity, state, config, navigate) {
 ```
 
 
-**el** - The id of a dom element where the tool will render
+**el** - The id of a dom element where the tool will render.
 
 **service** - An object representing an intermine service, like the following:
 
@@ -106,7 +106,7 @@ Subclasses (descendant of a class in the model hierarchy) might also be passed t
 
 It is up to you which class you want to use in your tool, and you can even use multiple.
 
-Currently, it is not possible to receive multiple classes on the report page with *accepts* `id`. However, the Tool API allows for this should it be an option in the future.
+Currently, it is not possible to receive multiple classes on the report page with *accepts* `id`. However, the Tool API allows for this, should it be an option in the future.
 
 **navigate**
 
@@ -156,13 +156,13 @@ This file provides bluegenes-specific config info. Some further config info is d
 * records: a raw result from POSTing to /query/results with format "jsonobjects"  
 * rows: a raw result from POSTing to /query/results with format "json"  
 
-Plurality (i.e. id vs ids) will help to determine which context a tool can appear (report page, list analysis page)
+Plurality (i.e. id vs ids) will help to determine which context a tool can appear (report page, list analysis page).
 
-**classes** default to `*` if this tool isn't class / objectType specific. Otherwise your tool might be specific to a certain class, e.g. a gene displayer. Note that a subclass of a class you specify here may be passed via *imEntity* (see its section above for more details).
+**classes** default to `*` if this tool isn't class / objectType specific. Otherwise, your tool might be specific to a certain class e.g. a gene displayer. Note that a subclass of a class you specify here may be passed via *imEntity* (see its section above for more details).
 
-**columnMapping** is an important way to specify (or override) which columns should be passed to the tool by BlueGenes. As an example, for a gene tool, you might want to pass a symbol, OR a primaryIdentifier, or even secondaryIdentifier - and this might change depending in the InterMine that is fuelling the BlueGenes. Set a default likely value here, and in the future individual bluegenes administrators can override it if needed.
+**columnMapping** is an important way to specify (or override) which columns should be passed to the tool by BlueGenes. As an example, for a gene tool, you might want to pass a symbol, or a primaryIdentifier, or even secondaryIdentifier - and this might change depending on the InterMine that is fuelling the BlueGenes. Set a default likely value here, and in the future, individual bluegenes administrators can override it if needed.
 
-**depends** lets you specify any class names in the InterMine instance's model that your tool depends on. This is useful if you're querying for a non-standard path that is only present in a specific InterMine instance. Any instances which don't have the class name in their model, will not attempt to run your tool, and will instead list it as unsupported.
+**depends** lets you specify any class names in the InterMine instance's model that your tool depends on. This is useful if you're querying for a non-standard path that is only present in a specific InterMine instance. Any instances which don't have the class name in their model will not attempt to run your tool, and will instead, list it as unsupported.
 
 **files** - one file each for css and js, please. This should be the file bundled/built with all dependencies except/ imjs if needed. CSS is optional if the tool has no styles.
 
@@ -172,7 +172,7 @@ Plurality (i.e. id vs ids) will help to determine which context a tool can appea
 
 #### preview.png
 
-Optional preview image for the "app store" dashboard (when admins are selecting tools, this is the way to impress them!)
+Optional preview image for the "app store" dashboard. When admins are selecting tools, this is the way to impress them!
 
 ## Other notes
 * [imjs](https://www.npmjs.com/package/imjs) will be available on the window automatically.
@@ -181,14 +181,14 @@ Optional preview image for the "app store" dashboard (when admins are selecting 
 
 ## Changelog
 
-We aim to keep all changes to the Tool API as backwards compatible as possible, but in some cases breaking changes are necessary. The Tool API major version number will increment on breaking changes and additional details on the rationale and upgrading process will be included.
+We aim to keep all changes to the Tool API as backwards compatible as possible, but in some cases, breaking changes are necessary. The Tool API major version number will increment on breaking changes and additional details on the rationale and upgrading process will be included.
 
 Guidelines which should be followed for Tool API changes:
 1. All maintainers of the tools in https://github.com/topics/bluegenes-tool need to be contacted.
-1. A breaking change should be avoided unless deemed absolutely necessary, as agreed between developers and maintainers.
-1. Developers will assist with upgrading existing tools, even so far as to creating PRs.
-1. If the tool maintainer doesn't provide a way to test the updated tool, this becomes their responsibility.
-1. When releasing a breaking version, send an email to the dev-intermine mailing list with a warning that things may break if they update BlueGenes to this version.
+2. A breaking change should be avoided unless deemed absolutely necessary, as agreed between developers and maintainers.
+3. Developers will assist with upgrading existing tools, even so far as to creating PRs.
+4. If the tool maintainer doesn't provide a way to test the updated tool, this becomes their responsibility.
+5. When releasing a breaking version, send an email to the dev-intermine mailing list with a warning that things may break if they update BlueGenes to this version.
 
 ### Tool API version 1.0
 
@@ -202,7 +202,7 @@ Guidelines which should be followed for Tool API changes:
 
   **Rationale:** It's possible for a list or query results page to have multiple classes, depending on the columns present. This meant a tool needed to be able to receive multiple imEntity's, which the previous Tool API didn't allow.
 
-  **Upgrading:** You will need to grab the value you wish to work on out from the nested object in `imEntity`. As an example for a tool that works on the "Gene" class, you would change `imEntity.value` to `imEntity.Gene.value`. If your tool takes multiple classes, you can decide whether to always default to one if available, or present a different behaviour when multiple classes are present.
+  **Upgrading:** You will need to grab the value you wish to work on out from the nested object in `imEntity`. As an example, for a tool that works on the "Gene" class, you would change `imEntity.value` to `imEntity.Gene.value`. If your tool takes multiple classes, you can decide whether to always default to one if available, or present a different behaviour when multiple classes are present.
 
 - Adds a `version` key to *config.json*.
 
