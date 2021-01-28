@@ -9,6 +9,12 @@
    (:home db)))
 
 (reg-sub
+ :home/feedback-response
+ :<- [:home/root]
+ (fn [home]
+   (:feedback-response home)))
+
+(reg-sub
  :home/active-template-category
  :<- [:home/root]
  (fn [home]
