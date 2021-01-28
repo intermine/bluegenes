@@ -122,7 +122,7 @@
       ;; Forward the error response to client so it can handle it.
       (ex-data e))))
 
-;; TODO remove logging
+;; TODO remove info logging
 ;; TODO pass renamed list data to session.init as well
 (defn oauth2callback
   [{{:keys [provider state code]} :params
@@ -135,9 +135,10 @@
           (assoc :session {:identity (assoc service :token token)
                            :init {:token token}})))
     (catch Exception e
-      (timbre/errorf "oauth2callback error: %s" (pr-str (ex-data e)))
+      (timbre/errorf "oauth2callback error: %s" (ex-message e))
       (let [{:keys [body]} (ex-data e)
-            {:keys [error]} (cheshire/parse-string body true)]
+            error (or (:error (cheshire/parse-string body true))
+                      (ex-message e))]
         (-> (response/found (str "/" mine-id))
             (assoc :session {:init {:events [[:messages/add
                                               {:style "warning"
