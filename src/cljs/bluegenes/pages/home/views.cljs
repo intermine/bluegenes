@@ -1,5 +1,6 @@
 (ns bluegenes.pages.home.views
   (:require [re-frame.core :refer [subscribe dispatch]]
+            [reagent.core :as r]
             [bluegenes.route :as route]
             [bluegenes.components.icons :refer [icon]]
             [bluegenes.components.navbar.nav :refer [mine-icon]]
@@ -8,7 +9,8 @@
             [bluegenes.utils :refer [ascii-arrows ascii->svg-arrows md-paragraph]]
             [goog.string :as gstring]
             [cljs-time.format :as time-format]
-            [cljs-time.coerce :as time-coerce]))
+            [cljs-time.coerce :as time-coerce]
+            [oops.core :refer [oget]]))
 
 (defn mine-intro []
   (let [mine-name @(subscribe [:current-mine-human-name])
@@ -204,21 +206,36 @@
      "Open InterMOD GO"]]])
 
 (defn feedback []
-  [:div.row.section
-   [:div.col-xs-12
-    [:h2.text-center "We value your opinion"]
-    ;; Doesn't look like we'll know this email.
-    #_[:p.text-center "Feedback received by organisation@mail.com"]]
-   [:div.col-xs-12.col-sm-10.col-sm-offset-1.col-md-8.col-md-offset-2.feedback
-    [:input.form-control
-     {:type "email"
-      :placeholder "Your email (optional)"}]
-    [:textarea.form-control
-     {:placeholder "Your feedback here"
-      :rows 5}]
-    [:button.btn.btn-block
-     {:on-click #(js/alert "Sorry! We're still working on implementing this. Until then, you can use the email icon in the footer at the bottom of the page.")}
-     "Submit"]]])
+  (let [email* (r/atom "")
+        text* (r/atom "")]
+    (fn []
+      (let [{:keys [type message error]} @(subscribe [:home/feedback-response])]
+        [:div.row.section
+         [:div.col-xs-12
+          [:h2.text-center "We value your opinion"]]
+         (case type
+           :success [:div.feedback-response
+                     [icon "checkmark"]
+                     [:h3 "Thank you!"]
+                     [:p "Your feedback has been submitted."]]
+           [:div.col-xs-12.col-sm-10.col-sm-offset-1.col-md-8.col-md-offset-2.feedback
+            [:input.form-control
+             {:type "email"
+              :placeholder "Your email (optional)"
+              :value @email*
+              :on-change #(reset! email* (oget % :target :value))}]
+            [:textarea.form-control
+             {:placeholder "Your feedback here"
+              :rows 5
+              :value @text*
+              :on-change #(reset! text* (oget % :target :value))}]
+            [:button.btn.btn-block
+             {:on-click #(dispatch [:home/submit-feedback @email* @text*])}
+             "Submit"]
+            (when (or message error)
+              [:p.failure.text-center message
+               (when error
+                 [:code error])])])]))))
 
 (defn credits-entry [{:keys [text image url]}]
   (if (not-empty text)
