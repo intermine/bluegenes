@@ -75,10 +75,8 @@
 (defn register-form [{:keys [credentials on-back]}]
   (let [{:keys [error? thinking? message]} @(subscribe [:bluegenes.subs.auth/auth])
         current-mine @(subscribe [:current-mine])
-        submit-fn #(dispatch [:bluegenes.events.auth/register
-                              (assoc @credentials
-                                     :service (:service current-mine)
-                                     :mine-id (:id current-mine))])]
+        {:keys [username password]} @credentials
+        submit-fn #(dispatch [:bluegenes.events.auth/register username password])]
     [:form.login-form
      [:h2 (str "Register on " (:name current-mine))]
      [:div.form-group
@@ -86,11 +84,11 @@
       [:input.form-control
        {:type "text"
         :id "email"
-        :value (:username @credentials)
+        :value username
         :on-change (partial update-form credentials :username)
         :on-key-up #(when (= 13 (oget % :keyCode))
                       (submit-fn))}]]
-     [password-input {:value (:password @credentials)
+     [password-input {:value password
                       :on-change (partial update-form credentials :password)
                       :on-submit submit-fn}]
      (when error?
@@ -110,10 +108,8 @@
   (let [{:keys [error? thinking? message]} @(subscribe [:bluegenes.subs.auth/auth])
         oauth-support? @(subscribe [:oauth-support?])
         current-mine @(subscribe [:current-mine])
-        submit-fn #(dispatch [:bluegenes.events.auth/login
-                              (assoc @credentials
-                                     :service (:service current-mine)
-                                     :mine-id (:id current-mine))])]
+        {:keys [username password]} @credentials
+        submit-fn #(dispatch [:bluegenes.events.auth/login username password])]
     [:form.login-form
      [:h2 (str "Login to " (:name current-mine))]
      [:div.form-group
@@ -121,11 +117,11 @@
       [:input.form-control
        {:type "text"
         :id "email"
-        :value (:username @credentials)
+        :value username
         :on-change (partial update-form credentials :username)
         :on-key-up #(when (= 13 (oget % :keyCode))
                       (submit-fn))}]]
-     [password-input {:value (:password @credentials)
+     [password-input {:value password
                       :on-change (partial update-form credentials :password)
                       :on-submit submit-fn}]
      (when error?

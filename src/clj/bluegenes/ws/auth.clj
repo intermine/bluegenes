@@ -61,19 +61,18 @@
   "Ring handler for handling authentication. Attempts to authenticate with the
   IM server (via web services) by fetching a token. If successful, return
   the token and store it in the session."
-  [{{:keys [username password service mine-id]} :params :as _req}]
+  [{{:keys [username password service]} :params :as _req}]
   ; clj-http throws exceptions for 'bad' responses:
   (try
     ; Try to fetch a token from the InterMine server web service
     (let [token (login service username password)
           ; Use the the token to resolve the user's identity
           whoami (im-auth/who-am-i? (assoc service :token token) token)
-          ; Build an identity map (token, mine-id, whoami information)
-          whoami-with-token (assoc whoami :token token :mine-id (name mine-id))]
+          ; Build an identity map (token and whoami information)
+          whoami-with-token (assoc whoami :token token)]
       ; Store the identity map in the session and return it to the user:
-      (->
-       (response/ok whoami-with-token)
-       (assoc :session {:identity whoami-with-token})))
+      (-> (response/ok whoami-with-token)
+          (assoc :session {:identity whoami-with-token})))
     (catch Exception e
       (let [{:keys [status body] :as error} (ex-data e)]
         ; Parse the body of the bad request sent back from the IM server
@@ -87,7 +86,7 @@
 (defn register
   "Ring handler for registering a new user with the IM server. If successful,
   perform a regular login to get a proper token and store it in the session."
-  [{{:keys [username password service mine-id]} :params :as _req}]
+  [{{:keys [username password service]} :params :as _req}]
   ; clj-http throws exceptions for 'bad' responses:
   (try
     ;; Registration only returns a temporaryToken valid for 24 hours.
@@ -96,8 +95,8 @@
     (let [token (login service username password)
           ; Use the the token to resolve the user's identity
           whoami (im-auth/who-am-i? (assoc service :token token) token)
-          ; Build an identity map (token, mine-id, whoami information)
-          whoami-with-token (assoc whoami :token token :mine-id (name mine-id))]
+          ; Build an identity map (token and whoami information)
+          whoami-with-token (assoc whoami :token token)]
       ; Store the identity map in the session and return it to the user:
       (-> (response/ok whoami-with-token)
           (assoc :session {:identity whoami-with-token})))

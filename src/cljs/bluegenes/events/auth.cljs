@@ -5,19 +5,28 @@
             [imcljs.auth :as im-auth]
             [bluegenes.interceptors :refer [origin]]))
 
+(defn slim-service
+  "Constrains a service map to only the keys needed by the backend API."
+  [service]
+  (select-keys service [:root :token]))
+
 (reg-event-fx
  ::login
  ;; Fire events to log in a user
- (fn [{db :db} [_ credentials]]
-   {:db (update-in db [:mines (:current-mine db) :auth] assoc
-                   :thinking? true
-                   :error? false)
-    ::fx/http {:uri "/api/auth/login"
-               :method :post
-               :on-success [::login-success]
-               :on-failure [::login-failure]
-               :on-unauthorised [::login-failure]
-               :transit-params credentials}}))
+ (fn [{db :db} [_ username password]]
+   (let [current-mine (:current-mine db)
+         service (get-in db [:mines current-mine :service])]
+     {:db (update-in db [:mines current-mine :auth] assoc
+                     :thinking? true
+                     :error? false)
+      ::fx/http {:uri "/api/auth/login"
+                 :method :post
+                 :on-success [::login-success]
+                 :on-failure [::login-failure]
+                 :on-unauthorised [::login-failure]
+                 :transit-params {:username username
+                                  :password password
+                                  :service (slim-service service)}}})))
 
 (reg-event-fx
  ::login-success
@@ -62,9 +71,7 @@
                  ;; We don't really care if anything goes wrong.
                  :on-failure [::logout-success]
                  :on-unauthorised [::logout-success]
-                 :transit-params {:service (select-keys
-                                            (get-in db [:mines current-mine :service])
-                                            [:root :token])}}})))
+                 :transit-params {:service (slim-service (get-in db [:mines current-mine :service]))}}})))
 
 (reg-event-fx
  ::logout-success
@@ -84,16 +91,20 @@
 
 (reg-event-fx
  ::register
- (fn [{db :db} [_ credentials]]
-   {:db (update-in db [:mines (:current-mine db) :auth] assoc
-                   :thinking? true
-                   :error? false)
-    ::fx/http {:uri "/api/auth/register"
-               :method :post
-               :on-success [::login-success]
-               :on-failure [::login-failure]
-               :on-unauthorised [::login-failure]
-               :transit-params credentials}}))
+ (fn [{db :db} [_ username password]]
+   (let [current-mine (:current-mine db)
+         service (get-in db [:mines current-mine :service])]
+     {:db (update-in db [:mines current-mine :auth] assoc
+                     :thinking? true
+                     :error? false)
+      ::fx/http {:uri "/api/auth/register"
+                 :method :post
+                 :on-success [::login-success]
+                 :on-failure [::login-failure]
+                 :on-unauthorised [::login-failure]
+                 :transit-params {:username username
+                                  :password password
+                                  :service (slim-service service)}}})))
 
 (reg-event-fx
  ::request-reset-password
@@ -181,7 +192,7 @@
                  :on-success [::oauth2-success provider]
                  :on-failure [::oauth2-failure]
                  :on-unauthorised [::oauth2-failure]
-                 :transit-params {:service (select-keys service [:root :token])
+                 :transit-params {:service (slim-service service)
                                   :mine-id (name current-mine)
                                   :provider provider}}})))
 
