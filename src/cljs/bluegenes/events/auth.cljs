@@ -186,8 +186,7 @@
  (fn [{db :db origin :origin} [_ provider]]
    (let [current-mine (:current-mine db)
          service (get-in db [:mines current-mine :service])
-         redirect_uri (js/encodeURIComponent (str origin "/api/auth/oauth2callback"
-                                                  "?provider=" provider))]
+         redirect_uri (str origin "/api/auth/oauth2callback?provider=" provider)]
      {:db (update-in db [:mines current-mine :auth] assoc
                      :error? false)
       ::fx/http {:uri "/api/auth/oauth2authenticator"
@@ -203,7 +202,7 @@
 (reg-event-fx
  ::oauth2-success
  (fn [{db :db} [_ redirect_uri link]]
-   {:external-redirect (str link "&redirect_uri=" redirect_uri)}))
+   {:external-redirect (str link "&redirect_uri=" (js/encodeURIComponent redirect_uri))}))
 
 (reg-event-db
  ::oauth2-failure
