@@ -132,6 +132,11 @@
        :on-click submit-fn}
       [mine-icon current-mine :class "mine-logo"]
       "Login"]
+     (when oauth-support?
+       [:button.btn.btn-default.btn-raised.btn-block.google-signin
+        {:type "button"
+         :on-click #(dispatch [:bluegenes.events.auth/oauth2 "GOOGLE"])}
+        [icon-comp "google"] "Sign in with Google"])
      [:a.btn-block.text-center
       {:role "button"
        :on-click #(do (dispatch [:bluegenes.events.auth/clear-error])
@@ -141,12 +146,7 @@
       {:role "button"
        :on-click #(do (dispatch [:bluegenes.events.auth/clear-error])
                       (on-register))}
-      "Create new account"]
-     (when oauth-support?
-       [:a.btn-block.text-center
-        {:role "button"
-         :on-click #(dispatch [:bluegenes.events.auth/oauth2 "GOOGLE"])}
-        "Login with Google"])]))
+      "Create new account"]]))
 
 (defn anonymous []
   (let [credentials (reagent/atom {:username nil :password nil})
