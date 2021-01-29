@@ -182,27 +182,28 @@
 
 (reg-event-fx
  ::oauth2
- (fn [{db :db} [_ provider]]
+ [(origin)]
+ (fn [{db :db origin :origin} [_ provider]]
    (let [current-mine (:current-mine db)
-         service (get-in db [:mines current-mine :service])]
+         service (get-in db [:mines current-mine :service])
+         redirect_uri (js/encodeURIComponent (str origin "/api/auth/oauth2callback"
+                                                  "?provider=" provider))]
      {:db (update-in db [:mines current-mine :auth] assoc
                      :error? false)
       ::fx/http {:uri "/api/auth/oauth2authenticator"
                  :method :post
-                 :on-success [::oauth2-success provider]
+                 :on-success [::oauth2-success redirect_uri]
                  :on-failure [::oauth2-failure]
                  :on-unauthorised [::oauth2-failure]
                  :transit-params {:service (slim-service service)
                                   :mine-id (name current-mine)
-                                  :provider provider}}})))
+                                  :provider provider
+                                  :redirect_uri redirect_uri}}})))
 
 (reg-event-fx
  ::oauth2-success
- [(origin)]
- (fn [{db :db origin :origin} [_ provider link]]
-   {:external-redirect (str link "&redirect_uri="
-                            (js/encodeURIComponent (str origin "/api/auth/oauth2callback"
-                                                        "?provider=" provider)))}))
+ (fn [{db :db} [_ redirect_uri link]]
+   {:external-redirect (str link "&redirect_uri=" redirect_uri)}))
 
 (reg-event-db
  ::oauth2-failure

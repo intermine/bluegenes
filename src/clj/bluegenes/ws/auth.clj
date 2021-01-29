@@ -112,20 +112,21 @@
                                :error "Unable to reach remote server"}))))))
 
 (defn oauth2authenticator
-  [{{:keys [service mine-id provider]} :params :as _req}]
+  [{{:keys [service mine-id provider redirect_uri]} :params :as _req}]
   (try
     (-> (response/ok (im-auth/oauth2authenticator service provider))
         (assoc :session {:service service
-                         :mine-id mine-id}))
+                         :mine-id mine-id
+                         :redirect_uri redirect_uri}))
     (catch Exception e
       ;; Forward the error response to client so it can handle it.
       (ex-data e))))
 
 (defn oauth2callback
   [{{:keys [provider state code]} :params
-    {:keys [service mine-id]} :session}]
+    {:keys [service mine-id redirect_uri]} :session}]
   (try
-    (let [res (im-auth/oauth2callback service {:provider provider :state state :code code})
+    (let [res (im-auth/oauth2callback service {:provider provider :state state :code code :redirect_uri redirect_uri})
           {:keys [renamedLists user token]} (:output res)
           user-with-token (assoc user :token token)]
       (-> (response/found (str "/" mine-id))
