@@ -335,7 +335,7 @@
      {:db db+login
       :im-chan (if token
                  {:chan (auth/who-am-i? service token)
-                  :on-success [:authentication/store-token token]
+                  :on-success [:authentication/store-token token oauth2-identity]
                   :on-unauthorised [:authentication/invalid-token (boolean auth-token)]
                   :on-failure [:authentication/invalid-token (boolean auth-token)]}
                  {:chan (fetch/session service)
@@ -358,14 +358,15 @@
 ;; Store an authentication token for a given mine.
 (reg-event-fx
  :authentication/store-token
- (fn [{db :db} [_ token]]
+ (fn [{db :db} [_ token oauth2-identity]]
    (let [current-mine (:current-mine db)]
      (cond-> {:db (assoc-in db [:mines current-mine :service :token] token)}
-       (nil? token)
-       (assoc :dispatch [:messages/add
-                         {:markup [:span "Failed to acquire token. It's likely that you have no connection to the InterMine instance."]
-                          :style "danger"
-                          :timeout 0}])))))
+       ;; This branch indicates successful login via OAuth2, which means we should persist it.
+       oauth2-identity (assoc :dispatch [:save-login current-mine oauth2-identity])
+       (nil? token) (assoc :dispatch [:messages/add
+                                      {:markup [:span "Failed to acquire token. It's likely that you have no connection to the InterMine instance."]
+                                       :style "danger"
+                                       :timeout 0}])))))
 
 ; Fetch model
 (def preferred-tag "im:preferredBagType")
