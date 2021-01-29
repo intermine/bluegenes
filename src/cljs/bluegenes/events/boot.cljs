@@ -308,11 +308,12 @@
                   :analytics-id analytics-id})})))
 
 ;; Figure out how we're going to initialise authentication.
-;; There are 3 different cases we need to handle:
+;; There are 4 different cases we need to handle:
 ;; - The user has logged in previously => Re-use their identity!
-;; - The user has a previously persisted anonymous token => Re-use that token!
-;; - The user has no persisted token => Get a new one!
-;; In the first 2 cases, we also have to make sure the token is still valid, so
+;; - The user has an old anonymous token => Re-use that token!
+;; - The user logged in with OAuth2 => Use token from init-vars identity!
+;; - The user has no token => Get a new one!
+;; In the first 3 cases, we also have to make sure the token is still valid, so
 ;; we use the who-am-i? service for this.
 (reg-event-fx
  :authentication/init
@@ -323,6 +324,10 @@
          db+login (if-let [identity (get login current-mine)]
                     (assoc-in db [:mines current-mine :auth :identity] identity)
                     db)
+         ;; Add an OAuth2 identity if present (replaces the above).
+         oauth2-identity (some-> @init-vars :identity not-empty)
+         db+login (cond-> db+login
+                    oauth2-identity (assoc-in [:mines current-mine :auth :identity] oauth2-identity))
          auth-token (get-in db+login [:mines current-mine :auth :identity :token])
          service    (get-in db+login [:mines current-mine :service])
          anon-token (:token service)
