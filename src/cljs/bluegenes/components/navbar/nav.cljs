@@ -28,16 +28,17 @@
   (swap! atom assoc key (oget evt :target :value)))
 
 (defn logged-in []
-  (let [{:keys [username superuser]} @(subscribe [:bluegenes.subs.auth/identity])]
+  (let [superuser? @(subscribe [:bluegenes.subs.auth/superuser?])
+        email @(subscribe [:bluegenes.subs.auth/email])]
     [:li.logon.dropdown.success.primary-nav
      [:a.dropdown-toggle {:data-toggle "dropdown" :role "button"}
       [:svg.icon.icon-2x.icon-user-circle [:use {:xlinkHref "#icon-user-circle"}]]
       [:svg.icon.icon-caret-down [:use {:xlinkHref "#icon-caret-down"}]]]
      [:ul.dropdown-menu.profile-dropdown
-      [:li.email [:span username]]
-      (when superuser
+      [:li.email [:span email]]
+      (when superuser?
         [:li [:a {:href (route/href ::route/admin)} "Admin"]])
-      (when superuser
+      (when superuser?
         [:li [:a {:href (route/href ::route/tools)} "Tools"]])
       [:li [:a {:href (route/href ::route/profile)} "Profile"]]
       [:li [:a {:on-click #(dispatch [:bluegenes.events.auth/logout])} "Logout"]]]]))
