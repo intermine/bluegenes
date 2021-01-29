@@ -25,7 +25,7 @@
           (map (fn [{:keys [name title size]}]
                  [:li
                   {:on-click (partial on-change name)}
-                  [:a [:span title] [:span.size (str " (" size ")")]]])) lists)))
+                  [:a [:span.list-selection title] [:span.size (str " (" size ")")]]])) lists)))
 
 (defn text-filter-form []
   (fn [text-filter-atom]
@@ -45,15 +45,20 @@
   []
   (let [text-filter-atom (reagent/atom nil)]
     (fn [& {:keys [value lists restrict-type on-change disabled]}]
-      (let [type-filter    (partial has-type? restrict-type)
+      (let [status-filter  #(= "CURRENT" (:status %))
+            type-filter    (partial has-type? restrict-type)
             text-filter    (partial has-text? @text-filter-atom)
-            suitable-lists (filter type-filter lists)
+            suitable-lists (filter (every-pred status-filter type-filter) lists)
             filtered-lists (filter text-filter suitable-lists)]
         [:div.dropdown.list-dropdown
          [:button.btn.btn-raised.btn-default.dropdown-toggle
           {:disabled disabled
            :data-toggle "dropdown"}
-          (str (or value "Choose a list") " ") [:span.caret]]
+          [:span.list-name
+           (when value
+             {:title value})
+           (or value "Choose a list")]
+          [:span.caret]]
          [:div.dropdown-menu.dropdown-mixed-content
           (if (seq suitable-lists)
             [:div.container-fluid

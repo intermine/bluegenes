@@ -9,7 +9,10 @@
             [bluegenes.components.ui.results_preview :refer [preview-table]]
             [oops.core :refer [oget ocall]]
             [bluegenes.components.loader :refer [mini-loader]]
-            [bluegenes.utils :refer [ascii-arrows ascii->svg-arrows]]))
+            [bluegenes.utils :refer [ascii-arrows ascii->svg-arrows]]
+            [bluegenes.pages.templates.helpers :refer [categories-from-tags]]
+            [bluegenes.components.top-scroll :as top-scroll]
+            [bluegenes.route :as route]))
 
 (defn categories []
   (let [categories (subscribe [:template-chooser-categories])
@@ -32,11 +35,14 @@
 
 (defn preview-results
   "Preview results of template as configured by the user or default config"
-  [results-preview fetching-preview]
-  (let [fetching-preview? (subscribe [:template-chooser/fetching-preview?])
-        results-preview (subscribe [:template-chooser/results-preview])
-        loading? (or @fetching-preview? (nil? @results-preview))
-        results-count (:iTotalRecords @results-preview)]
+  []
+  (let [fetching-preview? @(subscribe [:template-chooser/fetching-preview?])
+        results-preview @(subscribe [:template-chooser/results-preview])
+        preview-error @(subscribe [:template-chooser/preview-error])
+        loading? (if preview-error
+                   false
+                   fetching-preview?)
+        results-count (:iTotalRecords results-preview)]
     [:div.col-xs-8.preview
      [:div.preview-header
       [:h4 "Results Preview"]
@@ -44,18 +50,27 @@
         [:div.preview-header-loader
          [mini-loader "tiny"]])]
      [:div.preview-table-container
-      [preview-table
-       :query-results @results-preview]]
-     [:button.btn.btn-primary.btn-raised.view-results
-      {:type "button"
-       :disabled (zero? results-count)
-       :on-click (fn [] (dispatch [:templates/send-off-query]))}
       (cond
-        loading? "Loading"
-        (zero? results-count) "No Results"
-        :else (str "View "
-                   results-count
-                   (if (> results-count 1) " rows" " row")))]]))
+        preview-error [:div
+                       [:pre.well.text-danger preview-error]]
+        :else [preview-table
+               :query-results results-preview
+               :loading? loading?])]
+     [:div.btn-group
+      [:button.btn.btn-primary.btn-raised.view-results
+       {:type "button"
+        :on-click (fn [] (dispatch [:templates/send-off-query]))}
+       (cond
+         loading? "Loading"
+         (or preview-error
+             (< results-count 1)) "Open in results page"
+         :else (str "View "
+                    results-count
+                    (if (> results-count 1) " rows" " row")))]
+      [:button.btn.btn-default.btn-raised
+       {:type "button"
+        :on-click (fn [] (dispatch [:templates/edit-query]))}
+       "Edit query"]]]))
 
 (defn toggle []
   (fn [{:keys [status on-change]}]
@@ -68,10 +83,11 @@
 
 (defn select-template-settings
   "UI component to allow users to select template details, e.g. select a list to be in, lookup value greater than, less than, etc."
-  [selected-template]
-  (let [service @(subscribe [:selected-template-service])
+  []
+  (let [selected-template @(subscribe [:selected-template])
+        service @(subscribe [:selected-template-service])
         lists @(subscribe [:current-lists])
-        all-constraints (:where @selected-template)
+        all-constraints (:where selected-template)
         model (assoc (:model service) :type-constraints all-constraints)]
     [:div.col-xs-4.border-right
      (into [:div.form]
@@ -114,47 +130,51 @@
 
 (defn tags
   "UI element to visually output all aspect tags into each template card for easy scanning / identification of tags.
-  ** Expects: vector of strings 'im:aspect:thetag'.
-  ** Will output 'thetag'.
-  ** Won't output any other tag types or formats"
+  ** Expects: vector of strings 'im:aspect:thetag'."
   [tagvec]
-  (let [aspects (for [tag (filter #(s/starts-with? % "im:aspect:") tagvec)
-                      :let [[_ tag-name] (re-matches #"im:aspect:(.*)" tag)]
-                      :when (not-empty tag-name)]
-                  [:span.tag-type {:class (str "type-" tag-name)} tag-name])]
+  (let [aspects (for [category (categories-from-tags tagvec)]
+                  [:span.tag-type
+                   {:class (str "type-" category)
+                    :on-click (fn [evt]
+                                (.stopPropagation evt)
+                                (dispatch [:template-chooser/set-category-filter category]))}
+                   category])]
     ;; This element should still be present even when it has no contents.
     ;; The "View >>" button is absolute positioned, so otherwise it would
     ;; overlap with the template's description.
     (into [:div.template-tags]
-          (when (not-empty aspects)
+          (when (seq aspects)
             (cons "Categories: " aspects)))))
 
 (defn template
   "UI element for a single template."
-  []
-  (let [selected-template (subscribe [:selected-template])]
-    (fn [[id query]]
-      (let [title (:title query)
-            selected? (= (name id) (:name @selected-template))]
-        [:div.grid-1
-         [:div.col.ani.template
-          {:class (when selected? "selected")
-           :id (name id)
-           :on-click #(when (not selected?)
-                        (dispatch [:template-chooser/choose-template id]))}
-          (into [:h4]
-                (if (ascii-arrows title)
-                  (ascii->svg-arrows title)
-                  [[:span title]]))
-          [:div.description
-           {:dangerouslySetInnerHTML {:__html (:description query)}}]
-          (when selected?
-            [:div.body
-             [select-template-settings selected-template]
-             [preview-results]])
-          (when (not selected?)
-            [:button.view "View >>"])
-          [tags (:tags query)]]]))))
+  [[id query]]
+  (let [title (:title query)
+        selected-template-name @(subscribe [:selected-template-name])
+        selected? (= id selected-template-name)]
+    [:div.grid-1
+     [:div.col.ani.template
+      {:class (when selected? "selected")
+       :id (name id)
+       :on-click #(when (not selected?)
+                    (dispatch [::route/navigate ::route/template {:template (name id)}]))}
+      (into [:h4]
+            (if (ascii-arrows title)
+              (ascii->svg-arrows title)
+              [[:span title]]))
+      [:div.description
+       {:dangerouslySetInnerHTML {:__html (:description query)}}]
+      (when selected?
+        [:div.body
+         [select-template-settings]
+         [preview-results]])
+      (if selected?
+        [:button.view
+         {:on-click #(dispatch [::route/navigate ::route/templates])}
+         "Close <<"]
+        [:button.view
+         "View >>"])
+      [tags (:tags query)]]]))
 
 (defn templates
   "Outputs all the templates that match the user's chosen filters."
@@ -252,4 +272,5 @@
                           [:div.row
                            [:div.col-xs-12.templates
                             [:div.template-list
-                             [templates @im-templates]]]]]])})))
+                             [templates @im-templates]]]]]
+                         [top-scroll/main]])})))

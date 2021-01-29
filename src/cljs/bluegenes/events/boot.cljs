@@ -1,13 +1,13 @@
 (ns bluegenes.events.boot
-  (:require [re-frame.core :refer [reg-event-db reg-event-fx subscribe inject-cofx]]
+  (:require [re-frame.core :refer [reg-event-db reg-event-fx inject-cofx reg-fx]]
             [bluegenes.db :as db]
             [imcljs.fetch :as fetch]
             [imcljs.auth :as auth]
-            [bluegenes.events.webproperties]
-            [bluegenes.events.registry :as registry]
             [bluegenes.route :as route]
             [bluegenes.utils :as utils]
-            [cljs-bean.core :refer [->clj]]))
+            [bluegenes.pages.lists.events :as lists]
+            [bluegenes.config :refer [server-vars init-vars read-default-ns]]
+            [clojure.string :as str]))
 
 (defn boot-flow
   "Produces a set of re-frame instructions that load all of InterMine's assets into BlueGenes
@@ -25,12 +25,13 @@
            some?
            [(when wait-registry?
               {:when :seen?
-               :events ::registry/success-fetch-registry
+               :events :bluegenes.events.registry/success-fetch-registry
                :dispatch [:authentication/init]})
             ;; Wait for token as some assets need it for private data (eg. lists, queries).
             {:when :seen?
              :events :authentication/store-token
              :dispatch-n [[:assets/fetch-web-properties]
+                          [:assets/fetch-bg-properties]
                           [:assets/fetch-model]
                           [:assets/fetch-lists]
                           [:assets/fetch-class-keys]
@@ -39,11 +40,15 @@
                           [:assets/fetch-summary-fields]
                           [:assets/fetch-intermine-version]
                           [:assets/fetch-web-service-version]
-                          [:assets/fetch-release-version]]}
+                          [:assets/fetch-release-version]
+                          [:assets/fetch-branding]
+                          ;; Errors for tool fetching are handled separately.
+                          [:bluegenes.components.tools.events/fetch-tools]]}
             ;; Wait for all events that indicate our assets have been fetched successfully.
             {:when :seen-all-of?
              :events [:assets/success-fetch-model
                       :assets/success-fetch-web-properties
+                      :assets/success-fetch-bg-properties
                       :assets/success-fetch-lists
                       :assets/success-fetch-class-keys
                       :assets/success-fetch-templates
@@ -51,7 +56,8 @@
                       :assets/success-fetch-widgets
                       :assets/success-fetch-intermine-version
                       :assets/success-fetch-web-service-version
-                      :assets/success-fetch-release-version]
+                      :assets/success-fetch-release-version
+                      :assets/success-fetch-branding]
              :dispatch [:boot/finalize]
              :halt? true}
             ;; Handle the case where one or more assets fail to fetch.
@@ -73,7 +79,8 @@
  :boot/finalize
  (fn [_ [_ & {:keys [failed-assets?]}]]
    {:dispatch-n
-    [;; Verify InterMine web service version.
+    [[::start-router]
+     ;; Verify InterMine web service version.
      [:verify-web-service-version]
      ;; Start Google Analytics.
      [:start-analytics]
@@ -118,98 +125,87 @@
 
      (.error js/console (str "Unhandled forwarded im-tables event " evt-id)))))
 
-(defn init-mine-defaults
-  "If this bluegenes instance is coupled with InterMine, load the intermine's
-  config directly from env variables passed to bluegenes. Otherwise, create a
-  default mine config.
-  You can specify `:token my-token` if you want to reuse an existing token."
-  [& {:keys [token]}]
-  (let [{:keys [serviceRoot mineName]} (->clj js/serverVars)]
-    (if serviceRoot
-      {:id :default
-       :name mineName
-       :service {:root serviceRoot
-                 :token token}}
-      {:id :default
-       :name nil
-       :service {:root "https://www.flymine.org/flymine"
-                 :token token}})))
+(defn init-configured-mine
+  "Parse configured mine data passed from BlueGenes config."
+  [{:keys [root name namespace]}]
+  {:id (keyword namespace)
+   :name name
+   :service {:root root}})
 
-(defn wait-for-registry?
-  "If the URL corresponds to a non-default mine, we will have to fetch the
-  registry and look for the mine with the same namespace, (user will be
-  redirected to the default mine if it doesn't exist) before we attempt
-  authentication. Returns whether this is the case."
-  [db]
-  (let [current-mine (:current-mine db)
-        default? (= current-mine :default)
-        ;; There might exist a scenario where it would be better to check for
-        ;; the mine to be present in :mines instead of the registry.
-        in-registry? (contains? (:registry db) current-mine)]
-    (not (or default? in-registry?))))
+(defn init-mine-defaults
+  "Load default mine data, as passed from a coupled InterMine or defined in
+  BlueGenes config."
+  []
+  {:id (read-default-ns)
+   :name (:bluegenes-default-mine-name @server-vars)
+   :service {:root (:bluegenes-default-service-root @server-vars)}})
+
+(defn init-config-mines []
+  (->> (:bluegenes-additional-mines @server-vars)
+       (map init-configured-mine)
+       (into [(init-mine-defaults)])
+       (reduce (fn [mines {:keys [id] :as mine}]
+                 (assoc mines id mine))
+               {})))
 
 ;; Boot the application.
 (reg-event-fx
  :boot
  [(inject-cofx :local-store :bluegenes/state)]
  (fn [cofx _]
-   (let [;; We have to set the db current-mine using `window.location` as the
+   (let [default-ns (read-default-ns)
+         ;; We have to set the db current-mine using `window.location` as the
          ;; router won't have dispatched `:set-current-mine` before later on.
-         selected-mine (-> (.. js/window -location -pathname)
-                           (clojure.string/split #"/")
-                           second
-                           keyword
-                           (or :default))
-         ;; Check if there are messages to display related to OAuth.
-         init-events (some-> js/initVars ->clj :events not-empty)
-         init-db
-         (-> db/default-db
-             ;; Add default mine, either as is configured when attached to an
-             ;; InterMine instance, or as an empty placeholder.
-             (assoc-in [:mines :default] (init-mine-defaults))
-             (assoc :current-mine selected-mine)
-             (cond-> init-events (assoc :dispatch-after-boot init-events)))
-         ;; Get data previously persisted to local storage.
-         {:keys [mines assets version] :as state} (:local-store cofx)
-         ;; We always want `init-mine-defaults` to override the :default mine
-         ;; saved in local storage, as a coupled intermine instance should
-         ;; always take priority.
-         persisted-default-token (get-in state [:mines :default :service :token])
-         ;; The token for :default mine is a special case. The persisted map
-         ;; for :default will always be overwritten, so we pass it to
-         ;; init-mine-defaults here to put it back in there.
-         updated-mines (assoc mines :default (init-mine-defaults :token persisted-default-token))
+         current-mine (-> (.. js/window -location -pathname)
+                          (str/split #"/")
+                          (second)
+                          (keyword)
+                          (or default-ns))
+         init-events (some-> @init-vars :events not-empty)
+         config-mines (init-config-mines)
+         mine (get config-mines current-mine)
+         init-db (-> db/default-db
+                     (assoc-in [:env :mines] config-mines)
+                     (assoc-in [:mines current-mine] mine)
+                     (assoc :current-mine current-mine)
+                     (cond->
+                      init-events (assoc :dispatch-after-boot init-events)))
+         ;; Load data previously persisted to local storage.
+         {:keys [assets version] :as state} (:local-store cofx)
          db (cond-> init-db
-              ;; Only use data from local storage if it's non-empty and the
+              ;; Only use data from local storage if it's present and the
               ;; client version matches.
               (and (seq state)
-                   (= version (:version (->clj js/serverVars))))
-              (assoc :mines updated-mines
-                     :assets assets
-                     ;; This needs to be true so we can block `:set-active-panel`
-                     ;; event until we have `:finished-loading-assets`, as some
-                     ;; routes might attempt to build a query which is dependent
-                     ;; on `db :assets :summary-fields` before it gets populated
-                     ;; by `:assets/success-fetch-summary-fields`.
-                     :fetching-assets? true))
-         wait-registry? (wait-for-registry? db)]
-     {:db (if-let [oauth-token (some-> js/initVars ->clj :token not-empty)]
-            ;; There will be a token here if the user logged in via OAuth; it
-            ;; should take precedence over everything else.
-            (assoc-in db [:mines selected-mine :service :token] oauth-token)
-            db)
-      :dispatch-n (if wait-registry?
-                    ;; Wait with authentication until registry is loaded.
-                    [[::registry/load-other-mines]]
-                    ;; Do both at the same time!
-                    [[:authentication/init]
-                     [::registry/load-other-mines]])
-      ;; Start the timer for showing the loading dialog.
-      :mine-loader true
-      ;; Boot the application asynchronously
-      :async-flow (boot-flow :wait-registry? wait-registry?)
-      ;; Register an event sniffer for im-tables
-      :forward-events (im-tables-events-forwarder)})))
+                   (= version (:version @server-vars)))
+              (assoc :assets assets))
+         no-registry? (:hide-registry-mines @server-vars)
+         wait-registry? (if no-registry? false (empty? mine))]
+     (merge
+      {:db db
+       ;; Start the timer for showing the loading dialog.
+       :mine-loader true
+       ;; Boot the application asynchronously
+       :async-flow (boot-flow :wait-registry? wait-registry?)
+       ;; Register an event sniffer for im-tables
+       :forward-events (im-tables-events-forwarder)}
+      (cond
+        (and (empty? mine) no-registry?) ; Nonexistent mine.
+        {:db (-> db
+                 (assoc :current-mine default-ns)
+                 (assoc-in [:mines default-ns] (get config-mines default-ns)))
+         :dispatch-n [[:authentication/init]
+                      [:messages/add
+                       {:markup [:span "Your mine has been changed to the default as your selected mine " [:em (name current-mine)] " has not been configured."]
+                        :style "warning"
+                        :timeout 0}]]
+         :change-route (name default-ns)}
+        no-registry? ; Valid mine.
+        {:dispatch [:authentication/init]}
+        wait-registry? ; Registry mine.
+        {:dispatch [:bluegenes.events.registry/load-other-mines]}
+        :else ; Valid mine and registry active.
+        {:dispatch-n [[:authentication/init]
+                      [:bluegenes.events.registry/load-other-mines]]})))))
 
 (defn remove-stateful-keys-from-db
   "Any tools / components that have mine-specific state should lose that
@@ -218,7 +214,11 @@
   [db]
   ;; Perhaps we should consider settings `:assets` to `{}` here as well?
   (-> db
-      (dissoc :regions :idresolver :results :qb
+      ;; Other mines might have a different model, so we reset the querybuilder.
+      (assoc :qb (:qb db/default-db))
+      ;; The below were undocumented; please add a comment for each of them
+      ;; when you learn why they're there.
+      (dissoc :regions :idresolver :results
               :suggestion-results ; Avoid showing old results belonging to previous mine.
               :invalid-token?     ; Clear invalid-token-alert.
               :failed-auth?)      ; Clear flag for failing to auth with mine.
@@ -227,8 +227,10 @@
       ;; Set lists page number back to 1.
       (assoc-in [:lists :pagination :current-page] 1)
       ;; Clear lists page selected lists.
-      (update :lists assoc
-              :selected-lists #{})))
+      (update-in [:lists :selected-lists] empty)
+      ;; The old by-id map is used to detect newly added lists.
+      ;; During a mine change, this will mean all lists, which we don't want.
+      (update-in [:lists :by-id] empty)))
 
 (reg-event-fx
  :reboot
@@ -237,11 +239,26 @@
     :dispatch [:authentication/init]
     :async-flow (boot-flow :wait-registry? false)}))
 
+(reg-fx
+ ::start-router-fx
+ (fn [_]
+   (route/init-routes!)))
+
+(reg-event-fx
+ ::start-router
+ (fn [_ _]
+   {::start-router-fx {}}))
+
+;; Note that failed-auth? can mean there's no connection to the mine.
 (reg-event-fx
  :finished-loading-assets
  (fn [{db :db}]
    (let [dispatch-after-boot (:dispatch-after-boot db)
+         ;; We want to block navigation on failed auth, as this could cause a
+         ;; crash when opening a page that expects a mine to be connected.
          failed-auth? (:failed-auth? db)
+         ;; If we're going to change panel, we'll wait with :hide-intro-loader
+         ;; until it's done (otherwise there will be a flash of the home page).
          will-change-panel? (contains? (set (map first dispatch-after-boot))
                                        :do-active-panel)]
      (cond-> {:db (-> db
@@ -250,7 +267,10 @@
               :mine-loader false}
        (and (some? dispatch-after-boot)
             (not failed-auth?)) (assoc :dispatch-n dispatch-after-boot)
-       (not will-change-panel?) (assoc :hide-intro-loader nil)))))
+       (or (not will-change-panel?)
+           ;; Even if we're supposed to show a different panel, we'll show the
+           ;; homepage instead on failed auth (navigation will be blocked).
+           failed-auth?) (assoc :hide-intro-loader nil)))))
 
 (reg-event-fx
  :verify-web-service-version
@@ -269,7 +289,7 @@
 (reg-event-fx
  :start-analytics
  (fn [{db :db}]
-   (let [analytics-id (:googleAnalytics (->clj js/serverVars))
+   (let [analytics-id (:google-analytics @server-vars)
          analytics-enabled? (not (clojure.string/blank? analytics-id))]
      (if analytics-enabled?
         ;;set tracker up if we have a tracking id
@@ -299,18 +319,19 @@
  [(inject-cofx :local-store :bluegenes/login)]
  (fn [{db :db, login :local-store} [evt]]
    (let [current-mine (:current-mine db)
-         ;; Add any persisted login identities to their respective mines.
-         db+logins  (reduce (fn [new-db [mine-kw identity]]
-                              (assoc-in new-db [:mines mine-kw :auth :identity] identity))
-                            db login)
-         auth-token (get-in db+logins [:mines current-mine :auth :identity :token])
-         service    (get-in db+logins [:mines current-mine :service])
+         ;; Add a persisted login identity if defined for mine.
+         db+login (if-let [identity (get login current-mine)]
+                    (assoc-in db [:mines current-mine :auth :identity] identity)
+                    db)
+         auth-token (get-in db+login [:mines current-mine :auth :identity :token])
+         service    (get-in db+login [:mines current-mine :service])
          anon-token (:token service)
          token      (or auth-token anon-token)]
-     {:db db+logins
+     {:db db+login
       :im-chan (if token
                  {:chan (auth/who-am-i? service token)
                   :on-success [:authentication/store-token token]
+                  :on-unauthorised [:authentication/invalid-token (boolean auth-token)]
                   :on-failure [:authentication/invalid-token (boolean auth-token)]}
                  {:chan (fetch/session service)
                   :on-success [:authentication/store-token]
@@ -390,16 +411,16 @@
     (when (= :lists-panel (:active-panel db))
       {:dispatch [:lists/initialize]}))))
 
+;; This event is also dispatched externally from bluegenes.pages.lists.events.
 (reg-event-fx
  :assets/fetch-lists
  (fn [{db :db} [evt]]
-   {:db db
-    :im-chan
-    {:chan (fetch/lists
-            (get-in db [:mines (:current-mine db) :service])
-            {:showTags true})
-     :on-success [:assets/success-fetch-lists (:current-mine db)]
-     :on-failure [:assets/failure evt]}}))
+   {:db (assoc-in db (concat lists/root [:fetching-lists?]) true)
+    :im-chan {:chan (fetch/lists
+                     (get-in db [:mines (:current-mine db) :service])
+                     {:showTags true})
+              :on-success [:assets/success-fetch-lists (:current-mine db)]
+              :on-failure [:assets/failure evt]}}))
 
 ; Fetch class keys
 
@@ -510,6 +531,20 @@
  :assets/success-fetch-release-version
  (fn [db [_ mine-kw version]]
    (assoc-in db [:assets :release-version mine-kw] version)))
+
+(reg-event-fx
+ :assets/fetch-branding
+ (fn [{db :db} [evt]]
+   {:im-chan
+    {:chan (fetch/branding
+            (get-in db [:mines (:current-mine db) :service]))
+     :on-success [:assets/success-fetch-branding (:current-mine db)]
+     :on-failure [:assets/failure evt]}}))
+
+(reg-event-db
+ :assets/success-fetch-branding
+ (fn [db [_ mine-kw branding-properties]]
+   (assoc-in db [:mines mine-kw :branding] branding-properties)))
 
 (reg-event-fx
  :assets/failure

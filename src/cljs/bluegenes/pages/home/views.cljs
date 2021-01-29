@@ -1,5 +1,6 @@
 (ns bluegenes.pages.home.views
   (:require [re-frame.core :refer [subscribe dispatch]]
+            [reagent.core :as r]
             [bluegenes.route :as route]
             [bluegenes.components.icons :refer [icon]]
             [bluegenes.components.navbar.nav :refer [mine-icon]]
@@ -8,11 +9,12 @@
             [bluegenes.utils :refer [ascii-arrows ascii->svg-arrows md-paragraph]]
             [goog.string :as gstring]
             [cljs-time.format :as time-format]
-            [cljs-time.coerce :as time-coerce]))
+            [cljs-time.coerce :as time-coerce]
+            [oops.core :refer [oget]]))
 
 (defn mine-intro []
   (let [mine-name @(subscribe [:current-mine-human-name])
-        description @(subscribe [:registry/description])]
+        description @(subscribe [:current-mine/description])]
     [:div.row.section.mine-intro
      [:div.col-xs-10.col-xs-offset-1
       [:h2.text-center.text-uppercase.mine-name mine-name]
@@ -46,7 +48,7 @@
           [:li
            (into [:a {:href (route/href ::route/template {:template name})}]
                  (if (ascii-arrows title)
-                   (ascii->svg-arrows title)
+                   (ascii->svg-arrows title :max-length 35)
                    [[:span title]]))]))]
       [:a.more-queries {:href (route/href ::route/templates)}
        "More queries here"]
@@ -123,10 +125,12 @@
              neighbourhood]))))
 
 (defn get-fg-color [mine-details]
-  (get-in mine-details [:colors :header :text]))
+  (or (get-in mine-details [:colors :header :text])
+      (get-in mine-details [:branding :colors :header :text])))
 
 (defn get-bg-color [mine-details]
-  (get-in mine-details [:colors :header :main]))
+  (or (get-in mine-details [:colors :header :main])
+      (get-in mine-details [:branding :colors :header :main])))
 
 (defn mine-selector-entry [[mine-key details] & {:keys [active?]}]
   (let [{:keys [name]} details]
@@ -140,14 +144,22 @@
      [:span (or name "default")]
      [icon "plus" nil [:pull-right]]]))
 
+(defn get-mine-ns
+  "Return the mine namespace as a keyword.
+  Handles both mines from the registry and config."
+  [mine]
+  (if (contains? mine :namespace)
+    (keyword (:namespace mine))
+    (:id mine)))
+
 (defn mine-selector-preview []
   (let [{:keys [description name] :as preview-mine} @(subscribe [:home/preview-mine])
-        mine-ns (-> preview-mine :namespace keyword)]
+        mine-ns (get-mine-ns preview-mine)]
     [:div.col-xs-10.col-xs-offset-1.col-sm-offset-0.col-sm-3.mine-preview
      {:style {:color (get-fg-color preview-mine)
               :background-color (get-bg-color preview-mine)}}
      [:h4.text-center name]
-     [:p description]
+     (md-paragraph description)
      [:div.preview-image
       [mine-icon preview-mine :class "img-responsive"]]
      [:button.btn.btn-block
@@ -159,8 +171,8 @@
       (str "Switch to " name)]]))
 
 (defn mine-selector []
-  (let [registry-mines @(subscribe [:home/mines-by-neighbourhood])
-        active-ns (-> @(subscribe [:home/preview-mine]) :namespace keyword)]
+  (let [mines @(subscribe [:home/mines-by-neighbourhood])
+        active-ns (get-mine-ns @(subscribe [:home/preview-mine]))]
     [:div.row.section
      [:div.col-xs-12
       [:h2.text-center.text-uppercase "InterMine for all"]]
@@ -169,7 +181,7 @@
       [:div.row.mine-selector-body
        [:div.col-xs-12.col-sm-9.mine-selector-entries
         [:div.row
-         (for [mine registry-mines]
+         (for [mine mines]
            ^{:key (key mine)}
            [mine-selector-entry mine :active? (= active-ns (key mine))])]]
        [mine-selector-preview]]]]))
@@ -194,21 +206,36 @@
      "Open InterMOD GO"]]])
 
 (defn feedback []
-  [:div.row.section
-   [:div.col-xs-12
-    [:h2.text-center "We value your opinion"]
-    ;; Doesn't look like we'll know this email.
-    #_[:p.text-center "Feedback received by organisation@mail.com"]]
-   [:div.col-xs-12.col-sm-10.col-sm-offset-1.col-md-8.col-md-offset-2.feedback
-    [:input.form-control
-     {:type "email"
-      :placeholder "Your email (optional)"}]
-    [:textarea.form-control
-     {:placeholder "Your feedback here"
-      :rows 5}]
-    [:button.btn.btn-block
-     {:on-click #(js/alert "Sorry! We're still working on implementing this. Until then, you can use the email icon in the footer at the bottom of the page.")}
-     "Submit"]]])
+  (let [email* (r/atom "")
+        text* (r/atom "")]
+    (fn []
+      (let [{:keys [type message error]} @(subscribe [:home/feedback-response])]
+        [:div.row.section
+         [:div.col-xs-12
+          [:h2.text-center "We value your opinion"]]
+         (case type
+           :success [:div.feedback-response
+                     [icon "checkmark"]
+                     [:h3 "Thank you!"]
+                     [:p "Your feedback has been submitted."]]
+           [:div.col-xs-12.col-sm-10.col-sm-offset-1.col-md-8.col-md-offset-2.feedback
+            [:input.form-control
+             {:type "email"
+              :placeholder "Your email (optional)"
+              :value @email*
+              :on-change #(reset! email* (oget % :target :value))}]
+            [:textarea.form-control
+             {:placeholder "Your feedback here"
+              :rows 5
+              :value @text*
+              :on-change #(reset! text* (oget % :target :value))}]
+            [:button.btn.btn-block
+             {:on-click #(dispatch [:home/submit-feedback @email* @text*])}
+             "Submit"]
+            (when (or message error)
+              [:p.failure.text-center message
+               (when error
+                 [:code error])])])]))))
 
 (defn credits-entry [{:keys [text image url]}]
   (if (not-empty text)

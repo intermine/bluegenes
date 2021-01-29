@@ -3,7 +3,25 @@
   (:require [re-frame.core :refer [reg-event-db reg-event-fx reg-fx dispatch subscribe]]
             [re-frame.events]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
-            [imcljs.fetch :as fetch]))
+            [imcljs.fetch :as fetch]
+            [bluegenes.route :as route]
+            [bluegenes.components.ui.constraint :as constraint]))
+
+;; This effect handler is used from routes and has different behaviour
+;; depending on if it's called from a different panel, or the template panel.
+(reg-event-fx
+ :template-chooser/open-template
+ (fn [{db :db} [_ id]]
+   (if (= :templates-panel (:active-panel db))
+     {:dispatch [:template-chooser/choose-template id]}
+     {:dispatch-n [[:template-chooser/clear-template]
+                   [:set-active-panel :templates-panel
+                    nil
+                    ;; flush-dom makes the event wait for the page to update first.
+                    ;; This is because we'll be scrolling to the template, so the
+                    ;; element needs to be present first.
+                    ^:flush-dom [:template-chooser/choose-template id
+                                 {:scroll? true}]]]})))
 
 ; Predictable function used to filter active constraints
 (def not-disabled-predicate (comp (partial not= "OFF") :switched))
@@ -11,7 +29,7 @@
 (defn remove-switchedoff-constraints
   "Filter the constraints of a query map and only keep those with a :switched value other than OFF"
   [query]
-  (update query :where #(filter not-disabled-predicate %)))
+  (update query :where #(filterv not-disabled-predicate %)))
 
 (reg-event-fx
  :template-chooser/choose-template
@@ -30,9 +48,23 @@
                       [:template-chooser/fetch-preview]]}
         (when scroll?
           {:scroll-to-template (name id)}))
-       {:dispatch [:messages/add
-                   {:markup [:span "The template " [:em (name id)] " does not exist."]
-                    :style "warning"}]}))))
+       ;; Template can't be found.
+       {:dispatch-n [[::route/navigate ::route/templates]
+                     [:messages/add
+                      {:markup [:span "The template " [:em (name id)] " does not exist. It's possible the ID has changed. Use the text filter above to find a template with a similar name."]
+                       :style "warning"
+                       :timeout 0}]]}))))
+
+(reg-event-db
+ :template-chooser/deselect-template
+ (fn [db [_]]
+   (update-in db [:components :template-chooser] select-keys
+              [:selected-template-category :text-filter])))
+;; Above keeps category and text filter, while the below clears them.
+(reg-event-db
+ :template-chooser/clear-template
+ (fn [db [_]]
+   (update db :components dissoc :template-chooser)))
 
 (reg-event-db
  :template-chooser/set-category-filter
@@ -54,39 +86,30 @@
                 :intent :template
                 :value (remove-switchedoff-constraints (get-in db [:components :template-chooser :selected-template]))}]}))
 
-(defn one-of? [col value] (some? (some #{value} col)))
-(defn should-update? [old-op new-op]
-  (or
-   (and
-    (one-of? ["IN" "NOT IN"] old-op)
-    (one-of? ["IN" "NOT IN"] new-op))
-   (and (not (one-of? ["IN" "NOT IN"] old-op)) (not (one-of? ["IN" "NOT IN"] new-op)))))
+(reg-event-fx
+ :templates/edit-query
+ (fn [{db :db} [_]]
+   {:db db
+    :dispatch-n [[::route/navigate ::route/querybuilder]
+                 [:qb/load-query (remove-switchedoff-constraints (get-in db [:components :template-chooser :selected-template]))]]}))
 
 (reg-event-fx
  :template-chooser/replace-constraint
- (fn [{db :db} [_ index new-constraint]]
+ (fn [{db :db} [_ index {new-op :op :as new-constraint}]]
    (let [constraint-location [:components :template-chooser :selected-template :where index]
-         old-constraint (get-in db constraint-location)]
-      ; Only fetch the query results if the operator hasn't change from a LIST to a VALUE or vice versa
-     (if (should-update? (:op old-constraint) (:op new-constraint))
-       {:db (assoc-in db constraint-location new-constraint)}
-         ;:dispatch-n [[:template-chooser/run-count]
-         ;             [:template-chooser/fetch-preview]]
-
-       {:db (-> db
-                (assoc-in constraint-location (assoc new-constraint :value nil))
-                (assoc-in [:components :template-chooser :results-preview] nil))}))))
+         {old-op :op :as old-constraint} (get-in db constraint-location)]
+     {:db (-> db
+              (assoc-in constraint-location (constraint/clear-constraint-value old-constraint new-constraint))
+              (cond->
+               (not= old-op new-op) (assoc-in [:components :template-chooser :results-preview] nil)))})))
 
 (reg-event-fx
  :template-chooser/update-preview
- (fn [{db :db} [_ index new-constraint]]
-
-   (let [constraint-location [:components :template-chooser :selected-template :where index]
-         old-constraint (get-in db constraint-location)]
-      ; Only fetch the query results if the operator hasn't change from a LIST to a VALUE or vice versa
-     {:db db
-      :dispatch-n [[:template-chooser/run-count]
-                   [:template-chooser/fetch-preview]]})))
+ (fn [{db :db} [_ _index new-constraint]]
+   (if (constraint/satisfied-constraint? new-constraint)
+     {:dispatch-n [[:template-chooser/run-count]
+                   [:template-chooser/fetch-preview]]}
+     {:db (assoc-in db [:components :template-chooser :results-preview] nil)})))
 
 (reg-event-db
  :template-chooser/update-count
@@ -116,12 +139,22 @@
          query-changed? (not= query (get-in db [:components :template-chooser :previously-ran]))
          new-db (update-in db [:components :template-chooser] assoc
                            :preview-chan count-chan
-
                            :previously-ran query)]
      (cond-> {:db new-db}
-       query-changed? (assoc-in [:db :components :template-chooser :fetching-preview?] true)
-       query-changed? (assoc :im-chan {:chan count-chan
-                                       :on-success [:template-chooser/store-results-preview]})))))
+       query-changed? (-> (update-in [:db :components :template-chooser] assoc
+                                     :fetching-preview? true
+                                     :preview-error nil)
+                          (assoc :im-chan {:chan count-chan
+                                           :on-success [:template-chooser/store-results-preview]
+                                           :on-failure [:template-chooser/fetch-preview-failure]}))))))
+
+(reg-event-db
+ :template-chooser/fetch-preview-failure
+ (fn [db [_ res]]
+   (update-in db [:components :template-chooser] assoc
+              :fetching-preview? false
+              :preview-error (or (get-in res [:body :error])
+                                 "Error occurred when running template."))))
 
 (reg-fx
  :template-chooser/pipe-count

@@ -21,8 +21,9 @@
 
 (defn web-properties-to-bluegenes
   "Map intermine web properties to bluegenes properties"
-  [web-properties previous-properties]
+  [web-properties]
   {:name                         (get-in web-properties [:project :title])
+   :description                  (get-in web-properties [:project :subTitle])
    :default-organism             (get-in web-properties [:genomicRegionSearch :defaultOrganisms])
    ;;todo - set sane default programmatically or default to first.
    :default-selected-object-type (first (get-in web-properties [:genomicRegionSearch :defaultOrganisms]))
@@ -30,8 +31,6 @@
    :rss                          (get-in web-properties [:project :rss])
    :citation                     (parse-citation (get-in web-properties [:project :citation]))
    :credits                      (get-in web-properties [:project :credits])
-   ;;this needs to be passed in as an arg or pulled from the branding endpoint.
-   :icon                         "icon-intermine"
    :idresolver-example           (let [ids (get-in web-properties [:bag :example :identifiers])]
                                    ;; ids can be one of the following:
                                    ;;     {:default "foo bar"
@@ -57,9 +56,8 @@
 (reg-event-db
  :assets/success-fetch-web-properties
  (fn [db [_ mine-kw web-properties]]
-   (let [original-properties (get-in db [:mines (:current-mine db)])
-         fetched-properties  (web-properties-to-bluegenes web-properties
-                                                          original-properties)]
+   (let [original-properties (get-in db [:mines mine-kw])
+         fetched-properties  (web-properties-to-bluegenes web-properties)]
      (assoc-in db [:mines mine-kw] (merge original-properties fetched-properties)))))
 
 (reg-event-fx

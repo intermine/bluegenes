@@ -9,20 +9,17 @@
             [clojure.set :refer [difference]]
             [bluegenes.pages.querybuilder.logic :as logic
              :refer [read-logic-string remove-code vec->list append-code]]
-            [clojure.string :refer [join split blank? starts-with?]]
+            [clojure.string :as str :refer [join split blank? starts-with?]]
             [bluegenes.utils :refer [read-xml-query dissoc-in]]
             [oops.core :refer [oget]]
-            [clojure.walk :refer [postwalk]]))
+            [clojure.walk :refer [postwalk]]
+            [bluegenes.components.ui.constraint :as constraint]))
 
 (reg-event-fx
  ::load-querybuilder
  (fn [_]
    {:dispatch-n [[:qb/fetch-saved-queries]
                  [:qb/clear-import-result]]}))
-
-(def loc [:qb :qm])
-
-(def not-blank? (complement blank?))
 
 (defn drop-nth
   "remove elem in coll"
@@ -81,31 +78,6 @@
                 :store-in view-vec}}
        {:dispatch [:qb/store-possible-values view-vec false]}))))
 
-(reg-event-fx
- :qb/add-constraint
- (fn [{db :db} [_ view-vec]]
-   {:db (update-in db loc update-in (conj view-vec :constraints)
-                   (comp vec conj) {:code nil :op nil :value nil})
-    :dispatch [:qb/build-im-query]}))
-
-(reg-event-fx
- :qb/remove-constraint
- (fn [{db :db} [_ path idx]]
-   {:db (update-in db loc update-in (conj path :constraints) drop-nth idx)
-    :dispatch [:qb/build-im-query]}))
-
-; Do not re-count because this fires on every keystroke!
-; Instead, attach (dispatch [:qb/count-query]) to the :on-blur of the constraints component
-(reg-event-db
- :qb/update-constraint
- (fn [db [_ path idx constraint]]
-   (let [updated-constraint (cond-> constraint
-                              (and
-                               (blank? (:code constraint))
-                               (not-blank? (:value constraint))) (assoc :code (next-available-const-code (get-in db [:qb :enhance-query])))
-                              (blank? (:value constraint)) (dissoc :code))]
-     (update-in db loc assoc-in (reduce conj path [:constraints idx]) updated-constraint))))
-
 (reg-event-db
  :qb/update-constraint-logic
  (fn [db [_ logic]]
@@ -133,22 +105,11 @@
     (flatten (reduce (fn [t n] (conj t (serialize-constraints n total (str trail (if trail ".") k)))) total children))
     (conj total (map (fn [n] (assoc n :path (str trail (if trail ".") k))) constraints))))
 
-(reg-event-db
- :qb/success-count
- (fn [db [_ count]]
-   db))
-
 (defn extract-constraints [[k value] total views]
   (let [new-total (conj total k)]
     (if-let [children (not-empty (select-keys value (filter (complement keyword?) (keys value))))] ; Keywords are reserved for flags
       (into [] (mapcat (fn [c] (extract-constraints c new-total (conj views (assoc value :path new-total)))) children))
       (conj views (assoc value :path new-total)))))
-
-(reg-event-db
- :qb/success-summary
- (fn [db [_ dot-path summary]]
-   (let [v (vec (butlast (split dot-path ".")))]
-     (update-in db loc assoc-in (conj v :id-count) summary))))
 
 (defn remove-keyword-keys
   "Removes all keys from a map that are keywords.
@@ -167,27 +128,40 @@
        (mapcat (fn [[k v]] (class-paths model [k v] (conj running k) total)) children)
        total))))
 
-(defn view-map [model q]
-  (->> (map (fn [v] (split v ".")) (:select q))
-       (reduce (fn [total next] (assoc-in total next {:visible true})) {})))
+(defn with-views [q query-map]
+  (reduce (fn [m path]
+            (assoc-in m path {:visible true}))
+          query-map
+          (map #(split % ".") (:select q))))
 
-(defn with-constraints [model q query-map]
-  (reduce (fn [total next]
-            (let [path (conj (vec (split (:path next) ".")) :constraints)]
-              (update-in total path (comp vec conj) (dissoc next :path)))) query-map (:where q)))
+(defn with-constraints [q query-map]
+  (reduce (fn [m {:keys [path] :as constraint}]
+            (let [path (concat (split path ".") [:constraints])]
+              (update-in m path (fnil conj []) (dissoc constraint :path))))
+          query-map
+          (filter (complement :type) (:where q))))
 
-(defn treeify [model q]
-  (->> (view-map model q)
-       (with-constraints model q)))
+(defn with-subclasses [q query-map]
+  (reduce (fn [m {:keys [path] :as constraint}]
+            (let [path (concat (split path ".") [:subclass])]
+              (assoc-in m path (:type constraint))))
+          query-map
+          (filter :type (:where q))))
+
+(defn treeify [q]
+  (->> {}
+       (with-views q)
+       (with-constraints q)
+       (with-subclasses q)))
 
 (reg-event-fx
  :qb/load-query
  (fn [{db :db} [_ query]]
-   (let [model (get-in db [:mines (get-in db [:current-mine]) :service :model])
-         query (im-query/sterilize-query query)]
+   (let [query (im-query/sterilize-query query)
+         tree (treeify query)]
      {:db (update db :qb assoc
-                  :enhance-query (treeify model query)
-                  :menu (treeify model query)
+                  :enhance-query tree
+                  :menu tree
                   :order (:select query)
                   :root-class (keyword (:from query))
                   :constraint-logic (read-logic-string (:constraintLogic query))
@@ -197,19 +171,16 @@
 
 (reg-event-fx
  :qb/set-root-class
- (fn [{db :db} [_ root-class-kw]]
-   (let [model (get-in db [:mines (get-in db [:current-mine]) :service :model])]
-     {:db (update db :qb assoc
-                  :constraint-logic nil
-                  :query-is-valid? false
-                  :order []
-                  :sort []
-                  :joins #{}
-                  :preview nil
-                  :im-query nil
-                  :enhance-query {}
-                  :root-class (keyword root-class-kw)
-                  :qm {root-class-kw {:visible true}})})))
+ (fn [{db :db} [_ root-class]]
+   {:db (update db :qb assoc
+                :constraint-logic nil
+                :order []
+                :sort []
+                :joins #{}
+                :preview nil
+                :im-query nil
+                :enhance-query {}
+                :root-class (keyword root-class))}))
 
 (reg-event-db
  :qb/expand-path
@@ -336,8 +307,7 @@
   ([[k {:keys [constraints] :as properties}] trail total-constraints]
    (let [next-trail (into [] (conj trail k))
          next-constraints (reduce (fn [total next]
-                                    ; Only collect constraints with a code!
-                                    (if (:code next)
+                                    (if (constraint/satisfied-constraint? next)
                                       (conj total (assoc next :path (join "." next-trail)))
                                       total))
                                   total-constraints constraints)]
@@ -348,15 +318,16 @@
 (reg-event-fx
  :qb/export-query
  (fn [{db :db} [_]]
-   {:db db
-    :dispatch [:results/history+
-               {:source (get-in db [:current-mine])
-                :type :query
-                :intent :query
-                :value (assoc
-                        (get-in db [:qb :im-query])
-                        :title (str "Custom Query " (hash (get-in db [:qb :im-query]))))
-                :display-title "Custom Query"}]}))
+   (let [query (get-in db [:qb :im-query])
+         title (str "Custom " (:from query) " Query")]
+     {:dispatch [:results/history+
+                 {:source (get-in db [:current-mine])
+                  :type :query
+                  :intent :query
+                  :value (assoc query
+                                :title (-> (str/replace title " " "_")
+                                           (str "_" (hash query))))
+                  :display-title title}]})))
 
 (defn within? [col item]
   (some? (some #{item} col)))
@@ -487,21 +458,22 @@
       :dispatch [:qb/enhance-query-build-im-query true]})))
 ;:dispatch [:qb/build-im-query]
 
-;; Having both `:value` and `:values` keys makes this bug-prone. If we find we need
-;; to refactor this, we should merge it into a single polymorphic `:value` key.
 (reg-event-db
  :qb/enhance-query-update-constraint
  (fn [db [_ path idx constraint]]
-   (let [add-code? (and (blank? (:code constraint)) (or (not-blank? (:value constraint)) (not-blank? (:values constraint))))
-         remove-code? (and (blank? (:value constraint)) (blank? (:values constraint)) (:code constraint))]
-     (let [updated-constraint
-           (cond-> constraint
-             add-code? (assoc :code (next-available-const-code (get-in db [:qb :enhance-query])))
-             remove-code? (dissoc :code))]
-       (cond-> db
-         updated-constraint (update-in [:qb :enhance-query] assoc-in (reduce conj path [:constraints idx]) updated-constraint)
-         add-code? (update-in [:qb :constraint-logic] append-code (symbol (:code updated-constraint)))
-         remove-code? (update-in [:qb :constraint-logic] remove-code (symbol (:code constraint))))))))
+   (let [add-code? (and (blank? (:code constraint))
+                        (constraint/satisfied-constraint? constraint))
+         remove-code? (and (not (blank? (:code constraint)))
+                           (not (constraint/satisfied-constraint? constraint)))
+         constraint-path (concat [:qb :enhance-query] path [:constraints idx])
+         old-constraint (get-in db constraint-path)
+         updated-constraint (cond-> (constraint/clear-constraint-value old-constraint constraint)
+                              add-code? (assoc :code (next-available-const-code (get-in db [:qb :enhance-query])))
+                              remove-code? (dissoc :code))]
+     (cond-> db
+       updated-constraint (assoc-in constraint-path updated-constraint)
+       add-code? (update-in [:qb :constraint-logic] append-code (symbol (:code updated-constraint)))
+       remove-code? (update-in [:qb :constraint-logic] remove-code (symbol (:code constraint)))))))
 
 (reg-event-db
  :qb/enhance-query-clear-query

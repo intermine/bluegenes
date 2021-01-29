@@ -64,10 +64,8 @@ jobs:
         - ~/.npm
         - ~/.cache
     - run: lein deps
-    - run: make less-prod
-    - run: lein with-profile prod cljsbuild once min
     - run:
-        command: lein with-profile prod run
+        command: lein prod
         background: true
     - save_cache:
         key: v1-deps-{{ .Branch }}-{{ checksum "project.clj" }}

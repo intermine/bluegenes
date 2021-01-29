@@ -44,30 +44,35 @@
 
 (reg-event-fx
  ::store-parsed-response
- (fn [{db :db} [_ options response]]
+ (fn [{db :db} [_ options {:keys [identifiers] :as response}]]
    {:db (update db :idresolver
                 #(-> %
                      (assoc-in [:stage :status :action] nil)
                      (assoc-in [:stage :flags :parsed] true)
                      (assoc :to-resolve response)))
-    :dispatch [::resolve-identifiers options (:identifiers response)]}))
+    :dispatch-n [[::resolve-identifiers
+                  {:identifiers identifiers
+                   :case-sensitive (:case-sensitive options)
+                   :type (:type options)
+                   :extra (:organism options)}]
+                 [::route/navigate ::route/upload-step {:step "save"}]]}))
 
 (reg-event-fx
  ::resolve-identifiers
- (fn [{db :db} [_ options identifiers]]
+ (fn [{db :db} [_ body]]
    (let [service (get-in db [:mines (get db :current-mine) :service])]
      {:db (-> db
               (assoc-in [:idresolver :stage :view] :review)
               (assoc-in [:idresolver :stage :options :review-tab] :matches)
-              (update :idresolver dissoc :response))
-      :im-chan {:chan (fetch/resolve-identifiers
-                       service
-                       {:identifiers identifiers
-                        :case-sensitive (:case-sensitive options)
-                        :type (:type options)
-                        :extra (:organism options)})
-                :on-success [::store-identifiers]}
-      :dispatch [::route/navigate ::route/upload-step {:step "save"}]})))
+              (update :idresolver dissoc :response :error))
+      :im-chan {:chan (fetch/resolve-identifiers service body)
+                :on-success [::store-identifiers]
+                :on-failure [::resolve-identifiers-failure]}})))
+
+(reg-event-db
+ ::resolve-identifiers-failure
+ (fn [db [_ res]]
+   (assoc-in db [:idresolver :error] res)))
 
 (def time-formatter (time-format/formatter "dd MMM yyyy HH:mm:ss"))
 
@@ -151,32 +156,62 @@
  (fn [db [_ value]]
    (assoc-in db [:idresolver :save :list-name] value)))
 
+(defn resolution-matches-ids
+  "Takes the matches map of a successful ID resolution job response and returns
+  a seq of object IDs. The included objects will be those successfully matched
+  (excluding wildcards), in addition to duplicate/ambiguous matches that the
+  user checked to keep."
+  [{:keys [OTHER DUPLICATE TYPE_CONVERTED MATCH]}]
+  (map :id
+       (concat (mapcat (comp #(filter :keep? %) :matches) DUPLICATE)
+               (mapcat :matches TYPE_CONVERTED)
+               (mapcat :matches OTHER)
+               MATCH)))
+
+(reg-event-fx
+ ::upgrade-list
+ (fn [{db :db} [_ list-name]]
+   (let [service (get-in db [:mines (get db :current-mine) :service])
+         ids (resolution-matches-ids (get-in db [:idresolver :response :matches]))]
+     {:im-chan {:chan (save/im-list-upgrade service list-name ids)
+                :on-success [::upgrade-list-success list-name]
+                :on-failure [::upgrade-list-failure list-name]}})))
+
+(reg-event-fx
+ ::upgrade-list-success
+ (fn [{db :db} [_ list-name _res]]
+   {:dispatch-n [; Re-fetch our lists so that it shows in Lists page
+                 [:assets/fetch-lists]
+                 [::route/navigate ::route/results {:title list-name}]]}))
+
+(reg-event-fx
+ ::upgrade-list-failure
+ (fn [{db :db} [_ list-name res]]
+   {:dispatch [:messages/add
+               {:markup [:span [:strong "Failed to upgrade and save " [:em list-name]] " "
+                         [:code (if-let [err (not-empty (get-in res [:body :error]))]
+                                  err
+                                  "Please check your connection and try again later.")]]
+                :timeout 10000
+                :style "danger"}]}))
+
 (reg-event-fx
  ::save-list
  (fn [{db :db} [_]]
-   (let [{:keys [OTHER WILDCARD DUPLICATE TYPE_CONVERTED MATCH]}
-         (get-in db [:idresolver :response :matches])
+   (let [ids (resolution-matches-ids (get-in db [:idresolver :response :matches]))
          object-type (get-in db [:idresolver :stage :options :type])
          service     (get-in db [:mines (get db :current-mine) :service])
          list-name   (get-in db [:idresolver :save :list-name])]
-     {:im-chan
-      {:chan
-       (save/im-list-from-query
-        service
-        list-name
-        {:from object-type
-         :select [(str object-type ".id")]
-         :where [{:path (str object-type ".id")
-                  :op "ONE OF"
-                  :values (->>
-                           MATCH
-                           (concat (mapcat :matches OTHER))
-                           (concat (mapcat :matches TYPE_CONVERTED))
-                           (concat
-                            (mapcat (fn [{matches :matches}]
-                                      (filter :keep? matches)) DUPLICATE))
-                           (map :id))}]})
-       :on-success [::save-list-success list-name object-type]}})))
+     {:im-chan {:chan (save/im-list-from-query
+                       service
+                       list-name
+                       {:from object-type
+                        :select [(str object-type ".id")]
+                        :where [{:path (str object-type ".id")
+                                 :op "ONE OF"
+                                 :values ids}]})
+                :on-success [::save-list-success list-name object-type]
+                :on-failure [::save-list-failure]}})))
 
 (reg-event-fx
  ::save-list-success
@@ -202,6 +237,17 @@
                              :where [{:path object-type
                                       :op "IN"
                                       :value list-name}]}}]]})))
+
+(reg-event-fx
+ ::save-list-failure
+ (fn [{db :db} [_ res]]
+   {:dispatch [:messages/add
+               {:markup [:span [:strong "Failed to save list: "]
+                         [:code (if-let [err (not-empty (get-in res [:body :error]))]
+                                  err
+                                  "Please check your connection and try again later.")]]
+                :timeout 10000
+                :style "danger"}]}))
 
 (defn validate-default-organism [db mine-details]
   " this handles the fact that a mine could be misconfigured
@@ -237,7 +283,8 @@
                                :organism organism}
                      :status nil
                      :flags nil}
-             :response nil}))))
+             :response nil
+             :error nil}))))
 
 (reg-event-fx
  ::load-example

@@ -2,7 +2,8 @@
   (:require [re-frame.core :refer [reg-event-db reg-event-fx]]
             [bluegenes.effects :as fx]
             [bluegenes.route :as route]
-            [imcljs.auth :as im-auth]))
+            [imcljs.auth :as im-auth]
+            [bluegenes.interceptors :refer [origin]]))
 
 (reg-event-fx
  ::login
@@ -30,7 +31,11 @@
                          :identity identity
                          :message nil
                          :error? false)
-              (assoc-in [:mines current-mine :service :token] token))
+              (assoc-in [:mines current-mine :service :token] token)
+              ;; The old by-id map is used to detect newly added lists.
+              ;; We clear it here as otherwise all the lists belonging to the
+              ;; user will be annotated as new.
+              (update-in [:lists :by-id] empty))
       :dispatch-n [[:save-login current-mine identity]
                    [:assets/fetch-lists]]})))
 
@@ -90,12 +95,79 @@
                :on-unauthorised [::login-failure]
                :transit-params credentials}}))
 
+(reg-event-fx
+ ::request-reset-password
+ [(origin)]
+ (fn [{db :db origin :origin} [_ email]]
+   (let [service (get-in db [:mines (:current-mine db) :service])
+         redirectUrl (str origin (route/href ::route/resetpassword))]
+     {:db (update-in db [:mines (:current-mine db) :auth] assoc
+                     :thinking? true)
+      :im-chan {:chan (im-auth/request-password-reset service email redirectUrl)
+                :on-success [::request-reset-password-success]
+                :on-failure [::request-reset-password-failure]}})))
+
+(reg-event-db
+ ::request-reset-password-success
+ (fn [db [_]]
+   (update-in db [:mines (:current-mine db) :auth] assoc
+              :thinking? false
+              :error? false
+              :message nil
+              :request-reset-success? true)))
+
+(reg-event-db
+ ::request-reset-password-failure
+ (fn [db [_ res]]
+   (update-in db [:mines (:current-mine db) :auth] assoc
+              :thinking? false
+              :error? true
+              :message (if (empty? res)
+                         "This feature is not supported in this version of Intermine"
+                         (or (get-in res [:body :error])
+                             "Failed to send recovery email"))
+              :request-reset-success? false)))
+
+(reg-event-fx
+ ::reset-password
+ (fn [{db :db} [_ new-password token]]
+   (let [service (get-in db [:mines (:current-mine db) :service])]
+     {:im-chan {:chan (im-auth/password-reset service new-password token)
+                :on-success [::reset-password-success]
+                :on-failure [::reset-password-failure]
+                :on-unauthorised [::reset-password-failure]}})))
+
+(reg-event-db
+ ::reset-password-success
+ (fn [db [_]]
+   (update-in db [:mines (:current-mine db) :auth] assoc
+              :reset-password-success? true
+              :reset-password-error nil)))
+
+(reg-event-db
+ ::reset-password-failure
+ (fn [db [_ {:keys [status] :as res}]]
+   (update-in db [:mines (:current-mine db) :auth] assoc
+              :reset-password-success? false
+              :reset-password-error (if (= status 405)
+                                      "This feature is not supported in this version of Intermine"
+                                      (or (get-in res [:body :error])
+                                          "Failed to reset password")))))
+
+(reg-event-db
+ ::clear-reset-password-page
+ (fn [db]
+   (update-in db [:mines (:current-mine db) :auth] dissoc
+              :reset-password-success?
+              :reset-password-error)))
+
 (reg-event-db
  ::clear-error
  (fn [db]
    (update-in db [:mines (:current-mine db) :auth] assoc
               :error? false
-              :message nil)))
+              :message nil
+              :request-reset-success? false)))
 
 (reg-event-fx
  ::oauth2
@@ -113,15 +185,12 @@
                                   :mine-id (name current-mine)
                                   :provider provider}}})))
 
-(defn get-origin []
-  (let [loc (.-location js/window)]
-    (str (.-protocol loc) "//" (.-host loc))))
-
 (reg-event-fx
  ::oauth2-success
- (fn [{db :db} [_ provider link]]
+ [(origin)]
+ (fn [{db :db origin :origin} [_ provider link]]
    {:external-redirect (str link "&redirect_uri="
-                            (js/encodeURIComponent (str (get-origin) "/api/auth/oauth2callback"
+                            (js/encodeURIComponent (str origin "/api/auth/oauth2callback"
                                                         "?provider=" provider)))}))
 
 (reg-event-db

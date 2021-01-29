@@ -6,7 +6,9 @@
             [reitit.coercion.spec :as rcs]
             [reitit.frontend :as rf]
             [reitit.frontend.controllers :as rfc]
-            [reitit.frontend.easy :as rfe]))
+            [reitit.frontend.easy :as rfe]
+            [bluegenes.config :refer [read-default-ns]]
+            [clojure.string :as str]))
 
 ;; # Quickstart guide:
 ;; (aka. I just want to route something but don't want to read all this code!)
@@ -27,6 +29,11 @@
 ;; warning if you use a route that expects params, without specifying params.
 ;; Note that the `:mine` param is an exception to this, since it's the parent
 ;; of all routes, so it gets injected automatically from db if not specified.
+;;
+;; There is also an event you can dispatch to step back in the history.
+;; ```
+;; (dispatch [::route/go-back])
+;; ```
 
 ;; Based on the official reitit frontend-re-frame example: (2019.06.18)
 ;; https://github.com/metosin/reitit/tree/master/examples/frontend-re-frame
@@ -39,6 +46,11 @@
    {::navigate! {:k route
                  :query query
                  :params (update params :mine #(or % (:current-mine db)))}}))
+
+(reg-event-fx
+ ::go-back
+ (fn [{db :db} [_]]
+   {::go-back! {}}))
 
 ;; This event handler is for internal use by router.
 ;; Do not dispatch unless you know what you're doing!
@@ -80,15 +92,6 @@
                        ;; Hence, we need to dispatch `:results/load-history` manually.
                        [:results/load-history list-name]]})))))
 
-(defn dispatch-for-home
-  "Called when opening the home page.
-  This function is defined by itself as it needs to be referenced both in the
-  routes and when booting with no route match (i.e. empty URL path)."
-  []
-  (dispatch [:set-active-panel :home-panel
-             nil
-             [:bluegenes.events.blog/fetch-rss]]))
-
 ;;; Subscriptions ;;;
 
 (reg-sub
@@ -97,13 +100,18 @@
    (:current-route db)))
 
 ;;; Effects ;;;
+;; You should dispatch the event handlers above instead of using the effects
+;; directly. Such is the way of re-frame!
 
-;; You should dispatch `::navigate` (defined above) instead of using this
-;; effect directly. Such is the way of re-frame!
 (reg-fx
  ::navigate!
  (fn [{:keys [k params query]}]
    (rfe/push-state k params query)))
+
+(reg-fx
+ ::go-back!
+ (fn [_]
+   (.back js/window.history)))
 
 (defn href
   "Return relative url for given route. Url can be used in HTML links."
@@ -141,7 +149,26 @@
     [""
      {:name ::home
       :controllers
-      [{:start dispatch-for-home}]}]
+      [{:start (fn []
+                 (dispatch [:home/clear])
+                 (dispatch [:set-active-panel :home-panel
+                            nil
+                            [:bluegenes.events.blog/fetch-rss]]))}]}]
+    ["/admin"
+     {:name ::admin
+      :controllers
+      [{:start (fn []
+                 (dispatch [:set-active-panel :admin-panel
+                            nil
+                            [:bluegenes.pages.admin.events/init]])
+                 (dispatch [:bluegenes.components.tools.events/fetch-tools]))}]}]
+    ["/tools"
+     {:name ::tools
+      :controllers
+      [{:start (fn []
+                 (dispatch [:set-active-panel :tools-panel
+                            nil
+                            [:bluegenes.pages.tools.events/init]]))}]}]
     ["/profile"
      {:name ::profile
       :controllers
@@ -165,13 +192,9 @@
       :controllers
       [{:parameters {:path [:template]}
         :start (fn [{{:keys [template]} :path}]
-                 (dispatch [:set-active-panel :templates-panel
-                            nil
-                            ;; flush-dom makes the event wait for the page to update first.
-                            ;; This is because we'll be scrolling to the template, so the
-                            ;; element needs to be present first.
-                            ^:flush-dom [:template-chooser/choose-template (keyword template)
-                                         {:scroll? true}]]))}]}]
+                 (dispatch [:template-chooser/open-template (keyword template)]))
+        :stop (fn []
+                (dispatch [:template-chooser/deselect-template]))}]}]
     ["/upload"
      [""
       {:name ::upload
@@ -184,10 +207,14 @@
          :start (fn [{{:keys [step]} :path}]
                   (dispatch [:set-active-panel :upload-panel
                              {:step (keyword step)}]))}]}]]
-    ["/explore"
-     {:name ::explore
+    ["/upgrade"
+     {:name ::upgrade
       :controllers
-      [{:start #(dispatch [:set-active-panel :explore-panel])}]}]
+      [{:parameters {:query [:name]}
+        :start (fn [{{:keys [name]} :query}]
+                 (dispatch [:set-active-panel :upgrade-panel
+                            {:upgrade-list name}
+                            [:bluegenes.components.idresolver.events/resolve-identifiers {:name name}]]))}]}]
     ["/search"
      {:name ::search
       :controllers
@@ -242,7 +269,22 @@
                  (dispatch [:viz/clear])
                  (dispatch [:set-active-panel :reportpage-panel
                             {:type type, :id id, :format "id", :mine mine}
-                            [:load-report mine type id]]))}]}]]])
+                            [:load-report mine type id]]))
+        :stop #(dispatch [:bluegenes.pages.reportpage.events/stop-scroll-handling])}]}]
+    ["/share/:lookup"
+     {:name ::share
+      :controllers
+      [{:parameters {:path [:mine :lookup]}
+        :start (fn [{{:keys [mine lookup]} :path}]
+                 (dispatch [:handle-permanent-url mine lookup]))}]}]
+    ["/resetpassword"
+     {:name ::resetpassword
+      :controllers
+      [{:parameters {:query [:token]}
+        :start (fn [{{:keys [token]} :query}]
+                 (dispatch [:bluegenes.events.auth/clear-reset-password-page])
+                 (dispatch [:set-active-panel :reset-password-panel
+                            {:token token}]))}]}]]])
 ;; You can do initialisations by adding a :start function to :controllers.
 ;; :start (fn [& params] (js/console.log "Entering page"))
 ;; Teardowns can also be done by using the :stop key.
@@ -259,10 +301,20 @@
   ;; - Handle actual navigation.
   (if new-match
     (dispatch [::navigated new-match])
-    ;; We end up here when the URL path is empty, so we'll set default mine.
-    ;; (Usually this would be dispatched by the `/:mine` controller.)
-    (do (dispatch [:set-current-mine :default])
-        (dispatch-for-home))))
+    ;; We end up here when there are no matches (empty or invalid path).
+    ;; This does not apply when the path references a nonexistent mine.
+    (let [paths (str/split (.. js/window -location -pathname) #"/")
+          target-mine (-> paths
+                          (second)
+                          (or (name (read-default-ns))))]
+      (dispatch [::navigate ::home {:mine target-mine}])
+      (when (> (count paths) 2)
+        (dispatch [:messages/add
+                   {:markup [:span "You have been redirected to the home page as the path "
+                             [:em (->> paths (drop 2) (str/join "/"))]
+                             " could not be resolved."]
+                    :style "warning"
+                    :timeout 0}])))))
 
 (def router
   (rf/router

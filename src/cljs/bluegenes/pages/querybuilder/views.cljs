@@ -43,11 +43,16 @@
   [classes]
   (sort-by (comp string/lower-case :displayName val) compare classes))
 
+(defn filter-preferred
+  [classes]
+  (filter #(contains? (-> % val :tags set) "im:preferredBagType")
+          classes))
+
 (defn root-class-dropdown []
   (let [model @(subscribe [:model])
         root-class @(subscribe [:qb/root-class])
         classes (sort-classes model)
-        preferred (filter #(contains? (-> % val :tags set) "im:preferredBagType") classes)]
+        preferred (filter-preferred classes)]
     (into [:select.form-control
            {:on-change (fn [e] (dispatch [:qb/set-root-class (oget e :target :value)]))
             :value root-class}]
@@ -259,13 +264,10 @@
               [data-browser-node close! model hier root]))]]))
 
 (defn browser-pane []
-  (let [query (subscribe [:qb/query])
-        current-model (subscribe [:current-model])
+  (let [current-model (subscribe [:current-model])
         type-constraints (subscribe [:qb/menu-type-constraints])
         root-class (subscribe [:qb/root-class])
         browse-model? (reagent/atom true)]
-    (when (empty? @query)
-      (dispatch [:qb/set-root-class "Gene"]))
     (fn []
       (if @browse-model?
         [:div.model-browser-column

@@ -12,7 +12,8 @@
             [cljs-time.core :as time]
             [cljs-time.coerce :as time-coerce]
             [bluegenes.route :as route]
-            [bluegenes.components.tools.events :as tools]))
+            [bluegenes.components.tools.events :as tools]
+            [bluegenes.effects :refer [document-title]]))
 
 (comment
   "To automatically display some results in this section (the Results / List Analysis page),
@@ -104,7 +105,7 @@
 ; Load one package at a particular index from the list analysis history collection
 (reg-event-fx
  :results/load-history
- [(clear-tooltips)] ; This clears any existing tooltips on the screen when the event fires
+ [(clear-tooltips) document-title]
  (fn [{db :db} [_ title]]
    (let [; Get the details of the current package
          {:keys [source type value] :as package} (get-in db [:results :queries title])
@@ -115,24 +116,26 @@
          summary-fields (get-in db [:assets :summary-fields source])]
      (if (nil? package)
        ;; The query result doesn't exist. Fail gracefully!
-       (do
-         (.error js/console
-                 (str "[:results/load-history] The list titled " title " does not exist in db."))
-         {})
+       ;; This should only happen when trying to access a list that doesn't exist via deep linking.
+       {:dispatch-n [[::route/navigate ::route/lists]
+                     [:messages/add
+                      {:markup [:span "Failed to find a list with the name: " [:em title]]
+                       :style "danger"}]]}
        ; Store the values in app-db.
        ; TODO - 99% of this can be factored out by passing the package to the :enrichment/enrich and parsing it there
-       {:db (update db :results assoc
-                    :table nil
-                    :query value
-                    :package package
-                    ; The index is used to highlight breadcrumbs
-                    :history-index title
-                    :query-parts (unorder-query-parts (q/group-views-by-class model value))
-                    ; Clear the enrichment results before loading any new ones
-                    :enrichment-results nil)
-        :dispatch-n [;; Fetch IDs to build tool entity, and then our tools.
+       {:db (-> db
+                (assoc-in [:results :queries title :last-executed] (time-coerce/to-long (time/now)))
+                (update :results assoc
+                        :table nil
+                        :query value
+                        :package package
+                        ; The index is used to highlight breadcrumbs
+                        :history-index title
+                        :query-parts (unorder-query-parts (q/group-views-by-class model value))
+                        ; Clear the enrichment results before loading any new ones
+                        :enrichment-results nil))
+        :dispatch-n [; Fetch IDs to build tool entity
                      [:fetch-ids-tool-entities]
-                     [::tools/fetch-tools]
                      ; Fire the enrichment event (see the TODO above)
                      [:enrichment/enrich]
                      [:im-tables/load

@@ -4,7 +4,9 @@
             [re-frame.core :as re-frame :refer [subscribe dispatch]]
             [dommy.core :as dommy :refer-macros [sel1]]
             [bluegenes.route :as route]
-            [oops.core :refer [oget]]))
+            [oops.core :refer [oget]]
+            [bluegenes.utils :refer [highlight-substring]]
+            [clojure.string :as str]))
 
 (defn navigate-to-report
   "Navigate to the report page for the given item and reset the UI"
@@ -26,8 +28,7 @@
   []
   (let [search-term (subscribe [:search-term])]
     (fn [item is-active?]
-      (let [info   (clojure.string/join " " (interpose ", " (vals (:fields item))))
-            parsed (clojure.string/split info (re-pattern (str "(?i)" @search-term)))]
+      (let [info (str/join " " (interpose ", " (vals (:fields item))))]
         [:div.list-group-item.quicksearch-result
          {:on-mouse-down
           (fn [e]
@@ -37,9 +38,8 @@
           :class (cond is-active? "active ")}
          [:div.row-content {:class (str "type type-" (:type item))}
           [:h4.list-group-item-heading (:type item)]
-          (into
-           [:div.list-group-item-text]
-           (interpose [:span.highlight @search-term] (map (fn [part] [:span part]) parsed)))]]))))
+          (into [:div.list-group-item-text]
+                (highlight-substring info @search-term :highlight))]]))))
 
 (defn monitor-enter-key [e]
   (let [keycode          (.-charCode e)
@@ -86,6 +86,7 @@
 (defn main []
   (reagent/create-class
    (let [results     (subscribe [:suggestion-results])
+         error       (subscribe [:suggestion-error])
          search-term (subscribe [:search-term])]
      {:component-did-mount
       (fn [e]
@@ -117,7 +118,17 @@
          [:svg.icon.icon-search.search-button
           {:on-click #(navigate-to-full-results)}
           [:use {:xlinkHref "#icon-search"}]]
-         (when (> (count @results) 0)
+         (cond
+           (and @error (not-empty @search-term))
+           [:div.dropdown-menu.quicksearch
+            [:div.alert.alert-danger
+             [:h4 "Search error "
+              [:code
+               (if-let [msg (-> @error :message not-empty)]
+                 msg
+                 "Please check your connection and try again later.")]]]]
+
+           (> (count @results) 0)
            [:div.dropdown-menu.quicksearch
             [show-all-results]
             (into [:div.list-group]
@@ -126,4 +137,11 @@
                      (let [active-selection (subscribe [:quicksearch-selected-index])
                            is-active?       (= index @active-selection)]
                        [suggestion result is-active?]))
-                   @results))])])})))
+                   @results))]
+
+           (and (not-empty @search-term)
+                (some? @results))
+           [:div.dropdown-menu.quicksearch
+            [:div.list-group
+             [:div.list-group-item.active
+              [:h4 "No results"]]]])])})))

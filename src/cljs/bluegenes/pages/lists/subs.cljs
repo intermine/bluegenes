@@ -15,6 +15,12 @@
    (:by-id root)))
 
 (reg-sub
+ :lists/fetching?
+ :<- [:lists/root]
+ (fn [root]
+   (:fetching-lists? root)))
+
+(reg-sub
  :lists/all-tags
  :<- [:lists/root]
  (fn [root]
@@ -37,6 +43,12 @@
  :<- [:lists/root]
  (fn [root]
    (:expanded-paths root)))
+
+(reg-sub
+ :lists/new-lists
+ :<- [:lists/root]
+ (fn [root]
+   (:new-lists root)))
 
 (reg-sub
  :lists/selected-lists
@@ -141,15 +153,26 @@
    (empty? items-by-id)))
 
 (reg-sub
- :lists/top-level-count
+ :lists/top-level-lists
  :<- [:lists/by-id]
  :<- [:lists/filters]
  (fn [[items-by-id active-filters]]
-   (->> (normalize-lists
-         (->filterf active-filters)
-         identity
-         {:by-id items-by-id :expanded-paths (constantly false)})
-        (count))))
+   (normalize-lists
+    (->filterf active-filters)
+    identity
+    {:by-id items-by-id :expanded-paths (constantly false)})))
+
+(reg-sub
+ :lists/new-hidden-lists
+ :<- [:lists/root]
+ (fn [root]
+   (:new-hidden-lists root)))
+
+(reg-sub
+ :lists/top-level-count
+ :<- [:lists/top-level-lists]
+ (fn [top-level-lists]
+   (count top-level-lists)))
 
 (reg-sub
  :lists/page-count
@@ -191,6 +214,13 @@
  :<- [:lists/selected-lists]
  (fn [[by-id selected-lists]]
    (map by-id selected-lists)))
+
+(reg-sub
+ :lists/selected-lists-different-types?
+ :<- [:lists/selected-lists-details]
+ (fn [lists]
+   (->> (map :type lists)
+        (apply not=))))
 
 (reg-sub
  :lists-modal/new-list-tags

@@ -1,12 +1,18 @@
 @import "overrides";
 @import "variables";
-// well done, you've found the correct location to edit bluegenes specific
-// imtables styles. Don't use im-tables.less, because it's a copy/paste from
-// the imtables repo.
 
 @lightish-grey: #ccc;
 
-.im-table {
+.im-table.im-table {
+    min-height: 0;
+    padding-bottom: 0;
+
+    .table-container {
+        .table {
+            margin-bottom: 0;
+        }
+    }
+
   .btn {border:0;}
     .btn .fa {margin-right: @spacer/4; margin-top:-2px}
     .btn-group {
@@ -69,24 +75,6 @@
             margin: 0;
         }
     }
-    /* fix bootstrap silly negative margins */
-    .pagination-bar {
-        margin-left: 4px;
-    }
-
-    .dashboard-buttons > .btn-group {
-        border: solid 1px  @lightish-grey;
-        box-shadow: 1px 1px 1px rgba(0,0,0,0.2);
-        margin: 0.5em 0.25em;
-        border-radius: 2px;
-        min-height: 2.2em;
-        display: flex;
-        align-items: center;
-    }
-
-    .dashboard-buttons .dropdown-toggle {
-        min-height: 2em;
-    }
 
     .im-table-toolbar label {
       .dark-text;
@@ -96,6 +84,47 @@
     .alert.alert-warning {
         color: @body-foreground-color;
         background-color: #FCF8E3;
+    }
+
+    .dashboard {
+
+        .dashboard-buttons > .btn-toolbar > .btn-group {
+            border: solid 1px  @lightish-grey;
+            box-shadow: 1px 1px 1px rgba(0,0,0,0.2);
+            margin: 0 0.25em;
+            border-radius: 2px;
+            min-height: 2.2em;
+            display: flex;
+            align-items: center;
+        }
+
+        .pagination-buttons > .btn-group {
+            & > label {
+                margin-right: 0;
+            }
+
+            & > button {
+                border: solid 1px  @lightish-grey;
+                box-shadow: 1px 1px 1px rgba(0,0,0,0.2);
+                border-radius: 2px;
+                min-height: 2.2em;
+                display: flex;
+                align-items: center;
+            }
+        }
+
+        .dashboard-buttons .dropdown-toggle {
+            min-height: 2em;
+        }
+
+        .dashboard-expand {
+            margin: 0;
+            border: solid 1px @lightish-grey;
+            border-top: none;
+            border-bottom-left-radius: 4px;
+            border-bottom-right-radius: 4px;
+            padding: 0.5em 1em;
+        }
     }
 }
 

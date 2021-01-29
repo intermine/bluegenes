@@ -1,27 +1,45 @@
 (ns bluegenes.components.tools.events
   (:require [re-frame.core :as re-frame :refer [reg-event-db reg-event-fx reg-fx dispatch subscribe]]
-            [bluegenes.effects :as fx]))
+            [bluegenes.effects :as fx]
+            [bluegenes.crud.tools :as crud]))
 
 (reg-event-fx
  ::fetch-tools
- (fn [{db :db} [_]]
+ (fn [{db :db} [evt]]
    {:db db
     ::fx/http {:method :get
                :uri "/api/tools/all"
-               :on-success [::success-fetch-tools]}}))
+               :on-success [::success-fetch-tools]
+               :on-unauthorised [::error-fetch-tools evt]
+               :on-error [::error-fetch-tools evt]}}))
 
 (reg-event-db
  ::success-fetch-tools
  (fn [db [_ {:keys [tools]}]]
-   (assoc-in db [:tools :installed] tools)))
+   (crud/update-installed-tools db tools)))
+
+(reg-event-fx
+ ::error-fetch-tools
+ (fn [{db :db} [_ evt res]]
+   (let [text (case evt
+                ::fetch-tools "Failed to fetch BlueGenes Tools - visualizations may not show. This indicates a problem with the BlueGenes backend. "
+                "Error occurred when communicating with the BlueGenes Tool backend. ")]
+     {:dispatch [:messages/add
+                 {:markup [:span text
+                           (when-let [err (get-in res [:body :error])]
+                             [:code err])]
+                  :style "warning"
+                  :timeout 0}]})))
 
 (reg-event-fx
  ::fetch-npm-tools
- (fn [_ _]
+ (fn [_ [evt]]
    {::fx/http {:method :get
                :uri (str "https://api.npms.io/v2/search"
                          "?q=keywords:bluegenes-intermine-tool")
-               :on-success [::success-fetch-npm-tools]}}))
+               :on-success [::success-fetch-npm-tools]
+               :on-unauthorised [::error-fetch-tools evt]
+               :on-error [::error-fetch-tools evt]}}))
 
 (reg-event-db
  ::success-fetch-npm-tools
@@ -45,10 +63,12 @@
 
 (reg-event-fx
  ::fetch-tool-path
- (fn [_ [_]]
+ (fn [_ [evt]]
    {::fx/http {:method :get
                :uri "/api/tools/path"
-               :on-success [::success-fetch-tool-path]}}))
+               :on-success [::success-fetch-tool-path]
+               :on-unauthorised [::error-fetch-tools evt]
+               :on-error [::error-fetch-tools evt]}}))
 
 (reg-event-db
  ::success-fetch-tool-path
@@ -80,3 +100,26 @@
                               :service service
                               :hier hier
                               :entities entities}}))))
+
+(reg-event-fx
+ ::init-tool
+ (fn [{db :db} [_ tool-details tool-id]]
+   (let [mine     (get-in db [:mines (:current-mine db)])
+         hier     (get mine :model-hier)
+         service  (get mine :service)
+         entities (get-in db [:tools :entities])]
+     {:load-tool {:tool tool-details
+                  :tool-id tool-id
+                  :service service
+                  :hier hier
+                  :entities entities}})))
+
+(reg-event-db
+ ::collapse-tool
+ (fn [db [_ tool-name-cljs]]
+   (update-in db [:tools :collapsed] (fnil conj #{}) tool-name-cljs)))
+
+(reg-event-db
+ ::expand-tool
+ (fn [db [_ tool-name-cljs]]
+   (update-in db [:tools :collapsed] (fnil disj #{}) tool-name-cljs)))

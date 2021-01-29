@@ -3,7 +3,7 @@
             [reagent.core :as r]))
 
 (defn tool-operation-alert []
-  (let [working? @(subscribe [:bluegenes.pages.developer.subs/tool-working?])]
+  (let [working? @(subscribe [:bluegenes.pages.tools.subs/tool-working?])]
     (when working?
       [:div.alert-container
        [:div.alert.alert-info
@@ -14,8 +14,8 @@
     (if @invalid-token?
       [:div.alert-container
        [:div.alert.alert-danger
-        [:h3 "Debug: Your token has expired"]
-        [:p "It's likely that a remote InterMine server restarted and lost your anonymous token. Please refresh your browser to obtain a new one."]
+        [:h3 "Your token has expired"]
+        [:p "You have either been idle for a long time, or the remote InterMine server restarted and lost your authentication token. Click the " [:strong "refresh"] " button below to get a new token. If you were logged in, you will have to login again."]
         [:button.btn.btn-default.btn-raised.pull-right
          {:on-click #(dispatch [:clear-invalid-token])}
          "Refresh"]

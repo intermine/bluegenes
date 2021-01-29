@@ -212,6 +212,10 @@
                         &:not(:first-child):not(:last-child) {
                             justify-content: center;
                         }
+
+                        &.icon {
+                            background: linear-gradient(to right, fade(@body-background-color, 0%), @body-background-color 25%, @body-background-color 75%, fade(@body-background-color, 0%) 100%);
+                        }
                     }
                 }
             }
@@ -363,6 +367,16 @@
             &:focus,
             &:hover {
                 background: lighten(@body-foreground-color,13%);
+            }
+        }
+
+        &-response {
+            text-align: center;
+            margin-bottom: @spacer*6.5;
+
+            .icon {
+                fill: @success-text-color;
+                font-size: 5em;
             }
         }
     }

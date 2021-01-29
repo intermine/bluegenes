@@ -117,7 +117,7 @@
        (assoc-in [:profile :responses :user-preferences]
                  {:type :failure
                   :message (or (get-in res [:body :error])
-                               "Error occured when acquiring preferences.")}))))
+                               "Error occurred when acquiring preferences.")}))))
 
 (reg-event-db
  ::set-input
@@ -182,7 +182,7 @@
        (assoc-in [:profile :responses :user-preferences]
                  {:type :failure
                   :message (or (get-in res [:body :error])
-                               "Error occured when saving preferences.")}))))
+                               "Error occurred when saving preferences.")}))))
 
 (reg-event-fx
  ::save-preferences-success
@@ -204,7 +204,7 @@
        (assoc-in [:profile :responses :user-preferences]
                  {:type :failure
                   :message (or (get-in res [:body :error])
-                               "Error occured when saving preferences.")}))))
+                               "Error occurred when saving preferences.")}))))
 
 (reg-event-db
  ::save-preferences-done
@@ -245,7 +245,7 @@
        (assoc-in [:profile :responses :deregistration]
                  {:type :failure
                   :message (or (get-in res [:body :error])
-                               "Error occured when acquiring deregistration token.")}))))
+                               "Error occurred when acquiring deregistration token.")}))))
 
 (reg-event-fx
  ::delete-account
@@ -272,4 +272,35 @@
                   :message (or (get-in res [:body :error])
                                (when (= 400 (:status res))
                                  "The code is either invalid or has expired.")
-                               "Error occured when deleting account.")}))))
+                               "Error occurred when deleting account.")}))))
+
+(reg-event-fx
+ ::generate-api-key
+ (fn [{db :db} [_]]
+   (let [service (get-in db [:mines (:current-mine db) :service])]
+     {:db (-> db
+              (assoc-in [:profile :requests :generate-api-key] true)
+              (update-in [:profile :responses] dissoc :generate-api-key))
+      :im-chan {:chan (auth/create-token service "api")
+                :on-success [::generate-api-key-success]
+                :on-failure [::generate-api-key-failure]}})))
+
+(reg-event-db
+ ::generate-api-key-success
+ (fn [db [_ token]]
+   (-> db
+       (assoc-in [:profile :api-key] token)
+       (update-in [:profile :requests] dissoc :generate-api-key)
+       (assoc-in [:profile :responses :generate-api-key]
+                 {:type :success
+                  :message "New API key successfully generated."}))))
+
+(reg-event-db
+ ::generate-api-key-failure
+ (fn [db [_ res]]
+   (-> db
+       (update-in [:profile :requests] dissoc :generate-api-key)
+       (assoc-in [:profile :responses :generate-api-key]
+                 {:type :failure
+                  :message (or (get-in res [:body :error])
+                               "Error occurred when generating API key")}))))

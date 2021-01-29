@@ -22,35 +22,32 @@
   }
 
   .icon-view {
-    border-collapse: collapse;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      grid-gap: @spacer;
 
-    .icon {
-      font-size: 2*@spacer;
-
-      &.icon-venn-combine {
-        fill: rgba(0,0,0,0);
+      .icon {
+          font-size: 2*@spacer;
+          margin: 4px;
+          flex-shrink: 0;
       }
 
-      &.icon-venn-disjunction {
-        fill: rgba(0,0,0,0);
+      .icon-container {
+          display: flex;
+          justify-content: flex-start;
+          align-items: center;
+          background: rgba(0, 0, 0, 0.04);
+
+          .icon-name {
+              background: #eee;
+              border-radius: 2px;
+              border: solid 1px rgba(0, 0, 0, 0.2);
+              font-family: courier, mono;
+              margin-left: @spacer/2;
+              padding: @spacer/8 @spacer/4;
+              white-space: nowrap;
+          }
       }
-      margin: 4px;
-    }
-
-    .code {
-      background: #eee;
-      border-radius: 2px;
-      border: solid 1px rgba(0, 0, 0, 0.2);
-      font-family: courier, mono;
-    }
-
-    td {
-      padding: 2px;
-    }
-
-    tr:nth-child(even) {
-      background: rgba(0, 0, 0, 0.1);
-    }
   }
 
   .dev-navigation {
@@ -76,163 +73,6 @@
           fill: #fff;
           width: 1.5*@spacer;
           height: 1.5*@spacer;
-        }
-      }
-    }
-  }
-
-  .tool-store {
-    padding: @spacer 0;
-
-    .info {
-      .border-radius;
-      .box-shadow;
-      border: solid 1px @light-contrast;
-      display: flex;
-      align-items: center;
-      padding: @spacer @spacer;
-      background-color: @content-color-background;
-
-      button {
-        margin: auto;
-        margin-right: 0;
-      }
-    }
-
-    .tool-list {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-around;
-
-      .tool-size {
-        min-width: 220px;
-        max-width: 350px;
-      }
-
-      .tool {
-        .tool-size;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        margin: @spacer 0.5*@spacer *@spacer;
-        padding: 0;
-        .border-radius;
-        .box-shadow;
-        background-color: #fff;
-
-        h2,
-        h3 {
-          font-size: 1.1 *@spacer;
-          display: inline-block;
-          margin: @spacer/5;
-        }
-
-        > h2 {
-          background-color: @navbar-color;
-          color: @navbar-color-text;
-          border-top-left-radius: 2px;
-          border-top-right-radius: 2px;
-          padding: 1em;
-          display: flex;
-          align-self: stretch;
-          margin: 0;
-        }
-
-        .description {
-          border-bottom: solid 1px #ccc;
-          padding-bottom: @spacer;
-
-          .icon-info {
-            margin-top: 2px;
-          }
-        }
-
-        .tool-preview {
-          .tool-size;
-
-          img {
-            object-fit: contain;
-            width: 100%;
-          }
-          border-bottom: solid 1px @body-foreground-color;
-          overflow: hidden;
-        }
-
-        .tool-no-preview {
-          border-bottom: solid 1px @body-foreground-color;
-          background-color: @light-contrast;
-          display: flex;
-          flex-grow: 1;
-          max-height: 220px;
-          max-width: none;
-          align-items: center;
-          justify-content: center;
-          width: 100%;
-          font-size: 1.3*@spacer;
-        }
-
-        .details {
-          display: flex;
-          flex-direction: column;
-          font-weight: normal;
-          align-items: center;
-          padding: @spacer;
-
-          h2 {
-            font-weight: bold;
-          }
-
-          p {
-            display: inline;
-          }
-        }
-
-        .tool-type h3 {
-          font-weight: bold;
-        }
-
-        .tool-alert {
-          width: 100%;
-          font-size: 0.9*@spacer;
-          color: @notice-me;
-          margin: @spacer/2 0;
-        }
-
-        .tool-class {
-          width: 100%;
-
-          ul {
-            display: flex;
-            flex-direction: column;
-            padding: 0;
-          }
-
-          li {
-            display: flex;
-            background-color: transparent;
-            color: @body-foreground-color;
-            border-width: 0 0 0 3px;
-            padding: 0 0.5 * @spacer;
-            margin: @spacer/6;
-          }
-        }
-
-        .tool-footer {
-          display: flex;
-          margin-top: auto;
-          padding: @spacer;
-          padding-top: 0;
-          width: 100%;
-          justify-content: space-between;
-
-          .tool-actions {
-            display: flex;
-            margin-left: auto;
-
-            button {
-              margin: 0 @spacer/2;
-            }
-          }
         }
       }
     }

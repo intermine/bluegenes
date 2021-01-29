@@ -3,29 +3,27 @@
             [bluegenes.pages.developer.events :as events]
             [bluegenes.pages.developer.subs :as subs]
             [bluegenes.pages.developer.icons :as icons]
-            [bluegenes.pages.developer.tools :as tools]
             [clojure.string :refer [blank?]]
             [bluegenes.route :as route]
             [cljs-bean.core :refer [->clj]]
-            [bluegenes.version :as version]))
+            [bluegenes.version :as version]
+            [bluegenes.config :refer [server-vars]]))
 
-(defn nav []
+(defn nav
   "Buttons to choose which mine you're using."
+  []
   [:ul.dev-navigation
    [:li [:a {:href (route/href ::route/debug {:panel "main"})}
          [:svg.icon.icon-cog
           [:use {:xlinkHref "#icon-cog"}]] "Debug Console"]]
-   [:li
-    [:a {:href (route/href ::route/debug {:panel "tool-store"})}
-     [:svg.icon.icon-star-full
-      [:use {:xlinkHref "#icon-star-full"}]] "Tool 'App Store'"]]
    [:li [:a {:href (route/href ::route/debug {:panel "icons"})}
          [:svg.icon.icon-intermine
           [:use {:xlinkHref "#icon-intermine"}]] "Icons"]]])
 
-(defn mine-config []
+(defn mine-config
   "Outputs current intermine and list of mines from registry
    To allow users to choose their preferred InterMine."
+  []
   (let [current-mine (subscribe [:current-mine])]
     (fn []
       [:div.panel.container [:h3 "Current mine: "]
@@ -71,7 +69,7 @@
   [:div.panel.container
    [:h3 "Client Version"]
    [:p "Release: " [:code version/release]]
-   [:p "Fingerprint: " [:code (:version (->clj js/serverVars))]]])
+   [:p "Fingerprint: " [:code (:version @server-vars)]]])
 
 (defn localstorage-destroyer []
   (fn []
@@ -126,5 +124,4 @@
                  [scrambled-eggs-and-token]
                  [tool-api-path]
                  [version-number]]
-         "tool-store" [tools/tool-store]
          "icons" [icons/iconview])])))

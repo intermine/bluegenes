@@ -1,16 +1,39 @@
 (ns bluegenes.pages.lists.views
   (:require [re-frame.core :refer [subscribe dispatch]]
             [reagent.core :as r]
-            [bluegenes.components.icons :refer [icon]]
+            [bluegenes.components.icons :refer [icon icon-comp]]
+            [bluegenes.components.loader :refer [mini-loader]]
             [bluegenes.pages.lists.utils :refer [folder? internal-tag?]]
             [cljs-time.format :as time-format]
             [cljs-time.coerce :as time-coerce]
-            [oops.core :refer [oget]]
+            [oops.core :refer [oget oset!]]
             [goog.functions :refer [debounce]]
             [bluegenes.components.select-tags :as select-tags]
             [bluegenes.subs.auth :as auth]
             [clojure.string :as str]
-            [bluegenes.route :as route]))
+            [bluegenes.route :as route]
+            [bluegenes.components.bootstrap :refer [poppable]]
+            [goog.string :as gstring])
+  (:import goog.date.Date))
+
+(def set-operations [:combine :intersect :difference :subtract])
+
+(def set-operations->assets
+  {:combine {:text "Combine lists"
+             :icon [icon "venn-combine"]}
+   :intersect {:text "Intersect lists"
+               :icon [icon "venn-intersection"]}
+   :difference {:text "Difference lists"
+                :icon [icon "venn-disjunction"]}
+   :subtract {:text "Subtract lists"
+              :icon [icon "venn-difference"]}})
+
+(defn find-set-op [f set-op]
+  (let [target-index (some (fn [[i op]]
+                             (when (= op set-op) (f i)))
+                           (map-indexed vector set-operations))]
+    (when (contains? set-operations target-index)
+      (get set-operations target-index))))
 
 (defn filter-lists []
   (let [input (r/atom @(subscribe [:lists/keywords-filter]))
@@ -21,9 +44,12 @@
                       (debounced value)))]
     (fn []
       [:div.filter-lists
-       [:h2 "Filter lists"]
+       [:h2 "Lists"
+        [poppable {:data "When you upload lists, duplicates are removed and the naming of the items standardised. This means that you can do set operations correctly on lists of the same type (e.g. genes), such as finding the intersection between two (or more) lists, and subtracting lists. See the options below - selecting an option provides further guidance and explanation."
+                   :children [icon "info"]}]]
        [:div.filter-input
-        [:input {:type "text"
+        [:input {:id "lists-keyword-filter"
+                 :type "text"
                  :placeholder "Search for keywords"
                  :on-change on-change
                  :value @input}]
@@ -31,23 +57,13 @@
 
 (defn top-controls []
   (let [insufficient-selected (not @(subscribe [:lists/selected-operation?]))]
-    [:div.top-controls
-     [:button.btn.btn-raised
-      {:disabled insufficient-selected
-       :on-click #(dispatch [:lists/open-modal :combine])}
-      "Combine lists" [icon "venn-combine"]]
-     [:button.btn.btn-raised
-      {:disabled insufficient-selected
-       :on-click #(dispatch [:lists/open-modal :intersect])}
-      "Intersect lists" [icon "venn-intersection"]]
-     [:button.btn.btn-raised
-      {:disabled insufficient-selected
-       :on-click #(dispatch [:lists/open-modal :difference])}
-      "Difference lists" [icon "venn-disjunction"]]
-     [:button.btn.btn-raised
-      {:disabled insufficient-selected
-       :on-click #(dispatch [:lists/open-modal :subtract])}
-      "Subtract lists" [icon "venn-difference"]]]))
+    (into [:div.top-controls]
+          (for [set-op set-operations]
+            [:button.btn.btn-raised
+             {:disabled insufficient-selected
+              :on-click #(dispatch [:lists/open-modal set-op])}
+             (get-in set-operations->assets [set-op :text])
+             (get-in set-operations->assets [set-op :icon])]))))
 
 (defn bottom-controls []
   (let [list-count (count @(subscribe [:lists/selected-lists]))]
@@ -118,11 +134,47 @@
                       label]])
                   (pagination-items current-page page-count)))])))
 
-(def list-time-formatter (time-format/formatter "dd MMM, Y"))
+(defn pagination-bottom []
+  (let [page-count @(subscribe [:lists/page-count])
+        current-page @(subscribe [:lists/current-page])]
+    ;; Don't show pagination if there are no pages and therefore no lists.
+    (when (pos? page-count)
+      [:div.pagination-controls.pagination-bottom
+       (into [:ul.pagination]
+             (map (fn [{:keys [disabled active label value]}]
+                    [:li {:class (cond disabled :disabled
+                                       active :active)}
+                     [:a {:disabled disabled
+                          :on-click (when (and (not disabled) value)
+                                      #(dispatch [:lists/set-current-page value true]))}
+                      label]])
+                  (pagination-items current-page page-count)))])))
 
-(defn pretty-time [timestamp]
-  (time-format/unparse list-time-formatter
-                       (time-coerce/from-long timestamp)))
+(def list-time-formatter (time-format/formatters :mysql))
+(def list-date-formatter (time-format/formatter "dd MMM, Y"))
+
+(let [minute 60000
+      hour 3.6e+6
+      day 8.64e+7]
+  (defn pretty-timestamp [ts]
+    (let [now (.getTime (js/Date.))
+          ago (- now ts)
+          today (.getTime (Date.)) ; Uses goog.date.Date for midnight time.
+          yesterday (- today day)]
+      (cond
+        (< ago minute) "Just now"
+        (< ago hour) (let [amount (quot ago minute)]
+                       (str amount " min" (when (> amount 1) "s") " ago"))
+        (>= ts today) (let [amount (quot ago hour)]
+                        (str amount " hour" (when (> amount 1) "s") " ago"))
+        (>= ts yesterday) "Yesterday"
+        :else (time-format/unparse list-date-formatter
+                                   (time-coerce/from-long ts))))))
+
+(defn readable-time [ts]
+  [poppable {:data (time-format/unparse list-time-formatter
+                                        (time-coerce/from-long ts))
+             :children (pretty-timestamp ts)}])
 
 (defn sort-button [column]
   (let [active-sort @(subscribe [:lists/sort])]
@@ -147,28 +199,35 @@
               [:a {:on-click #(dispatch [:lists/set-filter filter-name value])}
                label]]))]))
 
-(defn list-row-controls [list-id authorized]
+(defn list-row-controls [{:keys [id authorized status name]}]
   [:<>
+   (when (= status "TO_UPGRADE")
+     [:a.btn
+      {:href (route/href ::route/upgrade nil {:name name})}
+      [icon "arrow-up"]])
    [:button.btn
-    {:on-click #(dispatch [:lists/open-modal :copy list-id])}
+    {:on-click #(dispatch [:lists/open-modal :copy id])
+     :disabled (= status "TO_UPGRADE")}
     [icon "list-copy"]]
    [:button.btn
-    {:on-click #(dispatch [:lists/open-modal :edit list-id])
+    {:on-click #(dispatch [:lists/open-modal :edit id])
      :disabled (not authorized)}
     [icon "list-edit"]]
    [:button.btn
-    {:on-click #(dispatch [:lists/open-modal :delete list-id])
+    {:on-click #(dispatch [:lists/open-modal :delete id])
      :disabled (not authorized)}
     [icon "list-delete"]]])
 
 (defn list-row [item]
-  (let [{:keys [id title size authorized description timestamp type tags
+  (let [{:keys [id title size authorized description timestamp type tags status
                 path is-last]} item
         expanded-paths @(subscribe [:lists/expanded-paths])
         selected-lists @(subscribe [:lists/selected-lists])
+        new-lists @(subscribe [:lists/new-lists])
         is-folder (folder? item)
         is-expanded (and is-folder (contains? expanded-paths path))
-        is-selected (contains? selected-lists id)]
+        is-selected (contains? selected-lists id)
+        is-new (contains? new-lists {:id id})]
     [:div.lists-row.lists-item
      {:class (when (or is-expanded is-last) :separator)}
 
@@ -182,29 +241,36 @@
            [:button.btn
             {:on-click #(dispatch [:lists/expand-path path])}
             [icon "expand-folder"]])
-         (if is-expanded
-           [icon "folder-open-item" nil ["list-icon"]]
-           [icon "folder-item" nil ["list-icon"]])]]
+         [:span.list-icon
+          (if is-expanded
+            [icon "folder-open-item"]
+            [icon "folder-item"])]]]
        [:div.lists-col
         [:input {:type "checkbox"
+                 :disabled (= status "TO_UPGRADE")
                  :checked is-selected
                  :on-change #(dispatch [(if (oget % :target :checked)
                                           :lists/select-list
                                           :lists/deselect-list)
                                         id])}]
-        [icon "list-item" nil ["list-icon"]]])
+        [:span.list-icon
+         {:class (when is-new :new)}
+         [icon "list-item"]]])
 
      [:div.lists-col
       [:div.list-detail
-       (if is-folder
-         [:button.btn.btn-link.list-title
-          {:on-click (if is-expanded
-                       #(dispatch [:lists/collapse-path path])
-                       #(dispatch [:lists/expand-path path]))}
-          title]
-         [:a.list-title
-          {:href (route/href ::route/results {:title title})}
-          title])
+       (cond
+         is-folder [:button.btn.btn-link.list-title
+                    {:on-click (if is-expanded
+                                 #(dispatch [:lists/collapse-path path])
+                                 #(dispatch [:lists/expand-path path]))}
+                    title]
+         (= status "TO_UPGRADE") [poppable {:data "This list contains outdated identifiers. Use the green arrow to the far right to start the upgrade process."
+                                            :options {:class [:list-title :disabled]}
+                                            :children title}]
+         :else [:a.list-title
+                {:href (route/href ::route/results {:title title})}
+                title])
        [:span.list-size (str "[" size "]")]
        (if authorized
          [icon "user-circle" nil ["authorized"]]
@@ -212,7 +278,8 @@
       [:p.list-description description]]
 
      [:div.lists-col
-      (pretty-time timestamp)]
+      [:span.list-timestamp
+       [readable-time timestamp]]]
 
      [:div.lists-col
       (when-not is-folder
@@ -235,9 +302,9 @@
             [icon "list-more"]]
            [:div.dropdown-menu.dropdown-menu-controls
             [:div.list-controls
-             [list-row-controls id authorized]]]]]
+             [list-row-controls item]]]]]
          [:div.list-controls.hidden-xs.hidden-sm.hidden-md
-          [list-row-controls id authorized]]])
+          [list-row-controls item]]])
       (when is-selected
         [:div.selected-list-overlay])]]))
 
@@ -246,7 +313,9 @@
         lists-selection @(subscribe [:lists/filter :lists])
         all-types @(subscribe [:lists/all-types])
         all-tags @(subscribe [:lists/all-tags])
-        all-selected? @(subscribe [:lists/all-selected?])]
+        all-selected? @(subscribe [:lists/all-selected?])
+        new-hidden-lists @(subscribe [:lists/new-hidden-lists])
+        fetching-lists? @(subscribe [:lists/fetching?])]
     [:section.lists-table
 
      [:header.lists-row.lists-headers
@@ -263,7 +332,8 @@
                       nil "All"
                       :private "Private only"
                       :public "Public only"
-                      :folder "Folders first")
+                      :folder "Folders first"
+                      :upgrade "Need upgrade")
                     ")")]
         [sort-button :title]
         [selection-button
@@ -271,7 +341,8 @@
          [{:label "All" :value nil}
           {:label "Private only" :value :private}
           {:label "Public only" :value :public}
-          {:label "Folders first" :value :folder}]]]]
+          {:label "Folders first" :value :folder}
+          {:label "Need upgrade" :value :upgrade}]]]]
       [:div.lists-col
        [:div.list-header
         [:span "Date"]
@@ -299,7 +370,33 @@
          :tags
          (cons {:label "All" :value nil}
                (map (fn [tag] {:label tag :value tag}) all-tags))]]]
-      [:div.lists-col]]
+      [:div.lists-col
+       [:div.list-header
+        [:button.btn.refresh-button
+         {:disabled fetching-lists?
+          :on-click #(dispatch [:assets/fetch-lists])}
+         (if fetching-lists?
+           [mini-loader "tiny"]
+           [poppable {:data "Refresh lists"
+                      :children [icon-comp "refresh"]}])]]]]
+
+     (when (seq new-hidden-lists)
+       (let [amount (count new-hidden-lists)
+             plural? (> amount 2)]
+         [:div.lists-row
+          [:div.new-lists-alert.text-center
+           (str "You have " amount " new list"
+                (when plural? "s")
+                " that "
+                (if plural? "aren't" "isn't")
+                " visible under the active filters. ")
+           [:a {:role "button"
+                :on-click #(dispatch [:lists/show-new-lists])}
+            "Click here"]
+           " to clear filters."]
+          ;; There's no colspan with CSS Tables so we use the dummy element
+          ;; below to occupy space, and absolute positioning for the above.
+          [:div.new-lists-dummy (gstring/unescapeEntities "&nbsp;")]]))
 
      (for [{:keys [id] :as item} filtered-lists]
        ^{:key id}
@@ -316,13 +413,19 @@
          no-lists? [:h3 (str mine-name " has no public lists available")]
          no-filtered-lists? [:h3 "No list matches active filters"])
        [:hr]
-       [:p "You may have lists saved to your account. Login to access them."]])))
+       [:p "You may have lists saved to your account. Login to access them."]
+       [:hr]
+       (when-not no-lists?
+         [:p [:a {:role "button"
+                  :on-click #(dispatch [:lists/reset-filters])}
+              "Click here"]
+          " to clear all filters."])])))
 
 (defn modal-list-row [item & {:keys [subop single?]}]
   (let [{:keys [id title timestamp type tags]} item]
     [:tr
      [:td.title title]
-     [:td (pretty-time timestamp)]
+     [:td [readable-time timestamp]]
      [:td
       [:code.start {:class (str "start-" type)}
        type]]
@@ -334,11 +437,11 @@
       (case subop
         :down [:button.btn.pull-right
                {:type "button"
-                :on-click #(dispatch [:lists-modal/subtract-list id])}
+                :on-click #(dispatch [:lists-modal/keep-list id])}
                [icon "move-down-list" 2]]
         :up   [:button.btn.pull-right
                {:type "button"
-                :on-click #(dispatch [:lists-modal/keep-list id])}
+                :on-click #(dispatch [:lists-modal/subtract-list id])}
                [icon "move-up-list" 2]]
         nil)
       (when-not single?
@@ -385,6 +488,9 @@
        [:label {:for "modal-new-list-tags"}
         (str "Tags" (when-not edit-list? " (optional)"))]
        [select-tags/main
+        :disabled-tooltip (cond
+                            (not list-tags-support?) "This InterMine is running an older version which does not support adding tags"
+                            (not logged-in?) "You need to login to edit tags")
         :disabled (or (not list-tags-support?) (not logged-in?))
         :id "modal-new-list-tags"
         :on-change #(dispatch [:lists-modal/set-new-list-tags %])
@@ -401,25 +507,36 @@
         :value new-list-description}]]]))
 
 (defn modal-set-operation []
-  (let [active-modal @(subscribe [:lists/active-modal])]
+  (let [active-modal @(subscribe [:lists/active-modal])
+        different-types? @(subscribe [:lists/selected-lists-different-types?])]
     [:<>
+     (when different-types?
+       [:div.alert.alert-warning.extra-message
+        [icon-comp "info" :enlarge 2]
+        [:p "You are performing a set operation on lists of different types. This will create a new list of the common ancestor type, if one exists. Unless this is your intention, we recommend opening the lists and saving them again as the same type."]])
+
      (case active-modal
        (:combine :intersect :difference)
        [:div
         (case active-modal
           :combine [:p "The new list will contain " [:em "all items"] " from the following lists"]
           :intersect [:p "The new list will contain only " [:em "items common"] " to all the following lists"]
-          :difference [:p "The new list will contain only " [:em "items unique"] " to each of the following lists"])
+          :difference [:p "The new list will contain only " [:em "items unique"] " to each of the following lists"
+                       (when-let [selected-lists (not-empty @(subscribe [:lists/selected-lists]))]
+                         (when (> (count selected-lists) 2)
+                           [:a.notice {:href "https://en.wikipedia.org/wiki/Symmetric_difference" :target "_blank"}
+                            " (this will perform a mathematical symmetric difference, which means members of an odd amount of lists will be kept)"
+                            [icon "external"]]))])
         [modal-table @(subscribe [:lists/selected-lists-details])]]
 
        (:subtract)
        [:div.subtract-container
-        [:p "The new list will contain items from these lists"]
+        [:p "The items from these lists"]
         [:div.table-container
-         [modal-table @(subscribe [:lists-modal/keep-lists-details]) :subop :down]]
-        [:p "that are not present in these lists"]
+         [modal-table @(subscribe [:lists-modal/subtract-lists-details]) :subop :down]]
+        [:p "will be removed from these lists to give the new list."]
         [:div.table-container
-         [modal-table @(subscribe [:lists-modal/subtract-lists-details]) :subop :up]]])
+         [modal-table @(subscribe [:lists-modal/keep-lists-details]) :subop :up]]])
 
      [modal-new-list]]))
 
@@ -437,22 +554,33 @@
         folder-suggestions @(subscribe [:lists-modal/folder-suggestions])
         list-tags-support? @(subscribe [:list-tags-support?])
         logged-in? @(subscribe [::auth/authenticated?])
-        disable-tags? (or (not list-tags-support?) (not logged-in?))]
+        disable-tags? (or (not list-tags-support?) (not logged-in?))
+        select [:> js/Select.Creatable
+                {:className "folder-selector"
+                 :placeholder "Choose folder"
+                 :isValidNewOption #(valid-folder? %1)
+                 :formatCreateLabel #(str "Create new \"" % "\" folder")
+                 :noOptionsMessage #(if ((some-fn empty? valid-folder?) (oget % :inputValue))
+                                      "No existing folders"
+                                      invalid-folder-message)
+                 :onChange #(dispatch [:lists-modal/nest-folder (oget % :value)])
+                 :value nil ; Required or else it will keep its own state.
+                 :options (map (fn [v] {:value v :label v}) folder-suggestions)
+                 :isDisabled disable-tags?
+                 ;; The two lines below makes it use a React portal to attach the element to
+                 ;; the document body. This means it won't disappear at modal-body edges,
+                 ;; which are set to overflow:auto to facilitate scrolling.
+                 :styles {:menuPortal (fn [base] (oset! base :zIndex 9999))}
+                 :menuPortalTarget js/document.body}]]
     [:div.select-folder
      [icon "modal-folder" 2]
      [:span.folder-path (str/join " / " (conj folder-path ""))]
-     [:> js/Select.Creatable
-      {:className "folder-selector"
-       :placeholder "Choose folder"
-       :isValidNewOption #(valid-folder? %1)
-       :formatCreateLabel #(str "Create new \"" % "\" folder")
-       :noOptionsMessage #(if ((some-fn empty? valid-folder?) (oget % :inputValue))
-                            "No existing folders"
-                            invalid-folder-message)
-       :onChange #(dispatch [:lists-modal/nest-folder (oget % :value)])
-       :value nil ; Required or else it will keep its own state.
-       :options (map (fn [v] {:value v :label v}) folder-suggestions)
-       :isDisabled disable-tags?}]
+     (if disable-tags?
+       [poppable {:data (cond
+                          (not list-tags-support?) "This InterMine is running an older version which does not support creating folders"
+                          (not logged-in?) "You need to login to create folders")
+                  :children select}]
+       select)
      [:button.btn.button-folder-up
       {:disabled (or (empty? folder-path) disable-tags?)
        :on-click #(dispatch [:lists-modal/denest-folder])}
@@ -504,15 +632,31 @@
           "×"]
          [:h3.modal-title.text-center
           (case active-modal
-            :combine "Combine lists"
-            :intersect "Intersect lists"
-            :difference "Difference lists"
-            :subtract "Subtract lists"
+            (:combine :intersect :difference :subtract)
+            [:button.btn.btn-slim.change-set-operation
+             (if-let [prev-set-op (find-set-op dec active-modal)]
+               {:on-click #(dispatch [:lists/open-modal prev-set-op])}
+               {:disabled true})
+             [icon "chevron-left"]]
+            [:span])
+          (case active-modal
+            (:combine :intersect :difference :subtract)
+            [:span
+             (get-in set-operations->assets [active-modal :text])
+             (get-in set-operations->assets [active-modal :icon])]
             :delete "Delete list(s)"
             :edit "Edit list"
             :copy "Copy list(s)"
             :move "Move list(s)"
-            nil)]]
+            nil)
+          (case active-modal
+            (:combine :intersect :difference :subtract)
+            [:button.btn.btn-slim.change-set-operation
+             (if-let [next-set-op (find-set-op inc active-modal)]
+               {:on-click #(dispatch [:lists/open-modal next-set-op])}
+               {:disabled true})
+             [icon "chevron-right"]]
+            [:span])]]
 
         [:div.modal-body
          (case active-modal
@@ -522,18 +666,9 @@
            [modal-other-operation]
            nil)
 
-         (cond
-           (not-empty error-message)
+         (when (not-empty error-message)
            [:div.alert.alert-danger
-            [:strong error-message]]
-
-           (and (not list-tags-support?) (not= active-modal :delete))
-           [:div.alert.alert-inverse
-            [:strong "This InterMine is running an older version which does not support adding tags or creating folders"]]
-
-           (and (not logged-in?) (not= active-modal :delete))
-           [:div.alert.alert-inverse
-            [:strong "You need to login to edit tags or create folders"]])]
+            [:strong error-message]])]
 
         [:div.modal-footer
          [:div.btn-toolbar.pull-right
@@ -571,5 +706,6 @@
    [pagination]
    [lists]
    [no-lists]
+   [pagination-bottom]
    [bottom-controls]
    [modal]])

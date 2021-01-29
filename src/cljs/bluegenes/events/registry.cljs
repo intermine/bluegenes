@@ -3,17 +3,21 @@
             [imcljs.fetch :as fetch]
             [clojure.string :as string]
             [bluegenes.utils :refer [read-registry-mine]]
-            [bluegenes.version :as version]))
+            [bluegenes.version :as version]
+            [bluegenes.config :refer [server-vars read-default-ns]]
+            [bluegenes.route :as route]))
 
 (reg-event-fx
  ;; these are the intermines we'll allow users to switch to
  ::load-other-mines
  ;; `?id` is only used in a few cases when initiated from a message.
  (fn [_ [_ ?id]]
-   (cond-> {:im-chan
-            {:chan (fetch/registry false)
-             :on-success [::success-fetch-registry]
-             :on-failure [::failure-fetch-registry]}}
+   (cond-> {}
+     (not (:hide-registry-mines @server-vars))
+     (assoc :im-chan {:chan (fetch/registry false)
+                      :on-success [::success-fetch-registry]
+                      :on-failure [::failure-fetch-registry]})
+
      ?id (assoc :dispatch [:messages/remove ?id]))))
 
 (def protocol (delay (.. js/window -location -protocol)))
@@ -50,19 +54,25 @@
                                  (map (juxt (comp keyword :namespace) identity)))
                         mines)
          current-mine (:current-mine db)
-         db-with-registry (assoc db :registry registry)]
+         db-with-registry (assoc db :registry registry)
+         default-ns (read-default-ns)
+         config-mines (get-in db [:env :mines])]
      (cond
-       ;; Don't do anything special if the mine is :default.
-       (= current-mine :default)
+       ;; Don't do anything special if the mine is from config.
+       (contains? config-mines current-mine)
        {:db db-with-registry}
-       ;; Change to :default mine if the target mine does not exist.
+       ;; Change to the default mine if the target mine does not exist.
        (not (contains? registry current-mine))
-       {:db (assoc db-with-registry :current-mine :default)
+       {:db (-> db-with-registry
+                (assoc :current-mine default-ns)
+                (assoc-in [:mines default-ns] (get-in db [:env :mines default-ns])))
         :dispatch [:messages/add
-                   {:markup [:span (str "Your mine has been changed to the default as your selected mine '" (name current-mine) "' was not present in the registry.")]
-                    :style "warning"}]}
+                   {:markup [:span "Your mine has been changed to the default as your selected mine " [:em (name current-mine)] " was not present in the registry."]
+                    :style "warning"
+                    :timeout 0}]
+        :change-route (name default-ns)}
        ;; Fill in the mine details if it's missing.
-       ;; (This happens when we use a registry mine.)
+       ;; (This happens when we load a registry mine at boot.)
        (nil? (get-in db-with-registry [:mines current-mine]))
        {:db (assoc-in db-with-registry [:mines current-mine]
                       (read-registry-mine (get registry current-mine)))}

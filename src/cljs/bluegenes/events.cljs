@@ -2,10 +2,13 @@
   (:require-macros [cljs.core.async.macros :refer [go]])
   (:require [re-frame.core :as re-frame :refer [reg-event-db reg-fx reg-event-fx dispatch subscribe inject-cofx]]
             [im-tables.events]
+            [bluegenes.config :refer [server-vars]]
             [bluegenes.events.boot]
             [bluegenes.events.auth]
             [bluegenes.events.registry]
             [bluegenes.events.blog]
+            [bluegenes.events.webproperties]
+            [bluegenes.events.bgproperties]
             [bluegenes.components.idresolver.events]
             [day8.re-frame.http-fx]
             [day8.re-frame.forward-events-fx]
@@ -20,13 +23,15 @@
             [bluegenes.pages.profile.events]
             [bluegenes.pages.home.events]
             [bluegenes.pages.lists.events]
+            [bluegenes.pages.developer.events]
+            [bluegenes.pages.tools.events]
             [bluegenes.components.viz.events]
             [bluegenes.effects :refer [document-title]]
             [bluegenes.components.tools.effects]
             [bluegenes.route :as route]
             [imcljs.fetch :as fetch]
             [imcljs.path :as im-path]
-            [clojure.string :refer [join split]]
+            [clojure.string :as str :refer [join split]]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
             [cljs-bean.core :refer [->clj]]
             [bluegenes.utils :refer [read-registry-mine]]))
@@ -34,7 +39,8 @@
 ;; If a requirement exists for the target panel, it will be called with the db
 ;; as argument and its return value decides whether the panel will be changed.
 (let [requirements
-      {:profile-panel #(map? (get-in % [:mines (:current-mine %) :auth :identity]))}]
+      {:profile-panel #(map? (get-in % [:mines (:current-mine %) :auth :identity]))
+       :admin-panel #(get-in % [:mines (:current-mine %) :auth :identity :superuser])}]
   ;; Change the main panel to a new view.
   (reg-event-fx
    :do-active-panel
@@ -49,11 +55,16 @@
                              :panel-params panel-params)}
            ;; Hide intro loader if this is the first panel change.
            (nil? (:active-panel db)) (assoc :hide-intro-loader nil)
+           ;; Ensure that `:fetching-report?` is set to true *before* the panel change.
+           (= active-panel :reportpage-panel) (assoc-in [:db :fetching-report?] true)
            ;; Dispatch any events paired with the panel change.
            evt (assoc :dispatch evt))
          {:dispatch-n [[::route/navigate ::route/home]
                        [:messages/add
-                        {:markup [:span "You need to be logged in to access this page."]
+                        {:markup (case active-panel
+                                   :profile-panel [:span "You need to be logged in to access this page."]
+                                   :admin-panel [:span "You need to be a superuser to access this page."]
+                                   [:span "You don't have access to this page."])
                          :style "warning"}]]})))))
 
 ; A buffer between booting and changing the view. We only change the view
@@ -81,18 +92,17 @@
 (reg-event-fx
  :save-state
  (fn [{db :db}]
-   ;; So this saves assets and current mine to the db. We don't do any complex
-   ;; caching right now - every boot or mine change, these will be loaded
-   ;; afresh and applied on top. It *does* mean that the assets can be used
-   ;; before they are loaded.  why isn't there caching? because it gets very
-   ;; complex deciding what and when to expire, so it's not really a minimum
-   ;; use case feature.
-   (let [saved-keys (select-keys db [:current-mine :mines :assets])]
+   ;; We don't do any complex caching right now - on initial boot, these will
+   ;; be loaded afresh and applied on top. It *does* mean that the assets can
+   ;; be used before they are loaded.  Why isn't there caching? Because it gets
+   ;; very complex deciding what and when to expire, so it's not really a
+   ;; minimum use case feature.
+   (let [saved-keys (select-keys db [:assets])]
      ;; Attach the client version to the saved state. This will be checked
      ;; the next time the client boots to make sure the local storage data
      ;; and the client version number are aligned.
      {:persist [:bluegenes/state
-                (assoc saved-keys :version (:version (->clj js/serverVars)))]})))
+                (assoc saved-keys :version (:version @server-vars))]})))
 
 (reg-event-fx
  :save-login
@@ -110,12 +120,14 @@
 ;; :bluegenes.events.registry/success-fetch-registry
 ;;   Makes sure that mine service data is populated. It can be empty in the
 ;;   case of a fresh boot where a non-default mine is selected.
-;; bluegenes.events.boot/wait-for-registry?
+;; :boot
 ;;   Makes sure that the async boot-flow waits for the above event when
 ;;   necessary, before proceeding with events that may require the data.
 ;; :set-current-mine
 ;;   Sets current-mine, fills in mine service data when it's available from the
 ;;   registry, and makes sure to reboot when mine is switched after booting.
+;; Note that we don't rely on this event handler when booting, evident by the
+;; `different-mine?` clause.
 (reg-event-fx
  :set-current-mine
  [document-title]
@@ -123,9 +135,9 @@
    (let [mine-kw         (keyword mine)
          different-mine? (not= mine-kw (:current-mine db))
          not-home?       (not= (:active-panel db) :home-panel)
-         in-registry?    (contains? (:registry db) mine-kw)
          in-mines?       (contains? (:mines db) mine-kw)
-         mine-m          (get-in db [:registry mine-kw])
+         registry-mine   (get-in db [:registry mine-kw])
+         conf-mine       (get-in db [:env :mines mine-kw])
          active-flow?    (some? (:boot-flow db))]
      (if different-mine?
        (cond-> {:db (assoc db
@@ -139,11 +151,9 @@
                 ;; Switching mine always involves a reboot.
                 :dispatch-n [[:messages/clear]
                              [:reboot]]}
-         ;; This does not run for the `:default` mine, as it isn't part of the
-         ;; registry. This is good as we don't want to overwrite it anyways.
-         (and in-registry?
-              (not in-mines?)) (assoc-in [:db :mines mine-kw]
-                                         (read-registry-mine mine-m))
+         ;; Add mine if it's missing.
+         (not in-mines?) (assoc-in [:db :mines mine-kw]
+                                   (or conf-mine (read-registry-mine registry-mine)))
          ;; Switch to home page.
          not-home? (update :db assoc
                            :active-panel :home-panel
@@ -163,8 +173,9 @@
 (reg-event-db
  :handle-suggestions
  (fn [db [_ results]]
-   (assoc db :suggestion-results
-          (:results results))))
+   (-> db
+       (assoc :suggestion-results (:results results))
+       (dissoc :suggestion-error))))
 
 (reg-event-fx
  :bounce-search
@@ -177,7 +188,15 @@
        {:db (assoc db :search-term term)
         :im-chan {:chan (fetch/quicksearch service term {:size 5})
                   :abort :quicksearch
-                  :on-success [:handle-suggestions]}}))))
+                  :on-success [:handle-suggestions]
+                  :on-failure [:bounce-search-failure]}}))))
+
+(reg-event-db
+ :bounce-search-failure
+ (fn [db [_ res]]
+   (assoc db :suggestion-error
+          {:type "failure"
+           :message (get-in res [:body :error])})))
 
 (reg-event-db
  :cache/store-organisms
@@ -308,3 +327,37 @@
  :scroll-to-top
  (fn [{db :db} [_]]
    {:scroll-to-top {}}))
+
+(reg-event-fx
+ :handle-permanent-url
+ (fn [{db :db} [_ mine lookup-string]]
+   (let [[object-type identifier] (split lookup-string #":")
+         object-type (str/capitalize object-type)
+         service (get-in db [:mines (keyword mine) :service])
+         q {:from object-type
+            :select [(str object-type ".id")]
+            :where [{:path object-type
+                     :op "LOOKUP"
+                     :value identifier}]}]
+     {:im-chan {:chan (fetch/rows service q)
+                :on-success [:redirect-to-report-page lookup-string]
+                :on-failure [:notify-invalid-permanent-url lookup-string]}})))
+
+(reg-event-fx
+ :redirect-to-report-page
+ (fn [{db :db} [_ lookup-string res]]
+   (if-let [object-id (get-in res [:results 0 0])]
+     {:dispatch [::route/navigate ::route/report {:type (:rootClass res)
+                                                  :id object-id}]}
+     {:dispatch [:notify-invalid-permanent-url lookup-string res]})))
+
+(reg-event-fx
+ :notify-invalid-permanent-url
+ (fn [{db :db} [_ lookup-string res]]
+   {:dispatch-n [[::route/navigate ::route/home]
+                 [:messages/add
+                  {:markup [:span "The object referenced by the permanent URL " [:em lookup-string] " does not seem to be in the database anymore. "
+                            (when-let [err (not-empty (get-in res [:body :error]))]
+                              [:code err])]
+                   :style "warning"
+                   :timeout 0}]]}))

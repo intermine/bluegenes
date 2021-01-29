@@ -1,20 +1,36 @@
 (ns bluegenes.utils
   (:require [clojure.string :as string]
             [clojure.data.xml :as xml]
+            [clojure.walk :as walk]
             [imcljs.query :as im-query]
             [bluegenes.version :as version]
             [bluegenes.components.icons :refer [icon]]
             [markdown-to-hiccup.core :as md]))
 
+(defn hiccup-anchors-newtab
+  "Add target=_blank to all anchor elements, so all links open in new tabs."
+  [hiccup]
+  (walk/postwalk (fn [e] (if (and (map? e) (contains? e :href))
+                           (assoc e :target "_blank")
+                           e))
+                 hiccup))
+
 (defn md-paragraph
   "Returns the `[:p]` hiccup for a specified markdown string paragraph.
   Usage:
-      [:div (parse-markdown \"Foo *bar* [baz](http://baz.com)\")]
+      [:div (md-paragraph \"Foo *bar* [baz](http://baz.com)\")]
   Note that only the first paragraph in the markdown string will be parsed;
   any other elements before or after will be ignored, and so will any proceeding
   paragraphs."
   [md-string]
-  (some-> md-string md/md->hiccup md/component (md/hiccup-in :div :p)))
+  (->> (some-> md-string md/md->hiccup md/component (md/hiccup-in :div :p))
+       (hiccup-anchors-newtab)))
+
+(defn md-element
+  "Returns hiccup for a specified markdown string, with a containing div."
+  [md-string]
+  (->> (some-> md-string md/md->hiccup md/component)
+       (hiccup-anchors-newtab)))
 
 ;; Please do not use this for model classes. You can get results like:
 ;;     "ThreePrimeUTR" -> "Three primeutr"
@@ -61,6 +77,26 @@
   (if-let [origin (:from query)]
     origin
     (first (string/split (first (:select query)) #"\."))))
+
+;; There's a reason why `remvec` and `addvec` are not part of Clojure, and
+;; that's because they are inefficient operations on the vector type! If the
+;; vector won't get very large, it's completely fine to use them. Otherwise
+;; you'll be better off with a map, set, perhaps combined with a vector, or
+;; external libs like `org.flatland/ordered`.
+
+(defn remvec
+  "Remove an element from a vector by index. Will throw if the index does not exist."
+  [v i]
+  (vec (concat (subvec v 0 i)
+               (subvec v (inc i)))))
+
+(defn addvec
+  "Add an element to a vector by index. If the index is negative, the element
+  be added to the beginning of the vector. If the index is greater than the
+  vector's length, it will be added to the end."
+  [v i e]
+  (let [[before after] (split-at i v)]
+    (vec (concat before [e] after))))
 
 (defn kw->str
   [kw]
@@ -212,12 +248,52 @@
 
 (defn ascii->svg-arrows
   "Replaces arrows in template titles with prettier svg icons."
-  [s]
+  [s & {:keys [max-length]}]
   (flatten-seq
    (interpose [icon "arrow-right"]
               (map (fn [part]
                      (interpose [icon "arrow-left"]
                                 (map (fn [subpart]
-                                       [:span subpart])
+                                       [:span (if (and (number? max-length) (> (count subpart) max-length))
+                                                (str (subs subpart 0 max-length) "...")
+                                                subpart)])
                                      (string/split part #"<-+"))))
                    (string/split s #"-+>")))))
+
+(defn clean-tool-name
+  "Most tools have a name starting with 'BlueGenes' which is frankly not very
+  useful, so we remove it."
+  [human-name]
+  (string/replace human-name #"(?i)^bluegenes\s*" ""))
+
+(defn highlight-substring
+  "Extracts all instances of substring (case-insensitive) in a string as span
+  elements with a unique CSS class (defaults to .text-highlight). Will return
+  a sequential of span elements, meaning you'll want to use it with into."
+  ([s substr]
+   (highlight-substring s substr :text-highlight))
+  ([s substr css-class]
+   (cond
+     (empty? s) []
+     (empty? substr) [[:span s]]
+     :else
+     (let [re (re-pattern (str "(?i)" substr))
+           fragments (map (fn [s] (if (empty? s) nil [:span s])) (string/split s re))
+           excerpts (map (fn [s] [:span {:class css-class} s]) (re-seq re s))
+           length (max (count fragments) (count excerpts))
+           pad-fragments (- length (count fragments))
+           pad-excerpts (- length (count excerpts))]
+       (remove nil?
+               (interleave (cond-> fragments
+                             (pos? pad-fragments) (concat (repeat pad-fragments nil)))
+                           (cond-> excerpts
+                             (pos? pad-excerpts) (concat (repeat pad-excerpts nil)))))))))
+
+(defn rows->maps
+  "Takes an `imcljs.fetch/rows` response and transforms it into a vector of
+  maps, with the last portion of the path as keyword keys ('Gene.symbol' -> :symbol)."
+  [res]
+  (let [views (map (comp keyword #(re-find #"[^\.]+$" %)) (:views res))]
+    (mapv (fn [result]
+            (zipmap views result))
+          (:results res))))

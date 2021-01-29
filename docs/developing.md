@@ -2,8 +2,8 @@
 
 BlueGenes uses the [Less](http://lesscss.org/) CSS preprocessor, along with [Bootstrap 3](https://getbootstrap.com/docs/3.3/) and a fork of [Bootstrap Material Design](https://github.com/intermine/bootstrap-material-design). We recommend referencing existing markup and the following resources.
 
-- https://cdn.rawgit.com/FezVrasta/bootstrap-material-design/gh-pages-v3/index.html
-- https://cdn.rawgit.com/FezVrasta/bootstrap-material-design/gh-pages-v3/bootstrap-elements.html
+- https://cdn.rawgit.com/mdbootstrap/bootstrap-material-design/gh-pages-v3/index.html
+- https://cdn.rawgit.com/mdbootstrap/bootstrap-material-design/gh-pages-v3/bootstrap-elements.html
 - https://getbootstrap.com/docs/3.3/css/
 - https://getbootstrap.com/docs/3.3/javascript/
 
@@ -11,16 +11,16 @@ BlueGenes uses the [Less](http://lesscss.org/) CSS preprocessor, along with [Boo
 
 ### re-frame.test macros
 
-There are some things you need to pay extra attention to when writing ClojureScript unit tests for re-frame. Firstly, you'd want to wrap the body of a `deftest` with one of:
+There are some things you need to pay extra attention to when writing ClojureScript unit tests for re-frame. Firstly, you'd want to wrap the body of a `deftest` with one of the following:
 
-- `run-test-sync` Use this when you wish to `dispatch` events sequentially, and do not need to wait for a chain of events to finish.
-- `run-test-async` This is so you can use `wait-for` to block until specific event handlers are run. Make sure you're using `dispatch-sync` instead of the regular async dispatch.
+- `run-test-sync`: Use this when you wish to `dispatch` events sequentially, and do not need to wait for a chain of events to finish.
+- `run-test-async`: This is so you can use `wait-for` to block until specific event handlers are run. Make sure you're using `dispatch-sync` instead of the regular async dispatch.
 
 The two macros above also make sure to revert any effects, coeffects, event handlers, etc. that are registered inside their body, to keep re-frame clean for the next unit test to run.
 
 ### Redefs and stubs
 
-The `(with-redefs <bindings> ...)` form is invaluable for stubbing arbitrary functions. Most of the time you'll be using this for `imcljs.fetch`. Note that this only applies to variables inside the calling scope of `with-redefs` (ie. it won't apply to an event handler dispatched by an event handler you dispatched; it only applies to the first in the chain).
+The `(with-redefs <bindings> ...)` form is invaluable for stubbing arbitrary functions. Most of the time, you'll be using this for `imcljs.fetch`. Note that this only applies to variables inside the calling scope of `with-redefs` (i.e. it won't apply to an event handler dispatched by an event handler you dispatched; it only applies to the first in the chain).
 
 If you need to stub a variable that isn't in your calling scope, you'll need to resort to `set!`.
 
@@ -28,7 +28,7 @@ If you need to stub a variable that isn't in your calling scope, you'll need to 
       (set! fetch/session (stub-fetch-fn "anon-token"))
       (swap! stubbed-variables conj #(set! fetch/session orig-fn)))
 
-This should do the trick but could cause problems depending on the asynchronicity of your code. (I'd love to wrap this inside a utility function or macro but haven't been successful due to how `set!` works in JavaScript.)
+This should do the trick but could cause problems depending on the asynchronicity of your code. (We'd love to wrap this inside a utility function or macro but haven't been successful due to how `set!` works in JavaScript.)
 
 ### Documenting assertions
 

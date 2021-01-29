@@ -10,5 +10,5 @@ PRs and Contributions are extremely welcome! The BlueGenes project follows Inter
 ## Picking up new issues - tips
 
 - If you do pick up an issue, we'd recommend commenting on it so we know you're working on it (and we don't start working on it at the same time!).
-- Travis CI checks for well-formatted code. Once you've done all of your changes, we recommend running `lein format` in your terminal before you push or make a PR.
+- CI checks for well-formatted code. Once you've done all of your changes, we recommend running `lein format` in your terminal before you push or make a PR.
 - [Developer docs](https://github.com/intermine/bluegenes/tree/dev/docs) are your friend. Please add/update documentation when you make changes to the codebase.

@@ -12,6 +12,7 @@
                  [org.clojure/clojure "1.10.1"]
                  [org.clojure/clojurescript "1.10.520"]
                  [org.clojure/core.async "1.0.567"]
+                 [org.clojure/core.cache "0.8.2"]
 
                  ; MVC
                  [re-frame "0.12.0"]
@@ -78,8 +79,8 @@
                  [cljsjs/vega-embed "6.0.0-0"]
 
                  ; Intermine Assets
-                 [org.intermine/im-tables "0.10.1"]
-                 [org.intermine/imcljs "1.2.0"]
+                 [org.intermine/im-tables "0.11.0"]
+                 [org.intermine/imcljs "1.4.0"]
                  [org.intermine/bluegenes-tool-store "0.2.0"]]
 
   :deploy-repositories {"clojars" {:sign-releases false}}
@@ -94,20 +95,28 @@
 
   :cljfmt {:indents {wait-for [[:inner 0]]}}
 
-  :aliases {"dev" ["do" "clean"
-                   ["pdo"
-                    ["shell" "make" "less"]
-                    ["with-profile" "+repl" "run"]]]
-            "build" ["do" "clean"
-                     ["shell" "make" "less-prod"]
-                     ["with-profile" "prod" "cljsbuild" "once" "min"]]
-            "prod" ["do" "build"
-                    ["with-profile" "prod" "run"]]
-            "deploy" ["with-profile" "+uberjar" "deploy" "clojars"]
-            "format" ["cljfmt" "fix"]
-            "kaocha" ["with-profile" "kaocha" "run" "-m" "kaocha.runner"]
-            "tools" ["run" "-m" "bluegenes-tool-store.tools"]
-            "less" ["shell" "make" "less"]}
+  :aliases ~(let [compile-less ["npx" "lessc" "less/site.less" "resources/public/css/site.css"]
+                  compile-less-prod (conj compile-less "-x")
+                  watch-less ["npx" "chokidar" "less/**/*.less" "-c" (clojure.string/join " " compile-less) "--initial"]
+                  watch-less-silent (conj watch-less "--silent")]
+              {"assets" ["run" "-m" "bluegenes.prep/prepare-assets"]
+               "fingerprint-css" ["run" "-m" "bluegenes.prep/fingerprint-css"]
+               "dev" ["do" "clean," "assets,"
+                      ["pdo"
+                       (into ["shell"] watch-less-silent)
+                       ["with-profile" "+repl" "run"]]]
+               "build" ["do" "clean," "assets,"
+                        (into ["shell"] compile-less-prod)
+                        ["with-profile" "prod" "cljsbuild" "once" "min"]
+                        "fingerprint-css"]
+               "prod" ["do" "build,"
+                       ["with-profile" "prod" "run"]]
+               "deploy" ["with-profile" "+uberjar" "deploy" "clojars"]
+               "format" ["cljfmt" "fix"]
+               "kaocha" ["with-profile" "kaocha" "run" "-m" "kaocha.runner"]
+               "tools" ["run" "-m" "bluegenes-tool-store.tools"]
+               "less" ["do" "assets,"
+                       (into ["shell"] watch-less)]})
 
   :min-lein-version "2.8.1"
 

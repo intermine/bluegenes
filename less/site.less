@@ -1,7 +1,7 @@
 @import "../node_modules/bootstrap-material-design/less/bootstrap-material-design";
 @import "overrides";
 @import "variables";
-@import "components/report/summary";
+@import "components/report";
 @import "components/results";
 @import "components/enrichment";
 @import "components/querybuilder";
@@ -19,14 +19,17 @@
 @import "components/regions";
 @import "components/organize";
 @import "components/profile";
+@import "components/admin";
 @import "components/ui/inputs";
 @import "components/calendar";
 @import "components/constraints";
 @import "components/viz";
+@import "components/tools";
+@import "components/resetpassword";
+@import "components/error";
 @import "layouts/input-group";
 @import "layouts/header";
 @import "developer";
-@import "im-tables";
 @import "im-tables-overrides";
 @import "datatype-colors";
 @import "components/icons";
@@ -500,5 +503,61 @@ textarea.hidden-clipboard {
 .row-space-cols {
     & > [class*='col-'] {
         margin-bottom: @spacer*2.2;
+    }
+}
+
+.btn.btn-fab {
+    padding: 0;
+    outline: 0;
+
+    &:hover {
+        outline: 0;
+    }
+
+    &:active {
+        outline: 0;
+    }
+
+    &.btn-default {
+        &:hover {
+            background-color: darken(#eee, 7%);
+        }
+
+        &:active {
+            background-color: lighten(#eee, 2%);
+        }
+    }
+}
+
+.top-scroll {
+    position:sticky;
+    right:10px;
+    bottom:10px;
+    cursor:pointer;
+    width:50px;
+    height:50px;
+    background-color:#3498db;
+    -webkit-border-radius:60px;
+    -moz-border-radius:60px;
+    border-radius:60px;
+    z-index: 99;
+    float:right;
+
+    .top-arrow {
+        position:absolute;
+        top:50%;
+        left:50%;
+        margin-left:-8px;
+        margin-top:-12px;
+        height:0;
+        width:0;
+        border:8px solid transparent;
+        border-bottom-color:#ffffff;
+    }
+
+    &:hover {
+        background-color:#e74c3c;
+        opacity:1;filter:"alpha(opacity=100)";
+        -ms-filter:"alpha(opacity=100)";
     }
 }

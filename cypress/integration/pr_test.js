@@ -138,8 +138,7 @@ describe("UI Test", function() {
     cy.server();
     cy.route("POST", "*/service/query/results").as("getData");
     cy.contains("Regions").click();
-    cy.get(".example-button")
-      .click();
+    cy.contains("Show Example").click();
     cy.get(".region-text > .form-control").should("not.be.empty");
     cy.get("button")
       .contains("Search")

@@ -1,6 +1,5 @@
 (ns bluegenes.titles
-  (:require [clojure.string :as string]
-            [bluegenes.pages.reportpage.components.summary :as summary]))
+  (:require [clojure.string :as string]))
 
 (def document-titles
   "Define document title templates for each corresponding panel keyword.
@@ -9,16 +8,20 @@
   (let [App    "InterMine BlueGenes"
         Mine   #(get-in % [:mines (:current-mine %) :name])
         Type   [:report :summary :rootClass]
-        Name   #(summary/choose-title-column (get-in % [:report :summary]))
-        Debug  [:debug-panel]
+        Name   [:report :title]
         Search [:search-results :keyword]
-        Query  [:results :history-index]]
+        Query  #(or (get-in % [:results :package :display-title])
+                    (get-in % [:results :history-index]))
+        List   [:panel-params :upgrade-list]]
     {:home-panel         ["Home"             Mine App]
+     :admin-panel        ["Admin"            Mine App]
      :profile-panel      ["Profile"          Mine App]
-     :debug-panel        [Debug "Debug"      Mine App]
+     :debug-panel        ["Developer"        Mine App]
+     :tools-panel        ["Tool Store"       Mine App]
      :templates-panel    ["Templates"        Mine App]
      :reportpage-panel   [Name Type "Report" Mine App]
      :upload-panel       ["Upload"           Mine App]
+     :upgrade-panel      ["Upgrade" List     Mine App]
      :search-panel       [Search "Search"    Mine App]
      :results-panel      [Query "Results"    Mine App]
      :regions-panel      ["Region Search"    Mine App]

@@ -1,10 +1,11 @@
 (ns bluegenes.components.footer.views
-  (:require [re-frame.core :refer [subscribe]]
+  (:require [re-frame.core :refer [subscribe dispatch]]
             [bluegenes.version :as version]
             [clojure.string :as str]
             [bluegenes.components.bootstrap :refer [poppable]]
             [bluegenes.utils :refer [version-string->vec]]
-            [bluegenes.components.icons :refer [icon]]))
+            [bluegenes.components.icons :refer [icon]]
+            [bluegenes.route :as route]))
 
 (def defaults
   {:email "info@intermine.org"
@@ -25,12 +26,18 @@
         short-version     (nth (re-matches #"v?([0-9\.]+)-.*" version/release) 1 "dev")
         ;; Note that the following versions can be nil when switching mines.
         intermine-version (some-> @(subscribe [:version]) pretty-version)
-        api-version       (some-> @(subscribe [:api-version]) pretty-version)
+        api-version       @(subscribe [:api-version])
         release-version   (when-let [v @(subscribe [:release-version])]
                             (nth (re-find #"\"(.*)\"" v) 1 (str/trim v)))]
     [:footer.footer
      [:div.section.column
-      [:span.version (str "BlueGenes " short-version " powered by ")
+      [:span.version
+       "BlueGenes "
+       [:span
+        ;; Secret way to access developer page. Sshhhh.
+        {:on-click #(dispatch [::route/navigate ::route/debug {:panel "main"}])}
+        short-version]
+       " powered by "
        [poppable {:data [:span (str "Version: " intermine-version)
                          [:br] (str "API: " api-version)
                          [:br] (str "Build: " release-version)]

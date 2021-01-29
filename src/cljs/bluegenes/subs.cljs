@@ -1,5 +1,5 @@
 (ns bluegenes.subs
-  (:require [re-frame.core :refer [reg-sub]]
+  (:require [re-frame.core :refer [reg-sub subscribe]]
             [bluegenes.pages.results.enrichment.subs]
             [clojure.string :refer [ends-with?]]
             [bluegenes.pages.querybuilder.subs]
@@ -10,9 +10,12 @@
             [bluegenes.components.viz.subs]
             [bluegenes.pages.home.subs]
             [bluegenes.pages.lists.subs]
+            [bluegenes.pages.tools.subs]
+            [bluegenes.pages.developer.subs]
             [bluegenes.version :as version]
             [bluegenes.utils :as utils]
-            [lambdaisland.uri :refer [uri]]))
+            [lambdaisland.uri :refer [uri]]
+            [clojure.set :as set]))
 
 (reg-sub
  :name
@@ -24,42 +27,25 @@
  (fn [db]
    (:registry db)))
 
-(defn clean-mine-url
-  "Remove frivolous data from a mine url, primarily so we can compare them
-  later on. Only the host and path are kept (protocol, trailing slash and
-  others are removed), so that we only focus on the 'service' of the url."
-  [u]
-  (let [{:keys [host path]} (uri u)]
-    (cond-> (str host path)
-      (ends-with? path "/")
-      (as-> s (subs s 0 (dec (count s)))))))
-
-;; Sometimes we want the available mines from the registry, in addition to
-;; whatever mine this bluegenes deployment belongs to (the :default mine).
-;; This subscription merges the :default mine in with the registry.
-;; (Handles case where :default mine is also present in registry.)
+;; Combines registry and configured mines, merging mines with the same namespace.
+;; For when we want to display them all together!
 (reg-sub
- :registry-with-default
+ :registry+configured-mines
  :<- [:registry]
- :<- [:default-mine]
- (fn [[registry default-mine]]
-   (let [default-url (get-in default-mine [:service :root])
-         ;; This would be the namespace of the registry mine which is also set
-         ;; as our default mine (or nil if there is no such thing).
-         default-ns  (some (fn [[mine-ns mine-m]]
-                             (when (= (clean-mine-url (:url mine-m))
-                                      (clean-mine-url default-url))
-                               mine-ns))
-                           registry)]
-     (if default-ns ; Whether our :default mine is part of the registry.
-       ;; Rename it's key and namespace to :default
-       (let [default-reg-mine (assoc (get registry default-ns) :namespace :default)]
-         (-> registry
-             (dissoc default-ns)
-             (assoc :default default-reg-mine)))
-       ;; Otherwise, add as own :default key.
-       (let [default-mine-with-url (assoc default-mine :url default-url)]
-         (assoc registry :default default-mine-with-url))))))
+ :<- [:env/mines]
+ (fn [[registry configured]]
+   (merge configured registry)))
+
+;; Removes configured mines from registry.
+;; For when we want to display them separate!
+(reg-sub
+ :registry-wo-configured-mines
+ :<- [:registry]
+ :<- [:env/mines]
+ (fn [[registry configured]]
+   (let [registry-only (set/difference (set (keys registry))
+                                       (set (keys configured)))]
+     (select-keys registry registry-only))))
 
 (reg-sub
  :short-name
@@ -82,12 +68,6 @@
 (reg-sub :mines
          (fn [db]
            (:mines db)))
-
-(reg-sub
- :default-mine
- :<- [:mines]
- (fn [mines]
-   (:default mines)))
 
 (reg-sub
  :mine-name
@@ -122,18 +102,6 @@
  :fetching-report?
  (fn [db _]
    (:fetching-report? db)))
-
-; TODO - This is used by the report page. There must be a better way.
-(reg-sub
- :runnable-templates
- (fn [db _]
-   (:templates (:report db))))
-
-; TODO - This is used by the report page. There must be a better way.
-(reg-sub
- :collections
- (fn [db _]
-   (:collections (:report db))))
 
 (reg-sub
  :model
@@ -174,12 +142,6 @@
  (fn [db [_ class-kw]]
    (get-in db [:assets :summary-fields (:current-mine db)])))
 
-; TODO - This is used by the report page. There must be a better way.
-(reg-sub
- :report
- (fn [db _]
-   (:report db)))
-
 (reg-sub
  :progress-bar-percent
  (fn [db _]
@@ -213,6 +175,21 @@
    (:credits current-mine)))
 
 (reg-sub
+ :current-mine/description
+ :<- [:current-mine]
+ (fn [current-mine]
+   (:description current-mine)))
+
+(reg-sub
+ :current-mine/report-layout
+ (fn [[_ class]]
+   [(subscribe [:current-mine])
+    (subscribe [:bluegenes.pages.admin.subs/categories-fallback class])])
+ (fn [[current-mine fallback-layout] [_ class]]
+   (or (not-empty (get-in current-mine [:report-layout (some-> class name)]))
+       fallback-layout)))
+
+(reg-sub
  :current-mine-human-name
  :<- [:current-mine]
  (fn [current-mine]
@@ -231,12 +208,16 @@
  (fn [[assets mine-keyword]]
    (get-in assets [:intermine-version mine-keyword])))
 
+;; Returned as number, due to mostly being used in comparisons for checking
+;; compatibility.
 (reg-sub
  :api-version
  :<- [:assets]
  :<- [:current-mine-name]
  (fn [[assets mine-keyword]]
-   (get-in assets [:web-service-version mine-keyword])))
+   (-> (get-in assets [:web-service-version mine-keyword])
+       (utils/version-string->vec)
+       (first))))
 
 (reg-sub
  :release-version
@@ -293,6 +274,12 @@
    (utils/compatible-version? version/oauth-support current-version)))
 
 (reg-sub
+ :bg-properties-support?
+ :<- [:current-intermine-version]
+ (fn [current-version]
+   (utils/compatible-version? version/bg-properties-support current-version)))
+
+(reg-sub
  :show-mine-loader?
  (fn [db]
    (get db :show-mine-loader?)))
@@ -318,23 +305,53 @@
  (fn [[registry current-mine]]
    (not-empty (get-in registry [current-mine :maintainerEmail]))))
 
-;;;; Styling
+;;;; Branding
 
 (reg-sub
- :style/colors
- :<- [:registry]
- :<- [:current-mine-name]
- (fn [[registry current-mine]]
-   (get-in registry [current-mine :colors])))
+ :branding
+ :<- [:current-mine]
+ (fn [current-mine]
+   (get current-mine :branding)))
 
 (reg-sub
- :style/header-main
- :<- [:style/colors]
+ :branding/images
+ :<- [:branding]
+ (fn [branding]
+   (get branding :images)))
+
+(reg-sub
+ :branding/logo
+ :<- [:branding/images]
+ (fn [images]
+   (get images :logo)))
+
+(reg-sub
+ :branding/colors
+ :<- [:branding]
+ (fn [branding]
+   (get branding :colors)))
+
+(reg-sub
+ :branding/header-main
+ :<- [:branding/colors]
  (fn [colors]
    (get-in colors [:header :main])))
 
 (reg-sub
- :style/header-text
- :<- [:style/colors]
+ :branding/header-text
+ :<- [:branding/colors]
  (fn [colors]
    (get-in colors [:header :text])))
+
+;; Environment (stuff from config.edn and/or envvars)
+
+(reg-sub
+ :env
+ (fn [db]
+   (:env db)))
+
+(reg-sub
+ :env/mines
+ :<- [:env]
+ (fn [env]
+   (:mines env)))

@@ -1,11 +1,29 @@
 @import "../variables";
 @import "../datatype-colors";
 
+.search-page {
+    width: 100%;
+    padding-bottom: 1em;
+
+    .selected-dialog {
+        position: fixed;
+        right: 0;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+}
+
 .search-fullscreen {
     padding-top: 2em;
     padding-bottom: 2em;
     font-size: 1.05em;
     width: 100%;
+    max-width: 1800px;
+    margin-left: auto;
+    margin-right: auto;
+
+    // Make sure the scroll-top element is near the bottom when there's little content.
+    min-height: ~"calc(100% - 50px)";
 
     button,
     input[type=text] {
@@ -92,7 +110,13 @@
 
     .noresponse {
         text-align: center;
-        margin-top: 1em;
+        padding-top: 2em;
+    }
+
+    .badresponse {
+        .search-header h4 {
+            font-weight: bold;
+        }
     }
 
     .response {
@@ -222,8 +246,6 @@
                         }
                     }
                     background-color: rgba(255,255,0,0.15);
-                    padding: 0.1em;
-                    margin: 0 -0.15em;
                 }
 
                 &:nth-child(even) {
@@ -435,6 +457,14 @@
         .quicksearch-result.list-group-item {
             padding-left: 0;
             border-top: solid 1px rgba(0,0,0,0.1);
+        }
+    }
+
+    .alert {
+        margin-bottom: 0;
+
+        h4 {
+            font-weight: 400;
         }
     }
 }

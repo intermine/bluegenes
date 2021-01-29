@@ -17,6 +17,11 @@
    (:suggestion-results db)))
 
 (reg-sub
+ :suggestion-error
+ (fn [db _]
+   (:suggestion-error db)))
+
+(reg-sub
  :search/full-results
  (fn [db]
    (:search-results db)))
@@ -52,16 +57,22 @@
    (some? (:Category filters))))
 
 (reg-sub
- :search/highlight?
- :<- [:search/full-results]
- (fn [full-results]
-   (:highlight-results full-results)))
-
-(reg-sub
  :search/loading?
  :<- [:search/full-results]
  (fn [full-results]
    (:loading? full-results)))
+
+(reg-sub
+ :search/loading-remaining?
+ :<- [:search/full-results]
+ (fn [full-results]
+   (:loading-remaining? full-results)))
+
+(reg-sub
+ :search/error
+ :<- [:search/full-results]
+ (fn [full-results]
+   (:error full-results)))
 
 (reg-sub
  :search/keyword
@@ -85,6 +96,18 @@
  :<- [:search/all-selected]
  (fn [all-selected _]
    (some? (seq all-selected))))
+
+(reg-sub
+ :search/selected-count
+ :<- [:search/all-selected]
+ (fn [all-selected _]
+   (count all-selected)))
+
+(reg-sub
+ :search/selected-type
+ :<- [:search/all-selected]
+ (fn [all-selected _]
+   (-> all-selected first :type)))
 
 (reg-sub
  :search/total-results-count

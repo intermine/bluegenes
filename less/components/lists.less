@@ -6,6 +6,8 @@
     // all relative. The original font size in the design was 18px.
     font-size: 12px;
 
+    width: 100%;
+    max-width: 1600px;
     padding: @spacer*3.4 @spacer*4.7;
 
     @visible-gray: #CCCCCC;
@@ -65,6 +67,10 @@
             font-size: 2.4em;
             margin: 0;
             margin-right: @spacer*0.5;
+
+            .icon {
+                font-size: 0.5em;
+            }
         }
 
         .filter-input {
@@ -171,6 +177,10 @@
         background-color: @content-color-background;
         border: 1px solid @visible-gray;
 
+        &.pagination-bottom {
+            justify-content: flex-end;
+        }
+
         & > * {
             margin: @spacer/3 @spacer @spacer/3 0;
         }
@@ -227,6 +237,7 @@
         border-collapse: collapse;
         border: 1px solid @visible-gray;
         width: 100%;
+        position: relative;
 
         .lists-row {
             display: table-row;
@@ -286,7 +297,56 @@
                             }
                         }
                     }
+
+                    .refresh-button {
+                        padding: @spacer/4;
+                        margin-right: @spacer/2;
+
+                        position: relative;
+
+                        &:hover,
+                        &:focus {
+                            background-color: transparent;
+                            outline: none;
+                        }
+
+                        .mini-loader {
+                            // It will expand the container height if we don't
+                            // use absolute positioning.
+                            position: absolute;
+                            right: @spacer/2;
+                        }
+
+                        .icon {
+                            font-size: 1.6em;
+                        }
+                    }
                 }
+            }
+        }
+
+        .new-lists {
+            &-alert {
+                position: absolute;
+                left: 0;
+                right: 0;
+                transform: translateY(-1px);
+
+                background-color: fadeout(@highlight-color, 40%);
+                font-weight: 400;
+
+                &, a {
+                    color: @highlight-color-text;
+                }
+
+                a {
+                    text-decoration: underline;
+                }
+            }
+
+            &-alert, &-dummy {
+                padding: @spacer/4 @spacer/2;
+                border-bottom: 1px solid @visible-gray;
             }
         }
 
@@ -301,6 +361,7 @@
 
             &.separator {
                 border-bottom-width: 4px;
+                border-bottom-color: fadeout(@highlight-color, 70%);
             }
 
             button.btn {
@@ -317,8 +378,25 @@
             }
 
             .list-icon {
-                font-size: @icon-size;
-                margin-top: 3px;
+                display: inline-block;
+                position: relative;
+
+                .icon {
+                    font-size: @icon-size;
+                    margin-top: 1px;
+                }
+
+                &.new::before {
+                    position: absolute;
+                    right: 0;
+                    display: inline-block;
+                    content: '';
+                    height: 8px;
+                    width: 8px;
+                    border-radius: 50%;
+                    background-color: red;
+                    z-index: 1;
+                }
             }
 
             .list-actions {
@@ -337,6 +415,12 @@
                     font-weight: bold;
                     text-decoration: underline;
                     overflow-wrap: anywhere;
+
+                    &.disabled {
+                        color: fadeout(@body-foreground-color, 35%);
+                        text-decoration: none;
+                        cursor: default;
+                    }
                 }
 
                 .list-size {
@@ -357,6 +441,9 @@
                 overflow-wrap: anywhere;
             }
 
+            .list-timestamp {
+            }
+
             .list-tags {
                 display: flex;
                 flex-wrap: wrap;
@@ -364,6 +451,12 @@
 
             .list-controls {
                 display: flex;
+                justify-content: flex-end;
+
+                a.btn {
+                    margin: 0;
+                    padding: 0;
+                }
 
                 .icon {
                     font-size: @icon-size;
@@ -372,6 +465,9 @@
                         font-size: 2em;
                     }
 
+                    &.icon-arrow-up {
+                        fill: url(#upgradeGradient);
+                    }
                     &.icon-list-copy,
                     &.icon-list-edit,
                     &.icon-list-more {
@@ -409,14 +505,14 @@
         background-color: @content-color-background;
         border: 1px solid @visible-gray;
         border-top: none;
-        padding: @spacer*2 @spacer*2 @spacer*4 @spacer*2;
+        padding: @spacer*2 @spacer*2 @spacer*3 @spacer*2;
     }
 
     .fade.modal-backdrop {
         pointer-events: none;
 
         &.show {
-            opacity: 0.15;
+            opacity: 0.5;
         }
     }
 
@@ -440,10 +536,34 @@
                 height: 100%;
             }
         }
-        &-dialog {
+
+        .modal-dialog {
             display: inline-block;
             text-align: left;
             vertical-align: middle;
+        }
+
+        .modal-content {
+            max-height: 80vh;
+            overflow: auto;
+        }
+
+        .modal-header {
+            .modal-title {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0 @spacer/2;
+
+                & > span {
+                    display: flex;
+                    align-items: center;
+                }
+
+                .change-set-operation {
+                    font-size: 1em;
+                }
+            }
         }
 
         .modal-body {
@@ -454,8 +574,26 @@
                 color: #444;
             }
 
+            .extra-message {
+                display: flex;
+
+                .icon {
+                    flex-shrink: 0;
+                    fill: @content-color-background;
+                    align-self: center;
+                    margin-left: 0;
+                    margin-right: @spacer*0.8;
+                }
+            }
+
             p {
                 font-weight: bold;
+
+                .notice {
+                    font-style: italic;
+                    color: @notice-me;
+                    fill: @notice-me;
+                }
             }
 
             .table {
@@ -549,3 +687,18 @@
         }
     }
 }
+
+// The following is to work around multiple Firefox bugs related to
+// `position:relative` and `transform:scale(1)` (which is a hack to allow
+// relative positioning within `display:table-row`) causing a 1px border to not
+// be rendered. A 2px border will instead get rendered as a 1px border.
+@-moz-document url-prefix() {
+    .lists .lists-table {
+        border-right-width: 2px;
+    }
+
+    .lists .lists-table .lists-item {
+        border-bottom-width: 2px;
+    }
+}
+

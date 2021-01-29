@@ -36,6 +36,18 @@
                  classes)}
    [:use {:xlinkHref (str "#icon-" icon-name)}]])
 
+(defn icon-comp
+  "Render the icon `icon-name` enlarged `enlarge` times with a vector of
+  class names `classes` appended."
+  [icon-name & {:keys [enlarge classes] :as props}]
+  [:svg.icon
+   (merge
+    (dissoc props :enlarge :classes)
+    {:class (into [(str "icon-" icon-name)
+                   (when (number? enlarge) (str "icon-" enlarge "x"))]
+                  classes)})
+   [:use {:xlinkHref (str "#icon-" icon-name)}]])
+
 (defn icons []
   [:svg
    {:version "1.1"
@@ -43,6 +55,11 @@
     :width "0"
     :style {:position "absolute" :width 0 :height 0}}
    [:defs
+    ;; Gradients are used in CSS fill: url(#upgradeGradient);
+    [:linearGradient#upgradeGradient
+     [:stop {:stop-color "#0CAC01", :offset "5%"}]
+     [:stop {:stop-color "#0CAC01", :offset "20%"}]
+     [:stop {:stop-color "#23F106", :offset "95%"}]]
 
     [:symbol#icon-intermine
      {:viewBox "0 0 16 16"}
@@ -62,8 +79,15 @@
      [:title "chevron-left"]
      [:path {:d "M14 10l-4-4-10 10 10 10 4-4-6-6 6-6z"}]]
 
+    [:symbol#icon-chevron-up
+     {:viewBox "0 0 34 34"}
+     [:path
+      {:d
+       "M10.4833 21.8167L17 15.3L23.5167 21.8167L25.5 19.8333L17 11.3333L8.5 19.8333L10.4833 21.8167Z",
+       :clip-rule "evenodd",
+       :fill-rule "evenodd"}]]
+
     [:symbol#icon-document-list {:view-box "0 0 32 32"}
-     [:title "document-list"]
      [:path {:d "M19 3v6.002c0 1.111 0.898 1.998 2.006 1.998h4.994v17.003c0 1.107-0.894 1.997-1.997 1.997h-15.005c-1.107 0-1.997-0.899-1.997-2.007v-22.985c0-1.109 0.899-2.007 2.009-2.007h9.991zM20 3v5.997c0 0.554 0.451 1.003 0.991 1.003h5.009l-6-7zM15 14v1h8v-1h-8zM10 13v3h3v-3h-3zM11 14v1h1v-1h-1zM10 18v3h3v-3h-3zM11 19v1h1v-1h-1zM15 19v1h8v-1h-8zM10 23v3h3v-3h-3zM11 24v1h1v-1h-1zM15 24v1h8v-1h-8z"}]]
 
     [:symbol#icon-list {:view-box "0 0 32 32"}
@@ -102,29 +126,30 @@
      [:path.path1
       {:d
        "M10 14v8h-4v-8h4zM16 6v16h-4v-16h4zM32 24v2h-32v-24h2v22h30zM22 10v12h-4v-12h4zM28 4v18h-4v-18h4z"}]]
-    [:symbol#icon-venn-disjunction
-     {:viewBox "0 -4 26 26"}
-     {:fill-rule "evenodd",
-      :fill "none",
-      :stroke-width "1",
-      :stroke "none"}
-     [:g#icon-list-disjunction
+    [:svg#icon-venn-disjunction
+     {:viewBox "-5 0 160 100"}
+     [:g#icon-venn-disjunction-g
       {:transform "translate(1.000000, 1.000000)"}
-      [:path.path1
-       {:fill-rule "nonzero",
-        :fill "#AAAAAA",
+      [:circle
+       {:stroke "black",
+        :fill "rgb(170,170,170)",
+        :stroke-width "5",
+        :cy "50",
+        :cx "50",
+        :r "50"}]
+      [:circle
+       {:stroke "black",
+        :fill "rgb(170,170,170)",
+        :stroke-width "5",
+        :cy "50",
+        :cx "100",
+        :r "50"}]
+      [:path#path-diff
+       {:stroke-width "5",
         :d
-        "M12,14.9297396 C10.8233059,15.6104216 9.4571477,16 8,16 C3.581728,16 0,12.418272 0,8 C0,3.581728 3.581728,0 8,0 C9.4571477,0 10.8233059,0.389578385 12,1.07026042 C13.1766941,0.389578385 14.5428523,0 16,0 C20.41824,0 24,3.581728 24,8 C24,12.418272 20.41824,16 16,16 C14.5428523,16 13.1766941,15.6104216 12,14.9297396 Z M12,14.9297396 C14.391204,13.5465002 16,10.9611243 16,8 C16,5.0388757 14.391204,2.45349982 12,1.07026042 C9.60879602,2.45349982 8,5.0388757 8,8 C8,10.9611243 9.60879602,13.5465002 12,14.9297396 Z"}]
-      [:path.path2
-       {:stroke-width "0.8",
-        :stroke "#000000",
-        :d
-        "M16,8 C16,12.418272 12.418272,16 8,16 C3.581728,16 0,12.418272 0,8 C0,3.581728 3.581728,0 8,0 C12.418272,0 16,3.581728 16,8"}]
-      [:path.path3
-       {:stroke-width "0.8",
-        :stroke "#000000",
-        :d
-        "M24,8 C24,12.418272 20.41824,16 16,16 C11.581728,16 8,12.418272 8,8 C8,3.581728 11.581728,0 16,0 C20.41824,0 24,3.581728 24,8"}]]]
+        "M 75.015625 6.7617188 A 50 50 0 0 0 50 50 A 50 50 0 0 0 74.984375 93.238281 A 50 50 0 0 0 100 50 A 50 50 0 0 0 75.015625 6.7617188 z ",
+        :fill "white",
+        :stroke "black"}]]]
 
     [:symbol#icon-user-times {:view-box "0 0 32 28"}
      [:title "user-times"]
@@ -136,43 +161,81 @@
      [:path {:d
              "M17.906 17.391c1.313-1.406 2.109-3.328 2.109-5.391 0-3.328-2.063-6.234-5.016-7.406v0.422c0 1.078-0.938 1.969-2.016 1.969h-1.969v2.016c0 0.563-0.469 0.984-1.031 0.984h-1.969v2.016h6c0.563 0 0.984 0.422 0.984 0.984v3h0.984c0.891 0 1.641 0.609 1.922 1.406zM11.016 19.922v-1.922c-1.078 0-2.016-0.938-2.016-2.016v-0.984l-4.781-4.781c-0.141 0.563-0.234 1.172-0.234 1.781 0 4.078 3.094 7.453 7.031 7.922zM12 2.016c5.531 0 9.984 4.453 9.984 9.984s-4.453 9.984-9.984 9.984-9.984-4.453-9.984-9.984 4.453-9.984 9.984-9.984z"}]]
 
-    [:symbol#icon-venn-combine
-     {:viewBox "0 -4 26 26"}
-     {:fill-rule "evenodd",
-      :fill "none",
-      :stroke-width "1",
-      :stroke "none"}
+    [:svg#icon-venn-combine
+     {:viewBox "-5 0 160 100"}
+     "\n{:fill-rule \"evenodd\",\n:fill \"none\",\n:stroke-width \"1\",:stroke \"none\"}\n"
      [:g#icon-venn-combine-g
       {:transform "translate(1.000000, 1.000000)"}
-      [:path.path1
-       {:fill-rule "nonzero",
-        :fill "#AAAAAA",
+      [:circle
+       {:stroke "black",
+        :fill "rgba(170,170,170,1)",
+        :stroke-width "5",
+        :cy "50",
+        :cx "50",
+        :r "50"}]
+      [:circle
+       {:stroke "black",
+        :fill "rgba(170,170,170,1)",
+        :stroke-width "5",
+        :cy "50",
+        :cx "100",
+        :r "50"}]
+      [:path#path-diff
+       {:stroke-width "5",
         :d
-        "M12,14.9297396 C10.8233059,15.6104216 9.4571477,16 8,16 C3.581728,16 0,12.418272 0,8 C0,3.581728 3.581728,0 8,0 C9.4571477,0 10.8233059,0.389578385 12,1.07026042 C13.1766941,0.389578385 14.5428523,0 16,0 C20.41824,0 24,3.581728 24,8 C24,12.418272 20.41824,16 16,16 C14.5428523,16 13.1766941,15.6104216 12,14.9297396 Z"}]
-      [:path.path2
-       {:stroke-width "0.8",
-        :stroke "#000000",
+        "M 75.015625 6.7617188 A 50 50 0 0 0 50 50 A 50 50 0 0 0 74.984375 93.238281 A 50 50 0 0 0 100 50 A 50 50 0 0 0 75.015625 6.7617188 z ",
+        :fill "rgba(170,170,170,1)",
+        :stroke "black"}]]]
+
+    [:svg#icon-venn-difference
+     {:viewBox "-5 0 160 100"}
+     [:g#icon-venn-difference-g
+      {:transform "translate(1.000000, 1.000000)"}
+      [:circle
+       {:stroke "black",
+        :fill "white",
+        :stroke-width "5",
+        :cy "50",
+        :cx "50",
+        :r "50"}]
+      [:circle
+       {:stroke "black",
+        :fill "rgb(170,170,170)",
+        :stroke-width "5",
+        :cy "50",
+        :cx "100",
+        :r "50"}]
+      [:path#path-diff
+       {:stroke-width "5",
         :d
-        "M12,14.9297396 C10.8233059,15.6104216 9.4571477,16 8,16 C3.581728,16 0,12.418272 0,8 C0,3.581728 3.581728,0 8,0 C9.4571477,0 10.8233059,0.389578385 12,1.07026042 C13.1766941,0.389578385 14.5428523,0 16,0 C20.41824,0 24,3.581728 24,8 C24,12.418272 20.41824,16 16,16 C14.5428523,16 13.1766941,15.6104216 12,14.9297396 Z"}]]]
+        "M 75.015625 6.7617188 A 50 50 0 0 0 50 50 A 50 50 0 0 0 74.984375 93.238281 A 50 50 0 0 0 100 50 A 50 50 0 0 0 75.015625 6.7617188 z ",
+        :fill "white",
+        :stroke "black"}]]]
 
-    [:symbol#icon-venn-difference
+    [:svg#icon-venn-intersection
      {:viewBox "-5 0 160 100"}
-     [:title "Subtract one list from another"]
-
-     [:circle.venn-full
-      {:r 50 :cx 50 :cy 50 :stroke-width 5 :fill "rgba(0,0,0,0.3)" :stroke "black"}]
-     [:circle.venn-hollow
-      {:r 50 :cx 100 :cy 50 :stroke-width 5 :fill "rgb(247,247,247)" :stroke "black"}]]
-
-    [:symbol#icon-venn-intersection
-     {:viewBox "-5 0 160 100"}
-
-     [:circle
-      {:r 50 :cx 50 :cy 50 :stroke-width 5 :fill "transparent" :stroke "black"}]
-     [:circle
-      {:r 50 :cx 100 :cy 50 :stroke-width 5 :fill "transparent" :stroke "black"}]
-
-     [:path {:d "M 75.015625 6.7617188 A 50 50 0 0 0 50 50 A 50 50 0 0 0 74.984375 93.238281 A 50 50 0 0 0 100 50 A 50 50 0 0 0 75.015625 6.7617188 z " :fill "rgb(170,170,170)" :stroke "black"}]]
+     [:g#icon-venn-intersection-g
+      {:transform "translate(1.000000, 1.000000)"}
+      [:circle
+       {:stroke "black",
+        :fill "white",
+        :stroke-width "5",
+        :cy "50",
+        :cx "50",
+        :r "50"}]
+      [:circle
+       {:stroke "black",
+        :fill "white",
+        :stroke-width "5",
+        :cy "50",
+        :cx "100",
+        :r "50"}]
+      [:path#path-diff
+       {:stroke-width "5",
+        :d
+        "M 75.015625 6.7617188 A 50 50 0 0 0 50 50 A 50 50 0 0 0 74.984375 93.238281 A 50 50 0 0 0 100 50 A 50 50 0 0 0 75.015625 6.7617188 z ",
+        :fill "rgba(170,170,170,1)",
+        :stroke "black"}]]]
 
     [:symbol#icon-floppy-disk
      {:viewBox "0 0 16 16"}
@@ -234,7 +297,6 @@
        "M16 6.204l-5.528-0.803-2.472-5.009-2.472 5.009-5.528 0.803 4 3.899-0.944 5.505 4.944-2.599 4.944 2.599-0.944-5.505 4-3.899z"}]]
     [:symbol#icon-question
      {:viewBox "0 0 16 16"}
-     [:title "question"]
      [:path.path1
       {:d
        "M7 11h2v2h-2zM11 4c0.552 0 1 0.448 1 1v3l-3 2h-2v-1l3-2v-1h-5v-2h6zM8 1.5c-1.736 0-3.369 0.676-4.596 1.904s-1.904 2.86-1.904 4.596c0 1.736 0.676 3.369 1.904 4.596s2.86 1.904 4.596 1.904c1.736 0 3.369-0.676 4.596-1.904s1.904-2.86 1.904-4.596c0-1.736-0.676-3.369-1.904-4.596s-2.86-1.904-4.596-1.904zM8 0v0c4.418 0 8 3.582 8 8s-3.582 8-8 8c-4.418 0-8-3.582-8-8s3.582-8 8-8z"}]]
@@ -351,7 +413,6 @@
 
     [:symbol#icon-info
      {:view-box "0 0 16 16"}
-     [:title "info"]
      [:path.path1
       {:d
        "M7 4.75c0-0.412 0.338-0.75 0.75-0.75h0.5c0.412 0 0.75 0.338 0.75 0.75v0.5c0 0.412-0.338 0.75-0.75 0.75h-0.5c-0.412 0-0.75-0.338-0.75-0.75v-0.5z"}]
@@ -815,4 +876,14 @@
      [:path {:d "M18 14h13l-5-5 6-6-3-3-6 6-5-5z"}]
      [:path {:d "M18 18v13l5-5 6 6 3-3-6-6 5-5z"}]
      [:path {:d "M14 18h-13l5 5-6 6 3 3 6-6 5 5z"}]
-     [:path {:d "M14 14v-13l-5 5-6-6-3 3 6 6-5 5z"}]]]])
+     [:path {:d "M14 14v-13l-5 5-6-6-3 3 6 6-5 5z"}]]
+
+    [:symbol#icon-refresh
+     {:viewBox "0 0 32 32"}
+     [:path
+      {:d
+       "M32 12h-12l4.485-4.485c-2.267-2.266-5.28-3.515-8.485-3.515s-6.219 1.248-8.485 3.515c-2.266 2.267-3.515 5.28-3.515 8.485s1.248 6.219 3.515 8.485c2.267 2.266 5.28 3.515 8.485 3.515s6.219-1.248 8.485-3.515c0.189-0.189 0.371-0.384 0.546-0.583l3.010 2.634c-2.933 3.349-7.239 5.464-12.041 5.464-8.837 0-16-7.163-16-16s7.163-16 16-16c4.418 0 8.418 1.791 11.313 4.687l4.687-4.687v12z"}]]
+
+    [:symbol#icon-arrow-up
+     {:viewBox "0 0 32 32"}
+     [:path {:d "M16 1l-15 15h9v16h12v-16h9z"}]]]])

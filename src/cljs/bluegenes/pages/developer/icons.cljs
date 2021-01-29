@@ -2,28 +2,32 @@
   (:require [re-frame.core :as re-frame :refer [subscribe dispatch]]
             [bluegenes.components.icons :as icons]))
 
-(def sizing-example
+(defn sizing-example []
   [:div.icon-sizing-example
    [:div.demo
     "default"
     [:svg.icon.icon-intermine [:use {:xlinkHref "#icon-intermine"}]]]
    [:div.demo
     [:code ".icon-2x"]
-    [:svg.icon.icon-2x.icon-intermine [:use {:xlinkHref "#icon-intermine"}]]]])
+    [:svg.icon.icon-2x.icon-intermine [:use {:xlinkHref "#icon-intermine"}]]]
+   [:div.demo
+    [:code ".icon-3x"]
+    [:svg.icon.icon-3x.icon-intermine [:use {:xlinkHref "#icon-intermine"}]]]
+   [:div.demo
+    [:code ".icon-4x"]
+    [:svg.icon.icon-4x.icon-intermine [:use {:xlinkHref "#icon-intermine"}]]]])
 
 (defn iconview []
   [:div
-   [:h1 "Icon list"]
+   [:h1 "Icon definitions (components/icons.cljs)"]
    [:div.panel.container
-    [:h3 "All icons defs in the icons file (components/icons.cljs.)"]
     [:div.icon-size "Bonus classes for easy sizing: "
-     sizing-example
-     [:div "example:" [:code "[:svg.icon-3x.icon-intermine [:use {:xlinkHref \"#icon-intermine\"}]]"]]]
+     [sizing-example]]
     (let [icon-names (rest (last (icons/icons)))]
-      [:table.icon-view [:tbody
-                         (map (fn [[icon-symbol]]
-                                (let [icon-name (last (clojure.string/split icon-symbol "#"))]
-                                  [:tr {:key icon-name}
-                                   [:td [:svg.icon {:class icon-name} [:use {:xlinkHref (str "#" icon-name)}]]]
-                                   [:td icon-name]
-                                   [:td [:div.code "[:svg.icon." icon-name " [:use {:xlinkHref \"#" icon-name "\"}]]"]]])) icon-names)]])]])
+      (into [:div.icon-view]
+            (map (fn [[icon-symbol]]
+                   (let [icon-name (last (clojure.string/split icon-symbol "#"))]
+                     [:div.icon-container
+                      [:svg.icon {:class icon-name} [:use {:xlinkHref (str "#" icon-name)}]]
+                      [:span.icon-name icon-name]]))
+                 icon-names)))]])
