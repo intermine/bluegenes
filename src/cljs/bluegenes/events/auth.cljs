@@ -46,7 +46,16 @@
               ;; user will be annotated as new.
               (update-in [:lists :by-id] empty))
       :dispatch-n [[:save-login current-mine identity]
-                   [:assets/fetch-lists]]})))
+                   [:assets/fetch-lists]
+                   (when (seq ?renamedLists)
+                     [:messages/add
+                      {:markup [:div
+                                [:p "The following lists have been renamed due to their name conflicting with an existing list."]
+                                (into [:ul]
+                                      (for [[old-kw new-name] ?renamedLists]
+                                        [:li (name old-kw) " → " new-name]))]
+                       :timeout 15000
+                       :style "info"}])]})))
 
 (reg-event-db
  ::login-failure
