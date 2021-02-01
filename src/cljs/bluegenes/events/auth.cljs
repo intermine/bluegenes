@@ -32,7 +32,7 @@
  ::login-success
  ;; Store a user's identity and assoc their token to the service of the current mine,
  ;; then (re)fetch the user's lists.
- (fn [{db :db} [_ {:keys [token] :as identity}]]
+ (fn [{db :db} [_ {{:keys [token] :as identity} :identity ?renamedLists :renamedLists}]]
    (let [current-mine (:current-mine db)]
      {:db (-> db
               (update-in [:mines current-mine :auth] assoc

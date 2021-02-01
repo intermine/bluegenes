@@ -54,62 +54,47 @@
     (if (= (:status res) 302)
       ;; The InterMine instance doesn't support the new login service.
       ;; Fall back to basic auth.
-      (im-auth/basic-auth service username password)
-      (get-in res [:output :token]))))
+      (let [token (im-auth/basic-auth service username password)
+            user (im-auth/who-am-i? (assoc service :token token) token)]
+        [(assoc user :token token)])
+      (let [{:keys [renamedLists user token]} (:output res)]
+        [(assoc user :token token) renamedLists]))))
 
 (defn handle-auth
   "Ring handler for handling authentication. Attempts to authenticate with the
   IM server (via web services) by fetching a token. If successful, return
   the token and store it in the session."
   [{{:keys [username password service]} :params :as _req}]
-  ; clj-http throws exceptions for 'bad' responses:
   (try
-    ; Try to fetch a token from the InterMine server web service
-    (let [token (login service username password)
-          ; Use the the token to resolve the user's identity
-          whoami (im-auth/who-am-i? (assoc service :token token) token)
-          ; Build an identity map (token and whoami information)
-          whoami-with-token (assoc whoami :token token)]
-      ; Store the identity map in the session and return it to the user:
-      (-> (response/ok whoami-with-token)
-          (assoc :session {:identity whoami-with-token})))
+    (let [[user+token renamedLists] (login service username password)]
+      (-> (response/ok {:identity user+token
+                        :renamedLists renamedLists})
+          (assoc :session {:identity user+token})))
     (catch Exception e
-      (let [{:keys [status body] :as error} (ex-data e)]
-        ; Parse the body of the bad request sent back from the IM server
-        (let [json-response (cheshire/parse-string body)]
-          (case status
-            401 (response/unauthorized json-response)
-            500 (response/internal-server-error json-response)
-            (response/not-found {:stack-trace error
-                                 :error "Unable to reach remote server"})))))))
+      (let [{:keys [status] :as res} (ex-data e)]
+        (if status
+          res
+          (response/internal-server-error {:error (ex-message e)}))))))
 
 (defn register
   "Ring handler for registering a new user with the IM server. If successful,
   perform a regular login to get a proper token and store it in the session."
   [{{:keys [username password service]} :params :as _req}]
-  ; clj-http throws exceptions for 'bad' responses:
   (try
     ;; Registration only returns a temporaryToken valid for 24 hours.
     (im-auth/register service username password)
     ;; We call the login service directly after so we can get a proper token.
-    (let [token (login service username password)
-          ; Use the the token to resolve the user's identity
-          whoami (im-auth/who-am-i? (assoc service :token token) token)
-          ; Build an identity map (token and whoami information)
-          whoami-with-token (assoc whoami :token token)]
-      ; Store the identity map in the session and return it to the user:
-      (-> (response/ok whoami-with-token)
-          (assoc :session {:identity whoami-with-token})))
+    (let [[user+token renamedLists] (login service username password)]
+      ;; We're passing renamedLists although there shouldn't be any due to
+      ;; being a new account.
+      (-> (response/ok {:identity user+token
+                        :renamedLists renamedLists})
+          (assoc :session {:identity user+token})))
     (catch Exception e
-      (let [{:keys [status body] :as error} (ex-data e)
-            json-response (cheshire/parse-string body)]
-        ; Parse the body of the bad request sent back from the IM server
-        (case status
-          400 (response/bad-request json-response)
-          401 (response/unauthorized json-response)
-          500 (response/internal-server-error json-response)
-          (response/not-found {:stack-trace error
-                               :error "Unable to reach remote server"}))))))
+      (let [{:keys [status] :as res} (ex-data e)]
+        (if status
+          res
+          (response/internal-server-error {:error (ex-message e)}))))))
 
 (defn oauth2authenticator
   [{{:keys [service mine-id provider redirect_uri]} :params :as _req}]
