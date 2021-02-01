@@ -10,6 +10,16 @@
   [service]
   (select-keys service [:root :token]))
 
+(defn renamedLists->message [renamedLists]
+  [:messages/add
+   {:markup [:div
+             [:p "The following lists have been renamed due to their name conflicting with an existing list."]
+             (into [:ul]
+                   (for [[old-kw new-name] renamedLists]
+                     [:li (name old-kw) " → " new-name]))]
+    :timeout 15000
+    :style "info"}])
+
 (reg-event-fx
  ::login
  ;; Fire events to log in a user
@@ -48,14 +58,7 @@
       :dispatch-n [[:save-login current-mine identity]
                    [:assets/fetch-lists]
                    (when (seq ?renamedLists)
-                     [:messages/add
-                      {:markup [:div
-                                [:p "The following lists have been renamed due to their name conflicting with an existing list."]
-                                (into [:ul]
-                                      (for [[old-kw new-name] ?renamedLists]
-                                        [:li (name old-kw) " → " new-name]))]
-                       :timeout 15000
-                       :style "info"}])]})))
+                     (renamedLists->message ?renamedLists))]})))
 
 (reg-event-db
  ::login-failure

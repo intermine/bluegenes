@@ -113,10 +113,11 @@
   (try
     (let [res (im-auth/oauth2callback service {:provider provider :state state :code code :redirect_uri redirect_uri})
           {:keys [renamedLists user token]} (:output res)
-          user-with-token (assoc user :token token)]
+          user+token (assoc user :token token)]
       (-> (response/found (str "/" mine-id))
-          (assoc :session {:identity user-with-token
-                           :init {:identity user-with-token}})))
+          (assoc :session {:identity user+token
+                           :init {:identity user+token
+                                  :renamedLists renamedLists}})))
     (catch Exception e
       (timbre/errorf "oauth2callback error: %s" (ex-message e))
       (let [{:keys [body]} (ex-data e)

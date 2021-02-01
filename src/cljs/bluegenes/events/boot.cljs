@@ -7,7 +7,8 @@
             [bluegenes.utils :as utils]
             [bluegenes.pages.lists.events :as lists]
             [bluegenes.config :refer [server-vars init-vars read-default-ns]]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [bluegenes.events.auth :refer [renamedLists->message]]))
 
 (defn boot-flow
   "Produces a set of re-frame instructions that load all of InterMine's assets into BlueGenes
@@ -161,7 +162,14 @@
                           (second)
                           (keyword)
                           (or default-ns))
-         init-events (some-> @init-vars :events not-empty)
+         ;; These could be passed from the Bluegenes backend and result in
+         ;; events being dispatched.
+         renamedLists (some-> @init-vars :renamedLists not-empty)
+         init-events (-> (some-> @init-vars :events not-empty)
+                         (cond->
+                          renamedLists ((fnil conj []) (renamedLists->message renamedLists))))
+         ;; Configured mines are also passed from the Bluegenes backend,
+         ;; usually defined in config.edn.
          config-mines (init-config-mines)
          mine (get config-mines current-mine)
          init-db (-> db/default-db
