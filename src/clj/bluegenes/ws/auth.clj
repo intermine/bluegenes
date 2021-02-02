@@ -127,8 +127,8 @@
             (assoc :session {:init {:events [[:messages/add
                                               {:style "warning"
                                                :markup (str "Failed to login using OAuth 2.0"
-                                                          (when (not-empty error)
-                                                            (str ": " error)))}]]}}))))))
+                                                            (when (not-empty error)
+                                                              (str ": " error)))}]]}}))))))
 
 (defroutes routes
   (POST "/logout" [] logout)
