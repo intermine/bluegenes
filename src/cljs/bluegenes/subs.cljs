@@ -181,6 +181,12 @@
    (:description current-mine)))
 
 (reg-sub
+ :current-mine/oauth2-providers
+ :<- [:current-mine]
+ (fn [current-mine]
+   (:oauth2-providers current-mine)))
+
+(reg-sub
  :current-mine/report-layout
  (fn [[_ class]]
    [(subscribe [:current-mine])
@@ -266,12 +272,6 @@
  :<- [:current-intermine-version]
  (fn [current-version]
    (utils/compatible-version? version/list-tags-support current-version)))
-
-(reg-sub
- :oauth-support?
- :<- [:current-intermine-version]
- (fn [current-version]
-   (utils/compatible-version? version/oauth-support current-version)))
 
 (reg-sub
  :bg-properties-support?

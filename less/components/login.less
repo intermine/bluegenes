@@ -43,13 +43,28 @@
         margin-right: @spacer/2;
     }
 
-    .google-signin.google-signin.google-signin {
-        background-color: #4285F4;
-        color: white;
+    .oauth2-providers {
+        display: flex;
+        justify-content: center;
+        margin-top: @spacer*0.5;
 
-        &:focus, &:hover, &:active {
-            background-color: #4285F4;
-            box-shadow: 0 0 3px 3px rgba(66,133,244,.3);
+        button {
+            padding: 0;
+            outline: 0 !important;
+            background-color: transparent !important;
+
+            img {
+                max-width: 100%;
+                height: auto;
+
+                &.google-signin {
+                    max-width: @spacer*16;
+                }
+
+                &.elixir-login {
+                    max-width: @spacer*12;
+                }
+            }
         }
     }
 }

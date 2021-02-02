@@ -107,7 +107,7 @@
 
 (defn login-form [{:keys [credentials on-reset-password on-register]}]
   (let [{:keys [error? thinking? message]} @(subscribe [:bluegenes.subs.auth/auth])
-        oauth-support? @(subscribe [:oauth-support?])
+        oauth2-providers @(subscribe [:current-mine/oauth2-providers])
         current-mine @(subscribe [:current-mine])
         {:keys [username password]} @credentials
         submit-fn #(dispatch [:bluegenes.events.auth/login username password])]
@@ -132,11 +132,6 @@
        :on-click submit-fn}
       [mine-icon current-mine :class "mine-logo"]
       "Login"]
-     (when oauth-support?
-       [:button.btn.btn-default.btn-raised.btn-block.google-signin
-        {:type "button"
-         :on-click #(dispatch [:bluegenes.events.auth/oauth2 "GOOGLE"])}
-        [icon-comp "google"] "Sign in with Google"])
      [:a.btn-block.text-center
       {:role "button"
        :on-click #(do (dispatch [:bluegenes.events.auth/clear-error])
@@ -146,7 +141,22 @@
       {:role "button"
        :on-click #(do (dispatch [:bluegenes.events.auth/clear-error])
                       (on-register))}
-      "Create new account"]]))
+      "Create new account"]
+     [:div.oauth2-providers
+      (when (contains? oauth2-providers "GOOGLE")
+        [:button.btn
+         {:type "button"
+          :on-click #(dispatch [:bluegenes.events.auth/oauth2 "GOOGLE"])}
+         [:img.google-signin
+          {:src "/images/google-signin.png"
+           :alt "[Sign in with Google]"}]])
+      (when (contains? oauth2-providers "ELIXIR")
+        [:button.btn
+         {:type "button"
+          :on-click #(dispatch [:bluegenes.events.auth/oauth2 "ELIXIR"])}
+         [:img.elixir-login
+          {:src "/images/elixir-login.png"
+           :alt "[ELIXIR Login]"}]])]]))
 
 (defn anonymous []
   (let [credentials (reagent/atom {:username nil :password nil})
