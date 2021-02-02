@@ -81,9 +81,7 @@
  (fn [_ [_ & {:keys [failed-assets?]}]]
    {:dispatch-n
     [[::start-router]
-     ;; Verify InterMine web service version.
      [:verify-web-service-version]
-     ;; Start Google Analytics.
      [:start-analytics]
      ;; Set a flag indicating all assets are fetched.
      [:finished-loading-assets]
@@ -94,7 +92,8 @@
      ;; no organisms when I initialise the component. I have a workaround
      ;; so it doesn't matter in this case, but it is something to be aware of.
      [:cache/fetch-organisms]
-     [:regions/select-all-feature-types]]}))
+     [:regions/select-all-feature-types]
+     [:clear-init-vars]]}))
 
 (defn im-tables-events-forwarder
   "Creates instructions for listening in on im-tables events.
@@ -314,6 +313,19 @@
      {:db (assoc db :google-analytics
                  {:enabled? analytics-enabled?
                   :analytics-id analytics-id})})))
+
+;; init-vars is sent from the Bluegenes backend and intended to be consumed
+;; during boot. Here we clear init-vars to ensure it cannot be used again.
+(reg-event-fx
+ :clear-init-vars
+ (fn [_]
+   {:clear-init-vars-fx {}}))
+
+(reg-fx
+ :clear-init-vars-fx
+ (fn [_]
+   (set! init-vars (delay nil))
+   (set! js/initVars nil)))
 
 ;; Figure out how we're going to initialise authentication.
 ;; There are 4 different cases we need to handle:
