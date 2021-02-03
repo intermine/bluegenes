@@ -36,12 +36,12 @@
                  [clj-http "3.10.0"]
                  [cljs-http "0.1.46"]
                  [compojure "1.6.1"]
-                 [ring "1.8.0"]
+                 [ring "1.8.2"]
                  [ring/ring-defaults "0.3.2"]
                  [ring/ring-json "0.5.0" :exclusions [cheshire.core]]
                  [cheshire "5.10.0"]
                  [metosin/ring-http-response "0.9.1"]
-                 [ring-middleware-format "0.7.4"]
+                 [metosin/muuntaja "0.6.7"]
 
                  ; Build tools
                  [yogthos/config "1.1.7"]

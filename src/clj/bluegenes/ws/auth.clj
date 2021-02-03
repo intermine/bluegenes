@@ -69,7 +69,7 @@
     (let [[user+token renamedLists] (login service username password)]
       (-> (response/ok {:identity user+token
                         :renamedLists renamedLists})
-          (assoc :session {:identity user+token})))
+          (assoc :session ^:recreate {:identity user+token})))
     (catch Exception e
       (let [{:keys [status] :as res} (ex-data e)]
         (if status
@@ -89,7 +89,7 @@
       ;; being a new account.
       (-> (response/ok {:identity user+token
                         :renamedLists renamedLists})
-          (assoc :session {:identity user+token})))
+          (assoc :session ^:recreate {:identity user+token})))
     (catch Exception e
       (let [{:keys [status] :as res} (ex-data e)]
         (if status
@@ -115,9 +115,9 @@
           {:keys [renamedLists user token]} (:output res)
           user+token (assoc user :token token)]
       (-> (response/found (str "/" mine-id))
-          (assoc :session {:identity user+token
-                           :init {:identity user+token
-                                  :renamedLists renamedLists}})))
+          (assoc :session ^:recreate {:identity user+token
+                                      :init {:identity user+token
+                                             :renamedLists renamedLists}})))
     (catch Exception e
       (timbre/errorf "oauth2callback error: %s" (ex-message e))
       (let [{:keys [body]} (ex-data e)

@@ -1,16 +1,11 @@
 (ns bluegenes.handler
-  (:require [bluegenes.routes :as routes]
-            [ring.util.response :refer [resource-response]]
-            [ring.middleware.json :refer [wrap-json-response wrap-json-params]]
-            [ring.middleware.params :refer [wrap-params]]
+  (:require [bluegenes.routes :refer [routes]]
+            [bluegenes-tool-store.core :as tool]
+            [compojure.core :as compojure]
             [ring.middleware.session :refer [wrap-session]]
-            [ring.middleware.json :refer [wrap-json-params]]
-            [ring.middleware.keyword-params :refer [wrap-keyword-params]]
             [ring.middleware.reload :refer [wrap-reload]]
-            [ring.middleware.format :refer [wrap-restful-format]]
-            [compojure.core :refer [routes]]
             [compojure.middleware :refer [wrap-canonical-redirect]]
-            [bluegenes-tool-store.core :as tool]))
+            [muuntaja.middleware :refer [wrap-format wrap-params]]))
 
 (defn remove-trailing-slash
   "Remove the trailing '/' from a URI string, if it exists and isn't the only character."
@@ -25,15 +20,22 @@
     uri))
 
 (def combined-routes
-  (routes tool/routes routes/routes))
+  (compojure/routes tool/routes routes))
 
 (def handler (-> #'combined-routes
-                 ; Watch changes to the .clj and hot reload them
-                 wrap-reload
-                 ; Add session functionality to the Ring requests
-                 wrap-session
-                 ; Accept and parse request parameters in various formats
-                 (wrap-restful-format :formats [:json :json-kw :transit-msgpack :transit-json])
-                 ; Redirect to the correct route when trailing slash is present in path.
-                 ; This is for the frontend router, which doesn't handle trailing slashes.
+                 ;; Watch changes to the .clj and hot reload them
+                 (wrap-reload {:dirs ["src/clj"]})
+                 ;; Add session functionality
+                 ;; SameSite CANNOT be Strict, as this would cause Firefox to
+                 ;; NOT include the cookie when redirected back to Bluegenes
+                 ;; from an OAuth2 provider.
+                 (wrap-session {:cookie-attrs {:same-site :lax :http-only true}})
+                 ;; Merges request :body-params into :params
+                 (wrap-params)
+                 ;; Decodes requests and encodes responses based on headers.
+                 ;; Primarily to take transit+json body from frontend and put
+                 ;; into :body-params.
+                 (wrap-format)
+                 ;; Redirect to the correct route when trailing slash is present in path.
+                 ;; This is for the frontend router, which doesn't handle trailing slashes.
                  (wrap-canonical-redirect remove-trailing-slash)))
