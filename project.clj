@@ -80,7 +80,7 @@
 
                  ; Intermine Assets
                  [org.intermine/im-tables "0.11.0"]
-                 [org.intermine/imcljs "1.4.1"]
+                 [org.intermine/imcljs "1.4.2"]
                  [org.intermine/bluegenes-tool-store "0.2.0"]]
 
   :deploy-repositories {"clojars" {:sign-releases false}}
