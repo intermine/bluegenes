@@ -50,13 +50,13 @@
     (apply compojure/routes
            (for [{mine-ns :namespace :as mine} mines]
              (compojure/routes
-               (GET (str "/" mine-ns) []
-                 (partial with-init {:semantic-markup :home
-                                     :mine mine}))
-               (GET (str "/" mine-ns "/report/:class/:id") [id]
-                 (partial with-init {:semantic-markup :report
-                                     :mine mine
-                                     :object-id id})))))
+              (GET (str "/" mine-ns) []
+                (partial with-init {:semantic-markup :home
+                                    :mine mine}))
+              (GET (str "/" mine-ns "/report/:class/:id") [id]
+                (partial with-init {:semantic-markup :report
+                                    :mine mine
+                                    :object-id id})))))
 
     (GET "*" []
       (partial with-init {}))))
