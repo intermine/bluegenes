@@ -25,7 +25,10 @@ Example usage:
        (-> [:ul.dropdown-menu]
            (into [[:li [:a.clear {:on-click (partial on-change nil)}
                         [:svg.icon.icon-close [:use {:xlinkHref "#icon-close"}]] " Clear"]]
-                  [:li.divider]])
+                  [:li.divider]
+                  (when (empty? @organisms)
+                    [:li [:a {:disabled true}
+                          "Failed to query organisms from mine"]])])
            (into (map (fn [organism]
                         [:li [:a
                               {:on-click (partial on-change organism)}
@@ -45,7 +48,9 @@ Example usage:
                             (on-change (oget e :target :value)))}]
              (concat
               [[:option {:value ""} "Any"]
-               [:option {:value "_" :disabled true} "---"]]
+               [:option {:value "_" :disabled true} "---"]
+               (when (empty? @organisms)
+                 [:option {:value "_" :disabled true} "Failed to query organisms from mine"])]
               (map (fn [{short-name :shortName}]
                      [:option {:value short-name} short-name]) @organisms)))])))
 

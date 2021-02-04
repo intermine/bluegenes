@@ -85,7 +85,8 @@
                                    mine-name (get-in db [:mines current-mine :name])]
                                [:em mine-name])
                              ". You can still use the mine switcher to connect to a different InterMine instance."]
-                    :style "warning"}]}
+                    :style "warning"
+                    :timeout 5000}]}
        ;; Otherwise dispatch it now.
        :else {:dispatch event}))))
 
@@ -204,22 +205,22 @@
    (assoc-in db [:cache :organisms] (:results res))))
 
 (reg-event-fx
+ :cache/fetch-organisms-failure
+ (fn [{db :db} [_ res]]
+   {:log-error ["Failed query for organisms" res]}))
+
+(reg-event-fx
  :cache/fetch-organisms
  (fn [{db :db}]
-   (let [model (get-in db [:assets :model])
-         organism-query {:from "Organism"
-                         :select ["name"
-                                  "taxonId"
-                                  "species"
-                                  "shortName"
-                                  "genus"
-                                  "commonName"]}]
-     {:db db
-      :im-chan {:chan (fetch/rows
-                       (get-in db [:mines (:current-mine db) :service])
-                       organism-query
-                       {:format "jsonobjects"})
-                :on-success [:cache/store-organisms]}})))
+   (let [service (get-in db [:mines (:current-mine db) :service])
+         q {:from "Organism"
+            :select ["name" "taxonId" "species" "shortName" "genus" "commonName"]}]
+     (if (contains? service :model)
+       {:im-chan {:chan (fetch/rows service q {:format "jsonobjects"})
+                  :on-success [:cache/store-organisms]
+                  :on-failure [:cache/fetch-organisms-failure]}}
+       ;; No point running this query if we failed to fetch the model.
+       {}))))
 
 (reg-event-db
  :cache/store-possible-values

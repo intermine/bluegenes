@@ -87,10 +87,6 @@
      [:finished-loading-assets]
      ;; Save the current state to local storage.
      (when-not failed-assets? [:save-state])
-     ;; fetch-organisms doesn't always load before it is needed.
-     ;; for example on a fresh load of the id resolver, I sometimes end up with
-     ;; no organisms when I initialise the component. I have a workaround
-     ;; so it doesn't matter in this case, but it is something to be aware of.
      [:cache/fetch-organisms]
      [:regions/select-all-feature-types]
      [:clear-init-vars]]}))
@@ -263,21 +259,16 @@
    (let [dispatch-after-boot (:dispatch-after-boot db)
          ;; We want to block navigation on failed auth, as this could cause a
          ;; crash when opening a page that expects a mine to be connected.
-         failed-auth? (:failed-auth? db)
-         ;; If we're going to change panel, we'll wait with :hide-intro-loader
-         ;; until it's done (otherwise there will be a flash of the home page).
-         will-change-panel? (contains? (set (map first dispatch-after-boot))
-                                       :do-active-panel)]
+         failed-auth? (:failed-auth? db)]
      (cond-> {:db (-> db
                       (dissoc :dispatch-after-boot)
                       (assoc :fetching-assets? false))
               :mine-loader false}
        (and (some? dispatch-after-boot)
             (not failed-auth?)) (assoc :dispatch-n dispatch-after-boot)
-       (or (not will-change-panel?)
-           ;; Even if we're supposed to show a different panel, we'll show the
-           ;; homepage instead on failed auth (navigation will be blocked).
-           failed-auth?) (assoc :hide-intro-loader nil)))))
+       ;; Even if we're supposed to show a different panel, we'll show the
+       ;; homepage instead on failed auth (navigation will be blocked).
+       failed-auth? (assoc :dispatch [:do-active-panel :home-panel])))))
 
 (reg-event-fx
  :verify-web-service-version
