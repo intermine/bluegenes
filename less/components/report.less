@@ -240,7 +240,21 @@
 }
 
 .report-page .sidebar {
-    margin-top: @spacer*2;
+
+    &-container {
+        margin-top: @spacer*2;
+
+        // Stick to top when scrolling past it.
+        position: sticky;
+        top: @spacer;
+        z-index: 10;
+        max-height: 97vh;
+        overflow: auto;
+    }
+
+    &-collapsed {
+        margin-top: @spacer*2;
+    }
 
     .sidebar-entry {
         margin-bottom: @spacer*0.2;

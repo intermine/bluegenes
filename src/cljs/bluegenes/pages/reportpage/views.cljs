@@ -245,7 +245,7 @@
                          (-> cell key (str/split " > ") last)]
                         [:div.report-table-cell
                          (-> cell val (or "N/A") anchor-if-url)]])))))
-     [:div.hidden-lg
+     [:div.hidden-lg.sidebar-collapsed
       [sidebar/main]]]))
 
 (defn filter-input []
@@ -307,5 +307,5 @@
                [:div.col-xs-10.col-lg-8
                 [summary]
                 [report]]
-               [:div.col-lg-2.visible-lg-block
+               [:div.col-lg-2.visible-lg-block.sidebar-container
                 [sidebar/main]]]])]))
