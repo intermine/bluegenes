@@ -599,11 +599,11 @@
 (defn query-editor []
   (let [current-model @(subscribe [:current-model])
         current-constraints @(subscribe [:qb/im-query-constraints])
-        constraint-value-count @(subscribe [:qb/constraint-value-count])]
+        constraint-count @(subscribe [:qb/constraint-count])]
     [:div
      [queryview-browser (assoc current-model :type-constraints current-constraints)]
      [joins-list]
-     (when (>= constraint-value-count 2)
+     (when (>= constraint-count 2)
        [logic-box])]))
 
 (defn query-viewer []
