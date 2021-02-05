@@ -5,7 +5,8 @@
             [ring.middleware.session :refer [wrap-session]]
             [ring.middleware.reload :refer [wrap-reload]]
             [compojure.middleware :refer [wrap-canonical-redirect]]
-            [muuntaja.middleware :refer [wrap-format wrap-params]]))
+            [muuntaja.middleware :refer [wrap-format wrap-params]]
+            [config.core :refer [env]]))
 
 (defn remove-trailing-slash
   "Remove the trailing '/' from a URI string, if it exists and isn't the only character."
@@ -24,7 +25,7 @@
 
 (def handler (-> #'combined-routes
                  ;; Watch changes to the .clj and hot reload them
-                 (wrap-reload {:dirs ["src/clj"]})
+                 (cond-> (:development env) (wrap-reload {:dirs ["src/clj"]}))
                  ;; Add session functionality
                  ;; SameSite CANNOT be Strict, as this would cause Firefox to
                  ;; NOT include the cookie when redirected back to Bluegenes

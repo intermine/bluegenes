@@ -32,3 +32,4 @@ prepros.cfg
 /.cljs_node_repl/
 /.lsp/
 /*.jks
+/.lein-env

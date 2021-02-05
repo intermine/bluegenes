@@ -91,7 +91,10 @@
             [lein-ancient "0.6.15"]
             [lein-pdo "0.1.1"]
             [lein-cljfmt "0.6.1"]
-            [lein-shell "0.5.0"]]
+            [lein-shell "0.5.0"]
+            ;; Populates .lein-env with a profile's :env map,
+            ;; so they're accessible to config.
+            [lein-environ "1.2.0"]]
 
   :cljfmt {:indents {wait-for [[:inner 0]]}}
 
@@ -143,7 +146,8 @@
                                   [cider/piggieback "0.4.2"]]
                    :resource-paths ["config/dev" "tools" "config/defaults"]
                    :plugins [[lein-figwheel "0.5.19"]
-                             [lein-doo "0.1.8"]]}
+                             [lein-doo "0.1.8"]]
+                   :env {:development true}}
              :kaocha {:dependencies [[lambdaisland/kaocha "1.0.700"]
                                      [lambdaisland/kaocha-cljs "0.0-71"]]}
              :repl {:source-paths ["dev"]}
