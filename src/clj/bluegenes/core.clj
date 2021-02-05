@@ -4,6 +4,7 @@
             [ring.adapter.jetty :refer [run-jetty]]
             [taoensso.timbre :as timbre :refer [infof]]
             [bluegenes-tool-store.tools :refer [initialise-tools]])
+  (:import [org.eclipse.jetty.server.handler.gzip GzipHandler])
   (:gen-class))
 
 (defn ->int
@@ -14,6 +15,15 @@
     (int? n) n
     :else n))
 
+(defn add-gzip-handler [server]
+  (.setHandler server
+               (doto (GzipHandler.)
+                 (.setIncludedMimeTypes (into-array ["text/css"
+                                                     "application/javascript"
+                                                     "text/javascript"]))
+                 (.setMinGzipSize 1024)
+                 (.setHandler (.getHandler server)))))
+
 (defonce web-server_ (atom nil))
 (defn stop-web-server! [] (when-let [stop-fn @web-server_] (stop-fn)))
 (defn start-web-server!
@@ -23,7 +33,10 @@
   []
   (stop-web-server!)
   (let [port    (->int (or (:server-port env) (:port env) 5000))
-        server  (run-jetty handler {:port port :join? false})
+        server  (run-jetty handler (merge
+                                    {:port port :join? false}
+                                    (when-not (:development env)
+                                      {:configurator add-gzip-handler})))
         stop-fn #(.stop server)]
     (infof "=== Bluegenes server started on port: %s" port)
     (reset! web-server_ stop-fn)))
