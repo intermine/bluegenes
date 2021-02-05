@@ -5,7 +5,7 @@
 | Envvar | Description | Default |
 | ------ | ----------- | ------- |
 | SERVER_PORT | Port to be used by BlueGenes web server | 5000 |
-| LOGGING_LEVEL | Minimum level for logging | :info |
+| LOGGING_LEVEL | Minimum level for logging | info |
 | GOOGLE_ANALYTICS | Google Analytics tracking ID | nil |
 | BLUEGENES_TOOL_PATH | Directory on server where BlueGenes tools are installed | ./tools |
 | BLUEGENES_DEFAULT_SERVICE_ROOT | Default InterMine service to run API requests against | https://www.flymine.org/flymine |

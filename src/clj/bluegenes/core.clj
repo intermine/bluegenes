@@ -31,6 +31,6 @@
 (defn -main
   "Start the BlueGenes server. This is the main entry point for the application"
   [& _args]
-  (timbre/set-level! :info) ; Enable Logging
+  (timbre/set-level! (keyword (:logging-level env :info)))
   (initialise-tools)
   (start-web-server!))
