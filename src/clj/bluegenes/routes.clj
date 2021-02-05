@@ -1,7 +1,7 @@
 (ns bluegenes.routes
   (:require [compojure.core :as compojure :refer [GET defroutes context]]
             [compojure.route :refer [resources]]
-            [ring.util.response :refer [response]]
+            [ring.util.response :as response :refer [response]]
             [bluegenes.ws.auth :as auth]
             [bluegenes.ws.ids :as ids]
             [bluegenes.ws.rss :as rss]
@@ -16,6 +16,10 @@
   and remove it (as it gets 'consumed') from the session."
   [options {{:keys [init] :as session} :session}]
   (-> (response (index init options))
+      (response/content-type "text/html")
+      ;; This is very important - without it Firefox will request the HTML
+      ;; twice, messing up session.init!
+      (response/charset "utf-8")
       (assoc :session (dissoc session :init))))
 
 ; Define the top level URL routes for the server
@@ -44,15 +48,15 @@
       (partial with-init {:semantic-markup :home
                           :mine (first mines)}))
     (apply compojure/routes
-           (apply concat
-                  (for [{mine-ns :namespace :as mine} mines]
-                    [(GET (str "/" mine-ns) []
-                       (partial with-init {:semantic-markup :home
-                                           :mine mine}))
-                     (GET (str "/" mine-ns "/report/:class/:id") [id]
-                       (partial with-init {:semantic-markup :report
-                                           :mine mine
-                                           :object-id id}))])))
+           (for [{mine-ns :namespace :as mine} mines]
+             (compojure/routes
+              (GET (str "/" mine-ns) []
+                (partial with-init {:semantic-markup :home
+                                    :mine mine}))
+              (GET (str "/" mine-ns "/report/:class/:id") [id]
+                (partial with-init {:semantic-markup :report
+                                    :mine mine
+                                    :object-id id})))))
 
     (GET "*" []
       (partial with-init {}))))

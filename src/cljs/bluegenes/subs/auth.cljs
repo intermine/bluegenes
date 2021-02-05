@@ -24,3 +24,11 @@
  :<- [::identity]
  (fn [identity]
    (some? (not-empty identity))))
+
+(reg-sub
+ ::email
+ :<- [::identity]
+ (fn [identity]
+   ;; Set when using OAuth2, where username is just "GOOGLE:gibberish".
+   (or (not-empty (get-in identity [:preferences :email]))
+       (:username identity))))

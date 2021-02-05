@@ -5,25 +5,44 @@
             [imcljs.auth :as im-auth]
             [bluegenes.interceptors :refer [origin]]))
 
+(defn slim-service
+  "Constrains a service map to only the keys needed by the backend API."
+  [service]
+  (select-keys service [:root :token]))
+
+(defn renamedLists->message [renamedLists]
+  [:messages/add
+   {:markup [:div
+             [:p "The following lists have been renamed due to their name conflicting with an existing list."]
+             (into [:ul]
+                   (for [[old-kw new-name] renamedLists]
+                     [:li (name old-kw) " → " new-name]))]
+    :timeout 15000
+    :style "info"}])
+
 (reg-event-fx
  ::login
  ;; Fire events to log in a user
- (fn [{db :db} [_ credentials]]
-   {:db (update-in db [:mines (:current-mine db) :auth] assoc
-                   :thinking? true
-                   :error? false)
-    ::fx/http {:uri "/api/auth/login"
-               :method :post
-               :on-success [::login-success]
-               :on-failure [::login-failure]
-               :on-unauthorised [::login-failure]
-               :transit-params credentials}}))
+ (fn [{db :db} [_ username password]]
+   (let [current-mine (:current-mine db)
+         service (get-in db [:mines current-mine :service])]
+     {:db (update-in db [:mines current-mine :auth] assoc
+                     :thinking? true
+                     :error? false)
+      ::fx/http {:uri "/api/auth/login"
+                 :method :post
+                 :on-success [::login-success]
+                 :on-failure [::login-failure]
+                 :on-unauthorised [::login-failure]
+                 :transit-params {:username username
+                                  :password password
+                                  :service (slim-service service)}}})))
 
 (reg-event-fx
  ::login-success
  ;; Store a user's identity and assoc their token to the service of the current mine,
  ;; then (re)fetch the user's lists.
- (fn [{db :db} [_ {:keys [token] :as identity}]]
+ (fn [{db :db} [_ {{:keys [token] :as identity} :identity ?renamedLists :renamedLists}]]
    (let [current-mine (:current-mine db)]
      {:db (-> db
               (update-in [:mines current-mine :auth] assoc
@@ -37,7 +56,9 @@
               ;; user will be annotated as new.
               (update-in [:lists :by-id] empty))
       :dispatch-n [[:save-login current-mine identity]
-                   [:assets/fetch-lists]]})))
+                   [:assets/fetch-lists]
+                   (when (seq ?renamedLists)
+                     (renamedLists->message ?renamedLists))]})))
 
 (reg-event-db
  ::login-failure
@@ -62,9 +83,7 @@
                  ;; We don't really care if anything goes wrong.
                  :on-failure [::logout-success]
                  :on-unauthorised [::logout-success]
-                 :transit-params {:service (select-keys
-                                            (get-in db [:mines current-mine :service])
-                                            [:root :token])}}})))
+                 :transit-params {:service (slim-service (get-in db [:mines current-mine :service]))}}})))
 
 (reg-event-fx
  ::logout-success
@@ -84,16 +103,20 @@
 
 (reg-event-fx
  ::register
- (fn [{db :db} [_ credentials]]
-   {:db (update-in db [:mines (:current-mine db) :auth] assoc
-                   :thinking? true
-                   :error? false)
-    ::fx/http {:uri "/api/auth/register"
-               :method :post
-               :on-success [::login-success]
-               :on-failure [::login-failure]
-               :on-unauthorised [::login-failure]
-               :transit-params credentials}}))
+ (fn [{db :db} [_ username password]]
+   (let [current-mine (:current-mine db)
+         service (get-in db [:mines current-mine :service])]
+     {:db (update-in db [:mines current-mine :auth] assoc
+                     :thinking? true
+                     :error? false)
+      ::fx/http {:uri "/api/auth/register"
+                 :method :post
+                 :on-success [::login-success]
+                 :on-failure [::login-failure]
+                 :on-unauthorised [::login-failure]
+                 :transit-params {:username username
+                                  :password password
+                                  :service (slim-service service)}}})))
 
 (reg-event-fx
  ::request-reset-password
@@ -168,3 +191,34 @@
               :error? false
               :message nil
               :request-reset-success? false)))
+
+(reg-event-fx
+ ::oauth2
+ [(origin)]
+ (fn [{db :db origin :origin} [_ provider]]
+   (let [current-mine (:current-mine db)
+         service (get-in db [:mines current-mine :service])
+         redirect_uri (str origin "/api/auth/oauth2callback?provider=" provider)]
+     {:db (update-in db [:mines current-mine :auth] assoc
+                     :error? false)
+      ::fx/http {:uri "/api/auth/oauth2authenticator"
+                 :method :post
+                 :on-success [::oauth2-success redirect_uri]
+                 :on-failure [::oauth2-failure]
+                 :on-unauthorised [::oauth2-failure]
+                 :transit-params {:service (slim-service service)
+                                  :mine-id (name current-mine)
+                                  :provider provider
+                                  :redirect_uri redirect_uri}}})))
+
+(reg-event-fx
+ ::oauth2-success
+ (fn [{db :db} [_ redirect_uri link]]
+   {:external-redirect (str link "&redirect_uri=" (js/encodeURIComponent redirect_uri))}))
+
+(reg-event-db
+ ::oauth2-failure
+ (fn [db [_ res]]
+   (update-in db [:mines (:current-mine db) :auth] assoc
+              :error? true
+              :message (get-in res [:body :error]))))

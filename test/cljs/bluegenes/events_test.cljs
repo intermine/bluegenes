@@ -6,7 +6,8 @@
             [bluegenes.events]
             [bluegenes.subs]
             [imcljs.fetch :as fetch]
-            [imcljs.auth :as auth]))
+            [imcljs.auth :as auth]
+            [bluegenes.config :as config]))
 
 (use-fixtures :each utils/fixtures)
 
@@ -14,7 +15,8 @@
   (run-test-async
    (utils/stub-local-storage)
    (with-redefs [fetch/session  (utils/stub-fetch-fn "stubbed-token")
-                 auth/who-am-i? (utils/stub-fetch-fn {})]
+                 auth/who-am-i? (utils/stub-fetch-fn {})
+                 config/init-vars (delay nil)]
      (rf/dispatch-sync [:authentication/init])
      (wait-for [:authentication/store-token]
        (testing "fetch token when none present"
@@ -25,7 +27,8 @@
   (run-test-sync
    (utils/stub-local-storage)
    (rf/dispatch [:authentication/store-token "existing-token"])
-   (with-redefs [auth/who-am-i? (utils/stub-fetch-fn {})]
+   (with-redefs [auth/who-am-i? (utils/stub-fetch-fn {})
+                 config/init-vars (delay nil)]
      (rf/dispatch [:authentication/init])
      (testing "reuse token when present"
        (let [token @(rf/subscribe [:active-token])]
@@ -35,9 +38,10 @@
   (run-test-sync
    (utils/stub-local-storage)
    (with-redefs [fetch/lists    (utils/stub-fetch-fn [])
-                 auth/who-am-i? (utils/stub-fetch-fn {})]
+                 auth/who-am-i? (utils/stub-fetch-fn {})
+                 config/init-vars (delay nil)]
      (rf/dispatch [:bluegenes.events.auth/login-success
-                   {:token "login-token"}])
+                   {:identity {:token "login-token"}}])
      (rf/dispatch [:authentication/init])
      (testing "prioritise login token"
        (let [token @(rf/subscribe [:active-token])]
@@ -47,12 +51,24 @@
   (run-test-async
    (utils/stub-local-storage)
    (rf/dispatch-sync [:save-login nil {:token "persisted-token"}])
-   (with-redefs [auth/who-am-i? (utils/stub-fetch-fn {})]
+   (with-redefs [auth/who-am-i? (utils/stub-fetch-fn {})
+                 config/init-vars (delay nil)]
      (rf/dispatch-sync [:authentication/init])
      (wait-for [:authentication/store-token]
        (testing "use persisted login token"
          (let [token @(rf/subscribe [:active-token])]
            (is (= "persisted-token" token))))))))
+
+(deftest use-oauth2-token
+  (run-test-async
+   (utils/stub-local-storage)
+   (with-redefs [auth/who-am-i? (utils/stub-fetch-fn {})
+                 config/init-vars (delay {:identity {:token "oauth2-token"}})]
+     (rf/dispatch-sync [:authentication/init])
+     (wait-for [:authentication/store-token]
+       (testing "use oauth2 token"
+         (let [token @(rf/subscribe [:active-token])]
+           (is (= "oauth2-token" token))))))))
 
 (deftest replace-invalid-token
   (run-test-async
@@ -61,7 +77,8 @@
      (set! fetch/session (utils/stub-fetch-fn "valid-token"))
      (swap! utils/stubbed-variables conj #(set! fetch/session orig-fn)))
    (rf/dispatch-sync [:authentication/store-token "invalid-token"])
-   (with-redefs [auth/who-am-i? (utils/stub-fetch-fn {:statusCode 401})]
+   (with-redefs [auth/who-am-i? (utils/stub-fetch-fn {:statusCode 401})
+                 config/init-vars (delay nil)]
      (rf/dispatch-sync [:authentication/init])
      (wait-for [:authentication/store-token]
        (testing "replace token when invalid"
@@ -75,7 +92,8 @@
      (set! fetch/session (utils/stub-fetch-fn "anon-token"))
      (swap! utils/stubbed-variables conj #(set! fetch/session orig-fn)))
    (rf/dispatch-sync [:save-login nil {:token "login-token"}])
-   (with-redefs [auth/who-am-i? (utils/stub-fetch-fn {:statusCode 401})]
+   (with-redefs [auth/who-am-i? (utils/stub-fetch-fn {:statusCode 401})
+                 config/init-vars (delay nil)]
      (rf/dispatch-sync [:authentication/init])
      (wait-for [:authentication/store-token]
        (testing "clear login when invalid"

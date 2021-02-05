@@ -31,6 +31,7 @@
    :rss                          (get-in web-properties [:project :rss])
    :citation                     (parse-citation (get-in web-properties [:project :citation]))
    :credits                      (get-in web-properties [:project :credits])
+   :oauth2-providers             (set (get-in web-properties [:oauth2_providers]))
    :idresolver-example           (let [ids (get-in web-properties [:bag :example :identifiers])]
                                    ;; ids can be one of the following:
                                    ;;     {:default "foo bar"

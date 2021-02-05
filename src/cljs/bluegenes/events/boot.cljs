@@ -7,7 +7,8 @@
             [bluegenes.utils :as utils]
             [bluegenes.pages.lists.events :as lists]
             [bluegenes.config :refer [server-vars init-vars read-default-ns]]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [bluegenes.events.auth :refer [renamedLists->message]]))
 
 (defn boot-flow
   "Produces a set of re-frame instructions that load all of InterMine's assets into BlueGenes
@@ -80,20 +81,15 @@
  (fn [_ [_ & {:keys [failed-assets?]}]]
    {:dispatch-n
     [[::start-router]
-     ;; Verify InterMine web service version.
      [:verify-web-service-version]
-     ;; Start Google Analytics.
      [:start-analytics]
      ;; Set a flag indicating all assets are fetched.
      [:finished-loading-assets]
      ;; Save the current state to local storage.
      (when-not failed-assets? [:save-state])
-     ;; fetch-organisms doesn't always load before it is needed.
-     ;; for example on a fresh load of the id resolver, I sometimes end up with
-     ;; no organisms when I initialise the component. I have a workaround
-     ;; so it doesn't matter in this case, but it is something to be aware of.
      [:cache/fetch-organisms]
-     [:regions/select-all-feature-types]]}))
+     [:regions/select-all-feature-types]
+     [:clear-init-vars]]}))
 
 (defn im-tables-events-forwarder
   "Creates instructions for listening in on im-tables events.
@@ -161,7 +157,14 @@
                           (second)
                           (keyword)
                           (or default-ns))
-         init-events (some-> @init-vars :events not-empty)
+         ;; These could be passed from the Bluegenes backend and result in
+         ;; events being dispatched.
+         renamedLists (some-> @init-vars :renamedLists not-empty)
+         init-events (-> (some-> @init-vars :events not-empty)
+                         (cond->
+                          renamedLists ((fnil conj []) (renamedLists->message renamedLists))))
+         ;; Configured mines are also passed from the Bluegenes backend,
+         ;; usually defined in config.edn.
          config-mines (init-config-mines)
          mine (get config-mines current-mine)
          init-db (-> db/default-db
@@ -256,21 +259,16 @@
    (let [dispatch-after-boot (:dispatch-after-boot db)
          ;; We want to block navigation on failed auth, as this could cause a
          ;; crash when opening a page that expects a mine to be connected.
-         failed-auth? (:failed-auth? db)
-         ;; If we're going to change panel, we'll wait with :hide-intro-loader
-         ;; until it's done (otherwise there will be a flash of the home page).
-         will-change-panel? (contains? (set (map first dispatch-after-boot))
-                                       :do-active-panel)]
+         failed-auth? (:failed-auth? db)]
      (cond-> {:db (-> db
                       (dissoc :dispatch-after-boot)
                       (assoc :fetching-assets? false))
               :mine-loader false}
        (and (some? dispatch-after-boot)
             (not failed-auth?)) (assoc :dispatch-n dispatch-after-boot)
-       (or (not will-change-panel?)
-           ;; Even if we're supposed to show a different panel, we'll show the
-           ;; homepage instead on failed auth (navigation will be blocked).
-           failed-auth?) (assoc :hide-intro-loader nil)))))
+       ;; Even if we're supposed to show a different panel, we'll show the
+       ;; homepage instead on failed auth (navigation will be blocked).
+       failed-auth? (assoc :dispatch [:do-active-panel :home-panel])))))
 
 (reg-event-fx
  :verify-web-service-version
@@ -307,12 +305,26 @@
                  {:enabled? analytics-enabled?
                   :analytics-id analytics-id})})))
 
+;; init-vars is sent from the Bluegenes backend and intended to be consumed
+;; during boot. Here we clear init-vars to ensure it cannot be used again.
+(reg-event-fx
+ :clear-init-vars
+ (fn [_]
+   {:clear-init-vars-fx {}}))
+
+(reg-fx
+ :clear-init-vars-fx
+ (fn [_]
+   (set! init-vars (delay nil))
+   (set! js/initVars nil)))
+
 ;; Figure out how we're going to initialise authentication.
-;; There are 3 different cases we need to handle:
+;; There are 4 different cases we need to handle:
 ;; - The user has logged in previously => Re-use their identity!
-;; - The user has a previously persisted anonymous token => Re-use that token!
-;; - The user has no persisted token => Get a new one!
-;; In the first 2 cases, we also have to make sure the token is still valid, so
+;; - The user has an old anonymous token => Re-use that token!
+;; - The user logged in with OAuth2 => Use token from init-vars identity!
+;; - The user has no token => Get a new one!
+;; In the first 3 cases, we also have to make sure the token is still valid, so
 ;; we use the who-am-i? service for this.
 (reg-event-fx
  :authentication/init
@@ -323,6 +335,10 @@
          db+login (if-let [identity (get login current-mine)]
                     (assoc-in db [:mines current-mine :auth :identity] identity)
                     db)
+         ;; Add an OAuth2 identity if present (replaces the above).
+         oauth2-identity (some-> @init-vars :identity not-empty)
+         db+login (cond-> db+login
+                    oauth2-identity (assoc-in [:mines current-mine :auth :identity] oauth2-identity))
          auth-token (get-in db+login [:mines current-mine :auth :identity :token])
          service    (get-in db+login [:mines current-mine :service])
          anon-token (:token service)
@@ -330,7 +346,7 @@
      {:db db+login
       :im-chan (if token
                  {:chan (auth/who-am-i? service token)
-                  :on-success [:authentication/store-token token]
+                  :on-success [:authentication/store-token token oauth2-identity]
                   :on-unauthorised [:authentication/invalid-token (boolean auth-token)]
                   :on-failure [:authentication/invalid-token (boolean auth-token)]}
                  {:chan (fetch/session service)
@@ -353,14 +369,15 @@
 ;; Store an authentication token for a given mine.
 (reg-event-fx
  :authentication/store-token
- (fn [{db :db} [_ token]]
+ (fn [{db :db} [_ token oauth2-identity]]
    (let [current-mine (:current-mine db)]
      (cond-> {:db (assoc-in db [:mines current-mine :service :token] token)}
-       (nil? token)
-       (assoc :dispatch [:messages/add
-                         {:markup [:span "Failed to acquire token. It's likely that you have no connection to the InterMine instance."]
-                          :style "danger"
-                          :timeout 0}])))))
+       ;; This branch indicates successful login via OAuth2, which means we should persist it.
+       oauth2-identity (assoc :dispatch [:save-login current-mine oauth2-identity])
+       (nil? token) (assoc :dispatch [:messages/add
+                                      {:markup [:span "Failed to acquire token. It's likely that you have no connection to the InterMine instance."]
+                                       :style "danger"
+                                       :timeout 0}])))))
 
 ; Fetch model
 (def preferred-tag "im:preferredBagType")

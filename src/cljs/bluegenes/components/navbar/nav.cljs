@@ -28,16 +28,17 @@
   (swap! atom assoc key (oget evt :target :value)))
 
 (defn logged-in []
-  (let [{:keys [username superuser]} @(subscribe [:bluegenes.subs.auth/identity])]
+  (let [superuser? @(subscribe [:bluegenes.subs.auth/superuser?])
+        email @(subscribe [:bluegenes.subs.auth/email])]
     [:li.logon.dropdown.success.primary-nav
      [:a.dropdown-toggle {:data-toggle "dropdown" :role "button"}
       [:svg.icon.icon-2x.icon-user-circle [:use {:xlinkHref "#icon-user-circle"}]]
       [:svg.icon.icon-caret-down [:use {:xlinkHref "#icon-caret-down"}]]]
      [:ul.dropdown-menu.profile-dropdown
-      [:li.email [:span username]]
-      (when superuser
+      [:li.email [:span email]]
+      (when superuser?
         [:li [:a {:href (route/href ::route/admin)} "Admin"]])
-      (when superuser
+      (when superuser?
         [:li [:a {:href (route/href ::route/tools)} "Tools"]])
       [:li [:a {:href (route/href ::route/profile)} "Profile"]]
       [:li [:a {:on-click #(dispatch [:bluegenes.events.auth/logout])} "Logout"]]]]))
@@ -75,10 +76,8 @@
 (defn register-form [{:keys [credentials on-back]}]
   (let [{:keys [error? thinking? message]} @(subscribe [:bluegenes.subs.auth/auth])
         current-mine @(subscribe [:current-mine])
-        submit-fn #(dispatch [:bluegenes.events.auth/register
-                              (assoc @credentials
-                                     :service (:service current-mine)
-                                     :mine-id (:id current-mine))])]
+        {:keys [username password]} @credentials
+        submit-fn #(dispatch [:bluegenes.events.auth/register username password])]
     [:form.login-form
      [:h2 (str "Register on " (:name current-mine))]
      [:div.form-group
@@ -86,11 +85,11 @@
       [:input.form-control
        {:type "text"
         :id "email"
-        :value (:username @credentials)
+        :value username
         :on-change (partial update-form credentials :username)
         :on-key-up #(when (= 13 (oget % :keyCode))
                       (submit-fn))}]]
-     [password-input {:value (:password @credentials)
+     [password-input {:value password
                       :on-change (partial update-form credentials :password)
                       :on-submit submit-fn}]
      (when error?
@@ -108,11 +107,10 @@
 
 (defn login-form [{:keys [credentials on-reset-password on-register]}]
   (let [{:keys [error? thinking? message]} @(subscribe [:bluegenes.subs.auth/auth])
+        oauth2-providers @(subscribe [:current-mine/oauth2-providers])
         current-mine @(subscribe [:current-mine])
-        submit-fn #(dispatch [:bluegenes.events.auth/login
-                              (assoc @credentials
-                                     :service (:service current-mine)
-                                     :mine-id (:id current-mine))])]
+        {:keys [username password]} @credentials
+        submit-fn #(dispatch [:bluegenes.events.auth/login username password])]
     [:form.login-form
      [:h2 (str "Login to " (:name current-mine))]
      [:div.form-group
@@ -120,11 +118,11 @@
       [:input.form-control
        {:type "text"
         :id "email"
-        :value (:username @credentials)
+        :value username
         :on-change (partial update-form credentials :username)
         :on-key-up #(when (= 13 (oget % :keyCode))
                       (submit-fn))}]]
-     [password-input {:value (:password @credentials)
+     [password-input {:value password
                       :on-change (partial update-form credentials :password)
                       :on-submit submit-fn}]
      (when error?
@@ -143,7 +141,22 @@
       {:role "button"
        :on-click #(do (dispatch [:bluegenes.events.auth/clear-error])
                       (on-register))}
-      "Create new account"]]))
+      "Create new account"]
+     [:div.oauth2-providers
+      (when (contains? oauth2-providers "GOOGLE")
+        [:button.btn
+         {:type "button"
+          :on-click #(dispatch [:bluegenes.events.auth/oauth2 "GOOGLE"])}
+         [:img.google-signin
+          {:src "/images/google-signin.png"
+           :alt "[Sign in with Google]"}]])
+      (when (contains? oauth2-providers "ELIXIR")
+        [:button.btn
+         {:type "button"
+          :on-click #(dispatch [:bluegenes.events.auth/oauth2 "ELIXIR"])}
+         [:img.elixir-login
+          {:src "/images/elixir-login.png"
+           :alt "[ELIXIR Login]"}]])]]))
 
 (defn anonymous []
   (let [credentials (reagent/atom {:username nil :password nil})

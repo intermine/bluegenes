@@ -42,6 +42,31 @@
         max-height: @spacer*2;
         margin-right: @spacer/2;
     }
+
+    .oauth2-providers {
+        display: flex;
+        justify-content: center;
+        margin-top: @spacer*0.5;
+
+        button {
+            padding: 0;
+            outline: 0 !important;
+            background-color: transparent !important;
+
+            img {
+                max-width: 100%;
+                height: auto;
+
+                &.google-signin {
+                    max-width: @spacer*16;
+                }
+
+                &.elixir-login {
+                    max-width: @spacer*12;
+                }
+            }
+        }
+    }
 }
 
 

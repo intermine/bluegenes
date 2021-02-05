@@ -326,6 +326,11 @@
            (str "bluegenes: " error-string)
            (clj->js data-map))))
 
+(reg-fx
+ :external-redirect
+ (fn [url]
+   (.assign js/window.location url)))
+
 ;; This is ONLY for use during boot, prior to the router being started.
 (reg-fx
  :change-route

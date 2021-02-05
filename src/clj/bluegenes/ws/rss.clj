@@ -54,4 +54,4 @@
 (defroutes routes
   (wrap-params
    (wrap-keyword-params
-    (GET "/parse" req fetch-rss))))
+    (GET "/parse" [] fetch-rss))))

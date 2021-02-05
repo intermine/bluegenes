@@ -181,6 +181,12 @@
    (:description current-mine)))
 
 (reg-sub
+ :current-mine/oauth2-providers
+ :<- [:current-mine]
+ (fn [current-mine]
+   (:oauth2-providers current-mine)))
+
+(reg-sub
  :current-mine/report-layout
  (fn [[_ class]]
    [(subscribe [:current-mine])
