@@ -104,11 +104,13 @@
       (for [{:keys [description url name id]} sources]
         ^{:key id}
         [:li [poppable {:data description
-                        :children [:a {:href url
-                                       :target "_blank"}
+                        :children [:a (if url
+                                        {:href url :target "_blank"}
+                                        {:class :disabled})
                                    name
                                    [:div.fade-background
-                                    [icon-comp "external"]]]}]]))]))
+                                    (when url
+                                      [icon-comp "external"])]]}]]))]))
 
 (defn main []
   [:div.sidebar
