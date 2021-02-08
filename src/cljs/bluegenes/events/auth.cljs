@@ -155,7 +155,8 @@
  ::reset-password
  (fn [{db :db} [_ new-password token]]
    (let [service (get-in db [:mines (:current-mine db) :service])]
-     {:im-chan {:chan (im-auth/password-reset service new-password token)
+     {:db (assoc-in db [:mines (:current-mine db) :auth :reset-password-in-progress?] true)
+      :im-chan {:chan (im-auth/password-reset service new-password token)
                 :on-success [::reset-password-success]
                 :on-failure [::reset-password-failure]
                 :on-unauthorised [::reset-password-failure]}})))
@@ -164,6 +165,7 @@
  ::reset-password-success
  (fn [db [_]]
    (update-in db [:mines (:current-mine db) :auth] assoc
+              :reset-password-in-progress? false
               :reset-password-success? true
               :reset-password-error nil)))
 
@@ -171,6 +173,7 @@
  ::reset-password-failure
  (fn [db [_ {:keys [status] :as res}]]
    (update-in db [:mines (:current-mine db) :auth] assoc
+              :reset-password-in-progress? false
               :reset-password-success? false
               :reset-password-error (if (= status 405)
                                       "This feature is not supported in this version of Intermine"
@@ -181,6 +184,7 @@
  ::clear-reset-password-page
  (fn [db]
    (update-in db [:mines (:current-mine db) :auth] dissoc
+              :reset-password-in-progress?
               :reset-password-success?
               :reset-password-error)))
 

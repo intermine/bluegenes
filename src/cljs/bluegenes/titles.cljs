@@ -13,20 +13,21 @@
         Query  #(or (get-in % [:results :package :display-title])
                     (get-in % [:results :history-index]))
         List   [:panel-params :upgrade-list]]
-    {:home-panel         ["Home"             Mine App]
-     :admin-panel        ["Admin"            Mine App]
-     :profile-panel      ["Profile"          Mine App]
-     :debug-panel        ["Developer"        Mine App]
-     :tools-panel        ["Tool Store"       Mine App]
-     :templates-panel    ["Templates"        Mine App]
-     :reportpage-panel   [Name Type "Report" Mine App]
-     :upload-panel       ["Upload"           Mine App]
-     :upgrade-panel      ["Upgrade" List     Mine App]
-     :search-panel       [Search "Search"    Mine App]
-     :results-panel      [Query "Results"    Mine App]
-     :regions-panel      ["Region Search"    Mine App]
-     :lists-panel        ["Lists"            Mine App]
-     :querybuilder-panel ["Query Builder"    Mine App]}))
+    {:home-panel           ["Home"             Mine App]
+     :admin-panel          ["Admin"            Mine App]
+     :profile-panel        ["Profile"          Mine App]
+     :debug-panel          ["Developer"        Mine App]
+     :tools-panel          ["Tool Store"       Mine App]
+     :templates-panel      ["Templates"        Mine App]
+     :reportpage-panel     [Name Type "Report" Mine App]
+     :upload-panel         ["Upload"           Mine App]
+     :upgrade-panel        ["Upgrade" List     Mine App]
+     :search-panel         [Search "Search"    Mine App]
+     :results-panel        [Query "Results"    Mine App]
+     :regions-panel        ["Region Search"    Mine App]
+     :lists-panel          ["Lists"            Mine App]
+     :querybuilder-panel   ["Query Builder"    Mine App]
+     :reset-password-panel ["Reset Password"   Mine App]}))
 
 (defn *db->str
   "Converts a db pointer to its value, usually a string.
