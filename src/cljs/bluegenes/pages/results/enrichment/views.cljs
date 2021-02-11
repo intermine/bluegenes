@@ -8,7 +8,8 @@
             [bluegenes.components.bootstrap :refer [popover poppable tooltip]]
             [clojure.string :refer [split]]
             [oops.core :refer [oget ocall]]
-            [bluegenes.components.icons :refer [icon]]))
+            [bluegenes.components.icons :refer [icon]]
+            [goog.string :as gstring]))
 
 ;;==============================TODO============================
 ;; 1. some enrichment widgets have filters! Add support for this
@@ -81,7 +82,7 @@
   [string details]
   (if string
     (if-let [description details]
-      (re-find (re-pattern (str "(?i)" string)) description)
+      (re-find (re-pattern (str "(?i)" (gstring/regExpEscape string))) description)
       false)
     true))
 

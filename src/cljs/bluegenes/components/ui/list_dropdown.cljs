@@ -1,13 +1,14 @@
 (ns bluegenes.components.ui.list_dropdown
   (:require [re-frame.core :refer [subscribe]]
             [reagent.core :as reagent]
-            [oops.core :refer [oget]]))
+            [oops.core :refer [oget]]
+            [goog.string :as gstring]))
 
 (defn has-text?
   "Returns true if the details vector contains a string"
   [string details]
   (if string
-    (re-find (re-pattern (str "(?i)" string)) (clojure.string/join " " (map details [:name :description])))
+    (re-find (re-pattern (str "(?i)" (gstring/regExpEscape string))) (clojure.string/join " " (map details [:name :description])))
     true))
 
 (defn has-type?

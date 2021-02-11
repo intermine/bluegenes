@@ -5,7 +5,8 @@
             [imcljs.query :as im-query]
             [bluegenes.version :as version]
             [bluegenes.components.icons :refer [icon]]
-            [markdown-to-hiccup.core :as md]))
+            [markdown-to-hiccup.core :as md]
+            [goog.string :as gstring]))
 
 (defn hiccup-anchors-newtab
   "Add target=_blank to all anchor elements, so all links open in new tabs."
@@ -277,7 +278,7 @@
      (empty? s) []
      (empty? substr) [[:span s]]
      :else
-     (let [re (re-pattern (str "(?i)" substr))
+     (let [re (re-pattern (str "(?i)" (gstring/regExpEscape substr)))
            fragments (map (fn [s] (if (empty? s) nil [:span s])) (string/split s re))
            excerpts (map (fn [s] [:span {:class css-class} s]) (re-seq re s))
            length (max (count fragments) (count excerpts))

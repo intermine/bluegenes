@@ -3,14 +3,15 @@
   (:require [re-frame.core :as re-frame :refer [reg-sub]]
             [bluegenes.pages.templates.helpers :as template-helpers]
             [bluegenes.utils :refer [parse-template-rank]]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [goog.string :as gstring]))
 
 (defn template-contains-string?
   "Return true if a template's description contains a string"
   [string [_ details]]
   (if string
     (if-let [description (:description details)]
-      (re-find (re-pattern (str "(?i)" string)) description)
+      (re-find (re-pattern (str "(?i)" (gstring/regExpEscape string))) description)
       false)
     true))
 
