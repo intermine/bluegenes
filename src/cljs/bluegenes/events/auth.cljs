@@ -55,6 +55,11 @@
               ;; We clear it here as otherwise all the lists belonging to the
               ;; user will be annotated as new.
               (update-in [:lists :by-id] empty)
+              ;; Since both :assets/fetch-lists and start-router is run below,
+              ;; this causes lists to be denormalized based on previous list
+              ;; data when router starts, and for it to get updated when lists
+              ;; are fetched, causing user lists to be marked as new.
+              (update-in [:assets :lists current-mine] empty)
               (route/force-controllers-rerun))
       :dispatch-n [[:save-login current-mine identity]
                    [:assets/fetch-lists]
