@@ -40,7 +40,8 @@
 ;; as argument and its return value decides whether the panel will be changed.
 (let [requirements
       {:profile-panel #(map? (get-in % [:mines (:current-mine %) :auth :identity]))
-       :admin-panel #(get-in % [:mines (:current-mine %) :auth :identity :superuser])}]
+       :admin-panel #(get-in % [:mines (:current-mine %) :auth :identity :superuser])
+       :reset-password-panel #(empty? (get-in % [:mines (:current-mine %) :auth :identity]))}]
   ;; Change the main panel to a new view.
   (reg-event-fx
    :do-active-panel
@@ -60,12 +61,15 @@
            ;; Dispatch any events paired with the panel change.
            evt (assoc :dispatch evt))
          {:dispatch-n [[::route/navigate ::route/home]
-                       [:messages/add
-                        {:markup (case active-panel
-                                   :profile-panel [:span "You need to be logged in to access this page."]
-                                   :admin-panel [:span "You need to be a superuser to access this page."]
-                                   [:span "You don't have access to this page."])
-                         :style "warning"}]]})))))
+                       (case active-panel
+                         ;; When you login while on the reset password page, just change to home page.
+                         :reset-password-panel nil
+                         [:messages/add
+                          {:markup (case active-panel
+                                     :profile-panel [:span "You need to be logged in to access this page."]
+                                     :admin-panel [:span "You need to be a superuser to access this page."]
+                                     [:span "You don't have access to this page."])
+                           :style "warning"}])]})))))
 
 ; A buffer between booting and changing the view. We only change the view
 ; when the assets have been loaded
