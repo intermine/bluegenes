@@ -54,11 +54,14 @@
               ;; The old by-id map is used to detect newly added lists.
               ;; We clear it here as otherwise all the lists belonging to the
               ;; user will be annotated as new.
-              (update-in [:lists :by-id] empty))
+              (update-in [:lists :by-id] empty)
+              (route/force-controllers-rerun))
       :dispatch-n [[:save-login current-mine identity]
                    [:assets/fetch-lists]
                    (when (seq ?renamedLists)
-                     (renamedLists->message ?renamedLists))]})))
+                     (renamedLists->message ?renamedLists))
+                   ;; Restart router to rerun controllers.
+                   [:bluegenes.events.boot/start-router]]})))
 
 (reg-event-db
  ::login-failure
@@ -96,9 +99,12 @@
                          :identity nil
                          :error? false
                          :message nil)
-              (assoc-in [:mines current-mine :service :token] nil))
+              (assoc-in [:mines current-mine :service :token] nil)
+              (route/force-controllers-rerun))
       :dispatch-n [[:remove-login current-mine]
-                   [::route/navigate ::route/home]
+                   ;; We could optimize this by not doing a reboot (it's likely
+                   ;; only authentication and restarting the router we have to do)
+                   ;; but logging out should be uncommon enough to not warrant it.
                    [:reboot]]})))
 
 (reg-event-fx

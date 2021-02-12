@@ -113,6 +113,8 @@
  (fn [_]
    (.back js/window.history)))
 
+;;; Utility functions ;;;
+
 (defn href
   "Return relative url for given route. Url can be used in HTML links."
   ([k]
@@ -122,6 +124,16 @@
   ([k params query]
    (let [current-mine (subscribe [:current-mine-name])]
      (rfe/href k (update params :mine #(or % @current-mine)) query))))
+
+(defn force-controllers-rerun
+  "Force controllers to rerun on the next router start or navigation, whichever
+  comes first. This would be equivalent to the URL path changing to blank, and
+  then to the new path (which would be the same path in the case of a router start).
+  Depends on an implementation detail of reitit.frontend.controllers/apply-controllers,
+  wherein it does a simple equality check of the controller maps before applying."
+  [db]
+  (update-in db [:current-route :controllers]
+             (partial mapv #(assoc % ::force-rerun true))))
 
 ;; The majority of the routes fire a `:set-active-panel` but ours is slightly
 ;; different from what's in the re-frame boilerplate. Our `:set-active-panel`

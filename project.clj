@@ -25,7 +25,7 @@
                   :exclusions [cljsjs/react cljsjs/react-dom]]
                  [hiccup "1.0.5"]
                  [prismatic/dommy "1.1.0"]
-                 [metosin/reitit "0.4.2"]
+                 [metosin/reitit "0.5.12"]
                  [servant "0.1.5"]
                  [json-html "0.4.7"]
                  [markdown-to-hiccup "0.6.2"]
