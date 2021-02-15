@@ -37,6 +37,8 @@
 (deftest reuse-login-token
   (run-test-sync
    (utils/stub-local-storage)
+   ;; Starting the router causes a crash here, so change it to noop.
+   (rf/reg-event-fx :bluegenes.events.boot/start-router (fn [] {}))
    (with-redefs [fetch/lists    (utils/stub-fetch-fn [])
                  auth/who-am-i? (utils/stub-fetch-fn {})
                  config/init-vars (delay nil)]

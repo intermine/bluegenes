@@ -61,37 +61,6 @@
          controllers (rfc/apply-controllers (:controllers old-match) new-match)]
      (assoc db :current-route (assoc new-match :controllers controllers)))))
 
-;; The use-case of fetching lists only by name isn't used elsewhere, and is
-;; surprisingly difficult. So we have our own biga$$ event handler right here.
-(reg-event-fx
- ::view-list
- (fn [{db :db} [_ list-name]]
-   (let [current-mine (:current-mine db)
-         queries (get-in db [:results :queries])]
-     (if (contains? queries list-name)
-       ;; We've already queried it so cut the bull$#!|. (Something else ran
-       ;; `:results/history+`, so we skip right to `:results/load-history`.)
-       {:dispatch [:results/load-history list-name]}
-       (let [lists (get-in db [:assets :lists current-mine])
-             ;; Get data from the assets list map of the same name.
-             {:keys [type name title]} (first (filter #(= (:name %) list-name) lists))
-             ;; Get summary fields from assets.
-             summary-fields (get-in db [:assets :summary-fields current-mine (keyword type)])]
-         ;; Now we can build our query for use with `:results/history+`.
-         {:dispatch-n [[:results/history+
-                        {:source current-mine
-                         :type :query
-                         :intent :list
-                         :value {:title title
-                                 :from type
-                                 :select summary-fields
-                                 :where [{:path type
-                                          :op "IN"
-                                          :value name}]}}
-                        true] ; This is so we don't dispatch a route navigation.
-                       ;; Hence, we need to dispatch `:results/load-history` manually.
-                       [:results/load-history list-name]]})))))
-
 ;;; Subscriptions ;;;
 
 (reg-sub
@@ -113,6 +82,8 @@
  (fn [_]
    (.back js/window.history)))
 
+;;; Utility functions ;;;
+
 (defn href
   "Return relative url for given route. Url can be used in HTML links."
   ([k]
@@ -122,6 +93,16 @@
   ([k params query]
    (let [current-mine (subscribe [:current-mine-name])]
      (rfe/href k (update params :mine #(or % @current-mine)) query))))
+
+(defn force-controllers-rerun
+  "Force controllers to rerun on the next router start or navigation, whichever
+  comes first. This would be equivalent to the URL path changing to blank, and
+  then to the new path (which would be the same path in the case of a router start).
+  Depends on an implementation detail of reitit.frontend.controllers/apply-controllers,
+  wherein it does a simple equality check of the controller maps before applying."
+  [db]
+  (update-in db [:current-route :controllers]
+             (partial mapv #(assoc % ::force-rerun true))))
 
 ;; The majority of the routes fire a `:set-active-panel` but ours is slightly
 ;; different from what's in the re-frame boilerplate. Our `:set-active-panel`
@@ -245,7 +226,7 @@
                  (dispatch [:viz/clear])
                  (dispatch [:set-active-panel :results-panel
                             nil
-                            [::view-list title]])
+                            [:results/view-list title]])
                  (dispatch [:results/listen-im-table-changes]))
         :stop (fn []
                 (dispatch [:results/unlisten-im-table-changes]))}]}]
