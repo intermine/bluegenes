@@ -72,20 +72,22 @@
      {:db (assoc-in db [:results :summary-chan] summary-chan)
       :get-summary-values [identifier summary-chan]})))
 
-; Fire this event to append a query package to the BlueGenes list analysis history
-; and then route the browser to a URL that displays the last package in history (the one we just added)
+;; Fire this event to append a query package to the BlueGenes query history
+;; and then route the browser to a URL path that runs and displays its results.
+;;   no-route? - Indicate that the URL path is already correct, and it just
+;;               needs to load the query package.
 (reg-event-fx
  :results/history+
  (fn [{db :db} [_ {:keys [source value type] :as package} no-route?]]
-   (cond-> {:db (-> db
-                    (update-in [:results :history] conj package)
-                    (assoc-in [:results :queries (:title value)]
-                              (assoc package
-                                     :last-executed
-                                     (time-coerce/to-long (time/now)))))}
-     (not no-route?)
-           ;; Our route runs `:results/load-history`.
-     (assoc :dispatch [::route/navigate ::route/results {:title (:title value)}]))))
+   {:db (-> db
+            (update-in [:results :history] conj package)
+            (assoc-in [:results :queries (:title value)]
+                      (assoc package
+                             :last-executed
+                             (time-coerce/to-long (time/now)))))
+    :dispatch (if no-route?
+                [:results/load-history (:title value)]
+                [::route/navigate ::route/results {:title (:title value)}])}))
 
 (def im-table-location [:results :table])
 
@@ -102,6 +104,11 @@
           query-parts
           (keys query-parts)))
 
+(defn missing-list-message [title]
+  [:messages/add
+   {:markup [:span "Failed to find a list with the name: " [:em title]]
+    :style "danger"}])
+
 ; Load one package at a particular index from the list analysis history collection
 (reg-event-fx
  :results/load-history
@@ -116,11 +123,10 @@
          summary-fields (get-in db [:assets :summary-fields source])]
      (if (nil? package)
        ;; The query result doesn't exist. Fail gracefully!
-       ;; This should only happen when trying to access a list that doesn't exist via deep linking.
+       ;; load-history should really only be dispatched when the query exists,
+       ;; so this shouldn't happen.
        {:dispatch-n [[::route/navigate ::route/lists]
-                     [:messages/add
-                      {:markup [:span "Failed to find a list with the name: " [:em title]]
-                       :style "danger"}]]}
+                     (missing-list-message title)]}
        ; Store the values in app-db.
        ; TODO - 99% of this can be factored out by passing the package to the :enrichment/enrich and parsing it there
        {:db (-> db
@@ -149,6 +155,37 @@
                                                              {:mine mine
                                                               :type class
                                                               :id objectId}))}}}]]}))))
+
+;; Used to immediately load and view a list the user should have access to.
+(reg-event-fx
+ :results/view-list
+ (fn [{db :db} [_ list-name]]
+   (let [current-mine (:current-mine db)
+         queries (get-in db [:results :queries])]
+     (if (contains? queries list-name)
+       ;; Something else ran `:results/history+`, so we skip right to `:results/load-history`.
+       {:dispatch [:results/load-history list-name]}
+       (let [lists (get-in db [:assets :lists current-mine])
+             ;; Find list data among assets.
+             {:keys [type name title] :as package} (first (filter #(= (:name %) list-name) lists))
+             summary-fields (get-in db [:assets :summary-fields current-mine (keyword type)])]
+         (if (nil? package)
+           {:dispatch-n [[::route/navigate ::route/lists]
+                         (missing-list-message list-name)]}
+           ;; Now we can build our query for use with `:results/history+`.
+           {:dispatch [:results/history+
+                       {:source current-mine
+                        :type :query
+                        :intent :list
+                        :value {:title title
+                                :from type
+                                :select summary-fields
+                                :where [{:path type
+                                         :op "IN"
+                                         :value name}]}}
+                       ;; Have :results/history+ dispatch :results/load-history
+                       ;; instead of route navigation.
+                       true]}))))))
 
 (reg-event-fx
  :results/listen-im-table-changes
