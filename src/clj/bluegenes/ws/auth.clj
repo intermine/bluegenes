@@ -113,7 +113,9 @@
   (try
     (let [res (im-auth/oauth2callback service {:provider provider :state state :code code :redirect_uri redirect_uri})
           {:keys [renamedLists user token]} (:output res)
-          user+token (assoc user :token token)]
+          user+token (assoc user
+                            :token token
+                            :login-method :oauth2)]
       (-> (response/found (str "/" mine-id))
           (assoc :session ^:recreate {:identity user+token
                                       :init {:identity user+token

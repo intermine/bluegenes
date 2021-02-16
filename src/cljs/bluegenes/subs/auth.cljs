@@ -32,3 +32,9 @@
    ;; Set when using OAuth2, where username is just "GOOGLE:gibberish".
    (or (not-empty (get-in identity [:preferences :email]))
        (:username identity))))
+
+(reg-sub
+ ::oauth2?
+ :<- [::identity]
+ (fn [identity]
+   (= (:login-method identity) :oauth2)))

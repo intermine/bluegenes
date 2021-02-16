@@ -33,21 +33,26 @@
   (let [old-password (r/atom "")
         new-password (r/atom "")
         response (subscribe [::subs/responses :change-password])
-        submit-fn #(dispatch [::events/change-password @old-password @new-password])]
+        submit-fn #(dispatch [::events/change-password @old-password @new-password])
+        oauth2? (subscribe [:bluegenes.subs.auth/oauth2?])]
     (fn []
       [:div.settings-group
        [:h3 "Change password"]
+       (when @oauth2?
+         [:p [:code "You are logged in through an external authentication provider. Please use their services to change your password."]])
        [password-input {:value @old-password
                         :on-change #(reset! old-password (oget % :target :value))
                         :on-submit submit-fn
                         :container-class "input-container"
-                        :label "Old password"}]
+                        :label "Old password"
+                        :disabled @oauth2?}]
        [password-input {:value @new-password
                         :on-change #(reset! new-password (oget % :target :value))
                         :on-submit submit-fn
                         :container-class "input-container"
                         :new-password? true
-                        :label "New password"}]
+                        :label "New password"
+                        :disabled @oauth2?}]
        [:div.save-button.flex-row
         [:button.btn.btn-primary.btn-raised
          {:type "button"
