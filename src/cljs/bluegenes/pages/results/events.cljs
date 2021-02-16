@@ -91,16 +91,18 @@
 
 (def im-table-location [:results :table])
 
-(defn unorder-query-parts
+(defn clean-query-parts
   "There's a bug with the webservices that doesn't let us sort by an attribute
-  not present in the view. This is a workaround to remove ordering, as we
-  currently don't see it as a necessary feature for Bluegenes tools/viz to have
-  ordering that is consistend with the im-table."
+  or outer join a class, not present in the view. This is a workaround to remove
+  these from the query, as we currently don't see it as a necessary feature for
+  Bluegenes tools/viz to have ordering that is consistent with the im-table.
+  Actually, in the case of outer join, we don't want that at all as it could
+  result in duplicate IDs being present."
   [query-parts]
   (reduce (fn [qp k]
             (update qp k
                     (partial mapv
-                             #(update % :query dissoc :sortOrder :orderBy))))
+                             #(update % :query select-keys [:from :select :where :constraintLogic]))))
           query-parts
           (keys query-parts)))
 
@@ -137,7 +139,7 @@
                         :package package
                         ; The index is used to highlight breadcrumbs
                         :history-index title
-                        :query-parts (unorder-query-parts (q/group-views-by-class model value))
+                        :query-parts (clean-query-parts (q/group-views-by-class model value))
                         ; Clear the enrichment results before loading any new ones
                         :enrichment-results nil))
         :dispatch-n [; Fetch IDs to build tool entity
@@ -214,7 +216,7 @@
      ;; We wouldn't need to update db if we passed query-parts directly to the
      ;; two events dispatched below (see TODO above).
      {:db (update db :results assoc
-                  :query-parts (unorder-query-parts (q/group-views-by-class model query)))
+                  :query-parts (clean-query-parts (q/group-views-by-class model query)))
       :dispatch-n [[:fetch-ids-tool-entities]
                    [:enrichment/enrich]]})))
 
