@@ -142,9 +142,7 @@
                         :query-parts (clean-query-parts (q/group-views-by-class model value))
                         ; Clear the enrichment results before loading any new ones
                         :enrichment-results nil))
-        :dispatch-n [; Fetch IDs to build tool entity
-                     [:fetch-ids-tool-entities]
-                     ; Fire the enrichment event (see the TODO above)
+        :dispatch-n [; Fire the enrichment event (see the TODO above)
                      [:enrichment/enrich]
                      [:im-tables/load
                       im-table-location
