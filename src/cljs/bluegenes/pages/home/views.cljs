@@ -6,7 +6,7 @@
             [bluegenes.components.navbar.nav :refer [mine-icon]]
             [bluegenes.components.search.typeahead :as search]
             [clojure.string :as str]
-            [bluegenes.utils :refer [ascii-arrows ascii->svg-arrows md-paragraph]]
+            [bluegenes.utils :refer [ascii-arrows ascii->svg-arrows md-paragraph md-element]]
             [goog.string :as gstring]
             [cljs-time.format :as time-format]
             [cljs-time.coerce :as time-coerce]
@@ -14,11 +14,16 @@
 
 (defn mine-intro []
   (let [mine-name @(subscribe [:current-mine-human-name])
-        description @(subscribe [:current-mine/description])]
+        description @(subscribe [:current-mine/description])
+        notice @(subscribe [:current-mine/notice])]
     [:div.row.section.mine-intro
      [:div.col-xs-10.col-xs-offset-1
       [:h2.text-center.text-uppercase.mine-name mine-name]
-      (md-paragraph description)
+      [:div.mine-description
+       (md-paragraph description)]
+      (when notice
+        [:div.well.well-sm.well-warning.text-center
+         [md-element notice]])
       [:div.search
        [search/main]
        [:div.search-info

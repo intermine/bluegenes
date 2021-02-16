@@ -73,7 +73,7 @@
            [:div
             (when @show-preview*
               [md-element @description*])
-            [:textarea.form-control.class-description
+            [:textarea.form-control
              {:rows 2
               :autoFocus true
               :placeholder (str "Describe the contents of this " type " (markdown supported).")
@@ -251,6 +251,42 @@
                                           response)]
         [:p {:class type} message])]]))
 
+(defn set-notice []
+  (let [notice @(subscribe [:current-mine/notice])
+        notice-text* (reagent/atom (or notice ""))]
+    (fn []
+      (let [bg-properties-support? @(subscribe [:bg-properties-support?])
+            response @(subscribe [::subs/responses :notice])]
+        [:div.well.well-lg.set-notice
+         [:h3 "Set homepage notice"]
+         [:p "This notice will be displayed at the top of the homepage for all BlueGenes instances that connect to this mine. Useful for communicating scheduled downtime. Markdown is supported, so you'll probably want to prepend with " [:em "###"] " for a decent header size."]
+         [:textarea.form-control
+          {:rows 4
+           :disabled (not bg-properties-support?)
+           :value @notice-text*
+           :on-change #(reset! notice-text* (oget % :target :value))
+           :on-focus #(dispatch [::events/clear-notice-response])}]
+         (when (seq @notice-text*)
+           [:div.well.well-sm.well-warning.text-center.notice-preview
+            [md-element @notice-text*]])
+         (when (not bg-properties-support?)
+           [:div.alert.alert-warning
+            [:strong "This InterMine is running an older version which does not support setting a homepage notice."]])
+         [:div.flex-row
+          [:button.btn.btn-primary.btn-raised
+           {:on-click #(dispatch [::events/save-notice @notice-text*])
+            :disabled (not bg-properties-support?)}
+           "Save changes"]
+          [:button.btn.btn-default.btn-raised
+           {:on-click (fn []
+                        (reset! notice-text* "")
+                        (dispatch [::events/save-notice nil]))
+            :disabled (not bg-properties-support?)}
+           "Clear notice"]
+          (when-let [{:keys [type message]} response]
+            [:p {:class type} message])]]))))
+
 (defn main []
   [:div.admin-page.container
-   [report-layout]])
+   [report-layout]
+   [set-notice]])

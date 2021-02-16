@@ -9,6 +9,14 @@
         margin: 0;
     }
 
+    & > .well:not(:last-child) {
+        margin-bottom: @spacer*4;
+    }
+
+    textarea.form-control {
+        resize: vertical;
+    }
+
     .flex-row {
         display: flex;
         align-items: baseline;
@@ -133,14 +141,23 @@
                         }
                     }
 
-                    .class-description {
-                        resize: vertical;
-                    }
-
                     .description-preview-checkbox {
                         margin-left: @spacer;
                     }
                 }
+            }
+        }
+    }
+
+    .set-notice {
+        textarea.form-control {
+            margin-bottom: @spacer;
+        }
+
+        .notice-preview {
+            // Make consistent with styling on homepage.
+            h1, h2, h3, h4 {
+                font-weight: bold;
             }
         }
     }
