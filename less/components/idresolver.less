@@ -207,16 +207,20 @@
     .save-list {
       display:flex;
       align-items:center;
+      margin-bottom:@spacer/2;
       label {flex-grow:1;display:flex;align-items:center;
-      font-weight:normal;}
+      font-weight:normal;margin:0;}
       input[type=text] {flex-grow:1;margin:@spacer/2}
       .cta {
         .button-color;
         .border-radius;
-        padding:@spacer @spacer*2;
+        padding:@spacer/2 @spacer*1.2;
         font-size:@spacer*1.1;
         font-weight:bold;
         margin:@spacer/4;
+        .icon {
+            margin-left: 0;
+        }
       }
     }
 
