@@ -117,6 +117,8 @@ A function you can call to make BlueGenes navigate to a specific page.
 navigate("report", {type: "Gene", id: 1018204});
 // Run a query and open the page showing the results.
 navigate("query", myQueryObj);
+// Show the results page for an existing list.
+navigate("list", "PL_GenomicsEngland_GenePanel:Radial_dysplasia");
 ```
 
 You can optionally specify a third argument with the namespace of a mine (e.g. `"humanmine"`).

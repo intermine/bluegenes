@@ -10,6 +10,7 @@
   "Can be used from JS like this:
       navigate('report', {type: 'Gene', id: 1018204}, 'humanmine');
       navigate('query', myQueryObj, 'flymine');
+      navigate('list', 'PL_GenomicsEngland_GenePanel:Radial_dysplasia');
   Note that the third argument specifying the mine namespace is optional."
   (fn [target data mine] (keyword target)))
 
@@ -22,6 +23,9 @@
   (let [query (js->clj query-data :keywordize-keys true)
         source (keyword mine)]
     (dispatch [::events/navigate-query query source])))
+
+(defmethod navigate :list [_ list-name mine]
+  (dispatch [::route/navigate ::route/results {:title list-name :mine (keyword mine)}]))
 
 (defn navigate!
   "JS can't call `navigate` if we pass it the multimethod directly, so wrap it!"
