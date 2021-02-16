@@ -26,7 +26,7 @@
        (into [:select.form-control
               {:id "admin__report-category"
                :on-change #(dispatch [::events/set-categorize-class (oget % :target :value)])
-               :value @categorize-class}]
+               :value (or @categorize-class "")}]
              (map (fn [[class-kw details :as item]]
                     (if (map-entry? item)
                       [:option {:value (name class-kw)} (:displayName details)]
