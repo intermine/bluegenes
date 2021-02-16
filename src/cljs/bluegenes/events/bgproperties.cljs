@@ -16,7 +16,8 @@
   mine. Note that if a property is missing, its value will be nil. This is to
   ensure that deleted keys get their previous value overwritten with nil."
   [bg-properties]
-  {:report-layout (some-> (get bg-properties :layout.report) read-prop import-categories)})
+  {:report-layout (some-> (get bg-properties :layout.report) read-prop import-categories)
+   :notice (some-> (get bg-properties :notice) read-prop)})
 
 ;; Note that making changes to bluegenes-properties will fail on the InterMine
 ;; backend if you're not authenticated as an admin.

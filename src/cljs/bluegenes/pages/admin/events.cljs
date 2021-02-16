@@ -1,7 +1,8 @@
 (ns bluegenes.pages.admin.events
   (:require [re-frame.core :refer [reg-event-db reg-fx reg-event-fx]]
             [re-frame.std-interceptors :refer [path]]
-            [bluegenes.utils :refer [addvec remvec dissoc-in]]))
+            [bluegenes.utils :refer [addvec remvec dissoc-in]]
+            [clojure.string :as str]))
 
 (def ^:const category-id-prefix "cat")
 (def ^:const child-id-prefix "child")
@@ -233,3 +234,37 @@
                assoc :description text)
      (to-child admin cat-index child-index :update
                dissoc :description))))
+
+(reg-event-db
+ ::clear-notice-response
+ (path root)
+ (fn [admin [_]]
+   (update admin :responses dissoc :notice)))
+
+(reg-event-fx
+ ::save-notice
+ (fn [{db :db} [_ new-notice]]
+   (if (str/blank? new-notice)
+     {:dispatch [:property/delete :notice
+                 {:on-success [::save-notice-success]
+                  :on-failure [::save-notice-failure]}]}
+     {:dispatch [:property/save :notice new-notice
+                 {:on-success [::save-notice-success]
+                  :on-failure [::save-notice-failure]}]})))
+
+(reg-event-db
+ ::save-notice-success
+ (path root)
+ (fn [admin [_]]
+   (assoc-in admin [:responses :notice]
+             {:type :success
+              :message "Successfully saved changes to notice text."})))
+
+(reg-event-db
+ ::save-notice-failure
+ (path root)
+ (fn [admin [_ res]]
+   (assoc-in admin [:responses :notice]
+             {:type :failure
+              :message (str "Failed to save changes to notice text. "
+                            (not-empty (get-in res [:body :error])))})))
