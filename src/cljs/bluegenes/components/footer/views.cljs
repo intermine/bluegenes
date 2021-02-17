@@ -10,7 +10,7 @@
 (def defaults
   {:email "info@intermine.org"
    :twitter "intermineorg"
-   :citation "https://intermineorg.wordpress.com/cite/"})
+   :citation "http://intermine.org/publications/"})
 
 (defn link [href label]
   [:a {:href href :target "_blank"} label])
@@ -73,5 +73,5 @@
      [:div.section.column
       [link (or mine-citation (:citation defaults))
        (str "CITE " (some-> mine-name str/upper-case))]
-      [link "https://intermine.readthedocs.io/en/latest/about/" "ABOUT US"]
-      [link "https://intermine.readthedocs.io/en/latest/about/privacy-policy/" "PRIVACY POLICY"]]]))
+      [link "http://intermine.org/about-intermine/" "ABOUT US"]
+      [link "http://intermine.org/privacy-policy/" "PRIVACY POLICY"]]]))
