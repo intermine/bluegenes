@@ -252,16 +252,19 @@
          entities (assoc (get-in db [:tools :entities])
                          class entity)]
      (cond-> {:db (assoc-in db [:tools :entities] entities)}
-       ;; If there are no nil values, we know all entities
-       ;; are done fetching and can load the viz/tools.
+       ;; If there are no nil values, we know all entities are done fetching
+       ;; and can load the viz/tools. (Tools are loaded through their
+       ;; subscription updating when entities-ready? is set.)
        (every? some? (vals entities))
-       (assoc :dispatch-n [[:viz/run-queries]
-                           [::tools/load-tools]])))))
+       (-> (assoc :dispatch [:viz/run-queries])
+           (assoc-in [:db :results :entities-ready?] true))))))
 
 (reg-event-db
  :clear-ids-tool-entity
  (fn [db]
-   (update db :tools dissoc :entity :entities)))
+   (-> db
+       (update :tools dissoc :entity :entities)
+       (update :results dissoc :entities-ready?))))
 
 (reg-event-fx
  :fetch-enrichment-ids-from-query

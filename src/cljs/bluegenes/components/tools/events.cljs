@@ -76,32 +76,6 @@
    (assoc-in db [:tools :path] path)))
 
 (reg-event-fx
- ::load-tools
- (fn [{db :db} [_]]
-   (let [tools    (get-in db [:tools :installed])
-         mine     (get-in db [:mines (:current-mine db)])
-         hier     (get mine :model-hier)
-         service  (get mine :service)
-         entities (get-in db [:tools :entities])]
-     (cond
-       ;; Tools aren't ready yet.
-       (nil? tools)
-       {:retry {:event [::load-tools]
-                :timeout 1000}}
-       ;; We don't have any tools.
-       (empty? tools)
-       {:retry {:event [::load-tools]
-                :success? true}}
-       ;; We do have tools!
-       :else
-       {:retry {:event [::load-tools]
-                :success? true}
-        :load-suitable-tools {:tools tools
-                              :service service
-                              :hier hier
-                              :entities entities}}))))
-
-(reg-event-fx
  ::init-tool
  (fn [{db :db} [_ tool-details tool-id]]
    (let [mine     (get-in db [:mines (:current-mine db)])

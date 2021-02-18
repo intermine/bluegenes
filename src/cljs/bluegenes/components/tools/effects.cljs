@@ -65,7 +65,7 @@
   "Dynamically inserts the tool api script into the head of the document.
   If the script element is already present, re-run the tool's main function."
   [tool tool-id & {:keys [service entity]}]
-  (let [script-id (str "script-" tool-id)
+  (let [script-id (str "script-" (get-in tool [:names :cljs]))
         script-elem (.getElementById js/document script-id)]
     ;; Script has been loaded before; re-run the main function.
     (when script-elem
@@ -90,8 +90,8 @@
 
 (defn fetch-styles!
   "If the tool api script has a stylesheet as well, load it and insert into the doc"
-  [tool tool-id]
-  (let [style-id (str "style-" tool-id)
+  [tool _tool-id]
+  (let [style-id (str "style-" (get-in tool [:names :cljs]))
         style-elem (.getElementById js/document style-id)]
     ;; Do not add the style tag if it's already there.
     (when-not style-elem
@@ -112,17 +112,6 @@
 ;; to pass the new entity to the tools (eg. opening a different report or
 ;; results page, or modifying the contents of the result page's im-table).
 ;; In the latter case, it will merely call the tool's main function.
-(reg-fx
- :load-suitable-tools
- (fn [{:keys [tools service hier entities]}]
-   (doseq [tool tools]
-     ;; `entity` is nil if tool is not suitable to be displayed.
-     (when-let [entity (suitable-entities (get-in service [:model :classes]) hier entities (:config tool))]
-       (if-let [tool-id (get-in tool [:names :cljs])]
-         (do (fetch-script! tool tool-id :service service :entity entity)
-             (fetch-styles! tool tool-id))
-         (.error js/console "%cTool API: No cljs name provided for %s" "background:#ccc;border-bottom:solid 3px indianred; border-radius:2px;" (get-in tool [:names :npm])))))))
-
 (reg-fx
  :load-tool
  (fn [{:keys [tool tool-id service hier entities]}]

@@ -15,10 +15,13 @@
   ;; We don't have a nil state so we use an atom to check if the user has
   ;; overridden the layout-provided collapse value.
   (let [override-collapse* (reagent/atom nil)
-        collapsed-tool? (subscribe [::subs/collapsed-tool? cljs])]
+        collapsed-tool? (subscribe [::subs/collapsed-tool? cljs])
+        tool-id (cond->> cljs id (str id "-"))]
+    ;; id is either a symbol, when this tool is on the report page;
+    ;; or nil, when this tool is on the results page.
 
     (when-not (or collapse @collapsed-tool?)
-      (dispatch [::events/init-tool tool-details (str id "-" cljs)]))
+      (dispatch [::events/init-tool tool-details tool-id]))
 
     (fn [{{:keys [cljs human]} :names :as tool-details} & {:keys [collapse id description]}]
       (let [collapsed? (or @collapsed-tool?
@@ -35,7 +38,7 @@
                        ;; (and therefore not previously initialised).
                        (when (and (or collapse @collapsed-tool?)
                                   (not @override-collapse*))
-                         (dispatch [::events/init-tool tool-details (str id "-" cljs)]))
+                         (dispatch [::events/init-tool tool-details tool-id]))
                        (if collapsed?
                          (dispatch [::events/expand-tool cljs])
                          (dispatch [::events/collapse-tool cljs]))
@@ -49,8 +52,9 @@
            (if collapsed?
              [icon "expand-folder"]
              [icon "collapse-folder"])]]
-         [:div.report-item-tool {:class [cljs (when collapsed? :hidden)]}
-          [:div {:id (str id "-" cljs)}]]]))))
+         [:div.report-item-tool {:class (when collapsed? :hidden)}
+          [:div {:class cljs
+                 :id tool-id}]]]))))
 
 (defn main []
   (let [suitable-tools @(subscribe [::subs/suitable-tools])]

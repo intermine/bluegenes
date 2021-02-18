@@ -110,3 +110,8 @@
  :results/intent
  (fn [db]
    (get-in db [:results :package :intent])))
+
+(reg-sub
+ :results/entities-ready?
+ (fn [db]
+   (get-in db [:results :entities-ready?])))

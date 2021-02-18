@@ -46,8 +46,10 @@
  :<- [::entities]
  :<- [:model]
  :<- [:current-model-hier]
- (fn [[tools entities model hier]]
-   (filter #(suitable-entities model hier entities (:config %)) tools)))
+ :<- [:results/entities-ready?]
+ (fn [[tools entities model hier ready?]]
+   (when ready?
+     (filter #(suitable-entities model hier entities (:config %)) tools))))
 
 (reg-sub
  ::collapsed-tool?
