@@ -276,8 +276,7 @@
 
 (reg-event-fx
  :clear-invalid-token
- [(inject-cofx :local-store :bluegenes/login)]
- (fn [{db :db, login :local-store} [_]]
+ (fn [{db :db} [_]]
    (let [current-mine (:current-mine db)]
      {:db (-> db
               ;; Set token to nil so we fetch a new one.
@@ -285,9 +284,13 @@
               ;; Clear any auth/identity present if the user has logged in.
               (update-in [:mines current-mine] dissoc :auth)
               ;; Clear the invalid token flag.
-              (dissoc :invalid-token?))
-      :persist [:bluegenes/login (dissoc login current-mine)]
-      :dispatch [:reboot]})))
+              (dissoc :invalid-token?)
+              (route/force-controllers-rerun))
+      :dispatch-n [[:remove-login current-mine]
+                   ;; We could optimize this by not doing a reboot (it's likely
+                   ;; only authentication and restarting the router we have to do)
+                   ;; but refreshing token should be uncommon enough.
+                   [:reboot]]})))
 
 (reg-event-db
  :scramble-tokens
