@@ -22,7 +22,7 @@
             :on-click #(dispatch [::events/generate-permanent-url api-version])}
            [icon-comp "price-tag"] "Copy permanent URL"]
           [:div.dropdown-menu
-           {:class (when-not collapsed? :dropdown-menu-right)}
+           {:class (when-not collapsed? :dropdown-menu-sidebar)}
            (if status
              [:form {:on-submit #(.preventDefault %)}
               (case status
