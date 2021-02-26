@@ -16,7 +16,11 @@
             [bluegenes.components.viz.views :as viz]
             [bluegenes.components.icons :refer [icon]]
             [bluegenes.pages.lists.utils :refer [internal-tag?]]
-            [bluegenes.pages.lists.views :refer [pretty-timestamp]]))
+            [bluegenes.pages.lists.views :refer [pretty-timestamp]]
+            [bluegenes.utils :refer [clean-tool-name]]
+            [goog.style :as gstyle]
+            [goog.dom :as gdom]
+            [goog.fx.dom :as gfx]))
 
 (defn adjust-str-to-length [length string]
   (if (< length (count string)) (str (clojure.string/join (take (- length 3) string)) "...") string))
@@ -151,6 +155,32 @@
      (when-not (empty? description)
        [:p.list-description description])]))
 
+(defn scroll-into-view! [id]
+  (when-let [elem (or (nil? id) (gdom/getElement id))]
+    (let [current-scroll (clj->js ((juxt #(oget % :x) #(oget % :y)) (gdom/getDocumentScroll)))
+          target-scroll (if (nil? id)
+                          #js [0 0] ; Scroll to top if no ID specified.
+                          (clj->js ((juxt #(- (oget % :x) 135) #(- (oget % :y) 135))
+                                    (gstyle/getRelativePosition elem (gdom/getDocumentScrollElement)))))]
+      (doto (gfx/Scroll. (gdom/getDocumentScrollElement)
+                         current-scroll
+                         target-scroll
+                         1)
+        (.play)))))
+
+(defn jump-to []
+  (let [tool-names (map :names @(subscribe [:bluegenes.components.tools.subs/suitable-tools]))]
+    (when (seq tool-names)
+      (into [:div.jump-to
+             [:span "Jump to: "]
+             [:span.jump-item
+              {:on-click #(scroll-into-view! nil)}
+              "Top"]]
+            (for [{:keys [cljs human]} tool-names]
+              [:span.jump-item
+               {:on-click #(scroll-into-view! cljs)}
+               (clean-tool-name human)])))))
+
 (defn main
   "Result page for a list or query."
   []
@@ -159,21 +189,24 @@
     (fn []
       [:div.container-fluid.results
        (when @are-there-results?
-         [:div.row
-          [:div.col-sm-3.col-lg-2
-           [query-history]
-           [:div.hidden-lg
+         [:<>
+          [:div.row
+           [:div.col-sm-3.col-lg-2
+            [query-history]
+            [:div.hidden-lg
+             [enrichment/enrich]]]
+           [:div.col-sm-9.col-lg-7
+            [:h2.results-heading "Query Results"]
+            [back-button]
+             ;; Query details is only interesting if it's a saved list.
+            (when (= @intent :list)
+              [query-details])
+            [:div.results-table
+             [tables/main [:results :table]]]]
+           [:div.col-sm-3.visible-lg-block
             [enrichment/enrich]]]
-          [:div.col-sm-9.col-lg-7
-           [:h2.results-heading "Query Results"]
-           [back-button]
-            ;; Query details is only interesting if it's a saved list.
-           (when (= @intent :list)
-             [query-details])
-           [:div.results-table
-            [tables/main [:results :table]]]
-           [viz/main]
-           [:div
-            [tools/main]]]
-          [:div.col-sm-3.visible-lg-block
-           [enrichment/enrich]]])])))
+          [:div.row
+           [:div.col-sm-12
+            [jump-to]
+            [viz/main]
+            [tools/main]]]])])))

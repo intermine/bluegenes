@@ -186,4 +186,23 @@
             overflow-wrap: anywhere;
         }
     }
+
+    .jump-to {
+        background-color: @body-background-color;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        padding: @spacer/4 @spacer/2;
+
+        .jump-item {
+            font-size: 1.2em;
+            font-weight: 400;
+            margin-right: @spacer;
+            cursor: pointer;
+
+            &:hover {
+                color: @highlight-color;
+            }
+        }
+    }
 }
