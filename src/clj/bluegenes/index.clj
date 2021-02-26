@@ -88,7 +88,7 @@
           ";")]
   ; Javascript:
     [:link {:rel "shortcut icon" :href "https://raw.githubusercontent.com/intermine/design-materials/f5f00be4/logos/intermine/fav32x32.png" :type "image/png"}]
-    [:script {:src "https://cdn.intermine.org/js/intermine/imjs/3.15.0/im.min.js"}]
+    [:script {:src "https://cdn.intermine.org/js/intermine/imjs/latest/im.min.js"}]
     [:script {:crossorigin "anonymous"
               :integrity "sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s="
               :src "https://code.jquery.com/jquery-3.1.0.min.js"}]
