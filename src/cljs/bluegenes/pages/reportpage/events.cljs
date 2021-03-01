@@ -101,6 +101,7 @@
               (assoc-in [:tools :entities (keyword type)] entity))
       :dispatch-n [[:fetch-report (keyword mine) type id]
                    [::fetch-lists (keyword mine) id]
+                   [::fetch-external-links (keyword mine) id]
                    (when (class-has-dataset? (get-in db [:mines (keyword mine) :service :model :classes])
                                              (keyword type))
                      [::fetch-sources (keyword mine) type id])]})))
@@ -241,3 +242,15 @@
  (fn [db [_ res]]
    (assoc-in db [:report :share] {:status :failure
                                   :error (get-in res [:body :error])})))
+
+(reg-event-fx
+ ::fetch-external-links
+ (fn [{db :db} [_ mine-kw id]]
+   (let [service (get-in db [:mines mine-kw :service])]
+     {:im-chan {:chan (fetch/external-links service id)
+                :on-success [::handle-external-links]}})))
+
+(reg-event-db
+ ::handle-external-links
+ (fn [db [_ links]]
+   (assoc-in db [:report :external-links] links)))

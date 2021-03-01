@@ -112,6 +112,22 @@
                                     (when url
                                       [icon-comp "external"])]]}]]))]))
 
+(defn external-resources []
+  (let [links @(subscribe [::subs/report-external-links])
+        {:keys [rootClass]} @(subscribe [::subs/report-summary])]
+    [entry (merge
+            {:title "External resources"}
+            (when (empty? links)
+              {:error (str "No external resources available for this " rootClass ".")}))
+     (doall
+      (for [{:keys [linkId title url]} links]
+        ^{:key linkId}
+        [:li
+         [:a {:href url :target "_blank"}
+          title
+          [:div.fade-background
+           [icon-comp "external"]]]]))]))
+
 (defn main []
   [:div.sidebar
    [:div.row
@@ -128,15 +144,4 @@
       [:li [:a "Flymine"]]]]
     [:div.clearfix.visible-sm-block.visible-md-block]
     [data-sources]
-    [:div.sidebar-entry.col-sm-6.col-lg-12
-     [:h4 "External resources"]
-     [:ul
-      [:li [:a "Dev note: Work In Progress!!!"
-            [:div.fade-background
-             [icon-comp "external"]]]]
-      [:li [:a "Ensembl"
-            [:div.fade-background
-             [icon-comp "external"]]]]
-      [:li [:a "BioGRID"
-            [:div.fade-background
-             [icon-comp "external"]]]]]]]])
+    [external-resources]]])
