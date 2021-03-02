@@ -115,7 +115,8 @@
                    [[mini-loader "tiny"]]
 
                    error
-                   [[:span.failure error]]
+                   [[poppable {:data error
+                               :children [:span "Error"]}]]
 
                    (seq homologues)
                    (for [[organism genes] homologues]
