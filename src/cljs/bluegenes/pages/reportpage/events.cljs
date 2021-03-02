@@ -312,31 +312,29 @@
                      (homologue-query gene-name mine)
                      mine])})))
 
-(defn read-mine-kw [mine]
-  (-> mine :namespace keyword))
-
 (reg-event-fx
  ::fetch-mine-homologues
  (fn [{db :db} [_ service query mine]]
-   {:db (assoc-in db [:report :homologues (read-mine-kw mine)]
-                  {:mine mine
-                   :loading? true})
-    :im-chan {:chan (fetch/rows service query {:format "json"})
-              :on-success [::handle-mine-homologues mine]
-              :on-failure [::handle-mine-homologues-failure mine]}}))
+   (let [mine-kw (-> mine :namespace keyword)]
+     {:db (assoc-in db [:report :homologues mine-kw]
+                    {:mine mine
+                     :loading? true})
+      :im-chan {:chan (fetch/rows service query {:format "json"})
+                :on-success [::handle-mine-homologues mine-kw]
+                :on-failure [::handle-mine-homologues-failure mine-kw]}})))
 
 (reg-event-db
  ::handle-mine-homologues
- (fn [db [_ mine res]]
-   (assoc-in db [:report :homologues (read-mine-kw mine)]
-             {:mine mine
+ (fn [db [_ mine-kw res]]
+   (update-in db [:report :homologues mine-kw] assoc
+              :loading? false
               :homologues (when (seq (:results res))
-                            (group-by :shortName (views->results res)))})))
+                            (group-by :shortName (views->results res))))))
 
 (reg-event-db
  ::handle-mine-homologues-failure
- (fn [db [_ mine res]]
-   (assoc-in db [:report :homologues (read-mine-kw mine)]
-             {:mine mine
+ (fn [db [_ mine-kw res]]
+   (update-in db [:report :homologues mine-kw] assoc
+              :loading? false
               :error (or (get-in res [:body :error])
-                         "Error response to query")})))
+                         "Error response to query"))))
