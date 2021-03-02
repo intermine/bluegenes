@@ -336,6 +336,31 @@
                     fill: @highlight-color;
                 }
             }
+
+            &.other-mine {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+
+                .mine {
+                    margin-right: @spacer/2;
+                }
+
+                .organism {
+                    display: block;
+                }
+
+                a {
+                    display: inline-block;
+                    white-space: normal;
+                    margin-right: @spacer/2;
+                }
+
+                img {
+                    width: @spacer*2;
+                    max-height: @spacer*2;
+                }
+            }
         }
 
         .show-more {

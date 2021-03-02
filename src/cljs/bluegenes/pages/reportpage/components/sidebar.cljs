@@ -7,7 +7,9 @@
             [bluegenes.pages.reportpage.events :as events]
             [bluegenes.route :as route]
             [bluegenes.components.loader :refer [mini-loader]]
-            [oops.core :refer [ocall]]))
+            [bluegenes.components.navbar.nav :refer [logo-path]]
+            [oops.core :refer [ocall]]
+            [clojure.string :as str]))
 
 (def ^:const entries-to-show 5)
 
@@ -93,6 +95,42 @@
                                    (str title " (" size ")")
                                    [:div.fade-background]]}]]))]))
 
+(defn other-mines []
+  (let [mines @(subscribe [::subs/report-homologues])
+        {:keys [type]} @(subscribe [:panel-params])]
+    (when (= type "Gene")
+      [entry (merge
+              {:title "Other mines"}
+              (when (empty? mines)
+                {:error "This mine does not have any neighbours."}))
+       (doall
+        (for [[mine-kw {:keys [mine loading? homologues error]}] (sort-by (comp name key) mines)]
+          ^{:key (name mine-kw)}
+          [:li.other-mine
+           (into [:div
+                  [:strong.mine (:name mine)]]
+                 (cond
+                   loading?
+                   [[mini-loader "tiny"]]
+
+                   error
+                   [[:span.failure error]]
+
+                   (seq homologues)
+                   (for [[organism genes] homologues]
+                     (into [:div
+                            [:span.organism organism]]
+                           (for [gene genes]
+                             [:a {:href (route/href ::route/report {:mine mine-kw
+                                                                    :type "Gene"
+                                                                    :id (:id gene)})}
+                              (some gene [:symbol :primaryIdentifier :secondaryIdentifier])])))
+
+                   :else
+                   [[:span "No results"]]))
+           [:img {:src (or (get-in mine [:images :logo]) ; Only available for registry mines.
+                           (str (:url mine) logo-path))}]]))])))
+
 (defn data-sources []
   (let [sources @(subscribe [::subs/report-sources])
         {:keys [rootClass]} @(subscribe [::subs/report-summary])]
@@ -136,12 +174,7 @@
     [:div.sidebar-entry.col-sm-12.visible-sm-block.visible-md-block
      [actions true]]
     [lists-containing]
-    [:div.sidebar-entry.col-sm-6.col-lg-12
-     [:h4 "Other mines"]
-     [:ul
-      [:li [:a "Dev note: Work In Progress!!!"]]
-      [:li [:a "Humanmine"]]
-      [:li [:a "Flymine"]]]]
+    [other-mines]
     [:div.clearfix.visible-sm-block.visible-md-block]
     [data-sources]
     [external-resources]]])
