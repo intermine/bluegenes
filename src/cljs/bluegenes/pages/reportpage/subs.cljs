@@ -35,6 +35,20 @@
    (:lists report)))
 
 (reg-sub
+ ::report-external-links
+ :<- [::report]
+ (fn [report]
+   (->> (:external-links report)
+        (vals)
+        (sort-by (comp string/lower-case :title)))))
+
+(reg-sub
+ ::report-homologues
+ :<- [::report]
+ (fn [report]
+   (:homologues report)))
+
+(reg-sub
  ::report-sources
  :<- [::report]
  (fn [report]

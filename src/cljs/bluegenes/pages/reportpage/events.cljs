@@ -4,11 +4,23 @@
             [bluegenes.components.tools.events :as tools]
             [bluegenes.effects :refer [document-title]]
             [clojure.string :as string]
+            [clojure.set :as set]
             [bluegenes.pages.reportpage.utils :as utils]
             [bluegenes.route :as route]
             [goog.dom :as gdom]
             [oops.core :refer [oget ocall]]
-            [bluegenes.utils :refer [rows->maps]]))
+            [bluegenes.utils :refer [rows->maps compatible-version?]]))
+
+(defn views->results
+  "Convert a `fetch/rows` response map into a vector of maps from keys
+  corresponding to the tail of the view, and values being the pair of the key.
+  Ex. [{:name 'BioGRID interaction data set' :url 'http://www.thebiogrid.org/downloads.php'}
+       {:name 'Panther orthologue and paralogue predictions' :url 'http://pantherdb.org/'}]"
+  [{:keys [views results] :as _res}]
+  (let [concise-views (map #(-> % (string/split #"\.") last keyword)
+                           views)]
+    (mapv (partial zipmap concise-views)
+          results)))
 
 (reg-event-fx
  :fetch-fasta
@@ -40,6 +52,12 @@
       (> length 1e6)
       true))) ; There's likely no FASTA available if it has no length.
 
+(defn lookup-value
+  "Takes a gene summary response and returns the value best used for LOOKUP query."
+  [summary]
+  (let [results (first (views->results summary))]
+    (some results [:primaryIdentifier :secondaryIdentifier :symbol])))
+
 (reg-event-fx
  :handle-report-summary
  [document-title]
@@ -56,7 +74,9 @@
                 (assoc :fetching-report? false))
         :dispatch-n [[:viz/run-queries]
                      (when (and has-fasta (not too-long-fasta))
-                       [:fetch-fasta mine-kw type id])]})
+                       [:fetch-fasta mine-kw type id])
+                     (when (= type "Gene")
+                       [::fetch-homologues mine-kw (lookup-value summary)])]})
      ;; No results mean the object ID likely doesn't exist.
      {:db (-> db
               (assoc-in [:report :error] {:type :not-found})
@@ -101,6 +121,8 @@
               (assoc-in [:tools :entities (keyword type)] entity))
       :dispatch-n [[:fetch-report (keyword mine) type id]
                    [::fetch-lists (keyword mine) id]
+                   (when (compatible-version? "5.0.0" (get-in db [:assets :intermine-version (keyword mine)]))
+                     [::fetch-external-links (keyword mine) id])
                    (when (class-has-dataset? (get-in db [:mines (keyword mine) :service :model :classes])
                                              (keyword type))
                      [::fetch-sources (keyword mine) type id])]})))
@@ -131,17 +153,6 @@
                      :value id}]}]
      {:im-chan {:chan (fetch/rows service q {:format "json"})
                 :on-success [::handle-sources]}})))
-
-(defn views->results
-  "Convert a `fetch/rows` response map into a vector of maps from keys
-  corresponding to the tail of the view, and values being the pair of the key.
-  Ex. [{:name 'BioGRID interaction data set' :url 'http://www.thebiogrid.org/downloads.php'}
-       {:name 'Panther orthologue and paralogue predictions' :url 'http://pantherdb.org/'}]"
-  [{:keys [views results] :as _res}]
-  (let [concise-views (map #(-> % (string/split #"\.") last keyword)
-                           views)]
-    (mapv (partial zipmap concise-views)
-          results)))
 
 (reg-event-db
  ::handle-sources
@@ -241,3 +252,89 @@
  (fn [db [_ res]]
    (assoc-in db [:report :share] {:status :failure
                                   :error (get-in res [:body :error])})))
+
+(reg-event-fx
+ ::fetch-external-links
+ (fn [{db :db} [_ mine-kw id]]
+   (let [service (get-in db [:mines mine-kw :service])]
+     {:im-chan {:chan (fetch/external-links service id)
+                :on-success [::handle-external-links]}})))
+
+(reg-event-db
+ ::handle-external-links
+ (fn [db [_ links]]
+   (assoc-in db [:report :external-links] links)))
+
+(defn env->registry
+  "Adds keys where they're expected for a registry mine to a configured mine."
+  [env-mine]
+  (assoc env-mine
+         :namespace (-> env-mine :id name)
+         :url (-> env-mine :service :root)))
+
+(defn shim-homologue-path
+  [mine-namespace]
+  (case mine-namespace
+    "phytomine" "homolog.gene"
+    "homologues.homologue"))
+
+(defn homologue-query
+  [gene-name {mine-ns :namespace :as _mine}]
+  {:from "Gene"
+   :select ["id"
+            "symbol"
+            "primaryIdentifier"
+            "secondaryIdentifier"
+            "organism.shortName"]
+   :where [{:path (shim-homologue-path mine-ns)
+            :op "LOOKUP"
+            :value gene-name}]})
+
+(reg-event-fx
+ ::fetch-homologues
+ (fn [{db :db} [_ mine-kw gene-name]]
+   (let [env-mines (into {} (map #(update % 1 env->registry)
+                                 (get-in db [:env :mines])))
+         registry-mines (get db :registry)
+         neighbourhood (set (get-in registry-mines [mine-kw :neighbours]))
+         neighbour-mines (if (empty? neighbourhood)
+                           env-mines
+                           (merge
+                            (into {}
+                                  (remove (fn [[_ {:keys [neighbours]}]]
+                                            (empty? (set/intersection neighbourhood (set neighbours))))
+                                          registry-mines))
+                            env-mines))]
+     {:dispatch-n (for [mine (-> neighbour-mines (dissoc mine-kw) vals)]
+                    [::fetch-mine-homologues
+                     {:root (:url mine)
+                      :model {:name "genomic"}}
+                     (homologue-query gene-name mine)
+                     mine])})))
+
+(reg-event-fx
+ ::fetch-mine-homologues
+ (fn [{db :db} [_ service query mine]]
+   (let [mine-kw (-> mine :namespace keyword)]
+     {:db (assoc-in db [:report :homologues mine-kw]
+                    {:mine mine
+                     :loading? true})
+      :im-chan {:chan (fetch/rows service query {:format "json"})
+                :on-success [::handle-mine-homologues mine-kw]
+                :on-failure [::handle-mine-homologues-failure mine-kw]}})))
+
+(reg-event-db
+ ::handle-mine-homologues
+ (fn [db [_ mine-kw res]]
+   (update-in db [:report :homologues mine-kw] assoc
+              :loading? false
+              :homologues (when (seq (:results res))
+                            (group-by :shortName (views->results res))))))
+
+(reg-event-db
+ ::handle-mine-homologues-failure
+ (fn [db [_ mine-kw res]]
+   (update-in db [:report :homologues mine-kw] assoc
+              :loading? false
+              :error (or (get-in res [:body :error])
+                         "Error response to query"))))
