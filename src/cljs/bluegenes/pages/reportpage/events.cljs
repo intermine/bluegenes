@@ -9,7 +9,7 @@
             [bluegenes.route :as route]
             [goog.dom :as gdom]
             [oops.core :refer [oget ocall]]
-            [bluegenes.utils :refer [rows->maps]]))
+            [bluegenes.utils :refer [rows->maps compatible-version?]]))
 
 (defn views->results
   "Convert a `fetch/rows` response map into a vector of maps from keys
@@ -122,7 +122,8 @@
               (assoc-in [:tools :entities (keyword type)] entity))
       :dispatch-n [[:fetch-report (keyword mine) type id]
                    [::fetch-lists (keyword mine) id]
-                   [::fetch-external-links (keyword mine) id]
+                   (when (compatible-version? "5.0.0" (get-in db [:assets :intermine-version (keyword mine)]))
+                     [::fetch-external-links (keyword mine) id])
                    (when (class-has-dataset? (get-in db [:mines (keyword mine) :service :model :classes])
                                              (keyword type))
                      [::fetch-sources (keyword mine) type id])]})))

@@ -8,6 +8,7 @@
             [bluegenes.route :as route]
             [bluegenes.components.loader :refer [mini-loader]]
             [bluegenes.components.navbar.nav :refer [logo-path]]
+            [bluegenes.utils :refer [compatible-version?]]
             [oops.core :refer [ocall]]
             [clojure.string :as str]))
 
@@ -152,10 +153,15 @@
 
 (defn external-resources []
   (let [links @(subscribe [::subs/report-external-links])
-        {:keys [rootClass]} @(subscribe [::subs/report-summary])]
+        {:keys [rootClass]} @(subscribe [::subs/report-summary])
+        im-version @(subscribe [:current-intermine-version])]
     [entry (merge
             {:title "External resources"}
-            (when (empty? links)
+            (cond
+              (not (compatible-version? "5.0.0" im-version))
+              {:error "This mine is running an older InterMine version which does not support external resources in BlueGenes."}
+
+              (empty? links)
               {:error (str "No external resources available for this " rootClass ".")}))
      (doall
       (for [{:keys [linkId title url]} links]
