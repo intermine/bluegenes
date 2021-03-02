@@ -64,11 +64,10 @@
  (fn [{db :db} [_ mine-kw type id summary]]
    (if (seq (:results summary))
      (let [has-fasta (class-has-fasta? (get-in db [:mines mine-kw :model-hier]) (keyword type))
-           too-long-fasta (and has-fasta (fasta-too-long? summary))
-           gene-name (utils/title-column summary)]
+           too-long-fasta (and has-fasta (fasta-too-long? summary))]
        {:db (-> db
                 (assoc-in [:report :summary] summary)
-                (assoc-in [:report :title] gene-name)
+                (assoc-in [:report :title] (utils/title-column summary))
                 (assoc-in [:report :active-toc] utils/pre-section-id)
                 (cond-> too-long-fasta
                   (assoc-in [:report :fasta] :too-long))
