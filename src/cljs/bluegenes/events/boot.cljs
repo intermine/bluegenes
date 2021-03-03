@@ -211,9 +211,9 @@
                       [:bluegenes.events.registry/load-other-mines]]})))))
 
 (defn remove-stateful-keys-from-db
-  "Any tools / components that have mine-specific state should lose that
-   state if we switch mines. For example, in list upload (ID Resolver),
-   drosophila IDs are no longer valid when using humanmine."
+  "Any pages / components that have mine-specific state should lose that state
+  if we switch mines. For example, in list upload (ID Resolver), drosophila IDs
+  are no longer valid when using humanmine. This is also used when logging out."
   [db]
   ;; Perhaps we should consider settings `:assets` to `{}` here as well?
   (-> db
@@ -224,7 +224,8 @@
       (dissoc :regions :idresolver :results
               :suggestion-results ; Avoid showing old results belonging to previous mine.
               :invalid-token?     ; Clear invalid-token-alert.
-              :failed-auth?)      ; Clear flag for failing to auth with mine.
+              :failed-auth?       ; Clear flag for failing to auth with mine.
+              :profile)           ; All profile page data should be cleared.
       ;; Clear chosen template category as it may not be present in new mine.
       (update :home dissoc :active-template-category)
       ;; Set lists page number back to 1.

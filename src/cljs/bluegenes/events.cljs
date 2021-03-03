@@ -287,9 +287,6 @@
               (dissoc :invalid-token?)
               (route/force-controllers-rerun))
       :dispatch-n [[:remove-login current-mine]
-                   ;; We could optimize this by not doing a reboot (it's likely
-                   ;; only authentication and restarting the router we have to do)
-                   ;; but refreshing token should be uncommon enough.
                    [:reboot]]})))
 
 (reg-event-db

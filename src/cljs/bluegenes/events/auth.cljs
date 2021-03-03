@@ -107,9 +107,6 @@
               (assoc-in [:mines current-mine :service :token] nil)
               (route/force-controllers-rerun))
       :dispatch-n [[:remove-login current-mine]
-                   ;; We could optimize this by not doing a reboot (it's likely
-                   ;; only authentication and restarting the router we have to do)
-                   ;; but logging out should be uncommon enough to not warrant it.
                    [:reboot]]})))
 
 (reg-event-fx
