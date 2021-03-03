@@ -1,4 +1,5 @@
-{;; See docs/configuring.md for information on these fields.
+{;; You will likely want to copy this file to config/prod/config.edn and make
+ ;; changes there. See docs/configuring.md for information on these fields.
  :server-port 5000
  :logging-level "info"
  :google-analytics nil

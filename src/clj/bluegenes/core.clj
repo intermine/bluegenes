@@ -3,7 +3,8 @@
             [config.core :refer [env]]
             [ring.adapter.jetty :refer [run-jetty]]
             [taoensso.timbre :as timbre :refer [infof]]
-            [bluegenes-tool-store.tools :refer [initialise-tools]])
+            [bluegenes-tool-store.tools :refer [initialise-tools]]
+            [bluegenes.config :refer [validate-config]])
   (:import [org.eclipse.jetty.server.handler.gzip GzipHandler])
   (:gen-class))
 
@@ -44,6 +45,7 @@
 (defn -main
   "Start the BlueGenes server. This is the main entry point for the application"
   [& _args]
+  (validate-config env)
   (timbre/set-level! (keyword (:logging-level env :info)))
   (initialise-tools)
   (start-web-server!))
