@@ -11,7 +11,7 @@
 | BLUEGENES_DEFAULT_SERVICE_ROOT | Default InterMine service to run API requests against | https://www.flymine.org/flymine |
 | BLUEGENES_DEFAULT_MINE_NAME | Mine name to display for default mine | FlyMine |
 | BLUEGENES_DEFAULT_NAMESPACE | Namespace of the default mine | flymine |
-| BLUEGENES_ADDITIONAL_MINES | Additional mines managed by this BlueGenes instance | [{:root "https://www.humanmine.org/humanmine" :name "HumanMine" :namespace "humanmine"}] |
+| BLUEGENES_ADDITIONAL_MINES | Additional mines managed by this BlueGenes instance | [] |
 | HIDE_REGISTRY_MINES | Disable acquiring and displaying mines from the public InterMine registry | false |
 
 ## How to configure

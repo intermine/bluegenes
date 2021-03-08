@@ -8,11 +8,12 @@
  :bluegenes-default-mine-name "FlyMine"
  :bluegenes-default-namespace "flymine"
  :bluegenes-additional-mines [
-                              {
-                               :root "https://www.humanmine.org/humanmine"
-                               :name "HumanMine"
-                               :namespace "humanmine"
-                               }
+                              ;; Example of an additional mine.
+                              ; {
+                              ;  :root "https://www.humanmine.org/humanmine"
+                              ;  :name "HumanMine"
+                              ;  :namespace "humanmine"
+                              ;  }
                               ]
  :hide-registry-mines false
  }
