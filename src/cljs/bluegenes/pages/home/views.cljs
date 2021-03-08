@@ -247,26 +247,20 @@
     [:div.col-xs-12
      [:div.row.row-center-cols
       [:div.col-xs-4
-       [:a {:href url}
+       [:a {:href url :target "_blank"}
         [:img.img-responsive
          {:src image}]]]
       [:div.col-xs-8
        (md-paragraph text)]]]
     [:div.col-xs-4
-     [:a {:href url}
+     [:a {:href url :target "_blank"}
       [:img.img-responsive
        {:src image}]]]))
 
 (def credits-intermine
-  [{:text "InterMine has been developed principally through support of the [Wellcome Trust](https://wellcome.ac.uk/). Complementary projects have been funded by the [NIH/NHGRI](https://www.nih.gov/) and the [BBSRC](https://bbsrc.ukri.org/)."
-    :image "https://www.humanmine.org/humanmine/images/icons/intermine-footer-logo.png"
-    :url "http://intermine.org/"}
-   {:image "https://www.humanmine.org/humanmine/images/wellcome-logo-black.png"
-    :url "https://wellcome.ac.uk/"}
-   {:image "https://www.humanmine.org/humanmine/images/logo_nhgri.png"
-    :url "https://www.nih.gov/"}
-   {:image "https://www.humanmine.org/humanmine/images/bbsrc-logo.gif"
-    :url "https://bbsrc.ukri.org/"}])
+  [{:text "[InterMine](http://intermine.org/) has been developed principally through support of the [Wellcome Trust](https://wellcome.ac.uk/). Complementary projects have been funded by the [NIH/NHGRI](https://www.nih.gov/) and the [BBSRC](https://bbsrc.ukri.org/)."
+    :image "/images/intermine-logo.png"
+    :url "http://intermine.org/"}])
 
 (defn credits-fallback []
   (let [mine-name @(subscribe [:current-mine-human-name])

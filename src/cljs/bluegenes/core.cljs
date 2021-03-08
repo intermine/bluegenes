@@ -9,6 +9,7 @@
             [bluegenes.views :as views]
             [bluegenes.config]
             [bluegenes.pages.templates.core]
+            [bluegenes.specs]
             [cljsjs.google-analytics]
             [cljsjs.react-transition-group]
             [cljsjs.react-day-picker]

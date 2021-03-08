@@ -14,7 +14,6 @@
             [bluegenes.interceptors :refer [clear-tooltips]]
             [dommy.core :refer-macros [sel sel1]]
     ;[bluegenes.pages.saveddata.events]
-            [bluegenes.specs :as specs]
             [bluegenes.interceptors :refer [abort-spec]]))
 
 (defn build-matches-query [query path-constraint identifier]

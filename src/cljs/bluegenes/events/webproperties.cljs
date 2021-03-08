@@ -4,7 +4,8 @@
             [imcljs.fetch :as fetch]
             [bluegenes.events.registry :as registry]
             [clojure.set :refer [rename-keys]]
-            [clojure.string :as string]))
+            [clojure.string :as string]
+            [clojure.spec.alpha :as s]))
 
 (defn capitalize-kw [kw]
   (->> (name kw)
@@ -19,6 +20,19 @@
         ;; Otherwise, extract it from the href attribute.
         (second (re-find #"href=[\"']([^\"']+)" cit)))))
 
+(defn parse-credits
+  "Converts a web property credits object with numbered keys and object values
+  to a vector of maps."
+  [credits]
+  (if (s/valid? :bluegenes.webproperties.project/credit credits)
+    (->> credits
+         (map (juxt (comp js/parseInt name key) val))
+         (into (sorted-map))
+         (vals)
+         (vec))
+    (do (.error js/console (str "Invalid web property project.credit: " (s/explain-str :bluegenes.webproperties.project/credit credits)))
+        nil)))
+
 (defn web-properties-to-bluegenes
   "Map intermine web properties to bluegenes properties"
   [web-properties]
@@ -30,7 +44,7 @@
    :regionsearch-example         (get-in web-properties [:genomicRegionSearch :defaultSpans])
    :rss                          (get-in web-properties [:project :rss])
    :citation                     (parse-citation (get-in web-properties [:project :citation]))
-   :credits                      (get-in web-properties [:project :credits])
+   :credits                      (parse-credits (get-in web-properties [:project :credit]))
    :oauth2-providers             (set (get-in web-properties [:oauth2_providers]))
    :idresolver-example           (let [ids (get-in web-properties [:bag :example :identifiers])]
                                    ;; ids can be one of the following:
