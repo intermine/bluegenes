@@ -130,6 +130,16 @@ There is also a [prebuilt docker image available on Docker Hub](https://hub.dock
 
     docker pull intermine/bluegenes:latest
 
+For an example of running BlueGenes in docker for a production environment, start by creating a `bluegenes.env` file.
+
+    BLUEGENES_DEFAULT_SERVICE_ROOT=https://mymine.org/mymine
+    BLUEGENES_DEFAULT_MINE_NAME=MyMine
+    BLUEGENES_DEFAULT_NAMESPACE=mymine
+
+Once you have added all your environment variables, start the docker container.
+
+    docker run -p 5000:5000 --env-file bluegenes.env -d --restart unless-stopped bluegenes
+
 ### Dokku
 
 [Dokku](http://dokku.viewdocs.io/dokku/) allows you to push a Git branch and have it automatically build and serve it using the appropriate docker container. (You can also use BlueGenes with [heroku](https://www.heroku.com/).)
