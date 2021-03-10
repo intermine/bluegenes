@@ -99,26 +99,28 @@
     [:p "Learn more about InterMine and how to search and analyse the data with a comprehensive set of " [:strong "written and video tutorials"] ".  Please " [:a {:on-click #(dispatch [:home/scroll-to-feedback]) :role "button"} "contact us"] " if you can’t find what you need!"]]
    [:div.col-xs-12.col-sm-5.cta-block
     [:a.btn.btn-home
+     {:href "https://intermine.readthedocs.io/en/latest/web-services/"
+      :target "_blank"}
+     "Web services"]
+    [:p "The " [:strong "InterMine API"] " has language bindings for Perl, Python, Ruby and Java, allowing you to easily run queries directly from scripts.  All queries available in the user interface can also be run through the API with results being returned in a number of formats."]]
+   [:div.col-xs-12.col-sm-5.col-sm-offset-2.cta-block
+    [:a.btn.btn-home
+     {:on-click #(dispatch [:home/scroll-to-feedback])
+      :role "button"}
+     "Submit feedback"]
+    [:p [:strong "Contact us"] " with problems, comments, suggestions and any other queries."]]
+   [:div.col-xs-12.col-sm-5.cta-block
+    [:a.btn.btn-home
      {:href "https://intermineorg.wordpress.com/"
       :target "_blank"}
      "What's new"]
     [latest-news]]
    [:div.col-xs-12.col-sm-5.col-sm-offset-2.cta-block
     [:a.btn.btn-home
-     {:href "https://intermine.readthedocs.io/en/latest/web-services/"
+     {:href (or @(subscribe [:current-mine/citation]) "http://intermine.org/publications/")
       :target "_blank"}
-     "Web services"]
-    [:p "The " [:strong "InterMine API"] " has language bindings for Perl, Python, Ruby and Java, allowing you to easily run queries directly from scripts.  All queries available in the user interface can also be run through the API with results being returned in a number of formats."]]
-   [:div.col-xs-12.col-sm-5.cta-block
-    [:a.btn.btn-home
-     {:on-click #(dispatch [:home/scroll-to-feedback])
-      :role "button"}
-     "Submit feedback"]]
-   [:div.col-xs-12.col-sm-5.col-sm-offset-2.cta-block
-    [:a.btn.btn-home
-     {:href "http://intermine.org/publications/"
-      :target "_blank"}
-     "Cite us"]]])
+     "Cite us"]
+    [:p "Please help us to maintain funding: if we have helped your research please remember to cite us in your publications."]]])
 
 (defn mine-selector-filter []
   (let [all-neighbourhoods @(subscribe [:home/all-registry-mine-neighbourhoods])
