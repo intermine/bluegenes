@@ -21,6 +21,10 @@
 @content-color-text: @body-foreground-color;
 @extra-color-background: var(--branding-header-main, fadeout(@highlight-color, 40%));
 @extra-color-text: var(--branding-header-text, @highlight-color-text);
+@branding-color-main: var(--branding-header-main, @body-foreground-color);
+// Secondary is a new value you can't expect all mines to have, hence fallback to main.
+@branding-color-secondary: var(--branding-header-secondary, @branding-color-main);
+@branding-color-text: var(--branding-header-text, @body-background-color);
 @visible-gray: #CCCCCC;
 //to provide common styles.
 //please never pad manually, use multiples / divisons of @spacer instead.

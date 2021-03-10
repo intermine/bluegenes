@@ -34,6 +34,9 @@
     .btn-home {
         .homepage-button-mixin();
 
+        color: @branding-color-secondary;
+        border-color: @branding-color-secondary;
+
         &::after {
             content: "  ❯❯";
             font-size: 0.8em;
@@ -56,8 +59,12 @@
             margin-bottom: @spacer*2.2;
         }
 
+        h2 {
+            color: @branding-color-secondary;
+        }
+
         .cta-block {
-            margin-bottom: @spacer*8;
+            margin-bottom: @spacer*4;
         }
     }
 
@@ -164,6 +171,7 @@
                 width: 100%;
                 height: 100%;
 
+                color: @branding-color-secondary;
                 margin: 0;
                 text-transform: uppercase;
                 font-weight: bold;
@@ -218,6 +226,7 @@
                         }
 
                         &.icon {
+                            fill: @branding-color-secondary;
                             background: linear-gradient(to right, fade(@body-background-color, 0%), @body-background-color 25%, @body-background-color 75%, fade(@body-background-color, 0%) 100%);
                         }
                     }
@@ -233,10 +242,7 @@
             font-size: 1.1em;
             font-weight: bold;
             letter-spacing: @wider-letter-spacing;
-        }
-
-        hr {
-            border-top-width: 6px;
+            color: @branding-color-secondary;
         }
     }
 
@@ -332,8 +338,11 @@
                     flex-grow: 1;
 
                     padding-bottom: @spacer*0.5;
-
                     border-bottom: @thin-border;
+
+                    .img-responsive {
+                        max-width: @spacer*4;
+                    }
                 }
 
                 button {
@@ -347,6 +356,8 @@
     }
 
     .feedback {
+        margin-bottom: @spacer*4 !important;
+
         input, textarea {
             font-size: 1em;
             border-radius: 0;
@@ -354,6 +365,7 @@
             border-left: @thick-border;
             border-right: @thick-border;
             border-bottom: none;
+            border-color: @branding-color-secondary;
         }
 
         textarea {
@@ -364,8 +376,9 @@
             .homepage-button-mixin();
 
             margin: 0;
-            color: white;
-            background-color: @body-foreground-color;
+            color: @branding-color-text;
+            background-color: @branding-color-secondary;
+            border-color: @branding-color-secondary;
 
             &:active,
             &:focus,

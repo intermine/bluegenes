@@ -343,6 +343,13 @@
  (fn [colors]
    (get-in colors [:header :main])))
 
+;; Secondary is a new value, so don't assume it to be present in all mines.
+(reg-sub
+ :branding/header-secondary
+ :<- [:branding/colors]
+ (fn [colors]
+   (get-in colors [:header :secondary])))
+
 (reg-sub
  :branding/header-text
  :<- [:branding/colors]

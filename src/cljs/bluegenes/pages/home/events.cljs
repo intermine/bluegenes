@@ -1,8 +1,10 @@
 (ns bluegenes.pages.home.events
-  (:require [re-frame.core :refer [reg-event-db reg-event-fx]]
+  (:require [re-frame.core :refer [reg-event-db reg-event-fx reg-fx]]
             [re-frame.std-interceptors :refer [path]]
             [imcljs.save :as im-save]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [goog.style :as gstyle]
+            [goog.dom :as gdom]))
 
 (def root [:home])
 
@@ -72,3 +74,13 @@
    (assoc home :feedback-response {:type :failure
                                    :message "Failed to submit feedback. Alternatively, you can use the email icon in the footer at the bottom of the page. "
                                    :error (get-in res [:body :error])})))
+
+(reg-event-fx
+ :home/scroll-to-feedback
+ (fn [_ [_]]
+   {::scroll-to-feedback {}}))
+
+(reg-fx
+ ::scroll-to-feedback
+ (fn [_]
+   (gstyle/scrollIntoContainerView (gdom/getElement "feedbackform") nil true)))

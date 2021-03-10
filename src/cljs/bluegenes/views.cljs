@@ -46,6 +46,7 @@
 (defn main-panel []
   (let [active-panel (subscribe [:active-panel])
         main-color (subscribe [:branding/header-main])
+        secondary-color (subscribe [:branding/header-secondary])
         text-color (subscribe [:branding/header-text])]
     (fn []
       [error-boundary
@@ -55,7 +56,8 @@
        (when (some? @active-panel)
          [:div.approot
           {:style {"--branding-header-main" @main-color
-                   "--branding-header-text" @text-color}}
+                   "--branding-header-text" @text-color
+                   "--branding-header-secondary" @secondary-color}}
           [loader/mine-loader]
           [icons/icons]
           [nav/main]
