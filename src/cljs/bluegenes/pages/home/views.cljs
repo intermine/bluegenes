@@ -56,8 +56,7 @@
                    (ascii->svg-arrows title :max-length 35)
                    [[:span title]]))]))]
       [:a.more-queries {:href (route/href ::route/templates)}
-       "More queries here"]
-      [:hr]]]))
+       "More queries here"]]]))
 
 (def post-time-formatter (time-format/formatter "MMMM d, Y"))
 
@@ -77,44 +76,51 @@
   [:div.row.section.grid ;; Without grid class the 3rd row won't be on the same row.
    ;; This isn't official bootstrap, so I can only imagine Gridlex is messing with things.
    [:div.col-xs-12.col-sm-5.cta-block
-    [:h3.text-uppercase "Analyse your lists"]
-    [:p "Upload your own sets of genes, proteins, transcripts or other data type to analyse against the integrated data."]
     [:a.btn.btn-home
      {:href (route/href ::route/upload)}
-     "Analyse data"]]
+     "Analyse data"]
+    [:p [:strong "Upload"] " your own sets of genes, proteins, transcripts or other data type to analyse against the integrated data."]]
    [:div.col-xs-12.col-sm-5.col-sm-offset-2.cta-block
-    [:h3.text-uppercase "Browse data sources"]
-    [:p "Browse the full set of data available including versions, publications and links to the original data."]
-    [:button.btn.btn-home
-     {:on-click #(dispatch [:home/query-data-sources])}
-     "Show sources"]]
+    [:a.btn.btn-home
+     {:on-click #(dispatch [:home/query-data-sources])
+      :role "button"}
+     "Browse sources"]
+    [:p "Browse the full set of data available including versions, publications and links to the " [:strong "original data"] "."]]
    [:div.col-xs-12.col-sm-5.cta-block
-    [:h3.text-uppercase "Build your own query"]
-    [:p "Build your own data search using the Query Builder.  The Query Builder allows you to select and combine data classes, apply filters and configure the result table.  For a full set of pre-built searches, see the " [:a {:href (route/href ::route/templates)} "Templates"] "."]
     [:a.btn.btn-home
      {:href (route/href ::route/querybuilder)}
-     "Build query"]]
+     "Build your own query"]
+    [:p "The " [:strong "Query Builder"] " allows you to select and combine data classes, apply filters and configure the result table.  For a full set of pre-built searches, see the " [:a {:href (route/href ::route/templates)} "Templates"] "."]]
    [:div.col-xs-12.col-sm-5.col-sm-offset-2.cta-block
-    [:h3.text-uppercase "Tutorials"]
-    [:p "Learn more about InterMine and how to search and analyse the data with a comprehensive set of written and video tutorials.  Please contact us if you can’t find what you need!"]
     [:a.btn.btn-home
      {:href "https://flymine.readthedocs.io/en/latest/"
       :target "_blank"}
-     "View documentation"]]
+     "Tutorials"]
+    [:p "Learn more about InterMine and how to search and analyse the data with a comprehensive set of " [:strong "written and video tutorials"] ".  Please " [:a {:on-click #(dispatch [:home/scroll-to-feedback]) :role "button"} "contact us"] " if you can’t find what you need!"]]
    [:div.col-xs-12.col-sm-5.cta-block
-    [:h3.text-uppercase "What's new?"]
-    [latest-news]
-    [:a.btn.btn-home
-     {:href "https://intermineorg.wordpress.com/"
-      :target "_blank"}
-     "View all posts"]]
-   [:div.col-xs-12.col-sm-5.col-sm-offset-2.cta-block
-    [:h3.text-uppercase "API in different languages"]
-    [:p "The InterMine API has language bindings for Perl, Python, Ruby and Java, allowing you to easily run queries directly from scripts.  All queries available in the user interface can also be run through the API with results being returned in a number of formats."]
     [:a.btn.btn-home
      {:href "https://intermine.readthedocs.io/en/latest/web-services/"
       :target "_blank"}
-     "Developer resources"]]])
+     "Web services"]
+    [:p "The " [:strong "InterMine API"] " has language bindings for Perl, Python, Ruby and Java, allowing you to easily run queries directly from scripts.  All queries available in the user interface can also be run through the API with results being returned in a number of formats."]]
+   [:div.col-xs-12.col-sm-5.col-sm-offset-2.cta-block
+    [:a.btn.btn-home
+     {:on-click #(dispatch [:home/scroll-to-feedback])
+      :role "button"}
+     "Submit feedback"]
+    [:p [:strong "Contact us"] " with problems, comments, suggestions and any other queries."]]
+   [:div.col-xs-12.col-sm-5.cta-block
+    [:a.btn.btn-home
+     {:href "https://intermineorg.wordpress.com/"
+      :target "_blank"}
+     "What's new"]
+    [latest-news]]
+   [:div.col-xs-12.col-sm-5.col-sm-offset-2.cta-block
+    [:a.btn.btn-home
+     {:href (or @(subscribe [:current-mine/citation]) "http://intermine.org/publications/")
+      :target "_blank"}
+     "Cite us"]
+    [:p "Please help us to maintain funding: if we have helped your research please remember to cite us in your publications."]]])
 
 (defn mine-selector-filter []
   (let [all-neighbourhoods @(subscribe [:home/all-registry-mine-neighbourhoods])
@@ -180,7 +186,7 @@
         active-ns (get-mine-ns @(subscribe [:home/preview-mine]))]
     [:div.row.section
      [:div.col-xs-12
-      [:h2.text-center.text-uppercase "InterMine for all"]]
+      [:h2.text-center "InterMine for all"]]
      [:div.col-xs-12.mine-selector
       [mine-selector-filter]
       [:div.row.mine-selector-body
@@ -194,21 +200,19 @@
 (defn external-tools []
   [:div.row.section
    [:div.col-xs-12
-    [:h2.text-center "External tools"]]
+    [:h2.text-center "Alternative tools"]]
    [:div.col-xs-12.col-sm-5.cta-block
-    [:h3 "Data Browser"]
-    [:p "A faceted search tool to display the data from InterMine database, allowing the users to search easily within the different mines available around InterMine without the requirement of having an extensive knowledge of the data model."]
     [:a.btn.btn-home
      {:href "http://data-browser.apps.intermine.org/"
       :target "_blank"}
-     "Open Data Browser"]]
+     "Data Browser"]
+    [:p "A " [:strong "faceted search tool"] " to display the data from InterMine database, allowing the users to search easily within the different mines available around InterMine without the requirement of having an extensive knowledge of the data model."]]
    [:div.col-xs-12.col-sm-5.col-sm-offset-2.cta-block
-    [:h3 "InterMOD GO"]
-    [:p "This tool searches for homologous genes and associated GO terms across six model organisms (yeast, nematode worm, fruit fly, zebrafish, mouse, rat) and humans, with a heatmap, statistical enrichment, and a GO term relationship graph."]
     [:a.btn.btn-home
      {:href "http://gointermod.apps.intermine.org/"
       :target "_blank"}
-     "Open InterMOD GO"]]])
+     "InterMOD Gene Ontology"]
+    [:p "This tool searches for homologous genes and " [:strong "associated GO terms"] " across six model organisms (yeast, nematode worm, fruit fly, zebrafish, mouse, rat) and humans, with a heatmap, statistical enrichment, and a GO term relationship graph."]]])
 
 (defn feedback []
   (let [email* (r/atom "")
@@ -229,7 +233,7 @@
               :placeholder "Your email (optional)"
               :value @email*
               :on-change #(reset! email* (oget % :target :value))}]
-            [:textarea.form-control
+            [:textarea#feedbackform.form-control
              {:placeholder "Your feedback here"
               :rows 5
               :value @text*
@@ -281,7 +285,7 @@
         all-entries (concat entries credits-intermine)]
     [:div.row.section
      [:div.col-xs-12
-      [:h3.text-center (str mine-name " is made possible by")]]
+      [:h2.text-center (str mine-name " is made possible by")]]
      (when (empty? entries)
        [:div.col-xs-12.text-center
         [credits-fallback]])
