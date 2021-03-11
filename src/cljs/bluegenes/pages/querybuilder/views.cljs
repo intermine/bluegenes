@@ -132,9 +132,7 @@
                        (if open?
                          (dispatch [:qb/collapse-path path])
                          (dispatch [:qb/expand-path path])))}
-          [:svg.icon.icon-plus
-           {:class (when open? "arrow-down")}
-           [:use {:xlinkHref "#icon-plus"}]]
+          [icon (if open? "minus" "plus")]
           [:span.qb-class (:displayName properties)]
           [:span.label-button
            {:on-click (fn [e]
@@ -228,9 +226,7 @@
              :aria-expanded false})
           (when (seq children)
             [:a.expand-close {:on-click #(swap! open? not)}
-             [:svg.icon.icon-plus
-              {:class (when @open? "arrow-down")}
-              [:use {:xlinkHref "#icon-plus"}]]])
+             [icon (if @open? "minus" "plus")]])
           (if is-nonempty
             [:a.qb-class
              {:class (when (empty? children) "no-icon")
