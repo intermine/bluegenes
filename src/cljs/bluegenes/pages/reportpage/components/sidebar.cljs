@@ -137,7 +137,10 @@
   (let [sources @(subscribe [::subs/report-sources])
         {:keys [rootClass]} @(subscribe [::subs/report-summary])]
     [entry (merge
-            {:title "Data sources"}
+            {:title [:span "Data sources"
+                     [:a {:on-click #(dispatch [:home/query-data-sources])
+                          :role "button"}
+                      "[View all]"]]}
             (when (empty? sources)
               {:error (str "No data sources available for this " rootClass ".")}))
      (doall
