@@ -257,9 +257,11 @@
                       (debounced value)))]
     (fn []
       [:div.report-page-filter
+       [poppable {:data "This will search for keywords in the section titles, use the browser search to find text anywhere in the page."
+                  :children [icon-comp "info"]}]
        [:input.form-control
         {:type "text"
-         :placeholder "Find keywords..."
+         :placeholder "Topic filter"
          :on-change on-change
          :value @input}]])))
 
