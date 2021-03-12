@@ -255,7 +255,10 @@
                                         id])}]
         [:span.list-icon
          {:class (when is-new :new)}
-         [icon "list-item"]]])
+         (if is-new
+           [poppable {:data "This list was just created by you."
+                      :children [icon "list-item"]}]
+           [icon "list-item"])]])
 
      [:div.lists-col
       [:div.list-detail
