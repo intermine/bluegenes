@@ -60,13 +60,11 @@
       [:button.btn.btn-primary.btn-raised.view-results
        {:type "button"
         :on-click (fn [] (dispatch [:templates/send-off-query]))}
-       (cond
-         loading? "Loading"
-         (or preview-error
-             (< results-count 1)) "Open in results page"
-         :else (str "View "
-                    results-count
-                    (if (> results-count 1) " rows" " row")))]
+       (if (or loading? preview-error (< results-count 1))
+         "Open in results page"
+         (str "View "
+              results-count
+              (if (> results-count 1) " rows" " row")))]
       [:button.btn.btn-default.btn-raised
        {:type "button"
         :on-click (fn [] (dispatch [:templates/edit-query]))}
