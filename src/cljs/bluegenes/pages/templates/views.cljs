@@ -210,6 +210,7 @@
        {:type "text"
         :value @text-filter
         :placeholder "Filter text..."
+        :autoFocus true
         :on-change (fn [e]
                      (dispatch [:template-chooser/set-text-filter (.. e -target -value)]))}])))
 
