@@ -5,10 +5,10 @@
             [imcljs.fetch :as fetch]
             [imcljs.save :as save]
             [imcljs.path :as path]
-            [cljs-time.core :as time]
-            [cljs-time.format :as time-format]
             [clojure.string :as string]
-            [bluegenes.route :as route]))
+            [bluegenes.route :as route]
+            [bluegenes.interceptors :refer [datetime]]
+            [bluegenes.time :refer [format-list-date]]))
 
 (reg-event-db
  ::stage-files
@@ -74,38 +74,34 @@
  (fn [db [_ res]]
    (assoc-in db [:idresolver :error] res)))
 
-(def time-formatter (time-format/formatter "dd MMM yyyy HH:mm:ss"))
+(defn default-list-name [data-type organism now]
+  (str data-type
+       " list for "
+       (if (string/blank? organism) "all organisms" organism)
+       " "
+       (format-list-date now)))
 
-(reg-event-db
+(reg-event-fx
  ::finished-review
- (fn [db]
+ (datetime)
+ (fn [{db :db now :datetime}]
    (let [{:keys [type organism]} (get-in db [:idresolver :stage :options])]
-     (-> db
-         (assoc-in [:idresolver :stage :flags] {:reviewed true})
-         (assoc-in [:idresolver :stage :view] :review)
-         (assoc-in [:idresolver :save :list-name]
-                   (str type
-                        " list for "
-                        (if (string/blank? organism) "all organisms" organism)
-                        " "
-                        (time-format/unparse time-formatter (time/now))))))))
+     {:db (-> db
+              (assoc-in [:idresolver :stage :flags] {:reviewed true})
+              (assoc-in [:idresolver :stage :view] :review)
+              (assoc-in [:idresolver :save :list-name]
+                        (default-list-name type organism now)))})))
 
-(reg-event-db
+(reg-event-fx
  ::store-identifiers
- (fn [db [_ response]]
+ (datetime)
+ (fn [{db :db now :datetime} [_ response]]
    (let [{:keys [type organism]} (get-in db [:idresolver :stage :options])]
-     (-> db
-         (assoc-in [:idresolver :response] response)
-         (assoc-in [:idresolver :stage :view] :review)
-         (assoc-in
-          [:idresolver :save :list-name]
-          (str type
-               " list for "
-               (if (string/blank? organism)
-                 "all organisms"
-                 organism)
-               " "
-               (time-format/unparse time-formatter (time/now))))))))
+     {:db (-> db
+              (assoc-in [:idresolver :response] response)
+              (assoc-in [:idresolver :stage :view] :review)
+              (assoc-in [:idresolver :save :list-name]
+                        (default-list-name type organism now)))})))
 
 (reg-event-db
  ::set-view

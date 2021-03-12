@@ -7,7 +7,9 @@
             [clojure.string :as str]
             [bluegenes.db :refer [default-db]]
             [goog.dom :as gdom]
-            [oops.core :refer [oset!]]))
+            [oops.core :refer [oset!]]
+            [bluegenes.interceptors :refer [datetime]]
+            [bluegenes.time :refer [format-list-date]]))
 
 ;; Idea for performance improvement:
 ;; All lists are re-fetched via `:assets/fetch-lists` whenever something
@@ -186,33 +188,52 @@
    (let [target-id (get-in lists [:modal :target-id])]
      (update lists :selected-lists (fnil disj #{}) target-id))))
 
-(reg-event-db
+(defn default-list-title [operation data-type now]
+  (str (case operation
+         :combine "Combined" :intersect "Intersected"
+         :difference "Differenced" :subtract "Subtracted")
+       " "
+       data-type
+       " List ("
+       (format-list-date now)
+       ")"))
+
+(defn lists-root->data-type [{:keys [by-id] :as lists}]
+  (-> lists :selected-lists first by-id :type))
+
+(reg-event-fx
  :lists/open-modal
- (path root)
- (fn [lists [_ modal-kw ?list-id]]
-   (case modal-kw
-     ;; Subtract modal needs some prepared data.
-     :subtract (let [selected-lists (vec (:selected-lists lists))]
-                 (assoc lists :modal
-                        {:active modal-kw
-                         :open? true
-                         :subtract-lists (pop selected-lists)
-                         :keep-lists (vector (peek selected-lists))}))
-     ;; Edit modal needs the list fields preset.
-     :edit (let [{:keys [title tags description] :as listm} (get (:by-id lists) ?list-id)]
-             (assoc lists :modal
-                    {:active modal-kw
-                     :target-id ?list-id
-                     :open? true
-                     :title title
-                     :tags (remove path-prefix? tags)
-                     :description description
-                     :folder-path (-> listm list->path split-path (subvec 1))}))
-     ;; Default for all other modals.
-     (assoc lists :modal
-            {:active modal-kw
-             :target-id ?list-id
-             :open? true}))))
+ [(path root) (datetime)]
+ (fn [{lists :db now :datetime} [_ modal-kw ?list-id]]
+   {:db (case modal-kw
+          ;; Subtract modal needs some prepared data.
+          :subtract (let [selected-lists (vec (:selected-lists lists))]
+                      (assoc lists :modal
+                             {:active modal-kw
+                              :open? true
+                              :subtract-lists (pop selected-lists)
+                              :keep-lists (vector (peek selected-lists))
+                              :title (default-list-title modal-kw (lists-root->data-type lists) now)}))
+          ;; Edit modal needs the list fields preset.
+          :edit (let [{:keys [title tags description] :as listm} (get (:by-id lists) ?list-id)]
+                  (assoc lists :modal
+                         {:active modal-kw
+                          :target-id ?list-id
+                          :open? true
+                          :title title
+                          :tags (remove path-prefix? tags)
+                          :description description
+                          :folder-path (-> listm list->path split-path (subvec 1))}))
+          ;; Default for all other modals.
+          (assoc lists :modal
+                 (merge
+                  {:active modal-kw
+                   :target-id ?list-id
+                   :open? true}
+                  (case modal-kw
+                    (:combine :intersect :difference :subtract)
+                    {:title (default-list-title modal-kw (lists-root->data-type lists) now)}
+                    nil))))}))
 
 (reg-event-db
  :lists/close-modal
