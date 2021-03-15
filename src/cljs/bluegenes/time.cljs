@@ -6,3 +6,8 @@
 
 (defn format-query [{:keys [last-executed] :as _query}]
   (time-format/unparse query-formatter (time-coerce/from-long last-executed)))
+
+(def list-name-formatter (time-format/formatter "dd MMM yyyy HH:mm:ss"))
+
+(defn format-list-date [datetime]
+  (time-format/unparse list-name-formatter datetime))

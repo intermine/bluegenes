@@ -21,6 +21,21 @@
 
     &-filter {
         padding-left: @spacer*1.8;
+        position: relative;
+
+        input.form-control {
+            padding-right: @spacer*2;
+        }
+
+        .icon {
+            position: absolute;
+            right: @spacer*0.2;
+            top: 50%;
+            transform: translateY(-50%);
+            fill: @highlight-color;
+            width: 1.5em;
+            height: 1.5em;
+        }
     }
 
     code.start {
@@ -266,6 +281,11 @@
             background-color: @extra-color-background;
             border-bottom: 2px solid @light-contrast;
             margin-bottom: 0;
+
+            a {
+                color: @extra-color-text;
+                margin-left: @spacer/2;
+            }
         }
 
         p {

@@ -8,7 +8,7 @@ describe("UI Test", function() {
     cy.route("POST", "*/service/ids").as("uploadData");
     cy.contains("Upload").click();
     cy.url().should("include", "/upload/input");
-    cy.contains("Example").click();
+    cy.contains("Show example").click();
     cy.get("button")
       .contains("Continue")
       .click();
@@ -82,7 +82,7 @@ describe("UI Test", function() {
   //   var listName = "Automated CI test list ".concat(Number(new Date()));
 
   //   cy.contains("Upload").click();
-  //   cy.contains("Example").click();
+  //   cy.contains("Show example").click();
   //   cy.get("textarea").type(",ABRA,GBP,RIF,SERA,OAT,PCNA", { delay: 100 });
   //   cy.get("button")
   //     .contains("Continue")

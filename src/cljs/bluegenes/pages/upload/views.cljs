@@ -275,6 +275,7 @@
                                     [::evts/update-textbox-identifiers
                                      (oget e :target :value)]))
                 :value @textbox-identifiers
+                :placeholder "Type identifiers here, or click [SHOW EXAMPLE] below."
                 :class (when @files "disabled")
                 :spellCheck false
                 :disabled @files
@@ -286,7 +287,7 @@
               (if @example?
                 [:button.btn.btn-default.btn-raised
                  {:on-click (fn [] (dispatch [::evts/load-example]))}
-                 "Example"]
+                 "Show example"]
                 (.debug js/console
                         "No example button available due to missing or misconfigured example in the InterMine properties")))
             [:button.btn.btn-default.btn-raised

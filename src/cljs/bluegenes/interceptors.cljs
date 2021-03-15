@@ -3,7 +3,8 @@
   https://github.com/Day8/re-frame/blob/master/docs/Interceptors.md"
   (:require [re-frame.core :as re-frame :refer [dispatch]]
             [clojure.spec.alpha :as s]
-            [oops.core :refer [ocall oget]]))
+            [oops.core :refer [ocall oget]]
+            [cljs-time.core :as time]))
 
 (defn abort-spec
   "Provides a re-frame interceptor that accepts a Clojure spec. When the event fires it uses the provided spec
@@ -53,3 +54,12 @@
    :id :origin
    :before (fn [context]
              (assoc-in context [:coeffects :origin] (get-origin)))))
+
+(defn datetime
+  "Provides a re-frame interceptor that adds a :datetime key to the context,
+  containing a DateTime for the current instant."
+  []
+  (re-frame.core/->interceptor
+   :id :datetime
+   :before (fn [context]
+             (assoc-in context [:coeffects :datetime] (time/now)))))

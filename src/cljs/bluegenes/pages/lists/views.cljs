@@ -255,7 +255,10 @@
                                         id])}]
         [:span.list-icon
          {:class (when is-new :new)}
-         [icon "list-item"]]])
+         (if is-new
+           [poppable {:data "This list was just created by you."
+                      :children [icon "list-item"]}]
+           [icon "list-item"])]])
 
      [:div.lists-col
       [:div.list-detail
@@ -273,8 +276,14 @@
                 title])
        [:span.list-size (str "[" size "]")]
        (if authorized
-         [icon "user-circle" nil ["authorized"]]
-         [icon "globe"])]
+         (if is-folder
+           [icon "user-circle" nil ["authorized"]]
+           [poppable {:data "This list is owned by you."
+                      :children [icon "user-circle" nil ["authorized"]]}])
+         (if is-folder
+           [icon "globe"]
+           [poppable {:data "This list is not owned by you. You will not be able to edit or delete it, but you can still copy it or use it for set operations."
+                      :children [icon "globe"]}]))]
       [:p.list-description description]]
 
      [:div.lists-col
