@@ -177,6 +177,13 @@
         fill: @highlight-color;
         text-decoration: underline;
 
+        &.disabled {
+            color: gray;
+            fill: gray;
+            text-decoration: none;
+            cursor: default;
+        }
+
         .icon {
             margin: 0 @spacer/4 0 0;
         }

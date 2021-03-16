@@ -31,26 +31,41 @@
             :where [{:path (str type ".id")
                      :op "="
                      :value id}]}]
-     {:im-chan {:chan (fetch/fasta service q)
+     ;; :fasta/fetch will likely already be set; this is just to make sure the
+     ;; spinner shows after clicking LOAD FASTA, which dispatches this event.
+     {:db (assoc-in db [:report :fasta] :fasta/fetch)
+      :im-chan {:chan (fetch/fasta service q)
                 :on-success [:handle-fasta]}})))
 
 (reg-event-db
  :handle-fasta
  (fn [db [_ fasta]]
-   (cond-> db
-     ;; If there's no FASTA the API will return "Nothing was found for export".
-     (string/starts-with? fasta ">")
-     (assoc-in [:report :fasta] fasta))))
+   ;; If there's no FASTA the API will return "Nothing was found for export".
+   (assoc-in db [:report :fasta]
+             (if (string/starts-with? fasta ">")
+               fasta
+               :fasta/none))))
 
 (defn class-has-fasta? [hier class-kw]
   (or (= class-kw :Protein)
       (isa? hier class-kw :SequenceFeature)))
 
-(defn fasta-too-long? [summary]
-  (let [length (get-in (rows->maps summary) [0 :length])]
-    (if (number? length)
-      (> length 1e6)
-      true))) ; There's likely no FASTA available if it has no length.
+(defn check-fasta
+  "Check state of fasta for an object's summary:
+  :fasta/long - Fasta exists but is too long and should be fetched manually.
+  :fasta/fetch - Fasta exists and will be fetched automatically.
+  :fasta/none - The object should have had fasta, but it's not available.
+  nil - Fasta does not apply to the object."
+  [model-hier class-kw summary]
+  (let [sequence-class? (class-has-fasta? model-hier class-kw)
+        fasta-length (when sequence-class? (get-in (rows->maps summary) [0 :length]))
+        has-fasta? (number? fasta-length)
+        ;; There's likely no FASTA available if it has no length.
+        too-long-fasta? (> fasta-length 1e6)]
+    (cond
+      (and has-fasta? too-long-fasta?) :fasta/long
+      has-fasta? :fasta/fetch
+      sequence-class? :fasta/none)))
 
 (defn lookup-value
   "Takes a gene summary response and returns the value best used for LOOKUP query."
@@ -63,17 +78,15 @@
  [document-title]
  (fn [{db :db} [_ mine-kw type id summary]]
    (if (seq (:results summary))
-     (let [has-fasta (class-has-fasta? (get-in db [:mines mine-kw :model-hier]) (keyword type))
-           too-long-fasta (and has-fasta (fasta-too-long? summary))]
+     (let [fasta-action (check-fasta (get-in db [:mines mine-kw :model-hier]) (keyword type) summary)]
        {:db (-> db
                 (assoc-in [:report :summary] summary)
                 (assoc-in [:report :title] (utils/title-column summary))
                 (assoc-in [:report :active-toc] utils/pre-section-id)
-                (cond-> too-long-fasta
-                  (assoc-in [:report :fasta] :too-long))
+                (assoc-in [:report :fasta] fasta-action)
                 (assoc :fetching-report? false))
         :dispatch-n [[:viz/run-queries]
-                     (when (and has-fasta (not too-long-fasta))
+                     (when (= fasta-action :fasta/fetch)
                        [:fetch-fasta mine-kw type id])
                      (when (= type "Gene")
                        [::fetch-homologues mine-kw (lookup-value summary)])]})

@@ -6,7 +6,7 @@
             [bluegenes.pages.reportpage.utils :as utils :refer [description-dropdown]]
             #_[bluegenes.components.table :as table]
             [bluegenes.components.lighttable :as lighttable]
-            [bluegenes.components.loader :refer [loader]]
+            [bluegenes.components.loader :refer [loader mini-loader]]
             [bluegenes.components.tools.views :as tools]
             [bluegenes.pages.reportpage.events :as events]
             [bluegenes.pages.reportpage.subs :as subs]
@@ -190,8 +190,20 @@
     [:<>
      [:div.report-table-cell.report-table-header
       label]
-     (if (= fasta :too-long)
-       ;; Fasta exists but is too long and should be fetched manually.
+     (case fasta
+       :fasta/fetch
+       [:div.report-table-cell.fasta-value
+        [mini-loader "tiny"]]
+
+       :fasta/none
+       [:div.report-table-cell.fasta-value
+        [:a.fasta-download.disabled
+         {:role "button"
+          :disabled true}
+         [icon-comp "my-data"]
+         "NOT AVAILABLE"]]
+
+       :fasta/long
        (let [{:keys [mine type id]} @(subscribe [:panel-params])]
          [:div.report-table-cell.fasta-value
           [:a.fasta-download
@@ -199,6 +211,8 @@
             :on-click #(dispatch [:fetch-fasta (keyword mine) type id])}
            [icon-comp "my-data"]
            "LOAD FASTA"]])
+
+       ;; In this branch, fasta will be a string containing the fasta.
        [:div.report-table-cell.fasta-value
         [:span.dropdown
          [:a.dropdown-toggle.fasta-button
