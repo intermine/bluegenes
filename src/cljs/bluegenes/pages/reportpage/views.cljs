@@ -223,7 +223,7 @@
         fasta               @(subscribe [::subs/fasta])
         chromosome-location @(subscribe [::subs/chromosome-location])
         fasta-length        @(subscribe [::subs/fasta-length])
-        entries (->> (concat (filter val (zipmap columnHeaders (first results)))
+        entries (->> (concat (sort-by key (filter val (zipmap columnHeaders (first results))))
                              (when (not-empty chromosome-location)
                                [^{:type :location} ["Chromosome Location" chromosome-location]])
                              (when fasta

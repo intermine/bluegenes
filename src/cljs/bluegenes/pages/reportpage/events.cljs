@@ -94,10 +94,11 @@
  :fetch-report
  (fn [{db :db} [_ mine-kw type id]]
    (let [service (get-in db [:mines mine-kw :service])
-         attribs (->> (get-in service [:model :classes (keyword type) :attributes])
-                      (mapv (comp #(str type "." %) :name val)))
+         attributes (->> (get-in service [:model :classes (keyword type) :attributes])
+                         (map (comp #(str type "." %) :name val)))
+         summary-fields (get-in db [:assets :summary-fields mine-kw (keyword type)])
          q       {:from type
-                  :select attribs
+                  :select (vec (set/union (set attributes) (set summary-fields)))
                   :where [{:path (str type ".id")
                            :op "="
                            :value id}]}]
