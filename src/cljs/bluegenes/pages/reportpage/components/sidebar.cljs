@@ -97,41 +97,51 @@
                                    [:div.fade-background]]}]]))]))
 
 (defn other-mines []
-  (let [mines @(subscribe [::subs/report-homologues])
-        {:keys [type]} @(subscribe [:panel-params])]
-    (when (= type "Gene")
-      [entry (merge
-              {:title "Other mines"}
-              (when (empty? mines)
-                {:error "This mine does not have any neighbours."}))
-       (doall
-        (for [[mine-kw {:keys [mine loading? homologues error]}] (sort-by (comp name key) mines)]
-          ^{:key (name mine-kw)}
-          [:li.other-mine
-           (into [:div
-                  [:strong.mine (:name mine)]]
-                 (cond
-                   loading?
-                   [[mini-loader "tiny"]]
+  (let [expanded-mines* (reagent/atom #{})]
+    (fn []
+      (let [mines @(subscribe [::subs/report-homologues])
+            {:keys [type]} @(subscribe [:panel-params])]
+        (when (= type "Gene")
+          [entry (merge
+                  {:title "Other mines"}
+                  (when (empty? mines)
+                    {:error "This mine does not have any neighbours."}))
+           (doall
+            (for [[mine-kw {:keys [mine loading? homologues error]}] (sort-by (comp name key) mines)
+                  :let [expanded? (@expanded-mines* mine-kw)]]
+              ^{:key (name mine-kw)}
+              [:li.other-mine
+               (-> [:div [:strong.mine (:name mine)]]
+                   (into (cond
+                           loading?
+                           [[mini-loader "tiny"]]
 
-                   error
-                   [[poppable {:data error
-                               :children [:span "Error"]}]]
+                           error
+                           [[poppable {:data error
+                                       :children [:span "Error"]}]]
 
-                   (seq homologues)
-                   (for [[organism genes] homologues]
-                     (into [:div
-                            [:span.organism organism]]
-                           (for [gene genes]
-                             [:a {:href (route/href ::route/report {:mine mine-kw
-                                                                    :type "Gene"
-                                                                    :id (:id gene)})}
-                              (some gene [:symbol :primaryIdentifier :secondaryIdentifier])])))
+                           (seq homologues)
+                           (for [[organism genes] (cond->> homologues
+                                                    (not expanded?) (take entries-to-show))]
+                             (into [:div
+                                    [:span.organism organism]]
+                                   (for [gene genes]
+                                     [:a {:href (route/href ::route/report {:mine mine-kw
+                                                                            :type "Gene"
+                                                                            :id (:id gene)})}
+                                      (some gene [:symbol :primaryIdentifier :secondaryIdentifier])])))
 
-                   :else
-                   [[:span "No results"]]))
-           [:img {:src (or (get-in mine [:images :logo]) ; Only available for registry mines.
-                           (str (:url mine) logo-path))}]]))])))
+                           :else
+                           [[:span "No results"]]))
+                   (cond-> (and (> (count homologues) entries-to-show) (not expanded?))
+                     (conj [:a.show-all-homologues
+                            {:on-click #(swap! expanded-mines* conj mine-kw)
+                             :role "button"}
+                            (let [remaining (- (count homologues) entries-to-show)]
+                              (str "Show " remaining " more organism" (when (> remaining 1) "s")))])))
+
+               [:img {:src (or (get-in mine [:images :logo]) ; Only available for registry mines.
+                               (str (:url mine) logo-path))}]]))])))))
 
 (defn data-sources []
   (let [sources @(subscribe [::subs/report-sources])
