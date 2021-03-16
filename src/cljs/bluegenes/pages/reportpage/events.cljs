@@ -90,6 +90,21 @@
                                    :message (get-in res [:body :error])})
        (assoc :fetching-report? false))))
 
+(defn outer-join-classes
+  "Primitive approach to creating outer join consisting of all parent classes
+  of `views` attributes, excluding the root class. This is necessary when a
+  summary field is null, which would give no results with an inner join.
+  Note that this will likely not give results in the scenario where there's a
+  null class referenced in a longer path, which doesn't have an attribute in
+  the view. In the future, we'll want to disallow nullable summary fields, so
+  this should only be a temporary solution."
+  [type views]
+  (->> views
+       (map (comp #(string/join "." %) drop-last #(string/split % #"\.")))
+       (distinct)
+       (remove #{type})
+       (vec)))
+
 (reg-event-fx
  :fetch-report
  (fn [{db :db} [_ mine-kw type id]]
@@ -97,8 +112,10 @@
          attributes (->> (get-in service [:model :classes (keyword type) :attributes])
                          (map (comp #(str type "." %) :name val)))
          summary-fields (get-in db [:assets :summary-fields mine-kw (keyword type)])
+         views (vec (set/union (set attributes) (set summary-fields)))
          q       {:from type
-                  :select (vec (set/union (set attributes) (set summary-fields)))
+                  :select views
+                  :joins (outer-join-classes type views)
                   :where [{:path (str type ".id")
                            :op "="
                            :value id}]}]
