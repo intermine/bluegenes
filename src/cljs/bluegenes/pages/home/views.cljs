@@ -111,13 +111,13 @@
     [:p [:strong "Contact us"] " with problems, comments, suggestions and any other queries."]]
    [:div.col-xs-12.col-sm-5.cta-block
     [:a.btn.btn-home
-     {:href "https://intermineorg.wordpress.com/"
+     {:href @(subscribe [:current-mine/news])
       :target "_blank"}
      "What's new"]
     [latest-news]]
    [:div.col-xs-12.col-sm-5.col-sm-offset-2.cta-block
     [:a.btn.btn-home
-     {:href (or @(subscribe [:current-mine/citation]) "http://intermine.org/publications/")
+     {:href @(subscribe [:current-mine/citation])
       :target "_blank"}
      "Cite us"]
     [:p "Please help us to maintain funding: if we have helped your research please remember to cite us in your publications."]]])

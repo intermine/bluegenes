@@ -42,8 +42,9 @@
    ;;todo - set sane default programmatically or default to first.
    :default-selected-object-type (first (get-in web-properties [:genomicRegionSearch :defaultOrganisms]))
    :regionsearch-example         (get-in web-properties [:genomicRegionSearch :defaultSpans])
+   :news                         (or (get-in web-properties [:project :news]) "https://intermineorg.wordpress.com/")
    :rss                          (get-in web-properties [:project :rss])
-   :citation                     (parse-citation (get-in web-properties [:project :citation]))
+   :citation                     (or (parse-citation (get-in web-properties [:project :citation])) "http://intermine.org/publications/")
    :credits                      (parse-credits (get-in web-properties [:project :credit]))
    :oauth2-providers             (set (get-in web-properties [:oauth2_providers]))
    :idresolver-example           (let [ids (get-in web-properties [:bag :example :identifiers])]

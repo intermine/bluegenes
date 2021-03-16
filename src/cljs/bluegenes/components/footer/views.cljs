@@ -9,8 +9,7 @@
 
 (def defaults
   {:email "info@intermine.org"
-   :twitter "intermineorg"
-   :citation "http://intermine.org/publications/"})
+   :twitter "intermineorg"})
 
 (defn link [href label]
   [:a {:href href :target "_blank"} label])
@@ -23,6 +22,7 @@
         mine-twitter      @(subscribe [:registry/twitter])
         mine-email        @(subscribe [:registry/email])
         mine-citation     @(subscribe [:current-mine/citation])
+        mine-news         @(subscribe [:current-mine/news])
         short-version     (nth (re-matches #"v?([0-9\.]+)-.*" version/release) 1 "dev")
         ;; Note that the following versions can be nil when switching mines.
         intermine-version (some-> @(subscribe [:version]) pretty-version)
@@ -59,7 +59,7 @@
                                  (str "Send " mine-name " an email")
                                  "Send us an email")]
                   :children [icon "mail" 2]}]]
-      [link "https://intermineorg.wordpress.com/"
+      [link mine-news
        [poppable {:data [:span "Read our blog"]
                   :children [icon "blog" 2]}]]
       [link (str "https://twitter.com/" (or mine-twitter (:twitter defaults)))
@@ -71,7 +71,7 @@
        [poppable {:data [:span "Chat with us on Discord"]
                   :children [icon "discord" 2]}]]]
      [:div.section.column
-      [link (or mine-citation (:citation defaults))
+      [link mine-citation
        (str "CITE " (some-> mine-name str/upper-case))]
       [link "http://intermine.org/about-intermine/" "ABOUT US"]
       [link "http://intermine.org/privacy-policy/" "PRIVACY POLICY"]]]))

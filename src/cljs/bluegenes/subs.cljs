@@ -163,6 +163,12 @@
    (get-in db [:mines (get db :current-mine)])))
 
 (reg-sub
+ :current-mine/news
+ :<- [:current-mine]
+ (fn [current-mine]
+   (:news current-mine)))
+
+(reg-sub
  :current-mine/citation
  :<- [:current-mine]
  (fn [current-mine]
