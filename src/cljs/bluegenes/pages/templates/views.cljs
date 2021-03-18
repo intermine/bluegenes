@@ -124,7 +124,8 @@
                                    :on-change (fn [new-constraint]
                                                 (dispatch [:template-chooser/replace-constraint
                                                            idx (assoc con :switched (case switched "ON" "OFF" "ON"))])
-                                                (dispatch [:template-chooser/update-preview]))}])]))))]))
+                                                (dispatch [:template-chooser/update-preview
+                                                           idx (assoc con :switched (case switched "ON" "OFF" "ON"))]))}])]))))]))
 
 (defn tags
   "UI element to visually output all aspect tags into each template card for easy scanning / identification of tags.
