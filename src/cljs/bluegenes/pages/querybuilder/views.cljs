@@ -281,10 +281,14 @@
              {:on-click #(dispatch [:qb/enhance-query-add-summary-views [(name @root-class)]])
               :title (str "Summarise " @root-class " by adding its common attributes")}
              "Summary"])]
-         (when @root-class
+         (if @root-class
            [model-browser
             (assoc @current-model :type-constraints @type-constraints)
-            (name @root-class)])]
+            (name @root-class)]
+           [:div
+            [:hr]
+            [:p.text-muted "Advanced users can use a flexible query interface to construct their own data mining queries. The Query Builder lets you view the data model, apply constraints and select output. You can also export queries to share them with others."]
+            [:p.text-muted "To get started, use the dropdown above to select a data type to create a new query starting at that class."]])]
         [data-browser #(swap! browse-model? not)]))))
 
 (defn dissoc-keywords [m]
