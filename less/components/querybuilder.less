@@ -44,9 +44,26 @@ div.column-container {
         resize: horizontal;
         overflow: auto;
 
+        .model-browser-intro {
+            display: flex;
+            align-items: flex-end;
+        }
+
+        .model-browser-root {
+            display: flex;
+            max-width: 300px;
+            align-items: center;
+
+            .label-button {
+                margin-left: @spacer/2;
+            }
+        }
+
         .browse-button {
-            margin-bottom: 3px;
-            padding-right: 30px;
+            margin-left: @spacer/2;
+            margin-top: 0;
+            padding-left: 5px;
+            padding-right: 15px;
         }
 
         .header-group {
@@ -775,6 +792,7 @@ div.column-container {
     border: 1px solid #c4c4c4;
     border-radius: 3px;
     background-color: white;
+    cursor: pointer;
 
     &:hover {
         background-color: @model-browser-class;

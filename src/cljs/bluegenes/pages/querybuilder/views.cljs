@@ -55,7 +55,11 @@
         preferred (filter-preferred classes)]
     (into [:select.form-control
            {:on-change (fn [e] (dispatch [:qb/set-root-class (oget e :target :value)]))
-            :value root-class}]
+            :value root-class}
+           (when (nil? root-class)
+             [:<>
+              [:option {:value nil} "Select to start query"]
+              [:option {:disabled true :role "separator"} "─────────────────────────"]])]
           (map (fn [[class-kw details :as item]]
                  (if (map-entry? item)
                    [:option {:value class-kw} (:displayName details)]
@@ -186,10 +190,6 @@
               [:li.model-button-container
                [:div.model-button-group
                 [:button.btn.btn-slim
-                 {:on-click #(dispatch [:qb/enhance-query-add-summary-views [root-class]])
-                  :title (str "Summarise " root-class " by adding its common attributes")}
-                 [icon "summary"] "Summary"]
-                [:button.btn.btn-slim
                  {:on-click #(dispatch [:qb/expand-all])
                   :title "Expand the Model Browser tree to show all selected attributes"}
                  [icon "enlarge2"] "Expand"]
@@ -251,7 +251,7 @@
       [:button.btn.btn-raised.btn-sm.browse-button
        {:on-click close!}
        [:svg.icon.icon-arrow-left [:use {:xlinkHref "#icon-arrow-left"}]]
-       "Back to model"]]
+       "Back to query"]]
      [:div.model-browser.class-browser
       (into [:ul]
             (for [root (->> (keys model)
@@ -268,14 +268,19 @@
       (if @browse-model?
         [:div.model-browser-column
          [:h4 "Model Browser"]
-         (when @root-class
-           [:div.input-group
-            [root-class-dropdown]
-            [:span.input-group-btn
-             [:button.btn.btn-raised.btn-sm.browse-button
-              {:on-click #(swap! browse-model? not)}
-              [:svg.icon.icon-tree [:use {:xlinkHref "#icon-tree"}]]
-              "Browse"]]])
+         [:div.model-browser-intro
+          [:p "Select a Data Type or browse "]
+          [:button.btn.btn-raised.btn-sm.browse-button
+           {:on-click #(swap! browse-model? not)}
+           [icon "tree"]
+           "Data Model"]]
+         [:div.model-browser-root
+          [root-class-dropdown]
+          (when @root-class
+            [:button.label-button
+             {:on-click #(dispatch [:qb/enhance-query-add-summary-views [(name @root-class)]])
+              :title (str "Summarise " @root-class " by adding its common attributes")}
+             "Summary"])]
          (when @root-class
            [model-browser
             (assoc @current-model :type-constraints @type-constraints)

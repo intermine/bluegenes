@@ -41,4 +41,4 @@
         :preview nil
         :im-query nil
         :enhance-query {}
-        :root-class :Gene}})
+        :root-class nil}})
