@@ -40,6 +40,7 @@
  (fn [report]
    (->> (:external-links report)
         (vals)
+        (filter :url)
         (sort-by (comp string/lower-case :title)))))
 
 (reg-sub
