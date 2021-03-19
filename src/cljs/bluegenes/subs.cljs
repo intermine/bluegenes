@@ -374,3 +374,10 @@
  :<- [:env]
  (fn [env]
    (:mines env)))
+
+(reg-sub
+ :current-mine-is-env?
+ :<- [:env/mines]
+ :<- [:current-mine-name]
+ (fn [[env-mines current-mine]]
+   (contains? env-mines current-mine)))

@@ -56,19 +56,22 @@
  :<- [:bluegenes.components.tools.subs/installed-tools]
  :<- [:model]
  :<- [:current-model-hier]
- (fn [[tools model-classes model-hier] [_ class]]
-   (->> (cond->> tools
-          (not-empty class)
-          (filter #(suitable-entities model-classes
-                                      model-hier
-                                      {(keyword class) {:class (name class)
-                                                        :format "id"}}
-                                      (:config %))))
-        (map (fn [tool]
-               {:label (get-in tool [:names :human])
-                :value (get-in tool [:names :cljs])
-                :type "tool"}))
-        (sort-by (comp str/lower-case :label)))))
+ :<- [:current-mine-is-env?]
+ (fn [[tools model-classes model-hier env-mine?] [_ class]]
+   ;; Only show visualizations for configured mines (i.e. not registry mines).
+   (when env-mine?
+     (->> (cond->> tools
+            (not-empty class)
+            (filter #(suitable-entities model-classes
+                                        model-hier
+                                        {(keyword class) {:class (name class)
+                                                          :format "id"}}
+                                        (:config %))))
+          (map (fn [tool]
+                 {:label (get-in tool [:names :human])
+                  :value (get-in tool [:names :cljs])
+                  :type "tool"}))
+          (sort-by (comp str/lower-case :label))))))
 
 (reg-sub
  ::available-template-names

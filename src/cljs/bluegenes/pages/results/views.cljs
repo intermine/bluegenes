@@ -185,7 +185,8 @@
   "Result page for a list or query."
   []
   (let [are-there-results? (subscribe [:results/are-there-results?])
-        intent (subscribe [:results/intent])]
+        intent (subscribe [:results/intent])
+        current-mine-is-env? (subscribe [:current-mine-is-env?])]
     (fn []
       [:div.container-fluid.results
        (when @are-there-results?
@@ -205,8 +206,10 @@
              [tables/main [:results :table]]]]
            [:div.col-sm-3.visible-lg-block
             [enrichment/enrich]]]
-          [:div.row
-           [:div.col-sm-12
-            [jump-to]
-            [viz/main]
-            [tools/main]]]])])))
+          ;; Only show visualizations for configured mines (i.e. not registry mines).
+          (when @current-mine-is-env?
+            [:div.row
+             [:div.col-sm-12
+              [jump-to]
+              [viz/main]
+              [tools/main]]])])])))

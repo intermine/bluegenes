@@ -215,7 +215,8 @@
      ;; two events dispatched below (see TODO above).
      {:db (update db :results assoc
                   :query-parts (clean-query-parts (q/group-views-by-class model query)))
-      :dispatch-n [[:fetch-ids-tool-entities]
+      :dispatch-n [(when (contains? (get-in db [:env :mines]) (:current-mine db))
+                     [:fetch-ids-tool-entities])
                    [:enrichment/enrich]]})))
 
 (reg-event-fx
