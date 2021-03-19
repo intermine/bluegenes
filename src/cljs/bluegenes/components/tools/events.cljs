@@ -79,14 +79,10 @@
  ::init-tool
  (fn [{db :db} [_ tool-details tool-id]]
    (let [mine     (get-in db [:mines (:current-mine db)])
-         hier     (get mine :model-hier)
-         service  (get mine :service)
-         entities (get-in db [:tools :entities])]
+         service  (get mine :service)]
      {:load-tool {:tool tool-details
                   :tool-id tool-id
-                  :service service
-                  :hier hier
-                  :entities entities}})))
+                  :service service}})))
 
 (reg-event-db
  ::collapse-tool

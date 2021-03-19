@@ -67,8 +67,11 @@
                                :id objectId}))}})
 
 (defn tool-report [{:keys [collapse id description] tool-cljs-name :value}]
-  (let [tool-details @(subscribe [::subs/a-tool tool-cljs-name])]
-    [tools/tool tool-details
+  (let [tool-details @(subscribe [::subs/a-tool tool-cljs-name])
+        ;; The line below relies on the fact that a report page is always one entity.
+        ;; If there could be multiple, we'd have to use `utils/suitable-entities`.
+        entity @(subscribe [:bluegenes.components.tools.subs/entities])]
+    [tools/tool (assoc tool-details :entity entity)
      :collapse collapse
      :id id
      :description description]))

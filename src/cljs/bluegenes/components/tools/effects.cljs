@@ -114,8 +114,9 @@
 ;; In the latter case, it will merely call the tool's main function.
 (reg-fx
  :load-tool
- (fn [{:keys [tool tool-id service hier entities]}]
+ (fn [{:keys [tool tool-id service]}]
    ;; `entity` is nil if tool is not suitable to be displayed.
-   (when-let [entity (suitable-entities (get-in service [:model :classes]) hier entities (:config tool))]
+   ;; Although this shouldn't be called if that's the case.
+   (when-let [entity (:entity tool)]
      (fetch-script! tool tool-id :service service :entity entity)
      (fetch-styles! tool tool-id))))
