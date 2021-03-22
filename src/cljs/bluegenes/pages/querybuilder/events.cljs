@@ -439,10 +439,10 @@
  :qb/enhance-query-add-constraint
  (fn [{db :db} [_ view-vec]]
    (let [model (get-in db [:mines (:current-mine db) :service :model])
-         type-constraints (filterv :type (get-in db [:qb :im-query :where]))]
+         constraints (get-in db [:qb :im-query :where])]
      {:db (update-in db [:qb :enhance-query] update-in (conj view-vec :constraints)
                      (comp vec conj) {:code nil :op nil :value nil})
-      :dispatch-n [[:cache/fetch-possible-values (join "." view-vec) model type-constraints]
+      :dispatch-n [[:cache/fetch-possible-values (join "." view-vec) model constraints]
                    [:qb/fetch-possible-values view-vec]]})))
 ;:dispatch [:qb/build-im-query]
 

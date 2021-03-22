@@ -241,30 +241,28 @@
      (go
        (dispatch [:cache/store-possible-values mine-kw summary-path (<! sum-chan)])))))
 
-(defn get-active-type-constraints [db]
-  (->> (case (:active-panel db)
-         :templates-panel (get-in db [:components :template-chooser :selected-template :where])
-         nil)
-       (filterv :type)))
+(defn get-active-constraints [db]
+  (case (:active-panel db)
+    :templates-panel (get-in db [:components :template-chooser :selected-template :where])
+    nil))
 
 (reg-event-fx
  :cache/fetch-possible-values
- (fn [{db :db} [_ path model ?type-constraints]]
-   (let [type-constraints (if (false? ?type-constraints)
-                            (get-active-type-constraints db)
-                            ?type-constraints)
-         model (assoc model :type-constraints type-constraints)
+ (fn [{db :db} [_ path model ?constraints]]
+   (let [constraints (if (false? ?constraints)
+                       (get-active-constraints db)
+                       ?constraints)
+         model (assoc model :type-constraints (filterv :type constraints))
          mine (get-in db [:mines (get db :current-mine)])
          split-path (split path ".")
          existing-value (get-in db [:mines (get db :current-mine) :possible-values split-path])]
-
      (if (and (nil? existing-value) (not (im-path/class? model path)))
        {:cache/fetch-possible-values-fx {:service (get mine :service)
                                          :query (merge
                                                  {:from (first split-path)
                                                   :select [path]}
-                                                 (when (seq type-constraints)
-                                                   {:where type-constraints}))
+                                                 (when-let [consts (seq (remove #(= path (:path %)) constraints))]
+                                                   {:where (vec consts)}))
                                          :mine-kw (get mine :id)
                                          :summary-path path}}
        {:dispatch [:cache/store-possible-values (get mine :id) path false]}))))
