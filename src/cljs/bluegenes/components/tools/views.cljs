@@ -61,6 +61,9 @@
            (when description [description-dropdown description])
            [poppable {:data [:span "This is a visualization and may take longer to load. If you click to collapse, it will stay hidden on all pages until you expand it again."]
                       :children [icon "bar-chart"]}]]
+          (when threshold-halted?
+            [:span.report-item-threshold
+             "Results exceed recommended amount for this tool - you can still load it by clicking this header"])
           [:span.report-item-toggle
            (if collapsed?
              [icon "expand-folder"]
