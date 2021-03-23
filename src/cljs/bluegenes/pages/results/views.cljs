@@ -160,7 +160,7 @@
     (let [current-scroll (clj->js ((juxt #(oget % :x) #(oget % :y)) (gdom/getDocumentScroll)))
           target-scroll (if (nil? id)
                           #js [0 0] ; Scroll to top if no ID specified.
-                          (clj->js ((juxt #(- (oget % :x) 135) #(- (oget % :y) 135))
+                          (clj->js ((juxt #(- (oget % :x) 80) #(- (oget % :y) 80))
                                     (gstyle/getRelativePosition elem (gdom/getDocumentScrollElement)))))]
       (doto (gfx/Scroll. (gdom/getDocumentScrollElement)
                          current-scroll
@@ -178,7 +178,7 @@
               "Top"]]
             (for [{:keys [cljs human]} tool-names]
               [:span.jump-item
-               {:on-click #(scroll-into-view! cljs)}
+               {:on-click #(scroll-into-view! (str cljs "-container"))}
                (clean-tool-name human)])))))
 
 (defn main

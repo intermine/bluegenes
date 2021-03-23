@@ -140,6 +140,7 @@ This file provides bluegenes-specific config info. Some further config info is d
     "css": "dist/style.css",
     "js": "dist/bundle.js"
   },
+  "threshold": 100,
   "toolName": {
     "human": "Protein Features",
     "cljs": "proteinFeatures"
@@ -167,6 +168,8 @@ Plurality (i.e. id vs ids) will help to determine which context a tool can appea
 **depends** lets you specify any class names in the InterMine instance's model that your tool depends on. This is useful if you're querying for a non-standard path that is only present in a specific InterMine instance. Any instances which don't have the class name in their model will not attempt to run your tool, and will instead, list it as unsupported.
 
 **files** - one file each for css and js, please. This should be the file bundled/built with all dependencies except/ imjs if needed. CSS is optional if the tool has no styles.
+
+**threshold** is the greatest count of objects your tool will automatically load for. This will be matched against the imEntity with the highest amount of `value` elements. If your tool becomes very resource intensive or its visualization becomes very crowded, when the amount of objects reach a certain threshold, you should set this to an appropriate number. The tool will still be present, although it will stay collapsed with a message explaining to the user that there are too many results and they can click to load the tool. If this property isn't set, BlueGenes will default to 1000 (this means you can set a higher threshold if you wish to override it).
 
 **toolName** is an object with a human-readable name, as well as an internal name. The human name would be what you want to see as a header for this tool (e.g. ProtVista might be called "Protein Features"). The internal `cljs` name needs to be unique among tools and identical to the global JS variable which your tool's bundle initialises.
 
