@@ -43,7 +43,7 @@
                                 collapse))]
         [:div.report-item
          {:class (when collapsed? :report-item-collapsed)
-          :id id}
+          :id (or id (str tool-id "-container"))}
          [:h4.report-item-heading
           {:on-click (fn []
                        ;; Only init the tool if it had been initially collapsed
