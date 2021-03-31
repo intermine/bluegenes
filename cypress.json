@@ -1,6 +1,7 @@
 {
     "baseUrl": "http://localhost:5000",
     "reporter": "junit",
+    "defaultCommandTimeout": 30000,
     "reporterOptions": {
       "mochaFile": "cypress/results/output.xml",
       "toConsole": true
