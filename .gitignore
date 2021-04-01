@@ -8,10 +8,7 @@
 /resources/public/css
 /resources/public/tools/*
 /cypress/screenshots
-/cypress/plugins
 /cypress/videos
-/cypress/support
-/cypress/fixtures
 /cypress/results
 config/**/*.edn
 !config/defaults/config.edn
