@@ -1,4 +1,4 @@
-describe("Registration Tests", function () {
+describe(__filename, function () {
   beforeEach(() => {
     cy.visit("/");
     cy.contains("LOGIN").click();
@@ -6,11 +6,11 @@ describe("Registration Tests", function () {
 
     // Without this wait, cypress could get the element *before* the form
     // changes, then complain that it no longer exists when trying to type.
-    cy.wait(200);
+     cy.wait(200);
 
     cy.server();
     cy.route("POST", "/api/auth/register").as("auth");
-  });
+   })
 
   it("requires email input; expect error", () => {
     cy.get("#email").type("test_user@mail_account.com{enter}");
