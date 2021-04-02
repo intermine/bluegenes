@@ -5,5 +5,14 @@
     "reporterOptions": {
       "mochaFile": "cypress/results/output.xml",
       "toConsole": true
+    },
+    "retries": {
+      "runMode": 2,
+      "openMode": 2
+    },
+    "env": {
+      "BLUEGENES_DEFAULT_MINE_NAME": "biotestmine",
+      "BLUEGENES_DEFAULT_NAMESPACE": "biotestmine",
+      "BLUEGENES_DEFAULT_SERVICE_ROOT": "http://localhost:9999/biotestmine"
     }
 }
