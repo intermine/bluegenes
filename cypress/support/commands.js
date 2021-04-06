@@ -24,7 +24,7 @@
 // -- This is will overwrite an existing command --
 // Cypress.Commands.overwrite("visit", (originalFn, url, options) => { ... })
 Cypress.Commands.add("openLoginDialogue", () => {
-    cy.visit('/flymine');
+    cy.visit('/biotestmine');
     cy.get('.dropdown-toggle').contains('LOGIN').click();
 
 })
