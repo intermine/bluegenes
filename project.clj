@@ -114,6 +114,8 @@
                         "fingerprint-css"]
                "prod" ["do" "build,"
                        ["with-profile" "prod" "run"]]
+               "biotestmine" ["do" "build,"
+                              ["with-profile" "biotestmine" "run"]]
                "deploy" ["with-profile" "+uberjar" "deploy" "clojars"]
                "format" ["cljfmt" "fix"]
                "kaocha" ["with-profile" "kaocha" "run" "-m" "kaocha.runner"]
@@ -155,7 +157,11 @@
              :uberjar {:resource-paths ["config/prod" "config/defaults"]
                        :prep-tasks ["build" "compile"]
                        :aot :all}
-             :java9 {:jvm-opts ["--add-modules" "java.xml.bind"]}}
+             :java9 {:jvm-opts ["--add-modules" "java.xml.bind"]}
+             :biotestmine {;; We'd prefer to have resource path config/defaults here, but for some reason that makes the envvars below not apply.
+                           :env {:bluegenes-default-service-root "http://localhost:9999/biotestmine"
+                                 :bluegenes-default-mine-name "Biotestmine"
+                                 :bluegenes-default-namespace "biotestmine"}}}
 
   :cljsbuild {:builds {:dev {:source-paths ["src/cljs"]
                              :figwheel {:on-jsload "bluegenes.core/mount-root"}

@@ -83,9 +83,9 @@ Checklist:
 - You might have to install [additional cypress dependencies](https://docs.cypress.io/guides/guides/continuous-integration.html#Dependencies) to be able to run Cypress.
 - The integration tests are designed to be run against [Biotestmine](https://github.com/intermine/biotestmine). The easiest way to achieve this is by using [intermine_boot](https://github.com/intermine/intermine_boot) to start one locally.
 
-Start BlueGenes by using the following command, (update the address if your biotestmine runs on a different machine or port) to ensure that BlueGenes connects to the Biotestmine instance.
+Start BlueGenes connected to your local Biotestmine by using the command below. If your local Biotestmine runs on a different address than http://localhost:9999/biotestmine, you can specify it with the `BLUEGENES_DEFAULT_SERVICE_ROOT` envvar.
 
-    BLUEGENES_DEFAULT_SERVICE_ROOT="http://localhost:9999/biotestmine" lein prod
+    lein biotestmine
 
 Run all the Cypress tests:
 
