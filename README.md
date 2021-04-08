@@ -13,7 +13,7 @@ BlueGenes is designed to make searching and analysing genomic data easy. It's po
 
 ### Screenshots
 
-![BlueGenes screenshots](http://i.imgur.com/zwp0uxM.jpg)
+![BlueGenes screenshots](https://user-images.githubusercontent.com/3865590/114040064-2c814200-987b-11eb-8970-cb736eaede79.png)
 
 
 ## Try Online
