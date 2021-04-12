@@ -79,7 +79,7 @@ jobs:
           until $(curl --output /dev/null --silent --head --fail http://localhost:5000); do
               sleep 10
           done
-    - run: npx cypress run
+    - run: npm test
     - store_test_results:
         path: cypress/results
     - store_artifacts:
