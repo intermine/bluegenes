@@ -4,7 +4,7 @@
       :out
       clojure.string/trim))
 
-(defproject org.intermine/bluegenes "0.10.0"
+(defproject org.intermine/bluegenes "1.0.0-SNAPSHOT"
   :licence "LGPL-2.1-only"
   :description "Bluegenes is a Clojure-powered user interface for InterMine, the biological data warehouse"
   :url "http://www.intermine.org"
@@ -116,6 +116,7 @@
                        ["with-profile" "prod" "run"]]
                "biotestmine" ["do" "build,"
                               ["with-profile" "biotestmine" "run"]]
+               "uberjar" ["with-profile" "prod" "uberjar"]
                "deploy" ["with-profile" "+uberjar" "deploy" "clojars"]
                "format" ["cljfmt" "fix"]
                "kaocha" ["with-profile" "kaocha" "run" "-m" "kaocha.runner"]
@@ -146,15 +147,15 @@
                                   [day8.re-frame/tracing "0.5.3"]
                                   [figwheel-sidecar "0.5.19"]
                                   [cider/piggieback "0.4.2"]]
-                   :resource-paths ["config/dev" "tools" "config/defaults"]
+                   :resource-paths ^:replace ["config/dev" "config/defaults" "resources"]
                    :plugins [[lein-figwheel "0.5.19"]
                              [lein-doo "0.1.8"]]
                    :env {:development true}}
              :kaocha {:dependencies [[lambdaisland/kaocha "1.0.700"]
                                      [lambdaisland/kaocha-cljs "0.0-71"]]}
              :repl {:source-paths ["dev"]}
-             :prod {:resource-paths ["config/prod" "tools" "config/defaults"]}
-             :uberjar {:resource-paths ["config/prod" "config/defaults"]
+             :prod {:resource-paths ^:replace ["config/prod" "config/defaults" "resources"]}
+             :uberjar {:resource-paths ^:replace ["config/defaults" "resources"]
                        :prep-tasks ["build" "compile"]
                        :aot :all}
              :java9 {:jvm-opts ["--add-modules" "java.xml.bind"]}
