@@ -35,7 +35,7 @@
                  ; HTTP
                  [clj-http "3.10.0"]
                  [cljs-http "0.1.46"]
-                 [compojure "1.6.1"]
+                 [compojure "1.6.2"]
                  [ring "1.8.2"]
                  [ring/ring-defaults "0.3.2"]
                  [ring/ring-json "0.5.0" :exclusions [cheshire.core]]
