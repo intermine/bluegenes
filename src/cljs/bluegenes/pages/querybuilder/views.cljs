@@ -776,7 +776,7 @@
     (fn []
       [:div
        [:p "Paste your InterMine PathQuery XML here."
-        [:a {:href "https://intermine.readthedocs.io/en/latest/api/pathquery/"
+        [:a {:href "http://intermine.org/im-docs/docs/api/pathquery/"
              :target "_blank"
              :title "More information on the PathQuery API"}
          [:svg.icon.icon-external [:use {:xlinkHref "#icon-external"}]]]]

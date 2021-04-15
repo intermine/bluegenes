@@ -280,7 +280,7 @@
 (defn enrichment-help-text []
   [poppable {:data "External link to enrichment documentation."
              :children [:a {:target "_blank"
-                            :href "http://intermine.readthedocs.io/en/latest/embedding/list-widgets/enrichment-widgets/"}
+                            :href "http://intermine.org/im-docs/docs/webapp/lists/list-widgets/enrichment-widgets/"}
                         [icon "info"]]}])
 
 (defn enrich []

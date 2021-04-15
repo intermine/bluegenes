@@ -186,7 +186,7 @@ For security reasons, the `config.edn` file used to execute the jar can be locat
 
 ### Launching your uberjar with InterMine
 
-InterMine 2.0 includes a [Gradle target to launch a BlueGenes instance](https://intermine.readthedocs.io/en/latest/system-requirements/software/gradle/index.html#deploy-blue-genes).
+InterMine 2.0 includes a [Gradle target to launch a BlueGenes instance](http://intermine.org/im-docs/docs/system-requirements/software/gradle/index#trying-out-bluegenes).
 
 By default, it launches the latest BlueGenes release from Clojars. If you want to update the version of the JAR being launched, you'll need to create an uberjar (see above).
 
@@ -224,4 +224,4 @@ The release process is a combination of the above commands, with some additional
 3. Verify that the InterMine web services ("InterMines") you are using are running the latest InterMine release. You will find a list of InterMines and their current version under the key `intermine_version` in the [InterMine registry](http://registry.intermine.org/service/instances). The changelog for InterMine release versions is [available on GitHub](https://github.com/intermine/intermine/releases).
 4. Remember that you can always change which InterMine you're using in BlueGenes by using the cog (top right).
 
-If none of these tips help you, create an [issue](https://github.com/intermine/bluegenes/issues) or [contact us (via chat, email, mailing list, etc.)](http://intermine.readthedocs.io/en/latest/about/contact-us/).
+If none of these tips help you, create an [issue](https://github.com/intermine/bluegenes/issues) or [contact us (via chat, email, mailing list, etc.)](http://intermine.org/im-docs/docs/about/contact-us).
