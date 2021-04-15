@@ -4,7 +4,7 @@
       :out
       clojure.string/trim))
 
-(defproject org.intermine/bluegenes "1.0.0-SNAPSHOT"
+(defproject org.intermine/bluegenes "1.0.0"
   :licence "LGPL-2.1-only"
   :description "Bluegenes is a Clojure-powered user interface for InterMine, the biological data warehouse"
   :url "http://www.intermine.org"
