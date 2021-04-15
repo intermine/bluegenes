@@ -37,7 +37,6 @@
                  [compojure "1.6.2"]
                  [ring "1.8.2"]
                  [ring/ring-defaults "0.3.2"]
-                 [ring/ring-json "0.5.0" :exclusions [cheshire.core]]
                  [cheshire "5.10.0"]
                  [metosin/ring-http-response "0.9.1"]
                  [metosin/muuntaja "0.6.7"]
@@ -67,9 +66,9 @@
                  [cljsjs/vega-embed "6.0.0-0"]
 
                  ; Intermine Assets
-                 [org.intermine/im-tables "0.13.0"]
                  [org.intermine/imcljs "1.4.3"]
-                 [org.intermine/bluegenes-tool-store "0.2.0"]]
+                 [org.intermine/im-tables "0.13.0"]
+                 [org.intermine/bluegenes-tool-store "0.2.2"]]
 
   :deploy-repositories {"clojars" {:sign-releases false}}
   :codox {:language :clojurescript}
