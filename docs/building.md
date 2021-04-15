@@ -138,7 +138,9 @@ For an example of running BlueGenes in docker for a production environment, star
 
 Once you have added all your environment variables, start the docker container.
 
-    docker run -p 5000:5000 --env-file bluegenes.env -d --restart unless-stopped bluegenes
+    docker run -p 5000:5000 --env-file bluegenes.env -v "$(pwd)"/tools:/tools -d --restart unless-stopped bluegenes
+
+This will create a `tools` folder in the current directory mounted as a docker bind mount. This is so your tools can be persisted when changing BlueGenes versions and to facilitate manual modification of tools.
 
 ### Dokku
 
