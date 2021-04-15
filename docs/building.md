@@ -183,6 +183,10 @@ Then, to start the application, execute the jar and pass in a [`config.edn` file
 
 For security reasons, the `config.edn` file used to execute the jar can be located anywhere, including your home directory.
 
+You can alternatively bundle `config/prod/config.edn` into the uberjar by including the prod profile:
+
+    lein with-profile prod uberjar
+
 
 ### Launching your uberjar with InterMine
 

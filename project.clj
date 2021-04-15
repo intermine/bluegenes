@@ -103,7 +103,6 @@
                        ["with-profile" "prod" "run"]]
                "biotestmine" ["do" "build,"
                               ["with-profile" "biotestmine" "run"]]
-               "uberjar" ["with-profile" "prod" "uberjar"]
                "deploy" ["with-profile" "+uberjar" "deploy" "clojars"]
                "format" ["cljfmt" "fix"]
                "kaocha" ["with-profile" "kaocha" "run" "-m" "kaocha.runner"]
