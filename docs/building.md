@@ -212,9 +212,10 @@ The release process is a combination of the above commands, with some additional
 5. Push a new docker image to dockerhub.
     1. `lein uberjar`
     2. `docker build -t bluegenes .`
-    3. `docker tag bluegenes intermine/bluegenes:latest`
-    4. `docker tag bluegenes intermine/bluegenes:1.0.0` (remember to use your correct version number)
-    5. `docker push intermine/bluegenes`
+    3. `docker tag bluegenes intermine/bluegenes:1.0.0` (remember to use your correct version number)
+    4. `docker tag bluegenes intermine/bluegenes:latest`
+    5. `docker push intermine/bluegenes:1.0.0`
+    6. `docker push intermine/bluegenes:latest`
 6. Deploy the latest release to dokku with `git push dokku dev:master`.
 
 # Troubleshooting
