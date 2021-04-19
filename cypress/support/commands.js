@@ -26,5 +26,10 @@
 Cypress.Commands.add("openLoginDialogue", () => {
     cy.visit('/biotestmine');
     cy.get('.dropdown-toggle').contains('LOGIN').click();
+})
 
+Cypress.Commands.add("openRegisterDialogue", () => {
+    cy.visit('/biotestmine');
+    cy.get('.dropdown-toggle').contains('LOGIN').click();
+    cy.get('a.btn-block').contains('Create new account').click();
 })
