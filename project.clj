@@ -4,7 +4,7 @@
       :out
       clojure.string/trim))
 
-(defproject org.intermine/bluegenes "0.10.0"
+(defproject org.intermine/bluegenes "1.0.0"
   :licence "LGPL-2.1-only"
   :description "Bluegenes is a Clojure-powered user interface for InterMine, the biological data warehouse"
   :url "http://www.intermine.org"
@@ -26,7 +26,6 @@
                  [hiccup "1.0.5"]
                  [prismatic/dommy "1.1.0"]
                  [metosin/reitit "0.5.12"]
-                 [servant "0.1.5"]
                  [json-html "0.4.7"]
                  [markdown-to-hiccup "0.6.2"]
                  [cljsjs/react-day-picker "7.3.0-1"]
@@ -35,10 +34,9 @@
                  ; HTTP
                  [clj-http "3.10.0"]
                  [cljs-http "0.1.46"]
-                 [compojure "1.6.1"]
+                 [compojure "1.6.2"]
                  [ring "1.8.2"]
                  [ring/ring-defaults "0.3.2"]
-                 [ring/ring-json "0.5.0" :exclusions [cheshire.core]]
                  [cheshire "5.10.0"]
                  [metosin/ring-http-response "0.9.1"]
                  [metosin/muuntaja "0.6.7"]
@@ -48,30 +46,19 @@
 
                  ; Utility libraries
                  [com.cognitect/transit-cljs "0.8.256"]
-                 [com.lucasbradstreet/cljs-uuid-utils "1.0.2"]
                  [com.andrewmcveigh/cljs-time "0.5.2"]
-                 [com.taoensso/carmine "2.19.1"]
                  [inflections "0.13.2"]
-                 [fipp "0.6.22"]
                  [binaryage/oops "0.7.0"]
                  [inflections "0.13.2"]
                  [cljsjs/google-analytics "2017.09.21-0"]
                  [day8.re-frame/test "0.1.5"]
                  [cljs-bean "1.5.0"]
                  [org.clojure/data.xml "0.2.0-alpha6"]
+                 [lambdaisland/uri "1.2.1"]
 
                  ; Logging
                  [com.taoensso/timbre "4.10.0"]
                  [com.fzakaria/slf4j-timbre "0.3.19"]
-
-                 ; Security
-                 [buddy/buddy-auth "2.2.0"]
-                 [buddy/buddy-sign "3.1.0"]
-                 [buddy/buddy-hashers "1.4.0"]
-
-                 [com.cemerick/friend "0.2.3"]
-                 [clojusc/friend-oauth2 "0.2.0"]
-                 [lambdaisland/uri "1.2.1"]
 
                  ; Graphs
                  [cljsjs/vega "5.9.0-0"]
@@ -79,9 +66,9 @@
                  [cljsjs/vega-embed "6.0.0-0"]
 
                  ; Intermine Assets
-                 [org.intermine/im-tables "0.13.0"]
                  [org.intermine/imcljs "1.4.3"]
-                 [org.intermine/bluegenes-tool-store "0.2.0"]]
+                 [org.intermine/im-tables "0.13.0"]
+                 [org.intermine/bluegenes-tool-store "0.2.2"]]
 
   :deploy-repositories {"clojars" {:sign-releases false}}
   :codox {:language :clojurescript}
@@ -146,15 +133,15 @@
                                   [day8.re-frame/tracing "0.5.3"]
                                   [figwheel-sidecar "0.5.19"]
                                   [cider/piggieback "0.4.2"]]
-                   :resource-paths ["config/dev" "tools" "config/defaults"]
+                   :resource-paths ^:replace ["config/dev" "config/defaults" "resources"]
                    :plugins [[lein-figwheel "0.5.19"]
                              [lein-doo "0.1.8"]]
                    :env {:development true}}
              :kaocha {:dependencies [[lambdaisland/kaocha "1.0.700"]
                                      [lambdaisland/kaocha-cljs "0.0-71"]]}
              :repl {:source-paths ["dev"]}
-             :prod {:resource-paths ["config/prod" "tools" "config/defaults"]}
-             :uberjar {:resource-paths ["config/prod" "config/defaults"]
+             :prod {:resource-paths ^:replace ["config/prod" "config/defaults" "resources"]}
+             :uberjar {:resource-paths ^:replace ["config/defaults" "resources"]
                        :prep-tasks ["build" "compile"]
                        :aot :all}
              :java9 {:jvm-opts ["--add-modules" "java.xml.bind"]}

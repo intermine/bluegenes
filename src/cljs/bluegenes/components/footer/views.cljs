@@ -23,7 +23,7 @@
         mine-email        @(subscribe [:registry/email])
         mine-citation     @(subscribe [:current-mine/citation])
         mine-news         @(subscribe [:current-mine/news])
-        short-version     (nth (re-matches #"v?([0-9\.]+)-.*" version/release) 1 "dev")
+        short-version     (nth (re-matches #"v?([0-9\.]+)(?:-.*)?" version/release) 1 "dev")
         ;; Note that the following versions can be nil when switching mines.
         intermine-version (some-> @(subscribe [:version]) pretty-version)
         api-version       @(subscribe [:api-version])

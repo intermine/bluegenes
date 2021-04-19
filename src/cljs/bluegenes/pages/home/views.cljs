@@ -93,13 +93,13 @@
     [:p "The " [:strong "Query Builder"] " allows you to select and combine data classes, apply filters and configure the result table.  For a full set of pre-built searches, see the " [:a {:href (route/href ::route/templates)} "Templates"] "."]]
    [:div.col-xs-12.col-sm-5.col-sm-offset-2.cta-block
     [:a.btn.btn-home
-     {:href "https://flymine.readthedocs.io/en/latest/"
+     {:href "http://intermine.org/intermine-user-docs/"
       :target "_blank"}
      "Tutorials"]
     [:p "Learn more about InterMine and how to search and analyse the data with a comprehensive set of " [:strong "written and video tutorials"] ".  Please " [:a {:on-click #(dispatch [:home/scroll-to-feedback]) :role "button"} "contact us"] " if you can’t find what you need!"]]
    [:div.col-xs-12.col-sm-5.cta-block
     [:a.btn.btn-home
-     {:href "https://intermine.readthedocs.io/en/latest/web-services/"
+     {:href "http://intermine.org/im-docs/docs/web-services/index"
       :target "_blank"}
      "Web services"]
     [:p "The " [:strong "InterMine API"] " has language bindings for Perl, Python, Ruby and Java, allowing you to easily run queries directly from scripts.  All queries available in the user interface can also be run through the API with results being returned in a number of formats."]]

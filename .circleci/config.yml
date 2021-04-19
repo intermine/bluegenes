@@ -5,7 +5,7 @@ executors:
     - image: 'circleci/clojure:openjdk-8-lein-2.9.1-node-browsers'
   intermine_exec:
     machine:
-      image: ubuntu-1604:201903-01
+      image: ubuntu-2004:202010-01
     environment:
       BLUEGENES_DEFAULT_SERVICE_ROOT: "http://localhost:9999/biotestmine"
       BLUEGENES_DEFAULT_MINE_NAME: Biotestmine
@@ -48,7 +48,7 @@ jobs:
     executor: intermine_exec
     steps:
     - run: pyenv versions
-    - run: pyenv global 3.6.5
+    - run: pyenv global 3.8.5
     - run: pip3 install intermine-boot
     - run: intermine_boot start local --build-im --im-branch bluegenes
     - checkout

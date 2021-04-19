@@ -138,7 +138,9 @@ For an example of running BlueGenes in docker for a production environment, star
 
 Once you have added all your environment variables, start the docker container.
 
-    docker run -p 5000:5000 --env-file bluegenes.env -d --restart unless-stopped bluegenes
+    docker run -p 5000:5000 --env-file bluegenes.env -v "$(pwd)"/tools:/tools -d --restart unless-stopped bluegenes
+
+This will create a `tools` folder in the current directory mounted as a docker bind mount. This is so your tools can be persisted when changing BlueGenes versions and to facilitate manual modification of tools.
 
 ### Dokku
 
@@ -183,10 +185,14 @@ Then, to start the application, execute the jar and pass in a [`config.edn` file
 
 For security reasons, the `config.edn` file used to execute the jar can be located anywhere, including your home directory.
 
+You can alternatively bundle `config/prod/config.edn` into the uberjar by including the prod profile:
+
+    lein with-profile prod uberjar
+
 
 ### Launching your uberjar with InterMine
 
-InterMine 2.0 includes a [Gradle target to launch a BlueGenes instance](https://intermine.readthedocs.io/en/latest/system-requirements/software/gradle/index.html#deploy-blue-genes).
+InterMine 2.0 includes a [Gradle target to launch a BlueGenes instance](http://intermine.org/im-docs/docs/system-requirements/software/gradle/index#trying-out-bluegenes).
 
 By default, it launches the latest BlueGenes release from Clojars. If you want to update the version of the JAR being launched, you'll need to create an uberjar (see above).
 
@@ -212,9 +218,10 @@ The release process is a combination of the above commands, with some additional
 5. Push a new docker image to dockerhub.
     1. `lein uberjar`
     2. `docker build -t bluegenes .`
-    3. `docker tag bluegenes intermine/bluegenes:latest`
-    4. `docker tag bluegenes intermine/bluegenes:1.0.0` (remember to use your correct version number)
-    5. `docker push intermine/bluegenes`
+    3. `docker tag bluegenes intermine/bluegenes:1.0.0` (remember to use your correct version number)
+    4. `docker tag bluegenes intermine/bluegenes:latest`
+    5. `docker push intermine/bluegenes:1.0.0`
+    6. `docker push intermine/bluegenes:latest`
 6. Deploy the latest release to dokku with `git push dokku dev:master`.
 
 # Troubleshooting
@@ -224,4 +231,4 @@ The release process is a combination of the above commands, with some additional
 3. Verify that the InterMine web services ("InterMines") you are using are running the latest InterMine release. You will find a list of InterMines and their current version under the key `intermine_version` in the [InterMine registry](http://registry.intermine.org/service/instances). The changelog for InterMine release versions is [available on GitHub](https://github.com/intermine/intermine/releases).
 4. Remember that you can always change which InterMine you're using in BlueGenes by using the cog (top right).
 
-If none of these tips help you, create an [issue](https://github.com/intermine/bluegenes/issues) or [contact us (via chat, email, mailing list, etc.)](http://intermine.readthedocs.io/en/latest/about/contact-us/).
+If none of these tips help you, create an [issue](https://github.com/intermine/bluegenes/issues) or [contact us (via chat, email, mailing list, etc.)](http://intermine.org/im-docs/docs/about/contact-us).

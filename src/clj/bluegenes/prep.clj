@@ -31,6 +31,7 @@
 ;; build process.
 (defn fingerprint-css []
   (let [fingerprint (utils/read-bundle-hash)]
+    ;; Assertion can also fail if you don't include "resources" in :resource-paths.
     (assert (not= fingerprint "dev") "fingerprint-css should only be run for a production build")
     (doseq [css-file [bluegenes-css im-tables-css]]
       (let [css-file (resource-path css-file)]

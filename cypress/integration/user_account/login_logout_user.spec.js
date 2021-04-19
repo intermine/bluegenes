@@ -23,7 +23,7 @@ describe(__filename, function() {
 			.contains('Login')
 		 	.click();
     cy.get(".logon.dropdown").click();
-    cy.get(".logon.dropdown").contains('Logout').click();
+    cy.get(".logon.dropdown").contains('Logout').click({ force: true });
 	cy.get('.main-nav').should('to.contain', 'LOGIN');
 	});
 
