@@ -48,7 +48,7 @@ jobs:
     executor: intermine_exec
     steps:
     - run: pyenv versions
-    - run: pyenv global 3.6.5
+    - run: pyenv global 3.8.5
     - run: pip3 install intermine-boot
     - run: intermine_boot start local --build-im --im-branch bluegenes
     - checkout
