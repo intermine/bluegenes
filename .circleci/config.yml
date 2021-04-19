@@ -59,6 +59,8 @@ jobs:
         - v1-deps-{{ .Branch }}
         - v1-deps
     - run: npm ci
+    - run: sudo apt-get install libgconf-2-4
+    - run: node -v
     - run: npx cypress verify
     - save_cache:
         key: v1-deps-{{ .Branch }}-{{ checksum "package.json" }}
