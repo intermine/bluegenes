@@ -47,6 +47,8 @@ jobs:
   setup_intermine:
     executor: intermine_exec
     steps:
+    - run: sudo apt-get update -y
+    - run: sudo apt-get install -y libgconf-2-4
     - run: pyenv versions
     - run: pyenv global 3.8.5
     - run: pip3 install intermine-boot
@@ -59,6 +61,7 @@ jobs:
         - v1-deps-{{ .Branch }}
         - v1-deps
     - run: npm ci
+    - run: node -v
     - run: npx cypress verify
     - save_cache:
         key: v1-deps-{{ .Branch }}-{{ checksum "package.json" }}
@@ -79,7 +82,7 @@ jobs:
           until $(curl --output /dev/null --silent --head --fail http://localhost:5000); do
               sleep 10
           done
-    - run: npx cypress run
+    - run: npm test
     - store_test_results:
         path: cypress/results
     - store_artifacts:
