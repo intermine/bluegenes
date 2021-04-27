@@ -2,13 +2,15 @@
   (:require [compojure.core :as compojure :refer [GET defroutes context]]
             [compojure.route :refer [resources]]
             [ring.util.response :as response :refer [response]]
+            [ring.util.http-response :refer [found]]
             [bluegenes.ws.auth :as auth]
             [bluegenes.ws.ids :as ids]
             [bluegenes.ws.rss :as rss]
             [bluegenes.ws.lookup :as lookup]
             [bluegenes.index :refer [index]]
             [config.core :refer [env]]
-            [bluegenes.utils :refer [env->mines]]))
+            [bluegenes.utils :refer [env->mines]]
+            [clj-http.client :as client]))
 
 (defn with-init
   "One of BlueGenes' web service could have added some data we want passed on
@@ -22,11 +24,29 @@
       (response/charset "utf-8")
       (assoc :session (dissoc session :init))))
 
+(defn get-favicon
+  "Get a favicon for when one isn't configured."
+  []
+  (let [mine-favicon (str (:bluegenes-default-service-root env) "/model/images/favicon.ico")]
+    (if (-> (client/get mine-favicon)
+            (get-in [:headers "Content-Type"])
+            (= "image/x-icon"))
+      (found mine-favicon)
+      (found "/favicon-fallback.ico"))))
+
 ; Define the top level URL routes for the server
 (def routes
-  (compojure/let-routes [mines (env->mines env)]
+  (compojure/let-routes [mines (env->mines env)
+                         favicon* (delay (get-favicon))]
     ;;serve compiled files, i.e. js, css, from the resources folder
     (resources "/")
+
+    ;; The favicon is chosen from the following order of priority:
+    ;; 1. `public/favicon.ico` being present as a resource (admin will have to add this).
+    ;; 2. `/<mine>/model/images/favicon.ico` being present on the default mine.
+    ;; 3. `public/favicon-fallback.ico` which is always present.
+    ;; Hence it follows that the following route won't be matched if [1] is true.
+    (GET "/favicon.ico" [] @favicon*)
 
     (GET "/version" [] (response {:version "0.1.0"}))
 

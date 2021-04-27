@@ -87,7 +87,8 @@
             "null")
           ";")]
   ; Javascript:
-    [:link {:rel "shortcut icon" :href "https://raw.githubusercontent.com/intermine/design-materials/f5f00be4/logos/intermine/fav32x32.png" :type "image/png"}]
+    ;; This favicon is dynamically served; see routes.clj.
+    [:link {:href "/favicon.ico" :type "image/x-icon" :rel "shortcut icon"}]
     [:script {:src "https://cdn.intermine.org/js/intermine/imjs/latest/im.min.js"}]
     [:script {:crossorigin "anonymous"
               :integrity "sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s="
