@@ -113,6 +113,12 @@
    {:db (assoc-in db [:results :enrichment-settings setting] value)
     :dispatch [:enrichment/run-all-enrichment-queries]}))
 
+(reg-event-fx
+ :enrichment/update-widget-filter
+ (fn [{db :db} [_ widget-kw value]]
+   {:db (assoc-in db [:results :widget-filters widget-kw] value)
+    :dispatch [:enrichment/run-one-enrichment-query widget-kw]}))
+
 (defn widgets-to-map
   "When the web service gives us a vector, we make it into a map for easy lookup"
   [widgets]
@@ -128,32 +134,46 @@
                 (fn [[_ widget]] (contains? (set (:targets widget)) (name (:type classname)))) widgets))
       widgets)))
 
-(defn build-enrichment-query [selection widget-name settings]
+(defn build-enrichment-query
   "default enrichment query structure"
+  [selection widget-name settings filters]
   [:enrichment/run
    (merge
     selection
     {:maxp 0.05
      :widget widget-name
      :correction "Holm-Bonferroni"}
-    settings)])
+    settings
+    (when-let [filter-value (get filters (keyword widget-name))]
+      {:filter filter-value}))])
 
-(defn build-all-enrichment-queries [selection suitable-widgets settings]
+(defn build-all-enrichment-queries
   "format all available widget types into queries"
+  [selection suitable-widgets settings filters]
   (reduce (fn [new-vec [_ vals]]
-            (conj new-vec (build-enrichment-query selection (:name vals) settings))) [] suitable-widgets))
+            (conj new-vec (build-enrichment-query selection (:name vals) settings filters))) [] suitable-widgets))
 
 (reg-event-fx
  :enrichment/run-all-enrichment-queries
  (fn [{db :db} [_]]
    (let [selection {:ids (get-in db [:results :ids-to-enrich])}
          settings (get-in db [:results :enrichment-settings])
+         filters (get-in db [:results :widget-filters])
          widgets (get-in db [:assets :widgets (:current-mine db)])
          enrichment-column (get-in db [:results :active-enrichment-column])
          suitable-widgets (get-suitable-widgets widgets enrichment-column)
-         queries (build-all-enrichment-queries selection suitable-widgets settings)]
+         queries (build-all-enrichment-queries selection suitable-widgets settings filters)]
      {:db (assoc-in db [:results :active-widgets] suitable-widgets)
       :dispatch-n queries})))
+
+(reg-event-fx
+ :enrichment/run-one-enrichment-query
+ (fn [{db :db} [_ widget-kw]]
+   (let [selection {:ids (get-in db [:results :ids-to-enrich])}
+         settings (get-in db [:results :enrichment-settings])
+         filters (get-in db [:results :widget-filters])
+         query (build-enrichment-query selection (name widget-kw) settings filters)]
+     {:dispatch query})))
 
 (defn service [db mine-kw]
   (get-in db [:mines mine-kw :service]))

@@ -6,16 +6,11 @@
             [bluegenes.pages.results.subs]
             [imcljs.path :as path]
             [bluegenes.components.bootstrap :refer [popover poppable tooltip]]
-            [clojure.string :refer [split]]
+            [clojure.string :as str]
             [oops.core :refer [oget ocall]]
             [bluegenes.components.icons :refer [icon]]
             [bluegenes.components.ui.list_dropdown :refer [list-dropdown]]
             [goog.string :as gstring]))
-
-;;==============================TODO============================
-;; 1. some enrichment widgets have filters! Add support for this
-;;==============================================================
-
 
 (def css-transition-group
   (reagent/adapt-react-class js/ReactTransitionGroup.CSSTransitionGroup))
@@ -27,7 +22,7 @@
       (into [:tbody]
             (map-indexed (fn [idx header]
                            [:tr.popover-contents.sidebar-popover
-                            [:td.title (last (clojure.string/split header " > "))]
+                            [:td.title (last (str/split header " > "))]
                             [:td.value (get (first results) idx)]]) columnHeaders))]]))
 
 (defn p-val-tooltip []
@@ -152,6 +147,17 @@
             [icon (if @is-collapsed*
                     "expand-folder"
                     "collapse-folder")]]]]
+
+         (when (and (:filters details) (not @is-collapsed*))
+           (let [{:keys [filterSelectedValue filters filterLabel]} details
+                 filters (str/split filters #",")]
+             [:label.enrichment-filter (str filterLabel ":")
+              [:div
+               (into [:select.form-control.input-sm
+                      {:on-change #(dispatch [:enrichment/update-widget-filter widget-name (oget % "target" "value")])
+                       :value filterSelectedValue}]
+                     (for [option filters]
+                       [:option option]))]]))
 
          (when-not @is-collapsed*
            (into [:ul.enrichment-list
