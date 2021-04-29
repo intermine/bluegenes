@@ -41,3 +41,8 @@
  :enrichment/a-summary-values
  (fn [db [_ identifier]]
    (get-in db [:results :summary-values identifier])))
+
+(reg-sub
+ :enrichment/background-population
+ (fn [db]
+   (get-in db [:results :enrichment-settings :population])))

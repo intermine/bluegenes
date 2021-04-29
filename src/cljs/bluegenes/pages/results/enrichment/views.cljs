@@ -9,6 +9,7 @@
             [clojure.string :refer [split]]
             [oops.core :refer [oget ocall]]
             [bluegenes.components.icons :refer [icon]]
+            [bluegenes.components.ui.list_dropdown :refer [list-dropdown]]
             [goog.string :as gstring]))
 
 ;;==============================TODO============================
@@ -222,6 +223,21 @@
      [:option "Benjamini Hochberg"]
      [:option "Bonferroni"]
      [:option "None"]]]
+
+   [:div.population
+    [:label "Background population"]
+    (let [pop-value @(subscribe [:enrichment/background-population])]
+      [:div.population-controls
+       [list-dropdown
+        :value pop-value
+        :lists @(subscribe [:current-lists])
+        :restrict-type (:type @(subscribe [:enrichment/active-enrichment-column]))
+        :on-change #(dispatch [:enrichment/update-enrichment-setting :population %])]
+       (when pop-value
+         [:button.btn.btn-link.population-clear
+          {:title "Reset background population"
+           :on-click #(dispatch [:enrichment/update-enrichment-setting :population nil])}
+          [icon "close"]])])]
    [text-filter]])
 
 (defn path-to-last-two-classes [model this-path]

@@ -100,6 +100,22 @@
             max-width: 7em;
         }
 
+        .population {
+            margin-top: @spacer/2;
+            flex-basis: 100%;
+            max-width: ~"calc(100% - 35px)";
+
+            &-controls {
+                display: flex;
+                align-items: baseline;
+            }
+
+            &-clear {
+                padding: @spacer/2 @spacer/4;
+                margin: 0;
+            }
+        }
+
         .text-filter {
             margin-top: @spacer/2;
             flex-grow: 1;
