@@ -1,20 +1,10 @@
 (ns bluegenes.pages.results.enrichment.events
-  (:require-macros [cljs.core.async.macros :refer [go go-loop]])
-  (:require [re-frame.core :refer [reg-event-db reg-event-fx reg-fx dispatch subscribe]]
-            [cljs.core.async :refer [put! chan <! >! timeout close!]]
+  (:require [re-frame.core :refer [reg-event-db reg-event-fx]]
             [clojure.string :as string]
             [imcljs.fetch :as fetch]
             [imcljs.path :as path]
-            [imcljs.query :as q]
-            [clojure.spec.alpha :as s]
-            [clojure.set :refer [intersection]]
-            [bluegenes.effects :as fx]
-            [day8.re-frame.http-fx]
-            [ajax.core :as ajax]
-            [bluegenes.interceptors :refer [clear-tooltips]]
-            [dommy.core :refer-macros [sel sel1]]
-    ;[bluegenes.pages.saveddata.events]
-            [bluegenes.interceptors :refer [abort-spec]]))
+            [clojure.set :as set]
+            [bluegenes.pages.results.events :refer [clear-widget-options]]))
 
 (defn build-matches-query [query path-constraint identifier]
   (update-in (js->clj (.parse js/JSON query) :keywordize-keys true) [:where]
@@ -53,7 +43,7 @@
                                        (conj x (keyword (first (:targets y)))))
                                      #{}
                                      (filter #(= "enrichment" (:widgetType %)) widgets))
-        enrichable-roots (intersection possible-enrichments possible-roots)]
+        enrichable-roots (set/intersection possible-enrichments possible-roots)]
     (select-keys query-parts enrichable-roots)))
 
 (reg-event-fx
@@ -64,7 +54,8 @@
              ;;we need to remove the old results to prevent them showing up when a new
              ;;column setting has been selected. Fixes Issue #52.
             (update-in [:results] dissoc :enrichment-results)
-            (assoc-in [:results :enrichment-results-loading?] true))
+            (assoc-in [:results :enrichment-results-loading?] true)
+            (clear-widget-options))
     :dispatch [:enrichment/enrich]}))
 
 (defn can-we-enrich-on-existing-preference?

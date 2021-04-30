@@ -217,14 +217,16 @@
   [:div.sidebar-item.enrichment-settings
    [:label.pval [:div.inline-label "Max p-value" [p-val-tooltip]]
     [:select.form-control
-     {:on-change #(dispatch [:enrichment/update-enrichment-setting :maxp (oget % "target" "value")])}
+     {:on-change #(dispatch [:enrichment/update-enrichment-setting :maxp (oget % "target" "value")])
+      :value @(subscribe [:enrichment/max-p-value])}
      [:option "0.05"]
      [:option "0.10"]
      [:option "1.00"]]]
 
    [:label.correction "Test Correction"
     [:select.form-control
-     {:on-change #(dispatch [:enrichment/update-enrichment-setting :correction (oget % "target" "value")])}
+     {:on-change #(dispatch [:enrichment/update-enrichment-setting :correction (oget % "target" "value")])
+      :value @(subscribe [:enrichment/test-correction])}
      [:option "Holm-Bonferroni"]
      [:option "Benjamini Hochberg"]
      [:option "Bonferroni"]

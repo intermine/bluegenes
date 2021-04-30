@@ -43,6 +43,16 @@
    (get-in db [:results :summary-values identifier])))
 
 (reg-sub
+ :enrichment/max-p-value
+ (fn [db]
+   (get-in db [:results :enrichment-settings :maxp])))
+
+(reg-sub
+ :enrichment/test-correction
+ (fn [db]
+   (get-in db [:results :enrichment-settings :correction])))
+
+(reg-sub
  :enrichment/background-population
  (fn [db]
    (get-in db [:results :enrichment-settings :population])))

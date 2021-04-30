@@ -289,10 +289,18 @@
                         (keyword (:widget params))] nil)
       :enrichment/get-enrichment [(:widget params) enrichment-chan]})))
 
+(defn clear-widget-options [db]
+  (-> db
+      (update-in [:results :text-filter] empty)
+      (update-in [:results :enrichment-settings] dissoc :population)
+      (update-in [:results :widget-filters] empty)))
+
 (reg-event-db
  :results/clear
  (fn [db]
-   (assoc-in db [:results :query] nil)))
+   (-> db
+       (assoc-in [:results :query] nil)
+       (clear-widget-options))))
 
 (reg-event-db
  :list-description/edit
