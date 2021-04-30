@@ -142,9 +142,7 @@
                         :query-parts (clean-query-parts (q/group-views-by-class model value))
                         ; Clear the enrichment results before loading any new ones
                         :enrichment-results nil))
-        :dispatch-n [; Fire the enrichment event (see the TODO above)
-                     [:enrichment/enrich]
-                     [:im-tables/load
+        :dispatch-n [[:im-tables/load
                       im-table-location
                       {:service (merge service {:summary-fields summary-fields})
                        :query value
