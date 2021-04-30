@@ -94,7 +94,8 @@
        (let [enrich-query (:query what-to-enrich)]
          {:db (-> db
                   (assoc-in [:results :active-enrichment-column] what-to-enrich)
-                  (assoc-in [:results :enrichable-columns] enrichable))
+                  (assoc-in [:results :enrichable-columns] enrichable)
+                  (assoc-in [:results :enrichment-results-loading?] true))
           :dispatch [:fetch-enrichment-ids-from-query
                      (get-in db [:mines source-kw :service])
                      enrich-query
@@ -191,7 +192,7 @@
  (fn [db [_ widget-name results]]
    (-> db
        (assoc-in [:results :enrichment-results (keyword widget-name)] results)
-       (assoc-in [:results :enrichment-results-loading] false)
+       (assoc-in [:results :enrichment-results-loading?] false)
        ;; This will replace any preceeding messages from other enrichments.
        ;; That's fine, because it's only to show the message that's returned
        ;; when the list selected as background population contains other
