@@ -49,7 +49,10 @@
   "Returns list of columns in the results view that have widgets available for enrichment."
   [widgets query-parts]
   (let [possible-roots (set (keys query-parts))
-        possible-enrichments (reduce (fn [x y] (conj x (keyword (first (:targets y))))) #{} widgets)
+        possible-enrichments (reduce (fn [x y]
+                                       (conj x (keyword (first (:targets y)))))
+                                     #{}
+                                     (filter #(= "enrichment" (:widgetType %)) widgets))
         enrichable-roots (intersection possible-enrichments possible-roots)]
     (select-keys query-parts enrichable-roots)))
 
@@ -128,7 +131,7 @@
 (defn get-suitable-widgets
   "We only want to load widgets that can be used on our datatypes"
   [array-widgets classname]
-  (let [widgets (widgets-to-map array-widgets)]
+  (let [widgets (widgets-to-map (filter #(= "enrichment" (:widgetType %)) array-widgets))]
     (if classname
       (into {} (filter
                 (fn [[_ widget]] (contains? (set (:targets widget)) (name (:type classname)))) widgets))
