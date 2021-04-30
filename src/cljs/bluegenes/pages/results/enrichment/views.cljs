@@ -246,6 +246,11 @@
           {:title "Reset background population"
            :on-click #(dispatch [:enrichment/update-enrichment-setting :population nil])}
           [icon "close"]])])]
+
+   (when-let [message @(subscribe [:enrichment/enrichment-results-message])]
+     [:div.alert.alert-info
+      [:p message]])
+
    [text-filter]])
 
 (defn path-to-last-two-classes [model this-path]

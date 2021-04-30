@@ -191,4 +191,9 @@
  (fn [db [_ widget-name results]]
    (-> db
        (assoc-in [:results :enrichment-results (keyword widget-name)] results)
-       (assoc-in [:results :enrichment-results-loading] false))))
+       (assoc-in [:results :enrichment-results-loading] false)
+       ;; This will replace any preceeding messages from other enrichments.
+       ;; That's fine, because it's only to show the message that's returned
+       ;; when the list selected as background population contains other
+       ;; items, which should be identical for all enrichment results.
+       (assoc-in [:results :enrichment-results-message] (:message results)))))

@@ -13,6 +13,11 @@
    (get-in db [:results :enrichment-results-loading?])))
 
 (reg-sub
+ :enrichment/enrichment-results-message
+ (fn [db]
+   (get-in db [:results :enrichment-results-message])))
+
+(reg-sub
  :enrichment/enrichment-config
  (fn [db]
    (get-in db [:results :active-widgets])))
