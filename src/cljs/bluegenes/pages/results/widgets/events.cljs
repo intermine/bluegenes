@@ -39,6 +39,7 @@
                         "table" im-fetch/table-widget)
          widget-name (:name widget)
          service (get-in db [:mines (:current-mine db) :service])]
+     ;; TODO DEBUG
      {:im-chan {:chan (fetch-widget service "Public ABC Genes (testing)" widget-name)
                 :on-success [:widgets/get-widget-data-success widget-name]
                 :on-failure [:widgets/get-widget-data-failure widget-name]}})))
