@@ -28,19 +28,20 @@
    (let [entities (get-in db [:tools :entities])
          widgets (widgets-to-load entities (get-in db [:assets :widgets (:current-mine db)]))]
      {:dispatch-n (map (fn [widget]
-                         [:widgets/get-widget-data widget (:value (some entities (get-widget-targets widget)))])
+                         (let [{:keys [class value]}
+                               (some entities (get-widget-targets widget))]
+                           [:widgets/get-widget-data widget value class]))
                        widgets)})))
 
 (reg-event-fx
  :widgets/get-widget-data
- (fn [{db :db} [_ widget ids]]
+ (fn [{db :db} [_ widget ids type]]
    (let [fetch-widget (case (:widgetType widget)
                         "chart" im-fetch/chart-widget
                         "table" im-fetch/table-widget)
          widget-name (:name widget)
          service (get-in db [:mines (:current-mine db) :service])]
-     ;; TODO DEBUG
-     {:im-chan {:chan (fetch-widget service "Public ABC Genes (testing)" widget-name)
+     {:im-chan {:chan (fetch-widget service ids widget-name type)
                 :on-success [:widgets/get-widget-data-success widget-name]
                 :on-failure [:widgets/get-widget-data-failure widget-name]}})))
 
