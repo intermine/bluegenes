@@ -142,9 +142,7 @@
                         :query-parts (clean-query-parts (q/group-views-by-class model value))
                         ; Clear the enrichment results before loading any new ones
                         :enrichment-results nil))
-        :dispatch-n [; Fire the enrichment event (see the TODO above)
-                     [:enrichment/enrich]
-                     [:im-tables/load
+        :dispatch-n [[:im-tables/load
                       im-table-location
                       {:service (merge service {:summary-fields summary-fields})
                        :query value
@@ -291,10 +289,18 @@
                         (keyword (:widget params))] nil)
       :enrichment/get-enrichment [(:widget params) enrichment-chan]})))
 
+(defn clear-widget-options [db]
+  (-> db
+      (update-in [:results :text-filter] empty)
+      (update-in [:results :enrichment-settings] dissoc :population)
+      (update-in [:results :widget-filters] empty)))
+
 (reg-event-db
  :results/clear
  (fn [db]
-   (assoc-in db [:results :query] nil)))
+   (-> db
+       (assoc-in [:results :query] nil)
+       (clear-widget-options))))
 
 (reg-event-db
  :list-description/edit

@@ -1,20 +1,10 @@
 (ns bluegenes.pages.results.enrichment.events
-  (:require-macros [cljs.core.async.macros :refer [go go-loop]])
-  (:require [re-frame.core :refer [reg-event-db reg-event-fx reg-fx dispatch subscribe]]
-            [cljs.core.async :refer [put! chan <! >! timeout close!]]
+  (:require [re-frame.core :refer [reg-event-db reg-event-fx]]
             [clojure.string :as string]
             [imcljs.fetch :as fetch]
             [imcljs.path :as path]
-            [imcljs.query :as q]
-            [clojure.spec.alpha :as s]
-            [clojure.set :refer [intersection]]
-            [bluegenes.effects :as fx]
-            [day8.re-frame.http-fx]
-            [ajax.core :as ajax]
-            [bluegenes.interceptors :refer [clear-tooltips]]
-            [dommy.core :refer-macros [sel sel1]]
-    ;[bluegenes.pages.saveddata.events]
-            [bluegenes.interceptors :refer [abort-spec]]))
+            [clojure.set :as set]
+            [bluegenes.pages.results.events :refer [clear-widget-options]]))
 
 (defn build-matches-query [query path-constraint identifier]
   (update-in (js->clj (.parse js/JSON query) :keywordize-keys true) [:where]
@@ -49,8 +39,11 @@
   "Returns list of columns in the results view that have widgets available for enrichment."
   [widgets query-parts]
   (let [possible-roots (set (keys query-parts))
-        possible-enrichments (reduce (fn [x y] (conj x (keyword (first (:targets y))))) #{} widgets)
-        enrichable-roots (intersection possible-enrichments possible-roots)]
+        possible-enrichments (reduce (fn [x y]
+                                       (conj x (keyword (first (:targets y)))))
+                                     #{}
+                                     (filter #(= "enrichment" (:widgetType %)) widgets))
+        enrichable-roots (set/intersection possible-enrichments possible-roots)]
     (select-keys query-parts enrichable-roots)))
 
 (reg-event-fx
@@ -61,7 +54,8 @@
              ;;we need to remove the old results to prevent them showing up when a new
              ;;column setting has been selected. Fixes Issue #52.
             (update-in [:results] dissoc :enrichment-results)
-            (assoc-in [:results :enrichment-results-loading?] true))
+            (assoc-in [:results :enrichment-results-loading?] true)
+            (clear-widget-options))
     :dispatch [:enrichment/enrich]}))
 
 (defn can-we-enrich-on-existing-preference?
@@ -100,7 +94,8 @@
        (let [enrich-query (:query what-to-enrich)]
          {:db (-> db
                   (assoc-in [:results :active-enrichment-column] what-to-enrich)
-                  (assoc-in [:results :enrichable-columns] enrichable))
+                  (assoc-in [:results :enrichable-columns] enrichable)
+                  (assoc-in [:results :enrichment-results-loading?] true))
           :dispatch [:fetch-enrichment-ids-from-query
                      (get-in db [:mines source-kw :service])
                      enrich-query
@@ -113,6 +108,12 @@
    {:db (assoc-in db [:results :enrichment-settings setting] value)
     :dispatch [:enrichment/run-all-enrichment-queries]}))
 
+(reg-event-fx
+ :enrichment/update-widget-filter
+ (fn [{db :db} [_ widget-kw value]]
+   {:db (assoc-in db [:results :widget-filters widget-kw] value)
+    :dispatch [:enrichment/run-one-enrichment-query widget-kw]}))
+
 (defn widgets-to-map
   "When the web service gives us a vector, we make it into a map for easy lookup"
   [widgets]
@@ -122,38 +123,52 @@
 (defn get-suitable-widgets
   "We only want to load widgets that can be used on our datatypes"
   [array-widgets classname]
-  (let [widgets (widgets-to-map array-widgets)]
+  (let [widgets (widgets-to-map (filter #(= "enrichment" (:widgetType %)) array-widgets))]
     (if classname
       (into {} (filter
                 (fn [[_ widget]] (contains? (set (:targets widget)) (name (:type classname)))) widgets))
       widgets)))
 
-(defn build-enrichment-query [selection widget-name settings]
+(defn build-enrichment-query
   "default enrichment query structure"
+  [selection widget-name settings filters]
   [:enrichment/run
    (merge
     selection
     {:maxp 0.05
      :widget widget-name
      :correction "Holm-Bonferroni"}
-    settings)])
+    settings
+    (when-let [filter-value (get filters (keyword widget-name))]
+      {:filter filter-value}))])
 
-(defn build-all-enrichment-queries [selection suitable-widgets settings]
+(defn build-all-enrichment-queries
   "format all available widget types into queries"
+  [selection suitable-widgets settings filters]
   (reduce (fn [new-vec [_ vals]]
-            (conj new-vec (build-enrichment-query selection (:name vals) settings))) [] suitable-widgets))
+            (conj new-vec (build-enrichment-query selection (:name vals) settings filters))) [] suitable-widgets))
 
 (reg-event-fx
  :enrichment/run-all-enrichment-queries
  (fn [{db :db} [_]]
    (let [selection {:ids (get-in db [:results :ids-to-enrich])}
          settings (get-in db [:results :enrichment-settings])
+         filters (get-in db [:results :widget-filters])
          widgets (get-in db [:assets :widgets (:current-mine db)])
          enrichment-column (get-in db [:results :active-enrichment-column])
          suitable-widgets (get-suitable-widgets widgets enrichment-column)
-         queries (build-all-enrichment-queries selection suitable-widgets settings)]
+         queries (build-all-enrichment-queries selection suitable-widgets settings filters)]
      {:db (assoc-in db [:results :active-widgets] suitable-widgets)
       :dispatch-n queries})))
+
+(reg-event-fx
+ :enrichment/run-one-enrichment-query
+ (fn [{db :db} [_ widget-kw]]
+   (let [selection {:ids (get-in db [:results :ids-to-enrich])}
+         settings (get-in db [:results :enrichment-settings])
+         filters (get-in db [:results :widget-filters])
+         query (build-enrichment-query selection (name widget-kw) settings filters)]
+     {:dispatch query})))
 
 (defn service [db mine-kw]
   (get-in db [:mines mine-kw :service]))
@@ -177,4 +192,9 @@
  (fn [db [_ widget-name results]]
    (-> db
        (assoc-in [:results :enrichment-results (keyword widget-name)] results)
-       (assoc-in [:results :enrichment-results-loading] false))))
+       (assoc-in [:results :enrichment-results-loading?] false)
+       ;; This will replace any preceeding messages from other enrichments.
+       ;; That's fine, because it's only to show the message that's returned
+       ;; when the list selected as background population contains other
+       ;; items, which should be identical for all enrichment results.
+       (assoc-in [:results :enrichment-results-message] (:message results)))))

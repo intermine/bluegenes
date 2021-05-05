@@ -492,7 +492,6 @@
 
 (reg-event-fx
  :assets/fetch-widgets
-  ;;fetches all enrichment widgets. afaik the non-enrichment widgets are InterMine 1.x UI specific so are filtered out upon success
  (fn [{db :db} [evt]]
    {:im-chan
     {:chan (fetch/widgets (get-in db [:mines (:current-mine db) :service]))
@@ -502,11 +501,7 @@
 (reg-event-db
  :assets/success-fetch-widgets
  (fn [db [_ mine-kw widgets]]
-   (let [widget-type "enrichment"
-         filtered-widgets
-         (doall (filter (fn [widget]
-                          (= widget-type (:widgetType widget))) widgets))]
-     (assoc-in db [:assets :widgets mine-kw] filtered-widgets))))
+   (assoc-in db [:assets :widgets mine-kw] widgets)))
 
 (reg-event-fx
  :assets/fetch-intermine-version

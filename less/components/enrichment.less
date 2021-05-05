@@ -100,6 +100,22 @@
             max-width: 7em;
         }
 
+        .population {
+            margin-top: @spacer/2;
+            flex-basis: 100%;
+            max-width: ~"calc(100% - 35px)";
+
+            &-controls {
+                display: flex;
+                align-items: start;
+            }
+
+            &-clear {
+                padding: @spacer/2 @spacer/4;
+                margin: 0;
+            }
+        }
+
         .text-filter {
             margin-top: @spacer/2;
             flex-grow: 1;
@@ -229,6 +245,21 @@
 
     .sidebar-item {
         margin-bottom: @spacer/2;
+    }
+
+    .enrichment-filter {
+        display: flex;
+        align-items: baseline;
+        font-size: 1em;
+        background-color: @content-color-background;
+
+        padding: @spacer/3;
+        margin: 0;
+
+        select {
+            margin-left: @spacer/3;
+            font-size: 1.1em;
+        }
     }
 }
 
