@@ -5,6 +5,7 @@
             [bluegenes.pages.results.events]
             [bluegenes.pages.results.subs]
             [bluegenes.pages.results.enrichment.views :as enrichment]
+            [bluegenes.pages.results.widgets.views :as widgets]
             [bluegenes.components.bootstrap :refer [popover tooltip]]
             [clojure.string :refer [split]]
             [oops.core :refer [oget oget+ ocall oset!]]
@@ -203,7 +204,8 @@
             (when (= @intent :list)
               [query-details])
             [:div.results-table
-             [tables/main [:results :table]]]]
+             [tables/main [:results :table]]]
+            [widgets/main]]
            [:div.col-sm-3.visible-lg-block
             [enrichment/enrich]]]
           ;; Only show visualizations for configured mines (i.e. not registry mines).

@@ -12,6 +12,7 @@
             [bluegenes.pages.lists.subs]
             [bluegenes.pages.tools.subs]
             [bluegenes.pages.developer.subs]
+            [bluegenes.pages.results.widgets.subs]
             [bluegenes.version :as version]
             [bluegenes.utils :as utils]
             [lambdaisland.uri :refer [uri]]

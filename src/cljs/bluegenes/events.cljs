@@ -17,6 +17,7 @@
             [bluegenes.components.search.events]
             [bluegenes.components.navbar.events]
             [bluegenes.pages.results.enrichment.events]
+            [bluegenes.pages.results.widgets.events]
             [bluegenes.components.search.events :as search-full]
             [bluegenes.pages.reportpage.events]
             [bluegenes.pages.querybuilder.events]
