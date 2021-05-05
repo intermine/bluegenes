@@ -1,10 +1,11 @@
 (ns bluegenes.pages.results.widgets.views
   (:require [re-frame.core :refer [subscribe]]
             [bluegenes.components.viz.common :refer [vega-lite]]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [inflections.core :refer [plural]]))
 
 (defn chart [data]
-  (let [{:keys [title description domainLabel rangeLabel chartType notAnalysed seriesLabels]
+  (let [{:keys [title description domainLabel rangeLabel chartType notAnalysed seriesLabels type]
          [labels & tuples] :results} data
         values (mapcat (fn [[domain & all-series]]
                          (map (fn [label value]
@@ -18,7 +19,7 @@
      [:h4 title]
      [:p {:dangerouslySetInnerHTML {:__html description}}]
      (when (pos? notAnalysed)
-       [:p "Number of Genes in the table not analysed in this widget: "
+       [:p (str "Number of " (plural type) " in the table not analysed in this widget: ")
         [:strong notAnalysed]])
      (if (seq values)
        [vega-lite
