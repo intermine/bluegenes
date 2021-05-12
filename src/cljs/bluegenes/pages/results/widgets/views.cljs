@@ -18,9 +18,10 @@
     [:div.widget.col-sm-12.col-md-6
      [:h4 title]
      [:p {:dangerouslySetInnerHTML {:__html description}}]
-     (when (pos? notAnalysed)
+     (if (pos? notAnalysed)
        [:p (str "Number of " (plural type) " in the table not analysed in this widget: ")
-        [:strong notAnalysed]])
+        [:strong notAnalysed]]
+       [:p (str "All " (plural type) " in the table have been analysed in this widget.")])
      (if (seq values)
        [vega-lite
         {:description description
@@ -73,7 +74,7 @@
                             :type "nominal"
                             :title nil
                             :scale {:domain (str/split seriesLabels #",")
-                                    :range {:scheme "category20"}}
+                                    :scheme "category20"}
                             :legend {:direction "horizontal"
                                      :orient "top"}}
 
@@ -85,17 +86,60 @@
                                :type "quantitative"}]}}]
        [:p.failure (str "No results.")])]))
 
+(defn piechart [data]
+  (let [{:keys [title description notAnalysed type rangeLabel]
+         [_ & tuples] :results} data
+        values (map #(zipmap [:category :value] %) tuples)]
+    [:div.widget.col-sm-12.col-md-6
+     [:h4 title]
+     [:p {:dangerouslySetInnerHTML {:__html description}}]
+     (if (pos? notAnalysed)
+       [:p (str "Number of " (plural type) " in the table not analysed in this widget: ")
+        [:strong notAnalysed]]
+       [:p (str "All " (plural type) " in the table have been analysed in this widget.")])
+     (if (seq values)
+       [vega-lite
+        {:description description
+         :title rangeLabel
+         :data {:values values}
+         :encoding {:theta {:field "value" :type "quantitative" :stack true}
+                    :color {:field "category"
+                            :type "nominal"
+                            :legend {:title nil}
+                            :scale {:scheme "category20c"}}}
+         :layer [{:mark {:type "arc" :outerRadius 120}
+                  :encoding {:tooltip [{:field "category" :type "nominal"}
+                                       {:field "value" :type "quantitative"}]}}
+                 {:mark {:type "text" :radius 100 :fill "white"}
+                  :encoding {:text {:field "value" :type "nominal"}}}]
+         :view {:stroke nil}}]
+       [:p.failure (str "No results.")])]))
+
 (defn table [data]
   [:h4 (:title data)])
 
 (defn widget [data]
-  (cond
-    (:chartType data) [chart data]
-    :else [table data]))
+  (case (:chartType data)
+    ("BarChart" "ColumnChart") [chart data]
+    "PieChart" [piechart data]
+    ;; If chartType is missing, it's a table widget.
+    [table data]))
 
 (defn main []
   (let [widgets @(subscribe [:widgets/all-widgets])]
     [:div.widgets
+     ;; Uncomment me to test the PieChart!
+     #_[widget {:chartType "PieChart",
+                :description "Percentage of employees belonging to each company",
+                :type "Employee",
+                :list "Everyones-Favourite-Employees",
+                :title "Company Affiliation",
+                :rangeLabel "No. of employees",
+                :notAnalysed 0,
+                :results [["No. of employees"]
+                          ["Capitol Versicherung AG" 5]
+                          ["Dunder-Mifflin" 1]
+                          ["Wernham-Hogg" 1]]}]
      (doall (for [[widget-kw widget-data] widgets]
               ^{:key widget-kw}
               [widget widget-data]))]))
