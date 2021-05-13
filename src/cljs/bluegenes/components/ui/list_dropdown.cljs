@@ -80,4 +80,4 @@
                [:div.container-fluid
                 [:h4 (str "No suitable lists containing \"" @text-filter-atom "\"")]])]
             [:div.container-fluid
-             [:h4 (str "No lists available of type " (name restrict-type))]])]]))))
+             [:h4 (str "No lists available of type " (some-> restrict-type name))]])]]))))
