@@ -188,9 +188,18 @@
     }
 
     .widgets {
+        display: flex;
+        flex-wrap: wrap;
+
         .widget {
             background-color: @content-color-background;
             padding: @spacer;
+            border: 1px solid @light-contrast;
+
+            .vega-embed {
+                width: 100%;
+                overflow: auto;
+            }
         }
     }
 

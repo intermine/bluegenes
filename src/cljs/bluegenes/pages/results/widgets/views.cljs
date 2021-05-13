@@ -26,7 +26,9 @@
                                  :value value})
                               (rest labels)
                               all-series))
-                       tuples)]
+                       tuples ; Replace with below to see how it looks with more items.
+                       #_(concat tuples
+                                 (map #(update % 0 str " 2") tuples)))]
     [widget
      :title title
      :description description
@@ -36,10 +38,7 @@
      :child
      [vega-lite
       {:description description
-       ; :width "container"
        :height {:step 8}
-       ; :autosize {:type "fit-x"
-       ;            :contains "padding"}
        :data {:values values}
        :mark "bar"
        :encoding {(case chartType
