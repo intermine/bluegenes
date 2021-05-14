@@ -4,8 +4,9 @@
             [clojure.string :as str]
             [inflections.core :refer [plural]]))
 
-(defn widget [& {:keys [title description notAnalysed type values child]}]
-  (conj [:div.widget.col-sm-12.col-md-6
+(defn widget [& {:keys [title description full-width? notAnalysed type values child]}]
+  (conj [:div.widget.col-sm-12
+         {:class (when-not full-width? :col-md-6)}
          [:h4 title]
          [:p {:dangerouslySetInnerHTML {:__html description}}]
          (if (pos? notAnalysed)
@@ -16,7 +17,7 @@
           child
           [:p.failure (str "No results.")])))
 
-(defn chart [data]
+(defn chart [data & {:keys [full-width?]}]
   (let [{:keys [title description domainLabel rangeLabel chartType notAnalysed seriesLabels type]
          [labels & tuples] :results} data
         values (mapcat (fn [[domain & all-series]]
@@ -32,6 +33,7 @@
     [widget
      :title title
      :description description
+     :full-width? full-width?
      :notAnalysed notAnalysed
      :type type
      :values values
@@ -95,13 +97,14 @@
                             {:field "value"
                              :type "quantitative"}]}}]]))
 
-(defn piechart [data]
+(defn piechart [data & {:keys [full-width?]}]
   (let [{:keys [title description notAnalysed type rangeLabel]
          [_ & tuples] :results} data
         values (map #(zipmap [:category :value] %) tuples)]
     [widget
      :title title
      :description description
+     :full-width? full-width?
      :notAnalysed notAnalysed
      :type type
      :values values
@@ -122,12 +125,13 @@
                 :encoding {:text {:field "value" :type "nominal"}}}]
        :view {:stroke nil}}]]))
 
-(defn table [data]
+(defn table [data & {:keys [full-width?]}]
   (let [{:keys [title description notAnalysed type]
          values :results} data]
     [widget
      :title title
      :description description
+     :full-width? full-width?
      :notAnalysed notAnalysed
      :type type
      :values values
@@ -139,22 +143,23 @@
   (let [widgets @(subscribe [:widgets/all-widgets])]
     [:div.widgets
      ;; Uncomment me to test the PieChart!
-     [piechart {:chartType "PieChart",
-                :description "Percentage of employees belonging to each company",
-                :type "Employee",
-                :list "Everyones-Favourite-Employees",
-                :title "Company Affiliation",
-                :rangeLabel "No. of employees",
-                :notAnalysed 0,
-                :results [["No. of employees"]
-                          ["Capitol Versicherung AG" 5]
-                          ["Dunder-Mifflin" 1]
-                          ["Wernham-Hogg" 1]]}]
+     #_[piechart {:chartType "PieChart",
+                  :description "Percentage of employees belonging to each company",
+                  :type "Employee",
+                  :list "Everyones-Favourite-Employees",
+                  :title "Company Affiliation",
+                  :rangeLabel "No. of employees",
+                  :notAnalysed 0,
+                  :results [["No. of employees"]
+                            ["Capitol Versicherung AG" 5]
+                            ["Dunder-Mifflin" 1]
+                            ["Wernham-Hogg" 1]]}]
      (doall (for [[widget-kw widget-data] widgets
                   :let [widget-comp (case (:chartType widget-data)
                                       ("BarChart" "ColumnChart") chart
                                       "PieChart" piechart
                                       ;; If chartType is missing, it's a table widget.
-                                      table)]]
+                                      table)
+                        full-width? (= (count widgets) 1)]]
               ^{:key widget-kw}
-              [widget-comp widget-data]))]))
+              [widget-comp widget-data :full-width? full-width?]))]))
