@@ -222,6 +222,7 @@
                  ;; previous invocation. This way, we'll only show the new
                  ;; results and tools once they're ready.
                  (dispatch [:results/clear])
+                 (dispatch [:widgets/reset])
                  (dispatch [:clear-ids-tool-entity])
                  (dispatch [:viz/clear])
                  (dispatch [:set-active-panel :results-panel

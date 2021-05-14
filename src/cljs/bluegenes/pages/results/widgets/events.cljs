@@ -55,3 +55,8 @@
  (fn [{db :db} [_ widget-name res]]
    {:db (assoc-in db [:results :widget-results (keyword widget-name)] false)
     :log-error [(str "Failed to get " widget-name " data") res]}))
+
+(reg-event-db
+ :widgets/reset
+ (fn [db]
+   (update-in db [:results :widget-results] empty)))
