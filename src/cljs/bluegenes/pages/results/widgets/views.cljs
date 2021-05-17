@@ -1,9 +1,11 @@
 (ns bluegenes.pages.results.widgets.views
   (:require [re-frame.core :refer [subscribe dispatch]]
+            [reagent.core :as reagent]
             [bluegenes.components.viz.common :refer [vega-lite]]
             [clojure.string :as str]
             [inflections.core :refer [plural]]
-            [oops.core :refer [oget]]))
+            [oops.core :refer [oget]]
+            [bluegenes.pages.results.enrichment.views :refer [build-matches-query]]))
 
 (defn filter-display [& {:keys [widget-kw filterSelectedValue filters filterLabel]}]
   (let [filters (str/split filters #",")]
@@ -155,19 +157,75 @@
                 :encoding {:text {:field "value" :type "nominal"}}}]
        :view {:stroke nil}}]]))
 
-(defn table [widget-kw data & {:keys [full-width?]}]
-  (let [{:keys [title description notAnalysed type]
-         values :results} data]
-    [widget
-     :title title
-     :description description
-     :full-width? full-width?
-     :notAnalysed notAnalysed
-     :type type
-     :values values
-     :child
-     ;; TODO make table widget
-     [:pre (pr-str values)]]))
+(defn view-items! [{:keys [current-mine pathQuery pathConstraint identifiers title]}]
+  (dispatch [:results/history+
+             {:source current-mine
+              :type :query
+              :intent :widget
+              :value (assoc (build-matches-query pathQuery pathConstraint identifiers)
+                            :title title)}]))
+
+(defn table-query-title [title columnTitle]
+  (str title " widget: " columnTitle))
+
+(defn table []
+  (let [selected (reagent/atom #{})]
+    (fn [widget-kw data & {:keys [full-width?]}]
+      (let [{:keys [title description notAnalysed type columns pathQuery pathConstraint columnTitle]
+             values :results} data
+            current-mine @(subscribe [:current-mine-name])
+            all-identifiers (mapv :identifier values)]
+        [widget
+         :title title
+         :description description
+         :full-width? full-width?
+         :notAnalysed notAnalysed
+         :type type
+         :values values
+         :child
+         [:div
+          [:button.btn.btn-default.btn-raised.btn-xs
+           {:on-click #(view-items! {:current-mine current-mine
+                                     :pathQuery pathQuery
+                                     :pathConstraint pathConstraint
+                                     :identifiers (if (empty? @selected)
+                                                    all-identifiers
+                                                    (vec @selected))
+                                     :title (table-query-title title columnTitle)})}
+           (if (empty? @selected) "View All" "View Selected")]
+          [:table.table.table-condensed.table-striped
+           [:thead
+            (into [:tr
+                   (let [all-identifiers-set (set all-identifiers)
+                         is-checked (= @selected all-identifiers-set)
+                         on-check (if is-checked
+                                    #(swap! selected empty)
+                                    #(reset! selected all-identifiers-set))]
+                     [:th
+                      [:input {:type "checkbox"
+                               :checked is-checked
+                               :on-click on-check}]])]
+                  (for [col-header (str/split columns #",")]
+                    [:th col-header]))]
+           (into [:tbody]
+                 (for [row values]
+                   (into [:tr]
+                         (let [{:keys [identifier descriptions matches]} row
+                               is-checked (contains? @selected identifier)
+                               on-check #(swap! selected (if is-checked disj conj) identifier)]
+                           (concat
+                            [[:td
+                              [:input {:type "checkbox"
+                                       :checked is-checked
+                                       :on-click on-check}]]]
+                            (map (fn [desc] [:td desc]) descriptions)
+                            [[:td
+                              [:a {:on-click #(view-items! {:current-mine current-mine
+                                                            :pathQuery pathQuery
+                                                            :pathConstraint pathConstraint
+                                                            :identifiers identifier
+                                                            :title (table-query-title title columnTitle)})}
+                               matches]]])))))]]]))))
 
 (defn main []
   (let [widgets @(subscribe [:widgets/all-widgets])]
