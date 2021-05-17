@@ -173,6 +173,8 @@
     (fn [widget-kw data & {:keys [full-width?]}]
       (let [{:keys [title description notAnalysed type columns pathQuery pathConstraint columnTitle]
              values :results} data
+            ;; Uncomment me to see a tall table!
+            ; values (take 20 (cycle values))
             current-mine @(subscribe [:current-mine-name])
             all-identifiers (mapv :identifier values)]
         [widget
@@ -193,39 +195,40 @@
                                                     (vec @selected))
                                      :title (table-query-title title columnTitle)})}
            (if (empty? @selected) "View All" "View Selected")]
-          [:table.table.table-condensed.table-striped
-           [:thead
-            (into [:tr
-                   (let [all-identifiers-set (set all-identifiers)
-                         is-checked (= @selected all-identifiers-set)
-                         on-check (if is-checked
-                                    #(swap! selected empty)
-                                    #(reset! selected all-identifiers-set))]
-                     [:th
-                      [:input {:type "checkbox"
-                               :checked is-checked
-                               :on-click on-check}]])]
-                  (for [col-header (str/split columns #",")]
-                    [:th col-header]))]
-           (into [:tbody]
-                 (for [row values]
-                   (into [:tr]
-                         (let [{:keys [identifier descriptions matches]} row
-                               is-checked (contains? @selected identifier)
-                               on-check #(swap! selected (if is-checked disj conj) identifier)]
-                           (concat
-                            [[:td
-                              [:input {:type "checkbox"
-                                       :checked is-checked
-                                       :on-click on-check}]]]
-                            (map (fn [desc] [:td desc]) descriptions)
-                            [[:td
-                              [:a {:on-click #(view-items! {:current-mine current-mine
-                                                            :pathQuery pathQuery
-                                                            :pathConstraint pathConstraint
-                                                            :identifiers identifier
-                                                            :title (table-query-title title columnTitle)})}
-                               matches]]])))))]]]))))
+          [:div.table-widget
+           [:table.table.table-condensed.table-striped
+            [:thead
+             (into [:tr
+                    (let [all-identifiers-set (set all-identifiers)
+                          is-checked (= @selected all-identifiers-set)
+                          on-check (if is-checked
+                                     #(swap! selected empty)
+                                     #(reset! selected all-identifiers-set))]
+                      [:th
+                       [:input {:type "checkbox"
+                                :checked is-checked
+                                :on-click on-check}]])]
+                   (for [col-header (str/split columns #",")]
+                     [:th col-header]))]
+            (into [:tbody]
+                  (for [row values]
+                    (into [:tr]
+                          (let [{:keys [identifier descriptions matches]} row
+                                is-checked (contains? @selected identifier)
+                                on-check #(swap! selected (if is-checked disj conj) identifier)]
+                            (concat
+                             [[:td
+                               [:input {:type "checkbox"
+                                        :checked is-checked
+                                        :on-click on-check}]]]
+                             (map (fn [desc] [:td desc]) descriptions)
+                             [[:td
+                               [:a {:on-click #(view-items! {:current-mine current-mine
+                                                             :pathQuery pathQuery
+                                                             :pathConstraint pathConstraint
+                                                             :identifiers identifier
+                                                             :title (table-query-title title columnTitle)})}
+                                matches]]])))))]]]]))))
 
 (defn main []
   (let [widgets @(subscribe [:widgets/all-widgets])]
