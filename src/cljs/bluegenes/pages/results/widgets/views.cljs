@@ -4,7 +4,7 @@
             [bluegenes.components.viz.common :refer [vega-lite]]
             [clojure.string :as str]
             [inflections.core :refer [plural]]
-            [oops.core :refer [oget]]
+            [oops.core :refer [oget ocall]]
             [bluegenes.pages.results.enrichment.views :refer [build-matches-query]]))
 
 (defn filter-display [& {:keys [widget-kw filterSelectedValue filters filterLabel]}]
@@ -39,8 +39,26 @@
           child
           [:p.failure (str "No results.")])))
 
+(defn build-bar-query [query category series]
+  (-> query
+      (str/replace "%category" category)
+      (str/replace "%series" series)
+      (js/JSON.parse)
+      (js->clj :keywordize-keys true)))
+
+(let [counter (atom 0)]
+  (defn handle-vega-signal! [{:keys [current-mine pathQuery title labels->values]} _signal-name signal-obj]
+    (let [{:strs [domain type]} (js->clj signal-obj)
+          type (labels->values type)]
+      (dispatch [:results/history+
+                 {:source current-mine
+                  :type :query
+                  :intent :widget
+                  :value (assoc (build-bar-query pathQuery domain type)
+                                :title (str title " " (swap! counter inc)))}]))))
+
 (defn chart [widget-kw data & {:keys [full-width?]}]
-  (let [{:keys [title description domainLabel rangeLabel chartType notAnalysed seriesLabels type
+  (let [{:keys [title description domainLabel rangeLabel chartType notAnalysed seriesValues seriesLabels type pathQuery
                 filterSelectedValue filters filterLabel]
          [labels & tuples] :results} data
         values (mapcat (fn [[domain & all-series]]
@@ -52,7 +70,9 @@
                               all-series))
                        tuples ; Replace with below to see how it looks with more items.
                        #_(concat tuples
-                                 (map #(update % 0 str " 2") tuples)))]
+                                 (map #(update % 0 str " 2") tuples)))
+        labels->values (zipmap (str/split seriesLabels #",") (str/split seriesValues #","))
+        current-mine @(subscribe [:current-mine-name])]
     [widget
      :widget-kw widget-kw
      :title title
@@ -69,7 +89,8 @@
       {:description description
        :height {:step 8}
        :data {:values values}
-       :mark "bar"
+       :mark {:type "bar"
+              :cursor "pointer"}
        :encoding {(case chartType
                     "BarChart" :row
                     "ColumnChart" :column)
@@ -122,7 +143,18 @@
                             {:field "type"
                              :type "nominal"}
                             {:field "value"
-                             :type "quantitative"}]}}]]))
+                             :type "quantitative"}]}}
+      {:patch (fn [spec]
+                (ocall spec [:signals :push]
+                       (clj->js {:name "barClick"
+                                 :on [{:events "rect:mousedown" :update "datum"}]}))
+                spec)
+       :callback (fn [result]
+                   (ocall result [:view :addSignalListener]
+                          "barClick" (partial handle-vega-signal! {:current-mine current-mine
+                                                                   :pathQuery pathQuery
+                                                                   :labels->values labels->values
+                                                                   :title "Widget Results"})))}]]))
 
 (defn piechart [widget-kw data & {:keys [full-width?]}]
   (let [{:keys [title description notAnalysed type rangeLabel

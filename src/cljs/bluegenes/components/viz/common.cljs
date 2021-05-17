@@ -20,11 +20,12 @@
   ([elem doc opts]
    (when doc
      (let [doc (clj->js doc)
-           opts (merge {:renderer :canvas
-                        ;; Have to think about how we want the defaults here to behave
-                        :mode "vega-lite"}
-                       opts)]
-       (-> (js/vegaEmbed elem doc (clj->js opts))
+           opts' (merge {:renderer :canvas
+                         ;; Have to think about how we want the defaults here to behave
+                         :mode "vega-lite"}
+                        (dissoc opts :callback))]
+       (-> (js/vegaEmbed elem doc (clj->js opts'))
+           (.then (get opts :callback #()))
            (.catch (fn [err]
                      (.warn js/console err))))))))
 
