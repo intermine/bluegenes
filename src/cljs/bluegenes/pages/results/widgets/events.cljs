@@ -22,26 +22,29 @@
   [widgets]
   (reduce #(assoc %1 (:name %2) %2) {} widgets))
 
+(defn widget->event
+  ([entities widget]
+   (widget->event entities widget nil))
+  ([entities widget options]
+   (let [{:keys [class value]} (some entities (get-widget-targets widget))]
+     [:widgets/get-widget-data widget value class options])))
+
 (reg-event-fx
  :widgets/load
  (fn [{db :db} [_]]
    (let [entities (get-in db [:tools :entities])
          widgets (widgets-to-load entities (get-in db [:assets :widgets (:current-mine db)]))]
-     {:dispatch-n (map (fn [widget]
-                         (let [{:keys [class value]}
-                               (some entities (get-widget-targets widget))]
-                           [:widgets/get-widget-data widget value class]))
-                       widgets)})))
+     {:dispatch-n (map (partial widget->event entities) widgets)})))
 
 (reg-event-fx
  :widgets/get-widget-data
- (fn [{db :db} [_ widget ids type]]
+ (fn [{db :db} [_ widget ids type options]]
    (let [fetch-widget (case (:widgetType widget)
                         "chart" im-fetch/chart-widget
                         "table" im-fetch/table-widget)
          widget-name (:name widget)
          service (get-in db [:mines (:current-mine db) :service])]
-     {:im-chan {:chan (fetch-widget service ids widget-name type)
+     {:im-chan {:chan (fetch-widget service ids widget-name type options)
                 :on-success [:widgets/get-widget-data-success widget-name]
                 :on-failure [:widgets/get-widget-data-failure widget-name]}})))
 
@@ -55,6 +58,14 @@
  (fn [{db :db} [_ widget-name res]]
    {:db (assoc-in db [:results :widget-results (keyword widget-name)] false)
     :log-error [(str "Failed to get " widget-name " data") res]}))
+
+(reg-event-fx
+ :widgets/update-filter
+ (fn [{db :db} [_ widget-kw value]]
+   (let [entities (get-in db [:tools :entities])
+         widget (some #(when (= widget-kw (keyword (:name %))) %)
+                      (get-in db [:assets :widgets (:current-mine db)]))]
+     {:dispatch (widget->event entities widget {:filter value})})))
 
 (reg-event-db
  :widgets/reset

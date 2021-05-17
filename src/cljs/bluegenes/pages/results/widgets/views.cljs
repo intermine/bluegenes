@@ -1,10 +1,24 @@
 (ns bluegenes.pages.results.widgets.views
-  (:require [re-frame.core :refer [subscribe]]
+  (:require [re-frame.core :refer [subscribe dispatch]]
             [bluegenes.components.viz.common :refer [vega-lite]]
             [clojure.string :as str]
-            [inflections.core :refer [plural]]))
+            [inflections.core :refer [plural]]
+            [oops.core :refer [oget]]))
 
-(defn widget [& {:keys [title description full-width? notAnalysed type values child]}]
+(defn filter-display [& {:keys [widget-kw filterSelectedValue filters filterLabel]}]
+  (let [filters (str/split filters #",")]
+    [:label.widget-filter (str filterLabel ":")
+     [:div
+      (into [:select.form-control.input-sm
+             {:on-change #(dispatch [:widgets/update-filter widget-kw (oget % :target :value)])
+              :value filterSelectedValue}]
+            (for [option filters]
+              [:option option]))]]))
+
+(defn widget [& {:keys [title description full-width? notAnalysed type
+                        filterSelectedValue filters filterLabel
+                        values child
+                        widget-kw]}]
   (conj [:div.widget.col-sm-12
          {:class (when-not full-width? :col-md-6)}
          [:h4 title]
@@ -12,13 +26,20 @@
          (if (pos? notAnalysed)
            [:p (str "Number of " (plural type) " in the table not analysed in this widget: ")
             [:strong notAnalysed]]
-           [:p (str "All " (plural type) " in the table have been analysed in this widget.")])]
+           [:p (str "All " (plural type) " in the table have been analysed in this widget.")])
+         (when filters
+           [filter-display
+            :widget-kw widget-kw
+            :filterSelectedValue filterSelectedValue
+            :filters filters
+            :filterLabel filterLabel])]
         (if (seq values)
           child
           [:p.failure (str "No results.")])))
 
-(defn chart [data & {:keys [full-width?]}]
-  (let [{:keys [title description domainLabel rangeLabel chartType notAnalysed seriesLabels type]
+(defn chart [widget-kw data & {:keys [full-width?]}]
+  (let [{:keys [title description domainLabel rangeLabel chartType notAnalysed seriesLabels type
+                filterSelectedValue filters filterLabel]
          [labels & tuples] :results} data
         values (mapcat (fn [[domain & all-series]]
                          (map (fn [label value]
@@ -31,11 +52,15 @@
                        #_(concat tuples
                                  (map #(update % 0 str " 2") tuples)))]
     [widget
+     :widget-kw widget-kw
      :title title
      :description description
      :full-width? full-width?
      :notAnalysed notAnalysed
      :type type
+     :filterSelectedValue filterSelectedValue
+     :filters filters
+     :filterLabel filterLabel
      :values values
      :child
      [vega-lite
@@ -97,16 +122,21 @@
                             {:field "value"
                              :type "quantitative"}]}}]]))
 
-(defn piechart [data & {:keys [full-width?]}]
-  (let [{:keys [title description notAnalysed type rangeLabel]
+(defn piechart [widget-kw data & {:keys [full-width?]}]
+  (let [{:keys [title description notAnalysed type rangeLabel
+                filterSelectedValue filters filterLabel]
          [_ & tuples] :results} data
         values (map #(zipmap [:category :value] %) tuples)]
     [widget
+     :widget-kw widget-kw
      :title title
      :description description
      :full-width? full-width?
      :notAnalysed notAnalysed
      :type type
+     :filterSelectedValue filterSelectedValue
+     :filters filters
+     :filterLabel filterLabel
      :values values
      :child
      [vega-lite
@@ -125,7 +155,7 @@
                 :encoding {:text {:field "value" :type "nominal"}}}]
        :view {:stroke nil}}]]))
 
-(defn table [data & {:keys [full-width?]}]
+(defn table [widget-kw data & {:keys [full-width?]}]
   (let [{:keys [title description notAnalysed type]
          values :results} data]
     [widget
@@ -162,4 +192,4 @@
                                       table)
                         full-width? (= (count widgets) 1)]]
               ^{:key widget-kw}
-              [widget-comp widget-data :full-width? full-width?]))]))
+              [widget-comp widget-kw widget-data :full-width? full-width?]))]))
