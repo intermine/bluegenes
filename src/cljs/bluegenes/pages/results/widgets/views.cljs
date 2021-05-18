@@ -118,7 +118,12 @@
                   {:field "value"
                    :type "quantitative"
                    :title rangeLabel
-                   :axis {:tickMinStep 1}}
+                   :axis (case chartType
+                           "BarChart"
+                           {:tickMinStep 1
+                            :orient "top"}
+                           "ColumnChart"
+                           {:tickMinStep 1})}
 
                   (case chartType
                     "BarChart" :y
@@ -268,17 +273,17 @@
      [:h3.widget-heading "Widgets"]
      [:div.widgets
       ;; Uncomment me to test the PieChart!
-      #_[piechart {:chartType "PieChart",
-                   :description "Percentage of employees belonging to each company",
-                   :type "Employee",
-                   :list "Everyones-Favourite-Employees",
-                   :title "Company Affiliation",
-                   :rangeLabel "No. of employees",
-                   :notAnalysed 0,
-                   :results [["No. of employees"]
-                             ["Capitol Versicherung AG" 5]
-                             ["Dunder-Mifflin" 1]
-                             ["Wernham-Hogg" 1]]}]
+      #_[piechart :test-piechart {:chartType "PieChart",
+                                  :description "Percentage of employees belonging to each company",
+                                  :type "Employee",
+                                  :list "Everyones-Favourite-Employees",
+                                  :title "Company Affiliation",
+                                  :rangeLabel "No. of employees",
+                                  :notAnalysed 0,
+                                  :results [["No. of employees"]
+                                            ["Capitol Versicherung AG" 5]
+                                            ["Dunder-Mifflin" 1]
+                                            ["Wernham-Hogg" 1]]}]
       (doall (for [[widget-kw widget-data] (sort-by (comp str/lower-case :title val) widgets)
                    :let [widget-comp (case (:chartType widget-data)
                                        ("BarChart" "ColumnChart") chart
