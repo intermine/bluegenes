@@ -175,15 +175,17 @@
 (defn jump-to []
   (let [tool-names (map :names @(subscribe [:bluegenes.components.tools.subs/suitable-tools]))]
     (when (seq tool-names)
-      (into [:div.jump-to
-             [:span "Jump to: "]
-             [:span.jump-item
-              {:on-click #(scroll-into-view! nil)}
-              "Top"]]
-            (for [{:keys [cljs human]} tool-names]
+      [:<>
+       [:h3.results-heading "Tools"]
+       (into [:div.jump-to
+              [:span "Jump to: "]
               [:span.jump-item
-               {:on-click #(scroll-into-view! (str cljs "-container"))}
-               (clean-tool-name human)])))))
+               {:on-click #(scroll-into-view! nil)}
+               "Top"]]
+             (for [{:keys [cljs human]} tool-names]
+               [:span.jump-item
+                {:on-click #(scroll-into-view! (str cljs "-container"))}
+                (clean-tool-name human)]))])))
 
 (defn main
   "Result page for a list or query."
@@ -213,6 +215,6 @@
           (when @current-mine-is-env?
             [:div.row
              [:div.col-sm-12
-              [jump-to]
               [viz/main]
+              [jump-to]
               [tools/main]]])])])))

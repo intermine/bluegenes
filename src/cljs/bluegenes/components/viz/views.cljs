@@ -10,11 +10,13 @@
 
 (defn main []
   (let [all-results @(subscribe [:viz/results])]
-    (into [:div]
-          (for [{:keys [viz key]} all-viz]
-            (when-let [results (get all-results key)]
-              ^{:key (name key)}
-              [:div.viz
-               [:div.panel.panel-default
-                [:div.panel-body
-                 [viz results]]]])))))
+    (when (seq all-results)
+      (into [:div
+             [:h3.results-heading "Visualisations"]]
+            (for [{:keys [viz key]} all-viz]
+              (when-let [results (get all-results key)]
+                ^{:key (name key)}
+                [:div.viz
+                 [:div.panel.panel-default
+                  [:div.panel-body
+                   [viz results]]]]))))))
