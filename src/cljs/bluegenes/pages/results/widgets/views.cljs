@@ -22,7 +22,7 @@
                         values child
                         widget-kw]}]
   (conj [:div.widget.col-sm-12
-         {:class (when-not full-width? :col-md-6)}
+         {:class (when-not full-width? [:col-lg-6 :col-xl-4-workaround])}
          [:h4 title]
          [:p {:dangerouslySetInnerHTML {:__html description}}]
          (if (pos? notAnalysed)

@@ -48,9 +48,11 @@
   (let [historical-queries (subscribe [:results/historical-queries])
         current-query (subscribe [:results/history-index])]
     (fn []
-      [:div
-       [:h3 [:i.fa.fa-clock-o] " Recent Queries"]
-       (into [:ul.history-list]
+      [:div.dropdown
+       [:button.btn.btn-link.btn-results.recent-queries.dropdown-toggle
+        {:data-toggle "dropdown"}
+        "Recent Queries" [icon "caret-down"]]
+       (into [:ul.dropdown-menu.history-list]
              (map (fn [[title {:keys [source value display-title] :as query}]]
                     [:li.history-item
                      {:class (when (= title @current-query) "active")
@@ -116,7 +118,7 @@
 
 (defn back-button []
   (let [intent @(subscribe [:results/intent])]
-    [:button.btn.btn-link.back-button
+    [:button.btn.btn-link.btn-results
      {:on-click #(dispatch (case intent
                              :query [::route/navigate ::route/querybuilder]
                              :search [::route/navigate ::route/search]
@@ -137,7 +139,8 @@
         {:keys [size authorized timestamp type tags
                 description] :as list} @(subscribe [:results/current-list])]
     [:div.query-details
-     {:title "Use the Edit button on the Lists page to change details"}
+     (when list
+       {:title "Use the Edit button on the Lists page to change details"})
      [:div.query-or-list
       [:span.query-title title]
       (when list ; You won't have this data if it's an unsaved query.
@@ -193,20 +196,18 @@
        (when @are-there-results?
          [:<>
           [:div.row
-           [:div.col-sm-3.col-lg-2
-            [query-history]
-            [:div.hidden-lg
-             [enrichment/enrich]]]
-           [:div.col-sm-9.col-lg-7
+           [:div.col-sm-8.col-lg-9
             [:h2.results-heading "Query Results"]
-            [back-button]
-             ;; Query details is only interesting if it's a saved list.
+            [:div.results-actions
+             [back-button]
+             [query-history]]
+            ;; Query details is only interesting if it's a saved list.
             (when (= @intent :list)
               [query-details])
             [:div.results-table
              [tables/main [:results :table]]]
             [widgets/main]]
-           [:div.col-sm-3.visible-lg-block
+           [:div.col-sm-4.col-lg-3
             [enrichment/enrich]]]
           ;; Only show visualizations for configured mines (i.e. not registry mines).
           (when @current-mine-is-env?
