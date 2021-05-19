@@ -215,6 +215,11 @@
             padding: @spacer;
             border: 1px solid @light-contrast;
 
+            &.is-loading {
+                opacity: 0.3;
+                pointer-events: none;
+            }
+
             &-filter {
                 display: flex;
                 align-items: baseline;

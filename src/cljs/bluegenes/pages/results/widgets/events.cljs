@@ -65,7 +65,8 @@
    (let [entities (get-in db [:tools :entities])
          widget (some #(when (= widget-kw (keyword (:name %))) %)
                       (get-in db [:assets :widgets (:current-mine db)]))]
-     {:dispatch (widget->event entities widget {:filter value})})))
+     {:db (update-in db [:results :widget-results widget-kw] assoc :loading? true)
+      :dispatch (widget->event entities widget {:filter value})})))
 
 (reg-event-db
  :widgets/reset

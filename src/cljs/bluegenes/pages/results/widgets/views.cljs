@@ -19,10 +19,12 @@
 
 (defn widget [& {:keys [title description full-width? notAnalysed type
                         filterSelectedValue filters filterLabel
-                        values child
+                        loading? values child
                         widget-kw]}]
   (conj [:div.widget.col-sm-12
-         {:class (when-not full-width? [:col-lg-6 :col-xl-4-workaround])}
+         {:class (-> []
+                     (into (when-not full-width? [:col-lg-6 :col-xl-4-workaround]))
+                     (into (when loading? [:is-loading])))}
          [:h4 title]
          [:p {:dangerouslySetInnerHTML {:__html description}}]
          (if (pos? notAnalysed)
@@ -59,7 +61,8 @@
 
 (defn chart [widget-kw data & {:keys [full-width?]}]
   (let [{:keys [title description domainLabel rangeLabel chartType notAnalysed seriesValues seriesLabels type pathQuery
-                filterSelectedValue filters filterLabel]
+                filterSelectedValue filters filterLabel
+                loading?]
          [labels & tuples] :results} data
         values (mapcat (fn [[domain & all-series]]
                          (map (fn [label value]
@@ -83,6 +86,7 @@
      :filterSelectedValue filterSelectedValue
      :filters filters
      :filterLabel filterLabel
+     :loading? loading?
      :values values
      :child
      [vega-lite
@@ -163,7 +167,8 @@
 
 (defn piechart [widget-kw data & {:keys [full-width?]}]
   (let [{:keys [title description notAnalysed type rangeLabel
-                filterSelectedValue filters filterLabel]
+                filterSelectedValue filters filterLabel
+                loading?]
          [_ & tuples] :results} data
         values (map #(zipmap [:category :value] %) tuples)]
     [widget
@@ -176,6 +181,7 @@
      :filterSelectedValue filterSelectedValue
      :filters filters
      :filterLabel filterLabel
+     :loading? loading?
      :values values
      :child
      [vega-lite
