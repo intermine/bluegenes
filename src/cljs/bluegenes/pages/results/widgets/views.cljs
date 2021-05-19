@@ -275,7 +275,7 @@
 
 (defn main []
   (let [widgets @(subscribe [:widgets/all-widgets])
-        widgets (sort-by (comp str/lower-case :title val)
+        widgets (sort-by key
                          ;; Value is false if it failed, which we won't show.
                          (filter val widgets))]
     (when (seq widgets)
