@@ -44,7 +44,7 @@
                         "table" im-fetch/table-widget)
          widget-name (:name widget)
          service (get-in db [:mines (:current-mine db) :service])]
-     {:im-chan {:chan (fetch-widget service ids widget-name type options)
+     {:im-chan {:chan (fetch-widget service ids widget-name (assoc options :type type))
                 :on-success [:widgets/get-widget-data-success widget-name]
                 :on-failure [:widgets/get-widget-data-failure widget-name]}})))
 
