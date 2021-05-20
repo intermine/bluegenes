@@ -190,4 +190,5 @@
                                           {:calculate "pow(10, datum.bin_log_x)"
                                            :as "x1"}
                                           {:calculate "pow(10, datum.bin_log_x_end)"
-                                           :as "x2"}])))}]}]])))
+                                           :as "x2"}])))}]}
+        {:class :viz}]])))

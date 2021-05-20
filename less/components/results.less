@@ -23,9 +23,35 @@
 
 .results {
     width: 100%;
+    max-width: 1800px;
 
     .results-heading {
         color: @highlight-color;
+    }
+
+    .results-actions {
+        display: flex;
+
+        .btn-results {
+            text-transform: none;
+            font-weight: 500;
+            text-decoration: underline;
+            font-size: 1.4em;
+            color: @highlight-color;
+            fill: @highlight-color;
+            padding-left: 0;
+
+            .icon {
+                margin: 0 @spacer/4 0 0;
+            }
+
+            &.recent-queries {
+                .icon {
+                    // This is just to make the dropdown wide!
+                    margin-right: @spacer*20;
+                }
+            }
+        }
     }
 
     .history-list {
@@ -35,6 +61,8 @@
         color: black;
         border: 1px solid #e9e9e9;
         background-color: @highlight-color-text;
+
+        width: 100%;
 
         max-height: 645px;
         overflow: auto;
@@ -84,20 +112,6 @@
         background-color: @content-color-background;
         margin-bottom: @spacer*3;
         border: 1px solid @light-contrast;
-    }
-
-    .back-button {
-        text-transform: none;
-        font-weight: 500;
-        text-decoration: underline;
-        font-size: 1.4em;
-        color: @highlight-color;
-        fill: @highlight-color;
-        padding-left: 0;
-
-        .icon {
-            margin: 0 @spacer/4 0 0;
-        }
     }
 
     .query-details {
@@ -184,6 +198,58 @@
             margin-bottom: 0;
             font-size: 1.2em;
             overflow-wrap: anywhere;
+        }
+    }
+
+    .widget-heading {
+        color: @highlight-color;
+        margin-bottom: @spacer;
+    }
+
+    .widgets {
+        display: flex;
+        flex-wrap: wrap;
+
+        .widget {
+            background-color: @content-color-background;
+            padding: @spacer;
+            border: 1px solid @light-contrast;
+
+            &.is-loading {
+                opacity: 0.3;
+                pointer-events: none;
+            }
+
+            &-filter {
+                display: flex;
+                align-items: baseline;
+
+                margin-bottom: @spacer;
+
+                select {
+                    margin-left: @spacer/3;
+                }
+            }
+
+            .vega-embed {
+                max-height: 400px;
+                width: 100%;
+                overflow: auto;
+            }
+
+            .table-widget {
+                max-height: 400px;
+                overflow: auto;
+            }
+        }
+
+        @media (min-width: 1600px) {
+            // .col-xl-* doesn't exist and adding it properly is a lot of work
+            // for something we probably will only use here. Hence a workaround!
+            .col-xl-4-workaround {
+                width: 33.33333333%;
+                float: left;
+            }
         }
     }
 

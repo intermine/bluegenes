@@ -33,7 +33,9 @@
   (update-in (js->clj (.parse js/JSON query) :keywordize-keys true) [:where]
              conj {:path path-constraint
                    :op "ONE OF"
-                   :values (cond-> identifier (string? identifier) list)}))
+                   :values (if (coll? identifier)
+                             identifier
+                             (vector identifier))}))
 
 (defn enrichment-result-row []
   (let [current-mine (subscribe [:current-mine-name])]

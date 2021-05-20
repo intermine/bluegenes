@@ -60,13 +60,8 @@
                  [com.taoensso/timbre "4.10.0"]
                  [com.fzakaria/slf4j-timbre "0.3.19"]
 
-                 ; Graphs
-                 [cljsjs/vega "5.9.0-0"]
-                 [cljsjs/vega-lite "4.0.2-0"]
-                 [cljsjs/vega-embed "6.0.0-0"]
-
                  ; Intermine Assets
-                 [org.intermine/imcljs "1.4.3"]
+                 [org.intermine/imcljs "1.4.4"]
                  [org.intermine/im-tables "0.13.0"]
                  [org.intermine/bluegenes-tool-store "0.2.2"]]
 

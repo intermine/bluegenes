@@ -222,6 +222,7 @@
                  ;; previous invocation. This way, we'll only show the new
                  ;; results and tools once they're ready.
                  (dispatch [:results/clear])
+                 (dispatch [:widgets/reset])
                  (dispatch [:clear-ids-tool-entity])
                  (dispatch [:viz/clear])
                  (dispatch [:set-active-panel :results-panel
@@ -276,6 +277,9 @@
   ;; - Put side-effects you want to run on every page load/change here!
   ;; Make sure there are no hanging popovers.
   (ocall (js/$ ".popover") "remove")
+  ;; When clicking a bar in a vega-lite chart, it shows the results in a new
+  ;; page and the tooltip lingers.
+  (ocall (js/$ "#vg-tooltip-element") "remove")
   ;; Track the page (new-match has :data, so can use anything from `routes`).
   (try
     (js/ga "send" "pageview" (:path new-match))

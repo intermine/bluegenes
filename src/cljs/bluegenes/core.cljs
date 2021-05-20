@@ -14,9 +14,6 @@
             [cljsjs.react-transition-group]
             [cljsjs.react-day-picker]
             [cljsjs.react-select]
-            [cljsjs.vega]
-            [cljsjs.vega-lite]
-            [cljsjs.vega-embed]
             [oops.core :refer [ocall]]))
 
 ;(defn dev-setup []

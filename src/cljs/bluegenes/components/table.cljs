@@ -5,6 +5,11 @@
             [dommy.core :as dommy :refer-macros [sel sel1]]
             [oops.core :refer [ocall oapply oget oset!]]))
 
+;; NOTE:
+;; This namespace is not in use. It seems to be an attempt to use the original
+;; im-tables (not the im-tables-3 ClojureScript clone) within BlueGenes.
+;; Still worth keeping around in case we want to make another try at this.
+
 (defn handle [expanded? e]
   (let [props (reagent/props e)
         node  (sel1 (dom/dom-node e) :.im-target)]

@@ -20,13 +20,19 @@
   ([elem doc opts]
    (when doc
      (let [doc (clj->js doc)
-           opts (merge {:renderer :canvas
-                        ;; Have to think about how we want the defaults here to behave
-                        :mode "vega-lite"}
-                       opts)]
-       (-> (js/vegaEmbed elem doc (clj->js opts))
+           opts' (merge {:renderer :canvas
+                         ;; Have to think about how we want the defaults here to behave
+                         :mode "vega-lite"}
+                        (dissoc opts :callback))]
+       (-> (js/vegaEmbed elem doc (clj->js opts'))
+           (.then (get opts :callback #()))
            (.catch (fn [err]
                      (.warn js/console err))))))))
+
+(def local-keys
+  "Keys that may be passed in opts which we only use in our local implementation.
+  I.e., not intended for consumption by vegaEmbed."
+  [:class])
 
 (defn vega
   "Reagent component that renders vega"
@@ -37,14 +43,15 @@
      (r/create-class
       {:display-name "vega"
        :component-did-mount (fn [this]
-                              (embed-vega (rd/dom-node this) doc opts))
+                              (embed-vega (rd/dom-node this) doc (apply dissoc opts local-keys)))
        :component-did-update (fn [this [_ old-doc old-opts]]
                                (let [[_ new-doc new-opts] (r/argv this)]
                                  (when (or (not= old-doc new-doc)
                                            (not= old-opts new-opts))
-                                   (embed-vega (rd/dom-node this) new-doc new-opts))))
+                                   (embed-vega (rd/dom-node this) new-doc (apply dissoc new-opts local-keys)))))
        :reagent-render (fn []
-                         [:div.viz])}))))
+                         [:div
+                          {:class (:class opts)}])}))))
 
 (defn vega-lite
   "Reagent component that renders vega-lite."

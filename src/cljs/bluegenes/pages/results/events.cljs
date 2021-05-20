@@ -146,7 +146,7 @@
                       im-table-location
                       {:service (merge service {:summary-fields summary-fields})
                        :query value
-                       :settings {:pagination {:limit 25}
+                       :settings {:pagination {:limit 10}
                                   :links {:vocab {:mine (name source)}
                                           :url (fn [{:keys [mine class objectId] :as vocab}]
                                                  (route/href ::route/report
@@ -213,8 +213,7 @@
      ;; two events dispatched below (see TODO above).
      {:db (update db :results assoc
                   :query-parts (clean-query-parts (q/group-views-by-class model query)))
-      :dispatch-n [(when (contains? (get-in db [:env :mines]) (:current-mine db))
-                     [:fetch-ids-tool-entities])
+      :dispatch-n [[:fetch-ids-tool-entities]
                    [:enrichment/enrich]]})))
 
 (reg-event-fx
@@ -250,13 +249,20 @@
                  :value (reduce into results)}
          entities (assoc (get-in db [:tools :entities])
                          class entity)]
-     (cond-> {:db (assoc-in db [:tools :entities] entities)}
+     (cond-> {:db (assoc-in db [:tools :entities] entities)
+              :dispatch-n []}
        ;; If there are no nil values, we know all entities are done fetching
-       ;; and can load the viz/tools. (Tools are loaded through their
+       ;; and can load the viz/tools/widgets. (Tools are loaded through their
        ;; subscription updating when entities-ready? is set.)
        (every? some? (vals entities))
-       (-> (assoc :dispatch [:viz/run-queries])
-           (assoc-in [:db :results :entities-ready?] true))))))
+       (cond->
+        ;; Widgets use the same IDs computed for tools so we don't need to do
+        ;; the operation twice.
+        true (update :dispatch-n conj [:widgets/load])
+        ;; Only load viz and tools if on configured mine.
+        (contains? (get-in db [:env :mines]) (:current-mine db))
+        (-> (update :dispatch-n conj [:viz/run-queries])
+            (assoc-in [:db :results :entities-ready?] true)))))))
 
 (reg-event-db
  :clear-ids-tool-entity

@@ -8,6 +8,10 @@
             [imcljs.fetch :as fetch]
             [imcljs.path :as path]))
 
+;; NOTE:
+;; This namespace is not in use. It seems to be an experiment to create a
+;; lighter, less featureful, version of im-tables.
+
 (defn homogeneous-columns
   "Returns a sequence of true / false indicating that all values in each
   column of a table are equal. Assumes all rows are the same length.

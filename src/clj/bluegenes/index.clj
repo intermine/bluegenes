@@ -96,6 +96,10 @@
     [:script {:crossorigin "anonymous"
               :src "https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"}]
     [:script {:src "https://apis.google.com/js/api.js"}]
+    ;; Graphing library
+    [:script {:src "https://cdn.jsdelivr.net/npm/vega@5.20.2"}]
+    [:script {:src "https://cdn.jsdelivr.net/npm/vega-lite@5.1.0"}]
+    [:script {:src "https://cdn.jsdelivr.net/npm/vega-embed@6.17.0"}]
     (when (:semantic-markup options)
       [:script {:type "application/ld+json"}
        (generate-string (fetch-semantic-markup options))])]))
