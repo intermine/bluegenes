@@ -91,7 +91,9 @@
      :child
      [vega-lite
       {:description description
-       :height {:step 8}
+       :height (case chartType
+                "BarChart" {:step 8}
+                "ColumnChart" nil)
        :data {:values values}
        :mark {:type "bar"
               :cursor "pointer"}
