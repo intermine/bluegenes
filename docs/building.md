@@ -209,20 +209,19 @@ To deploy a compiled JAR to Clojars, simply use the `deploy` alias which automat
 
 ### Releasing a new version
 
-The release process is a combination of the above commands, with some additional steps. Generally, you'll want to do the following.
-
 1. Update the version number in **project.clj**.
-2. Commit this change and tag it using `git tag -a v1.0.0 -m "Release v1.0.0"`, replacing *1.0.0* with your version number.
-3. Push your commit and tag it using `git push origin` followed by `git push origin v1.0.0` (again, replace *1.0.0* with your version number). Make sure that you push to the intermine repository, not just your fork!
-4. Deploy a new uberjar to Clojars with `lein deploy`.
-5. Push a new docker image to dockerhub.
+2. Don't forget to add the new version with notes to **CHANGELOG.md**.
+3. Commit this change and tag it using `git tag -a v1.0.0 -m "Release v1.0.0"`, replacing *1.0.0* with your version number.
+4. Push your commit and tag it using `git push origin` followed by `git push origin v1.0.0` (again, replace *1.0.0* with your version number). Make sure that you push to the intermine repository, not just your fork!
+5. Deploy a new uberjar to Clojars with `lein deploy`.
+6. Push a new docker image to dockerhub.
     1. `lein uberjar`
     2. `docker build -t bluegenes .`
     3. `docker tag bluegenes intermine/bluegenes:1.0.0` (remember to use your correct version number)
     4. `docker tag bluegenes intermine/bluegenes:latest`
     5. `docker push intermine/bluegenes:1.0.0`
     6. `docker push intermine/bluegenes:latest`
-6. Deploy the latest release to dokku with `git push dokku dev:master`.
+7. Deploy the latest release to dokku with `git push dokku dev:master`.
 
 # Troubleshooting
 
