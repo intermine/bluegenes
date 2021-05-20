@@ -287,7 +287,11 @@
             (name @root-class)]
            [:div
             [:hr]
-            [:p.text-muted "Advanced users can use a flexible query interface to construct their own data mining queries. The Query Builder lets you view the data model, apply constraints and select output. You can also export queries to share them with others."]
+            [:p.text-muted "Advanced users can use a flexible query interface to construct their own data mining queries. The Query Builder lets you view the data model, apply constraints and select output. You can also export queries to share them with others. "
+             [:a {:href "http://intermine.org/intermine-user-docs/docs/the-query-builder" :target "_blank"} "Click here"]
+             " to learn how to use the Query Builder - we also have a "
+             [:a {:href "http://intermine.org/intermine-user-docs/docs/the-query-builder#video-tutorial" :target "_blank"} "video tutorial"]
+             "."]
             [:p.text-muted "To get started, use the dropdown above to select a data type to create a new query starting at that class."]])]
         [data-browser #(swap! browse-model? not)]))))
 
