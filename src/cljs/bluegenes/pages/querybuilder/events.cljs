@@ -380,9 +380,9 @@
                       db
                       adjusted-views)
               (cond->
-               (seq subclasses) (update-in [:qb :enhance-query]
-                                           (partial reduce #(apply set-subclass %1 %2))
-                                           subclasses)))
+                (seq subclasses) (update-in [:qb :enhance-query]
+                                            (partial reduce #(apply set-subclass %1 %2))
+                                            subclasses)))
       :dispatch [:qb/enhance-query-build-im-query true]})))
 
 (reg-event-fx

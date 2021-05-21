@@ -78,7 +78,9 @@
             ;; so they're accessible to config.
             [lein-environ "1.2.0"]]
 
-  :cljfmt {:indents {wait-for [[:inner 0]]}}
+  :cljfmt {:indents {wait-for [[:inner 0]]
+                     cond-> [[:inner 0]]
+                     cond->> [[:inner 0]]}}
 
   :aliases ~(let [compile-less ["npx" "lessc" "less/site.less" "resources/public/css/site.css"]
                   compile-less-prod (conj compile-less "-x")

@@ -258,14 +258,14 @@
        ;; subscription updating when entities-ready? is set.)
        (every? some? (vals entities))
        (cond->
-        ;; Widgets use the same IDs computed for tools so we don't need to do
-        ;; the operation twice.
-        (utils/compatible-version? version/widget-support current-version)
-        (update :dispatch-n conj [:widgets/load])
-        ;; Only load viz and tools if on configured mine.
-        (contains? (get-in db [:env :mines]) (:current-mine db))
-        (-> (update :dispatch-n conj [:viz/run-queries])
-            (assoc-in [:db :results :entities-ready?] true)))))))
+         ;; Widgets use the same IDs computed for tools so we don't need to do
+         ;; the operation twice.
+         (utils/compatible-version? version/widget-support current-version)
+         (update :dispatch-n conj [:widgets/load])
+         ;; Only load viz and tools if on configured mine.
+         (contains? (get-in db [:env :mines]) (:current-mine db))
+         (-> (update :dispatch-n conj [:viz/run-queries])
+             (assoc-in [:db :results :entities-ready?] true)))))))
 
 (reg-event-db
  :clear-ids-tool-entity

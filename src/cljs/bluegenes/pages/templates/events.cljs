@@ -101,7 +101,7 @@
      {:db (-> db
               (assoc-in constraint-location (constraint/clear-constraint-value old-constraint new-constraint))
               (cond->
-               (not= old-op new-op) (assoc-in [:components :template-chooser :results-preview] nil)))})))
+                (not= old-op new-op) (assoc-in [:components :template-chooser :results-preview] nil)))})))
 
 (reg-event-fx
  :template-chooser/update-preview

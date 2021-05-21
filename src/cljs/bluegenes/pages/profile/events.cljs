@@ -214,7 +214,7 @@
      (-> db
          (assoc-in [:profile :preferences] prefs')
          (cond->
-          success?
+           success?
            (->
             (assoc-in [:profile :inputs :user-preferences] prefs')
             (assoc-in [:profile :responses :user-preferences]

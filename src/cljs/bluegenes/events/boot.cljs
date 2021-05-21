@@ -162,7 +162,7 @@
          renamedLists (some-> @init-vars :renamedLists not-empty)
          init-events (-> (some-> @init-vars :events not-empty)
                          (cond->
-                          renamedLists ((fnil conj []) (renamedLists->message renamedLists))))
+                           renamedLists ((fnil conj []) (renamedLists->message renamedLists))))
          ;; Configured mines are also passed from the Bluegenes backend,
          ;; usually defined in config.edn.
          config-mines (init-config-mines)
@@ -172,7 +172,7 @@
                      (assoc-in [:mines current-mine] mine)
                      (assoc :current-mine current-mine)
                      (cond->
-                      init-events (assoc :dispatch-after-boot init-events)))
+                       init-events (assoc :dispatch-after-boot init-events)))
          ;; Load data previously persisted to local storage.
          {:keys [assets version] :as state} (:local-store cofx)
          db (cond-> init-db
