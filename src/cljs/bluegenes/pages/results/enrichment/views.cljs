@@ -122,9 +122,11 @@
           {:class (when (empty? results) "inactive")}
           [:h4
            (get-in @config [widget-name :title])
-           (if results
-             [:span (when results (str " (" (count results) ")"))]
-             [:span [mini-loader "tiny"]])]
+           (cond
+             results [:span (str " (" (count results) ")")]
+             (string? details) [poppable {:data details
+                                          :children [icon "warning"]}]
+             :else [:span [mini-loader "tiny"]])]
           [:div.enrichment-category-right-side
            (when (not-empty results)
              [:button.btn.btn-default.btn-raised.btn-xs.view-all-enrichment
@@ -234,9 +236,10 @@
      [:option "Bonferroni"]
      [:option "None"]]]
 
-   [:div.population
-    [:label "Background population"]
-    (let [pop-value @(subscribe [:enrichment/background-population])]
+   (let [pop-value @(subscribe [:enrichment/background-population])
+         widget-support? @(subscribe [:widget-support?])]
+     [:div.population
+      [:label "Background population"]
       [:div.population-controls
        [list-dropdown
         :value pop-value
@@ -247,7 +250,10 @@
          [:button.btn.btn-link.population-clear
           {:title "Reset background population"
            :on-click #(dispatch [:enrichment/update-enrichment-setting :population nil])}
-          [icon "close"]])])]
+          [icon "close"]])]
+      (when (and pop-value (not widget-support?))
+        [:div.alert.alert-warning
+         [:p "This mine is running an older InterMine version which does not support enrichment with background population in BlueGenes."]])])
 
    (when-let [message @(subscribe [:enrichment/enrichment-results-message])]
      [:div.alert.alert-info

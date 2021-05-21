@@ -30,6 +30,13 @@
 ;; when a new API key is generated.
 (def proper-login-support 31)
 
+;; Prior to this InterMine version, the `/list/chart` and `/list/table` web
+;; services won't accept object IDs, which is how Bluegenes prefers to pass
+;; query results for analysis. There was also a bug causing `/list/enrichment`
+;; to fail when passed a background population list along with object IDs.
+;; From this version on, enrichment is improved and widgets are shown.
+(def widget-support "5.0.1")
+
 ;;;; Version numbers you *might* want to change.
 
 ;; This is the current Tool API version. Increment this when you're forced to

@@ -293,6 +293,12 @@
    (utils/compatible-version? version/bg-properties-support current-version)))
 
 (reg-sub
+ :widget-support?
+ :<- [:current-intermine-version]
+ (fn [current-version]
+   (utils/compatible-version? version/widget-support current-version)))
+
+(reg-sub
  :show-mine-loader?
  (fn [db]
    (get db :show-mine-loader?)))

@@ -13,7 +13,9 @@
             [cljs-time.coerce :as time-coerce]
             [bluegenes.route :as route]
             [bluegenes.components.tools.events :as tools]
-            [bluegenes.effects :refer [document-title]]))
+            [bluegenes.effects :refer [document-title]]
+            [bluegenes.utils :as utils]
+            [bluegenes.version :as version]))
 
 (comment
   "To automatically display some results in this section (the Results / List Analysis page),
@@ -247,8 +249,8 @@
    (let [entity {:class (name class)
                  :format "ids"
                  :value (reduce into results)}
-         entities (assoc (get-in db [:tools :entities])
-                         class entity)]
+         entities (assoc (get-in db [:tools :entities]) class entity)
+         current-version (get-in db [:assets :intermine-version (:current-mine db)])]
      (cond-> {:db (assoc-in db [:tools :entities] entities)
               :dispatch-n []}
        ;; If there are no nil values, we know all entities are done fetching
@@ -258,7 +260,8 @@
        (cond->
         ;; Widgets use the same IDs computed for tools so we don't need to do
         ;; the operation twice.
-        true (update :dispatch-n conj [:widgets/load])
+        (utils/compatible-version? version/widget-support current-version)
+        (update :dispatch-n conj [:widgets/load])
         ;; Only load viz and tools if on configured mine.
         (contains? (get-in db [:env :mines]) (:current-mine db))
         (-> (update :dispatch-n conj [:viz/run-queries])

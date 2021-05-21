@@ -185,7 +185,8 @@
                           (keyword (:widget updated-params))] nil)
         :im-chan {:chan enrichment-chan
                   :abort [:enrichment (:widget updated-params)]
-                  :on-success [:enrichment/handle-results (:widget updated-params)]}}))))
+                  :on-success [:enrichment/handle-results (:widget updated-params)]
+                  :on-failure [:enrichment/handle-error (:widget updated-params)]}}))))
 
 (reg-event-db
  :enrichment/handle-results
@@ -198,3 +199,12 @@
        ;; when the list selected as background population contains other
        ;; items, which should be identical for all enrichment results.
        (assoc-in [:results :enrichment-results-message] (:message results)))))
+
+(reg-event-db
+ :enrichment/handle-error
+ (fn [db [_ widget-name res]]
+   (-> db
+       (assoc-in [:results :enrichment-results (keyword widget-name)]
+                 (or (get-in res [:body :error])
+                     (str "Failed to get enrichment results for " widget-name)))
+       (assoc-in [:results :enrichment-results-loading?] false))))
