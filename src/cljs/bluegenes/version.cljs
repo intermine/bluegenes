@@ -35,7 +35,7 @@
 ;; query results for analysis. There was also a bug causing `/list/enrichment`
 ;; to fail when passed a background population list along with object IDs.
 ;; From this version on, enrichment is improved and widgets are shown.
-(def widget-support "5.0.1")
+(def widget-support "5.0.2")
 
 ;;;; Version numbers you *might* want to change.
 
