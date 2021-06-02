@@ -52,7 +52,7 @@ jobs:
     - run: pyenv versions
     - run: pyenv global 3.8.5
     - run: pip3 install intermine-boot
-    - run: intermine_boot start local --build-im --im-branch bluegenes
+    - run: intermine_boot start local
     - checkout
     - restore_cache:
         keys:
