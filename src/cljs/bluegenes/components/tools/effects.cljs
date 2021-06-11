@@ -80,7 +80,9 @@
         (when tool-path
           (oset! script-tag "id" script-id)
           ;;fetch script from bluegenes-tool-store backend
-          (oset! script-tag "src" (str "/tools/" (get-in tool [:names :npm]) "/" tool-path))
+          (oset! script-tag "src" (str "/tools/" (get-in tool [:names :npm])
+                                       "/" tool-path
+                                       "?v=" (get-in tool [:package :version])))
           ;;run-script will automatically be triggered when the script loads
           (oset! script-tag "onload" #(run-script! tool tool-id
                                                    :service service
@@ -101,7 +103,9 @@
         (when style-path
           ;;fetch stylesheet and set some properties
           (oset! style-tag "id" style-id)
-          (oset! style-tag "href" (str "/tools/" (get-in tool [:names :npm]) "/" style-path))
+          (oset! style-tag "href" (str "/tools/" (get-in tool [:names :npm])
+                                       "/" style-path
+                                       "?v=" (get-in tool [:package :version])))
           (oset! style-tag "type" "text/css")
           (oset! style-tag "rel" "stylesheet")
           ;;append to dom
