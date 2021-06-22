@@ -70,3 +70,19 @@
      (client (timeout req)))
     ([req respond raise]
      (client (timeout req) respond raise))))
+
+(defn- accept-all
+  [req]
+  (-> req
+      (dissoc :as)
+      (assoc :accept "*/*")))
+
+(defn wrap-accept-all
+  "Middleware setting the accept header in a request to allow all responses
+  and disable output coercion."
+  [client]
+  (fn
+    ([req]
+     (client (accept-all req)))
+    ([req respond raise]
+     (client (accept-all req) respond raise))))
