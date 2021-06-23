@@ -6,7 +6,8 @@
             [bluegenes.utils :as utils]
             [imcljs.fetch :as im-fetch]
             [clj-http.client :refer [with-middleware]]
-            [clojure.core.cache.wrapped :as cache]))
+            [clojure.core.cache.wrapped :as cache]
+            [clojure.string :as str]))
 
 ;; Hello dear maker of the internet. You want to edit *this* file for prod,
 ;; NOT resources/public/index.html.
@@ -18,6 +19,9 @@
                      (not= bundle-hash "dev") (utils/insert-filename-css bundle-hash)))
 (def im-tables-css (cond-> "/css/im-tables.css"
                      (not= bundle-hash "dev") (utils/insert-filename-css bundle-hash)))
+
+(defn escape-quotes [s]
+  (str/replace s #"\"" (str/re-quote-replacement "\\\"")))
 
 ; A pure CSS loading animation to be displayed before the bluegenes javascript is read:
 (def loader-style
@@ -79,11 +83,11 @@
                                                      :bluegenes-default-service-root :bluegenes-default-mine-name :bluegenes-default-namespace
                                                      :bluegenes-additional-mines :hide-registry-mines])
                                    {:version bundle-hash})]
-            (str \' (pr-str server-vars) \'))
+            (str \" (escape-quotes (pr-str server-vars)) \"))
           ";")
      (str "var initVars="
           (if (map? init-vars)
-            (str \' (pr-str init-vars) \')
+            (str \" (escape-quotes (pr-str init-vars)) \")
             "null")
           ";")]
   ; Javascript:
