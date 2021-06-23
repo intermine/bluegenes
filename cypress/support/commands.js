@@ -33,3 +33,9 @@ Cypress.Commands.add("openRegisterDialogue", () => {
     cy.get('.dropdown-toggle').contains('LOGIN').click();
     cy.get('a.btn-block').contains('Create new account').click();
 })
+
+Cypress.Commands.add("openQueryBuilderTab", () => {
+    cy.get("#bluegenes-main-nav").within(() => {
+        cy.contains("Query Builder").click();
+    });
+})
