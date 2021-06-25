@@ -39,3 +39,15 @@ Cypress.Commands.add("openQueryBuilderTab", () => {
         cy.contains("Query Builder").click();
     });
 })
+
+Cypress.Commands.add("openTemplatesTab", () => {
+    cy.get("#bluegenes-main-nav").within(() => {
+        cy.contains("Templates").click();
+    });
+})
+
+Cypress.Commands.add("openListTab", () => {
+    cy.get("#bluegenes-main-nav").within(() => {
+        cy.contains("List").click();
+    });
+})
