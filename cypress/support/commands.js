@@ -34,9 +34,15 @@ Cypress.Commands.add("openRegisterDialogue", () => {
     cy.get('a.btn-block').contains('Create new account').click();
 })
 
-Cypress.Commands.add("openQueryBuilderTab", () => {
+Cypress.Commands.add("openUploadTab", () => {
     cy.get("#bluegenes-main-nav").within(() => {
-        cy.contains("Query Builder").click();
+        cy.contains("Upload").click();
+    });
+})
+
+Cypress.Commands.add("openListsTab", () => {
+    cy.get("#bluegenes-main-nav").within(() => {
+        cy.contains("Lists").click();
     });
 })
 
@@ -46,8 +52,14 @@ Cypress.Commands.add("openTemplatesTab", () => {
     });
 })
 
-Cypress.Commands.add("openListTab", () => {
+Cypress.Commands.add("openRegionsTab", () => {
     cy.get("#bluegenes-main-nav").within(() => {
-        cy.contains("List").click();
+        cy.contains("Regions").click();
+    });
+})
+
+Cypress.Commands.add("openQueryBuilderTab", () => {
+    cy.get("#bluegenes-main-nav").within(() => {
+        cy.contains("Query Builder").click();
     });
 })
