@@ -90,9 +90,7 @@ describe("Query builder test", function() {
 
         cy.contains('DB identifier').parentsUntil('.lab qb-class').children('.icon.icon-filter').click();
         cy.get('select.constraint-chooser').last().select('Contains');
-        // cy.wait(500);
         cy.get('input.form-control').click().type("MAL{enter}",{delay:100});
-        // cy.get('.panel-body').first().click();
       })
             
     });
