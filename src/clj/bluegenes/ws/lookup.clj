@@ -36,8 +36,8 @@
 (defn ws [lookup-string {:keys [root] :as mine}]
   (try
     (let [[object-type identifier extension :as lookupv] (str/split lookup-string #"[:.]")
-           service {:root root
-                    :model {:name "genomic"}}]
+          service {:root root
+                   :model {:name "genomic"}}]
       (if (not-empty extension)
         ;; Specify middleware so we can accept other formats than JSON.
         (with-middleware [#'clj-http.client/wrap-request
