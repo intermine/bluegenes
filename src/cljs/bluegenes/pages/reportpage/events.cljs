@@ -259,12 +259,16 @@
 
 (reg-event-fx
  ::generate-permanent-url
- (fn [{db :db} [_ api-version]]
+ (fn [{db :db} [_ api-version type]]
    (if (>= api-version 30)
-     (let [{:keys [id type]} (:panel-params db)
+     (let [{:keys [id] object-type :type} (:panel-params db)
            service (get-in db [:mines (:current-mine db) :service])
-           ?options (when (= api-version 30)
-                      {:type type})]
+           ?options (cond
+                      (> api-version 30) (when type {:type (name type)})
+                      ;; On API version 30, type needed to be the object type
+                      ;; (e.g. gene). The parameter was later removed, then
+                      ;; added back to ask for a specific type of URL.
+                      (= api-version 30) {:type object-type})]
        {:db (assoc-in db [:report :share] nil)
         :im-chan {:chan (fetch/permanent-url service id ?options)
                   :on-success [::show-permanent-url]

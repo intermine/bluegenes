@@ -60,7 +60,7 @@
     (apply compojure/routes
            (for [{mine-ns :namespace :as mine} mines]
              (context (str "/" mine-ns) []
-               (GET ["/:lookup" :lookup #"[^:/.]+:[^:/.]+"] [lookup]
+               (GET ["/:lookup" :lookup #"[^:/.]+:[^:/.]+(?:\.rdf)?"] [lookup]
                  (lookup/ws lookup mine)))))
 
     ;; Passes options to index for including semantic markup with HTML.
