@@ -1,13 +1,14 @@
 {
-    "baseUrl": "http://localhost:5000",
-    "reporter": "junit",
-    "defaultCommandTimeout": 30000,
-    "reporterOptions": {
-      "mochaFile": "cypress/results/output.xml",
-      "toConsole": true
-    },
-    "retries": {
-      "runMode": 2,
-      "openMode": 2
-    }
+  "baseUrl": "http://localhost:5000",
+  "reporter": "junit",
+  "defaultCommandTimeout": 30000,
+  "reporterOptions": {
+    "mochaFile": "cypress/results/output.xml",
+    "toConsole": true
+  },
+  "retries": {
+    "runMode": 2,
+    "openMode": 2
+  },
+  "projectId": "5mvk44"
 }

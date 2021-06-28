@@ -48,7 +48,9 @@ describe("Search Test", function(){
 
         cy.get(".results > form").children().first().click();
         cy.url().should("include","/report");
-        cy.contains("DB identifier").next().should("include.text","MAL");
+        cy.get('.report-table-body').within(() => {
+            cy.get(".report-table-cell").filter(':contains("MAL")');
+        })
     });
 
     it("can search with boolean search syntax", function(){
@@ -57,8 +59,10 @@ describe("Search Test", function(){
 
         cy.get(".results > form").children().first().click();
         cy.url().should("include","/report");
-        cy.contains("Name").next().should("include.text","protein");
-        cy.contains("UniProt Name").next().should("include.text","PLA");
+        cy.get('.report-table-body').within(() => {
+            cy.get(".report-table-cell").filter(':contains("protein")');
+            cy.get(".report-table-cell").filter(':contains("PLA")');
+        })
     });
 
     it("can filter search results by category and organism", function(){
