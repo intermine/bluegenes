@@ -7,6 +7,9 @@
             [clj-http.client :refer [with-middleware]]
             [bluegenes.utils :as utils]))
 
+(def extension->content-type
+  {"rdf" "application/rdf+xml;charset=UTF-8"})
+
 (defn handle-failed-lookup [lookup-string {:keys [namespace]} error-string]
   (let [msg [:span "Failed to parse permanent URL for " [:em lookup-string] " "
              [:code error-string]]]
@@ -42,9 +45,9 @@
         ;; Specify middleware so we can accept other formats than JSON.
         (with-middleware [#'clj-http.client/wrap-request
                           #'utils/wrap-accept-all]
-          (let [rdf (im-fetch/entity-representation service (str object-type ":" identifier) extension)]
-            (-> (response rdf)
-                (content-type "application/rdf+xml;charset=UTF-8"))))
+          (let [out (im-fetch/entity-representation service (str object-type ":" identifier) extension)]
+            (-> (response out)
+                (content-type (extension->content-type extension "text/plain;charset=UTF-8")))))
         (query-identifier lookup-string lookupv mine)))
     (catch Exception e
       (let [{:keys [body]} (ex-data e)
