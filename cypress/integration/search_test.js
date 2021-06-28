@@ -4,7 +4,7 @@ describe("Search Test", function(){
     });
 
     it("can be accessed from navigation bar", function(){
-        cy.get(".search").first().type('Ma*{enter}',{delay:100});
+        cy.searchKeyword("Ma*");
         cy.url().should("include","/search");
 
         cy.get(".results > form").children().first().click();
@@ -12,7 +12,7 @@ describe("Search Test", function(){
     });
 
     it("can search a single term", function(){
-        cy.get(".search").first().type('ABRA{enter}',{delay:100});
+        cy.searchKeyword("ABRA");
         cy.url().should("include","/search");
 
         cy.get(".results > form").children().first().click();
@@ -21,7 +21,7 @@ describe("Search Test", function(){
     });
 
     it("can search two terms with OR", function(){
-        cy.get(".search").first().type('CDPK1 OR CDPK4{enter}',{delay:100});
+        cy.searchKeyword("CDPK1 OR CDPK4{enter}");
         cy.url().should("include","/search");
 
         cy.get(".results > form").children().first().within(()=>{
@@ -34,7 +34,7 @@ describe("Search Test", function(){
     });
 
     it("can search a phrase with quotation marks", function(){
-        cy.get(".search").first().type('"DNA binding"{enter}',{delay:100});
+        cy.searchKeyword('"DNA binding"');        
         cy.url().should("include","/search");
 
         cy.get(".results > form").children().first().click();
@@ -43,7 +43,7 @@ describe("Search Test", function(){
     });
 
     it("can search for partial matches", function(){
-        cy.get(".search").first().type('MAL*{enter}',{delay:100});
+        cy.searchKeyword('MAL*');        
         cy.url().should("include","/search");
 
         cy.get(".results > form").children().first().click();
@@ -52,7 +52,7 @@ describe("Search Test", function(){
     });
 
     it("can search with boolean search syntax", function(){
-        cy.get(".search").first().type('protein AND PLA*{enter}',{delay:100});
+        cy.searchKeyword('protein AND PLA*');        
         cy.url().should("include","/search");
 
         cy.get(".results > form").children().first().click();
@@ -62,7 +62,7 @@ describe("Search Test", function(){
     });
 
     it("can filter search results by category and organism", function(){
-        cy.get(".search").first().type('MAL*{enter}',{delay:100});
+        cy.searchKeyword('MAL*');        
         cy.url().should("include","/search");
 
         cy.get("td").filter(':contains("Gene")').click();

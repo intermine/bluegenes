@@ -23,6 +23,8 @@
 //
 // -- This is will overwrite an existing command --
 // Cypress.Commands.overwrite("visit", (originalFn, url, options) => { ... })
+import 'cypress-file-upload';
+
 Cypress.Commands.add("openLoginDialogue", () => {
     cy.visit('/biotestmine');
     cy.get('.dropdown-toggle').contains('LOGIN').click();
@@ -62,6 +64,10 @@ Cypress.Commands.add("openQueryBuilderTab", () => {
     cy.get("#bluegenes-main-nav").within(() => {
         cy.contains("Query Builder").click();
     });
+})
+
+Cypress.Commands.add("searchKeyword", (keyword) => {
+    cy.get(".search").first().type(keyword + '{enter}',{delay:100});
 })
 
 Cypress.Commands.add("createList", () => {
