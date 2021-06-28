@@ -23,5 +23,8 @@ describe("Regions Test", function(){
 
         cy.get("button").filter(':contains("Search")').click();
         cy.get('.allresults').children().should("have.length",3);
+
+        cy.contains("exon.46111").click();
+        cy.url().should("include","/report");
     });
 })
