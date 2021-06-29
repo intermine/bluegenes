@@ -68,8 +68,8 @@ describe("Query builder test", function() {
       });
 
       cy.get('.query-view-column').within(() => {
-        cy.get('.qb-label').should('include.text','Gene');
-        cy.get(':nth-child(1) > :nth-child(1) > :nth-child(1) > .lab > .icon-filter').click(); //rewrite
+        cy.get('.qb-label').should('include.text',"Gene");
+        cy.contains('Gene').parents('.qb-label').siblings('.icon-filter').click();
         cy.get('select').select('Not in list');
         cy.get('select').should('have.value','NOT IN');
 
@@ -77,7 +77,6 @@ describe("Query builder test", function() {
         cy.get('select.constraint-chooser').last().select('Contains');
         cy.get('input.form-control').click().type("MAL{enter}",{delay:100});
       })
-            
     });
 
     it('can remove attributes on query editor', function(){
@@ -180,9 +179,7 @@ describe("Query builder test", function() {
         cy.contains('Rename').click();
         cy.get('input.form-control').clear();
         cy.get('input.form-control').click().type('Gene summary{enter}',{delay:100});
-        // cy.contains(/^Save$/).click();
-        // cy.get('[title="Load this query"]').find('.td').should('have.text','Gene summary');
-        cy.get('.panel-body > .table > tbody > tr > td').first().should('include.text','Gene summary');
+        cy.get('.query-table').contains('td', 'Gene summary');      
       });
     });
 
