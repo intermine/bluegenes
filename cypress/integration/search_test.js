@@ -5,7 +5,7 @@ describe("Search Test", function(){
 
     it("can be accessed from navigation bar", function(){
         cy.searchKeyword("Ma*");
-        cy.url().should("include","/search");
+        cy.url().should("include","/search?keyword");
 
         cy.get(".results > form").children().first().click();
         cy.url().should("include","/report");
@@ -13,7 +13,7 @@ describe("Search Test", function(){
 
     it("can search a single term", function(){
         cy.searchKeyword("ABRA");
-        cy.url().should("include","/search");
+        cy.url().should("include","/search?keyword");
 
         cy.get(".results > form").children().first().click();
         cy.url().should("include","/report");
@@ -22,7 +22,7 @@ describe("Search Test", function(){
 
     it("can search two terms with OR", function(){
         cy.searchKeyword("CDPK1 OR CDPK4{enter}");
-        cy.url().should("include","/search");
+        cy.url().should("include","/search?keyword");
 
         cy.get(".results > form").children().first().within(()=>{
             cy.contains("Symbol").next().should("have.text","CDPK1");
@@ -35,7 +35,7 @@ describe("Search Test", function(){
 
     it("can search a phrase with quotation marks", function(){
         cy.searchKeyword('"DNA binding"');        
-        cy.url().should("include","/search");
+        cy.url().should("include","/search?keyword");
 
         cy.get(".results > form").children().first().click();
         cy.url().should("include","/report");
@@ -44,30 +44,30 @@ describe("Search Test", function(){
 
     it("can search for partial matches", function(){
         cy.searchKeyword('MAL*');        
-        cy.url().should("include","/search");
+        cy.url().should("include","/search?keyword");
 
         cy.get(".results > form").children().first().click();
         cy.url().should("include","/report");
         cy.get('.report-table-body').within(() => {
-            cy.get(".report-table-cell").filter(':contains("MAL")');
+            cy.get(".report-table-cell").filter(':contains("MAL")').its('length').should("be.gt", 0);;
         })
     });
 
     it("can search with boolean search syntax", function(){
         cy.searchKeyword('protein AND PLA*');        
-        cy.url().should("include","/search");
+        cy.url().should("include","/search?keyword");
 
         cy.get(".results > form").children().first().click();
         cy.url().should("include","/report");
         cy.get('.report-table-body').within(() => {
-            cy.get(".report-table-cell").filter(':contains("protein")');
-            cy.get(".report-table-cell").filter(':contains("PLA")');
+            cy.get(".report-table-cell").filter(':contains("protein")').its('length').should("be.gt", 0);;
+            cy.get(".report-table-cell").filter(':contains("PLA")').its('length').should("be.gt", 0);;
         })
     });
 
     it("can filter search results by category and organism", function(){
         cy.searchKeyword('MAL*');        
-        cy.url().should("include","/search");
+        cy.url().should("include","/search?keyword");
 
         cy.get("td").filter(':contains("Gene")').click();
         cy.get("td").filter(':contains("P. falciparum 3D7")').click();
