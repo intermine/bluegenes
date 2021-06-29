@@ -46,16 +46,14 @@ Cypress.Commands.add("searchKeyword", (keyword) => {
     cy.get(".searchform > input").type(keyword + '{enter}',{delay:100});
 })
 
-// Cypress.Commands.add("createList", () => {
-//     cy.get("#bluegenes-main-nav").within(() => {
-//         cy.openUploadTab();
-//         cy.get('.identifier-input > .form-group > .form-control').type("ABRA, CRK2, CDPK1, CDPK4",{delay:100});
-//         cy.contains("Continue").click();
-//         cy.contains("Save List").click();
-//         cy.openListsTab();
-//         cy.get(".lists-item").its('length').should("be.gt", 0);
-//     });
-// })
+Cypress.Commands.add("createGeneList", (geneList) => {
+    cy.contains("Upload").click();
+    cy.get(".wizard").find("textarea").type(geneList,{delay:100});
+    cy.contains("Continue").click();
+    cy.contains("Save List").click();
+    cy.wait(100);
+    cy.contains("Lists").click();
+})
 
 // Cypress.Commands.add("openTemplatesTab", () => {
 //     cy.get("#bluegenes-main-nav").within(() => {
