@@ -67,7 +67,7 @@ Cypress.Commands.add("openQueryBuilderTab", () => {
 })
 
 Cypress.Commands.add("searchKeyword", (keyword) => {
-    cy.get(".search").first().type(keyword + '{enter}',{delay:100});
+    cy.get(".searchform > input").type(keyword + '{enter}',{delay:100});
 })
 
 Cypress.Commands.add("createList", () => {

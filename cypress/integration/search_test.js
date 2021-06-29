@@ -1,6 +1,6 @@
 describe("Search Test", function(){
     beforeEach(function(){
-        cy.visit("/");
+        cy.visit("/biotestmine/search");
     });
 
     it("can be accessed from navigation bar", function(){
