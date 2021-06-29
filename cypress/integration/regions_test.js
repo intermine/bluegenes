@@ -1,17 +1,9 @@
 describe("Regions Test", function(){
     beforeEach(function(){
-        cy.visit("/");
-    });
-
-    it("can be accessed from navigation bar", function(){
-        cy.openRegionsTab();
-        cy.url().should("include","/regions");
+        cy.visit("/biotestmine/regions");
     });
 
     it("can search a gene region given by example", function(){
-        cy.openRegionsTab();
-        cy.url().should("include","/regions");
-
         cy.contains("Show Example").click();
         cy.get(".form-control").should("include.text","MAL");
 

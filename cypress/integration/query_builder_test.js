@@ -1,12 +1,9 @@
 describe("Query builder test", function() {
     beforeEach(function() {
-      cy.visit("/");
+      cy.visit("/biotestmine/querybuilder");
     });
 
     it("allows you to select data type and summary attributes with model browser", function() {
-      cy.openQueryBuilderTab();
-      cy.url().should("include", "/querybuilder");
-
       cy.get('.model-browser-root').within(() => {
         cy.get('select').then($option => {$option.val("Protein")}).parent().trigger('change');
         cy.contains("Summary").click();
@@ -14,9 +11,6 @@ describe("Query builder test", function() {
     });
 
     it("can save and load query", function() {
-      cy.openQueryBuilderTab();
-      cy.url().should("include", "/querybuilder");
-
       cy.get('.model-browser-root').within(() => {
         cy.get('select').then($option => {$option.val("Protein")}).parent().trigger('change');
         cy.contains("Summary").click();
@@ -35,9 +29,6 @@ describe("Query builder test", function() {
     });
 
     it("allows you to choose specific attributes", function(){
-      cy.openQueryBuilderTab();
-      cy.url().should("include", "/querybuilder");
-
       cy.get('.model-browser-root').within(() => {
         cy.get('select').then($option => {$option.val("Gene")}).parent().trigger('change');
         cy.get('select').should('have.value', 'Gene');
@@ -60,9 +51,6 @@ describe("Query builder test", function() {
     });
 
     it("allows selection of data type from data model", function(){
-      cy.openQueryBuilderTab();
-      cy.url().should("include", "/querybuilder");
-
       cy.contains("Data Model").click();
       cy.contains("Gene").click();
       cy.contains("Summary").click();
@@ -73,9 +61,6 @@ describe("Query builder test", function() {
     });
 
     it('can add filters on query editor', function(){
-      cy.openQueryBuilderTab();
-      cy.url().should("include", "/querybuilder");
-
       cy.get('.model-browser-root').within(() => {
         cy.get('select').then($option => {$option.val('Gene')}).parent().trigger('change');
         cy.get('select').should('have.value', 'Gene');
@@ -96,9 +81,6 @@ describe("Query builder test", function() {
     });
 
     it('can remove attributes on query editor', function(){
-      cy.openQueryBuilderTab();
-      cy.url().should("include", "/querybuilder");
-
       cy.get('.model-browser-root').within(() => {
         cy.get('select').then($option => {$option.val('Protein')}).parent().trigger('change');
         cy.get('select').should('have.value', 'Protein');
@@ -111,8 +93,6 @@ describe("Query builder test", function() {
     });
 
     it('can sort attribute alphabetically', function(){
-      cy.openQueryBuilderTab();
-      cy.url().should("include", "/querybuilder");
       cy.get('.model-browser-root').within(() => {
         cy.get('select').then($option => {$option.val('Protein')}).parent().trigger('change');
         cy.get('select').should('have.value', 'Protein');
@@ -128,9 +108,6 @@ describe("Query builder test", function() {
     });
 
     it('can copy XML of the query', function(){
-      cy.openQueryBuilderTab();
-      cy.url().should("include", "/querybuilder");
-
       cy.get('.model-browser-root').within(() => {
         cy.get('select').then($option => {$option.val('Protein')}).parent().trigger('change');
         cy.get('select').should('have.value', 'Protein');
@@ -146,9 +123,6 @@ describe("Query builder test", function() {
     });
 
     it('can load query from imported XML', function(){
-      cy.openQueryBuilderTab();
-      cy.url().should("include", "/querybuilder");
-
       cy.get('.query-view-column').within(() => {
         cy.contains('Import from XML').click();
         cy.get('textarea.form-control').click()
@@ -164,10 +138,7 @@ describe("Query builder test", function() {
     });
 
     it('can add details on query editor', function(){
-      cy.openQueryBuilderTab();
-      cy.url().should("include", "/querybuilder");
-
-      cy.get('.model-browser-root').within(() => {
+       cy.get('.model-browser-root').within(() => {
         cy.get('select').then($option => {$option.val('Protein')}).parent().trigger('change');
         cy.get('select').should('have.value', 'Protein');
         cy.contains("Summary").click();
@@ -183,9 +154,6 @@ describe("Query builder test", function() {
     });
 
     it('can clear attributes on model browser', function(){
-      cy.openQueryBuilderTab();
-      cy.url().should("include", "/querybuilder");
-
       cy.get('.model-browser-column').within(() => {
         cy.get('select').then($option => {$option.val('Protein')}).parent().trigger('change');
         cy.get('select').should('have.value', 'Protein');
@@ -195,9 +163,6 @@ describe("Query builder test", function() {
     });
 
     it('can rename saved query', function(){
-      cy.openQueryBuilderTab();
-      cy.url().should("include", "/querybuilder");
-
       cy.get('.model-browser-root').within(() => {
         cy.get('select').then($option => {$option.val("Gene")}).parent().trigger('change');
         cy.contains("Summary").click();
