@@ -23,6 +23,8 @@
 //
 // -- This is will overwrite an existing command --
 // Cypress.Commands.overwrite("visit", (originalFn, url, options) => { ... })
+import 'cypress-file-upload';
+
 Cypress.Commands.add("openLoginDialogue", () => {
     cy.visit('/biotestmine');
     cy.get('.dropdown-toggle').contains('LOGIN').click();
@@ -33,3 +35,35 @@ Cypress.Commands.add("openRegisterDialogue", () => {
     cy.get('.dropdown-toggle').contains('LOGIN').click();
     cy.get('a.btn-block').contains('Create new account').click();
 })
+
+Cypress.Commands.add("openListsTab", () => {
+    cy.get("#bluegenes-main-nav").within(() => {
+        cy.contains("Lists").click();
+    });
+})
+
+Cypress.Commands.add("searchKeyword", (keyword) => {
+    cy.get(".searchform > input").type(keyword + '{enter}',{delay:100});
+})
+
+Cypress.Commands.add("selectFromDropdown", (keyword) => {
+    cy.get('select').then($option => {$option.val(keyword)}).parent().trigger('change');
+})
+
+// Cypress.Commands.add("openTemplatesTab", () => {
+//     cy.get("#bluegenes-main-nav").within(() => {
+//         cy.contains("Templates").click();
+//     });
+// })
+
+// Cypress.Commands.add("openRegionsTab", () => {
+//     cy.get("#bluegenes-main-nav").within(() => {
+//         cy.contains("Regions").click();
+//     });
+// })
+
+// Cypress.Commands.add("openQueryBuilderTab", () => {
+//     cy.get("#bluegenes-main-nav").within(() => {
+//         cy.contains("Query Builder").click();
+//     });
+// })
