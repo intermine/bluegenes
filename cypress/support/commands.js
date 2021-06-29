@@ -36,12 +36,6 @@ Cypress.Commands.add("openRegisterDialogue", () => {
     cy.get('a.btn-block').contains('Create new account').click();
 })
 
-Cypress.Commands.add("openUploadTab", () => {
-    cy.get("#bluegenes-main-nav").within(() => {
-        cy.contains("Upload").click();
-    });
-})
-
 Cypress.Commands.add("openListsTab", () => {
     cy.get("#bluegenes-main-nav").within(() => {
         cy.contains("Lists").click();
