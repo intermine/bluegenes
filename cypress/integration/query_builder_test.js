@@ -5,14 +5,14 @@ describe("Query builder test", function() {
 
     it("allows you to select data type and summary attributes with model browser", function() {
       cy.get('.model-browser-root').within(() => {
-        cy.get('select').then($option => {$option.val("Protein")}).parent().trigger('change');
+        cy.selectFromDropdown("Protein");
         cy.contains("Summary").click();
       });
     });
 
     it("can save and load query", function() {
       cy.get('.model-browser-root').within(() => {
-        cy.get('select').then($option => {$option.val("Protein")}).parent().trigger('change');
+        cy.selectFromDropdown("Protein");        
         cy.contains("Summary").click();
       });
 
@@ -30,7 +30,7 @@ describe("Query builder test", function() {
 
     it("allows you to choose specific attributes", function(){
       cy.get('.model-browser-root').within(() => {
-        cy.get('select').then($option => {$option.val("Gene")}).parent().trigger('change');
+        cy.selectFromDropdown("Gene");        
         cy.get('select').should('have.value', 'Gene');
         cy.contains("Summary").click();
       });
@@ -62,14 +62,14 @@ describe("Query builder test", function() {
 
     it('can add filters on query editor', function(){
       cy.get('.model-browser-root').within(() => {
-        cy.get('select').then($option => {$option.val('Gene')}).parent().trigger('change');
+        cy.selectFromDropdown("Gene");        
         cy.get('select').should('have.value', 'Gene');
         cy.contains("Summary").click();
       });
 
       cy.get('.query-view-column').within(() => {
-        cy.get('.qb-label').should('include.text','Gene');
-        cy.get(':nth-child(1) > :nth-child(1) > :nth-child(1) > .lab > .icon-filter').click(); //rewrite
+        cy.get('.qb-label').should('include.text',"Gene");
+        cy.contains('Gene').parents('.qb-label').siblings('.icon-filter').click();
         cy.get('select').select('Not in list');
         cy.get('select').should('have.value','NOT IN');
 
@@ -77,12 +77,11 @@ describe("Query builder test", function() {
         cy.get('select.constraint-chooser').last().select('Contains');
         cy.get('input.form-control').click().type("MAL{enter}",{delay:100});
       })
-            
     });
 
     it('can remove attributes on query editor', function(){
       cy.get('.model-browser-root').within(() => {
-        cy.get('select').then($option => {$option.val('Protein')}).parent().trigger('change');
+        cy.selectFromDropdown("Protein");        
         cy.get('select').should('have.value', 'Protein');
         cy.contains("Summary").click();
       });
@@ -94,7 +93,7 @@ describe("Query builder test", function() {
 
     it('can sort attribute alphabetically', function(){
       cy.get('.model-browser-root').within(() => {
-        cy.get('select').then($option => {$option.val('Protein')}).parent().trigger('change');
+        cy.selectFromDropdown("Protein");        
         cy.get('select').should('have.value', 'Protein');
         cy.contains("Summary").click();
       });
@@ -109,7 +108,7 @@ describe("Query builder test", function() {
 
     it('can copy XML of the query', function(){
       cy.get('.model-browser-root').within(() => {
-        cy.get('select').then($option => {$option.val('Protein')}).parent().trigger('change');
+        cy.selectFromDropdown("Protein");        
         cy.get('select').should('have.value', 'Protein');
         cy.contains("Summary").click();
       });
@@ -139,7 +138,7 @@ describe("Query builder test", function() {
 
     it('can add details on query editor', function(){
        cy.get('.model-browser-root').within(() => {
-        cy.get('select').then($option => {$option.val('Protein')}).parent().trigger('change');
+        cy.selectFromDropdown("Protein");        
         cy.get('select').should('have.value', 'Protein');
         cy.contains("Summary").click();
       });
@@ -155,7 +154,7 @@ describe("Query builder test", function() {
 
     it('can clear attributes on model browser', function(){
       cy.get('.model-browser-column').within(() => {
-        cy.get('select').then($option => {$option.val('Protein')}).parent().trigger('change');
+        cy.selectFromDropdown("Protein");        
         cy.get('select').should('have.value', 'Protein');
         cy.contains("Summary").click();
         cy.get('[title="Remove all selected attributes"]').click();
@@ -164,7 +163,7 @@ describe("Query builder test", function() {
 
     it('can rename saved query', function(){
       cy.get('.model-browser-root').within(() => {
-        cy.get('select').then($option => {$option.val("Gene")}).parent().trigger('change');
+        cy.selectFromDropdown("Gene");        
         cy.contains("Summary").click();
       });
  
@@ -180,9 +179,7 @@ describe("Query builder test", function() {
         cy.contains('Rename').click();
         cy.get('input.form-control').clear();
         cy.get('input.form-control').click().type('Gene summary{enter}',{delay:100});
-        // cy.contains(/^Save$/).click();
-        // cy.get('[title="Load this query"]').find('.td').should('have.text','Gene summary');
-        cy.get('.panel-body > .table > tbody > tr > td').first().should('include.text','Gene summary');
+        cy.get('.query-table').contains('td', 'Gene summary');      
       });
     });
 

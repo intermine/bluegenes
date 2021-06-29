@@ -55,6 +55,10 @@ Cypress.Commands.add("createGeneList", (geneList) => {
     cy.contains("Lists").click();
 })
 
+Cypress.Commands.add("selectFromDropdown", (keyword) => {
+    cy.get('select').then($option => {$option.val(keyword)}).parent().trigger('change');
+})
+
 // Cypress.Commands.add("openTemplatesTab", () => {
 //     cy.get("#bluegenes-main-nav").within(() => {
 //         cy.contains("Templates").click();
