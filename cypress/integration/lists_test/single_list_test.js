@@ -1,4 +1,4 @@
-describe("Lists Test", function() {
+describe("Single Lists Test", function() {
     beforeEach(function() {
       cy.visit("/");
     });
@@ -6,6 +6,7 @@ describe("Lists Test", function() {
     it("can copy a list", function(){
         cy.createGeneList("SODB, GBP, GST, CDPK1");
         cy.url().should("include","/lists");
+        cy.get('.lists-item').should('have.length',1);
 
         cy.get(".lists-item").within(() => {
             cy.get("button").find('svg[class="icon icon-list-more"]')
@@ -21,14 +22,15 @@ describe("Lists Test", function() {
         cy.get('.modal-footer').within(() => {
             cy.contains("Copy list(s)").click({delay:100});
         })
+        cy.get('.lists-item').should('have.length',2);
 
-        // Write assertion to chekc # of lists
-        // cy.get(".lists-table").children().its("length").should("be.gt",1);
     });
 
     it("can edit a list", function(){
         cy.createGeneList("SODB, GBP, GST, CDPK1");
         cy.url().should("include","/lists");
+        cy.get('.lists-item').should('have.length',1);
+
         cy.get(".lists-item").within(() => {
             cy.get("button").find('svg[class="icon icon-list-more"]')
             .should("be.visible")
@@ -50,6 +52,8 @@ describe("Lists Test", function() {
     it("can delete a list", function(){
         cy.createGeneList("SODB, GBP, GST, CDPK1");
         cy.url().should("include","/lists");
+        cy.get('.lists-item').should('have.length',1);
+
         cy.get(".lists-item").within(() => {
             cy.get("button").find('svg[class="icon icon-list-more"]')
             .should("be.visible")
@@ -64,7 +68,6 @@ describe("Lists Test", function() {
         cy.get('.modal-footer').within(() => {
             cy.contains("Delete list(s)").click({delay:100});
         })
+        cy.get('.no-lists').should('exist');
     });
-
-     // cy.createGeneList("CDPK1, CDPK4, ERD2, PFF1575w");
 });
