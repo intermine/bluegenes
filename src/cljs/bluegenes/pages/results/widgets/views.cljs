@@ -5,7 +5,7 @@
             [clojure.string :as str]
             [inflections.core :refer [plural]]
             [oops.core :refer [oget ocall]]
-            [bluegenes.pages.results.enrichment.views :refer [build-matches-query]]))
+            [bluegenes.pages.results.enrichment.events :refer [build-matches-query]]))
 
 (defn filter-display [& {:keys [widget-kw filterSelectedValue filters filterLabel]}]
   (let [filters (str/split filters #",")]

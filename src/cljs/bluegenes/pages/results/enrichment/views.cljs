@@ -29,51 +29,31 @@
   [poppable {:data "The p-value is the probability that result occurs by chance, thus a lower p-value indicates greater enrichment."
              :children [icon "question"]}])
 
-(defn build-matches-query [query path-constraint identifier]
-  (update-in (js->clj (.parse js/JSON query) :keywordize-keys true) [:where]
-             conj {:path path-constraint
-                   :op "ONE OF"
-                   :values (if (coll? identifier)
-                             identifier
-                             (vector identifier))}))
-
 (defn enrichment-result-row []
-  (let [current-mine (subscribe [:current-mine-name])]
-    (fn [{:keys [description matches identifier p-value matches-query] :as row}
-         {:keys [pathConstraint] :as details}
-         on-click
-         selected?]
-      [:li.enrichment-item
-       {:on-mouse-enter (fn [] (dispatch [:enrichment/get-item-details identifier pathConstraint]))}
-       [:div
-        [:input
-         {:type "checkbox"
-          :checked selected?
-          :on-click (fn [e]
-                      (ocall e :stopPropagation)
-                      (on-click identifier))}]]
-       [:div
-        (let [summary-value @(subscribe [:enrichment/a-summary-values identifier])]
-          [poppable
-           {:data (if summary-value
-                    [popover-table @(subscribe [:enrichment/a-summary-values identifier])]
-                    [:span "Loading"])
-            :children [:a {:on-click
-                           (fn []
-                             (dispatch [:results/history+
-                                        {:source @current-mine
-                                         :type :query
-                                         :intent :enrichment
-                                         :value (assoc (build-matches-query
-                                                        (:pathQuery details)
-                                                        (:pathConstraint details)
-                                                        identifier)
-                                                       :title
-                                                       identifier)}]))}
-                       (str description " (" matches ")")]}])]
-       [:div
-        [:span.enrichment-p-value
-         (.toExponential p-value 6)]]])))
+  (fn [{:keys [description matches identifier p-value matches-query] :as row}
+       {:keys [pathConstraint] :as details}
+       on-click
+       selected?]
+    [:li.enrichment-item
+     {:on-mouse-enter (fn [] (dispatch [:enrichment/get-item-details identifier pathConstraint]))}
+     [:div
+      [:input
+       {:type "checkbox"
+        :checked selected?
+        :on-click (fn [e]
+                    (ocall e :stopPropagation)
+                    (on-click identifier))}]]
+     [:div
+      (let [summary-value @(subscribe [:enrichment/a-summary-values identifier])]
+        [poppable
+         {:data (if summary-value
+                  [popover-table @(subscribe [:enrichment/a-summary-values identifier])]
+                  [:span "Loading"])
+          :children [:a {:on-click #(dispatch [:enrichment/view-one-result details identifier])}
+                     (str description " (" matches ")")]}])]
+     [:div
+      [:span.enrichment-p-value
+       (.toExponential p-value 6)]]]))
 
 (defn has-text?
   "Return true if a label contains a string"
@@ -103,7 +83,6 @@
   (let [text-filter (subscribe [:enrichment/text-filter])
         config (subscribe [:enrichment/enrichment-config])
         selected (reagent/atom #{})
-        current-mine (subscribe [:current-mine-name])
         show-more* (reagent/atom false)
         is-collapsed* (reagent/atom false)]
     (fn [[widget-name {:keys [results] :as details}]]
@@ -115,7 +94,12 @@
                               (fn [{:keys [description]}]
                                 (has-text? @text-filter description))
                               results)
-            filtered-results-count (count filtered-results)]
+            filtered-results-count (count filtered-results)
+            identifiers (or
+                         ;; Build a query for only the selected identifiers
+                         (not-empty @selected)
+                         ;; ... unless it's empty, then use all filtered identifiers
+                         (map :identifier filtered-results))]
         [:div.sidebar-item
 
          [:div.enrichment-category
@@ -129,23 +113,13 @@
              :else [:span [mini-loader "tiny"]])]
           [:div.enrichment-category-right-side
            (when (not-empty results)
-             [:button.btn.btn-default.btn-raised.btn-xs.view-all-enrichment
-              {:on-click (fn []
-                           (dispatch [:results/history+
-                                      {:source @current-mine
-                                       :type :query
-                                       :intent :enrichment
-                                       :value (assoc
-                                               (build-matches-query
-                                                (:pathQuery details)
-                                                (:pathConstraint details)
-                                                (or
-                                                    ; Build a query for only the selected identifiers
-                                                 (not-empty @selected)
-                                                    ; ... unless it's empty, then use all filtered identifiers
-                                                 (map :identifier filtered-results)))
-                                               :title "Enrichment Results")}]))}
-              (if (empty? @selected) "View All" "View Selected")])
+             [:<>
+              [:button.btn.btn-default.btn-raised.btn-xs
+               {:on-click #(dispatch [:enrichment/view-results details identifiers])}
+               "View"]
+              [:button.btn.btn-icon
+               {:on-click #(dispatch [:enrichment/download-results details identifiers])}
+               [icon "download"]]])
            [:button.btn.btn-link.toggle-enrichment
             {:on-click #(swap! is-collapsed* not)}
             [icon (if @is-collapsed*
