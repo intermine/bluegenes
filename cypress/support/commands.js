@@ -46,6 +46,10 @@ Cypress.Commands.add("searchKeyword", (keyword) => {
     cy.get(".searchform > input").type(keyword + '{enter}',{delay:100});
 })
 
+Cypress.Commands.add("selectFromDropdown", (keyword) => {
+    cy.get('select').then($option => {$option.val(keyword)}).parent().trigger('change');
+})
+
 Cypress.Commands.add("createGeneList", (geneList) => {
     cy.contains("Upload").click();
     cy.get(".wizard").find("textarea").type(geneList,{delay:100});
@@ -55,8 +59,14 @@ Cypress.Commands.add("createGeneList", (geneList) => {
     cy.contains("Lists").click();
 })
 
-Cypress.Commands.add("selectFromDropdown", (keyword) => {
-    cy.get('select').then($option => {$option.val(keyword)}).parent().trigger('change');
+Cypress.Commands.add("createProteinList", (proteinList) => {
+    cy.contains("Upload").click();
+    cy.contains("List type").parent().find("select").select("Protein");
+    cy.get(".wizard").find("textarea").type(proteinList,{delay:100});
+    cy.contains("Continue").click();
+    cy.contains("Save List").click();
+    cy.wait(100);
+    cy.contains("Lists").click();
 })
 
 // Cypress.Commands.add("openTemplatesTab", () => {

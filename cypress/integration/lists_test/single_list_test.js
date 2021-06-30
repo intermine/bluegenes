@@ -1,10 +1,10 @@
 describe("Single Lists Test", function() {
     beforeEach(function() {
       cy.visit("/");
+      cy.createGeneList("SODB, GBP, GST, CDPK1");
     });
 
     it("can copy a list", function(){
-        cy.createGeneList("SODB, GBP, GST, CDPK1");
         cy.url().should("include","/lists");
         cy.get('.lists-item').should('have.length',1);
 
@@ -27,7 +27,6 @@ describe("Single Lists Test", function() {
     });
 
     it("can edit a list", function(){
-        cy.createGeneList("SODB, GBP, GST, CDPK1");
         cy.url().should("include","/lists");
         cy.get('.lists-item').should('have.length',1);
 
@@ -50,7 +49,6 @@ describe("Single Lists Test", function() {
         })       
     });
     it("can delete a list", function(){
-        cy.createGeneList("SODB, GBP, GST, CDPK1");
         cy.url().should("include","/lists");
         cy.get('.lists-item').should('have.length',1);
 
