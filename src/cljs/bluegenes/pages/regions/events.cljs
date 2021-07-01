@@ -23,10 +23,10 @@
                                       (filter (fn [{{:keys [start end locatedOn]} :chromosomeLocation}]
                                                 (and (= (:primaryIdentifier locatedOn) (:chromosome region))
                                                      ;; Overlaps the region specified in a search line.
-                                                     (or (< (:from region) (int start) (:to region))
-                                                         (< (:from region) (int end) (:to region))
-                                                         (and (< (int start) (:from region))
-                                                              (< (:to region) (int end))))))
+                                                     (or (<= (:from region) (int start) (:to region))
+                                                         (<= (:from region) (int end) (:to region))
+                                                         (and (<= (int start) (:from region))
+                                                              (<= (:to region) (int end))))))
                                               (:results result-response))))
                              searched-for)]
      (-> (assoc-in db [:regions :results] mapped-results)
