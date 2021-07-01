@@ -130,7 +130,8 @@
        ;; having the container around the tree is important because the tree is recursive
        ;; and we know for sure that the container is the final parent! :)
        [:div.feature-tree-container
-        {:class (if @results "shrinkified")} [feature-types-tree]]])))
+        {:class (when @results :shrinkified)}
+        [feature-types-tree]]])))
 
 (defn input-section
   "Entire UI input section / top half of the region search"
