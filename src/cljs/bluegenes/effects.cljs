@@ -351,4 +351,5 @@
      (oset! a :download filename)
      (ocall js/document.body :appendChild a)
      (ocall a :click)
-     (ocall js/window.URL :revokeObjectURL url))))
+     (ocall js/window.URL :revokeObjectURL url)
+     (ocall js/document.body :removeChild a))))

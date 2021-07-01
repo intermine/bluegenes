@@ -302,7 +302,10 @@
 
 (defn encode-file
   "Encode a stringified text file such that it can be downloaded by the browser.
-  Results must be stringified - don't pass objects / vectors / arrays / whatever."
+  Results must be stringified - don't pass objects / vectors / arrays / whatever.
+  Ideally for performance, you'll want to invoke
+      (ocall js/window.URL :revokeObjectURL url)
+  where `url` is what's returned by this function, once you're done using it."
   [data filetype]
   (ocall js/URL "createObjectURL"
          (js/Blob. (clj->js [data])

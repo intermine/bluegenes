@@ -170,10 +170,12 @@
   (let [id           (subscribe [::subs/fasta-identifier])
         fasta        (subscribe [::subs/fasta])
         download-ref (atom nil)
-        download!    #(let [el @download-ref]
-                        (ocall el :setAttribute "href" (encode-file @fasta "fasta"))
+        download!    #(let [el @download-ref
+                            url (encode-file @fasta "fasta")]
+                        (ocall el :setAttribute "href" url)
                         (ocall el :setAttribute "download" (str @id ".fasta"))
-                        (ocall el :click))]
+                        (ocall el :click)
+                        (ocall js/window.URL :revokeObjectURL url))]
     (fn []
       [:<>
        [:a.hidden-download {:download "download" :ref (fn [el] (reset! download-ref el))}]
