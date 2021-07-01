@@ -18,19 +18,20 @@
  (fn [db [_ result-response]]
    (let [searched-for (get-in db [:regions :regions-searched])
          error (:error result-response)
-         mapped-results (map
-                         (fn [region]
-                           (assoc region :results (filter (fn [{{:keys [start end locatedOn] :as t} :chromosomeLocation}]
-                                                            (and
-                                                             (= (:primaryIdentifier locatedOn) (:chromosome region))
-                                                             (or
-                                                              (< (:from region) (int start) (:to region))
-                                                              (< (:from region) (int end) (:to region)))))
-                                                          (:results result-response)))) searched-for)]
-     (->
-      (assoc-in db [:regions :results] mapped-results)
-      (assoc-in [:regions :loading] false)
-      (assoc-in [:regions :error] error)))))
+         mapped-results (map (fn [region]
+                               (assoc region :results
+                                      (filter (fn [{{:keys [start end locatedOn]} :chromosomeLocation}]
+                                                (and (= (:primaryIdentifier locatedOn) (:chromosome region))
+                                                     ;; Overlaps the region specified in a search line.
+                                                     (or (< (:from region) (int start) (:to region))
+                                                         (< (:from region) (int end) (:to region))
+                                                         (and (< (int start) (:from region))
+                                                              (< (:to region) (int end))))))
+                                              (:results result-response))))
+                             searched-for)]
+     (-> (assoc-in db [:regions :results] mapped-results)
+         (assoc-in [:regions :loading] false)
+         (assoc-in [:regions :error] error)))))
 
 (reg-event-db
  :regions/set-selected-organism
