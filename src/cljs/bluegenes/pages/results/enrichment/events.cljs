@@ -10,7 +10,9 @@
   (update-in (js->clj (.parse js/JSON query) :keywordize-keys true) [:where]
              conj {:path path-constraint
                    :op "ONE OF"
-                   :values [identifier]}))
+                   :values (if (coll? identifier)
+                             (vec identifier)
+                             (vector identifier))}))
 
 (reg-event-fx
  :enrichment/get-item-details
@@ -208,3 +210,65 @@
                  (or (get-in res [:body :error])
                      (str "Failed to get enrichment results for " widget-name)))
        (assoc-in [:results :enrichment-results-loading?] false))))
+
+(reg-event-fx
+ :enrichment/view-one-result
+ (fn [{db :db} [_ details identifier]]
+   (let [query (assoc (build-matches-query (:pathQuery details) (:pathConstraint details) identifier)
+                      :title identifier)]
+     {:dispatch [:results/history+
+                 {:source (:current-mine db)
+                  :type :query
+                  :intent :enrichment
+                  :value query}]})))
+
+(reg-event-fx
+ :enrichment/view-results
+ (fn [{db :db} [_ details identifiers]]
+   (let [query (assoc (build-matches-query (:pathQuery details) (:pathConstraint details) identifiers)
+                      :title "Enrichment Results")]
+     {:dispatch [:results/history+
+                 {:source (:current-mine db)
+                  :type :query
+                  :intent :enrichment
+                  :value query}]})))
+
+(reg-event-fx
+ :enrichment/download-results
+ (fn [{db :db} [_ details identifiers]]
+   (let [query (build-matches-query (:pathQueryForMatches details) (:pathConstraint details) identifiers)]
+     {:im-chan {:chan (fetch/rows (service db (:current-mine db)) query)
+                :on-success [:enrichment/download-results-enriched details identifiers]
+                :on-failure [:enrichment/notify-failed-download (:title details)]}})))
+
+(reg-event-fx
+ :enrichment/notify-failed-download
+ (fn [{db :db} [_ widget-title]]
+   {:dispatch [:messages/add
+               {:markup [:span (str "Failed to download results for " widget-title)]
+                :style "danger"}]}))
+
+(defn get-active-query-title [db]
+  (let [query (get-in db [:results :queries
+                          (get-in db [:results :history-index])])]
+    (or (:display-title query)
+        (get-in query [:value :title]))))
+
+(reg-event-fx
+ :enrichment/download-results-enriched
+ (fn [{db :db} [_ widget-details selected-identifiers {:keys [results]}]]
+   (if (empty? results)
+     {:dispatch [:enrichment/notify-failed-download (:title widget-details)]}
+     (let [selected-identifier? (set selected-identifiers)
+           identifier->result (group-by first results)
+           query-title (get-active-query-title db)]
+       {:download-file
+        {:filename (str query-title " " (:title widget-details) ".tsv")
+         :filetype "tab-separated-values"
+         :data (->> (:results widget-details)
+                    (filter (comp selected-identifier? :identifier))
+                    (map (fn [{:keys [identifier p-value description]}]
+                           (string/join \tab [description p-value
+                                              (string/join "," (->> identifier identifier->result (map second)))
+                                              identifier])))
+                    (string/join \newline))}}))))
