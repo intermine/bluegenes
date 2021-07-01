@@ -1,14 +1,14 @@
 (ns bluegenes.pages.regions.events
-  (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [re-frame.core :refer [reg-event-db reg-event-fx reg-fx dispatch subscribe]]
             [imcljs.entity :as entity]
-            [imcljs.fetch :as fetch]))
+            [imcljs.fetch :as fetch]
+            [clojure.string :as str]))
 
 (defn parse-region [region-string]
   (let [parsed (into []
                      (remove
                       (fn [c] (some? (some #{c} #{":" ".." "-"})))
-                      (clojure.string/split region-string (re-pattern "(:|\\.\\.|-)"))))]
+                      (str/split region-string (re-pattern "(:|\\.\\.|-)"))))]
     {:chromosome (nth parsed 0)
      :from (int (nth parsed 1))
      :to (int (nth parsed 2))}))
@@ -18,18 +18,19 @@
  (fn [db [_ result-response]]
    (let [searched-for (get-in db [:regions :regions-searched])
          error (:error result-response)
-         mapped-results (map (fn [region]
-                               (assoc region :results
-                                      (filter (fn [{{:keys [start end locatedOn]} :chromosomeLocation}]
-                                                (and (= (:primaryIdentifier locatedOn) (:chromosome region))
-                                                     ;; Overlaps the region specified in a search line.
-                                                     (or (<= (:from region) (int start) (:to region))
-                                                         (<= (:from region) (int end) (:to region))
-                                                         (and (<= (int start) (:from region))
-                                                              (<= (:to region) (int end))))))
-                                              (:results result-response))))
-                             searched-for)]
-     (-> (assoc-in db [:regions :results] mapped-results)
+         mapped-results (mapv (fn [region]
+                                (assoc region :results
+                                       (filterv (fn [{{:keys [start end locatedOn]} :chromosomeLocation}]
+                                                  (and (= (:primaryIdentifier locatedOn) (:chromosome region))
+                                                       ;; Overlaps the region specified in a search line.
+                                                       (or (<= (:from region) (int start) (:to region))
+                                                           (<= (:from region) (int end) (:to region))
+                                                           (and (<= (int start) (:from region))
+                                                                (<= (:to region) (int end))))))
+                                                (:results result-response))))
+                              searched-for)]
+     (-> db
+         (assoc-in [:regions :results] mapped-results)
          (assoc-in [:regions :loading] false)
          (assoc-in [:regions :error] error)))))
 
@@ -103,17 +104,25 @@
 (reg-event-fx
  :regions/run-query
  (fn [{db :db} [_]]
-   (let [to-search (clojure.string/split-lines (get-in db [:regions :to-search]))
+   (let [to-search (str/split-lines (get-in db [:regions :to-search]))
          feature-types (get-in db [:regions :settings :feature-types])
+         selected-feature-types (keep (fn [[feature-kw enabled?]]
+                                        (when enabled? (name feature-kw)))
+                                      feature-types)
          selected-organism (get-in db [:regions :settings :organism :shortName])
-         query (->
-                (add-type-constraints
-                 (build-feature-query to-search)
-                 (map name (keys (filter (fn [[name enabled?]] enabled?) feature-types))))
-                (add-organism-constraint selected-organism))]
-     {:db (->
-           (assoc-in db [:regions :regions-searched] (map parse-region to-search))
-           (assoc-in [:regions :results] {})
-           (assoc-in [:regions :loading] true))
+         query (-> (build-feature-query to-search)
+                   (add-type-constraints selected-feature-types)
+                   (add-organism-constraint selected-organism))
+         subqueries (mapv (fn [region]
+                            (-> (build-feature-query region)
+                                (add-type-constraints selected-feature-types)
+                                (add-organism-constraint selected-organism)))
+                          to-search)]
+     {:db (-> db
+              (assoc-in [:regions :query] query)
+              (assoc-in [:regions :subqueries] subqueries)
+              (assoc-in [:regions :regions-searched] (mapv parse-region to-search))
+              (assoc-in [:regions :results] [])
+              (assoc-in [:regions :loading] true))
       :im-chan {:chan (fetch/records (get-in db [:mines (get db :current-mine) :service]) query)
                 :on-success [:regions/save-results]}})))

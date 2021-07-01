@@ -101,19 +101,17 @@
      [:li "Please check you're connected to the internet."]]]])
 
 (defn results-count-summary [results]
-  (if (pos? (count results))
-    (reduce (fn [new-div result]
-
-              (let [num (count (:results result))
-                    feature (feature-to-uid result)]
-                (conj new-div
-                      [:span.results-count
-                       {:class (cond (zero? num) "noresults")
-                        :on-click (fn []
-                                    (.scrollIntoView (.getElementById js/document feature) {:behavior "smooth"})
-                                    (.scrollBy js/window 0 -80))}
-                       [:strong (:chromosome result)] ": " num " results"]))) [:div.results-counts [:span.skip-to "Skip to:"]] results)
-    [:div]))
+  (when (seq results)
+    (into [:div.results-counts [:span.skip-to "Skip to:"]]
+          (for [result results
+                :let [amount (count (:results result))
+                      feature (feature-to-uid result)]]
+            [:span.results-count
+             {:class (when (zero? amount) :noresults)
+              :on-click (fn []
+                          (.scrollIntoView (.getElementById js/document feature) {:behavior "smooth"})
+                          (.scrollBy js/window 0 -80))}
+             [:strong (:chromosome result)] ": " amount " results"]))))
 
 (defn results-section []
 
