@@ -262,12 +262,13 @@
      (let [selected-identifier? (set selected-identifiers)
            identifier->result (group-by first results)
            query-title (get-active-query-title db)]
-       {:download
-        [(str query-title " " (:title widget-details))
-         (->> (:results widget-details)
-              (filter (comp selected-identifier? :identifier))
-              (map (fn [{:keys [identifier p-value description]}]
-                     (string/join \tab [description p-value
-                                        (string/join "," (->> identifier identifier->result (map second)))
-                                        identifier])))
-              (string/join \newline))]}))))
+       {:download-file
+        {:filename (str query-title " " (:title widget-details) ".tsv")
+         :filetype "tab-separated-values"
+         :data (->> (:results widget-details)
+                    (filter (comp selected-identifier? :identifier))
+                    (map (fn [{:keys [identifier p-value description]}]
+                           (string/join \tab [description p-value
+                                              (string/join "," (->> identifier identifier->result (map second)))
+                                              identifier])))
+                    (string/join \newline))}}))))

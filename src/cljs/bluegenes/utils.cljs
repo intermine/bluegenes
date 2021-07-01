@@ -6,7 +6,8 @@
             [bluegenes.version :as version]
             [bluegenes.components.icons :refer [icon]]
             [markdown-to-hiccup.core :as md]
-            [goog.string :as gstring]))
+            [goog.string :as gstring]
+            [oops.core :refer [ocall]]))
 
 (defn hiccup-anchors-newtab
   "Add target=_blank to all anchor elements, so all links open in new tabs."
@@ -298,3 +299,11 @@
     (mapv (fn [result]
             (zipmap views result))
           (:results res))))
+
+(defn encode-file
+  "Encode a stringified text file such that it can be downloaded by the browser.
+  Results must be stringified - don't pass objects / vectors / arrays / whatever."
+  [data filetype]
+  (ocall js/URL "createObjectURL"
+         (js/Blob. (clj->js [data])
+                   {:type (str "text/" filetype)})))
