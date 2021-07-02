@@ -23,6 +23,7 @@
     "bootstrap": "^3.3.7",
     "bootstrap-material-design": "git+https://github.com/intermine/bootstrap-material-design.git#im-0.0.2",
     "chokidar-cli": "^2.1.0",
+    "cypress-downloadfile": "^1.2.1",
     "isomorphic-ws": "^4.0.1",
     "less": "1.7.5",
     "wait-on": "^3.3.0",
@@ -30,6 +31,7 @@
     "xmlhttprequest": "^1.8.0"
   },
   "devDependencies": {
+    "clipboardy": "^2.3.0",
     "cypress": "^6.0.0",
     "cypress-file-upload": "^5.0.8"
   }

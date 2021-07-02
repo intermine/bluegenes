@@ -43,6 +43,7 @@ Cypress.Commands.add("openListsTab", () => {
 })
 
 Cypress.Commands.add("searchKeyword", (keyword) => {
+    cy.visit("/biotestmine/search");
     cy.get(".searchform > input").type(keyword + '{enter}',{delay:100});
 })
 
@@ -68,6 +69,30 @@ Cypress.Commands.add("createProteinList", (proteinList) => {
     cy.wait(100);
     cy.contains("Lists").click();
 })
+
+Cypress.Commands.add('isInViewport', element => {
+    cy.get(element).then($el => {
+      const bottom = Cypress.$(cy.state('window')).height()
+      const rect = $el[0].getBoundingClientRect()
+  
+      expect(rect.top).not.to.be.greaterThan(bottom)
+      expect(rect.bottom).not.to.be.greaterThan(bottom)
+      expect(rect.top).not.to.be.greaterThan(bottom)
+      expect(rect.bottom).not.to.be.greaterThan(bottom)
+    })
+  })
+
+  Cypress.Commands.add('isNotInViewport', element => {
+    cy.get(element).then($el => {
+      const bottom = Cypress.$(cy.state('window')).height()
+      const rect = $el[0].getBoundingClientRect()
+  
+      expect(rect.top).to.be.greaterThan(bottom)
+      expect(rect.bottom).to.be.greaterThan(bottom)
+      expect(rect.top).to.be.greaterThan(bottom)
+      expect(rect.bottom).to.be.greaterThan(bottom)
+    })
+  })
 
 // Cypress.Commands.add("openTemplatesTab", () => {
 //     cy.get("#bluegenes-main-nav").within(() => {
