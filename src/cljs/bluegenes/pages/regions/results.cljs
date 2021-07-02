@@ -64,7 +64,7 @@
 
 (defn table-row
   "A single result row for a single region feature."
-  [idx {:keys [primaryIdentifier class chromosomeLocation objectId] :as result}]
+  [idx {:keys [symbol primaryIdentifier class chromosomeLocation objectId] :as result}]
   (let [model (subscribe [:model])
         current-mine (subscribe [:current-mine])
         the-type (get-in @model [(keyword class) :displayName])
@@ -80,7 +80,8 @@
                                     :end end}])
       :on-mouse-leave #(!dispatch [:regions/clear-highlight idx])}
      [:div.grid-3_xs-3.single-feature
-      [:div.col {:style {:word-wrap "break-word"}}
+      [:div.col.feature-name
+       (when symbol [:strong symbol])
        primaryIdentifier]
       [:div.col the-type]
       [:div.col (str (:primaryIdentifier locatedOn) ":" start ".." end)]]]))
