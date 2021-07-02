@@ -54,7 +54,10 @@
      (into [:g]
            (map (fn [d]
                   [datum idx scale-fn d (count data-points)])
-                (sort-by (comp :end :chromosomeLocation)
+                ;; Render regions in same order as displayed in table - in
+                ;; effect this leads to smaller regions to be placed on top of
+                ;; larger regions, making them more visible.
+                (sort-by (comp :start :chromosomeLocation)
                          data-points)))
      [bar scale-fn from]
      [bar scale-fn to]

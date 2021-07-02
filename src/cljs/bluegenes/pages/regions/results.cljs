@@ -31,7 +31,7 @@
      [:span chromosome " " from ".." to " "]
      [:span feature " "])
    [:small.features-count (count results) " overlapping features"]
-   (cond (pos? (count results)) paginator)])
+   (when (seq results) paginator)])
 
 (defn table-paginator
   "UI component to switch between pages of results"
@@ -92,14 +92,20 @@
   (let [pager (reagent/atom {:show 20
                              :page 0})]
     (fn [idx {:keys [chromosome from to results] :as feature}]
-      (if (pos? (count (:results feature)))
+      (if (seq (:results feature))
         [:div.results
          [region-header feature [table-paginator pager results]]
          [graphs/main idx feature]
-         [:div.tabulated [table-header]
+         [:div.tabulated
+          [table-header]
           (into [:div.results-body]
-                (map (fn [result]  [table-row idx result])
-                     (take (:show @pager) (drop (* (:show @pager) (:page @pager)) (sort-by (comp :start :chromosomeLocation) results)))))]]
+                ;; Note: If you change the sort function, make the same change
+                ;; in bluegenes.pages.regions.graphs.
+                (->> (sort-by (comp :start :chromosomeLocation) results)
+                     (drop (* (:show @pager) (:page @pager)))
+                     (take (:show @pager))
+                     (map (fn [result]
+                            [table-row idx result]))))]]
         [:div.results.noresults [region-header chromosome from to] "No features returned for this region"]))))
 
 (defn error-loading-results []
