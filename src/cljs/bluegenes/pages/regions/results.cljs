@@ -121,7 +121,11 @@
 
 (defn results-count-summary [results]
   (when (seq results)
-    (into [:div.results-counts [:span.skip-to "Skip to:"]]
+    (into [:div.results-counts
+           [:span.skip-to "Skip to:"]
+           [:span.results-count
+            {:on-click #(.scrollTo js/window 0 0)}
+            "Top"]]
           (for [result results
                 :let [amount (count (:results result))
                       feature (feature-to-uid result)]]

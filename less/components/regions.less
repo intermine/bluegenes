@@ -110,7 +110,6 @@
     }
 
     .results {
-        margin-top: @spacer/2;
         .header-styles;
         padding: 0 1em 1em;
         border: solid 1px rgba(0,0,0,0.1);
@@ -196,6 +195,14 @@
         justify-content: flex-start;
         align-items: center;
 
+        background-color: @body-background-color;
+        padding: @spacer/2 0 @spacer/2;
+
+        // Stick to top when scrolling past it.
+        position: sticky;
+        top: 0;
+        z-index: 10;
+
         h2 {
             margin: 0;
             padding: 0;
@@ -241,6 +248,7 @@
             background-color: transparent;
             order: 1;
             cursor: auto;
+            margin: 0;
         }
     }
 
