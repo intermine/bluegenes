@@ -23,7 +23,7 @@
       [:rect.datum
        {:x      (scale start)
         :y      0
-        :width  (scale end)
+        :width  (- (scale end) (scale start))
         :height 60
         :style {:opacity (/ 1 features-count)}
         :class (when highlighted? :highlighted)}])))
