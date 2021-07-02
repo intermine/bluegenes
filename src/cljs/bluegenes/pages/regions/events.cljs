@@ -126,3 +126,13 @@
               (assoc-in [:regions :loading] true))
       :im-chan {:chan (fetch/records (get-in db [:mines (get db :current-mine) :service]) query)
                 :on-success [:regions/save-results]}})))
+
+(reg-event-db
+ :regions/set-highlight
+ (fn [db [_ idx loc]]
+   (assoc-in db [:regions :highlight idx] loc)))
+
+(reg-event-db
+ :regions/clear-highlight
+ (fn [db [_ idx]]
+   (assoc-in db [:regions :highlight idx] nil)))

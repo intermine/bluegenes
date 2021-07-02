@@ -40,17 +40,6 @@
         }
     }
 
-    .region {
-        rect.datum {
-            opacity: 0.2;
-            fill: @highlight-color;
-        }
-
-        path.guide {
-            stroke: fadeout(@body-foreground-color,60%);
-        }
-    }
-
     .feature-tree-container {
         font-size: 0.9em;
         max-height: 40vh;
@@ -248,18 +237,6 @@
     }
 
     .graph {
-        .distribution {
-            position: relative;
-            margin-top: -55px; //this is 1/2 of the svg height set in graphs.cljs
-            display: block;
-            left: 1em;
-            margin-bottom: 1em;
-            font-weight: bold;
-            //this shadow creates a complete outline.
-            @shadowcolor: #fff;
-            text-shadow: 1px 1px 0 @shadowcolor, -1px -1px 0 @shadowcolor, 1px -1px 0 @shadowcolor, -1px -1px 0 @shadowcolor, 1px 1px 0 @shadowcolor, -1px 1px 0 @shadowcolor;
-        }
-
         .legend {
             display: flex;
             justify-content: space-between;
@@ -277,6 +254,7 @@
             display: inline-block;
             height: 1em;
             position: relative;
+            font-weight: 400;
         }
 
         .end,
@@ -294,19 +272,42 @@
 
         .value {
             cursor: help;
-            margin-left: -50%;
             display: block;
-            margin-right: 50%;
+            position: relative;
+            left: -10px;
         }
 
         .end,
         .start,
         .value {
-            background: #fff;
-            .border-radius;
-            width: 3em;
-            text-overflow: ellipsis;
-            overflow: hidden;
+            transform: rotate(45deg);
+        }
+
+        .start {
+            position: relative;
+            left: -10px;
+        }
+
+        .end {
+            position: relative;
+            right: -10px;
+            transform: rotate(-45deg);
+        }
+
+        .region {
+            rect.datum {
+                fill: @highlight-color;
+
+                &.highlighted {
+                    transform: scaleY(1.2);
+                    opacity: 1 !important;
+                    fill: @notice-me;
+                }
+            }
+
+            path.guide {
+                stroke: fadeout(@body-foreground-color,60%);
+            }
         }
     }
 }

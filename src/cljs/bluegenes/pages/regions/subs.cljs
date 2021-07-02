@@ -51,3 +51,8 @@
  :<- [:current-mine]
  (fn [mine]
    (:regionsearch-example mine)))
+
+(reg-sub
+ :regions/highlighted?
+ (fn [db [_ idx loc]]
+   (= loc (get-in db [:regions :highlight idx]))))

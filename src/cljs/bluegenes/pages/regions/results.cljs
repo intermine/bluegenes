@@ -10,7 +10,8 @@
             [bluegenes.components.bootstrap :refer [popover tooltip]]
             [clojure.string :refer [split]]
             [oops.core :refer [oget ocall oset!]]
-            [bluegenes.route :as route]))
+            [bluegenes.route :as route]
+            [goog.functions :refer [debounce]]))
 
 (defn feature-to-uid [{:keys [chromosome from to results] :as feature}]
   (let [regions-searched (subscribe [:regions/regions-searched])]
@@ -54,24 +55,35 @@
    [:div.col [:h4 "Feature Type"]]
    [:div.col [:h4 "Location"]]])
 
+(def !dispatch
+  ^{:doc
+    "This dispatch is shared among all the row's mouseenter and mouseleave
+    events. Without it, way too many events will fire causing slowdowns for
+    large result sets."}
+  (debounce dispatch 50))
+
 (defn table-row
   "A single result row for a single region feature."
-  [chromosome {:keys [primaryIdentifier class chromosomeLocation objectId] :as result}]
+  [idx {:keys [primaryIdentifier class chromosomeLocation objectId] :as result}]
   (let [model (subscribe [:model])
         current-mine (subscribe [:current-mine])
-        the-type (get-in @model [(keyword class) :displayName])]
-    [:a {:href (route/href ::route/report
-                           {:mine (name (:id @current-mine))
-                            :type class
-                            :id objectId})}
+        the-type (get-in @model [(keyword class) :displayName])
+        {:keys [start end locatedOn]} chromosomeLocation]
+    [:a
+     {:href (route/href ::route/report
+                        {:mine (name (:id @current-mine))
+                         :type class
+                         :id objectId})
+      :on-mouse-enter #(!dispatch [:regions/set-highlight idx
+                                   {:chromosome (:primaryIdentifier locatedOn)
+                                    :start start
+                                    :end end}])
+      :on-mouse-leave #(!dispatch [:regions/clear-highlight idx])}
      [:div.grid-3_xs-3.single-feature
       [:div.col {:style {:word-wrap "break-word"}}
        primaryIdentifier]
       [:div.col the-type]
-      [:div.col (str
-                 (get-in chromosomeLocation [:locatedOn :primaryIdentifier])
-                 ":"  (:start chromosomeLocation)
-                 ".." (:end chromosomeLocation))]]]))
+      [:div.col (str (:primaryIdentifier locatedOn) ":" start ".." end)]]]))
 
 ; Results table
 (defn result-table
@@ -79,14 +91,14 @@
   []
   (let [pager (reagent/atom {:show 20
                              :page 0})]
-    (fn [{:keys [chromosome from to results] :as feature}]
+    (fn [idx {:keys [chromosome from to results] :as feature}]
       (if (pos? (count (:results feature)))
         [:div.results
          [region-header feature [table-paginator pager results]]
-          ;[graphs/main feature]
+         [graphs/main idx feature]
          [:div.tabulated [table-header]
           (into [:div.results-body]
-                (map (fn [result]  [table-row chromosome result])
+                (map (fn [result]  [table-row idx result])
                      (take (:show @pager) (drop (* (:show @pager) (:page @pager)) (sort-by (comp :start :chromosomeLocation) results)))))]]
         [:div.results.noresults [region-header chromosome from to] "No features returned for this region"]))))
 
@@ -125,6 +137,7 @@
            [:div.results-summary
             [results-count-summary @results]]
            (into [:div.allresults]
-                 (map (fn [result]
-                        [result-table result]) @results))]
+                 (map-indexed (fn [idx result]
+                                [result-table idx result])
+                              @results))]
           [error-loading-results]))))
