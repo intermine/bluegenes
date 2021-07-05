@@ -56,3 +56,13 @@
  :regions/highlighted?
  (fn [db [_ idx loc]]
    (= loc (get-in db [:regions :highlight idx]))))
+
+(reg-sub
+ :regions/query
+ (fn [db]
+   (get-in db [:regions :query])))
+
+(reg-sub
+ :regions/subquery
+ (fn [db [_ idx]]
+   (get-in db [:regions :subqueries idx])))

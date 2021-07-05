@@ -136,3 +136,13 @@
  :regions/clear-highlight
  (fn [db [_ idx]]
    (assoc-in db [:regions :highlight idx] nil)))
+
+(reg-event-fx
+ :regions/view-query
+ (fn [{db :db} [_ query {:keys [chromosome from to]}]]
+   {:dispatch [:results/history+
+               {:source (:current-mine db)
+                :type :query
+                :intent :region
+                :value (assoc query
+                              :title (str chromosome ":" from ".." to))}]}))

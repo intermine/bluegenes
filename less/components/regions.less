@@ -115,6 +115,7 @@
         border: solid 1px rgba(0,0,0,0.1);
         background-color: @selected-color;
         order: 1;
+        margin-bottom: @spacer*2;
 
         &.noresults {
             order: 2;
@@ -187,6 +188,16 @@
                     color: #999;
                 }
             }
+        }
+
+        hr {
+            border-color: @highlight-color;
+            margin-bottom: 0;
+        }
+
+        &-footer {
+            display: flex;
+            justify-content: space-between;
         }
     }
 

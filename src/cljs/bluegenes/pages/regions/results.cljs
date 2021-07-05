@@ -8,10 +8,12 @@
             [bluegenes.pages.regions.subs]
             [bluegenes.components.imcontrols.views :as im-controls]
             [bluegenes.components.bootstrap :refer [popover tooltip]]
+            [bluegenes.components.export-query :as export-query]
             [clojure.string :refer [split]]
             [oops.core :refer [oget ocall oset!]]
             [bluegenes.route :as route]
-            [goog.functions :refer [debounce]]))
+            [goog.functions :refer [debounce]]
+            [imcljs.query :as im-query]))
 
 (defn feature-to-uid [{:keys [chromosome from to results] :as feature}]
   (let [regions-searched (subscribe [:regions/regions-searched])]
@@ -26,10 +28,9 @@
 (defn region-header
   "Header for each region. includes paginator and number of features."
   [{:keys [chromosome from to results] :as feature} paginator]
-  [:h3 {:id (feature-to-uid feature)} [:strong "Region: "]
-   (if chromosome
-     [:span chromosome " " from ".." to " "]
-     [:span feature " "])
+  [:h3 {:id (feature-to-uid feature)}
+   [:strong "Region: "]
+   [:span chromosome " " from ".." to " "]
    [:small.features-count (count results) " overlapping features"]
    (when (seq results) paginator)])
 
@@ -89,9 +90,11 @@
 ; Results table
 (defn result-table
   "The result table for a region - all features"
-  []
+  [idx]
   (let [pager (reagent/atom {:show 20
-                             :page 0})]
+                             :page 0})
+        service (subscribe [:active-service])
+        subquery (subscribe [:regions/subquery idx])]
     (fn [idx {:keys [chromosome from to results] :as feature}]
       (if (seq (:results feature))
         [:div.results
@@ -106,7 +109,13 @@
                      (drop (* (:show @pager) (:page @pager)))
                      (take (:show @pager))
                      (map (fn [result]
-                            [table-row idx result]))))]]
+                            [table-row idx result]))))]
+         [:hr]
+         [:div.results-footer
+          [export-query/main @subquery]
+          [:button.btn.btn-default.btn-raised.btn-xs
+           {:on-click #(dispatch [:regions/view-query @subquery feature])}
+           "View in results table"]]]
         [:div.results.noresults [region-header chromosome from to] "No features returned for this region"]))))
 
 (defn error-loading-results []
@@ -137,18 +146,21 @@
              [:strong (:chromosome result)] ": " amount " results"]))))
 
 (defn results-section []
-
   (let [results   (subscribe [:regions/results])
         loading? (subscribe [:regions/loading])
-        error (subscribe [:regions/error])]
-    (if @loading? [loader "Regions"]
-
-        (if (not @error)
-          [:div
-           [:div.results-summary
-            [results-count-summary @results]]
-           (into [:div.allresults]
-                 (map-indexed (fn [idx result]
-                                [result-table idx result])
-                              @results))]
-          [error-loading-results]))))
+        error (subscribe [:regions/error])
+        query (subscribe [:regions/query])]
+    (fn []
+      (cond
+        @loading? [loader "Regions"]
+        (not @error) [:div
+                      (when (seq @results)
+                        [export-query/main @query
+                         :label "Export data for all features within all regions:"])
+                      [:div.results-summary
+                       [results-count-summary @results]]
+                      (into [:div.allresults]
+                            (map-indexed (fn [idx result]
+                                           [result-table idx result])
+                                         @results))]
+        :else [error-loading-results]))))
