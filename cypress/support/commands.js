@@ -70,6 +70,9 @@ Cypress.Commands.add("createProteinList", (proteinList) => {
     cy.contains("Lists").click();
 })
 
+//The commands isInViewport and isNotInViewport are taken directly from
+// https://github.com/cypress-io/cypress/issues/877#issuecomment-490504922.
+
 Cypress.Commands.add('isInViewport', element => {
     cy.get(element).then($el => {
       const bottom = Cypress.$(cy.state('window')).height()

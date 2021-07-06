@@ -2,12 +2,11 @@ describe("Single Lists Test", function() {
     beforeEach(function() {
       cy.visit("/");
       cy.createGeneList("SODB, GBP, GST, CDPK1");
+      cy.url().should("include","/lists");
+      cy.get('.lists-item').should('have.length',1);
     });
 
     it("can copy a list", function(){
-        cy.url().should("include","/lists");
-        cy.get('.lists-item').should('have.length',1);
-
         cy.get(".lists-item").within(() => {
             cy.get("button").find('svg[class="icon icon-list-more"]')
             .should("be.visible")
@@ -27,9 +26,6 @@ describe("Single Lists Test", function() {
     });
 
     it("can edit a list", function(){
-        cy.url().should("include","/lists");
-        cy.get('.lists-item').should('have.length',1);
-
         cy.get(".lists-item").within(() => {
             cy.get("button").find('svg[class="icon icon-list-more"]')
             .should("be.visible")
@@ -49,9 +45,6 @@ describe("Single Lists Test", function() {
         })       
     });
     it("can delete a list", function(){
-        cy.url().should("include","/lists");
-        cy.get('.lists-item').should('have.length',1);
-
         cy.get(".lists-item").within(() => {
             cy.get("button").find('svg[class="icon icon-list-more"]')
             .should("be.visible")

@@ -20,4 +20,16 @@ describe("Upload Test", function(){
         cy.url().should("include","/lists");
         cy.get(".lists-item").its('length').should("be.gt", 0);
     });
+    
+    it("can load a file and save list", function(){
+        const filePath = 'gene.csv';
+        cy.contains("File Upload").click();
+        cy.contains("Browse").click();
+        cy.get('input[type="file"]').attachFile(filePath);
+        cy.contains("Continue").click();
+
+        cy.url().should("include","/save");
+        cy.contains("Save List").click();
+        cy.url().should("include","/results");
+    });
 })
