@@ -99,7 +99,18 @@
             "SequenceFeature.chromosomeLocation.locatedOn.primaryIdentifier"]
    :where [{:path "SequenceFeature.chromosomeLocation"
             :op "OVERLAPS"
-            :values (if (string? regions) [regions] (into [] regions))}]})
+            :values (if (string? regions) [regions] (into [] regions))}]
+   :sortOrder [{:path "SequenceFeature.chromosomeLocation.start"
+                :direction "ASC"}]})
+
+(defn prepare-export-query [query]
+  (assoc query
+         :select ["SequenceFeature.primaryIdentifier"
+                  "SequenceFeature.symbol"
+                  "SequenceFeature.chromosomeLocation.locatedOn.primaryIdentifier"
+                  "SequenceFeature.chromosomeLocation.start"
+                  "SequenceFeature.chromosomeLocation.end"
+                  "SequenceFeature.organism.name"]))
 
 (reg-event-fx
  :regions/run-query

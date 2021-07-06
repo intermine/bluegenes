@@ -10,18 +10,11 @@
    {:label "CSV" :format "csv"}
    {:label "GFF3" :endpoint "gff3"}
    {:label "BED" :endpoint "bed"}
-   {:label "FASTA" :endpoint "fasta" :update-query-fn #(assoc % :select ["id"])}
+   {:label "FASTA" :endpoint "fasta"}
+    ;; Does not seem to be necessary for the use case of region search.
+    ; :update-query-fn #(-> % (assoc :select ["id" "symbol" "organism.name"]) (dissoc :sortOrder :orderBy))}
    {:label "RDF" :format "rdf" :rdf-required true}
    {:label "N-Triples" :format "ntriples" :rdf-required true}])
-
-(defn prepare-export-query [query]
-  (assoc query
-         :select ["SequenceFeature.primaryIdentifier"
-                  "SequenceFeature.symbol"
-                  "SequenceFeature.name"
-                  "SequenceFeature.chromosomeLocation.locatedOn.primaryIdentifier"
-                  "SequenceFeature.chromosomeLocation.start"
-                  "SequenceFeature.chromosomeLocation.end"]))
 
 (defn export-button [query {:keys [label format endpoint update-query-fn]
                             :or {update-query-fn identity}}]
@@ -29,7 +22,7 @@
     [:a.btn.btn-default.btn-raised.btn-xs
      {:href (str root "/service/query/results" (when endpoint (str "/" endpoint))
                  "?query=" (js/encodeURIComponent
-                             (im-query/->xml model (-> query prepare-export-query update-query-fn)))
+                             (im-query/->xml model (update-query-fn query)))
                  (when format (str "&format=" format))
                  (when-not endpoint (str "&columnheaders=" "friendly"))
                  "&token=" token)}

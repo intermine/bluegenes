@@ -4,8 +4,7 @@
             [bluegenes.pages.regions.graphs :as graphs]
             [bluegenes.components.table :as table]
             [bluegenes.components.loader :refer [loader]]
-            [bluegenes.pages.regions.events]
-            [bluegenes.pages.regions.subs]
+            [bluegenes.pages.regions.events :refer [prepare-export-query]]
             [bluegenes.components.imcontrols.views :as im-controls]
             [bluegenes.components.bootstrap :refer [popover tooltip]]
             [bluegenes.components.export-query :as export-query]
@@ -112,7 +111,7 @@
                             [table-row idx result]))))]
          [:hr]
          [:div.results-footer
-          [export-query/main @subquery]
+          [export-query/main (prepare-export-query @subquery)]
           [:button.btn.btn-default.btn-raised.btn-xs
            {:on-click #(dispatch [:regions/view-query @subquery feature])}
            "View in results table"]]]
@@ -155,7 +154,7 @@
         @loading? [loader "Regions"]
         (not @error) [:div
                       (when (seq @results)
-                        [export-query/main @query
+                        [export-query/main (prepare-export-query @query)
                          :label "Export data for all features within all regions:"])
                       [:div.results-summary
                        [results-count-summary @results]]
