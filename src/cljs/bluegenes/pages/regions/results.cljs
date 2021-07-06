@@ -12,7 +12,11 @@
             [oops.core :refer [oget ocall oset!]]
             [bluegenes.route :as route]
             [goog.functions :refer [debounce]]
-            [imcljs.query :as im-query]))
+            [imcljs.query :as im-query]
+            [goog.dom :as gdom]
+            [goog.fx.dom :as gfx]
+            [goog.fx.easing :as geasing]
+            [goog.style :as gstyle]))
 
 (defn feature-to-uid [{:keys [chromosome from to results] :as feature}]
   (let [regions-searched (subscribe [:regions/regions-searched])]
@@ -127,21 +131,34 @@
      [:li "Please check that your search regions are in the correct format."]
      [:li "Please check you're connected to the internet."]]]])
 
+(defn scroll-into-view! [id]
+  (when-let [elem (or (nil? id) (gdom/getElement id))]
+    (let [current-scroll (clj->js ((juxt #(oget % :x) #(oget % :y))
+                                   (gdom/getDocumentScroll)))
+          target-scroll (if (nil? id)
+                          #js [0 0] ; Scroll to top if no ID specified.
+                          (clj->js ((juxt #(- (oget % :x) 110) #(- (oget % :y) 110))
+                                    (gstyle/getRelativePosition elem (gdom/getDocumentScrollElement)))))]
+      (doto (gfx/Scroll. (gdom/getDocumentScrollElement)
+                         current-scroll
+                         target-scroll
+                         300
+                         geasing/inAndOut)
+        (.play)))))
+
 (defn results-count-summary [results]
   (when (seq results)
     (into [:div.results-counts
            [:span.skip-to "Skip to:"]
            [:span.results-count
-            {:on-click #(.scrollTo js/window 0 0)}
+            {:on-click #(scroll-into-view! nil)}
             "Top"]]
           (for [result results
                 :let [amount (count (:results result))
-                      feature (feature-to-uid result)]]
+                      feature-id (feature-to-uid result)]]
             [:span.results-count
              {:class (when (zero? amount) :noresults)
-              :on-click (fn []
-                          (.scrollIntoView (.getElementById js/document feature) {:behavior "smooth"})
-                          (.scrollBy js/window 0 -80))}
+              :on-click #(scroll-into-view! feature-id)}
              [:strong (:chromosome result)] ": " amount " results"]))))
 
 (defn results-section []

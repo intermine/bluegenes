@@ -158,10 +158,6 @@
                 cursor: pointer;
                 background-color: @deselected-color;
             }
-            //override silly margins:
-            &[class*=grid-3] > .col {
-                padding: @spacer/2;
-            }
 
             .feature-name {
                 word-wrap: break-word;
@@ -192,12 +188,16 @@
 
         hr {
             border-color: @highlight-color;
-            margin-bottom: 0;
+            margin: 0;
         }
 
         &-footer {
             display: flex;
             justify-content: space-between;
+        }
+
+        .col h4 {
+            margin-bottom: 0;
         }
     }
 
