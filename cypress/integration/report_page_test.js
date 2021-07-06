@@ -74,7 +74,7 @@ describe("Report Page Test", function(){
 
     
     it("can copy the permanent URL of the report page of the object", function(){
-        cy.get(".visible-md-block").within(() => {
+        cy.get(".sidebar-actions").filter(':visible').within(() => {
             cy.contains("Copy permanent URL").click();
             cy.get(".permanent-url-container").should("be.visible").within(() => {
                 cy.get("input.form-control").should("be.visible").invoke('val').should("include","http://localhost:9999/biotestmine/gene:PF14_0187");
