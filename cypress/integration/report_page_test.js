@@ -3,10 +3,11 @@ describe("Report Page Test", function(){
         cy.searchKeyword("GST");
         cy.get(".result").click();
         cy.url().should("include","/report");
+        cy.get('.report-page-heading').should("exist");
     });
 
     it("can filter the topic of a search result", function(){
-        cy.get("main").find("input").type("Publications{enter}",{delay:100});
+        cy.get(".report-page-filter").find("input").type("Publications{enter}",{delay:100});
         cy.get('.text-highlight').should("include.text","Publications").click();
         cy.get('.report-item-title').should("include.text","Publications");
         cy.get('.im-table').should("exist");

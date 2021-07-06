@@ -56,7 +56,7 @@ Cypress.Commands.add("createGeneList", (geneList) => {
     cy.get(".wizard").find("textarea").type(geneList,{delay:100});
     cy.contains("Continue").click();
     cy.contains("Save List").click();
-    cy.wait(100);
+    cy.url().should("include","/results")
     cy.contains("Lists").click();
 })
 
@@ -66,7 +66,7 @@ Cypress.Commands.add("createProteinList", (proteinList) => {
     cy.get(".wizard").find("textarea").type(proteinList,{delay:100});
     cy.contains("Continue").click();
     cy.contains("Save List").click();
-    cy.wait(100);
+    cy.url().should("include","/results")
     cy.contains("Lists").click();
 })
 
