@@ -27,12 +27,12 @@ describe("Report Page Test", function(){
     });
 
     it("can collapse and expand a section on report page", function(){
-        cy.get('.report-table-heading').contains("Visualizations")
+        cy.get('.report-table-heading').contains("Data")
         .parent(".report-table")
-        .as('visualizationsSection');
+        .as('dataSection');
 
-        cy.get("@visualizationsSection").within(() => {
-            cy.get(".report-item").should("exist");
+        cy.get("@dataSection").within(() => {
+            cy.get(".report-item-title").should("exist");
             cy.get(".icon-chevron-up").click();
             cy.get(".report-item").should("not.exist");
         })
@@ -60,14 +60,14 @@ describe("Report Page Test", function(){
     });
 
     it("can expand a section to view the data displayer", function(){
-        cy.get('.report-table-heading').contains("Visualizations")
-        .parent(".report-table").find(".report-item").filter(':contains("MSA Viewer")')
-        .as('MSAViewerSection');
+        cy.get('.report-table-heading').contains("Data")
+        .parent(".report-table").find(".report-item").filter(':contains("Exons")')
+        .as('exonsSection');
 
-        cy.get("@MSAViewerSection").within(() => {
-            cy.get('.bluegenesMSAViewer').should("not.be.visible");
+        cy.get("@exonsSection").within(() => {
+            cy.get('.im-table').should("exist");
             cy.get('.report-item-toggle').click();
-            cy.get('.bluegenesMSAViewer').should("be.visible");
+            cy.get('.im-table').should("not.exist");
         })
     });
 
