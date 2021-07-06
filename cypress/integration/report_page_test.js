@@ -86,7 +86,7 @@ describe("Report Page Test", function(){
     });
 
     it("can check if the gene is present in any list", function(){
-        cy.get(".col-lg-12").filter(':contains("Lists")').should("be.visible").as('listsSection');
+        cy.get(".sidebar-entry").filter(':contains("Lists")').filter(':visible').as('listsSection');
         cy.get("@listsSection").within(() => {
             cy.get("p").should("contain","This Gene isn't in any lists.");
         })
