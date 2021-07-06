@@ -171,8 +171,12 @@
         @loading? [loader "Regions"]
         (not @error) [:div
                       (when (seq @results)
-                        [export-query/main (prepare-export-query @query)
-                         :label "Export data for all features within all regions:"])
+                        [:div.results-actions
+                         [export-query/main (prepare-export-query @query)
+                          :label "Export data for all features within all regions:"]
+                         [:button.btn.btn-default.btn-raised.btn-xs
+                          {:on-click #(dispatch [:regions/view-query @query])}
+                          "View all in results table"]])
                       [:div.results-summary
                        [results-count-summary @results]]
                       (into [:div.allresults]

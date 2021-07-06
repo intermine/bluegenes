@@ -150,10 +150,12 @@
 
 (reg-event-fx
  :regions/view-query
- (fn [{db :db} [_ query {:keys [chromosome from to]}]]
+ (fn [{db :db} [_ query {:keys [chromosome from to] :as feature}]]
    {:dispatch [:results/history+
                {:source (:current-mine db)
                 :type :query
                 :intent :region
                 :value (assoc query
-                              :title (str chromosome ":" from ".." to))}]}))
+                              :title (if feature
+                                       (str chromosome ":" from ".." to)
+                                       "Region search results"))}]}))
