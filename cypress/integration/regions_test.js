@@ -4,19 +4,39 @@ describe("Regions Test", function(){
     });
 
     it("can search a gene region given by example", function(){
-        cy.contains("Show Example").click();
-        cy.get(".form-control").should("include.text","MAL");
 
-        cy.get('button[class="btn dropdown-toggle"]').click();
-        cy.contains("P. falciparum 3D7").click();
+        cy.get(".input-section").within(() => {
+            cy.contains("Show Example").click();
+            cy.get(".form-control").should("include.text","MAL");
+            cy.get("button").filter(':contains("Search")').click();
+        })
+
+        cy.get(".results").within(() => {
+            cy.get(".single-feature").its("length").should("be.gt",0);
+            cy.contains("exon.46111").click();
+        })
         
-        cy.contains("Features to include").children().click();
-        cy.contains("Exon").children().click();
+        cy.url().should("include","/report");
+    });
 
-        cy.get("button").filter(':contains("Search")').click();
-        cy.get('.allresults').children().should("have.length",3);
+    it("can type in chromosome coordinates and select features", function(){
 
-        cy.contains("exon.46111").click();
+        cy.get(".input-section").within(() => {
+            cy.get(".form-control").type("MAL1:0..100000",{delay:100});
+            cy.get('button[class="btn dropdown-toggle"]').click();
+            cy.contains("P. falciparum 3D7").click();
+            cy.contains("Features to include").children().click();
+            cy.contains("Gene").children().click();
+            cy.get("button").filter(':contains("Search")').click();
+        })
+
+        cy.get(".results").within(() => {
+            cy.get(".single-feature").its("length").should("be.gt",0);
+            cy.contains("Next").click();
+            cy.get(".single-feature").its("length").should("be.gt",0);
+            cy.get(".single-feature").first().click();
+        })
+
         cy.url().should("include","/report");
     });
 })

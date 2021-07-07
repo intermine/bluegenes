@@ -43,12 +43,59 @@ Cypress.Commands.add("openListsTab", () => {
 })
 
 Cypress.Commands.add("searchKeyword", (keyword) => {
+    cy.visit("/biotestmine/search");
     cy.get(".searchform > input").type(keyword + '{enter}',{delay:100});
 })
 
 Cypress.Commands.add("selectFromDropdown", (keyword) => {
     cy.get('select').then($option => {$option.val(keyword)}).parent().trigger('change');
 })
+
+Cypress.Commands.add("createGeneList", (geneList) => {
+    cy.contains("Upload").click();
+    cy.get(".wizard").find("textarea").type(geneList,{delay:100});
+    cy.contains("Continue").click();
+    cy.contains("Save List").click();
+    cy.url().should("include","/results")
+    cy.contains("Lists").click();
+})
+
+Cypress.Commands.add("createProteinList", (proteinList) => {
+    cy.contains("Upload").click();
+    cy.contains("List type").parent().find("select").select("Protein");
+    cy.get(".wizard").find("textarea").type(proteinList,{delay:100});
+    cy.contains("Continue").click();
+    cy.contains("Save List").click();
+    cy.url().should("include","/results")
+    cy.contains("Lists").click();
+})
+
+//The commands isInViewport and isNotInViewport are taken directly from
+// https://github.com/cypress-io/cypress/issues/877#issuecomment-490504922.
+
+Cypress.Commands.add('isInViewport', element => {
+    cy.get(element).then($el => {
+      const bottom = Cypress.$(cy.state('window')).height()
+      const rect = $el[0].getBoundingClientRect()
+  
+      expect(rect.top).not.to.be.greaterThan(bottom)
+      expect(rect.bottom).not.to.be.greaterThan(bottom)
+      expect(rect.top).not.to.be.greaterThan(bottom)
+      expect(rect.bottom).not.to.be.greaterThan(bottom)
+    })
+  })
+
+  Cypress.Commands.add('isNotInViewport', element => {
+    cy.get(element).then($el => {
+      const bottom = Cypress.$(cy.state('window')).height()
+      const rect = $el[0].getBoundingClientRect()
+  
+      expect(rect.top).to.be.greaterThan(bottom)
+      expect(rect.bottom).to.be.greaterThan(bottom)
+      expect(rect.top).to.be.greaterThan(bottom)
+      expect(rect.bottom).to.be.greaterThan(bottom)
+    })
+  })
 
 // Cypress.Commands.add("openTemplatesTab", () => {
 //     cy.get("#bluegenes-main-nav").within(() => {
