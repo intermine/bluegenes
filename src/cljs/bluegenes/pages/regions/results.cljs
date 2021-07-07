@@ -90,7 +90,25 @@
       [:div.col the-type]
       [:div.col (str (:primaryIdentifier locatedOn) ":" start ".." end)]]]))
 
-; Results table
+(defn create-list [features list-basename]
+  (let [class->features (group-by :class features)]
+    [:div.dropdown.create-list-dropdown
+     [:button.btn.btn-default.btn-raised.btn-xs.dropdown-toggle
+      {:data-toggle "dropdown"}
+      "Create list by feature type" [:span.caret]]
+     [:div.dropdown-menu.dropdown-mixed-content
+      (into [:ul]
+            (for [type (sort (keys class->features))]
+              [:li
+               {:on-click #(dispatch [:regions/create-list
+                                      (->> (get class->features type)
+                                           (map :objectId)
+                                           (distinct)
+                                           (into []))
+                                      type
+                                      (str list-basename " " type)])}
+               type]))]]))
+
 (defn result-table
   "The result table for a region - all features"
   [idx]
@@ -115,7 +133,9 @@
                             [table-row idx result]))))]
          [:hr]
          [:div.results-footer
-          [export-query/main (prepare-export-query @subquery)]
+          [export-query/main (prepare-export-query @subquery)
+           :label "Export features: "]
+          [create-list results (str chromosome ":" from ".." to)]
           [:button.btn.btn-default.btn-raised.btn-xs
            {:on-click #(dispatch [:regions/view-query @subquery feature])}
            "View in results table"]]]
@@ -173,7 +193,8 @@
                       (when (seq @results)
                         [:div.results-actions
                          [export-query/main (prepare-export-query @query)
-                          :label "Export data for all features within all regions:"]
+                          :label "Export features within all regions:"]
+                         [create-list (mapcat :results @results) "All Regions"]
                          [:button.btn.btn-default.btn-raised.btn-xs
                           {:on-click #(dispatch [:regions/view-query @query])}
                           "View all in results table"]])

@@ -2,7 +2,10 @@
   (:require [re-frame.core :refer [reg-event-db reg-event-fx reg-fx dispatch subscribe]]
             [imcljs.entity :as entity]
             [imcljs.fetch :as fetch]
-            [clojure.string :as str]))
+            [imcljs.save :as save]
+            [clojure.string :as str]
+            [bluegenes.route :as route]
+            [bluegenes.pages.lists.utils :refer [copy-list-name]]))
 
 (defn parse-region [region-string]
   (let [parsed (into []
@@ -159,3 +162,37 @@
                               :title (if feature
                                        (str chromosome ":" from ".." to)
                                        "Region search results"))}]}))
+
+(reg-event-fx
+ :regions/create-list
+ (fn [{db :db} [_ ids type list-name]]
+   (let [current-mine (get db :current-mine)
+         service (get-in db [:mines current-mine :service])
+         lists (get-in db [:assets :lists current-mine])
+         list-name (if (some (comp #{list-name} :name) lists)
+                     (copy-list-name lists list-name)
+                     list-name)]
+     {:im-chan {:chan (save/im-list-from-query service list-name
+                                               {:from type
+                                                :select ["id"]
+                                                :where [{:path "id"
+                                                         :op "ONE OF"
+                                                         :values ids}]})
+                :on-success [:regions/create-list-success]
+                :on-failure [:regions/create-list-failure]}})))
+
+(reg-event-fx
+ :regions/create-list-success
+ (fn [{db :db} [_ {:keys [listName]}]]
+   {:dispatch [:assets/fetch-lists
+               [::route/navigate ::route/results {:title listName}]]}))
+
+(reg-event-fx
+ :regions/create-list-failure
+ (fn [{db :db} [_ res]]
+   {:dispatch [:messages/add
+               {:markup [:span "Failed to create list by feature type "
+                         (when-let [error (get-in res [:body :error])]
+                           [:code error])]
+                :style "warning"
+                :timeout 10000}]}))
