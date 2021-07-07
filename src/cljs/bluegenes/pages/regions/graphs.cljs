@@ -78,7 +78,7 @@
            max-end   (apply max (conj (map (comp :end :chromosomeLocation) results) to))
            scale     (linear-scale [min-start max-end] [0 1])
            handler   #(legend-width width)
-           listener  (.addEventListener js/window "resize" #(handler))]
+           listener  (.addEventListener js/window "resize" handler)]
           [:div.graph
            [svg idx scale results to from min-start max-end]
            [:div.legend
