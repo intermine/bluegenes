@@ -8,19 +8,16 @@
             [bluegenes.pages.lists.utils :refer [copy-list-name]]))
 
 (defn parse-region [region-string]
-  (let [parsed (into []
-                     (remove
-                      (fn [c] (some? (some #{c} #{":" ".." "-"})))
-                      (str/split region-string (re-pattern "(:|\\.\\.|-)"))))]
-    {:chromosome (nth parsed 0)
-     :from (int (nth parsed 1))
-     :to (int (nth parsed 2))}))
+  (let [parsed (str/split region-string (re-pattern "(?::|\\.\\.|-|\t)"))]
+    (when (= (count parsed) 3)
+      {:chromosome (nth parsed 0)
+       :from (int (nth parsed 1))
+       :to (int (nth parsed 2))})))
 
 (reg-event-db
  :regions/save-results
  (fn [db [_ result-response]]
    (let [searched-for (get-in db [:regions :regions-searched])
-         error (:error result-response)
          mapped-results (mapv (fn [region]
                                 (assoc region :results
                                        (filterv (fn [{{:keys [start end locatedOn]} :chromosomeLocation}]
@@ -34,8 +31,15 @@
                               searched-for)]
      (-> db
          (assoc-in [:regions :results] mapped-results)
-         (assoc-in [:regions :loading] false)
-         (assoc-in [:regions :error] error)))))
+         (assoc-in [:regions :loading] false)))))
+
+(reg-event-db
+ :regions/query-failure
+ (fn [db [_ res]]
+   (-> db
+       (assoc-in [:regions :loading] false)
+       (assoc-in [:regions :error] (or (get-in res [:body :error])
+                                       "Region search failed")))))
 
 (reg-event-db
  :regions/set-selected-organism
@@ -118,28 +122,34 @@
 (reg-event-fx
  :regions/run-query
  (fn [{db :db} [_]]
-   (let [to-search (str/split-lines (get-in db [:regions :to-search]))
-         feature-types (get-in db [:regions :settings :feature-types])
-         selected-feature-types (keep (fn [[feature-kw enabled?]]
-                                        (when enabled? (name feature-kw)))
-                                      feature-types)
-         selected-organism (get-in db [:regions :settings :organism :shortName])
-         query (-> (build-feature-query to-search)
-                   (add-type-constraints selected-feature-types)
-                   (add-organism-constraint selected-organism))
-         subqueries (mapv (fn [region]
-                            (-> (build-feature-query region)
-                                (add-type-constraints selected-feature-types)
-                                (add-organism-constraint selected-organism)))
-                          to-search)]
-     {:db (-> db
-              (assoc-in [:regions :query] query)
-              (assoc-in [:regions :subqueries] subqueries)
-              (assoc-in [:regions :regions-searched] (mapv parse-region to-search))
-              (assoc-in [:regions :results] [])
-              (assoc-in [:regions :loading] true))
-      :im-chan {:chan (fetch/records (get-in db [:mines (get db :current-mine) :service]) query)
-                :on-success [:regions/save-results]}})))
+   (let [to-search (remove str/blank? (str/split-lines (get-in db [:regions :to-search])))
+         parsed-regions (mapv parse-region to-search)]
+     (if (some nil? parsed-regions)
+       (let [invalid-regions (remove nil? (map #(when (nil? %2) %1) to-search parsed-regions))]
+         {:db (assoc-in db [:regions :error] (str "Invalid regions: " (str/join ", " invalid-regions)))})
+       (let [feature-types (get-in db [:regions :settings :feature-types])
+             selected-feature-types (keep (fn [[feature-kw enabled?]]
+                                            (when enabled? (name feature-kw)))
+                                          feature-types)
+             selected-organism (get-in db [:regions :settings :organism :shortName])
+             query (-> (build-feature-query to-search)
+                       (add-type-constraints selected-feature-types)
+                       (add-organism-constraint selected-organism))
+             subqueries (mapv (fn [region]
+                                (-> (build-feature-query region)
+                                    (add-type-constraints selected-feature-types)
+                                    (add-organism-constraint selected-organism)))
+                              to-search)]
+         {:db (-> db
+                  (assoc-in [:regions :query] query)
+                  (assoc-in [:regions :subqueries] subqueries)
+                  (assoc-in [:regions :regions-searched] parsed-regions)
+                  (assoc-in [:regions :results] [])
+                  (assoc-in [:regions :loading] true)
+                  (assoc-in [:regions :error] nil))
+          :im-chan {:chan (fetch/records (get-in db [:mines (get db :current-mine) :service]) query)
+                    :on-success [:regions/save-results]
+                    :on-failure [:regions/query-failure]}})))))
 
 (reg-event-db
  :regions/set-highlight

@@ -9,18 +9,23 @@
             [bluegenes.pages.regions.subs]
             [bluegenes.pages.regions.results :refer [results-section]]
             [bluegenes.components.imcontrols.views :as im-controls]
-            [bluegenes.components.bootstrap :refer [popover tooltip]]
+            [bluegenes.components.bootstrap :refer [poppable]]
+            [bluegenes.components.icons :refer [icon]]
             [clojure.string :as str]
             [oops.core :refer [oget ocall]]))
 
 (def css-transition-group
   (reagent/adapt-react-class js/ReactTransitionGroup.CSSTransitionGroup))
 
-(def region-help-content-popover ;;help text
-  (str "Genome regions in the following formats are accepted:"
-       "\n - chromosome:start..end, e.g. 2L:11334..12296"
-       "\n - chromosome:start-end, e.g. 2R:5866746-5868284 or chrII:14646344-14667746"
-       "\n - tab delimited"))
+(def region-help-content-popover
+  [:div
+   [:ul {:style {:padding-left "1em"}}
+    [:li "Genome regions in the following formats are accepted:"
+     [:ul {:style {:padding-left "1em"}}
+      [:li [:strong "chromosome:start..end"] ", e.g. 2L:11334..12296"]
+      [:li [:strong "chromosome:start-end"] ", e.g. 2R:5866746-5868284 or chrII:14646344-14667746"]
+      [:li [:strong "tab delimited"]]]]
+    [:li "Each genome region needs to take a "  [:strong "new line"] "."]]])
 
 (defn non-empty-classes
   "Given an intermine model (or submodel), only keep classes that have data"
@@ -104,9 +109,8 @@
 (defn region-input []
   [:div.region-input
    [:label "Regions to search "
-    [tooltip {:title region-help-content-popover}
-     [:svg.icon.icon-question
-      [:use {:xlinkHref "#icon-question"}]]]]
+    [poppable {:data region-help-content-popover
+               :children [icon "question"]}]]
    [:div.region-text
     [clear-textbox]
     [region-input-box]]])
@@ -153,10 +157,8 @@
              :on-click #(dispatch [:regions/set-to-search (str/replace example-text "\\n" "\n")])}
             "Show Example"]
            [:button.btn.btn-primary.btn-raised.btn-block
-            {:disabled (or
-                        (= "" @to-search)
-                        (= nil @to-search)
-                        (empty? (filter (fn [[name enabled?]] enabled?) (:feature-types @settings))))
+            {:disabled (or (str/blank? @to-search)
+                           (empty? (filter (fn [[name enabled?]] enabled?) (:feature-types @settings))))
              :on-click (fn [e] (dispatch [:regions/run-query])
                          (ocall (oget e "target") "blur"))
              :title "Enter something into the 'Regions to search' box or click on [SHOW EXAMPLE]"}

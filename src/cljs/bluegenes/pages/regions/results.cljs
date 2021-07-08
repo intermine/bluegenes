@@ -2,6 +2,7 @@
   (:require [re-frame.core :refer [subscribe dispatch]]
             [reagent.core :as reagent]
             [bluegenes.pages.regions.graphs :as graphs]
+            [bluegenes.components.icons :refer [icon]]
             [bluegenes.components.table :as table]
             [bluegenes.components.loader :refer [loader]]
             [bluegenes.pages.regions.events :refer [prepare-export-query]]
@@ -33,7 +34,7 @@
   [{:keys [chromosome from to results] :as feature} paginator]
   [:h3 {:id (feature-to-uid feature)}
    [:strong "Region: "]
-   [:span chromosome " " from ".." to " "]
+   [:span (str chromosome " " from ".." to " ")]
    [:small.features-count (count results) " overlapping features"]
    (when (seq results) paginator)])
 
@@ -112,9 +113,7 @@
 (defn result-table
   "The result table for a region - all features"
   [idx]
-  (let [pager (reagent/atom {:show 20
-                             :page 0})
-        service (subscribe [:active-service])
+  (let [pager (reagent/atom {:show 20 :page 0})
         subquery (subscribe [:regions/subquery idx])]
     (fn [idx {:keys [chromosome from to results] :as feature}]
       (if (seq (:results feature))
@@ -139,13 +138,15 @@
           [:button.btn.btn-default.btn-raised.btn-xs
            {:on-click #(dispatch [:regions/view-query @subquery feature])}
            "View in results table"]]]
-        [:div.results.noresults [region-header chromosome from to] "No features returned for this region"]))))
+        [:div.results.noresults
+         [region-header feature]
+         [:p "No features returned for this region"]]))))
 
-(defn error-loading-results []
+(defn error-loading-results [error]
   [:div.results.error
-   [:svg.icon.icon-wondering [:use {:xlinkHref "#icon-wondering"}]]
+   [icon "wondering"]
    [:div.errordetails
-    [:h3 "Houston, we've had a problem. "]
+    [:h3 error]
     [:p  "Looks like there was a problem fetching results."]
     [:ul
      [:li "Please check that your search regions are in the correct format."]
@@ -189,19 +190,20 @@
     (fn []
       (cond
         @loading? [loader "Regions"]
-        (not @error) [:div
-                      (when (seq @results)
-                        [:div.results-actions
-                         [export-query/main (prepare-export-query @query)
-                          :label "Export features within all regions:"]
-                         [create-list (mapcat :results @results) "All Regions"]
-                         [:button.btn.btn-default.btn-raised.btn-xs
-                          {:on-click #(dispatch [:regions/view-query @query])}
-                          "View all in results table"]])
-                      [:div.results-summary
-                       [results-count-summary @results]]
-                      (into [:div.allresults]
-                            (map-indexed (fn [idx result]
-                                           [result-table idx result])
-                                         @results))]
-        :else [error-loading-results]))))
+        (nil? @error) (let [all-results (mapcat :results @results)]
+                        [:div
+                         (when (seq all-results)
+                           [:div.results-actions
+                            [export-query/main (prepare-export-query @query)
+                             :label "Export features within all regions:"]
+                            [create-list all-results "All Regions"]
+                            [:button.btn.btn-default.btn-raised.btn-xs
+                             {:on-click #(dispatch [:regions/view-query @query])}
+                             "View all in results table"]])
+                         [:div.results-summary
+                          [results-count-summary @results]]
+                         (into [:div.allresults]
+                               (map-indexed (fn [idx result]
+                                              [result-table idx result])
+                                            @results))])
+        :else [error-loading-results @error]))))
