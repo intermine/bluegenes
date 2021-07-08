@@ -27,11 +27,6 @@
    (get-in db [:regions :settings])))
 
 (reg-sub
- :regions/regions-searched
- (fn [db]
-   (get-in db [:regions :regions-searched])))
-
-(reg-sub
  :regions/results
  (fn [db]
    (get-in db [:regions :results])))

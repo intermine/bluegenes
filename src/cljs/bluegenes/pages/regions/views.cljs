@@ -17,15 +17,18 @@
 (def css-transition-group
   (reagent/adapt-react-class js/ReactTransitionGroup.CSSTransitionGroup))
 
-(def region-help-content-popover
-  [:div
-   [:ul {:style {:padding-left "1em"}}
-    [:li "Genome regions in the following formats are accepted:"
-     [:ul {:style {:padding-left "1em"}}
-      [:li [:strong "chromosome:start..end"] ", e.g. 2L:11334..12296"]
-      [:li [:strong "chromosome:start-end"] ", e.g. 2R:5866746-5868284 or chrII:14646344-14667746"]
-      [:li [:strong "tab delimited"]]]]
-    [:li "Each genome region needs to take a "  [:strong "new line"] "."]]])
+(defn link [text url]
+  [:a {:href url :target "_blank"} text])
+
+(def region-search-help
+  [:div.region-help
+   [:p "Genome regions in the following formats are accepted:"
+    [:ul
+     [:li [:strong "chromosome:start..end"] ", e.g. 2L:11334..12296"]
+     [:li [:strong "chromosome:start-end"] ", e.g. 2R:5866746-5868284 or chrII:14646344-14667746"]
+     [:li [:strong "tab delimited"]]]]
+   [:p "Both " [:strong "base coordinate"] " (e.g. " [link "BLAST" "https://www.ncbi.nlm.nih.gov/BLAST/blastcgihelp.shtml#get_subsequence"] ", " [link "GFF/GFF3" "http://www.sequenceontology.org/gff3.shtml"] ") and " [:strong "interbase coordinate"] " (e.g. " [link "UCSC BED" "http://genome.ucsc.edu/FAQ/FAQformat#format1"] ", " [link "Chado" "http://gmod.org/wiki/Introduction_to_Chado#Interbase_Coordinates"] ") systems are supported, e.g. for a DNA piece " [:strong "GCCATGTA"] ", the position of the " [:strong "ATG"] " in interbase is [3, 6], and in base coordinates is [4, 6]. Users need to explicitly select one. By default, the base coordinate is selected."]
+   [:p "Each genome region needs to take a "  [:strong "new line"] "."]])
 
 (defn non-empty-classes
   "Given an intermine model (or submodel), only keep classes that have data"
@@ -59,6 +62,29 @@
     (fn []
       (into [:ul.features-tree]
             (map (fn [f] [feature-branch f]) (non-empty-classes @known-feature-types))))))
+
+(def coordinate-systems
+  ^{:doc "Supported genomic coordinate systems. First element is the default."}
+  [:base :interbase])
+
+(defn coordinate-system-selection
+  "UI component allowing user to choose which genomic coordinate system. Defaults to base."
+  []
+  (let [settings (subscribe [:regions/settings])]
+    (fn []
+      (into [:div.radio-group
+             [:label "Coordinates"]]
+            (for [coord-kw coordinate-systems]
+              [:label.radio-inline
+               [:input {:type "radio"
+                        :name "coordinates"
+                        :value (name coord-kw)
+                        :checked (= coord-kw (or (:coordinates @settings)
+                                                 (first coordinate-systems)))
+                        :on-change #(dispatch [:regions/set-coordinates coord-kw])}]
+               [:span.circle]
+               [:span.check]
+               (name coord-kw)])))))
 
 (defn organism-selection
   "UI component allowing user to choose which organisms to search. Defaults to all."
@@ -109,8 +135,16 @@
 (defn region-input []
   [:div.region-input
    [:label "Regions to search "
-    [poppable {:data region-help-content-popover
-               :children [icon "question"]}]]
+    [:span.dropdown.dropdown-hover
+     [:a.dropdown-toggle
+      {:data-toggle "dropdown"
+       :role "button"
+       :on-click #(.stopPropagation %)}
+      [icon "question"]]
+     [:div.dropdown-menu.report-item-description
+      [:form {:on-submit #(.preventDefault %)
+              :on-click #(.stopPropagation %)}
+       region-search-help]]]]
    [:div.region-text
     [clear-textbox]
     [region-input-box]]])
@@ -148,6 +182,7 @@
        ; Parameters section
        [:div.organism-and-regions
         [region-input]
+        [coordinate-system-selection]
         [organism-selection]
         (let [example-text @search-example]
           [:div.btn-group.action-buttons

@@ -19,20 +19,10 @@
             [goog.fx.easing :as geasing]
             [goog.style :as gstyle]))
 
-(defn feature-to-uid [{:keys [chromosome from to results] :as feature}]
-  (let [regions-searched (subscribe [:regions/regions-searched])]
-    (if from
-      ;;if we have all the details
-      (str chromosome from to)
-      ;;for empty results - combes back as just the chromosome name otherwise
-      (let  [the-feature (first (filter
-                                 (fn [x] (= (:chromosome x) feature)) @regions-searched))]
-        (str (:chromosome the-feature) (:from the-feature) (:to the-feature))))))
-
 (defn region-header
   "Header for each region. includes paginator and number of features."
   [{:keys [chromosome from to results] :as feature} paginator]
-  [:h3 {:id (feature-to-uid feature)}
+  [:h3 {:id (str chromosome from to)}
    [:strong "Region: "]
    [:span (str chromosome " " from ".." to " ")]
    [:small.features-count (count results) " overlapping features"]
@@ -176,11 +166,11 @@
             "Top"]]
           (for [result results
                 :let [amount (count (:results result))
-                      feature-id (feature-to-uid result)]]
+                      {:keys [chromosome from to]} result]]
             [:span.results-count
              {:class (when (zero? amount) :noresults)
-              :on-click #(scroll-into-view! feature-id)}
-             [:strong (:chromosome result)] ": " amount " results"]))))
+              :on-click #(scroll-into-view! (str chromosome from to))}
+             [:strong chromosome] ": " amount " results"]))))
 
 (defn results-section []
   (let [results   (subscribe [:regions/results])
