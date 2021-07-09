@@ -140,3 +140,12 @@ input.form-control:focus {
 label {
   color: @body-foreground-color;
 }
+
+.radio input[type=radio]:checked ~ .check,
+label.radio-inline input[type=radio]:checked ~ .check {
+  background-color: @highlight-color;
+}
+.radio input[type=radio]:checked ~ .circle,
+label.radio-inline input[type=radio]:checked ~ .circle {
+  border-color: @highlight-color;
+}
