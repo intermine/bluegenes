@@ -38,6 +38,7 @@
     [:ul
      [:li [:strong "chromosome:start..end"] ", e.g. 2L:11334..12296"]
      [:li [:strong "chromosome:start-end"] ", e.g. 2R:5866746-5868284 or chrII:14646344-14667746"]
+     [:li [:strong "chromosome:start:end:strand"] ", e.g. 3R:2578486:2580016:-1 or 2L:14615455:14619002:1"]
      [:li [:strong "tab delimited"]]]]
    [:p "Both " [:strong "base coordinate"] " (e.g. " [link "BLAST" "https://www.ncbi.nlm.nih.gov/BLAST/blastcgihelp.shtml#get_subsequence"] ", " [link "GFF/GFF3" "http://www.sequenceontology.org/gff3.shtml"] ") and " [:strong "interbase coordinate"] " (e.g. " [link "UCSC BED" "http://genome.ucsc.edu/FAQ/FAQformat#format1"] ", " [link "Chado" "http://gmod.org/wiki/Introduction_to_Chado#Interbase_Coordinates"] ") systems are supported, e.g. for a DNA piece " [:strong "GCCATGTA"] ", the position of the " [:strong "ATG"] " in interbase is [3, 6], and in base coordinates is [4, 6]. Users need to explicitly select one. By default, the base coordinate is selected."]
    [:p "Each genome region needs to take a "  [:strong "new line"] "."]])
@@ -98,6 +99,11 @@
                [:span.check]
                (name coord-kw)])))))
 
+(def strand-specific-help
+  [:div
+   [:p "Perform a strand-specific region search (search " [:strong "+"] " strand if region start<end; search " [:strong "–"] " strand if region end<start). Regions that explicitly specify strand using the " [:strong "chromosome:start:end:strand"] " notation will override this behaviour."]
+   [:p [:em "Note: Not all features have strand information, so this will lead to fewer results."]]])
+
 (defn strand-specific-selection
   "UI component allowing user to choose to perform a strand-specific region search. Defaults to off."
   []
@@ -110,9 +116,7 @@
                  :on-change #(dispatch [:regions/toggle-strand-specific])}]
         [:span.toggle]
         [dropdown-hover
-         {:data [:div
-                 [:p "Perform a strand-specific region search (search " [:strong "+"] " strand if region start<end; search " [:strong "–"] " strand if region end<start)"]
-                 [:p [:em "Note: Not all features have strand data, so this will lead to fewer results."]]]
+         {:data strand-specific-help
           :children [icon "question"]}]]])))
 
 (defn organism-selection
@@ -140,7 +144,7 @@
       (fn []
         [:textarea.form-control
          {:rows (if @results 3 6)
-          :placeholder (str "Type chromosome coords here, or click [SHOW EXAMPLE] below.")
+          :placeholder "Type genome regions here, or click [SHOW EXAMPLE] below."
           :value @to-search
           :on-change (fn [e]
                        (dispatch [:regions/set-to-search (oget e "target" "value")]))}])

@@ -7,18 +7,35 @@
             [bluegenes.route :as route]
             [bluegenes.pages.lists.utils :refer [copy-list-name]]))
 
+;; Broken down from #"([^:\t]+)[:\t](\d+)(?::|\t|\.\.|-)(\d+)(?:[:\t]([^:\t]+))?"
+(def re-genome-region
+  (re-pattern
+    (let [capture-name "([^:\\t]+)"
+          separator "[:\\t]"
+          capture-coord "(\\d+)"
+          separate-coord "(?::|\\t|\\.\\.|-)"
+          optional #(apply str (concat ["(?:"] %& [")?"]))]
+      (str capture-name
+           separator
+           capture-coord
+           separate-coord
+           capture-coord
+           (optional separator capture-name)))))
+
 (defn parse-region [{:keys [coords strand-specific]} region-string]
-  (let [parsed (str/split region-string (re-pattern "(?::|\\.\\.|-|\t)"))]
-    (when (= (count parsed) 3)
-      (let [ch (nth parsed 0)
+  (let [parsed (some-> (re-matches re-genome-region (str/trim region-string)) (subvec 1))]
+    (when (< 2 (count parsed) 5)
+      (let [ch (str/trim (nth parsed 0))
             n1 (int (nth parsed 1))
-            n2 (int (nth parsed 2))]
+            n2 (int (nth parsed 2))
+            st (some-> (get parsed 3) str/trim not-empty)]
         (cond-> {:chromosome ch
                  :from (cond-> (min n1 n2)
                          (= coords :interbase) (inc))
                  :to (max n1 n2)}
-          (true? strand-specific) (assoc :strand
-                                         (if (< n2 n1) "-1" "1")))))))
+          (true? strand-specific) (assoc :strand (if (< n2 n1) "-1" "1"))
+          ;; If strand is explicitly specified, it will override the above.
+          (some? st) (assoc :strand st))))))
 
 (defn overlaps-region? [{:keys [chromosome from to] :as _region}
                         {{:keys [start end locatedOn]} :chromosomeLocation :as _feature}]
