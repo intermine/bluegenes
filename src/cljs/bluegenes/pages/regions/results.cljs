@@ -19,12 +19,18 @@
             [goog.fx.easing :as geasing]
             [goog.style :as gstyle]))
 
+(defn strand-arrow [strand]
+  (case strand
+    "1" [icon "arrow-right"]
+    "-1" [icon "arrow-left"]
+    nil))
+
 (defn region-header
   "Header for each region. includes paginator and number of features."
-  [{:keys [chromosome from to results] :as feature} paginator]
+  [{:keys [chromosome from to strand results] :as feature} paginator]
   [:h3 {:id (str chromosome from to)}
    [:strong "Region: "]
-   [:span (str chromosome " " from ".." to " ")]
+   [:span (str chromosome " " from ".." to " ") [strand-arrow strand]]
    [:small.features-count (count results) " overlapping features"]
    (when (seq results) paginator)])
 
@@ -63,7 +69,7 @@
   (let [model (subscribe [:model])
         current-mine (subscribe [:current-mine])
         the-type (get-in @model [(keyword class) :displayName])
-        {:keys [start end locatedOn]} chromosomeLocation]
+        {:keys [start end strand locatedOn]} chromosomeLocation]
     [:a
      {:href (route/href ::route/report
                         {:mine (name (:id @current-mine))
@@ -79,7 +85,8 @@
        (when symbol [:strong symbol])
        primaryIdentifier]
       [:div.col the-type]
-      [:div.col (str (:primaryIdentifier locatedOn) ":" start ".." end)]]]))
+      [:div.col (str (:primaryIdentifier locatedOn) ":" start ".." end)
+       [strand-arrow strand]]]]))
 
 (defn create-list [features list-basename]
   (let [class->features (group-by :class features)]

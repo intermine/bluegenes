@@ -17,6 +17,18 @@
 (def css-transition-group
   (reagent/adapt-react-class js/ReactTransitionGroup.CSSTransitionGroup))
 
+(defn dropdown-hover [{:keys [data children]}]
+  [:span.dropdown.dropdown-hover
+   [:a.dropdown-toggle
+    {:data-toggle "dropdown"
+     :role "button"
+     :on-click #(.stopPropagation %)}
+    children]
+   [:div.dropdown-menu.report-item-description
+    [:form {:on-submit #(.preventDefault %)
+            :on-click #(.stopPropagation %)}
+     data]]])
+
 (defn link [text url]
   [:a {:href url :target "_blank"} text])
 
@@ -86,12 +98,30 @@
                [:span.check]
                (name coord-kw)])))))
 
+(defn strand-specific-selection
+  "UI component allowing user to choose to perform a strand-specific region search. Defaults to off."
+  []
+  (let [settings (subscribe [:regions/settings])]
+    (fn []
+      [:div.togglebutton
+       [:label "Strand-specific"
+        [:input {:type "checkbox"
+                 :checked (true? (:strand-specific @settings))
+                 :on-change #(dispatch [:regions/toggle-strand-specific])}]
+        [:span.toggle]
+        [dropdown-hover
+         {:data [:div
+                 [:p "Perform a strand-specific region search (search " [:strong "+"] " strand if region start<end; search " [:strong "–"] " strand if region end<start)"]
+                 [:p [:em "Note: Not all features have strand data, so this will lead to fewer results."]]]
+          :children [icon "question"]}]]])))
+
 (defn organism-selection
   "UI component allowing user to choose which organisms to search. Defaults to all."
   []
   (let [settings (subscribe [:regions/settings])]
     (fn []
-      [:div [:label "Organism"]
+      [:div.organism-selection
+       [:label "Organism"]
        [im-controls/organism-dropdown
         {:selected-value (if-let [sn (get-in @settings [:organism :shortName])]
                            sn
@@ -135,16 +165,9 @@
 (defn region-input []
   [:div.region-input
    [:label "Regions to search "
-    [:span.dropdown.dropdown-hover
-     [:a.dropdown-toggle
-      {:data-toggle "dropdown"
-       :role "button"
-       :on-click #(.stopPropagation %)}
-      [icon "question"]]
-     [:div.dropdown-menu.report-item-description
-      [:form {:on-submit #(.preventDefault %)
-              :on-click #(.stopPropagation %)}
-       region-search-help]]]]
+    [dropdown-hover
+     {:data region-search-help
+      :children [icon "question"]}]]
    [:div.region-text
     [clear-textbox]
     [region-input-box]]])
@@ -183,6 +206,7 @@
        [:div.organism-and-regions
         [region-input]
         [coordinate-system-selection]
+        [strand-specific-selection]
         [organism-selection]
         (let [example-text @search-example]
           [:div.btn-group.action-buttons

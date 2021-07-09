@@ -7,18 +7,18 @@
             [bluegenes.route :as route]
             [bluegenes.pages.lists.utils :refer [copy-list-name]]))
 
-(defn parse-region [coordinate-system region-string]
+(defn parse-region [{:keys [coords strand-specific]} region-string]
   (let [parsed (str/split region-string (re-pattern "(?::|\\.\\.|-|\t)"))]
     (when (= (count parsed) 3)
       (let [ch (nth parsed 0)
             n1 (int (nth parsed 1))
             n2 (int (nth parsed 2))]
-        {:chromosome ch
-         :from (cond-> (min n1 n2)
-                 (= coordinate-system :interbase) (inc))
-         :to (max n1 n2)}))))
-;; TODO when adding strand-specific search, add a :strand key to the returned
-;; map based on n1 -> n2 ascending vs descending.
+        (cond-> {:chromosome ch
+                 :from (cond-> (min n1 n2)
+                         (= coords :interbase) (inc))
+                 :to (max n1 n2)}
+          (true? strand-specific) (assoc :strand
+                                         (if (< n2 n1) "-1" "1")))))))
 
 (defn overlaps-region? [{:keys [chromosome from to] :as _region}
                         {{:keys [start end locatedOn]} :chromosomeLocation :as _feature}]
@@ -28,12 +28,21 @@
            (and (<= (int start) from) ; ...or starts before region...
                 (<= to (int end)))))) ; ...and ends after region (i.e., encompasses).
 
+(defn correct-strand? [{:keys [strand] :as _region}
+                       {{feature-strand :strand} :chromosomeLocation :as _feature}]
+  ;; If strand isn't defined in region, we won't filter for it.
+  (if strand
+    (= strand feature-strand)
+    true))
+
 (reg-event-db
  :regions/save-results
  (fn [db [_ searched-for result-response]]
    (let [mapped-results (mapv (fn [region]
                                 (assoc region :results
-                                       (filterv (partial overlaps-region? region)
+                                       (filterv (every-pred
+                                                 (partial overlaps-region? region)
+                                                 (partial correct-strand? region))
                                                 (:results result-response))))
                               searched-for)]
      (-> db
@@ -57,6 +66,11 @@
  :regions/set-coordinates
  (fn [db [_ coord-kw]]
    (assoc-in db [:regions :settings :coordinates] coord-kw)))
+
+(reg-event-db
+ :regions/toggle-strand-specific
+ (fn [db [_]]
+   (update-in db [:regions :settings :strand-specific] not)))
 
 (reg-event-db
  :regions/toggle-feature-type
@@ -118,7 +132,8 @@
             "SequenceFeature.symbol"
             "SequenceFeature.chromosomeLocation.start"
             "SequenceFeature.chromosomeLocation.end"
-            "SequenceFeature.chromosomeLocation.locatedOn.primaryIdentifier"]
+            "SequenceFeature.chromosomeLocation.locatedOn.primaryIdentifier"
+            "SequenceFeature.chromosomeLocation.strand"]
    :where [{:path "SequenceFeature.chromosomeLocation"
             :op "OVERLAPS"
             :values (if (map? regions)
@@ -126,7 +141,6 @@
                       (mapv build-region regions))}]
    :sortOrder [{:path "SequenceFeature.chromosomeLocation.start"
                 :direction "ASC"}]})
-;; TODO when adding strand-specific search, check the :strand key and add a constraint for chromosomelocation.strand.
 
 (defn prepare-export-query [query]
   (assoc query
@@ -142,7 +156,11 @@
  (fn [{db :db} [_]]
    (let [to-search (remove str/blank? (str/split-lines (get-in db [:regions :to-search])))
          selected-coordinates (get-in db [:regions :settings :coordinates])
-         parsed-regions (mapv (partial parse-region selected-coordinates) to-search)]
+         strand-specific (get-in db [:regions :settings :strand-specific])
+         parsed-regions (mapv (partial parse-region
+                                       {:coords selected-coordinates
+                                        :strand-specific strand-specific})
+                              to-search)]
      (if (some nil? parsed-regions)
        (let [invalid-regions (remove nil? (map #(when (nil? %2) %1) to-search parsed-regions))]
          {:db (assoc-in db [:regions :error] (str "Invalid regions: " (str/join ", " invalid-regions)))})

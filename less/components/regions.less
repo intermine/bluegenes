@@ -43,8 +43,6 @@
 
     // Our CSS is sooo broken... This fixes alignment.
     .radio-group {
-        margin-top: @spacer;
-
         .radio-inline {
             padding-left: 35px;
         }
@@ -116,6 +114,22 @@
         .action-buttons {
             display: flex;
         }
+
+        .togglebutton {
+            margin-bottom: @spacer/2;
+        }
+
+        .organism-selection {
+            margin-bottom: 0;
+
+            .organism-dropdown {
+                margin: 0;
+            }
+        }
+
+        > div {
+            margin-bottom: @spacer;
+        }
     }
 
     .allresults {
@@ -169,6 +183,10 @@
                 font-weight: bolder;
                 text-transform: uppercase;
             }
+
+            .icon {
+                font-size: 0.25em;
+            }
         }
 
         .single-feature {
@@ -183,6 +201,10 @@
                 strong {
                     margin-right: @spacer/4;
                 }
+            }
+
+            .icon {
+                font-size: 0.3em;
             }
         }
 
