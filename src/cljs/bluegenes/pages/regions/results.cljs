@@ -96,16 +96,15 @@
       "Create list by feature type" [:span.caret]]
      [:div.dropdown-menu.dropdown-mixed-content
       (into [:ul]
-            (for [type (sort (keys class->features))]
+            (for [type (sort (keys class->features))
+                  :let [ids (->> (get class->features type)
+                                 (map :objectId)
+                                 (distinct)
+                                 (into []))]]
               [:li
                {:on-click #(dispatch [:regions/create-list
-                                      (->> (get class->features type)
-                                           (map :objectId)
-                                           (distinct)
-                                           (into []))
-                                      type
-                                      (str list-basename " " type)])}
-               type]))]]))
+                                      ids type (str list-basename " " type)])}
+               (str type " (" (count ids) ")")]))]]))
 
 (defn result-table
   "The result table for a region - all features"
