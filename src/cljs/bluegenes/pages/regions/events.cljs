@@ -259,3 +259,24 @@
                            [:code error])]
                 :style "warning"
                 :timeout 10000}]}))
+
+(reg-event-db
+ :regions/extend-region-start
+ (fn [db [_ value]]
+   (assoc-in db [:regions :settings :extend-start] value)))
+
+(reg-event-db
+ :regions/extend-region-end
+ (fn [db [_ value]]
+   (assoc-in db [:regions :settings :extend-end] value)))
+
+(reg-event-db
+ :regions/extend-region-both
+ (fn [db [_ value]]
+   (update-in db [:regions :settings] assoc
+              :extend-start value
+              :extend-end value)))
+(reg-event-db
+ :regions/toggle-unlock-extend
+ (fn [db]
+   (update-in db [:regions :settings :unlock-extend] not)))

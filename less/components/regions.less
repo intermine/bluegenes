@@ -127,6 +127,34 @@
             }
         }
 
+        .extend-region {
+            display: flex;
+            align-items: center;
+
+            margin-bottom: 0;
+
+            label {
+                white-space: nowrap;
+            }
+
+            button {
+                padding: @spacer*0.7 @spacer/4;
+                margin: 0;
+
+                &.linked {
+                    fill: @highlight-color;
+                }
+            }
+
+            input[type="number"] {
+                max-width: @spacer*5;
+            }
+
+            input[type="range"] {
+                max-width: @spacer*8;
+            }
+        }
+
         > div {
             margin-bottom: @spacer;
         }

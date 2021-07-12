@@ -12,7 +12,8 @@
             [bluegenes.components.bootstrap :refer [poppable]]
             [bluegenes.components.icons :refer [icon]]
             [clojure.string :as str]
-            [oops.core :refer [oget ocall]]))
+            [oops.core :refer [oget ocall]]
+            [goog.functions :refer [debounce]]))
 
 (def css-transition-group
   (reagent/adapt-react-class js/ReactTransitionGroup.CSSTransitionGroup))
@@ -53,13 +54,13 @@
 (defn feature-branch
   "Recursively building a tree of user-selectable features as checkboxes"
   []
-  (let [settings (subscribe [:regions/settings])]
+  (let [feature-types (subscribe [:regions/feature-types])]
     (fn [[class-kw {:keys [displayName descendants count] :as n}]]
-      [:li {:class (if (class-kw (:feature-types @settings)) "selected")
+      [:li {:class (if (class-kw @feature-types) "selected")
             :on-click (fn [e]
                         (.stopPropagation e)
                         (dispatch [:regions/toggle-feature-type n]))}
-       (if (class-kw (:feature-types @settings))
+       (if (class-kw @feature-types)
          [:svg.icon.icon-checkbox-checked [:use {:xlinkHref "#icon-checkbox-checked"}]]
          [:svg.icon.icon-checkbox-unchecked [:use {:xlinkHref "#icon-checkbox-unchecked"}]])
        (str displayName)
@@ -70,8 +71,7 @@
 (defn feature-types-tree
   "UI component for checkbox features selection"
   []
-  (let [known-feature-types (subscribe [:regions/sequence-feature-types])
-        settings (subscribe [:regions/settings])]
+  (let [known-feature-types (subscribe [:regions/sequence-feature-types])]
     (fn []
       (into [:ul.features-tree]
             (map (fn [f] [feature-branch f]) (non-empty-classes @known-feature-types))))))
@@ -83,7 +83,7 @@
 (defn coordinate-system-selection
   "UI component allowing user to choose which genomic coordinate system. Defaults to base."
   []
-  (let [settings (subscribe [:regions/settings])]
+  (let [coordinates (subscribe [:regions/coordinates])]
     (fn []
       (into [:div.radio-group
              [:label "Coordinates"]]
@@ -92,7 +92,7 @@
                [:input {:type "radio"
                         :name "coordinates"
                         :value (name coord-kw)
-                        :checked (= coord-kw (or (:coordinates @settings)
+                        :checked (= coord-kw (or @coordinates
                                                  (first coordinate-systems)))
                         :on-change #(dispatch [:regions/set-coordinates coord-kw])}]
                [:span.circle]
@@ -107,27 +107,93 @@
 (defn strand-specific-selection
   "UI component allowing user to choose to perform a strand-specific region search. Defaults to off."
   []
-  (let [settings (subscribe [:regions/settings])]
+  (let [strand-specific (subscribe [:regions/strand-specific])]
     (fn []
       [:div.togglebutton
        [:label "Strand-specific"
         [:input {:type "checkbox"
-                 :checked (true? (:strand-specific @settings))
+                 :checked (true? @strand-specific)
                  :on-change #(dispatch [:regions/toggle-strand-specific])}]
         [:span.toggle]
         [dropdown-hover
          {:data strand-specific-help
           :children [icon "question"]}]]])))
 
+(defn linear->log [x]
+  (if (< x 1)
+    0
+    (js/Math.trunc (js/Math.pow 10 (/ x 10)))))
+
+(defn log->linear [x]
+  (if (< x 1)
+    0
+    (js/Math.trunc (* 10 (js/Math.log10 x)))))
+
+(def !dispatch
+  (debounce dispatch 500))
+
+(defn input-slider [input* range* & {:keys [reverse? lock?]}]
+  (let [update-input #(!dispatch [(cond
+                                    lock? :regions/extend-region-both
+                                    reverse? :regions/extend-region-start
+                                    :else :regions/extend-region-end) %])
+        set-region! (fn [a value]
+                      (swap! a (cond
+                                 lock? #(assoc % :start value :end value)
+                                 reverse? #(assoc % :start value)
+                                 :else #(assoc % :end value))))
+        get-region (fn [m] (get m (if reverse? :start :end)))
+        input
+        [:input.form-control
+         {:type "number"
+          :style (when-not reverse? {:direction "rtl"})
+          :on-change #(let [value (int (oget % :target :value))]
+                        (update-input value)
+                        (set-region! input* value)
+                        (set-region! range* (log->linear value)))
+          :value (get-region @input*)}]
+        range
+        [:input.form-control
+         {:type "range"
+          :style (when reverse? {:direction "rtl"})
+          :min 0
+          :max 70
+          :on-change #(let [value (int (oget % :target :value))]
+                        (set-region! range* value)
+                        (update-input (linear->log value))
+                        (set-region! input* (linear->log value)))
+          :value (get-region @range*)}]]
+    (if reverse?
+      [:<> range input]
+      [:<> input range])))
+
+(defn extend-region-selection
+  "UI component allowing user to extend search region, on one of both sides."
+  []
+  (let [unlock-extend (subscribe [:regions/unlock-extend])
+        extend-start (subscribe [:regions/extend-start])
+        extend-end (subscribe [:regions/extend-end])
+        input* (reagent/atom {:start (or @extend-start 0) :end (or @extend-end 0)})
+        range* (reagent/atom {:start (log->linear (or @extend-start 0)) :end (log->linear (or @extend-end 0))})]
+    (fn []
+      [:div.extend-region
+       [:label "Extend regions"]
+       [input-slider input* range* :reverse? true :lock? (not @unlock-extend)]
+       [:button.btn
+        {:class (when-not @unlock-extend :linked)
+         :on-click #(dispatch [:regions/toggle-unlock-extend])}
+        [icon "lock"]]
+       [input-slider input* range* :lock? (not @unlock-extend)]])))
+
 (defn organism-selection
   "UI component allowing user to choose which organisms to search. Defaults to all."
   []
-  (let [settings (subscribe [:regions/settings])]
+  (let [organism (subscribe [:regions/organism])]
     (fn []
       [:div.organism-selection
        [:label "Organism"]
        [im-controls/organism-dropdown
-        {:selected-value (if-let [sn (get-in @settings [:organism :shortName])]
+        {:selected-value (if-let [sn (:shortName @organism)]
                            sn
                            "All Organisms")
          :on-change (fn [organism]
@@ -178,10 +244,10 @@
 
 (defn checkboxes
   "UI component ot allow user to select which types of overlapping features to find"
-  [to-search settings]
+  [to-search]
   (let [all-selected? (subscribe [:regions/sequence-feature-type-all-selected?])
         results (subscribe [:regions/results])]
-    (fn [to-search settings]
+    (fn [to-search]
       [:div.checkboxes
        [:label
         [:svg.icon
@@ -201,7 +267,7 @@
 (defn input-section
   "Entire UI input section / top half of the region search"
   []
-  (let [settings (subscribe [:regions/settings])
+  (let [feature-types (subscribe [:regions/feature-types])
         to-search (subscribe [:regions/to-search])
         search-example (subscribe [:regions/example-search])]
     (fn []
@@ -211,6 +277,7 @@
         [region-input]
         [coordinate-system-selection]
         [strand-specific-selection]
+        [extend-region-selection]
         [organism-selection]
         (let [example-text @search-example]
           [:div.btn-group.action-buttons
@@ -221,13 +288,13 @@
             "Show Example"]
            [:button.btn.btn-primary.btn-raised.btn-block
             {:disabled (or (str/blank? @to-search)
-                           (empty? (filter (fn [[name enabled?]] enabled?) (:feature-types @settings))))
+                           (empty? (filter (fn [[name enabled?]] enabled?) @feature-types)))
              :on-click (fn [e] (dispatch [:regions/run-query])
                          (ocall (oget e "target") "blur"))
              :title "Enter something into the 'Regions to search' box or click on [SHOW EXAMPLE]"}
             "Search"]])]
        ; Results section
-       [checkboxes to-search settings]])))
+       [checkboxes to-search]])))
 
 (defn main []
   (reagent/create-class

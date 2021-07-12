@@ -27,6 +27,48 @@
    (get-in db [:regions :settings])))
 
 (reg-sub
+ :regions/feature-types
+ :<- [:regions/settings]
+ (fn [settings]
+   (:feature-types settings)))
+
+(reg-sub
+ :regions/coordinates
+ :<- [:regions/settings]
+ (fn [settings]
+   (:coordinates settings)))
+
+(reg-sub
+ :regions/strand-specific
+ :<- [:regions/settings]
+ (fn [settings]
+   (:strand-specific settings)))
+
+(reg-sub
+ :regions/organism
+ :<- [:regions/settings]
+ (fn [settings]
+   (:organism settings)))
+
+(reg-sub
+ :regions/extend-start
+ :<- [:regions/settings]
+ (fn [settings]
+   (:extend-start settings)))
+
+(reg-sub
+ :regions/extend-end
+ :<- [:regions/settings]
+ (fn [settings]
+   (:extend-end settings)))
+
+(reg-sub
+ :regions/unlock-extend
+ :<- [:regions/settings]
+ (fn [settings]
+   (:unlock-extend settings)))
+
+(reg-sub
  :regions/results
  (fn [db]
    (get-in db [:regions :results])))
