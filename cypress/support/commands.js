@@ -55,6 +55,7 @@ Cypress.Commands.add("createGeneList", (geneList) => {
     cy.contains("Upload").click();
     cy.get(".wizard").find("textarea").type(geneList,{delay:100});
     cy.contains("Continue").click();
+    cy.url().should("include","/save");
     cy.contains("Save List").click();
     cy.url().should("include","/results")
     cy.contains("Lists").click();
@@ -71,7 +72,7 @@ Cypress.Commands.add("createProteinList", (proteinList) => {
 })
 
 //The commands isInViewport and isNotInViewport are taken directly from
-// https://github.com/cypress-io/cypress/issues/877#issuecomment-490504922.
+//https://github.com/cypress-io/cypress/issues/877#issuecomment-490504922.
 
 Cypress.Commands.add('isInViewport', element => {
     cy.get(element).then($el => {
