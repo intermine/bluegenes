@@ -1,6 +1,6 @@
 describe("Single Lists Test", function() {
     beforeEach(function() {
-      cy.visit("/");
+      cy.visit("/biotestmine/upload");
       cy.createGeneList("SODB, GBP, GST, CDPK1");
       cy.url().should("include","/lists");
       cy.get('.lists-item').should('have.length',1);
@@ -61,4 +61,27 @@ describe("Single Lists Test", function() {
         })
         cy.get('.no-lists').should('exist');
     });
+
+    it("can control the number of lists shown", function(){
+        cy.get(".pagination-controls").within(() => {
+            cy.contains("Rows per page").siblings(".dropdown").as("rowSelect");
+            cy.get("@rowSelect").find("li").filter(".active").should("have.text","20");
+            cy.get("@rowSelect").find("button").click();
+            cy.contains("100").click();
+            cy.get("@rowSelect").find("li").filter(".active").should("have.text","100");
+        })
+    });
+
+    it("can be analyzed with the enrichment widget",function(){
+        cy.get('.list-title').click();
+        cy.url().should("contain","/results");
+
+        cy.get(".enrichment").within(() => {
+            cy.contains("Max p-value").parent().find("select").first().select("0.10");
+            cy.get('.correction').find("select").select("Benjamini Hochberg");
+            cy.get(".dropdown").click();
+            cy.get(".list-selection").first().click();
+            cy.get('.text-filter').find("input").type("ABRA{enter}",{delay:100});
+        })
+    })
 });
