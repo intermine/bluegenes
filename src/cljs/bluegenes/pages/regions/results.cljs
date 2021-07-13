@@ -19,6 +19,8 @@
             [goog.fx.easing :as geasing]
             [goog.style :as gstyle]))
 
+(def result-id "region-result-")
+
 (defn strand-arrow [strand]
   (case strand
     "1" [icon "arrow-right"]
@@ -27,8 +29,8 @@
 
 (defn region-header
   "Header for each region. includes paginator and number of features."
-  [{:keys [chromosome from to strand results] :as feature} paginator]
-  [:h3 {:id (str chromosome from to)}
+  [idx {:keys [chromosome from to strand results] :as feature} paginator]
+  [:h3 {:id (str result-id idx)}
    [:strong "Region: "]
    [:span (str chromosome " " from ".." to " ") [strand-arrow strand]]
    [:small.features-count (count results) " overlapping features"]
@@ -114,7 +116,7 @@
     (fn [idx {:keys [chromosome from to results] :as feature}]
       (if (seq (:results feature))
         [:div.results
-         [region-header feature [table-paginator pager results]]
+         [region-header idx feature [table-paginator pager results]]
          [graphs/main idx feature]
          [:div.tabulated
           [table-header]
@@ -135,7 +137,7 @@
            {:on-click #(dispatch [:regions/view-query @subquery feature])}
            "View in results table"]]]
         [:div.results.noresults
-         [region-header feature]
+         [region-header idx feature]
          [:p "No features returned for this region"]]))))
 
 (defn error-loading-results [error]
@@ -170,12 +172,12 @@
            [:span.results-count
             {:on-click #(scroll-into-view! nil)}
             "Top"]]
-          (for [result results
+          (for [[index result] (map-indexed vector results)
                 :let [amount (count (:results result))
-                      {:keys [chromosome from to]} result]]
+                      {:keys [chromosome]} result]]
             [:span.results-count
              {:class (when (zero? amount) :noresults)
-              :on-click #(scroll-into-view! (str chromosome from to))}
+              :on-click #(scroll-into-view! (str result-id index))}
              [:strong chromosome] ": " amount " results"]))))
 
 (defn results-section []
