@@ -27,7 +27,7 @@ import 'cypress-file-upload';
 
 Cypress.Commands.add("openLoginDialogue", () => {
     cy.visit('/biotestmine');
-    cy.get('.dropdown-toggle').contains('LOGIN').click();
+    cy.get('.dropdown-toggle').should("exist").contains('LOGIN').click();
 })
 
 Cypress.Commands.add("openRegisterDialogue", () => {
@@ -56,6 +56,8 @@ Cypress.Commands.add("createGeneList", (geneList) => {
     cy.get(".wizard").find("textarea").type(geneList,{delay:100});
     cy.contains("Continue").click();
     cy.url().should("include","/save");
+    //Assertion
+    cy.get('.title').should("exist");
     cy.contains("Save List").click();
     cy.url().should("include","/results")
     cy.contains("Lists").click();

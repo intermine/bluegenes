@@ -182,6 +182,6 @@ describe("Query builder test", function() {
         cy.get('.query-table').contains('td', 'Gene summary');      
       });
     });
-
+    
 });
   
