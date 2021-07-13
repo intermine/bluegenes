@@ -36,12 +36,12 @@
 
 (def region-search-help
   [:div.region-help
-   [:p "Genome regions in the following formats are accepted:"
-    [:ul
-     [:li [:strong "chromosome:start..end"] ", e.g. 2L:11334..12296"]
-     [:li [:strong "chromosome:start-end"] ", e.g. 2R:5866746-5868284 or chrII:14646344-14667746"]
-     [:li [:strong "chromosome:start:end:strand"] ", e.g. 3R:2578486:2580016:-1 or 2L:14615455:14619002:1"]
-     [:li [:strong "tab delimited"]]]]
+   [:p "Genome regions in the following formats are accepted:"]
+   [:ul
+    [:li [:strong "chromosome:start..end"] ", e.g. 2L:11334..12296"]
+    [:li [:strong "chromosome:start-end"] ", e.g. 2R:5866746-5868284 or chrII:14646344-14667746"]
+    [:li [:strong "chromosome:start:end:strand"] ", e.g. 3R:2578486:2580016:-1 or 2L:14615455:14619002:1"]
+    [:li [:strong "tab delimited"]]]
    [:p "Both " [:strong "base coordinate"] " (e.g. " [link "BLAST" "https://www.ncbi.nlm.nih.gov/BLAST/blastcgihelp.shtml#get_subsequence"] ", " [link "GFF/GFF3" "http://www.sequenceontology.org/gff3.shtml"] ") and " [:strong "interbase coordinate"] " (e.g. " [link "UCSC BED" "http://genome.ucsc.edu/FAQ/FAQformat#format1"] ", " [link "Chado" "http://gmod.org/wiki/Introduction_to_Chado#Interbase_Coordinates"] ") systems are supported, e.g. for a DNA piece " [:strong "GCCATGTA"] ", the position of the " [:strong "ATG"] " in interbase is [3, 6], and in base coordinates is [4, 6]. Users need to explicitly select one. By default, the base coordinate is selected."]
    [:p "Each genome region needs to take a "  [:strong "new line"] "."]])
 
