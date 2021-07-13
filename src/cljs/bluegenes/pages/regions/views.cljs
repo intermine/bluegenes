@@ -129,6 +129,32 @@
     0
     (js/Math.trunc (* 10 (js/Math.log10 x)))))
 
+(defn parse-bp [s]
+  (let [[matched number unit :as match] (re-matches #"(\d*)([kKmM]?)" s)]
+    (when match
+      [matched
+       (* (if (not-empty number)
+            (js/parseInt number 10)
+            0)
+          (case (str/lower-case unit)
+            "k" 1000
+            "m" 1e6
+            1))])))
+
+(defn bp->int [bp]
+  (if (string? bp)
+    (or (second (parse-bp bp)) 0)
+    0))
+
+(defn one-decimal [number]
+  (-> number (* 10) (js/Math.trunc) (/ 10)))
+
+(defn int->bp [number]
+  (cond
+    (>= number 1e6) (str (one-decimal (/ number 1e6)) "M")
+    (>= number 1000) (str (one-decimal (/ number 1000)) "k")
+    :else (str number)))
+
 (def !dispatch
   (debounce dispatch 500))
 
@@ -145,12 +171,12 @@
         get-region (fn [m] (get m (if reverse? :start :end)))
         input
         [:input.form-control
-         {:type "number"
+         {:type "text"
           :style (when-not reverse? {:direction "rtl"})
-          :on-change #(let [value (int (oget % :target :value))]
-                        (update-input value)
-                        (set-region! input* value)
-                        (set-region! range* (log->linear value)))
+          :on-change #(when-let [[string number] (parse-bp (oget % :target :value))]
+                        (update-input string)
+                        (set-region! input* string)
+                        (set-region! range* (log->linear number)))
           :value (get-region @input*)}]
         range
         [:input.form-control
@@ -160,8 +186,8 @@
           :max 70
           :on-change #(let [value (int (oget % :target :value))]
                         (set-region! range* value)
-                        (update-input (linear->log value))
-                        (set-region! input* (linear->log value)))
+                        (update-input (int->bp (linear->log value)))
+                        (set-region! input* (int->bp (linear->log value))))
           :value (get-region @range*)}]]
     (if reverse?
       [:<> range input]
@@ -173,8 +199,8 @@
   (let [unlock-extend (subscribe [:regions/unlock-extend])
         extend-start (subscribe [:regions/extend-start])
         extend-end (subscribe [:regions/extend-end])
-        input* (reagent/atom {:start (or @extend-start 0) :end (or @extend-end 0)})
-        range* (reagent/atom {:start (log->linear (or @extend-start 0)) :end (log->linear (or @extend-end 0))})]
+        input* (reagent/atom {:start (or (not-empty @extend-start) 0) :end (or (not-empty @extend-end) 0)})
+        range* (reagent/atom {:start (log->linear (bp->int @extend-start)) :end (log->linear (bp->int @extend-end))})]
     (fn []
       [:div.extend-region
        [:label "Extend regions"]
