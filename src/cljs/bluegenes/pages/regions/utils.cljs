@@ -12,11 +12,11 @@
     (js/Math.trunc (* 10 (js/Math.log10 x)))))
 
 (defn parse-bp [s]
-  (let [[matched number unit :as match] (re-matches #"(\d*)([kKmM]?)" s)]
+  (let [[matched number unit :as match] (re-matches #"(\d*\.?\d*)([kKmM]?)" s)]
     (when match
       [matched
        (* (if (not-empty number)
-            (js/parseInt number 10)
+            (js/parseFloat number 10)
             0)
           (case (str/lower-case unit)
             "k" 1000
@@ -25,7 +25,7 @@
 
 (defn bp->int [bp]
   (if (string? bp)
-    (or (second (parse-bp bp)) 0)
+    (js/Math.trunc (-> (parse-bp bp) (second) (or 0)))
     0))
 
 (defn one-decimal [number]

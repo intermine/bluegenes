@@ -137,7 +137,6 @@
         input
         [:input.form-control
          {:type "text"
-          :style (when-not reverse? {:direction "rtl"})
           :on-change #(when-let [[string number] (parse-bp (oget % :target :value))]
                         (update-input string)
                         (set-region! input* string)
