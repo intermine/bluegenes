@@ -3,6 +3,7 @@
             [bluegenes.pages.regions.events :refer [parse-region]]))
 
 (deftest parsing-genome-regions
+
   (testing "Accepted formats in help text"
     (are [in out] (= (parse-region nil in) out)
       "2L:11334..12296"
@@ -17,9 +18,24 @@
       {:chromosome "2L" :from 14615455 :to 14619002 :strand "1"}
       "2L\t11334\t12296"
       {:chromosome "2L" :from 11334 :to 12296}))
+
+  (testing "Weird chromosome and strand identifiers"
+    (are [in out] (= (parse-region nil in) out)
+      "mtDNA:11334..12296"
+      {:chromosome "mtDNA" :from 11334 :to 12296}
+      "chromosome_1:11334..12296"
+      {:chromosome "chromosome_1" :from 11334 :to 12296}
+      "you wouldn't put spaces in your chromosome:11334..12296"
+      {:chromosome "you wouldn't put spaces in your chromosome" :from 11334 :to 12296}
+      "ch:11334..12296:reverse"
+      {:chromosome "ch" :from 11334 :to 12296 :strand "reverse"}
+      "ch:11334..12296:there are only two strands right?"
+      {:chromosome "ch" :from 11334 :to 12296 :strand "there are only two strands right?"}))
+
   (is (= (parse-region nil "2L:12296..11334")
          {:chromosome "2L" :from 11334 :to 12296})
       "Should handle descending coordinates")
+
   (testing "Leading and trailing whitespace"
     (is (= (parse-region nil "  2L:12296..11334  ")
            {:chromosome "2L" :from 11334 :to 12296})
@@ -27,11 +43,13 @@
     (is (= (parse-region nil "  2L:12296:11334:-1  ")
            {:chromosome "2L" :from 11334 :to 12296 :strand "-1"})
         "Should be removed also after strand")
+
     (testing "Nil when instead of chromosome and/or strand"
       (are [in] (nil? (parse-region nil in))
         "  :12296:11334:  "
         "  :12296..11334  "
         "  12296..11334  ")))
+
   (testing "Interbase coordinate system"
     (is (= (parse-region {:coordinates :interbase} "2L:11334..12296")
            {:chromosome "2L" :from 11335 :to 12296})
@@ -39,6 +57,7 @@
     (is (= (parse-region {:coordinates :interbase} "2L:12296..11334")
            {:chromosome "2L" :from 11335 :to 12296})
         "Should translate interbase coordinates also for descending coordinates"))
+
   (testing "Strand-specific search"
     (is (= (parse-region {:strand-specific true} "2L:11334..12296")
            {:chromosome "2L" :from 11334 :to 12296 :strand "1"})
