@@ -11,6 +11,7 @@
             [bluegenes.components.imcontrols.views :as im-controls]
             [bluegenes.components.bootstrap :refer [poppable]]
             [bluegenes.components.icons :refer [icon]]
+            [bluegenes.pages.regions.utils :refer [linear->log log->linear parse-bp bp->int int->bp]]
             [clojure.string :as str]
             [oops.core :refer [oget ocall]]
             [goog.functions :refer [debounce]]))
@@ -119,44 +120,8 @@
          {:data strand-specific-help
           :children [icon "question"]}]]])))
 
-(defn linear->log [x]
-  (if (< x 1)
-    0
-    (js/Math.trunc (js/Math.pow 10 (/ x 10)))))
-
-(defn log->linear [x]
-  (if (< x 1)
-    0
-    (js/Math.trunc (* 10 (js/Math.log10 x)))))
-
-(defn parse-bp [s]
-  (let [[matched number unit :as match] (re-matches #"(\d*)([kKmM]?)" s)]
-    (when match
-      [matched
-       (* (if (not-empty number)
-            (js/parseInt number 10)
-            0)
-          (case (str/lower-case unit)
-            "k" 1000
-            "m" 1e6
-            1))])))
-
-(defn bp->int [bp]
-  (if (string? bp)
-    (or (second (parse-bp bp)) 0)
-    0))
-
-(defn one-decimal [number]
-  (-> number (* 10) (js/Math.trunc) (/ 10)))
-
-(defn int->bp [number]
-  (cond
-    (>= number 1e6) (str (one-decimal (/ number 1e6)) "M")
-    (>= number 1000) (str (one-decimal (/ number 1000)) "k")
-    :else (str number)))
-
 (def !dispatch
-  (debounce dispatch 500))
+  (debounce dispatch 250))
 
 (defn input-slider [input* range* & {:keys [reverse? lock?]}]
   (let [update-input #(!dispatch [(cond

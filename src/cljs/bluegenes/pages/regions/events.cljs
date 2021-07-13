@@ -5,6 +5,7 @@
             [imcljs.save :as save]
             [clojure.string :as str]
             [bluegenes.route :as route]
+            [bluegenes.pages.regions.utils :refer [bp->int]]
             [bluegenes.pages.lists.utils :refer [copy-list-name]]))
 
 ;; Broken down from #"([^:\t]+)[:\t](\d+)(?::|\t|\.\.|-)(\d+)(?:[:\t]([^:\t]+))?"
@@ -22,7 +23,7 @@
            capture-coord
            (optional separator capture-name)))))
 
-(defn parse-region [{:keys [coords strand-specific]} region-string]
+(defn parse-region [{:keys [coordinates strand-specific extend-start extend-end]} region-string]
   (let [parsed (some-> (re-matches re-genome-region (str/trim region-string)) (subvec 1))]
     (when (< 2 (count parsed) 5)
       (let [ch (str/trim (nth parsed 0))
@@ -30,12 +31,14 @@
             n2 (int (nth parsed 2))
             st (some-> (get parsed 3) str/trim not-empty)]
         (cond-> {:chromosome ch
-                 :from (cond-> (min n1 n2)
-                         (= coords :interbase) (inc))
+                 :from (min n1 n2)
                  :to (max n1 n2)}
-          (true? strand-specific) (assoc :strand (if (< n2 n1) "-1" "1"))
-          ;; If strand is explicitly specified, it will override the above.
-          (some? st) (assoc :strand st))))))
+          (= coordinates :interbase) (update :from inc)
+          (true? strand-specific)    (assoc :strand (if (< n2 n1) "-1" "1"))
+          (some? st)                 (assoc :strand st) ; If strand is explicitly specified, it will override the above.
+          (not-empty extend-start)   (update :from (comp (partial max 0) -) ; Replace negative values with zero.
+                                             (bp->int extend-start))
+          (not-empty extend-end)     (update :to + (bp->int extend-end)))))))
 
 (defn overlaps-region? [{:keys [chromosome from to] :as _region}
                         {{:keys [start end locatedOn]} :chromosomeLocation :as _feature}]
@@ -172,11 +175,10 @@
  :regions/run-query
  (fn [{db :db} [_]]
    (let [to-search (remove str/blank? (str/split-lines (get-in db [:regions :to-search])))
-         selected-coordinates (get-in db [:regions :settings :coordinates])
-         strand-specific (get-in db [:regions :settings :strand-specific])
          parsed-regions (mapv (partial parse-region
-                                       {:coords selected-coordinates
-                                        :strand-specific strand-specific})
+                                       (select-keys (get-in db [:regions :settings])
+                                                    [:coordinates :strand-specific
+                                                     :extend-start :extend-end]))
                               to-search)]
      (if (some nil? parsed-regions)
        (let [invalid-regions (remove nil? (map #(when (nil? %2) %1) to-search parsed-regions))]
