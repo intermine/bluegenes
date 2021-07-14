@@ -275,7 +275,7 @@
         align-items: center;
 
         background-color: @body-background-color;
-        padding: @spacer/2 0 @spacer/2;
+        padding-top: @spacer/2;
 
         // Stick to top when scrolling past it.
         position: sticky;
@@ -296,6 +296,7 @@
     .results-counts {
         @internal-spacing: @spacer/2;
         display: flex;
+        flex-wrap: wrap;
         margin-left: auto;
         //offset the last child to the correct margin.
         //can't use last-child b/c we're also using flex order, and the last
@@ -307,7 +308,7 @@
             .border-radius;
             background: #dedede;
             order: 2;
-            margin: 0 @internal-spacing;
+            margin: 0 @internal-spacing @internal-spacing @internal-spacing;
             padding: @internal-spacing/4 @internal-spacing*1.5;
             cursor: pointer;
             .transitions;
