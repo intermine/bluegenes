@@ -11,17 +11,17 @@
 ;; Broken down from #"([^:\t]+)[:\t](\d+)(?::|\t|\.\.|-)(\d+)(?:[:\t]([^:\t]+))?"
 (def re-genome-region
   (re-pattern
-    (let [capture-name "([^:\\t]+)"
-          separator "[:\\t]"
-          capture-coord "(\\d+)"
-          separate-coord "(?::|\\t|\\.\\.|-)"
-          optional #(apply str (concat ["(?:"] %& [")?"]))]
-      (str capture-name
-           separator
-           capture-coord
-           separate-coord
-           capture-coord
-           (optional separator capture-name)))))
+   (let [capture-name "([^:\\t]+)"
+         separator "[:\\t]"
+         capture-coord "(\\d+)"
+         separate-coord "(?::|\\t|\\.\\.|-)"
+         optional #(apply str (concat ["(?:"] %& [")?"]))]
+     (str capture-name
+          separator
+          capture-coord
+          separate-coord
+          capture-coord
+          (optional separator capture-name)))))
 
 (defn parse-region [{:keys [coordinates strand-specific extend-start extend-end]} region-string]
   (let [parsed (some-> (re-matches re-genome-region (str/trim region-string)) (subvec 1))]

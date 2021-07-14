@@ -22,7 +22,7 @@
     [:a.btn.btn-default.btn-raised.btn-xs
      {:href (str root "/service/query/results" (when endpoint (str "/" endpoint))
                  "?query=" (js/encodeURIComponent
-                             (im-query/->xml model (update-query-fn query)))
+                            (im-query/->xml model (update-query-fn query)))
                  (when format (str "&format=" format))
                  (when-not endpoint (str "&columnheaders=" "friendly"))
                  "&token=" token)}
