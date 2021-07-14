@@ -287,10 +287,6 @@
        [checkboxes to-search]])))
 
 (defn main []
-  (reagent/create-class
-   {:component-did-mount #(dispatch [:regions/select-all-feature-types])
-    :reagent-render
-    (fn []
-      [:div.container.regionsearch
-       [input-section]
-       [results-section]])}))
+  [:div.container.regionsearch
+   [input-section]
+   [results-section]])
