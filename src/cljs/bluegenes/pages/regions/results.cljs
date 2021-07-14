@@ -150,13 +150,16 @@
      [:li "Please check that your search regions are in the correct format."]
      [:li "Please check you're connected to the internet."]]]])
 
+(def skip-to-id "region-skip-to-bar")
+
 (defn scroll-into-view! [id]
   (when-let [elem (or (nil? id) (gdom/getElement id))]
-    (let [current-scroll (clj->js ((juxt #(oget % :x) #(oget % :y))
+    (let [padding (+ 72 (oget (gdom/getElement skip-to-id) :offsetHeight))
+          current-scroll (clj->js ((juxt #(oget % :x) #(oget % :y))
                                    (gdom/getDocumentScroll)))
           target-scroll (if (nil? id)
                           #js [0 0] ; Scroll to top if no ID specified.
-                          (clj->js ((juxt #(- (oget % :x) 110) #(- (oget % :y) 110))
+                          (clj->js ((juxt #(- (oget % :x) padding) #(- (oget % :y) padding))
                                     (gstyle/getRelativePosition elem (gdom/getDocumentScrollElement)))))]
       (doto (gfx/Scroll. (gdom/getDocumentScrollElement)
                          current-scroll
@@ -198,7 +201,7 @@
                             [:button.btn.btn-default.btn-raised.btn-xs
                              {:on-click #(dispatch [:regions/view-query @query])}
                              "View all in results table"]])
-                         [:div.results-summary
+                         [:div.results-summary {:id skip-to-id}
                           [results-count-summary @results]]
                          (into [:div.allresults]
                                (map-indexed (fn [idx result]
