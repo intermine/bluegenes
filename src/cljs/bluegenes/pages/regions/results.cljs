@@ -9,6 +9,7 @@
             [bluegenes.components.imcontrols.views :as im-controls]
             [bluegenes.components.bootstrap :refer [popover tooltip]]
             [bluegenes.components.export-query :as export-query]
+            [bluegenes.pages.regions.utils :refer [strand-indicator]]
             [clojure.string :refer [split]]
             [oops.core :refer [oget ocall oset!]]
             [bluegenes.route :as route]
@@ -21,18 +22,12 @@
 
 (def result-id "region-result-")
 
-(defn strand-arrow [strand]
-  (case strand
-    "1" [icon "arrow-right"]
-    "-1" [icon "arrow-left"]
-    nil))
-
 (defn region-header
   "Header for each region. includes paginator and number of features."
   [idx {:keys [chromosome from to strand results] :as feature} paginator]
   [:h3 {:id (str result-id idx)}
    [:strong "Region: "]
-   [:span (str chromosome " " from ".." to " ") [strand-arrow strand]]
+   [:span (str chromosome " " from ".." to " ") [strand-indicator strand]]
    [:small.features-count (count results) " overlapping features"]
    (when (seq results) paginator)])
 
@@ -88,7 +83,7 @@
        primaryIdentifier]
       [:div.col the-type]
       [:div.col (str (:primaryIdentifier locatedOn) ":" start ".." end)
-       [strand-arrow strand]]]]))
+       [strand-indicator strand]]]]))
 
 (defn create-list [features list-basename]
   (let [class->features (group-by :class features)]

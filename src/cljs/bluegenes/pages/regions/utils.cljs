@@ -1,5 +1,8 @@
 (ns bluegenes.pages.regions.utils
-  (:require [clojure.string :as str]))
+  (:require [clojure.string :as str]
+            [bluegenes.components.icons :refer [icon]]))
+
+;; Base pair input and notation
 
 (defn linear->log [x]
   (if (< x 1)
@@ -36,3 +39,21 @@
     (>= number 1e6) (str (one-decimal (/ number 1e6)) "M")
     (>= number 1000) (str (one-decimal (/ number 1000)) "k")
     :else (str number)))
+
+;; Strand matching
+
+(let [plus #{1 "1" "+1" "+" "plus" "positive" "forward"}
+      minus #{-1 "-1" "-" "minus" "negative" "reverse"}
+      unknown #{0 "0" "" nil}]
+
+  (defn strands-match? [s1 s2]
+    (or (every? #(contains? plus %) [s1 s2])
+        (every? #(contains? minus %) [s1 s2])
+        (= s1 s2)))
+
+  (defn strand-indicator [strand]
+    (condp contains? strand
+      plus    [icon "arrow-right"]
+      minus   [icon "arrow-left"]
+      unknown nil
+      (str " " strand " "))))

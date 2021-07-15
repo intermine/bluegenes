@@ -5,7 +5,7 @@
             [imcljs.save :as save]
             [clojure.string :as str]
             [bluegenes.route :as route]
-            [bluegenes.pages.regions.utils :refer [bp->int]]
+            [bluegenes.pages.regions.utils :refer [bp->int strands-match?]]
             [bluegenes.pages.lists.utils :refer [copy-list-name]]))
 
 ;; Broken down from #"([^:\t]+)[:\t](\d+)(?::|\t|\.\.|-)(\d+)(?:[:\t]([^:\t]+))?"
@@ -52,7 +52,7 @@
                        {{feature-strand :strand} :chromosomeLocation :as _feature}]
   ;; If strand isn't defined in region, we won't filter for it.
   (if strand
-    (= strand feature-strand)
+    (strands-match? strand feature-strand)
     true))
 
 (reg-event-db
