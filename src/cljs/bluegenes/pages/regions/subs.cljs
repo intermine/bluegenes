@@ -103,3 +103,8 @@
  :regions/subquery
  (fn [db [_ idx]]
    (get-in db [:regions :subqueries idx])))
+
+(reg-sub
+ :regions/organisms
+ (fn [db]
+   (get-in db [:regions :organisms])))

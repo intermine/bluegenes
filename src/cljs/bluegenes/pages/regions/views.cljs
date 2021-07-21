@@ -178,7 +178,8 @@
 (defn organism-selection
   "UI component allowing user to choose which organisms to search. Defaults to all."
   []
-  (let [organism (subscribe [:regions/organism])]
+  (let [organism (subscribe [:regions/organism])
+        organisms-with-data (subscribe [:regions/organisms])]
     (fn []
       [:div.organism-selection
        [:label "Organism"]
@@ -187,7 +188,9 @@
                            sn
                            "All Organisms")
          :on-change (fn [organism]
-                      (dispatch [:regions/set-selected-organism organism]))}]])))
+                      (dispatch [:regions/set-selected-organism organism]))
+         :organisms-pred (when-let [orgs (not-empty @organisms-with-data)]
+                           (comp orgs :shortName))}]])))
 
 ; Input box for regions
 (defn region-input-box

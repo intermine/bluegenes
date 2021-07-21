@@ -282,3 +282,22 @@
  :regions/toggle-unlock-extend
  (fn [db]
    (update-in db [:regions :settings :unlock-extend] not)))
+
+(reg-event-fx
+ :regions/fetch-organisms
+ (fn [{db :db} [_]]
+   (if (get-in db [:regions :organisms])
+     {}
+     (let [service (get-in db [:mines (:current-mine db) :service])
+           q {:from "Chromosome"
+              :select ["Chromosome.organism.shortName"]}]
+       {:im-chan {:chan (fetch/rows service q)
+                  :on-success [:regions/fetch-organisms-success]}}))))
+;; We don't need an on-failure here as the organism dropdown
+;; will still work, just not show the subset we have chromosome data for.
+
+(reg-event-db
+ :regions/fetch-organisms-success
+ (fn [db [_ res]]
+   (assoc-in db [:regions :organisms]
+             (reduce into #{} (:results res)))))

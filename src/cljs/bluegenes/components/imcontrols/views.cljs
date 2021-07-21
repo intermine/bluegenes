@@ -17,7 +17,7 @@ Example usage:
 "
 (defn organism-dropdown []
   (let [organisms (subscribe [:cache/organisms])]
-    (fn [{:keys [selected-value on-change]}]
+    (fn [{:keys [selected-value on-change organisms-pred]}]
       [:div.btn-group.organism-dropdown
        [:button.btn.dropdown-toggle
         {:data-toggle "dropdown"}
@@ -33,7 +33,9 @@ Example usage:
                         [:li [:a
                               {:on-click (partial on-change organism)}
                               (:shortName organism)]])
-                      (sort-by :shortName @organisms))))])))
+                      (sort-by :shortName
+                               (cond->> @organisms
+                                 organisms-pred (filter organisms-pred))))))])))
 
 (defn select-organism []
   (let [organisms        (subscribe [:cache/organisms])
