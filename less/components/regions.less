@@ -338,62 +338,83 @@
     }
 
     .graph {
-        .legend {
+
+        .labels {
             display: flex;
             justify-content: space-between;
-            width: 100%;
-            margin-top: -8px;
-            padding: 0 2px;
-        }
-
-        .label-text {
-            position: relative;
-        }
-
-        .from,
-        .to {
-            display: inline-block;
-            height: 1em;
-            position: relative;
+            padding-bottom: @spacer/2;
+            cursor: help;
             font-weight: 400;
+
+            .from {
+                transform: rotate(45deg);
+            }
+
+            .to {
+                transform: rotate(-45deg);
+            }
         }
 
-        .end,
-        .start {
-            cursor: help;
-        }
+        // The below has been commented out and replaced by the above, in case
+        // we want to return to the old solution. See paired comment in
+        // ClojureScript code.
 
-        .to {
-            top: -2.5em;
-        }
+        // .legend {
+        //     display: flex;
+        //     justify-content: space-between;
+        //     width: 100%;
+        //     margin-top: -8px;
+        //     padding: 0 2px;
+        // }
 
-        .from {
-            top: -1em;
-        }
+        // .label-text {
+        //     position: relative;
+        // }
 
-        .value {
-            cursor: help;
-            display: block;
-            position: relative;
-            left: -10px;
-        }
+        // .from,
+        // .to {
+        //     display: inline-block;
+        //     height: 1em;
+        //     position: relative;
+        //     font-weight: 400;
+        // }
 
-        .end,
-        .start,
-        .value {
-            transform: rotate(45deg);
-        }
+        // .end,
+        // .start {
+        //     cursor: help;
+        // }
 
-        .start {
-            position: relative;
-            left: -10px;
-        }
+        // .to {
+        //     top: -2.5em;
+        // }
 
-        .end {
-            position: relative;
-            right: -10px;
-            transform: rotate(-45deg);
-        }
+        // .from {
+        //     top: -1em;
+        // }
+
+        // .value {
+        //     cursor: help;
+        //     display: block;
+        //     position: relative;
+        //     left: -10px;
+        // }
+
+        // .end,
+        // .start,
+        // .value {
+        //     transform: rotate(45deg);
+        // }
+
+        // .start {
+        //     position: relative;
+        //     left: -10px;
+        // }
+
+        // .end {
+        //     position: relative;
+        //     right: -10px;
+        //     transform: rotate(-45deg);
+        // }
 
         .region {
             rect.datum {
