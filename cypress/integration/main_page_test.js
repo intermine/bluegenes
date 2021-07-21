@@ -3,6 +3,12 @@ describe("Main page test", function() {
       cy.visit("/");
     });
 
+    it("can browse the data sources from the main page", function() {
+        cy.contains("Browse sources").click();
+        cy.url().should("include","/results");
+        cy.get(".im-table").should("exist");
+    })
+
     it("can access upload tab from the navigation bar", function() {
         cy.get("#bluegenes-main-nav").within(() => {
             cy.contains("Upload").click();

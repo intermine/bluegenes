@@ -3,6 +3,7 @@ describe("Report Page Test", function(){
         cy.searchKeyword("GST");
         cy.get(".result").click();
         cy.url().should("include","/report");
+        // cy.visit("/biotestmine/report/Gene/1000292");
         cy.get('.report-page-heading').should("exist");
     });
 
@@ -102,4 +103,11 @@ describe("Report Page Test", function(){
         cy.url().should("include","/results");
         cy.get('.query-title').should("include.text","Gene list");
     });
+
+    it("can access the list of data sources", function(){
+        // cy.contains("Data sources").siblings().filter(':contains("View all")').click();
+        cy.contains("View all").click(); //Flaky
+        cy.url().should("include","/results");
+        cy.get(".im-table").should("exist");
+    })
 })
