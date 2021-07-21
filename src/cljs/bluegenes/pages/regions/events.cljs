@@ -290,14 +290,25 @@
      {}
      (let [service (get-in db [:mines (:current-mine db) :service])
            q {:from "Chromosome"
-              :select ["Chromosome.organism.shortName"]}]
+              :select ["Chromosome.organism.shortName" "Chromosome.organism.name"]}]
        {:im-chan {:chan (fetch/rows service q)
                   :on-success [:regions/fetch-organisms-success]}}))))
 ;; We don't need an on-failure here as the organism dropdown
 ;; will still work, just not show the subset we have chromosome data for.
 
+;; This is only dispatched the first time visiting the regions page for a mine.
 (reg-event-db
  :regions/fetch-organisms-success
  (fn [db [_ res]]
-   (assoc-in db [:regions :organisms]
-             (reduce into #{} (:results res)))))
+   (let [organisms (reduce into #{} (:results res))
+         default-organism (get-in db [:mines (:current-mine db) :default-organism])]
+     (-> db
+         (assoc-in [:regions :organisms] organisms)
+         (cond->
+           (contains? organisms default-organism)
+           (assoc-in [:regions :settings :organism]
+                     (some (fn [org]
+                             (when (or (= default-organism (:shortName org))
+                                       (= default-organism (:name org)))
+                               org))
+                           (get-in db [:cache :organisms]))))))))

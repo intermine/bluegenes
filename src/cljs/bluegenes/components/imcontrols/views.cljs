@@ -3,19 +3,19 @@
             [reagent.core :as reagent]
             [oops.core :refer [oget]]))
 
-"Creates a dropdown of known organisms. The supplied :on-change function will
-receive all attributes of the organism selected.
-Options {}:
-  :selected-value (optional) Supply this if you want to change the dropdown's selected-value
-  :on-change Function to call when changed
-Example usage:
-  [im-controls/organism-dropdown
-   {:selected-value     (if-let [sn (get-in @app-db [:my-tool :selected-organism :shortName])]
-                 sn \"All Organisms\")
-    :on-change (fn [organism]
-                 (dispatch [:mytool/set-selected-organism organism]))}]
-"
-(defn organism-dropdown []
+(defn organism-dropdown
+  "Creates a dropdown of known organisms. The supplied :on-change function will
+  receive all attributes of the organism selected.
+  Options {}:
+    :selected-value (optional) Supply this if you want to change the dropdown's selected-value
+    :on-change Function to call when changed
+  Example usage:
+    [im-controls/organism-dropdown
+     {:selected-value     (if-let [sn (get-in @app-db [:my-tool :selected-organism :shortName])]
+                   sn \"All Organisms\")
+      :on-change (fn [organism]
+                   (dispatch [:mytool/set-selected-organism organism]))}]"
+  []
   (let [organisms (subscribe [:cache/organisms])]
     (fn [{:keys [selected-value on-change organisms-pred]}]
       [:div.btn-group.organism-dropdown
