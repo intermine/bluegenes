@@ -26,15 +26,15 @@ describe("Admin Account Test", function(){
         })
     })
 
-    // after(function(){
-    //     cy.get('.profile-page > ').first().should("exist").within(() => {
-    //         cy.get('[type="checkbox"]').first().check({force:true}); //flaky
-    //         cy.get('[type="checkbox"]').first().should("be.checked"); 
-    //         cy.contains("Public name").type("{selectall}{backspace}",{delay:100});
-    //         cy.contains("Save changes").should("not.be.disabled").click(); //flaky {force:true}?
-    //         cy.get(".success").should("have.text","Updated preferences have been saved.");
-    //     })
-    // })
+    after(function(){
+        cy.get('.profile-page > ').first().should("exist").within(() => {
+            cy.get('[type="checkbox"]').first().check({force:true}); //flaky
+            cy.get('[type="checkbox"]').first().should("be.checked"); 
+            cy.contains("Public name").type("{selectall}{backspace}",{delay:100});
+            cy.contains("Save changes").should("not.be.disabled").click(); //flaky {force:true}?
+            cy.get(".success").should("have.text","Updated preferences have been saved.");
+        })
+    })
 
     it("can set and clear homepage notice",function(){
         cy.visit("/biotestmine/admin"); //direct use of cy.visit can be flaky sometimes
