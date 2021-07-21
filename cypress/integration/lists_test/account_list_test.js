@@ -83,6 +83,18 @@ describe("Admin account list test", function() {
         })
     })
 
+    it("can filter lists by tags", function(){
+        cy.contains("Lists").click();
+        cy.url().should("include","/lists");
+        cy.get('.lists-item').its("length").should('be.gt',0);
+
+        cy.get('.lists-headers').within(() => {
+            cy.contains("Tags").siblings(".dropdown").click();
+            cy.get("li").contains("Major genes").click();
+        })
+        cy.get('.lists-item').its("length").should('eq',1);
+    })
+
     it("can move list(s) to folder",function(){
         cy.contains("Lists").click();
         cy.url().should("include","/lists");
@@ -98,5 +110,49 @@ describe("Admin account list test", function() {
         cy.get(".modal-footer").within(() => {
             cy.contains("Move list(s)").click();
         })
+    })
+
+    it("can copy list(s) to folder", function(){
+        cy.contains("Lists").click();
+        cy.url().should("include","/lists");
+        cy.get('.lists-item').its("length").should('be.gt',0);
+
+        cy.get('.lists-headers').within(() => {
+            cy.get('[type="checkbox"]').check();
+        })
+        cy.get('.bottom-controls').within(() => {
+            cy.contains("Copy all").click();
+        })
+        cy.get(".css-1wy0on6").click().type("List 2{enter}",{delay:100},{force:true});
+        cy.get(".modal-footer").within(() => {
+            cy.contains("Copy list(s)").click();
+        })
+    })
+
+    it("can create subfolders and view folder contents", function(){
+        cy.contains("Lists").click();
+        cy.url().should("include","/lists");
+        cy.get('.lists-item').its("length").should('be.gt',0);
+
+        cy.get('.lists-headers').within(() => {
+            cy.get('[type="checkbox"]').check();
+        })
+        cy.get('.bottom-controls').within(() => {
+            cy.contains("Move all").click();
+        })
+        cy.get(".css-1wy0on6").click().type("List 3{enter}",{delay:100},{force:true});
+        cy.get(".css-1hwfws3").click().type("Subfolder 1{enter}",{delay:100},{force:true});
+        cy.get(".modal-footer").within(() => {
+            cy.contains("Move list(s)").click();
+        })
+
+        // // cy.contains("List 3").parentsUntil(".lists-item").within(() => {
+        // //     cy.get('.btn > icon').click(); 
+        // cy.get('.list-title').should("contain","Subfolder 1");
+        //flaky
+        cy.get('.list-actions > .btn > .icon').first().click();
+        cy.get('.list-title').should("contain","Subfolder 1");
+        cy.get('.list-actions > .btn > .icon').last().click();
+        cy.get('.list-title').should("contain","Gene list");
     })
 });
