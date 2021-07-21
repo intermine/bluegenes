@@ -52,4 +52,10 @@ describe("Main page test", function() {
         cy.contains("Build your own query").click();
         cy.url().should("include", "/querybuilder");
     });
+    
+    it("can access other intermine instances", function() {
+        cy.get(".minename > .dropdown-toggle").click();
+        cy.contains("BeanMine").click();
+        cy.url().should("contain","/beanmine");
+    });
 });
