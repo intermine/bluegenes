@@ -8,9 +8,11 @@ describe("Report Page Layout Test", function(){
 			.find("button")
 			.contains('Login')
 		 	.click();
+
+        // cy.intercept('POST', '/api/auth/login').as('login');
+        // cy.wait('@login');
         cy.get(".logon.dropdown.success").should("exist").click();
         cy.get(".logon.dropdown.success").should("contain", "test_user@mail_account"); //flaky
-
         cy.visit("/biotestmine/admin");
         cy.contains("Report page layout").parent().should("have.class","well").as("reportPageLayout");
     });

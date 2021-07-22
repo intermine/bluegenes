@@ -2,7 +2,6 @@ describe("Query view test", function() {
     beforeEach(function() {
       cy.visit("/biotestmine/querybuilder");
     });
-
     
     //Query editor 
     it("can save, clear, and load query", function() {

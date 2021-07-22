@@ -55,9 +55,9 @@ Cypress.Commands.add("createGeneList", (geneList) => {
     cy.contains("Upload").click();
     cy.get(".wizard").find("textarea").type(geneList,{delay:100});
     cy.contains("Continue").click();
-    cy.url().should("include","/save");
     //Assertion
     cy.get('.title').should("exist");
+    cy.url().should("include","/save");
     cy.contains("Save List").click();
     cy.url().should("include","/results")
     cy.contains("Lists").click();

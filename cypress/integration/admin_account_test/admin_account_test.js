@@ -8,6 +8,8 @@ describe("Admin Account Test", function(){
 			.find("button")
 			.contains('Login')
 		 	.click();
+        // cy.intercept('POST', '/api/auth/login').as('login');
+        // cy.wait('@login');
         cy.get(".logon.dropdown.success").should("exist").click();
         cy.get(".logon.dropdown.success").should("contain", "test_user@mail_account"); //flaky
     });
@@ -16,7 +18,6 @@ describe("Admin Account Test", function(){
         cy.visit("/biotestmine/profile");
         cy.intercept('GET', '/user/preferences').as('getPreferences');
         cy.wait('@getPreferences');
-
         cy.get('.profile-page > ').first().should("exist").within(() => {
             cy.get('[type="checkbox"]').first().uncheck({force:true}); //flaky
             // cy.get('[type="checkbox"]').first().should("not.be.checked"); //flaky
