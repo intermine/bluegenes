@@ -152,6 +152,35 @@
 
             input[type="range"] {
                 max-width: @spacer*8;
+                padding: 0;
+            }
+
+            .slider-ticks {
+                display: flex;
+                justify-content: space-between;
+                padding: 0 5px;
+
+                &.reverse {
+                    flex-direction: row-reverse;
+                }
+
+                span, a {
+                    font-size: 0.6em;
+                    width: 1em;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    position: relative;
+                }
+
+                a:after {
+                    content: "\a0";
+                    position: absolute;
+                    border-left: 1px solid black;
+                    left: 50%;
+                    bottom: -1em;
+                    height: 1em;
+                }
             }
         }
 

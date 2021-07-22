@@ -134,6 +134,11 @@
                                  reverse? #(assoc % :start value)
                                  :else #(assoc % :end value))))
         get-region (fn [m] (get m (if reverse? :start :end)))
+        set-tick! (fn [value]
+                    (when-let [[string number] (parse-bp value)]
+                      (update-input string)
+                      (set-region! input* string)
+                      (set-region! range* (log->linear number))))
         input
         [:input.form-control
          {:type "text"
@@ -143,16 +148,37 @@
                         (set-region! range* (log->linear number)))
           :value (get-region @input*)}]
         range
-        [:input.form-control
-         {:type "range"
-          :style (when reverse? {:direction "rtl"})
-          :min 0
-          :max 70
-          :on-change #(let [value (int (oget % :target :value))]
-                        (set-region! range* value)
-                        (update-input (int->bp (linear->log value)))
-                        (set-region! input* (int->bp (linear->log value))))
-          :value (get-region @range*)}]]
+        [:div
+         [:div.slider-ticks
+          {:class (when reverse? :reverse)}
+          [:span] ; 1
+          [:span] ; 10
+          [:span] ; 100
+          [:a {:role "button"
+               :on-click #(set-tick! "1k")}
+           "1k"]
+          [:a {:role "button"
+               :on-click #(set-tick! "10k")}
+           "10k"]
+          [:a {:role "button"
+               :on-click #(set-tick! "100k")}
+           "100k"]
+          [:a {:role "button"
+               :on-click #(set-tick! "1M")}
+           "1M"]
+          [:a {:role "button"
+               :on-click #(set-tick! "10M")}
+           "10M"]]
+         [:input.form-control
+          {:type "range"
+           :style (when reverse? {:direction "rtl"})
+           :min 0
+           :max 70
+           :on-change #(let [value (int (oget % :target :value))]
+                         (set-region! range* value)
+                         (update-input (int->bp (linear->log value)))
+                         (set-region! input* (int->bp (linear->log value))))
+           :value (get-region @range*)}]]]
     (if reverse?
       [:<> range input]
       [:<> input range])))
