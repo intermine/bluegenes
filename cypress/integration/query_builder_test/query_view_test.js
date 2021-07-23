@@ -2,6 +2,20 @@ describe("Query view test", function() {
     beforeEach(function() {
       cy.visit("/biotestmine/querybuilder");
     });
+
+    // it.only("can change the order of attributes", function(){
+    //   cy.viewport(1000, 600);
+    //   cy.get(".model-browser-root").within(() => {
+    //     cy.selectFromDropdown("Protein");        
+    //     cy.contains("Summary").click();
+    //   });
+
+    //   cy.get("div.panel-body").first().as("queryEditorTab").within(()=>{
+    //     cy.contains("Manage Columns").click();
+    //     cy.get(".sort-order-container > :nth-child(4)").drag(".sort-order-container > :nth-child(3)",{ position: 'topLeft' });
+    //     cy.get(".sort-order-container > :nth-child(3)").drag(".sort-order-container > :nth-child(2)",{ position: 'topLeft' });
+    //   });
+    // })
     
     //Query editor 
     it("can save, clear, and load query", function() {
@@ -27,15 +41,16 @@ describe("Query view test", function() {
       })
     });
 
-    it("can remove attributes on query editor", function(){
+    it.only("can remove attributes on query editor", function(){
       cy.get(".model-browser-root").within(() => {
         cy.selectFromDropdown("Protein");        
         cy.get("select").should("have.value", "Protein");
         cy.contains("Summary").click();
       });
 
-      cy.get('.query-view-column').within(() => {
+      cy.get("div.panel-body").first().as("queryEditorTab").within(() => {
         cy.contains('Protein').parentsUntil('.lab qb-class').children('.icon.icon-bin').click();
+        cy.get("p").should("include.text","Please select at least one attribute from the Model Browser on the left.");
       });
     });
 
