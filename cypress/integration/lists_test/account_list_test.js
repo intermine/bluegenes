@@ -1,14 +1,6 @@
 describe("Admin account list test", function() {
     beforeEach(function() {
-        cy.openLoginDialogue();
-		cy.get(".login-form").should("contain", "Login to BioTestMine");
-		cy.get("input#email").type("test_user@mail_account");
-		cy.get("input[type='password']").type("secret");
-		cy.get(".login-form")
-			.find("button")
-			.contains('Login')
-		 	.click();
-        cy.get(".logon.dropdown.success").click().should("contain", "test_user@mail_account");
+        cy.loginToAdminAccount();
     });
 
     after(function() {

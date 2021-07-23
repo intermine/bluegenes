@@ -24,6 +24,7 @@
 // -- This is will overwrite an existing command --
 // Cypress.Commands.overwrite("visit", (originalFn, url, options) => { ... })
 import 'cypress-file-upload';
+import '@4tw/cypress-drag-drop';
 
 Cypress.Commands.add("openLoginDialogue", () => {
     cy.visit('/biotestmine');
@@ -98,6 +99,21 @@ Cypress.Commands.add('isInViewport', element => {
       expect(rect.top).to.be.greaterThan(bottom)
       expect(rect.bottom).to.be.greaterThan(bottom)
     })
+  })
+
+  Cypress.Commands.add('loginToAdminAccount', element => {
+    cy.openLoginDialogue();
+		cy.get(".login-form").should("contain", "Login to BioTestMine");
+		cy.get("input#email").type("test_user@mail_account");
+		cy.get("input[type='password']").type("secret");
+        cy.intercept('POST', '/api/auth/login').as('login');
+		cy.get(".login-form")
+			.find("button")
+			.contains('Login')
+		 	.click();
+        cy.wait('@login');
+        cy.get(".logon.dropdown.success").should("exist").click();
+        cy.get(".logon.dropdown.success").should("contain", "test_user@mail_account"); //flaky
   })
 
 // Cypress.Commands.add("openTemplatesTab", () => {

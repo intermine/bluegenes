@@ -1,17 +1,6 @@
 describe("Admin Account Test", function(){
     beforeEach(function(){
-        cy.openLoginDialogue();
-		cy.get(".login-form").should("contain", "Login to BioTestMine");
-		cy.get("input#email").type("test_user@mail_account");
-		cy.get("input[type='password']").type("secret");
-        cy.intercept('POST', '/api/auth/login').as('login');
-		cy.get(".login-form")
-			.find("button")
-			.contains('Login')
-		 	.click();
-        cy.wait('@login');
-        cy.get(".logon.dropdown.success").should("exist").click();
-        cy.get(".logon.dropdown.success").should("contain", "test_user@mail_account"); //flaky
+        cy.loginToAdminAccount();
     });
 
     it("can set user preferences in profile page",function(){
