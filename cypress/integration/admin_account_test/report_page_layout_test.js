@@ -4,13 +4,12 @@ describe("Report Page Layout Test", function(){
 		cy.get(".login-form").should("contain", "Login to BioTestMine");
 		cy.get("input#email").type("test_user@mail_account");
 		cy.get("input[type='password']").type("secret");
+        cy.intercept('POST', '/api/auth/login').as('login');
 		cy.get(".login-form")
 			.find("button")
 			.contains('Login')
 		 	.click();
-
-        // cy.intercept('POST', '/api/auth/login').as('login');
-        // cy.wait('@login');
+        cy.wait('@login');
         cy.get(".logon.dropdown.success").should("exist").click();
         cy.get(".logon.dropdown.success").should("contain", "test_user@mail_account"); //flaky
         cy.visit("/biotestmine/admin");
