@@ -36,7 +36,7 @@ describe("Report Page Layout Test", function(){
         })
     })
 
-    it("can edit the visibility of the description of a class", function(){
+    it("can make a class show as collapsed", function(){
         cy.get("@reportPageLayout").within(() => {
             cy.get("Select").select("MRNA");
             cy.get("select").should("have.value","MRNA");
@@ -62,18 +62,25 @@ describe("Report Page Layout Test", function(){
         })
     })
 
-    after(function(){
-        cy.visit("/biotestmine/report/MRNA/2000009");
+    it("can delete categories",function(){
+        cy.searchKeyword("mRNA.46312");
+        cy.url().should("include","/search?keyword");
+        cy.get(".results > form").children().first().click();
+        cy.url().should("include","/report");
+
         cy.get(".report-page-heading").should("include.text","mRNA.46312");
         cy.get('.report-table-heading').contains("Interactions")
         .parent(".report-table")
         .as('interactionsSection');
 
         cy.get("@interactionsSection").within(() => {
+            cy.get(".im-table").should("not.exist");
             cy.get(".report-item-title").should("include.text","Exons");
             cy.get('[class="icon icon-info"]').should("exist").click();
             cy.get(".report-item-title > .dropdown > .dropdown-menu").should("exist")
             .find("p").should("include.text","Coding regions within this gene");
+            cy.get('.report-item-toggle').click();
+            cy.get(".im-table").should("exist");
         });
 
         cy.visit("/biotestmine/admin");
