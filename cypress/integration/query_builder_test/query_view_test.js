@@ -41,7 +41,7 @@ describe("Query view test", function() {
       })
     });
 
-    it.only("can remove attributes on query editor", function(){
+    it("can remove attributes on query editor", function(){
       cy.get(".model-browser-root").within(() => {
         cy.selectFromDropdown("Protein");        
         cy.get("select").should("have.value", "Protein");
