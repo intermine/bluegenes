@@ -110,6 +110,7 @@ describe("Admin account list test", function() {
         cy.get(".modal-footer").within(() => {
             cy.contains("Move list(s)").click();
         })
+        cy.get('.list-title').should("contain","List of common genes");
     })
 
     it("can copy list(s) to folder", function(){
@@ -127,6 +128,7 @@ describe("Admin account list test", function() {
         cy.get(".modal-footer").within(() => {
             cy.contains("Copy list(s)").click();
         })
+        cy.get('.list-title').should("contain","List 2");
     })
 
     it("can create subfolders and view folder contents", function(){
