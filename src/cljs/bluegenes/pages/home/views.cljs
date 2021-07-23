@@ -15,10 +15,15 @@
 (defn mine-intro []
   (let [mine-name @(subscribe [:current-mine-human-name])
         description @(subscribe [:current-mine/description])
-        notice @(subscribe [:current-mine/notice])]
+        notice @(subscribe [:current-mine/notice])
+        release @(subscribe [:current-mine/release])]
     [:div.row.section.mine-intro
      [:div.col-xs-10.col-xs-offset-1
       [:h2.text-center.text-uppercase.mine-name mine-name]
+      [:div.mine-release
+       ;; Only prepend 'v' if release starts with a digit.
+       (cond->> release
+         (some->> release (re-find #"^\d")) (str "v"))]
       [:div.mine-description
        (md-paragraph description)]
       (when notice

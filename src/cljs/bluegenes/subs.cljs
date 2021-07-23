@@ -189,6 +189,12 @@
    (:description current-mine)))
 
 (reg-sub
+ :current-mine/release
+ :<- [:current-mine]
+ (fn [current-mine]
+   (:release current-mine)))
+
+(reg-sub
  :current-mine/oauth2-providers
  :<- [:current-mine]
  (fn [current-mine]
