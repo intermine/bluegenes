@@ -24,10 +24,11 @@
 // -- This is will overwrite an existing command --
 // Cypress.Commands.overwrite("visit", (originalFn, url, options) => { ... })
 import 'cypress-file-upload';
+import '@4tw/cypress-drag-drop';
 
 Cypress.Commands.add("openLoginDialogue", () => {
     cy.visit('/biotestmine');
-    cy.get('.dropdown-toggle').contains('LOGIN').click();
+    cy.get('.dropdown-toggle').should("exist").contains('LOGIN').click();
 })
 
 Cypress.Commands.add("openRegisterDialogue", () => {
@@ -55,6 +56,9 @@ Cypress.Commands.add("createGeneList", (geneList) => {
     cy.contains("Upload").click();
     cy.get(".wizard").find("textarea").type(geneList,{delay:100});
     cy.contains("Continue").click();
+    //Assertion
+    cy.get('.title').should("exist");
+    cy.url().should("include","/save");
     cy.contains("Save List").click();
     cy.url().should("include","/results")
     cy.contains("Lists").click();
@@ -71,7 +75,7 @@ Cypress.Commands.add("createProteinList", (proteinList) => {
 })
 
 //The commands isInViewport and isNotInViewport are taken directly from
-// https://github.com/cypress-io/cypress/issues/877#issuecomment-490504922.
+//https://github.com/cypress-io/cypress/issues/877#issuecomment-490504922.
 
 Cypress.Commands.add('isInViewport', element => {
     cy.get(element).then($el => {
@@ -95,6 +99,21 @@ Cypress.Commands.add('isInViewport', element => {
       expect(rect.top).to.be.greaterThan(bottom)
       expect(rect.bottom).to.be.greaterThan(bottom)
     })
+  })
+
+  Cypress.Commands.add('loginToAdminAccount', element => {
+    cy.openLoginDialogue();
+		cy.get(".login-form").should("contain", "Login to BioTestMine");
+		cy.get("input#email").type("test_user@mail_account");
+		cy.get("input[type='password']").type("secret");
+        cy.intercept('POST', '/api/auth/login').as('login');
+		cy.get(".login-form")
+			.find("button")
+			.contains('Login')
+		 	.click();
+        cy.wait('@login');
+        cy.get(".logon.dropdown.success").should("exist").click();
+        cy.get(".logon.dropdown.success").should("contain", "test_user@mail_account"); //flaky
   })
 
 // Cypress.Commands.add("openTemplatesTab", () => {

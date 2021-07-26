@@ -1,7 +1,8 @@
-describe("Single Lists Test", function() {
+describe("Single List Test", function() {
     beforeEach(function() {
-      cy.visit("/");
+      cy.visit("/biotestmine/upload");
       cy.createGeneList("SODB, GBP, GST, CDPK1");
+      cy.contains("Lists").click();
       cy.url().should("include","/lists");
       cy.get('.lists-item').should('have.length',1);
     });
@@ -25,7 +26,7 @@ describe("Single Lists Test", function() {
 
     });
 
-    it("can edit a list", function(){
+    it("can rename and add description to a list", function(){
         cy.get(".lists-item").within(() => {
             cy.get("button").find('svg[class="icon icon-list-more"]')
             .should("be.visible")
@@ -61,4 +62,27 @@ describe("Single Lists Test", function() {
         })
         cy.get('.no-lists').should('exist');
     });
+
+    it("can control the number of lists shown", function(){
+        cy.get(".pagination-controls").within(() => {
+            cy.contains("Rows per page").siblings(".dropdown").as("rowSelect");
+            cy.get("@rowSelect").find("li").filter(".active").should("have.text","20");
+            cy.get("@rowSelect").find("button").click();
+            cy.contains("100").click();
+            cy.get("@rowSelect").find("li").filter(".active").should("have.text","100");
+        })
+    });
+
+    it("has an associated list analysis page and can be analyzed with the enrichment widget",function(){
+        cy.get('.list-title').first().click();
+        cy.url().should("contain","/results");
+        cy.get(".results-table").should("exist");
+        cy.get(".enrichment").within(() => {
+            cy.contains("Max p-value").parent().find("select").first().select("0.10");
+            cy.get('.correction').find("select").select("Benjamini Hochberg");
+            cy.get(".dropdown").click();
+            cy.get(".list-selection").first().click();
+            cy.get('.text-filter').find("input").type("ABRA{enter}",{delay:100});
+        })
+    })
 });

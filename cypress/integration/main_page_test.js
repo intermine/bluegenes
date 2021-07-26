@@ -3,6 +3,12 @@ describe("Main page test", function() {
       cy.visit("/");
     });
 
+    it("can browse the data sources from the main page", function() {
+        cy.contains("Browse sources").click();
+        cy.url().should("include","/results");
+        cy.get(".im-table").should("exist");
+    })
+
     it("can access upload tab from the navigation bar", function() {
         cy.get("#bluegenes-main-nav").within(() => {
             cy.contains("Upload").click();
@@ -51,5 +57,11 @@ describe("Main page test", function() {
     it("can access query builder from the main page", function() {
         cy.contains("Build your own query").click();
         cy.url().should("include", "/querybuilder");
+    });
+    
+    it("can access other intermine instances", function() {
+        cy.get(".minename > .dropdown-toggle").click();
+        cy.contains("BeanMine").click();
+        cy.url().should("contain","/beanmine");
     });
 });
