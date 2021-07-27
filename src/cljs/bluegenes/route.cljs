@@ -234,7 +234,9 @@
     ["/regions"
      {:name ::regions
       :controllers
-      [{:start #(dispatch [:set-active-panel :regions-panel])}]}]
+      [{:start (fn []
+                 (dispatch [:regions/fetch-organisms])
+                 (dispatch [:set-active-panel :regions-panel]))}]}]
     ["/lists"
      {:name ::lists
       :controllers

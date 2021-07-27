@@ -5,7 +5,8 @@
             [cljs-http.client :as http]
             [cognitect.transit :as t]
             [bluegenes.titles :refer [db->title]]
-            [oops.core :refer [ocall oget]]
+            [bluegenes.utils :refer [encode-file]]
+            [oops.core :refer [ocall oget oset!]]
             [goog.dom :as gdom]
             [goog.style :as gstyle]
             [goog.fx.dom :as gfx]))
@@ -336,3 +337,19 @@
  :change-route
  (fn [new-path]
    (.replaceState js/window.history nil "" (str "/" new-path))))
+
+;; filename - string including extension
+;; filetype - string to be appended to 'text/' forming a mime type
+;; data     - string representing the contents of the file
+(reg-fx
+ :download-file
+ (fn [{:keys [filename filetype data]}]
+   (let [a (ocall js/document :createElement "a")
+         url (encode-file data filetype)]
+     (oset! a [:style :display] "none")
+     (oset! a :href url)
+     (oset! a :download filename)
+     (ocall js/document.body :appendChild a)
+     (ocall a :click)
+     (ocall js/window.URL :revokeObjectURL url)
+     (ocall js/document.body :removeChild a))))

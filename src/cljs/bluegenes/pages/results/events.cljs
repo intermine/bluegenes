@@ -193,8 +193,7 @@
    {:forward-events {:register :results-page-im-table-listener
                      ;; These fire whenever the query in im-tables is changed,
                      ;; and runs successfully.
-                     :events #{:main/replace-query-response
-                               :main/merge-query-response}
+                     :events #{:main/replace-query-response}
                      :dispatch-to [:results/update-tool-entities]}}))
 
 (reg-event-fx

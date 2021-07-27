@@ -38,9 +38,9 @@
   [web-properties]
   {:name                         (get-in web-properties [:project :title])
    :description                  (get-in web-properties [:project :subTitle])
-   :default-organism             (get-in web-properties [:genomicRegionSearch :defaultOrganisms])
-   ;;todo - set sane default programmatically or default to first.
-   :default-selected-object-type (first (get-in web-properties [:genomicRegionSearch :defaultOrganisms]))
+   :default-organism             (->> (string/split (get-in web-properties [:genomicRegionSearch :defaultOrganisms]) #",")
+                                      (map string/trim)
+                                      (first))
    :regionsearch-example         (get-in web-properties [:genomicRegionSearch :defaultSpans])
    :news                         (or (get-in web-properties [:project :news]) "https://intermineorg.wordpress.com/")
    :rss                          (get-in web-properties [:project :rss])

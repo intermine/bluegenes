@@ -176,9 +176,9 @@
 (reg-event-fx
  ::upgrade-list-success
  (fn [{db :db} [_ list-name _res]]
-   {:dispatch-n [; Re-fetch our lists so that it shows in Lists page
-                 [:assets/fetch-lists]
-                 [::route/navigate ::route/results {:title list-name}]]}))
+   {:dispatch ;; Re-fetch our lists so that it shows in Lists page.
+    [:assets/fetch-lists
+     [::route/navigate ::route/results {:title list-name}]]}))
 
 (reg-event-fx
  ::upgrade-list-failure
@@ -245,30 +245,27 @@
                 :timeout 10000
                 :style "danger"}]}))
 
-(defn validate-default-organism [db mine-details]
-  " this handles the fact that a mine could be misconfigured
-    and might return an organism that isn't present
-    in the list. Learned from the school of hard knocks, aka
-    beta humanmine"
-
-  (let [default-organism (:default-organism mine-details)
-        all-organisms (get-in db [:cache :organisms])
-        all-organism-shortnames
-        (reduce (fn [new-vector single-organism]
-                  (conj new-vector (:shortName single-organism)))
-                #{} all-organisms)]
-    (if (contains? all-organism-shortnames default-organism)
-      ;;return the default if it exists in the dropdown
-      default-organism
-      ;;if the default isn't preset, we default to "all", which is equivalent to
-      ;;sending a blank string for the organism value
-      "")))
+(defn validate-default-organism
+  "This handles the fact that a mine could be misconfigured and might return
+  an organism that isn't present in the list. Learned from the school of hard
+  knocks, aka beta humanmine"
+  [db default-organism]
+  (or
+    ;;return the default if it exists in the dropdown, making sure to use shortName as default-organism may be the long name.
+   (some (fn [org]
+           (when (or (= default-organism (:shortName org))
+                     (= default-organism (:name org)))
+             (:shortName org)))
+         (get-in db [:cache :organisms]))
+    ;;if the default isn't preset, we default to "all", which is equivalent to
+    ;;sending a blank string for the organism value
+   ""))
 
 (reg-event-db
  ::reset
  (fn [db [_ example-type example-text]]
    (let [mine-details (get-in db [:mines (get db :current-mine)])
-         organism (validate-default-organism db mine-details)]
+         organism (validate-default-organism db (:default-organism mine-details))]
      (assoc db :idresolver
             {:stage {:files nil
                      :textbox example-text

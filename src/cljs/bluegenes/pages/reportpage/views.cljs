@@ -16,6 +16,7 @@
             [bluegenes.components.icons :refer [icon icon-comp]]
             [clojure.string :as str]
             [bluegenes.components.bootstrap :refer [poppable]]
+            [bluegenes.utils :refer [encode-file]]
             [oops.core :refer [ocall oget]]
             [goog.functions :refer [debounce]]))
 
@@ -165,22 +166,16 @@
      [poppable {:data "Perform a search of this region"
                 :children value}]]]])
 
-(defn encode-file
-  "Encode a stringified text file such that it can be downloaded by the browser.
-  Results must be stringified - don't pass objects / vectors / arrays / whatever."
-  [data filetype]
-  (ocall js/URL "createObjectURL"
-         (js/Blob. (clj->js [data])
-                   {:type (str "text/" filetype)})))
-
 (defn fasta-download []
   (let [id           (subscribe [::subs/fasta-identifier])
         fasta        (subscribe [::subs/fasta])
         download-ref (atom nil)
-        download!    #(let [el @download-ref]
-                        (ocall el :setAttribute "href" (encode-file @fasta "fasta"))
+        download!    #(let [el @download-ref
+                            url (encode-file @fasta "fasta")]
+                        (ocall el :setAttribute "href" url)
                         (ocall el :setAttribute "download" (str @id ".fasta"))
-                        (ocall el :click))]
+                        (ocall el :click)
+                        (ocall js/window.URL :revokeObjectURL url))]
     (fn []
       [:<>
        [:a.hidden-download {:download "download" :ref (fn [el] (reset! download-ref el))}]

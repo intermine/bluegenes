@@ -6,7 +6,8 @@
             [bluegenes.utils :as utils]
             [imcljs.fetch :as im-fetch]
             [clj-http.client :refer [with-middleware]]
-            [clojure.core.cache.wrapped :as cache]))
+            [clojure.core.cache.wrapped :as cache]
+            [clojure.string :as str]))
 
 ;; Hello dear maker of the internet. You want to edit *this* file for prod,
 ;; NOT resources/public/index.html.
@@ -18,6 +19,9 @@
                      (not= bundle-hash "dev") (utils/insert-filename-css bundle-hash)))
 (def im-tables-css (cond-> "/css/im-tables.css"
                      (not= bundle-hash "dev") (utils/insert-filename-css bundle-hash)))
+
+(defn escape-quotes [s]
+  (str/replace s #"\"" (str/re-quote-replacement "\\\"")))
 
 ; A pure CSS loading animation to be displayed before the bluegenes javascript is read:
 (def loader-style
@@ -53,6 +57,21 @@
                (pr-str (.getMessage e)))
         nil))))
 
+(defn fetch-rdf-link
+  "Run an HTTP request to fetch a URL to be included with the HTML.
+  As this blocks the initial HTTP response, we use a short timeout."
+  [{:keys [object-id] {:keys [root]} :mine :as _options}]
+  (let [service {:root root}]
+    (try
+      (with-middleware [#'clj-http.client/wrap-request ; default middleware
+                        #'utils/wrap-timeout] ; very short request timeout
+        (im-fetch/permanent-url service object-id {:type "rdf"}))
+      (catch Exception e
+        (warnf "Failed to acquire RDF link for object id %s: %s"
+               object-id
+               (pr-str (.getMessage e)))
+        nil))))
+
 (defn head
   ([]
    (head nil {}))
@@ -63,6 +82,9 @@
     loader-style
     css-compiling-style
     [:title "InterMine 2.0 BlueGenes"]
+    (when (= (:semantic-markup options) :report)
+      (when-let [rdf-url (not-empty (fetch-rdf-link options))]
+        [:link {:href rdf-url :rel "alternate" :type "application/rdf+xml" :title "RDF"}]))
     (include-css "https://cdnjs.cloudflare.com/ajax/libs/gridlex/2.2.0/gridlex.min.css")
     (include-css "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css")
     (include-css bluegenes-css)
@@ -79,11 +101,11 @@
                                                      :bluegenes-default-service-root :bluegenes-default-mine-name :bluegenes-default-namespace
                                                      :bluegenes-additional-mines :hide-registry-mines])
                                    {:version bundle-hash})]
-            (str \' (pr-str server-vars) \'))
+            (str \" (escape-quotes (pr-str server-vars)) \"))
           ";")
      (str "var initVars="
           (if (map? init-vars)
-            (str \' (pr-str init-vars) \')
+            (str \" (escape-quotes (pr-str init-vars)) \")
             "null")
           ";")]
   ; Javascript:

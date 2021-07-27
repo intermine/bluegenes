@@ -14,7 +14,7 @@
 
 (def ^:const entries-to-show 5)
 
-(defn generate-permanent-url [collapsed?]
+(defn generate-permanent-url [& {:keys [collapsed? type]}]
   (let [{:keys [status url error]} @(subscribe [::subs/share])
         api-version @(subscribe [:api-version])
         input-ref* (atom nil)]
@@ -22,8 +22,10 @@
           [:a.sidebar-action.dropdown-toggle
            {:data-toggle "dropdown"
             :role "button"
-            :on-click #(dispatch [::events/generate-permanent-url api-version])}
-           [icon-comp "price-tag"] "Copy permanent URL"]
+            :on-click #(dispatch [::events/generate-permanent-url api-version type])}
+           (case type
+             :rdf [:<> [icon-comp "file"] "Copy URL to RDF document"]
+             [:<> [icon-comp "price-tag"] "Copy permanent URL"])]
           [:div.dropdown-menu
            {:class (when-not collapsed? :dropdown-menu-sidebar)}
            (if status
@@ -61,7 +63,8 @@
 
 (defn actions [collapsed?]
   [:ul.sidebar-actions
-   [generate-permanent-url collapsed?]])
+   [generate-permanent-url :collapsed? collapsed?]
+   #_[generate-permanent-url :collapsed? collapsed? :type :rdf]])
 
 (defn entry []
   (let [show-all* (reagent/atom false)]
