@@ -1,4 +1,4 @@
-describe("Multiple Lists Test", function() {
+describe("Sort Lists Test", function() {
     beforeEach(function() {
       cy.visit("/");
       cy.createGeneList("SODB, GBP, GST, CDPK1");
