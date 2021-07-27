@@ -74,7 +74,7 @@
   []
   (let [known-feature-types (subscribe [:regions/sequence-feature-types])]
     (fn []
-      (into [:ul.features-tree]
+      (into [:ul.features-tree.features-tree-root]
             (map (fn [f] [feature-branch f]) (non-empty-classes @known-feature-types))))))
 
 (def coordinate-systems
