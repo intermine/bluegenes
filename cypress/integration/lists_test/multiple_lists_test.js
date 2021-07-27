@@ -4,7 +4,7 @@ describe("Multiple Lists Test", function() {
       cy.createGeneList("SODB, GBP, GST, CDPK1");
       cy.createGeneList("CDPK1, CDPK4, ERD2, PFF1575w");
       cy.url().should("include","/lists");
-      cy.get('.lists-item').should('have.length',2);
+      cy.get(".lists-item").should('have.length',2);
     });
 
     it("can combine two lists", function(){
