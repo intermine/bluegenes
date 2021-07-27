@@ -7,7 +7,7 @@ describe("Regions Test", function(){
 
         cy.get(".input-section").within(() => {
             cy.contains("Show Example").click();
-            cy.get(".form-control").should("include.text","MAL");
+            cy.get("textarea").should("include.text","MAL");
             cy.get("button").filter(':contains("Search")').click();
         })
 
@@ -22,7 +22,7 @@ describe("Regions Test", function(){
     it("can type in chromosome coordinates and select features", function(){
 
         cy.get(".input-section").within(() => {
-            cy.get(".form-control").type("MAL1:0..100000",{delay:100});
+            cy.get("textarea").type("MAL1:0..100000",{delay:100});
             cy.get('button[class="btn dropdown-toggle"]').click();
             cy.contains("P. falciparum 3D7").click();
             cy.contains("Features to include").children().click();
