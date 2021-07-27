@@ -38,6 +38,7 @@
   [web-properties]
   {:name                         (get-in web-properties [:project :title])
    :description                  (get-in web-properties [:project :subTitle])
+   :release                      (get-in web-properties [:project :releaseVersion])
    :default-organism             (->> (string/split (get-in web-properties [:genomicRegionSearch :defaultOrganisms]) #",")
                                       (map string/trim)
                                       (first))

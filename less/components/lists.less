@@ -400,6 +400,21 @@
 
             .list-actions {
                 display: flex;
+                align-items: start;
+                margin: 0;
+
+                button.btn {
+                    &:focus, &:hover, &:active {
+                        background-color: transparent;
+                        outline: 0;
+                    }
+
+                    > .icon {
+                        margin-top: 0.4em;
+                        margin-left: 0;
+                        margin-right: 0.9em;
+                    }
+                }
             }
 
             .list-detail {

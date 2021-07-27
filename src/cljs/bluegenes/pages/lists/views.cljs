@@ -246,19 +246,20 @@
             [icon "folder-open-item"]
             [icon "folder-item"])]]]
        [:div.lists-col
-        [:input {:type "checkbox"
-                 :disabled (= status "TO_UPGRADE")
-                 :checked is-selected
-                 :on-change #(dispatch [(if (oget % :target :checked)
-                                          :lists/select-list
-                                          :lists/deselect-list)
-                                        id])}]
-        [:span.list-icon
-         {:class (when is-new :new)}
-         (if is-new
-           [poppable {:data "This list was just created by you."
-                      :children [icon "list-item"]}]
-           [icon "list-item"])]])
+        [:label.list-actions
+         [:input {:type "checkbox"
+                  :disabled (= status "TO_UPGRADE")
+                  :checked is-selected
+                  :on-change #(dispatch [(if (oget % :target :checked)
+                                           :lists/select-list
+                                           :lists/deselect-list)
+                                         id])}]
+         [:span.list-icon
+          {:class (when is-new :new)}
+          (if is-new
+            [poppable {:data "This list was just created by you."
+                       :children [icon "list-item"]}]
+            [icon "list-item"])]]])
 
      [:div.lists-col
       [:div.list-detail

@@ -32,7 +32,7 @@
             margin-top: 0;
             position: relative;
         }
-        @media(max-width:@tiny-screen) {
+        @media(max-width:@small-screen) {
             flex-wrap: wrap;
 
             > div {
@@ -63,11 +63,15 @@
         &.shrinkified {
             max-height: 23em;
             min-height: 5em;
+
+            @media(max-width:@small-screen) {
+                max-height: 10em;
+            }
         }
     }
 
     ul.features-tree {
-        column-count: 2;
+        column-count: 1;
         column-width: 200px;
         column-rule: dotted 1px grey;
         list-style-type: none;
@@ -80,6 +84,12 @@
 
         & i {
             padding-right: 3px;
+        }
+
+        &-root {
+            @media(max-width:@small-screen) {
+                column-count: 2;
+            }
         }
     }
 
@@ -109,7 +119,6 @@
         flex-direction: column;
         flex-grow: 1;
         justify-content: flex-start;
-        min-width: 30vw;
 
         .action-buttons {
             display: flex;
@@ -147,11 +156,11 @@
             }
 
             input[type="text"] {
+                min-width: @spacer*4;
                 max-width: @spacer*5;
             }
 
             input[type="range"] {
-                max-width: @spacer*8;
                 padding: 0;
             }
 
@@ -291,6 +300,7 @@
         &-footer {
             display: flex;
             justify-content: space-between;
+            flex-wrap: wrap;
         }
 
         .col h4 {
@@ -320,6 +330,7 @@
     .results-actions {
         display: flex;
         justify-content: space-between;
+        flex-wrap: wrap;
     }
 
     .results-counts {

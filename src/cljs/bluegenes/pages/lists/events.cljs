@@ -31,10 +31,18 @@
                      #{}
                      (-> (set/difference (->> new-by-id vals set (set/select (complement folder?)))
                                          (->> old-by-id vals set (set/select (complement folder?))))
-                         (set/project [:id])))]
+                         (set/project [:id])))
+         ;; Clear selected lists that no longer exist. This can happen when the
+         ;; server responds with error when deleting multiple lists, resulting
+         ;; in some of them being deleted and others not. The failure response
+         ;; for each deletion doesn't exclude the possibility that they'll be
+         ;; deleted shortly after, therefore we clear the selection here.
+         selected-lists (set (filter #(contains? new-by-id %)
+                                     (get-in db (concat root [:selected-lists]))))]
      (update-in db root assoc
                 :fetching-lists? false
                 :by-id new-by-id
+                :selected-lists selected-lists
                 :all-tags (->> all-tags (remove internal-tag?) sort)
                 :all-types (->> all-lists (map :type) distinct sort)
                 :all-paths (->> (filter path-prefix? all-tags)
@@ -472,7 +480,7 @@
 (reg-event-fx
  :lists/delete-lists-failure
  (fn [{db :db} [_ all-res]]
-   {:db (assoc-in db [:lists :modal :error] "Error occured when deleting lists")
+   {:db (assoc-in db [:lists :modal :error] "Error occured when deleting lists above. Please try again.")
     :dispatch [:assets/fetch-lists] ; In case some of them were deleted successfully.
     :log-error ["Delete lists failure" all-res]}))
 
