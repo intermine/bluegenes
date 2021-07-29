@@ -157,7 +157,8 @@
             (when (empty? sources)
               {:error (str "No data sources available for this " rootClass ".")}))
      (doall
-      (for [{:keys [description url name id]} sources]
+      (for [{description :dataSets.description url :dataSets.url
+             name :dataSets.name id :dataSets.id} sources]
         ^{:key id}
         [:li [poppable {:data description
                         :children [:a (if url
