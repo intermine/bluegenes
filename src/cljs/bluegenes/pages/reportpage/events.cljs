@@ -49,6 +49,23 @@
                fasta
                :fasta/none))))
 
+(reg-event-fx
+ ::fetch-strand
+ (fn [{db :db} [_ mine-kw type id]]
+   (let [service (get-in db [:mines mine-kw :service])
+         q {:from type
+            :select ["chromosomeLocation.strand"]
+            :where [{:path "id"
+                     :op "="
+                     :value id}]}]
+     {:im-chan {:chan (fetch/rows service q {:format "json"})
+                :on-success [::handle-strand]}})))
+
+(reg-event-db
+ ::handle-strand
+ (fn [db [_ {:keys [results]}]]
+   (assoc-in db [:report :strand] (get-in results [0 0]))))
+
 (defn class-has-fasta? [hier class-kw]
   (or (= class-kw :Protein)
       (isa? hier class-kw :SequenceFeature)))
@@ -83,7 +100,9 @@
  [document-title]
  (fn [{db :db} [_ mine-kw type id summary]]
    (if (seq (:results summary))
-     (let [fasta-action (check-fasta (get-in db [:mines mine-kw :model-hier]) (keyword type) summary)]
+     (let [hier (get-in db [:mines mine-kw :model-hier])
+           class-kw (keyword type)
+           fasta-action (check-fasta hier class-kw summary)]
        {:db (-> db
                 (assoc-in [:report :summary] summary)
                 (assoc-in [:report :title] (utils/title-column summary))
@@ -94,7 +113,9 @@
                      (when (= fasta-action :fasta/fetch)
                        [:fetch-fasta mine-kw type id])
                      (when (= type "Gene")
-                       [::fetch-homologues mine-kw (lookup-value summary)])]})
+                       [::fetch-homologues mine-kw (lookup-value summary)])
+                     (when (isa? hier class-kw :SequenceFeature)
+                       [::fetch-strand mine-kw type id])]})
      ;; No results mean the object ID likely doesn't exist.
      {:db (-> db
               (assoc-in [:report :error] {:type :not-found})
