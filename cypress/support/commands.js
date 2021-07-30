@@ -106,7 +106,7 @@ Cypress.Commands.add('isInViewport', element => {
 		cy.get(".login-form").should("contain", "Login to BioTestMine");
 		cy.get("input#email").type("test_user@mail_account");
 		cy.get("input[type='password']").type("secret");
-        cy.intercept('POST', '/api/auth/login').as('login');
+    cy.intercept('POST', '/api/auth/login').as('login');
 		cy.get(".login-form")
 			.find("button")
 			.contains('Login')
