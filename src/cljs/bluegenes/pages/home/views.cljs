@@ -6,7 +6,8 @@
             [bluegenes.components.navbar.nav :refer [mine-icon]]
             [bluegenes.components.search.typeahead :as search]
             [clojure.string :as str]
-            [bluegenes.utils :refer [ascii-arrows ascii->svg-arrows md-paragraph md-element]]
+            [bluegenes.utils :refer [ascii-arrows ascii->svg-arrows md-paragraph md-element
+                                     get-mine-ns get-mine-url]]
             [goog.string :as gstring]
             [cljs-time.format :as time-format]
             [cljs-time.coerce :as time-coerce]
@@ -161,26 +162,11 @@
      [:span (or name "default")]
      [icon "plus" nil [:pull-right]]]))
 
-(defn get-mine-ns
-  "Return the mine namespace as a keyword.
-  Handles both mines from the registry and config."
-  [mine]
-  (if (contains? mine :namespace)
-    (keyword (:namespace mine))
-    (:id mine)))
-
-(defn get-mine-url
-  "Return the mine url.
-  Handles both mines from the registry and config."
-  [mine]
-  (if (contains? mine :url)
-    (:url mine)
-    (get-in mine [:service :root])))
-
 (defn mine-selector-preview []
   (let [{:keys [description name] :as preview-mine} @(subscribe [:home/preview-mine])
         mine-ns (get-mine-ns preview-mine)
-        external? (contains? @(subscribe [:registry-external]) mine-ns)]
+        external? (or (:external? preview-mine)
+                      (contains? @(subscribe [:registry-external]) mine-ns))]
     [:div.col-xs-10.col-xs-offset-1.col-sm-offset-0.col-sm-3.mine-preview
      {:style {:color (get-fg-color preview-mine)
               :background-color (get-bg-color preview-mine)}}
@@ -190,7 +176,9 @@
       [mine-icon preview-mine :class "img-responsive"]]
      (if external?
        [poppable
-        {:data "This mine will open in a new tab as it's incompatible due to either running an InterMine API version below 27 or being only available through unsecured HTTP when BlueGenes is accessed through HTTPS."
+        {:data (if (:external? preview-mine)
+                 "This mine has been configured to open in a new tab."
+                 "This mine will open in a new tab as it's incompatible due to either running an InterMine API version below 27 or being only available through unsecured HTTP when BlueGenes is accessed through HTTPS.")
          :options {:data-placement "bottom"}
          :children [:a.btn.btn-block
                     {:target "_blank"

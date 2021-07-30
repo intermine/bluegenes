@@ -13,6 +13,7 @@
                               ;  :root "https://www.humanmine.org/humanmine"
                               ;  :name "HumanMine"
                               ;  :namespace "humanmine"
+                              ;  ; :external true ; Optional to open as a new tab.
                               ;  }
                               ]
  :hide-registry-mines false

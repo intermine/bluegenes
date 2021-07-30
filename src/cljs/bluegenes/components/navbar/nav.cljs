@@ -11,7 +11,8 @@
             [clojure.string :as str]
             [bluegenes.config :refer [read-default-ns]]
             [bluegenes.components.bootstrap :refer [poppable]]
-            [bluegenes.components.icons :refer [icon]]))
+            [bluegenes.components.icons :refer [icon]]
+            [bluegenes.utils :refer [get-mine-url]]))
 
 (def ^:const logo-path "/model/images/logo.png")
 
@@ -208,7 +209,7 @@
      {:title desc})
    [:a (cond
          current? {:class "current"}
-         external? {:target "_blank" :href (:url details)}
+         external? {:target "_blank" :href (get-mine-url details)}
          :else {:href (route/href ::route/home {:mine mine-key})})
     [mine-icon details]
     (str (:name details)
@@ -228,7 +229,7 @@
                            ^{:key mine-key}
                            [mine-entry mine-key details
                             :current? (= mine-key current-mine-name)
-                            :external? external?])
+                            :external? (or external? (:external? details))])
                          (sort-by (comp :name val) mines)))]
     [:li.minename.mine-settings.dropdown.primary-nav
      [:a.dropdown-toggle {:data-toggle "dropdown" :role "button"}

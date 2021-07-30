@@ -119,6 +119,22 @@
    :id (-> reg-mine :namespace keyword)
    :logo (-> reg-mine :images :logo)})
 
+(defn get-mine-ns
+  "Return the mine namespace as a keyword.
+  Handles both mines from the registry and config."
+  [mine]
+  (if (contains? mine :service) ; Only config mines have :service
+    (:id mine)
+    (keyword (:namespace mine))))
+
+(defn get-mine-url
+  "Return the mine url.
+  Handles both mines from the registry and config."
+  [mine]
+  (if (contains? mine :service) ; Only config mines have :service
+    (get-in mine [:service :root])
+    (:url mine)))
+
 (defn read-xml-query
   "Read an InterMine PathQuery in XML into an EDN Clojure map.
   Will throw on invalid XML."

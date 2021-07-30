@@ -42,7 +42,8 @@
  :<- [:registry-external]
  :<- [:env/mines]
  (fn [[registry registry-external configured]]
-   (merge configured registry registry-external)))
+   ;; Merge to a depth of 1, causing differing keys within the mine map to be kept.
+   (merge-with merge registry registry-external configured)))
 
 ;; Removes configured mines from registry.
 ;; For when we want to display them separate!
