@@ -16,6 +16,12 @@
 
 (def ^:const logo-path "/model/images/logo.png")
 
+;; This logo is banned! It's just the InterMine logo, and some mines
+;; have it set as /branding:images.logo while they have a proper logo
+;; under `logo-path`. I'll just sneak it in here and everything will
+;; look nice :-)
+(def ignore-logo-path "https://cdn.rawgit.com/intermine/design-materials/78a13db5/logos/intermine/squareish/45x45.png")
+
 (defn mine-icon
   "returns the icon set for a specific mine, or a default.
    Pass it the entire set of mine details, e.g.
@@ -23,9 +29,14 @@
   [details & {:keys [class]}]
   [:img
    {:class class
-    :src (or (get-in details [:images :logo]) ; Path when it's from registry.
-             (get-in details [:branding :images :logo]) ; Path when it's the current mine.
-             (str (get-in details [:service :root]) logo-path))}]) ; Fallback path.
+    :src
+    (let [branding-path (or (get-in details [:images :logo]) ; Path when it's from registry.
+                            (get-in details [:branding :images :logo])) ; Path when it's the current mine.
+          fallback-path (str (get-mine-url details) logo-path)] ; Fallback path.
+      (if (or (empty? branding-path)
+              (= branding-path ignore-logo-path))
+        fallback-path
+        branding-path))}])
 
 (defn update-form [atom key evt]
   (swap! atom assoc key (oget evt :target :value)))
