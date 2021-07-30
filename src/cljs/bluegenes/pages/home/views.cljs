@@ -10,7 +10,8 @@
             [goog.string :as gstring]
             [cljs-time.format :as time-format]
             [cljs-time.coerce :as time-coerce]
-            [oops.core :refer [oget]]))
+            [oops.core :refer [oget]]
+            [bluegenes.components.bootstrap :refer [poppable]]))
 
 (defn mine-intro []
   (let [mine-name @(subscribe [:current-mine-human-name])
@@ -168,9 +169,18 @@
     (keyword (:namespace mine))
     (:id mine)))
 
+(defn get-mine-url
+  "Return the mine url.
+  Handles both mines from the registry and config."
+  [mine]
+  (if (contains? mine :url)
+    (:url mine)
+    (get-in mine [:service :root])))
+
 (defn mine-selector-preview []
   (let [{:keys [description name] :as preview-mine} @(subscribe [:home/preview-mine])
-        mine-ns (get-mine-ns preview-mine)]
+        mine-ns (get-mine-ns preview-mine)
+        external? (contains? @(subscribe [:registry-external]) mine-ns)]
     [:div.col-xs-10.col-xs-offset-1.col-sm-offset-0.col-sm-3.mine-preview
      {:style {:color (get-fg-color preview-mine)
               :background-color (get-bg-color preview-mine)}}
@@ -178,13 +188,25 @@
      (md-paragraph description)
      [:div.preview-image
       [mine-icon preview-mine :class "img-responsive"]]
-     [:button.btn.btn-block
-      {:on-click (fn [_]
-                   (dispatch [::route/navigate ::route/home {:mine mine-ns}])
-                   (dispatch [:scroll-to-top]))
-       :style {:color (get-fg-color preview-mine)
-               :background-color (get-bg-color preview-mine)}}
-      (str "Switch to " name)]]))
+     (if external?
+       [poppable
+        {:data "This mine will open in a new tab as it's incompatible due to either running an InterMine API version below 27 or being only available through unsecured HTTP when BlueGenes is accessed through HTTPS."
+         :options {:data-placement "bottom"}
+         :children [:a.btn.btn-block
+                    {:target "_blank"
+                     :href (get-mine-url preview-mine)
+                     :style {:fill (get-fg-color preview-mine)
+                             :color (get-fg-color preview-mine)
+                             :background-color (get-bg-color preview-mine)}}
+                    (str "Open " name)
+                    [icon "external"]]}]
+       [:button.btn.btn-block
+        {:on-click (fn [_]
+                     (dispatch [::route/navigate ::route/home {:mine mine-ns}])
+                     (dispatch [:scroll-to-top]))
+         :style {:color (get-fg-color preview-mine)
+                 :background-color (get-bg-color preview-mine)}}
+        (str "Switch to " name)])]))
 
 (defn mine-selector []
   (let [mines @(subscribe [:home/mines-by-neighbourhood])

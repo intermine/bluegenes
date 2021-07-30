@@ -29,14 +29,20 @@
  (fn [db]
    (:registry db)))
 
+(reg-sub
+ :registry-external
+ (fn [db]
+   (:registry-external db)))
+
 ;; Combines registry and configured mines, merging mines with the same namespace.
 ;; For when we want to display them all together!
 (reg-sub
  :registry+configured-mines
  :<- [:registry]
+ :<- [:registry-external]
  :<- [:env/mines]
- (fn [[registry configured]]
-   (merge configured registry)))
+ (fn [[registry registry-external configured]]
+   (merge configured registry registry-external)))
 
 ;; Removes configured mines from registry.
 ;; For when we want to display them separate!

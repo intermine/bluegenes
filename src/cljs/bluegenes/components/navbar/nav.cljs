@@ -9,7 +9,9 @@
             [bluegenes.components.icons :refer [icon-comp]]
             [bluegenes.time :as time]
             [clojure.string :as str]
-            [bluegenes.config :refer [read-default-ns]]))
+            [bluegenes.config :refer [read-default-ns]]
+            [bluegenes.components.bootstrap :refer [poppable]]
+            [bluegenes.components.icons :refer [icon]]))
 
 (def ^:const logo-path "/model/images/logo.png")
 
@@ -200,41 +202,49 @@
 
 (defn mine-entry
   "Output a single mine in the mine picker"
-  [mine-key details & {:keys [current?]}]
+  [mine-key details & {:keys [current? external?]}]
   [:li
    (when-let [desc (not-empty (:description details))]
      {:title desc})
-   [:a (if current?
-         {:class "current"}
-         {:href (route/href ::route/home {:mine mine-key})})
+   [:a (cond
+         current? {:class "current"}
+         external? {:target "_blank" :href (:url details)}
+         :else {:href (route/href ::route/home {:mine mine-key})})
     [mine-icon details]
     (str (:name details)
          (when (= mine-key (read-default-ns))
-           " (default)"))]])
+           " (default)"))
+    (when external?
+      [icon "external"])]])
 
 (defn mine-picker []
   (let [current-mine-name @(subscribe [:current-mine-name])
         current-mine @(subscribe [:current-mine])
         registry @(subscribe [:registry-wo-configured-mines])
-        configured-mines @(subscribe [:env/mines])]
+        registry-external @(subscribe [:registry-external])
+        configured-mines @(subscribe [:env/mines])
+        map-mines (fn [mines & {:keys [external?]}]
+                    (map (fn [[mine-key details]]
+                           ^{:key mine-key}
+                           [mine-entry mine-key details
+                            :current? (= mine-key current-mine-name)
+                            :external? external?])
+                         (sort-by (comp :name val) mines)))]
     [:li.minename.mine-settings.dropdown.primary-nav
      [:a.dropdown-toggle {:data-toggle "dropdown" :role "button"}
       [active-mine-logo current-mine]
       [:span.hidden-xs (:name current-mine)]
       [:svg.icon.icon-caret-down [:use {:xlinkHref "#icon-caret-down"}]]]
      (into [:ul.dropdown-menu.mine-picker]
-           (concat (map (fn [[mine-key details]]
-                          ^{:key mine-key}
-                          [mine-entry mine-key details
-                           :current? (= mine-key current-mine-name)])
-                        (sort-by (comp :name val) configured-mines))
+           (concat (map-mines configured-mines)
                    (when (seq registry)
                      [[:li.header [:h4 "Registry mines"]]])
-                   (map (fn [[mine-key details]]
-                          ^{:key mine-key}
-                          [mine-entry mine-key details
-                           :current? (= mine-key current-mine-name)])
-                        (sort-by (comp :name val) registry))))]))
+                   (map-mines registry)
+                   (when (seq registry-external)
+                     [[:li.header [:h4 "Incompatible mines"
+                                   [poppable {:data "These mines are incompatible due to either running an InterMine API version below 27 or being only available through unsecured HTTP when BlueGenes is accessed through HTTPS. Selecting any of them will open a new tab."
+                                              :children [icon "question"]}]]]])
+                   (map-mines registry-external :external? true)))]))
 
 (def queries-to-show 5)
 
