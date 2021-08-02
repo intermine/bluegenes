@@ -37,11 +37,12 @@ describe("Regions Test", function(){
 
     it("can select the coordinate system", function(){
         cy.get(".radio-group").within(() => {
-            // cy.get('[type="radio"]').eq(1).check({force:true});
-            cy.get(':nth-child(3) > .check').should("not.be.visible");
-            cy.get(':nth-child(3) > .circle').click();
-            cy.wait(500);
-            cy.get(':nth-child(3) > .check').should("be.visible");
+            cy.contains("interbase").within(() => {
+                cy.get(".check").should("not.be.visible");
+                cy.get(".circle").should("be.visible").click();
+                cy.wait(500);
+                cy.get(".check").should("be.visible");
+            })
         })
     })
 
@@ -50,6 +51,7 @@ describe("Regions Test", function(){
             cy.get('.toggle').click();
             cy.wait(500);
         })
+        // Write assertion
     })
 
     it("can extend gene search region by clicking", function(){
@@ -58,12 +60,14 @@ describe("Regions Test", function(){
                 cy.contains("100k").click();
                 cy.wait(500);
             })
+            cy.get(".form-control").eq(1).should("have.value","100k");
         })
     })
 
     it("can extend gene search region by inputing in the text box", function(){
         cy.get(".extend-region").within(() => {
-            cy.get("input.form-control").eq(0).type("138k{enter}",{delay:100});
+            cy.get("input.form-control").eq(1).clear().type("138k{enter}",{delay:100});
+            cy.get("input.form-control").eq(1).should("have.value","138k");
         })
     })
 
@@ -74,6 +78,8 @@ describe("Regions Test", function(){
                 cy.contains("100k").click();
                 cy.wait(500);
             })
+            cy.get("input.form-control").eq(1).should("have.value","100k");
+            cy.get("input.form-control").eq(2).should("have.value","0");
         })
     })
 
@@ -104,11 +110,11 @@ describe("Regions Test", function(){
         })
         cy.intercept("POST","/biotestmine/service/query/results").as("queryResults");
         cy.wait("@queryResults");
-        cy.get(".query-title").should("exist");
         cy.url().should("include","/results");
+        cy.get(".query-title").should("include.text","Gene");
     })
 
-    it("can view all features in search region in a results table", function(){
+    it.only("can view all features in search region in a results table", function(){
         cy.get(".input-section").within(() => {
             cy.contains("Show Example").click();
             cy.get("textarea").should("include.text","MAL");
