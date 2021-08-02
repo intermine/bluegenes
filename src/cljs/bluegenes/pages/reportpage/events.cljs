@@ -363,13 +363,18 @@
                                  (get-in db [:env :mines])))
          registry-mines (get db :registry)
          neighbourhood (set (get-in registry-mines [mine-kw :neighbours]))
+         ;; Neighbourhood is empty in the scenario that current mine isn't on the registry.
+         ;; That means we can't tell its neighbours, so we use env mines instead.
          neighbour-mines (if (empty? neighbourhood)
-                           env-mines
-                           ;; This does a merge with a depth of one. This means
-                           ;; mine properties from the registry will be kept
-                           ;; unless an env mine defines the same property (as
-                           ;; opposed to all registry properties being replaced
-                           ;; by only env properties).
+                           ;; `merge-with merge` does a merge with a depth of
+                           ;; one. This means mine properties from the registry
+                           ;; will be kept unless an env mine defines the same
+                           ;; property (as opposed to all registry properties
+                           ;; being replaced by only env properties).
+                           (merge-with merge
+                                       ;; If env-mines are in the registry, we want their extra metadata.
+                                       (select-keys registry-mines (keys env-mines))
+                                       env-mines)
                            (merge-with merge
                                        (into {}
                                              (remove (fn [[_ {:keys [neighbours]}]]
