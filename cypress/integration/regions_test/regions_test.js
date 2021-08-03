@@ -35,32 +35,58 @@ describe("Regions Test", function(){
         cy.url().should("include","/report");
     });
 
-    it("can select the coordinate system", function(){
-        cy.get(".radio-group").within(() => {
-            cy.contains("interbase").within(() => {
-                cy.get(".check").should("not.be.visible");
-                cy.get(".circle").should("be.visible").click();
-                cy.wait(500);
-                cy.get(".check").should("be.visible");
+    it("can search regions with interbase coordinates", function(){
+        cy.get(".input-section").within(() => {
+            cy.get("textarea").clear().type("MAL1:0..30000",{delay:100});
+            cy.get(".radio-group").within(() => {
+                cy.contains("interbase").within(() => {
+                    cy.get(".check").should("not.be.visible");
+                    cy.get(".circle").should("be.visible").click();
+                    cy.wait(500);
+                    cy.get(".check").should("be.visible");
+                })
             })
+            cy.get("button").filter(':contains("Search")').click();
+        })
+        cy.get(".results").within(() => {
+            cy.get("#region-result-0 > span").should("include.text","MAL1 1..30000");
         })
     })
 
     it("can select to perform strand-specific region search", function(){
-        cy.get(".togglebutton").within(() => {
-            cy.get('.toggle').click();
-            cy.wait(500);
+        cy.get(".input-section").within(() => {
+            cy.get("textarea").clear().type("MAL1:0..30000",{delay:100});
+            cy.get(".togglebutton").within(() => {
+                cy.get('.toggle').click();
+                cy.wait(500);
+            })
+            cy.get("button").filter(':contains("Search")').click();
         })
-        // Write assertion
+        cy.get(".results > #region-result-0").within(() => {
+            cy.get(".icon-arrow-right").should("exist");
+        })
     })
 
-    it("can extend gene search region by clicking", function(){
+    it("can extend gene search region by clicking tick marks", function(){
         cy.get(".extend-region").within(() => {
             cy.get(".slider-ticks").eq(0).within(() => {
                 cy.contains("100k").click();
                 cy.wait(500);
             })
             cy.get(".form-control").eq(1).should("have.value","100k");
+        })
+    })
+
+    it("can extend gene search region by sliders", function(){
+        cy.get(".input-section").within(() => {
+            cy.get("textarea").clear().type("MAL1:0..30000",{delay:100});
+        })
+        cy.get(".extend-region").within(() => {
+            cy.get('input[type="range"]').eq(0)
+            .then($el => $el[0].stepUp(40))
+            .trigger('change');
+            cy.wait(500);
+            cy.get(".form-control").eq(1).should("have.value","10k");
         })
     })
 
@@ -114,7 +140,7 @@ describe("Regions Test", function(){
         cy.get(".query-title").should("include.text","Gene");
     })
 
-    it.only("can view all features in search region in a results table", function(){
+    it("can view all features in search region in a results table", function(){
         cy.get(".input-section").within(() => {
             cy.contains("Show Example").click();
             cy.get("textarea").should("include.text","MAL");
