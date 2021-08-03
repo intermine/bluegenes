@@ -1,0 +1,15 @@
+# UCSC BED format
+# Source: BioTestMine
+# Genome Build: P. falciparum 3D7 unknown build
+track name=BioTestMine_tutorial_Custom_Track description="BioTestMine tutorial Custom Track" useScore=0
+chrMAL1	29732	37349	PFA0005w	0	+
+chrMAL1	29732	34985	exon.46112	0	+
+chrMAL1	29732	37349	mRNA.46110	0	+
+chrMAL1	36110	37349	exon.46111	0	+
+chrMAL1	393757	394189	PFA0500w	0	+
+chrMAL1	393757	394189	exon.46617	0	+
+chrMAL1	393757	394189	mRNA.46616	0	+
+chrMAL9	1495566	1503324	PFI1830c	0	-
+chrMAL9	1495566	1496973	exon.66609	0	-
+chrMAL9	1495566	1503324	mRNA.66607	0	+
+chrMAL9	1497936	1503324	exon.66608	0	-
