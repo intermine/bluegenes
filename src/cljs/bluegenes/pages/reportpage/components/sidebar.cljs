@@ -128,11 +128,17 @@
                                                     (not expanded?) (take entries-to-show))]
                              (into [:div
                                     [:span.organism organism]]
-                                   (for [gene genes]
-                                     [:a {:href (route/href ::route/report {:mine mine-kw
-                                                                            :type "Gene"
-                                                                            :id (:id gene)})}
-                                      (some gene [:symbol :primaryIdentifier :secondaryIdentifier])])))
+                                   (for [gene genes
+                                         :let [nom (some gene [:symbol :primaryIdentifier :secondaryIdentifier])]]
+                                     (if (:external? mine)
+                                       [:a {:target "_blank"
+                                            :href (str (:url mine) "/report.do?id=" (:id gene))}
+                                        nom
+                                        [icon-comp "external"]]
+                                       [:a {:href (route/href ::route/report {:mine mine-kw
+                                                                              :type "Gene"
+                                                                              :id (:id gene)})}
+                                        nom]))))
 
                            :else
                            [[:span "No results"]]))
