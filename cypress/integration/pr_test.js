@@ -59,14 +59,14 @@ describe("UI Test", function() {
 
   it("Gives suggestion results when typing in search", function() {
     cy.get(".home .search").within(() => {
-      cy.get("input[class=typeahead-search]").type("mal*");
+      cy.get("input[class=typeahead-search]").type("mal*",{delay:100});
       cy.get(".quicksearch-result").its('length').should("be.gt", 0);
     });
   });
 
   it("Opens the search page to show search results", function() {
     cy.get(".home .search").within(() => {
-      cy.get("input[class=typeahead-search]").type("mal*{enter}");
+      cy.get("input[class=typeahead-search]").type("mal*{enter}",{delay:100});
     });
     cy.url().should("include", "/search");
 
