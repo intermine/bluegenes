@@ -53,7 +53,7 @@ describe("Regions Test", function(){
         })
     })
 
-    it("can select to perform strand-specific region search", function(){
+    it("can perform region search in the leading strand", function(){
         cy.get(".input-section").within(() => {
             cy.get("textarea").clear().type("MAL1:0..30000",{delay:100});
             cy.get(".togglebutton").within(() => {
@@ -66,14 +66,27 @@ describe("Regions Test", function(){
             cy.get(".icon-arrow-right").should("exist");
         })
     })
+    it("can perform region search in the lagging strand", function(){
+        cy.get(".input-section").within(() => {
+            cy.get("textarea").clear().type("MAL1:30000..0",{delay:100});
+            cy.get(".togglebutton").within(() => {
+                cy.get('.toggle').click();
+                cy.wait(500);
+            })
+            cy.get("button").filter(':contains("Search")').click();
+        })
+        cy.get(".results > #region-result-0").within(() => {
+            cy.get(".icon-arrow-left").should("exist");
+        })
+    })
 
     it("can extend gene search region by clicking tick marks", function(){
         cy.get(".extend-region").within(() => {
             cy.get(".slider-ticks").eq(0).within(() => {
-                cy.contains("100k").click();
+                cy.contains("1k").click();
                 cy.wait(500);
             })
-            cy.get(".form-control").eq(1).should("have.value","100k");
+            cy.get(".form-control").eq(1).should("have.value","1k");
         })
     })
 
