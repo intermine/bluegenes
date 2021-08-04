@@ -1,3 +1,7 @@
+## 1.2.1
+
+- Fix authentication errors with 5XX response codes not being handled
+
 ## 1.2.0
 
 - Cache busting for Tools' dist files (browser should immediately catch up when a tool is updated)
