@@ -172,7 +172,7 @@
            multipart-params
            response-format
            on-success
-           on-error
+           on-failure
            on-unauthorised
            on-progress-upload
            progress]}]
@@ -196,7 +196,7 @@
             (cond
               (<= 200 status 399) (when on-success (dispatch (conj on-success body)))
               (<= 400 status 499) (when on-unauthorised (dispatch (conj on-unauthorised response)))
-              (<= 500 status 599) (when on-error (dispatch (conj on-error response)))
+              (<= 500 status 599) (when on-failure (dispatch (conj on-failure response)))
               :else nil)))
       (when on-progress-upload
         (go-loop []
@@ -218,7 +218,7 @@
                     :uri "/api"
                     :json-params {:value 1 :another 2}
                     :on-success [:some-success-event]
-                    :on-error [:some-failure-event]}})))
+                    :on-failure [:some-failure-event]}})))
 
 (comment
   (reg-event-fx :do-a/query
@@ -227,7 +227,7 @@
                    ; or... ::fx/im-chan if the namespace is referred
                    {:chan (imcljs.fetch/rows service query options)
                     :on-success [:save-query-results-event]
-                    :on-error [:warn-user-about-error-event]}})))
+                    :on-failure [:warn-user-about-error-event]}})))
 
 ;; Switching mines is usually so quick that we don't need a loader.
 ;; But if it were to take a long time, we'll show a loader.

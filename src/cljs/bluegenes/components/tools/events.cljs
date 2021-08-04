@@ -11,7 +11,7 @@
                :uri "/api/tools/all"
                :on-success [::success-fetch-tools]
                :on-unauthorised [::error-fetch-tools evt]
-               :on-error [::error-fetch-tools evt]}}))
+               :on-failure [::error-fetch-tools evt]}}))
 
 (reg-event-db
  ::success-fetch-tools
@@ -39,7 +39,7 @@
                          "?q=keywords:bluegenes-intermine-tool")
                :on-success [::success-fetch-npm-tools]
                :on-unauthorised [::error-fetch-tools evt]
-               :on-error [::error-fetch-tools evt]}}))
+               :on-failure [::error-fetch-tools evt]}}))
 
 (reg-event-db
  ::success-fetch-npm-tools
@@ -68,7 +68,7 @@
                :uri "/api/tools/path"
                :on-success [::success-fetch-tool-path]
                :on-unauthorised [::error-fetch-tools evt]
-               :on-error [::error-fetch-tools evt]}}))
+               :on-failure [::error-fetch-tools evt]}}))
 
 (reg-event-db
  ::success-fetch-tool-path

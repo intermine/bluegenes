@@ -20,7 +20,7 @@
                 :json-params {:package tool-name}
                 :on-success [::success-tool]
                 :on-unauthorised [::error-tool]
-                :on-error [::error-tool]}]}))
+                :on-failure [::error-tool]}]}))
 
 (reg-event-fx
  ::uninstall-tool
@@ -31,7 +31,7 @@
                 :json-params {:package tool-name}
                 :on-success [::success-tool]
                 :on-unauthorised [::error-tool]
-                :on-error [::error-tool]}]}))
+                :on-failure [::error-tool]}]}))
 
 (reg-event-fx
  ::update-all-tools
@@ -44,7 +44,7 @@
                   :json-params {:packages tool-names}
                   :on-success [::success-tool]
                   :on-unauthorised [::error-tool]
-                  :on-error [::error-tool]}]})))
+                  :on-failure [::error-tool]}]})))
 
 (reg-event-fx
  ::install-all-tools
@@ -57,7 +57,7 @@
                   :json-params {:packages tool-names}
                   :on-success [::success-tool]
                   :on-unauthorised [::error-tool]
-                  :on-error [::error-tool]}]})))
+                  :on-failure [::error-tool]}]})))
 
 ;; # How we communicate tool operations to the user
 ;;     SUB   :bluegenes.pages.developer.subs/tool-working?
