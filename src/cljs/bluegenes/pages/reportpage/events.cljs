@@ -13,11 +13,14 @@
 
 (defn views->results
   "Convert a `fetch/rows` response map into a vector of maps from keys
-  corresponding to the tail of the view, and values being the pair of the key.
+  corresponding to the `rest` of the view, and values being the pair of the key.
   Ex. [{:name 'BioGRID interaction data set' :url 'http://www.thebiogrid.org/downloads.php'}
        {:name 'Panther orthologue and paralogue predictions' :url 'http://pantherdb.org/'}]"
   [{:keys [views results] :as _res}]
-  (let [concise-views (map #(-> % (string/split #"\.") last keyword)
+  ;; Views will be transformed:
+  ;; "Gene.symbol" -> "symbol"
+  ;; "Gene.organism.shortName" -> "organism.shortName"
+  (let [concise-views (map #(keyword (string/replace % #"^[^.]*\." ""))
                            views)]
     (mapv (partial zipmap concise-views)
           results)))
@@ -46,6 +49,23 @@
                fasta
                :fasta/none))))
 
+(reg-event-fx
+ ::fetch-strand
+ (fn [{db :db} [_ mine-kw type id]]
+   (let [service (get-in db [:mines mine-kw :service])
+         q {:from type
+            :select ["chromosomeLocation.strand"]
+            :where [{:path "id"
+                     :op "="
+                     :value id}]}]
+     {:im-chan {:chan (fetch/rows service q {:format "json"})
+                :on-success [::handle-strand]}})))
+
+(reg-event-db
+ ::handle-strand
+ (fn [db [_ {:keys [results]}]]
+   (assoc-in db [:report :strand] (get-in results [0 0]))))
+
 (defn class-has-fasta? [hier class-kw]
   (or (= class-kw :Protein)
       (isa? hier class-kw :SequenceFeature)))
@@ -68,17 +88,21 @@
       sequence-class? :fasta/none)))
 
 (defn lookup-value
-  "Takes a gene summary response and returns the value best used for LOOKUP query."
+  "Takes a gene summary response and returns the values best used for a LOOKUP
+  query, as a vector of value and extraValue."
   [summary]
   (let [results (first (views->results summary))]
-    (some results [:primaryIdentifier :secondaryIdentifier :symbol])))
+    [(some results [:primaryIdentifier :secondaryIdentifier :symbol])
+     (some results [:organism.shortName :organism.name])]))
 
 (reg-event-fx
  :handle-report-summary
  [document-title]
  (fn [{db :db} [_ mine-kw type id summary]]
    (if (seq (:results summary))
-     (let [fasta-action (check-fasta (get-in db [:mines mine-kw :model-hier]) (keyword type) summary)]
+     (let [hier (get-in db [:mines mine-kw :model-hier])
+           class-kw (keyword type)
+           fasta-action (check-fasta hier class-kw summary)]
        {:db (-> db
                 (assoc-in [:report :summary] summary)
                 (assoc-in [:report :title] (utils/title-column summary))
@@ -89,7 +113,9 @@
                      (when (= fasta-action :fasta/fetch)
                        [:fetch-fasta mine-kw type id])
                      (when (= type "Gene")
-                       [::fetch-homologues mine-kw (lookup-value summary)])]})
+                       [::fetch-homologues mine-kw (lookup-value summary)])
+                     (when (isa? hier class-kw :SequenceFeature)
+                       [::fetch-strand mine-kw type id])]})
      ;; No results mean the object ID likely doesn't exist.
      {:db (-> db
               (assoc-in [:report :error] {:type :not-found})
@@ -314,37 +340,53 @@
     "homologues.homologue"))
 
 (defn homologue-query
-  [gene-name {mine-ns :namespace :as _mine}]
+  [[value extraValue] {mine-ns :namespace ?organisms :organisms :as _mine}]
   {:from "Gene"
    :select ["id"
             "symbol"
             "primaryIdentifier"
             "secondaryIdentifier"
             "organism.shortName"]
-   :where [{:path (shim-homologue-path mine-ns)
-            :op "LOOKUP"
-            :value gene-name}]})
+   :where (cond-> [{:path (shim-homologue-path mine-ns)
+                    :op "LOOKUP"
+                    :value value
+                    :extraValue extraValue}]
+            (seq ?organisms) ; Won't exist for env mines.
+            (conj {:path "organism"
+                   :op "LOOKUP"
+                   :value (string/join ", " ?organisms)}))})
 
 (reg-event-fx
  ::fetch-homologues
- (fn [{db :db} [_ mine-kw gene-name]]
+ (fn [{db :db} [_ mine-kw lookup]]
    (let [env-mines (into {} (map #(update % 1 env->registry)
                                  (get-in db [:env :mines])))
          registry-mines (get db :registry)
          neighbourhood (set (get-in registry-mines [mine-kw :neighbours]))
+         ;; Neighbourhood is empty in the scenario that current mine isn't on the registry.
+         ;; That means we can't tell its neighbours, so we use env mines instead.
          neighbour-mines (if (empty? neighbourhood)
-                           env-mines
-                           (merge
-                            (into {}
-                                  (remove (fn [[_ {:keys [neighbours]}]]
-                                            (empty? (set/intersection neighbourhood (set neighbours))))
-                                          registry-mines))
-                            env-mines))]
+                           ;; `merge-with merge` does a merge with a depth of
+                           ;; one. This means mine properties from the registry
+                           ;; will be kept unless an env mine defines the same
+                           ;; property (as opposed to all registry properties
+                           ;; being replaced by only env properties).
+                           (merge-with merge
+                                       ;; If env-mines are in the registry, we want their extra metadata.
+                                       (select-keys registry-mines (keys env-mines))
+                                       env-mines)
+                           (merge-with merge
+                                       (into {}
+                                             (remove (fn [[_ {:keys [neighbours]}]]
+                                                       (empty? (set/intersection neighbourhood (set neighbours))))
+                                                     registry-mines))
+                                       ;; We interpret the env mines as more final than registry, and prefer the env namespace and url (service root).
+                                       env-mines))]
      {:dispatch-n (for [mine (-> neighbour-mines (dissoc mine-kw) vals)]
                     [::fetch-mine-homologues
                      {:root (:url mine)
                       :model {:name "genomic"}}
-                     (homologue-query gene-name mine)
+                     (homologue-query lookup mine)
                      mine])})))
 
 (reg-event-fx
@@ -364,7 +406,7 @@
    (update-in db [:report :homologues mine-kw] assoc
               :loading? false
               :homologues (when (seq (:results res))
-                            (group-by :shortName (views->results res))))))
+                            (group-by :organism.shortName (views->results res))))))
 
 (reg-event-db
  ::handle-mine-homologues-failure

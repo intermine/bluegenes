@@ -40,7 +40,8 @@
             collapsed? (or @collapsed-tool?
                            threshold-halted?
                            (and (not @override-collapse*)
-                                collapse))]
+                                collapse))
+            description (or description (get-in tool-details [:config :description]))]
         [:div.report-item
          {:class (when collapsed? :report-item-collapsed)
           :id (or id (str tool-id "-container"))}
@@ -58,7 +59,8 @@
                        (reset! override-collapse* true))}
           [:span.report-item-title
            (clean-tool-name human)
-           (when description [description-dropdown description])
+           (when (not-empty description)
+             [description-dropdown description])
            [poppable {:data [:span "This is a visualization and may take longer to load. If you click to collapse, it will stay hidden on all pages until you expand it again."]
                       :children [icon "bar-chart"]}]]
           (when threshold-halted?

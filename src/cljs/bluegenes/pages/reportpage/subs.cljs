@@ -174,3 +174,9 @@
  :<- [::report]
  (fn [report]
    (:share report)))
+
+(reg-sub
+ ::strand
+ :<- [::report]
+ (fn [report]
+   (:strand report)))

@@ -56,4 +56,11 @@
       plus    [icon "arrow-right"]
       minus   [icon "arrow-left"]
       unknown nil
-      (str " " strand " "))))
+      (str " " strand " ")))
+
+  (defn strand-cell [strand]
+    (condp contains? strand
+      plus    "+"
+      minus   "−"
+      unknown "∙"
+      strand)))

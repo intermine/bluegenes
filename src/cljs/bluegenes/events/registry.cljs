@@ -48,13 +48,19 @@
  ::success-fetch-registry
  (fn [{db :db} [_ mines]]
    (let [;; they *were* in an array, but a map would be easier to reference mines
-         registry (into {} (comp (filter #(>= (js/parseInt (:api_version %) 10)
-                                              version/minimum-intermine))
-                                 (filter #(compatible-protocol? (:url %)))
-                                 (map (juxt (comp keyword :namespace) identity)))
-                        mines)
+         [registry registry-external]
+         (reduce (fn [[compatible incompatible] mine]
+                   (if (and (>= (js/parseInt (:api_version mine) 10)
+                                version/minimum-intermine)
+                            (compatible-protocol? (:url mine)))
+                     [(assoc compatible (-> mine :namespace keyword) mine) incompatible]
+                     [compatible (assoc incompatible (-> mine :namespace keyword) mine)]))
+                 [{} {}]
+                 mines)
+         db-with-registry (assoc db
+                                 :registry registry
+                                 :registry-external registry-external)
          current-mine (:current-mine db)
-         db-with-registry (assoc db :registry registry)
          default-ns (read-default-ns)
          config-mines (get-in db [:env :mines])]
      (cond

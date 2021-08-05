@@ -123,10 +123,11 @@
 
 (defn init-configured-mine
   "Parse configured mine data passed from BlueGenes config."
-  [{:keys [root name namespace]}]
+  [{:keys [root name namespace external]}]
   {:id (keyword namespace)
    :name name
-   :service {:root root}})
+   :service {:root root}
+   :external? external})
 
 (defn init-mine-defaults
   "Load default mine data, as passed from a coupled InterMine or defined in

@@ -14,6 +14,7 @@
             [bluegenes.route :as route]
             [bluegenes.components.viz.views :as viz]
             [bluegenes.components.icons :refer [icon icon-comp]]
+            [bluegenes.pages.regions.utils :refer [strand-cell]]
             [clojure.string :as str]
             [bluegenes.components.bootstrap :refer [poppable]]
             [bluegenes.utils :refer [encode-file]]
@@ -235,9 +236,12 @@
         fasta               @(subscribe [::subs/fasta])
         chromosome-location @(subscribe [::subs/chromosome-location])
         fasta-length        @(subscribe [::subs/fasta-length])
+        strand              @(subscribe [::subs/strand])
         entries (->> (concat (sort-by key (filter val (zipmap columnHeaders (first results))))
                              (when (not-empty chromosome-location)
                                [^{:type :location} ["Chromosome Location" chromosome-location]])
+                             (when strand
+                               [["Strand" (strand-cell strand)]])
                              (when fasta
                                [^{:type :fasta} ["Sequence Length" fasta-length]]))
                      (partition-all 2))]
@@ -254,9 +258,9 @@
                        :fasta [summary-fasta cell]
                        [:<>
                         [:div.report-table-cell.report-table-header
-                         (-> cell key (str/split " > ") last)]
+                         (-> cell first (str/split " > ") last)]
                         [:div.report-table-cell
-                         (-> cell val (or "N/A") anchor-if-url)]])))))
+                         (-> cell second (or "N/A") anchor-if-url)]])))))
      [:div.hidden-lg.sidebar-collapsed
       [sidebar/main]]]))
 
