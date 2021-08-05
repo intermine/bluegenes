@@ -145,7 +145,8 @@
              :biotestmine {;; We'd prefer to have resource path config/defaults here, but for some reason that makes the envvars below not apply.
                            :env {:bluegenes-default-service-root "http://localhost:9999/biotestmine"
                                  :bluegenes-default-mine-name "Biotestmine"
-                                 :bluegenes-default-namespace "biotestmine"}}}
+                                 :bluegenes-default-namespace "biotestmine"
+                                 :bluegenes-additional-mines [{:root "https://www.flymine.org/flymine" :name "FlyMine" :namespace "flymine"}]}}}
 
   :cljsbuild {:builds {:dev {:source-paths ["src/cljs"]
                              :figwheel {:on-jsload "bluegenes.core/mount-root"}
