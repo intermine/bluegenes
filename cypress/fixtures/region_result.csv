@@ -1,0 +1,5 @@
+"Sequence Feature > DB identifier","Sequence Feature > Symbol","Sequence Feature > Chromosome Location > Located On > DB identifier","Sequence Feature > Chromosome Location . Start","Sequence Feature > Chromosome Location . End","Sequence Feature > Organism . Name"
+"PFA0005w","","MAL1","29733","37349","Plasmodium falciparum 3D7"
+"exon.46112","","MAL1","29733","34985","Plasmodium falciparum 3D7"
+"mRNA.46110","","MAL1","29733","37349","Plasmodium falciparum 3D7"
+"exon.46111","","MAL1","36111","37349","Plasmodium falciparum 3D7"

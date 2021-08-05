@@ -1,0 +1,12 @@
+##gff-version 3
+MAL1	BioTestMine	gene	29733	37349	.	+	.	ID=PFA0005w;chromosomeLocation.locatedOn.primaryIdentifier=MAL1;organism.name=Plasmodium falciparum 3D7
+MAL1	BioTestMine	exon	29733	34985	.	+	.	ID=exon.46112;chromosomeLocation.locatedOn.primaryIdentifier=MAL1;organism.name=Plasmodium falciparum 3D7
+MAL1	BioTestMine	mRNA	29733	37349	.	+	.	ID=mRNA.46110;chromosomeLocation.locatedOn.primaryIdentifier=MAL1;organism.name=Plasmodium falciparum 3D7
+MAL1	BioTestMine	exon	36111	37349	.	+	.	ID=exon.46111;chromosomeLocation.locatedOn.primaryIdentifier=MAL1;organism.name=Plasmodium falciparum 3D7
+MAL1	BioTestMine	gene	393758	394189	.	+	.	ID=PFA0500w;chromosomeLocation.locatedOn.primaryIdentifier=MAL1;organism.name=Plasmodium falciparum 3D7
+MAL1	BioTestMine	exon	393758	394189	.	+	.	ID=exon.46617;chromosomeLocation.locatedOn.primaryIdentifier=MAL1;organism.name=Plasmodium falciparum 3D7
+MAL1	BioTestMine	mRNA	393758	394189	.	+	.	ID=mRNA.46616;chromosomeLocation.locatedOn.primaryIdentifier=MAL1;organism.name=Plasmodium falciparum 3D7
+MAL9	BioTestMine	gene	1495567	1503324	.	-	.	ID=PFI1830c;chromosomeLocation.locatedOn.primaryIdentifier=MAL9;organism.name=Plasmodium falciparum 3D7
+MAL9	BioTestMine	exon	1495567	1496973	.	-	.	ID=exon.66609;chromosomeLocation.locatedOn.primaryIdentifier=MAL9;organism.name=Plasmodium falciparum 3D7
+MAL9	BioTestMine	mRNA	1495567	1503324	.	+	.	ID=mRNA.66607;chromosomeLocation.locatedOn.primaryIdentifier=MAL9;organism.name=Plasmodium falciparum 3D7
+MAL9	BioTestMine	exon	1497937	1503324	.	-	.	ID=exon.66608;chromosomeLocation.locatedOn.primaryIdentifier=MAL9;organism.name=Plasmodium falciparum 3D7

@@ -106,7 +106,7 @@ Cypress.Commands.add('isInViewport', element => {
 		cy.get(".login-form").should("contain", "Login to BioTestMine");
 		cy.get("input#email").type("test_user@mail_account");
 		cy.get("input[type='password']").type("secret");
-        cy.intercept('POST', '/api/auth/login').as('login');
+    cy.intercept('POST', '/api/auth/login').as('login');
 		cy.get(".login-form")
 			.find("button")
 			.contains('Login')
@@ -114,6 +114,21 @@ Cypress.Commands.add('isInViewport', element => {
         cy.wait('@login');
         cy.get(".logon.dropdown.success").should("exist").click();
         cy.get(".logon.dropdown.success").should("contain", "test_user@mail_account"); //flaky
+  })
+
+  Cypress.Commands.add('loginToUserAccount', (email,password) => {
+    cy.openLoginDialogue();
+		cy.get(".login-form").should("contain", "Login to BioTestMine");
+		cy.get("input#email").type(email);
+		cy.get("input[type='password']").type(password);
+    cy.intercept('POST', '/api/auth/login').as('login');
+		cy.get(".login-form")
+			.find("button")
+			.contains('Login')
+		 	.click();
+        cy.wait('@login');
+    cy.get(".logon.dropdown.success").should("exist").click();
+    cy.get(".logon.dropdown.success").should("contain", email); //flaky
   })
 
 // Cypress.Commands.add("openTemplatesTab", () => {
