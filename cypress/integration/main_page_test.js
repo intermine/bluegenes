@@ -61,7 +61,7 @@ describe("Main page test", function() {
     
     it("can access other intermine instances", function() {
         cy.get(".minename > .dropdown-toggle").click();
-        cy.contains("BeanMine").click();
-        cy.url().should("contain","/beanmine");
+        cy.contains("FlyMine").click();
+        cy.url().should("contain","/flymine");
     });
 });
