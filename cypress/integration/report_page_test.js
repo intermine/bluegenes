@@ -115,12 +115,12 @@ describe("Report Page Test", function(){
         cy.get(".im-table").should("exist");
     })
 
-    it("can access other mines", function(){
+    it("can access homologue of the gene in other mines", function(){
         cy.get(".other-mine").within(() => {
             cy.get(".mine").should("include.text","FlyMine");
             cy.get("img").should("exist");
-            cy.contains("Eip75B").should("exist").click();
+            cy.contains("Eip75B").should("exist").click(); //An example of a gene in flymine, not necessarily the homologue
         })
-        cy.url().should("include","/flymine");
+        cy.url().should("include","/flymine/report/Gene/1029368");
     })
 })
