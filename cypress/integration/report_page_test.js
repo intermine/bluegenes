@@ -2,8 +2,12 @@ describe("Report Page Test", function(){
     beforeEach(function(){
         cy.searchKeyword("GST");
         cy.get(".result").click();
+        cy.intercept('POST', 'https://www.flymine.org/flymine/service/query/results', {statusCode: 200,
+        body: {"modelName":"genomic","columnHeaders":["Gene > Id","Gene > Symbol","Gene > DB identifier","Gene > Secondary Identifier","Gene > Organism > Short Name"],"rootClass":"Gene","start":0,"views":["Gene.id","Gene.symbol","Gene.primaryIdentifier","Gene.secondaryIdentifier","Gene.organism.shortName"],"results":[
+        [1029368,"Eip75B","FBgn0000568","CG8127","D. melanogaster"]
+        ],"executionTime":"2021.08.12 13:10::26","wasSuccessful":true,"error":null,"statusCode":200}
+        })
         cy.url().should("include","/report");
-        // cy.visit("/biotestmine/report/Gene/1000292");
         cy.get('.report-page-heading').should("exist");
     });
 
@@ -114,7 +118,9 @@ describe("Report Page Test", function(){
     it("can access other mines", function(){
         cy.get(".other-mine").within(() => {
             cy.get(".mine").should("include.text","FlyMine");
-            cy.get("span").should("include.text","No results");
+            cy.get("img").should("exist");
+            cy.contains("Eip75B").should("exist").click();
         })
+        cy.url().should("include","/flymine");
     })
 })
