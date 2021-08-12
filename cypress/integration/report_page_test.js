@@ -110,4 +110,11 @@ describe("Report Page Test", function(){
         cy.url().should("include","/results");
         cy.get(".im-table").should("exist");
     })
+
+    it("can access other mines", function(){
+        cy.get(".other-mine").within(() => {
+            cy.get(".mine").should("include.text","FlyMine");
+            cy.get("span").should("include.text","No results");
+        })
+    })
 })
