@@ -22,13 +22,20 @@ describe("Enrichment Test", function(){
         cy.get(".pagination-label").should("include.text","4 rows");
     })
 
-    it("can download all enrichment results", function(){
+    it("can view and download all enrichment results", function(){
         cy.get(".enrichment").should("exist").within(() => {
             cy.get(".enrichment-category").eq(0).within(() => { 
                 cy.get(".icon-download").click();
             })
+            cy.get(".enrichment-header").should("exist").within(() => {
+                cy.get('[type="checkbox"]').check();
+                cy.wait(500);
+                cy.get('[type="checkbox"]').should("be.checked");
+            })
+            cy.contains("View").click();
         })
-        cy.readFile("cypress/downloads/Enrichment Results Gene Ontology Enrichment.tsv").then(newResult => {
+        cy.get('.pagination-label').should("include.text","172 rows");
+        cy.readFile("cypress/downloads/Enrichment analysis genes Gene Ontology Enrichment.tsv").then(newResult => {
             cy.readFile("cypress/fixtures/all_enrichment_result.tsv").should("eq",newResult);
         })
     })
@@ -45,7 +52,7 @@ describe("Enrichment Test", function(){
             cy.contains("View").click();
         })
         cy.get('.pagination-label').should("include.text","22 rows");
-        cy.readFile("cypress/downloads/Enrichment Results Gene Ontology Enrichment.tsv").then(newResult => {
+        cy.readFile("cypress/downloads/Enrichment analysis genes Gene Ontology Enrichment.tsv").then(newResult => {
             cy.readFile("cypress/fixtures/checked_enrichment_result.tsv").should("eq",newResult);
         })
     })
