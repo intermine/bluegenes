@@ -14,9 +14,10 @@ describe("Report Page Test", function(){
     it("can filter the topic of a search result", function(){
         cy.get(".report-page-filter").find("input").type("Publications{enter}",{delay:100});
         cy.get('.text-highlight').should("include.text","Publications").click();
-        cy.get('.report-item-title').should("include.text","Publications");
-        cy.get('.im-table').should("exist");
-        cy.isInViewport('.im-table');
+        cy.get(".report-item").eq(0).within(() => {
+            cy.get('.report-item-title').should("include.text","Publications");
+            cy.get('.im-table').should("exist");
+        })
     });
 
     it("can access a topic from the left sidebar", function(){
