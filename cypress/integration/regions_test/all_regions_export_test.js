@@ -13,7 +13,7 @@ describe("All Regions Export Test", function(){
         // files which may redirect to a a different baseURL.
         cy.window().document().then(function (doc) {
             doc.addEventListener('click', () => {
-              setTimeout(function () { doc.location.reload() }, 5000)
+              setTimeout(function () { doc.location.reload() }, 10000)
             })
         })
     });

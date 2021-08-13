@@ -45,7 +45,7 @@ Cypress.Commands.add("openListsTab", () => {
 
 Cypress.Commands.add("searchKeyword", (keyword) => {
     cy.visit("/biotestmine/search");
-    cy.get(".searchform > input").type(keyword + '{enter}',{delay:100});
+    cy.get(".searchform > input").type(keyword + '{enter}',{delay:200});
 })
 
 Cypress.Commands.add("selectFromDropdown", (keyword) => {
@@ -129,6 +129,23 @@ Cypress.Commands.add('isInViewport', element => {
         cy.wait('@login');
     cy.get(".logon.dropdown.success").should("exist").click();
     cy.get(".logon.dropdown.success").should("contain", email); //flaky
+  })
+
+  Cypress.Commands.add('createListFromFile', (filePath,listName) => {
+    cy.contains("Upload").click();
+    cy.contains("File Upload").click();
+    cy.contains("Browse").click();
+    cy.get('input[type="file"]').attachFile(filePath);
+    cy.intercept("POST","/api/ids/parse").as("listParse");
+    cy.contains("Continue").click();
+    cy.wait("@listParse");
+    cy.get('.title').should("exist");
+    cy.url().should("include","/save");
+    cy.get(".save-list > label > input").clear().type(listName,{delay:100});
+    cy.contains("Save List").click();
+    cy.intercept("POST","/biotestmine/service/query/results").as("resultsLoad");
+    cy.url().should("include","/results");
+    cy.wait("@resultsLoad");
   })
 
 // Cypress.Commands.add("openTemplatesTab", () => {

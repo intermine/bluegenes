@@ -2,7 +2,7 @@ describe("Regions Export Test", function(){
     beforeEach(function(){
         cy.visit("/biotestmine/regions");
         cy.get(".input-section").within(() => {
-            cy.get("textarea").clear().type("MAL1:29733..37349{enter}",{delay:100});
+            cy.get("textarea").clear().type("MAL1:29733..37349{enter}",{delay:200});
             cy.get("textarea").should("include.text","MAL");
             cy.intercept("POST","/biotestmine/service/query/results").as("regionSearch");
             cy.get("button").filter(':contains("Search")').click();

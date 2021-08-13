@@ -1,18 +1,23 @@
 describe("Report Page Test", function(){
     beforeEach(function(){
         cy.searchKeyword("GST");
+        cy.intercept('POST', 'https://www.flymine.org/flymine/service/query/results', {statusCode: 200,
+        body: {"modelName":"genomic","columnHeaders":["Gene > Id","Gene > Symbol","Gene > DB identifier","Gene > Secondary Identifier","Gene > Organism > Short Name"],"rootClass":"Gene","start":0,"views":["Gene.id","Gene.symbol","Gene.primaryIdentifier","Gene.secondaryIdentifier","Gene.organism.shortName"],"results":[
+        [1029368,"Eip75B","FBgn0000568","CG8127","D. melanogaster"]
+        ],"executionTime":"2021.08.12 13:10::26","wasSuccessful":true,"error":null,"statusCode":200}
+        })
         cy.get(".result").click();
         cy.url().should("include","/report");
-        // cy.visit("/biotestmine/report/Gene/1000292");
         cy.get('.report-page-heading').should("exist");
     });
 
     it("can filter the topic of a search result", function(){
         cy.get(".report-page-filter").find("input").type("Publications{enter}",{delay:100});
         cy.get('.text-highlight').should("include.text","Publications").click();
-        cy.get('.report-item-title').should("include.text","Publications");
-        cy.get('.im-table').should("exist");
-        cy.isInViewport('.im-table');
+        cy.get(".report-item").eq(0).within(() => {
+            cy.get('.report-item-title').should("include.text","Publications");
+            cy.get('.im-table').should("exist");
+        })
     });
 
     it("can access a topic from the left sidebar", function(){
@@ -109,5 +114,14 @@ describe("Report Page Test", function(){
         cy.contains("View all").click(); //Flaky
         cy.url().should("include","/results");
         cy.get(".im-table").should("exist");
+    })
+
+    it("can access homologue of the gene in other mines", function(){
+        cy.get(".other-mine").within(() => {
+            cy.get(".mine").should("include.text","FlyMine");
+            cy.get("img").should("exist");
+            cy.contains("Eip75B").should("exist").click(); //An example of a gene in flymine, not necessarily the homologue
+        })
+        cy.url().should("include","/flymine/report/Gene/1029368");
     })
 })
