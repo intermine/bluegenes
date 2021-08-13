@@ -36,7 +36,7 @@ describe("All Regions Export Test", function(){
         })
     })
 
-    it.only("can export results of region search in GFF3", function(){
+    it("can export results of region search in GFF3", function(){
         cy.intercept('**/service/query/results/**').as('records');
         cy.get(".results-actions").within(() => {
             cy.contains("GFF3").click();
