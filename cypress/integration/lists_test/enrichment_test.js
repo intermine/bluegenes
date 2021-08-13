@@ -58,13 +58,22 @@ describe("Enrichment Test", function(){
     })
 
     // Applying enrichment filters
-    it("can select test correction method and p-value", function(){
+    it("can select the test correction method", function(){
         cy.get(".enrichment").should("exist").within(() => {
             cy.intercept("POST","/biotestmine/service/list/enrichment").as("enrichmentLoad");
-            cy.contains("Max p-value").parent().find("select").eq(0).select("0.10");
+            // cy.contains("Max p-value").parent().find("select").eq(0).select("0.10");
             cy.get(".correction").find("select").select("Benjamini Hochberg");
             cy.wait("@enrichmentLoad");
             cy.get(".enrichment-p-value").eq(0).should("have.text","1.783148e-7");
+        })
+    })
+
+    it("can select the p-value", function(){
+        cy.get(".enrichment").should("exist").within(() => {
+            cy.intercept("POST","/biotestmine/service/list/enrichment").as("enrichmentLoad");
+            cy.contains("Max p-value").parent().find("select").eq(0).select("1.00");
+            cy.wait("@enrichmentLoad");
+            cy.contains("Gene Ontology Enrichment").should("include.text","(21)");
         })
     })
 
