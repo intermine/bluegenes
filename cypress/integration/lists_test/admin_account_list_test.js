@@ -136,17 +136,16 @@ describe("Admin account list test", function() {
         })
         cy.get(".css-1wy0on6").click().type("List 3{enter}",{delay:100},{force:true});
         cy.get(".css-1hwfws3").click().type("Subfolder 1{enter}",{delay:100},{force:true});
+        cy.intercept("GET","/biotestmine/service/lists").as("listLoad");
         cy.get(".modal-footer").within(() => {
             cy.contains("Move list(s)").click();
         })
+        cy.wait("@listLoad");
 
-        // // cy.contains("List 3").parentsUntil(".lists-item").within(() => {
-        // //     cy.get('.btn > icon').click(); 
-        // cy.get('.list-title').should("contain","Subfolder 1");
-        //flaky
-        cy.get('.list-actions > .btn > .icon').first().click();
+        cy.get('.list-title').should("contain","List 3");
+        cy.get('.icon-expand-folder').eq(0).click();
         cy.get('.list-title').should("contain","Subfolder 1");
-        cy.get('.list-actions > .btn > .icon').last().click();
+        cy.get('.icon-expand-folder').last().click();
         cy.get('.list-title').should("contain","Gene list");
     })
 });
