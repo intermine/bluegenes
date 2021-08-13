@@ -10,6 +10,7 @@ executors:
       BLUEGENES_DEFAULT_SERVICE_ROOT: "http://localhost:9999/biotestmine"
       BLUEGENES_DEFAULT_MINE_NAME: Biotestmine
       BLUEGENES_DEFAULT_NAMESPACE: biotestmine
+      BLUEGENES_ADDITIONAL_MINES: '[{:root "https://www.flymine.org/flymine" :name "FlyMine" :namespace "flymine"}]'
       CYPRESS_defaultCommandTimeout: 60000
       CYPRESS_requestTimeout: 60000
       CYPRESS_responseTimeout: 60000
