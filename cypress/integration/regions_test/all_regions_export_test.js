@@ -13,7 +13,7 @@ describe("All Regions Export Test", function(){
         // files which may redirect to a a different baseURL.
         cy.window().document().then(function (doc) {
             doc.addEventListener('click', () => {
-              setTimeout(function () { doc.location.reload() }, 5000)
+              setTimeout(function () { doc.location.reload() }, 10000)
             })
         })
     });
@@ -36,7 +36,7 @@ describe("All Regions Export Test", function(){
         })
     })
 
-    it("can export results of region search in GFF3", function(){
+    it.only("can export results of region search in GFF3", function(){
         cy.intercept('**/service/query/results/**').as('records');
         cy.get(".results-actions").within(() => {
             cy.contains("GFF3").click();
