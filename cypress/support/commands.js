@@ -45,7 +45,7 @@ Cypress.Commands.add("openListsTab", () => {
 
 Cypress.Commands.add("searchKeyword", (keyword) => {
     cy.visit("/biotestmine/search");
-    cy.get(".searchform > input").type(keyword + '{enter}',{delay:100});
+    cy.get(".searchform > input").type(keyword + '{enter}',{delay:200});
 })
 
 Cypress.Commands.add("selectFromDropdown", (keyword) => {
