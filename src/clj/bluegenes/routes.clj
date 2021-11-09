@@ -9,7 +9,7 @@
             [bluegenes.ws.lookup :as lookup]
             [bluegenes.index :refer [index]]
             [config.core :refer [env]]
-            [bluegenes.utils :refer [env->mines]]
+            [bluegenes.utils :refer [env->mines get-service-root]]
             [clj-http.client :as client]))
 
 (defn with-init
@@ -27,7 +27,7 @@
 (defn get-favicon
   "Get a favicon for when one isn't configured."
   []
-  (let [mine-favicon (str (:bluegenes-default-service-root env) "/model/images/favicon.ico")]
+  (let [mine-favicon (str (get-service-root env) "/model/images/favicon.ico")]
     (if (-> (client/get mine-favicon)
             (get-in [:headers "Content-Type"])
             (= "image/x-icon"))
