@@ -33,6 +33,8 @@
 ;; "client manages token" approach chosen by default for historical reasons, as
 ;; each API client has been doing this. At some point we might raise this
 ;; question again...
+;; ^ not possible right now; JSESSIONID only works for JSP webapp, not WS requests
+;; => Keep it as it is!
 
 (defn use-backend-service
   "Substitute service root for the one the backend is configured to use, if it
@@ -134,7 +136,7 @@
           user+token (assoc user
                             :token token
                             :login-method :oauth2)]
-      (-> (response/found (str "/" mine-id))
+      (-> (response/found (str (:bluegenes-deploy-path env) "/" mine-id))
           (assoc :session ^:recreate {:identity user+token
                                       :init {:identity user+token
                                              :renamedLists renamedLists}})))
@@ -143,7 +145,7 @@
       (let [{:keys [body]} (ex-data e)
             error (or (:error (cheshire/parse-string body true))
                       (ex-message e))]
-        (-> (response/found (str "/" mine-id))
+        (-> (response/found (str (:bluegenes-deploy-path env) "/" mine-id))
             (assoc :session {:init {:events [[:messages/add
                                               {:style "warning"
                                                :markup (str "Failed to login using OAuth 2.0"

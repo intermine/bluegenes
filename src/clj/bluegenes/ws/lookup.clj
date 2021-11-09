@@ -5,7 +5,8 @@
             [clojure.string :as str]
             [cheshire.core :as cheshire]
             [clj-http.client :refer [with-middleware]]
-            [bluegenes.utils :as utils]))
+            [bluegenes.utils :as utils]
+            [config.core :refer [env]]))
 
 (def extension->content-type
   {"rdf" "application/rdf+xml;charset=UTF-8"})
@@ -13,7 +14,7 @@
 (defn handle-failed-lookup [lookup-string {:keys [namespace]} error-string]
   (let [msg [:span "Failed to parse permanent URL for " [:em lookup-string] " "
              [:code error-string]]]
-    (-> (response/found (str "/" namespace))
+    (-> (response/found (str (:bluegenes-deploy-path env) "/" namespace))
         (assoc :session {:init {:events [[:messages/add
                                           {:style "warning"
                                            :timeout 0
@@ -30,7 +31,8 @@
                     :value identifier}]}
         res (im-fetch/rows service q)]
     (if-let [object-id (get-in res [:results 0 0])]
-      (response/found (str "/" namespace
+      (response/found (str (:bluegenes-deploy-path env)
+                           "/" namespace
                            "/" "report"
                            "/" object-type
                            "/" object-id))

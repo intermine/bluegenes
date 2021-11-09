@@ -9,7 +9,9 @@
             [oops.core :refer [ocall oget oset!]]
             [goog.dom :as gdom]
             [goog.style :as gstyle]
-            [goog.fx.dom :as gfx]))
+            [goog.fx.dom :as gfx]
+            [bluegenes.config :refer [server-vars]]
+            [clojure.string :as str]))
 
 ;; Cofx and fx which you use from event handlers to read/write to localStorage.
 
@@ -183,15 +185,20 @@
                   :delete http/delete
                   :put http/put
                   http/get)]
-    (let [c (http-fn uri (cond-> {}
-                           query-params (assoc :query-params query-params)
-                           json-params (assoc :json-params json-params)
-                           transit-params (assoc :transit-params transit-params)
-                           form-params (assoc :form-params form-params)
-                           multipart-params (assoc :multipart-params multipart-params)
-                           headers (update :headers #(merge % headers))
-                           (and token @token) (update :headers assoc "X-Auth-Token" @token)
-                           progress (assoc :progress progress)))]
+    (let [c (http-fn (if (str/starts-with? uri "/")
+                       ;; Path only = API call to BG backend.
+                       (str (:bluegenes-deploy-path @server-vars) uri)
+                       ;; Full address = API call to external service.
+                       uri)
+                     (cond-> {}
+                       query-params (assoc :query-params query-params)
+                       json-params (assoc :json-params json-params)
+                       transit-params (assoc :transit-params transit-params)
+                       form-params (assoc :form-params form-params)
+                       multipart-params (assoc :multipart-params multipart-params)
+                       headers (update :headers #(merge % headers))
+                       (and token @token) (update :headers assoc "X-Auth-Token" @token)
+                       progress (assoc :progress progress)))]
       (go (let [{:keys [status body] :as response} (<! c)]
             (cond
               (<= 200 status 399) (when on-success (dispatch (conj on-success body)))
@@ -336,7 +343,7 @@
 (reg-fx
  :change-route
  (fn [new-path]
-   (.replaceState js/window.history nil "" (str "/" new-path))))
+   (.replaceState js/window.history nil "" (str (:bluegenes-deploy-path @server-vars) "/" new-path))))
 
 ;; filename - string including extension
 ;; filetype - string to be appended to 'text/' forming a mime type

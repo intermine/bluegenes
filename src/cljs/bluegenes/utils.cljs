@@ -7,7 +7,8 @@
             [bluegenes.components.icons :refer [icon]]
             [markdown-to-hiccup.core :as md]
             [goog.string :as gstring]
-            [oops.core :refer [ocall]]))
+            [oops.core :refer [ocall]]
+            [bluegenes.config :refer [server-vars]]))
 
 (defn hiccup-anchors-newtab
   "Add target=_blank to all anchor elements, so all links open in new tabs."
@@ -326,3 +327,15 @@
   (ocall js/URL "createObjectURL"
          (js/Blob. (clj->js [data])
                    {:type (str "text/" filetype)})))
+
+(defn mine-from-pathname
+  "Return mine name using pathname, or nil if not present. Factors in deploy path."
+  []
+  (let [pathname (.. js/window -location -pathname)
+        deploy-path (:bluegenes-deploy-path @server-vars)]
+    (-> pathname
+        (subs (min (count (str deploy-path "/"))
+                   (count pathname)))
+        (string/split #"/")
+        (first)
+        (not-empty))))

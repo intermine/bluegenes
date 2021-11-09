@@ -72,6 +72,13 @@
                (pr-str (.getMessage e)))
         nil))))
 
+(defn use-deployment-path
+  "Takes a URL string to a resource and prefixes the deployment path if defined."
+  [url]
+  (if-let [path (:bluegenes-deploy-path env)]
+    (str path url)
+    url))
+
 (defn head
   ([]
    (head nil {}))
@@ -87,8 +94,8 @@
         [:link {:href rdf-url :rel "alternate" :type "application/rdf+xml" :title "RDF"}]))
     (include-css "https://cdnjs.cloudflare.com/ajax/libs/gridlex/2.2.0/gridlex.min.css")
     (include-css "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css")
-    (include-css bluegenes-css)
-    (include-css im-tables-css)
+    (include-css (use-deployment-path bluegenes-css))
+    (include-css (use-deployment-path im-tables-css))
     (include-css "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css")
     (include-css "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css")
     ; Meta data:
@@ -99,7 +106,7 @@
      (str "var serverVars="
           (let [server-vars (merge (select-keys env [:google-analytics
                                                      :bluegenes-default-service-root :bluegenes-default-mine-name :bluegenes-default-namespace
-                                                     :bluegenes-additional-mines :hide-registry-mines])
+                                                     :bluegenes-additional-mines :hide-registry-mines :bluegenes-deploy-path])
                                    {:version bundle-hash})]
             (str \" (escape-quotes (pr-str server-vars)) \"))
           ";")
@@ -110,7 +117,7 @@
           ";")]
   ; Javascript:
     ;; This favicon is dynamically served; see routes.clj.
-    [:link {:href "/favicon.ico" :type "image/x-icon" :rel "shortcut icon"}]
+    [:link {:href (use-deployment-path "/favicon.ico") :type "image/x-icon" :rel "shortcut icon"}]
     [:script {:src "https://cdn.intermine.org/js/intermine/imjs/latest/im.min.js"}]
     [:script {:crossorigin "anonymous"
               :integrity "sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s="
@@ -159,7 +166,7 @@
      (css-compiler)
      (loader)
      [:div#app]
-     [:script {:src bundle-path}]
+     [:script {:src (use-deployment-path bundle-path)}]
      ;; Call the constructor of the bluegenes client and pass in the user's
      ;; optional identity as an object.
      [:script "bluegenes.core.init();"]])))

@@ -4,6 +4,21 @@
       :out
       clojure.string/trim))
 
+(defn ?slurp
+  "Slurp that returns nil if file doesn't exist."
+  [f]
+  (try (slurp f) (catch java.io.FileNotFoundException _)))
+
+(def deploy-path
+  "Reads the :bluegenes-deploy-path key from envvar, config/dev/config.edn or
+  config/defaults/config.edn in order of decending precedence. This is only
+  used for development builds, which is why it doesn't cover all configuration
+  methods of yogthos/config."
+  (or (System/getenv "BLUEGENES_DEPLOY_PATH")
+      (some-> (or (?slurp "config/dev/config.edn")
+                  (?slurp "config/defaults/config.edn"))
+              (clojure.edn/read-string) (:bluegenes-deploy-path))))
+
 (defproject org.intermine/bluegenes "1.2.1"
   :licence "LGPL-2.1-only"
   :description "Bluegenes is a Clojure-powered user interface for InterMine, the biological data warehouse"
@@ -154,7 +169,7 @@
                                         :optimizations :none
                                         :output-to "resources/public/js/compiled/app.js"
                                         :output-dir "resources/public/js/compiled"
-                                        :asset-path "/js/compiled"
+                                        :asset-path ~(str deploy-path "/js/compiled")
                                         :source-map-timestamp true
                                         :pretty-print true
                                         ;:parallel-build true

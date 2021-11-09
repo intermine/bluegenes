@@ -7,8 +7,9 @@
             [reitit.frontend :as rf]
             [reitit.frontend.controllers :as rfc]
             [reitit.frontend.easy :as rfe]
-            [bluegenes.config :refer [read-default-ns]]
-            [clojure.string :as str]))
+            [bluegenes.config :refer [read-default-ns server-vars]]
+            [clojure.string :as str]
+            [bluegenes.utils :as utils]))
 
 ;; # Quickstart guide:
 ;; (aka. I just want to route something but don't want to read all this code!)
@@ -121,7 +122,7 @@
 ;; for all our routes. Doing this would fix the discrepancy we currently have
 ;; between `:set-active-panel` and the router events.
 (def routes
-  ["/"
+  [(str (:bluegenes-deploy-path @server-vars) "/")
    [":mine"
     {:controllers
      [{:parameters {:path [:mine]}
@@ -292,14 +293,13 @@
     ;; We end up here when there are no matches (empty or invalid path).
     ;; This does not apply when the path references a nonexistent mine.
     (let [paths (str/split (.. js/window -location -pathname) #"/")
-          target-mine (-> paths
-                          (second)
-                          (or (name (read-default-ns))))]
+          deploy-paths (str/split (:bluegenes-deploy-path @server-vars) #"/")
+          target-mine (or (utils/mine-from-pathname) (name (read-default-ns)))]
       (dispatch [::navigate ::home {:mine target-mine}])
-      (when (> (count paths) 2)
+      (when (>= (count paths) (+ 2 (count deploy-paths)))
         (dispatch [:messages/add
                    {:markup [:span "You have been redirected to the home page as the path "
-                             [:em (->> paths (drop 2) (str/join "/"))]
+                             [:em (.. js/window -location -pathname)]
                              " could not be resolved."]
                     :style "warning"
                     :timeout 0}])))))
