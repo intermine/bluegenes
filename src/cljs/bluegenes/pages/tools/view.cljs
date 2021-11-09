@@ -154,24 +154,25 @@
   []
   (let [installed-tools (subscribe [::tools-subs/installed-tools])
         remaining-tools (subscribe [::tools-subs/remaining-tools])]
-    [:div.tool-store.container
-     [:h1 "Tool Store"]
-     [:div
-      (when (seq @installed-tools)
-        [:div.info
-         [:h4 "Installed tools"]
-         [:button.btn.btn-primary.btn-raised
-          {:on-click (action #(dispatch [::events/update-all-tools]))}
-          "Update installed tools"]])
-      [installed-tool-list installed-tools]
-      (when (seq @remaining-tools)
-        [:div.info
-         [:h4 "Available tools"]
-         [:button.btn.btn-primary.btn-raised
-          {:on-click (action #(dispatch [::events/install-all-tools]))}
-          "Install all tools"]])
-      [available-tool-list remaining-tools]
-      (when (seq all-viz)
-        [:div.info
-         [:h4 "Native visualizations"]])
-      [native-viz-list all-viz]]]))
+    (fn []
+      [:div.tool-store.container
+       [:h1 "Tool Store"]
+       [:div
+        (when (seq @installed-tools)
+          [:div.info
+           [:h4 "Installed tools"]
+           [:button.btn.btn-primary.btn-raised
+            {:on-click (action #(dispatch [::events/update-all-tools]))}
+            "Update installed tools"]])
+        [installed-tool-list installed-tools]
+        (when (seq @remaining-tools)
+          [:div.info
+           [:h4 "Available tools"]
+           [:button.btn.btn-primary.btn-raised
+            {:on-click (action #(dispatch [::events/install-all-tools]))}
+            "Install all tools"]])
+        [available-tool-list remaining-tools]
+        (when (seq all-viz)
+          [:div.info
+           [:h4 "Native visualizations"]])
+        [native-viz-list all-viz]]])))
