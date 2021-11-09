@@ -8,6 +8,7 @@
 | LOGGING_LEVEL | Minimum level for logging | info |
 | GOOGLE_ANALYTICS | Google Analytics tracking ID | nil |
 | BLUEGENES_TOOL_PATH | Directory on server where BlueGenes tools are installed | ./tools |
+| BLUEGENES_BACKEND_SERVICE_ROOT | Override BLUEGENES_DEFAULT_SERVICE_ROOT for backend API requests (usually an internal address) | nil |
 | BLUEGENES_DEFAULT_SERVICE_ROOT | Default InterMine service to run API requests against | https://www.flymine.org/flymine |
 | BLUEGENES_DEFAULT_MINE_NAME | Mine name to display for default mine | FlyMine |
 | BLUEGENES_DEFAULT_NAMESPACE | Namespace of the default mine | flymine |
