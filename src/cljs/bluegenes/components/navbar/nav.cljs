@@ -9,7 +9,7 @@
             [bluegenes.components.icons :refer [icon-comp]]
             [bluegenes.time :as time]
             [clojure.string :as str]
-            [bluegenes.config :refer [read-default-ns]]
+            [bluegenes.config :refer [read-default-ns server-vars]]
             [bluegenes.components.bootstrap :refer [poppable]]
             [bluegenes.components.icons :refer [icon]]
             [bluegenes.utils :refer [get-mine-url]]))
@@ -162,14 +162,14 @@
          {:type "button"
           :on-click #(dispatch [:bluegenes.events.auth/oauth2 "GOOGLE"])}
          [:img.google-signin
-          {:src "/images/google-signin.png"
+          {:src (str (:bluegenes-deploy-path @server-vars) "/images/google-signin.png")
            :alt "[Sign in with Google]"}]])
       (when (contains? oauth2-providers "ELIXIR")
         [:button.btn
          {:type "button"
           :on-click #(dispatch [:bluegenes.events.auth/oauth2 "ELIXIR"])}
          [:img.elixir-login
-          {:src "/images/elixir-login.png"
+          {:src (str (:bluegenes-deploy-path @server-vars) "/images/elixir-login.png")
            :alt "[ELIXIR Login]"}]])]]))
 
 (defn anonymous []
