@@ -44,8 +44,8 @@
 (defn validate-config [env]
   (when-not (s/valid? ::bluegenes-config env)
     (throw (AssertionError.
-             (str "Invalid config: "
-                  \newline
-                  (-> (s/explain-data ::bluegenes-config env) ::s/problems spec-problems-str)
-                  \newline \newline
-                  "Please check your config.edn or envvars.")))))
+            (str "Invalid config: "
+                 \newline
+                 (-> (s/explain-data ::bluegenes-config env) ::s/problems spec-problems-str)
+                 \newline \newline
+                 "Please check your config.edn or envvars.")))))
