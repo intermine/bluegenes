@@ -1,6 +1,6 @@
 (ns bluegenes.routes
   (:require [compojure.core :as compojure :refer [GET defroutes context]]
-            [compojure.route :refer [resources]]
+            [compojure.route :refer [resources not-found]]
             [ring.util.response :as response :refer [response]]
             [ring.util.http-response :refer [found]]
             [bluegenes.ws.auth :as auth]
@@ -11,7 +11,9 @@
             [config.core :refer [env]]
             [bluegenes.utils :refer [env->mines get-service-root]]
             [clj-http.client :as client]
-            [bluegenes-tool-store.core :as tool]))
+            [bluegenes-tool-store.core :as tool]
+            [hiccup.page :refer [html5]]
+            [clojure.string :as str]))
 
 (defn with-init
   "One of BlueGenes' web service could have added some data we want passed on
@@ -34,6 +36,18 @@
             (= "image/x-icon"))
       (found mine-favicon)
       (found (str (:bluegenes-deploy-path env) "/favicon-fallback.ico")))))
+
+(defn not-found-page [{:keys [request-method uri] :as _req}]
+  (html5
+   [:head
+    [:title "Page Not Found"]
+    [:style "h1{ font-size:80px; font-weight:800; text-align:center; font-family: 'Roboto', sans-serif; } h2 { font-size:25px; text-align:center; font-family: 'Roboto', sans-serif; margin-top:-40px; } p{ text-align:center; font-family: 'Roboto', sans-serif; font-size:12px; } .container { width:300px; margin: 0 auto; margin-top:15%; }"]]
+   [:body
+    [:div.container
+     [:h1 "404"]
+     [:h2 "Page Not Found"]
+     [:p "This " [:strong (-> request-method name str/upper-case)] " request to " [:strong uri] " is not handled by the BlueGenes server, which is deployed to " [:strong (:bluegenes-deploy-path env "/")] ". "
+      [:a {:href (:bluegenes-deploy-path env "/")} "Click here"] " to open BlueGenes."]]]))
 
 ; Define the top level URL routes for the server
 (def routes
@@ -83,4 +97,6 @@
                                       :object-id id})))))
 
       (GET "*" []
-        (partial with-init {})))))
+        (partial with-init {})))
+
+    (not-found not-found-page)))
