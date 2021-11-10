@@ -38,22 +38,23 @@
       (found (str (:bluegenes-deploy-path env) "/favicon-fallback.ico")))))
 
 (defn not-found-page [{:keys [request-method uri] :as _req}]
-  (html5
-   [:head
-    [:title "Page Not Found"]
-    [:style "h1{ font-size:80px; font-weight:800; text-align:center; font-family: 'Roboto', sans-serif; } h2 { font-size:25px; text-align:center; font-family: 'Roboto', sans-serif; margin-top:-40px; } p{ text-align:center; font-family: 'Roboto', sans-serif; font-size:12px; } .container { width:300px; margin: 0 auto; margin-top:15%; }"]]
-   [:body
-    [:div.container
-     [:h1 "404"]
-     [:h2 "Page Not Found"]
-     [:p "This " [:strong (-> request-method name str/upper-case)] " request to " [:strong uri] " is not handled by the BlueGenes server, which is deployed to " [:strong (:bluegenes-deploy-path env "/")] ". "
-      [:a {:href (:bluegenes-deploy-path env "/")} "Click here"] " to open BlueGenes."]]]))
+  (let [bg-path (or (:bluegenes-deploy-path env) "/")]
+    (html5
+     [:head
+      [:title "Page Not Found"]
+      [:style "h1{ font-size:80px; font-weight:800; text-align:center; font-family: 'Roboto', sans-serif; } h2 { font-size:25px; text-align:center; font-family: 'Roboto', sans-serif; margin-top:-40px; } p{ text-align:center; font-family: 'Roboto', sans-serif; font-size:12px; } .container { width:300px; margin: 0 auto; margin-top:15%; }"]]
+     [:body
+      [:div.container
+       [:h1 "404"]
+       [:h2 "Page Not Found"]
+       [:p "This " [:strong (-> request-method name str/upper-case)] " request to " [:strong uri] " is not handled by the BlueGenes server, which is deployed to " [:strong bg-path] ". "
+        [:a {:href bg-path} "Click here"] " to open BlueGenes."]]])))
 
 ; Define the top level URL routes for the server
 (def routes
   (compojure/let-routes [mines (env->mines env)
                          favicon* (delay (get-favicon))]
-    (context (:bluegenes-deploy-path env "/") []
+    (context (:bluegenes-deploy-path env) []
       ;;serve compiled files, i.e. js, css, from the resources folder
       (resources "/")
 
