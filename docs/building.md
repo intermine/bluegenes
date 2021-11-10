@@ -95,6 +95,8 @@ Cypress also has a really useful interface for debugging failing tests:
 
     DEBUG=cypress:* npx cypress open
 
+*Tip:* You can also run the Cypress tests with BlueGenes deployed to a custom deploy path by editing *cypress.json* `baseUrl` key to include the path (e.g. `"http://localhost:5000/foo/bar"`) and passing the same path as an envvar, `BLUEGENES_DEPLOY_PATH=/foo/bar lein biotestmine`
+
 # Production Builds
 
 ## Testing a minified instance before deploying:
