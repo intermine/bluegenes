@@ -9,6 +9,11 @@
   [f]
   (try (slurp f) (catch java.io.FileNotFoundException _)))
 
+(defn ?read-string
+  "clojure.edn/read-string that returns nil instead of throwing."
+  [s]
+  (try (clojure.edn/read-string s) (catch Throwable _)))
+
 (def deploy-path
   "Reads the :bluegenes-deploy-path key from envvar, config/dev/config.edn or
   config/defaults/config.edn in order of decending precedence. This is only
@@ -17,7 +22,10 @@
   (or (System/getenv "BLUEGENES_DEPLOY_PATH")
       (some-> (or (?slurp "config/dev/config.edn")
                   (?slurp "config/defaults/config.edn"))
-              (clojure.edn/read-string) (:bluegenes-deploy-path))))
+              ;; We don't want to throw here if something is wrong with the
+              ;; configs as it will get validated anyways when BlueGenes starts
+              ;; and with much better errors.
+              (?read-string) (:bluegenes-deploy-path))))
 
 (defproject org.intermine/bluegenes "1.2.1"
   :licence "LGPL-2.1-only"
