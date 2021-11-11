@@ -291,12 +291,16 @@
   (if new-match
     (dispatch [::navigated new-match])
     ;; We end up here when there are no matches (empty or invalid path).
-    ;; This does not apply when the path references a nonexistent mine.
+    ;; - should only be invoked when the SPA is first started
+    ;; - does not apply when the path references a nonexistent mine
     (let [paths (str/split (.. js/window -location -pathname) #"/")
           deploy-paths (str/split (:bluegenes-deploy-path @server-vars) #"/")
           target-mine (or (utils/mine-from-pathname) (name (read-default-ns)))]
+      ;; Empty/invalid path case: we always send user to their intended mine
+      ;; (or default if mine isn't in path).
       (dispatch [::navigate ::home {:mine target-mine}])
-      (when (>= (count paths) (+ 2 (count deploy-paths)))
+      (when (>= (- (count paths) (count deploy-paths)) 2)
+        ;; Invalid path case: Tell user they're sent home.
         (dispatch [:messages/add
                    {:markup [:span "You have been redirected to the home page as the path "
                              [:em (.. js/window -location -pathname)]
