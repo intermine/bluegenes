@@ -4,7 +4,8 @@
             [bluegenes.pages.tools.events :as events]
             [bluegenes.version :as version]
             [bluegenes.components.viz.views :refer [all-viz]]
-            [bluegenes.utils :refer [md-paragraph]]))
+            [bluegenes.utils :refer [md-paragraph]]
+            [bluegenes.config :refer [server-vars]]))
 
 ;; You may notice that this page is only linked from the admin's profile
 ;; dropdown, but there's no guard to stop logged in or anonymous users from
@@ -94,7 +95,9 @@
       [:div.tool
        [:h2 (get-in tool [:names :human])]
        (if (:hasimage tool)
-         [:div.tool-preview [:img {:src (:hasimage tool) :height "220px"}]]
+         [:div.tool-preview
+          [:img {:src (str (:bluegenes-deploy-path @server-vars) (:hasimage tool))
+                 :height "220px"}]]
          [:div.tool-no-preview "No tool preview available"])
        [:div.details
         [tool-description (get-in tool [:package :description])]
