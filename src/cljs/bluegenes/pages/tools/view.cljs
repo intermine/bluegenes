@@ -4,7 +4,8 @@
             [bluegenes.pages.tools.events :as events]
             [bluegenes.version :as version]
             [bluegenes.components.viz.views :refer [all-viz]]
-            [bluegenes.utils :refer [md-paragraph]]))
+            [bluegenes.utils :refer [md-paragraph]]
+            [bluegenes.config :refer [server-vars]]))
 
 ;; You may notice that this page is only linked from the admin's profile
 ;; dropdown, but there's no guard to stop logged in or anonymous users from
@@ -94,7 +95,9 @@
       [:div.tool
        [:h2 (get-in tool [:names :human])]
        (if (:hasimage tool)
-         [:div.tool-preview [:img {:src (:hasimage tool) :height "220px"}]]
+         [:div.tool-preview
+          [:img {:src (str (:bluegenes-deploy-path @server-vars) (:hasimage tool))
+                 :height "220px"}]]
          [:div.tool-no-preview "No tool preview available"])
        [:div.details
         [tool-description (get-in tool [:package :description])]
@@ -154,24 +157,25 @@
   []
   (let [installed-tools (subscribe [::tools-subs/installed-tools])
         remaining-tools (subscribe [::tools-subs/remaining-tools])]
-    [:div.tool-store.container
-     [:h1 "Tool Store"]
-     [:div
-      (when (seq @installed-tools)
-        [:div.info
-         [:h4 "Installed tools"]
-         [:button.btn.btn-primary.btn-raised
-          {:on-click (action #(dispatch [::events/update-all-tools]))}
-          "Update installed tools"]])
-      [installed-tool-list installed-tools]
-      (when (seq @remaining-tools)
-        [:div.info
-         [:h4 "Available tools"]
-         [:button.btn.btn-primary.btn-raised
-          {:on-click (action #(dispatch [::events/install-all-tools]))}
-          "Install all tools"]])
-      [available-tool-list remaining-tools]
-      (when (seq all-viz)
-        [:div.info
-         [:h4 "Native visualizations"]])
-      [native-viz-list all-viz]]]))
+    (fn []
+      [:div.tool-store.container
+       [:h1 "Tool Store"]
+       [:div
+        (when (seq @installed-tools)
+          [:div.info
+           [:h4 "Installed tools"]
+           [:button.btn.btn-primary.btn-raised
+            {:on-click (action #(dispatch [::events/update-all-tools]))}
+            "Update installed tools"]])
+        [installed-tool-list installed-tools]
+        (when (seq @remaining-tools)
+          [:div.info
+           [:h4 "Available tools"]
+           [:button.btn.btn-primary.btn-raised
+            {:on-click (action #(dispatch [::events/install-all-tools]))}
+            "Install all tools"]])
+        [available-tool-list remaining-tools]
+        (when (seq all-viz)
+          [:div.info
+           [:h4 "Native visualizations"]])
+        [native-viz-list all-viz]]])))

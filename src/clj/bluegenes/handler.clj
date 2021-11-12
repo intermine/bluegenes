@@ -1,7 +1,5 @@
 (ns bluegenes.handler
   (:require [bluegenes.routes :refer [routes]]
-            [bluegenes-tool-store.core :as tool]
-            [compojure.core :as compojure]
             [ring.middleware.session :refer [wrap-session]]
             [ring.middleware.reload :refer [wrap-reload]]
             [compojure.middleware :refer [wrap-canonical-redirect]]
@@ -20,10 +18,7 @@
         uri))
     uri))
 
-(def combined-routes
-  (compojure/routes tool/routes routes))
-
-(def handler (-> #'combined-routes
+(def handler (-> #'routes
                  ;; Watch changes to the .clj and hot reload them
                  (cond-> (:development env) (wrap-reload {:dirs ["src/clj"]}))
                  ;; Add session functionality

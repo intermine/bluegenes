@@ -3,7 +3,8 @@
             [bluegenes.effects :as fx]
             [bluegenes.route :as route]
             [imcljs.auth :as im-auth]
-            [bluegenes.interceptors :refer [origin]]))
+            [bluegenes.interceptors :refer [origin]]
+            [bluegenes.config :refer [server-vars]]))
 
 (defn slim-service
   "Constrains a service map to only the keys needed by the backend API."
@@ -210,7 +211,10 @@
  (fn [{db :db origin :origin} [_ provider]]
    (let [current-mine (:current-mine db)
          service (get-in db [:mines current-mine :service])
-         redirect_uri (str origin "/api/auth/oauth2callback?provider=" provider)]
+         redirect_uri (str origin
+                           (str (:bluegenes-deploy-path @server-vars)
+                                "/api/auth/oauth2callback?provider=")
+                           provider)]
      {:db (update-in db [:mines current-mine :auth] assoc
                      :error? false)
       ::fx/http {:uri "/api/auth/oauth2authenticator"

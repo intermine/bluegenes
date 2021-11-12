@@ -4,7 +4,8 @@
             [bluegenes.components.tools.events :as events]
             [bluegenes.route :as route]
             [bluegenes.utils :refer [suitable-entities]]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [bluegenes.config :refer [server-vars]]))
 
 (defmulti navigate
   "Can be used from JS like this:
@@ -80,7 +81,8 @@
         (when tool-path
           (oset! script-tag "id" script-id)
           ;;fetch script from bluegenes-tool-store backend
-          (oset! script-tag "src" (str "/tools/" (get-in tool [:names :npm])
+          (oset! script-tag "src" (str (:bluegenes-deploy-path @server-vars)
+                                       "/tools/" (get-in tool [:names :npm])
                                        "/" tool-path
                                        "?v=" (get-in tool [:package :version])))
           ;;run-script will automatically be triggered when the script loads
@@ -103,7 +105,8 @@
         (when style-path
           ;;fetch stylesheet and set some properties
           (oset! style-tag "id" style-id)
-          (oset! style-tag "href" (str "/tools/" (get-in tool [:names :npm])
+          (oset! style-tag "href" (str (:bluegenes-deploy-path @server-vars)
+                                       "/tools/" (get-in tool [:names :npm])
                                        "/" style-path
                                        "?v=" (get-in tool [:package :version])))
           (oset! style-tag "type" "text/css")

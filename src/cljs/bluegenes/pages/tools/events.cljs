@@ -80,7 +80,9 @@
                         ;; We don't use the current-mine, as the privilege
                         ;; check only runs on the configured default root.
                         :service (select-keys (get-in db [:mines (read-default-ns) :service])
-                                              [:root :token]))})))
+                                              [:root :token])
+                        ;; Used to display more informative error messages.
+                        :mine-name (get-in db [:mines (read-default-ns) :name]))})))
 
 (reg-event-db
  ::success-tool
@@ -101,7 +103,8 @@
  ::error-tool
  (fn [{db :db} [_ res]]
    (let [msg [:messages/add
-              {:markup [:span (get-in res [:body :error])]
+              {:markup [:span (or (get-in res [:body :error])
+                                  "Error occurred in Tool server. Please try again later.")]
                :style "warning"
                :timeout 0}]]
      {:dispatch-n [msg [::tools/fetch-tools]]

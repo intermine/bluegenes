@@ -12,7 +12,8 @@
             [cljs-time.format :as time-format]
             [cljs-time.coerce :as time-coerce]
             [oops.core :refer [oget]]
-            [bluegenes.components.bootstrap :refer [poppable]]))
+            [bluegenes.components.bootstrap :refer [poppable]]
+            [bluegenes.config :refer [server-vars]]))
 
 (defn mine-intro []
   (let [mine-name @(subscribe [:current-mine-human-name])
@@ -278,7 +279,7 @@
 
 (def credits-intermine
   [{:text "[InterMine](http://intermine.org/) has been developed principally through support of the [Wellcome Trust](https://wellcome.ac.uk/). Complementary projects have been funded by the [NIH/NHGRI](https://www.nih.gov/) and the [BBSRC](https://bbsrc.ukri.org/)."
-    :image "/images/intermine-logo.png"
+    :image (str (:bluegenes-deploy-path @server-vars) "/images/intermine-logo.png")
     :url "http://intermine.org/"}])
 
 (defn credits-fallback []

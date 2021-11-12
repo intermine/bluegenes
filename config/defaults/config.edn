@@ -4,6 +4,8 @@
  :logging-level "info"
  :google-analytics nil
  :bluegenes-tool-path "./tools"
+ :bluegenes-deploy-path nil
+ :bluegenes-backend-service-root nil
  :bluegenes-default-service-root "https://www.flymine.org/flymine"
  :bluegenes-default-mine-name "FlyMine"
  :bluegenes-default-namespace "flymine"
@@ -18,3 +20,4 @@
                               ]
  :hide-registry-mines false
  }
+

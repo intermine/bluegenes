@@ -153,11 +153,7 @@
    (let [default-ns (read-default-ns)
          ;; We have to set the db current-mine using `window.location` as the
          ;; router won't have dispatched `:set-current-mine` before later on.
-         current-mine (-> (.. js/window -location -pathname)
-                          (str/split #"/")
-                          (second)
-                          (keyword)
-                          (or default-ns))
+         current-mine (or (keyword (utils/mine-from-pathname)) default-ns)
          ;; These could be passed from the Bluegenes backend and result in
          ;; events being dispatched.
          renamedLists (some-> @init-vars :renamedLists not-empty)

@@ -4,6 +4,29 @@
       :out
       clojure.string/trim))
 
+(defn ?slurp
+  "Slurp that returns nil if file doesn't exist."
+  [f]
+  (try (slurp f) (catch java.io.FileNotFoundException _)))
+
+(defn ?read-string
+  "clojure.edn/read-string that returns nil instead of throwing."
+  [s]
+  (try (clojure.edn/read-string s) (catch Throwable _)))
+
+(def deploy-path
+  "Reads the :bluegenes-deploy-path key from envvar, config/dev/config.edn or
+  config/defaults/config.edn in order of decending precedence. This is only
+  used for development builds, which is why it doesn't cover all configuration
+  methods of yogthos/config."
+  (or (System/getenv "BLUEGENES_DEPLOY_PATH")
+      (some-> (or (?slurp "config/dev/config.edn")
+                  (?slurp "config/defaults/config.edn"))
+              ;; We don't want to throw here if something is wrong with the
+              ;; configs as it will get validated anyways when BlueGenes starts
+              ;; and with much better errors.
+              (?read-string) (:bluegenes-deploy-path))))
+
 (defproject org.intermine/bluegenes "1.2.1"
   :licence "LGPL-2.1-only"
   :description "Bluegenes is a Clojure-powered user interface for InterMine, the biological data warehouse"
@@ -63,7 +86,7 @@
                  ; Intermine Assets
                  [org.intermine/imcljs "1.4.5"]
                  [org.intermine/im-tables "0.14.0"]
-                 [org.intermine/bluegenes-tool-store "0.2.2"]]
+                 [org.intermine/bluegenes-tool-store "0.2.3"]]
 
   :deploy-repositories {"clojars" {:sign-releases false}}
   :codox {:language :clojurescript}
@@ -154,7 +177,7 @@
                                         :optimizations :none
                                         :output-to "resources/public/js/compiled/app.js"
                                         :output-dir "resources/public/js/compiled"
-                                        :asset-path "/js/compiled"
+                                        :asset-path ~(str deploy-path "/js/compiled")
                                         :source-map-timestamp true
                                         :pretty-print true
                                         ;:parallel-build true
