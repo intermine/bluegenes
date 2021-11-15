@@ -799,18 +799,138 @@
         (when-let [{:keys [type text]} @(subscribe [:qb/import-result])]
           [:p {:class type} text])]])))
 
-(defn create-template [])
+(defn inline-input [& {:keys [id label state* textarea?]}]
+  [:div.input-group
+   [:label {:for id} label]
+   (if textarea?
+     [:textarea.form-control
+      {:id id
+       :rows 3
+       :value @state*
+       :on-change #(reset! state* (oget % :target :value))}]
+     [:input.form-control
+      {:id id
+       :type "text"
+       :value @state*
+       :on-change #(reset! state* (oget % :target :value))}])])
+
+(defn toggle [& {:keys [label value on-change]}]
+  [:div.switch-container
+   [:span.switch-label label]
+   [:span.switch
+    [:input {:type "checkbox" :checked value}]
+    [:span.slider.round {:on-click on-change}]]
+   [:span.switch-status (if value "ON" "OFF")]])
+
+(defn radio [& {:keys [label items value on-change]}]
+  (into [:div.radio-group
+         (when label
+           [:label label])]
+        (for [{lab :label val :value} items]
+          [:label.radio-inline
+           [:input {:type "radio"
+                    :checked (= val value)
+                    :on-change #(on-change val)}]
+           [:span.circle]
+           [:span.check]
+           lab])))
+
+(defn template-constraint [const & {:keys [meta set-meta!]}]
+  (let [current-model @(subscribe [:current-model])
+        current-constraints @(subscribe [:qb/im-query-constraints])
+        model (assoc current-model :type-constraints current-constraints)
+        lists @(subscribe [:current-lists])]
+    [:div.const
+     #_[:div.const-reorder
+        [:button.btn.btn-icon
+         {:on-click #()}
+         [icon "move-up-list"]]
+        [:button.btn.btn-icon
+         {:on-click #()}
+         [icon "move-down-list"]]]
+     [:div.const-group
+      [constraint
+       :model model
+       :typeahead? false
+       :path (:path const)
+       :value (or (:value const) (:values const))
+       :op (:op const)
+       :label (join " > " (take-last 2 (split (im-path/friendly model (:path const)) #" > ")))
+       :code (:code const)
+       :hide-code? true
+       :label? true
+       :disabled true
+       :lists lists
+       :on-blur #()
+       :on-change #()]
+      [:div.const-options
+       (if (:editable meta)
+         [radio
+          :items [{:label "Required" :value nil}
+                  {:label "Optional: ON" :value "on"}
+                  {:label "Optional: OFF" :value "off"}]
+          :value (:switchable meta)
+          :on-change #(set-meta! (assoc meta :switchable %))]
+         ;; Empty div so flexbox sill works.
+         [:div])
+       [toggle
+        :label "Editable"
+        :value (:editable meta)
+        :on-change #(set-meta! (update meta :editable not))]]]]))
+
+(defn create-template []
+  (let [name* (reagent/atom "")
+        title* (reagent/atom "")
+        description* (reagent/atom "")
+        comment* (reagent/atom "")
+        ;; Vector of maps corresponding to each constraint, in the same order.
+        ;; The map contains keys: editable=true|false [switchable=on|off]
+        constraints-meta* (reagent/atom [])
+        ;; Currently active constraints.
+        constraints* (subscribe [:qb/im-query-constraints])]
+    (fn []
+      ;; Prepare/clear constraints-meta* if count differs from active constraints.
+      (when (not= (count @constraints*) (count @constraints-meta*))
+        (reset! constraints-meta* (vec (repeat (count @constraints*) {}))))
+      [:div.row.create-template
+       [:div.col-xs-12.col-xl-6-workaround
+        [inline-input
+         :id "template-name-input"
+         :label "Name:"
+         :state* name*]
+        [inline-input
+         :id "template-title-input"
+         :label "Title:"
+         :state* title*]
+        [inline-input
+         :id "template-description-textarea"
+         :label "Description:"
+         :state* description*
+         :textarea? true]
+        [inline-input
+         :id "template-comment-input"
+         :label "Comment:"
+         :state* comment*]]
+       [:div.col-xs-12.col-xl-6-workaround.template-constraints
+        (for [[index const] (map-indexed vector @constraints*)
+              ;; Type constraints shouldn't be editable.
+              :when (not (:type const))
+              :let [const-meta (get @constraints-meta* index)
+                    set-const-meta! #(swap! constraints-meta* assoc index %)]]
+          [template-constraint const
+           :meta const-meta
+           :set-meta! set-const-meta!])]])))
 
 (defn other-query-options []
-  (let [tab-index (reagent/atom 0)]
+  (let [tab-index (reagent/atom 3)] ;; TODO set back to 0
     (fn []
       [:div.panel.panel-default
        [:div.panel-body
         (into [:ul.nav.nav-tabs]
               (let [tabs ["Recent Queries"
                           "Saved Queries"
-                          "Import from XML"]]
-                          ; "Create Template"]]
+                          "Import from XML"
+                          "Create Template"]]
                 (for [[i title] (map-indexed vector tabs)]
                   [:li {:class (when (= @tab-index i) "active")}
                    [:a {:on-click #(do (when (= @tab-index
@@ -821,8 +941,8 @@
         (case @tab-index
           0 [recent-queries]
           1 [saved-queries]
-          2 [import-from-xml])]])))
-          ; 3 [create-template])]])))
+          2 [import-from-xml]
+          3 [create-template])]])))
 
 (defn main []
   [:div.column-container
