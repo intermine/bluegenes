@@ -806,7 +806,7 @@
         (when-let [{:keys [type text]} @(subscribe [:qb/import-result])]
           [:p {:class type} text])]])))
 
-(defn inline-input [& {:keys [id label helptext state* textarea?]}]
+(defn inline-input [& {:keys [id label helptext warntext state* textarea?]}]
   [:div
    [:div.input-group
     [:label {:for id} label]
@@ -822,7 +822,9 @@
         :value @state*
         :on-change #(reset! state* (oget % :target :value))}])]
    (when helptext
-     [:span.helptext helptext])])
+     [:span.helptext helptext])
+   (when warntext
+     [:em.helptext warntext])])
 
 (defn toggle [& {:keys [label value on-change]}]
   [:div.switch-container
@@ -906,6 +908,14 @@
         :value (:editable meta)
         :on-change #(set-meta! (update meta :editable not))]]]]))
 
+(defn merge-vectors
+  "Takes two vectors of equal length containing only maps, and returns a new
+  vector containing the merged maps of the same index."
+  [v1 v2]
+  (mapv (fn [e1 e2]
+          (merge e1 e2))
+        v1 v2))
+
 (defn create-template []
   (let [name* (reagent/atom "")
         title* (reagent/atom "")
@@ -932,6 +942,7 @@
           :id "template-name-input"
           :label "Name:"
           :helptext "Unique name to identify the template. Use underscores and no special characters, e.g. Gene_proteins"
+          :warntext "Note: Will overwrite any existing template with the same name."
           :state* name*]
          [inline-input
           :id "template-title-input"
@@ -960,6 +971,11 @@
                  :drag* drag*
                  :constraints-meta* constraints-meta*]))]
        [:button.btn.btn-primary.btn-raised
+        {:on-click #(dispatch [:qb/save-template {:name @name*
+                                                  :title @title*
+                                                  :description @description*
+                                                  :comment @comment*}
+                               (merge-vectors @constraints* @constraints-meta*)])}
         "Save template"]])))
 
 (defn other-query-options []

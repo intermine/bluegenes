@@ -23,13 +23,23 @@
                     ^:flush-dom [:template-chooser/choose-template id
                                  {:scroll? true}]]]})))
 
-; Predictable function used to filter active constraints
+; Predicate function used to filter active constraints
 (def not-disabled-predicate (comp (partial not= "OFF") :switched))
 
 (defn remove-switchedoff-constraints
   "Filter the constraints of a query map and only keep those with a :switched value other than OFF"
   [query]
   (update query :where #(filterv not-disabled-predicate %)))
+
+(defn clean-template-constraints
+  [query]
+  (update query :where
+          (partial mapv (fn [const]
+                          ; :description
+                          (dissoc const :editable :switchable :switched)))))
+
+(def prepare-template-query
+  (comp clean-template-constraints remove-switchedoff-constraints))
 
 (reg-event-fx
  :template-chooser/choose-template
@@ -84,14 +94,14 @@
                {:source (:current-mine db)
                 :type :query
                 :intent :template
-                :value (remove-switchedoff-constraints (get-in db [:components :template-chooser :selected-template]))}]}))
+                :value (prepare-template-query (get-in db [:components :template-chooser :selected-template]))}]}))
 
 (reg-event-fx
  :templates/edit-query
  (fn [{db :db} [_]]
    {:db db
     :dispatch-n [[::route/navigate ::route/querybuilder]
-                 [:qb/load-query (remove-switchedoff-constraints (get-in db [:components :template-chooser :selected-template]))]]}))
+                 [:qb/load-query (prepare-template-query (get-in db [:components :template-chooser :selected-template]))]]}))
 
 (reg-event-fx
  :template-chooser/replace-constraint
@@ -133,7 +143,7 @@
 (reg-event-fx
  :template-chooser/fetch-preview
  (fn [{db :db}]
-   (let [query (remove-switchedoff-constraints (get-in db [:components :template-chooser :selected-template]))
+   (let [query (prepare-template-query (get-in db [:components :template-chooser :selected-template]))
          service (get-in db [:mines (:current-mine db) :service])
          count-chan (fetch/table-rows service query {:size 5})
          query-changed? (not= query (get-in db [:components :template-chooser :previously-ran]))
@@ -164,7 +174,7 @@
 (reg-event-fx
  :template-chooser/run-count
  (fn [{db :db}]
-   (let [query (remove-switchedoff-constraints (get-in db [:components :template-chooser :selected-template]))
+   (let [query (prepare-template-query (get-in db [:components :template-chooser :selected-template]))
          service (get-in db [:mines (:current-mine db) :service])
          count-chan (fetch/row-count service query)
          new-db (update-in db [:components :template-chooser] assoc

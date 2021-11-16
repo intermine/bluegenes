@@ -13,7 +13,8 @@
             [bluegenes.utils :refer [read-xml-query dissoc-in]]
             [oops.core :refer [oget]]
             [clojure.walk :refer [postwalk]]
-            [bluegenes.components.ui.constraint :as constraint]))
+            [bluegenes.components.ui.constraint :as constraint]
+            [clojure.data.xml :as xml]))
 
 (reg-event-fx
  ::load-querybuilder
@@ -727,3 +728,62 @@
  :qb/swap-constraints-ordering
  (fn [db [_ i1 i2]]
    (update-in db [:qb :im-query :where] logic/vec-swap-indices i1 i2)))
+
+; <template name="foo_bar" title="foo --&gt; bar" comment="">
+;    <query name="foo_bar" model="genomic" view="Gene.chromosome.primaryIdentifier Gene.chromosomeLocation.strand Gene.chromosomeLocation.start Gene.chromosomeLocation.end Gene.length Gene.symbol Gene.secondaryIdentifier" longDescription="For a specified organism, show the chromosomal location and sequence length for all genes." sortOrder="Gene.chromosome.primaryIdentifier asc">
+;       <constraint path="Gene.organism.name" editable="true" switchable="on" op="=" value="Drosophila melanogaster" />
+;    </query>
+; </template>
+
+(defn template->xml [model {:keys [name title description comment]} query]
+  (xml/emit-str
+    (xml/element :template {:name name :title title :comment comment}
+      (xml/parse-str (im-query/->xml model (assoc query :longDescription description))))))
+
+(comment
+  (require '[re-frame.core :refer [subscribe]])
+  (template->xml @(subscribe [:current-model])
+                 {:name "foo_bar"
+                  :title "foo --> bar"
+                  :comment ""
+                  :description "For a specified organism, show the chromosomal location and sequence length for all genes."}
+                 {:from "Gene",
+                  :select
+                  ["Gene.secondaryIdentifier"
+                   "Gene.symbol"
+                   "Gene.goAnnotation.ontologyTerm.parents.name"
+                   "Gene.goAnnotation.ontologyTerm.parents.identifier"
+                   "Gene.goAnnotation.ontologyTerm.name"
+                   "Gene.goAnnotation.ontologyTerm.identifier"],
+                  :constraintLogic "(A and B)",
+                  :where
+                  [{:op "=",
+                    :code "A",
+                    :value "DNA binding",
+                    :path "Gene.goAnnotation.ontologyTerm.parents.name"
+                    :editable true
+                    :switchable "on"}
+                   {:op "=",
+                    :code "B",
+                    :value "Drosophila melanogaster",
+                    :path "Gene.organism.name"
+                    :editable true}
+                   {:path "Gene.goAnnotation.ontologyTerm", :type "GOTerm"}
+                   {:path "Gene.goAnnotation.ontologyTerm.parents", :type "GOTerm"}],
+                  :sortOrder [{:path "Gene.secondaryIdentifier", :direction "ASC"}],
+                  :joins []}))
+
+(reg-event-fx
+ :qb/save-template
+ (fn [{db :db} [_ template-details template-constraints]]
+   (let [service (get-in db [:mines (:current-mine db) :service])
+         model (:model service)
+         query (assoc (get-in db [:qb :im-query])
+                      :where template-constraints)]
+     (js/alert
+       (template->xml model template-details query))
+     {}
+     #_{:im-chan {:chan (fetch/saved-queries service)
+                  :on-success [:qb/fetch-saved-queries-success]
+                  :on-failure [:qb/fetch-saved-queries-failure]}})))
+;; TODO add imcljs.save/template
