@@ -4,7 +4,7 @@
             [clojure.string :as string :refer [split join lower-case]]
             [oops.core :refer [ocall oget]]
             [bluegenes.components.ui.constraint :refer [constraint]]
-            [bluegenes.components.bootstrap :refer [tooltip]]
+            [bluegenes.components.bootstrap :refer [tooltip poppable]]
             [imcljs.path :as im-path]
             [imcljs.query :refer [->xml]]
             [bluegenes.components.loader :refer [mini-loader]]
@@ -799,20 +799,23 @@
         (when-let [{:keys [type text]} @(subscribe [:qb/import-result])]
           [:p {:class type} text])]])))
 
-(defn inline-input [& {:keys [id label state* textarea?]}]
-  [:div.input-group
-   [:label {:for id} label]
-   (if textarea?
-     [:textarea.form-control
-      {:id id
-       :rows 3
-       :value @state*
-       :on-change #(reset! state* (oget % :target :value))}]
-     [:input.form-control
-      {:id id
-       :type "text"
-       :value @state*
-       :on-change #(reset! state* (oget % :target :value))}])])
+(defn inline-input [& {:keys [id label helptext state* textarea?]}]
+  [:div
+   [:div.input-group
+    [:label {:for id} label]
+    (if textarea?
+      [:textarea.form-control
+       {:id id
+        :rows 3
+        :value @state*
+        :on-change #(reset! state* (oget % :target :value))}]
+      [:input.form-control
+       {:id id
+        :type "text"
+        :value @state*
+        :on-change #(reset! state* (oget % :target :value))}])]
+   (when helptext
+     [:span.helptext helptext])])
 
 (defn toggle [& {:keys [label value on-change]}]
   [:div.switch-container
@@ -841,6 +844,8 @@
         model (assoc current-model :type-constraints current-constraints)
         lists @(subscribe [:current-lists])]
     [:div.const
+     [:div.const-reorder
+      [:span.drag-bar "≡"]]
      #_[:div.const-reorder
         [:button.btn.btn-icon
          {:on-click #()}
@@ -849,6 +854,7 @@
          {:on-click #()}
          [icon "move-down-list"]]]
      [:div.const-group
+      {:class (when (:editable meta) :editable)}
       [constraint
        :model model
        :typeahead? false
@@ -856,6 +862,7 @@
        :value (or (:value const) (:values const))
        :op (:op const)
        :label (join " > " (take-last 2 (split (im-path/friendly model (:path const)) #" > ")))
+       ; :label (im-path/friendly model (:path const))
        :code (:code const)
        :hide-code? true
        :label? true
@@ -892,34 +899,43 @@
       ;; Prepare/clear constraints-meta* if count differs from active constraints.
       (when (not= (count @constraints*) (count @constraints-meta*))
         (reset! constraints-meta* (vec (repeat (count @constraints*) {}))))
-      [:div.row.create-template
-       [:div.col-xs-12.col-xl-6-workaround
-        [inline-input
-         :id "template-name-input"
-         :label "Name:"
-         :state* name*]
-        [inline-input
-         :id "template-title-input"
-         :label "Title:"
-         :state* title*]
-        [inline-input
-         :id "template-description-textarea"
-         :label "Description:"
-         :state* description*
-         :textarea? true]
-        [inline-input
-         :id "template-comment-input"
-         :label "Comment:"
-         :state* comment*]]
-       [:div.col-xs-12.col-xl-6-workaround.template-constraints
-        (for [[index const] (map-indexed vector @constraints*)
-              ;; Type constraints shouldn't be editable.
-              :when (not (:type const))
-              :let [const-meta (get @constraints-meta* index)
-                    set-const-meta! #(swap! constraints-meta* assoc index %)]]
-          [template-constraint const
-           :meta const-meta
-           :set-meta! set-const-meta!])]])))
+      [:div
+       [:p.template-intro "You can save your query as a template, allowing you to specify which constraints are "
+        [poppable {:data "Users of this template will be able to change the constraint operator and/or value. You can also make the editable constraint optional (either ON or OFF by default) so the user can decide by themselves whether to include it. You can change the order of constraints by drag and dropping."
+                   :children [:span [:strong "editable"] [icon "question"]]}]
+        "to rerun the query with only changes to these. Your template will be private to your account unless made public."]
+       [:div.row.create-template
+        [:div.col-xs-12.col-xl-6-workaround
+         [inline-input
+          :id "template-name-input"
+          :label "Name:"
+          :helptext "Unique name to identify the template. Use underscores and no special characters, e.g. Gene_proteins"
+          :state* name*]
+         [inline-input
+          :id "template-title-input"
+          :label "Title:"
+          :helptext "Name that's displayed to the user. Arrows will be made into a symbol, e.g. Gene --> Proteins"
+          :state* title*]
+         [inline-input
+          :id "template-description-textarea"
+          :label "Description:"
+          :state* description*
+          :textarea? true]
+         [inline-input
+          :id "template-comment-input"
+          :label "Comment:"
+          :state* comment*]]
+        [:div.col-xs-12.col-xl-6-workaround.template-constraints
+         (for [[index const] (map-indexed vector @constraints*)
+               ;; Type constraints shouldn't be editable.
+               :when (not (:type const))
+               :let [const-meta (get @constraints-meta* index)
+                     set-const-meta! #(swap! constraints-meta* assoc index %)]]
+           [template-constraint const
+            :meta const-meta
+            :set-meta! set-const-meta!])]]
+       [:button.btn.btn-primary.btn-raised
+        "Save template"]])))
 
 (defn other-query-options []
   (let [tab-index (reagent/atom 3)] ;; TODO set back to 0
