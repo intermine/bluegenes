@@ -536,7 +536,13 @@
                                   (let [new-order (move-vec-elem @order @selected* idx)]
                                     (reset! selected* idx)
                                     (dispatch [:qb/set-order new-order])))
-                 :on-drag-end (fn [] (reset! selected* nil))}
+                 :on-drag-end (fn [] (reset! selected* nil))
+                 ;; The remaining two listeners only exist to prevent the animation of the
+                 ;; dragged element returning to its original position. Silly, I know.
+                 :on-drop (fn [e]
+                            (ocall e :preventDefault))
+                 :on-drag-over (fn [e]
+                                 (ocall e :preventDefault))}
                 (into [:div.path-parts]
                       (let [model (assoc @current-model
                                          :type-constraints @current-constraints)]
