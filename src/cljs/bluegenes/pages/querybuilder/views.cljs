@@ -10,7 +10,8 @@
             [bluegenes.components.loader :refer [mini-loader]]
             [bluegenes.components.ui.results_preview :refer [preview-table]]
             [inflections.core :refer [ordinalize plural]]
-            [bluegenes.components.icons :refer [icon]]))
+            [bluegenes.components.icons :refer [icon]]
+            [bluegenes.pages.querybuilder.logic :refer [vec-swap-indices]]))
 
 (defn query=
   "Returns whether `queries` are all =, ignoring empty values like [] and nil."
@@ -838,21 +839,35 @@
            [:span.check]
            lab])))
 
-(defn template-constraint [const & {:keys [meta set-meta!]}]
+(defn template-constraint [const & {:keys [index meta set-meta! drag* constraints-meta*]}]
   (let [current-model @(subscribe [:current-model])
         current-constraints @(subscribe [:qb/im-query-constraints])
         model (assoc current-model :type-constraints current-constraints)
         lists @(subscribe [:current-lists])]
     [:div.const
+     {:draggable true
+      :on-drag-start (fn [e]
+                       (ocall e :stopPropagation)
+                       (reset! drag* index))
+      :on-drag-enter (fn [e]
+                       (ocall e :preventDefault)
+                       (ocall e :stopPropagation)
+                       (let [current @drag*
+                             target index]
+                         (when (not= current target)
+                           (reset! drag* index)
+                           (swap! constraints-meta* vec-swap-indices current target)
+                           (dispatch [:qb/swap-constraints-ordering current target]))))
+      :on-drag-end (fn [_e]
+                     (reset! drag* nil))
+      ;; The remaining two listeners only exist to prevent the animation of the
+      ;; dragged element returning to its original position. Silly, I know.
+      :on-drop (fn [e]
+                 (ocall e :preventDefault))
+      :on-drag-over (fn [e]
+                      (ocall e :preventDefault))}
      [:div.const-reorder
       [:span.drag-bar "≡"]]
-     #_[:div.const-reorder
-        [:button.btn.btn-icon
-         {:on-click #()}
-         [icon "move-up-list"]]
-        [:button.btn.btn-icon
-         {:on-click #()}
-         [icon "move-down-list"]]]
      [:div.const-group
       {:class (when (:editable meta) :editable)}
       [constraint
@@ -890,6 +905,7 @@
         title* (reagent/atom "")
         description* (reagent/atom "")
         comment* (reagent/atom "")
+        drag* (reagent/atom nil)
         ;; Vector of maps corresponding to each constraint, in the same order.
         ;; The map contains keys: editable=true|false [switchable=on|off]
         constraints-meta* (reagent/atom [])
@@ -925,15 +941,18 @@
           :id "template-comment-input"
           :label "Comment:"
           :state* comment*]]
-        [:div.col-xs-12.col-xl-6-workaround.template-constraints
-         (for [[index const] (map-indexed vector @constraints*)
-               ;; Type constraints shouldn't be editable.
-               :when (not (:type const))
-               :let [const-meta (get @constraints-meta* index)
-                     set-const-meta! #(swap! constraints-meta* assoc index %)]]
-           [template-constraint const
-            :meta const-meta
-            :set-meta! set-const-meta!])]]
+        (into [:div.col-xs-12.col-xl-6-workaround.template-constraints]
+              (for [[index const] (map-indexed vector @constraints*)
+                    ;; Type constraints shouldn't be editable.
+                    :when (not (:type const))
+                    :let [const-meta (get @constraints-meta* index)
+                          set-const-meta! #(swap! constraints-meta* assoc index %)]]
+                [template-constraint const
+                 :index index
+                 :meta const-meta
+                 :set-meta! set-const-meta!
+                 :drag* drag*
+                 :constraints-meta* constraints-meta*]))]
        [:button.btn.btn-primary.btn-raised
         "Save template"]])))
 

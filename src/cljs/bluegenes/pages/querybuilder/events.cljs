@@ -722,3 +722,8 @@
  :qb/clear-import-result
  (fn [db [_]]
    (update db :qb dissoc :import-result)))
+
+(reg-event-db
+ :qb/swap-constraints-ordering
+ (fn [db [_ i1 i2]]
+   (update-in db [:qb :im-query :where] logic/vec-swap-indices i1 i2)))
