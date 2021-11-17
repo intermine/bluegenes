@@ -922,11 +922,15 @@
         description* (reagent/atom "")
         comment* (reagent/atom "")
         drag* (reagent/atom nil)
+        error* (reagent/atom nil)
         ;; Vector of maps corresponding to each constraint, in the same order.
         ;; The map contains keys: editable=true|false [switchable=on|off]
         constraints-meta* (reagent/atom [])
         ;; Currently active constraints.
-        constraints* (subscribe [:qb/im-query-constraints])]
+        constraints* (subscribe [:qb/im-query-constraints])
+        invalid? #(cond
+                    (not (re-matches #"\w+" @name*)) "Invalid name. Must only consist of letters, numbers and underscores."
+                    (string/blank? @title*) "Title cannot be left blank.")]
     (fn []
       ;; Prepare/clear constraints-meta* if count differs from active constraints.
       (when (not= (count @constraints*) (count @constraints-meta*))
@@ -940,13 +944,13 @@
         [:div.col-xs-12.col-xl-6-workaround
          [inline-input
           :id "template-name-input"
-          :label "Name:"
+          :label "Name*:"
           :helptext "Unique name to identify the template. Use underscores and no special characters, e.g. Gene_proteins"
           :warntext "Note: Will overwrite any existing template with the same name."
           :state* name*]
          [inline-input
           :id "template-title-input"
-          :label "Title:"
+          :label "Title*:"
           :helptext "Name that's displayed to the user. Arrows will be made into a symbol, e.g. Gene --> Proteins"
           :state* title*]
          [inline-input
@@ -970,13 +974,19 @@
                  :set-meta! set-const-meta!
                  :drag* drag*
                  :constraints-meta* constraints-meta*]))]
-       [:button.btn.btn-primary.btn-raised
-        {:on-click #(dispatch [:qb/save-template {:name @name*
-                                                  :title @title*
-                                                  :description @description*
-                                                  :comment @comment*}
-                               (merge-vectors @constraints* @constraints-meta*)])}
-        "Save template"]])))
+       [:div.template-actions
+        [:button.btn.btn-primary.btn-raised
+         {:on-click #(if-let [err (invalid?)]
+                       (reset! error* err)
+                       (do (reset! error* nil)
+                           (dispatch [:qb/save-template {:name @name*
+                                                         :title @title*
+                                                         :description @description*
+                                                         :comment @comment*}
+                                      (merge-vectors @constraints* @constraints-meta*)])))}
+         "Save template"]
+        (when-let [err @error*]
+          [:p.failure err])]])))
 
 (defn other-query-options []
   (let [tab-index (reagent/atom 3)] ;; TODO set back to 0
