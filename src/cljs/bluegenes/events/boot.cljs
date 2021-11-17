@@ -428,7 +428,7 @@
      (= :lists-panel (:active-panel db))
      (update :dispatch-n conj [:lists/initialize]))))
 
-;; This event is also dispatched externally from bluegenes.pages.lists.events.
+;; This event is also dispatched externally from many other namespaces.
 (reg-event-fx
  :assets/fetch-lists
  (fn [{db :db} [evt next-evt]]
@@ -463,6 +463,7 @@
  (fn [db [_ mine-kw lists]]
    (assoc-in db [:assets :templates mine-kw] lists)))
 
+;; This event is also dispatched externally from other namespaces.
 (reg-event-fx
  :assets/fetch-templates
  (fn [{db :db} [evt]]

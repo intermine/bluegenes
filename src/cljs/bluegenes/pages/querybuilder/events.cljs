@@ -7,6 +7,7 @@
             [imcljs.fetch :as fetch]
             [imcljs.save :as save]
             [clojure.set :refer [difference]]
+            [bluegenes.route :as route]
             [bluegenes.pages.querybuilder.logic :as logic
              :refer [read-logic-string remove-code vec->list append-code]]
             [clojure.string :as str :refer [join split blank? starts-with?]]
@@ -779,11 +780,28 @@
    (let [service (get-in db [:mines (:current-mine db) :service])
          model (:model service)
          query (assoc (get-in db [:qb :im-query])
-                      :where template-constraints)]
-     (js/alert
-       (template->xml model template-details query))
-     {}
-     #_{:im-chan {:chan (fetch/saved-queries service)
-                  :on-success [:qb/fetch-saved-queries-success]
-                  :on-failure [:qb/fetch-saved-queries-failure]}})))
-;; TODO add imcljs.save/template
+                      :where template-constraints)
+         template-query (template->xml model template-details query)]
+     {:im-chan {:chan (save/template service template-query)
+                :on-success [:qb/save-template-success (:name template-details)]
+                :on-failure [:qb/save-template-failure (:name template-details)]}})))
+
+(reg-event-fx
+ :qb/save-template-success
+ (fn [{db :db} [_ template-name _res]]
+   {:dispatch-n [[:assets/fetch-templates]
+                 [:messages/add
+                  {:markup [:span "Saved template: "
+                            [:a {:href (route/href ::route/template {:template template-name})}
+                             template-name]]
+                   :style "success"}]]}))
+
+(reg-event-fx
+ :qb/save-template-failure
+ (fn [{db :db} [_ template-name res]]
+   {:dispatch [:messages/add
+               {:markup [:span [:strong "Failed to save template " [:em template-name]] " "
+                         (when-let [err (get-in res [:body :error])]
+                           [:code err])]
+                :timeout 10000
+                :style "danger"}]}))
