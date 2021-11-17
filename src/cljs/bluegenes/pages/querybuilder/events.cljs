@@ -171,6 +171,50 @@
                   :joins (set (:joins query)))
       :dispatch [:qb/enhance-query-build-im-query true]})))
 
+;; The JSON representation of template constraints is a bit different from how
+;; it's in XML (why aren't they the same??) We follow the XML convention in BG.
+;; Here's the mapping from XML <=> JSON template constraint representations:
+;; editable=true|false <=> editable=true|false
+;; no switchable <=> switchable=false switched=LOCKED
+;; switchable=on <=> switchable=true switched=ON
+;; switchable=off <=> switchable=true switched=OFF
+(defn read-template-constraints [temp-consts]
+  (mapv (fn [{:keys [editable switched description] :as const}]
+          (if (:type const)
+            ;; Type constraints cannot be used as template constraints.
+            [const {}]
+            (let [const (dissoc const :editable :switchable :switched :description)
+                  switched (str/lower-case switched)]
+              [const
+               (-> {}
+                   (assoc :editable editable
+                          :description description)
+                   (cond-> (#{"on" "off"} switched)
+                     (assoc :switchable switched)))])))
+        temp-consts))
+
+(reg-event-fx
+ :qb/load-template
+ (fn [{db :db} [_ template-query]]
+   (let [[consts consts-meta] ((juxt (partial mapv first)
+                                     (partial mapv second))
+                               (read-template-constraints (:where template-query)))
+         query (assoc template-query :where consts)
+         query (im-query/sterilize-query query)
+         tree (treeify query)]
+     {:db (update db :qb assoc
+                  :enhance-query tree
+                  :menu tree
+                  :order (:select query)
+                  :root-class (keyword (:from query))
+                  :constraint-logic (read-logic-string (:constraintLogic query))
+                  :sort (:sortOrder query)
+                  :joins (set (:joins query))
+                  :template-meta (-> template-query
+                                     (select-keys [:name :title :comment :description])
+                                     (assoc :where consts-meta)))
+      :dispatch [:qb/enhance-query-build-im-query true]})))
+
 (reg-event-fx
  :qb/set-root-class
  (fn [{db :db} [_ root-class]]

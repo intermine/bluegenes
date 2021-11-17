@@ -36,7 +36,7 @@
   (update query :where
           (partial mapv (fn [const]
                           ; :description
-                          (dissoc const :editable :switchable :switched)))))
+                          (dissoc const :editable :switchable :switched :description)))))
 
 (def prepare-template-query
   (comp clean-template-constraints remove-switchedoff-constraints))
@@ -102,6 +102,13 @@
    {:db db
     :dispatch-n [[::route/navigate ::route/querybuilder]
                  [:qb/load-query (prepare-template-query (get-in db [:components :template-chooser :selected-template]))]]}))
+
+(reg-event-fx
+ :templates/edit-template
+ (fn [{db :db} [_]]
+   {:db db
+    :dispatch-n [[::route/navigate ::route/querybuilder]
+                 [:qb/load-template (get-in db [:components :template-chooser :selected-template])]]}))
 
 (reg-event-fx
  :template-chooser/replace-constraint

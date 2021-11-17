@@ -917,23 +917,25 @@
         v1 v2))
 
 (defn create-template []
-  (let [name* (reagent/atom "")
-        title* (reagent/atom "")
-        description* (reagent/atom "")
-        comment* (reagent/atom "")
+  (let [init-data @(subscribe [:qb/template-meta])
+        name* (reagent/atom (or (:name init-data) ""))
+        title* (reagent/atom (or (:title init-data) ""))
+        description* (reagent/atom (or (:description init-data) ""))
+        comment* (reagent/atom (or (:comment init-data) ""))
         drag* (reagent/atom nil)
         error* (reagent/atom nil)
         ;; Vector of maps corresponding to each constraint, in the same order.
         ;; The map contains keys: editable=true|false [switchable=on|off]
-        constraints-meta* (reagent/atom [])
+        constraints-meta* (reagent/atom (or (:where init-data) []))
         ;; Currently active constraints.
         constraints* (subscribe [:qb/im-query-constraints])
         invalid? #(cond
                     (not (re-matches #"\w+" @name*)) "Invalid name. Must only consist of letters, numbers and underscores."
                     (string/blank? @title*) "Title cannot be left blank.")]
     (fn []
-      ;; Prepare/clear constraints-meta* if count differs from active constraints.
-      (when (not= (count @constraints*) (count @constraints-meta*))
+      (when (and (empty? init-data)
+                 (not= (count @constraints*) (count @constraints-meta*)))
+        ;; Prepare/clear constraints-meta* if count differs from active constraints.
         (reset! constraints-meta* (vec (repeat (count @constraints*) {}))))
       [:div
        [:p.template-intro "You can save your query as a template, allowing you to specify which constraints are "

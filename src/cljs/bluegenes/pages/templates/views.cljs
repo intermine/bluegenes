@@ -68,7 +68,11 @@
       [:button.btn.btn-default.btn-raised
        {:type "button"
         :on-click (fn [] (dispatch [:templates/edit-query]))}
-       "Edit query"]]]))
+       "Edit query"]
+      [:button.btn.btn-default.btn-raised
+       {:type "button"
+        :on-click (fn [] (dispatch [:templates/edit-template]))}
+       "Edit template"]]]))
 
 (defn toggle []
   (fn [{:keys [status on-change]}]

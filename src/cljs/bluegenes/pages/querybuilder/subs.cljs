@@ -111,3 +111,8 @@
  :<- [:qb/menu]
  (fn [qb-menu]
    (con-logic/qb-menu->type-constraints qb-menu)))
+
+(reg-sub
+ :qb/template-meta
+ (fn [db]
+   (get-in db [:qb :template-meta])))
