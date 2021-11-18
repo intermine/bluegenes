@@ -36,7 +36,8 @@
 (defn preview-results
   "Preview results of template as configured by the user or default config"
   []
-  (let [fetching-preview? @(subscribe [:template-chooser/fetching-preview?])
+  (let [authed? @(subscribe [:bluegenes.subs.auth/authenticated?])
+        fetching-preview? @(subscribe [:template-chooser/fetching-preview?])
         results-preview @(subscribe [:template-chooser/results-preview])
         preview-error @(subscribe [:template-chooser/preview-error])
         loading? (if preview-error
@@ -69,10 +70,11 @@
        {:type "button"
         :on-click (fn [] (dispatch [:templates/edit-query]))}
        "Edit query"]
-      [:button.btn.btn-default.btn-raised
-       {:type "button"
-        :on-click (fn [] (dispatch [:templates/edit-template]))}
-       "Edit template"]]]))
+      (when authed?
+        [:button.btn.btn-default.btn-raised
+         {:type "button"
+          :on-click (fn [] (dispatch [:templates/edit-template]))}
+         "Edit template"])]]))
 
 (defn toggle []
   (fn [{:keys [status on-change]}]

@@ -1010,7 +1010,8 @@
              [:p.failure err])]])})))
 
 (defn other-query-options []
-  (let [tab-index (reagent/atom (if @(subscribe [:qb/template-in-progress?]) 3 0))]
+  (let [tab-index (reagent/atom (if @(subscribe [:qb/template-in-progress?]) 3 0))
+        authed? (subscribe [:bluegenes.subs.auth/authenticated?])]
     (fn []
       [:div.panel.panel-default
        [:div.panel-body
@@ -1030,7 +1031,9 @@
           0 [recent-queries]
           1 [saved-queries]
           2 [import-from-xml]
-          3 [create-template])]])))
+          3 (if @authed?
+              [create-template]
+              [:p "You need to be logged in to create templates."]))]])))
 
 (defn main []
   [:div.column-container

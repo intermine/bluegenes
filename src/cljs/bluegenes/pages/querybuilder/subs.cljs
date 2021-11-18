@@ -121,5 +121,7 @@
  :qb/template-in-progress?
  :<- [:qb/template-meta]
  (fn [template-meta]
-   (boolean (some (comp not-empty template-meta)
-                  [:name :title :description :comment]))))
+   (if (map? template-meta)
+     (boolean (some (comp not-empty template-meta)
+                    [:name :title :description :comment]))
+     false)))
