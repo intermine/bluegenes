@@ -830,7 +830,7 @@
   [:div.switch-container
    [:span.switch-label label]
    [:span.switch
-    [:input {:type "checkbox" :checked value}]
+    [:input {:type "checkbox" :checked (boolean value)}]
     [:span.slider.round {:on-click on-change}]]
    [:span.switch-status (if value "ON" "OFF")]])
 
@@ -922,23 +922,26 @@
         title* (reagent/atom (or (:title init-data) ""))
         description* (reagent/atom (or (:description init-data) ""))
         comment* (reagent/atom (or (:comment init-data) ""))
+        invalid? #(cond
+                    (not (re-matches #"\w+" @name*)) "Invalid name. Must only consist of letters, numbers and underscores."
+                    (string/blank? @title*) "Title cannot be left blank.")
         drag* (reagent/atom nil)
         error* (reagent/atom nil)
         ;; Currently active constraints.
         constraints* (subscribe [:qb/im-query-constraints])
         ;; Vector of maps corresponding to each constraint, in the same order.
         ;; The map contains keys: editable=true|false [switchable=on|off]
-        constraints-meta* (reagent/atom (if-let [const->meta (-> init-data :const->meta not-empty)]
-                                          (mapv const->meta @constraints*)
-                                          []))
-        invalid? #(cond
-                    (not (re-matches #"\w+" @name*)) "Invalid name. Must only consist of letters, numbers and underscores."
-                    (string/blank? @title*) "Title cannot be left blank.")]
+        empty-meta (fn [] (vec (repeat (count @constraints*) {})))
+        build-meta (fn [] (if-let [const->meta (-> init-data :const->meta not-empty)]
+                            (mapv #(get const->meta % {}) @constraints*)
+                            (empty-meta)))
+        constraints-meta* (reagent/atom (build-meta))]
     (fn []
-      (when (and (empty? init-data)
-                 (not= (count @constraints*) (count @constraints-meta*)))
-        ;; Prepare/clear constraints-meta* if count differs from active constraints.
-        (reset! constraints-meta* (vec (repeat (count @constraints*) {}))))
+      (when (not= (count @constraints*) (count @constraints-meta*))
+        ;; Reset constraints-meta* if count differs from active constraints.
+        ;; This has to be done as a newly added/removed constraint can be at
+        ;; any point in the vector, causing the meta to go out of sync.
+        (reset! constraints-meta* (build-meta)))
       [:div
        [:p.template-intro "You can save your query as a template, allowing you to specify which constraints are "
         [poppable {:data "Users of this template will be able to change the constraint operator and/or value. You can also make the editable constraint optional (either ON or OFF by default) so the user can decide by themselves whether to include it. You can change the order of constraints by drag and dropping."
