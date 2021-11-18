@@ -924,11 +924,13 @@
         comment* (reagent/atom (or (:comment init-data) ""))
         drag* (reagent/atom nil)
         error* (reagent/atom nil)
-        ;; Vector of maps corresponding to each constraint, in the same order.
-        ;; The map contains keys: editable=true|false [switchable=on|off]
-        constraints-meta* (reagent/atom (or (:where init-data) []))
         ;; Currently active constraints.
         constraints* (subscribe [:qb/im-query-constraints])
+        ;; Vector of maps corresponding to each constraint, in the same order.
+        ;; The map contains keys: editable=true|false [switchable=on|off]
+        constraints-meta* (reagent/atom (if-let [const->meta (-> init-data :const->meta not-empty)]
+                                          (mapv const->meta @constraints*)
+                                          []))
         invalid? #(cond
                     (not (re-matches #"\w+" @name*)) "Invalid name. Must only consist of letters, numbers and underscores."
                     (string/blank? @title*) "Title cannot be left blank.")]

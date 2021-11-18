@@ -140,3 +140,8 @@
       (-> v
           (assoc i1 e2)
           (assoc i2 e1)))))
+
+(defn vec-swap-vals [v val1 val2]
+  (let [replacem {val1 val2
+                  val2 val1}]
+    (mapv #(get replacem % %) v)))

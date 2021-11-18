@@ -212,7 +212,8 @@
                   :joins (set (:joins query))
                   :template-meta (-> template-query
                                      (select-keys [:name :title :comment :description])
-                                     (assoc :where consts-meta)))
+                                     ;; As we treeify the query, and :im-query:where is derived from that tree, we lose the ordering of constraints. Ideally, we want template constraints to appear in the same order they did in the template view, but supporting this ordering with the way the QB has been implemented with a tree, seems to be very error prone and difficult. The proper way to achieve that would be to change the QB to support ordering of constraints, which takes much more time. For now, we won't do this, so the ordering will be different, and we'll have to map each constraint to their corresponsive meta, which is done with this map.
+                                     (assoc :const->meta (zipmap consts consts-meta))))
       :dispatch [:qb/enhance-query-build-im-query true]})))
 
 (reg-event-fx
