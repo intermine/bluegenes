@@ -5,7 +5,8 @@
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
             [imcljs.fetch :as fetch]
             [bluegenes.route :as route]
-            [bluegenes.components.ui.constraint :as constraint]))
+            [bluegenes.components.ui.constraint :as constraint]
+            [bluegenes.pages.templates.helpers :refer [prepare-template-query]]))
 
 ;; This effect handler is used from routes and has different behaviour
 ;; depending on if it's called from a different panel, or the template panel.
@@ -22,24 +23,6 @@
                     ;; element needs to be present first.
                     ^:flush-dom [:template-chooser/choose-template id
                                  {:scroll? true}]]]})))
-
-; Predicate function used to filter active constraints
-(def not-disabled-predicate (comp (partial not= "OFF") :switched))
-
-(defn remove-switchedoff-constraints
-  "Filter the constraints of a query map and only keep those with a :switched value other than OFF"
-  [query]
-  (update query :where #(filterv not-disabled-predicate %)))
-
-(defn clean-template-constraints
-  [query]
-  (update query :where
-          (partial mapv (fn [const]
-                          ; :description
-                          (dissoc const :editable :switchable :switched :description)))))
-
-(def prepare-template-query
-  (comp clean-template-constraints remove-switchedoff-constraints))
 
 (reg-event-fx
  :template-chooser/choose-template
