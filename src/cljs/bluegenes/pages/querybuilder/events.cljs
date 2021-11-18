@@ -216,6 +216,18 @@
                                      (assoc :const->meta (zipmap consts consts-meta))))
       :dispatch [:qb/enhance-query-build-im-query true]})))
 
+(reg-event-db
+ :qb/update-template-meta
+ (fn [db [_ template-details const->meta]]
+   (assoc-in db [:qb :template-meta]
+             (assoc template-details
+                    :const->meta const->meta))))
+
+(reg-event-db
+ :qb/update-template-meta-consts
+ (fn [db [_ const->meta]]
+   (assoc-in db [:qb :template-meta :const->meta] const->meta)))
+
 (reg-event-fx
  :qb/set-root-class
  (fn [{db :db} [_ root-class]]

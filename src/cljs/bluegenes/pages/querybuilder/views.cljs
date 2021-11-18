@@ -917,11 +917,15 @@
         v1 v2))
 
 (defn create-template []
-  (let [init-data @(subscribe [:qb/template-meta])
-        name* (reagent/atom (or (:name init-data) ""))
-        title* (reagent/atom (or (:title init-data) ""))
-        description* (reagent/atom (or (:description init-data) ""))
-        comment* (reagent/atom (or (:comment init-data) ""))
+  (let [init-data (subscribe [:qb/template-meta])
+        name* (reagent/atom (or (:name @init-data) ""))
+        title* (reagent/atom (or (:title @init-data) ""))
+        description* (reagent/atom (or (:description @init-data) ""))
+        comment* (reagent/atom (or (:comment @init-data) ""))
+        collect-inputs (fn [] {:name @name*
+                               :title @title*
+                               :description @description*
+                               :comment @comment*})
         invalid? #(cond
                     (not (re-matches #"\w+" @name*)) "Invalid name. Must only consist of letters, numbers and underscores."
                     (string/blank? @title*) "Title cannot be left blank.")
@@ -932,68 +936,72 @@
         ;; Vector of maps corresponding to each constraint, in the same order.
         ;; The map contains keys: editable=true|false [switchable=on|off]
         empty-meta (fn [] (vec (repeat (count @constraints*) {})))
-        build-meta (fn [] (if-let [const->meta (-> init-data :const->meta not-empty)]
+        build-meta (fn [] (if-let [const->meta (-> @init-data :const->meta not-empty)]
                             (mapv #(get const->meta % {}) @constraints*)
                             (empty-meta)))
         constraints-meta* (reagent/atom (build-meta))]
-    (fn []
-      (when (not= (count @constraints*) (count @constraints-meta*))
-        ;; Reset constraints-meta* if count differs from active constraints.
-        ;; This has to be done as a newly added/removed constraint can be at
-        ;; any point in the vector, causing the meta to go out of sync.
-        (reset! constraints-meta* (build-meta)))
-      [:div
-       [:p.template-intro "You can save your query as a template, allowing you to specify which constraints are "
-        [poppable {:data "Users of this template will be able to change the constraint operator and/or value. You can also make the editable constraint optional (either ON or OFF by default) so the user can decide by themselves whether to include it. You can change the order of constraints by drag and dropping."
-                   :children [:span [:strong "editable"] [icon "question"]]}]
-        "to rerun the query with only changes to these. Your template will be private to your account unless made public."]
-       [:div.row.create-template
-        [:div.col-xs-12.col-xl-6-workaround
-         [inline-input
-          :id "template-name-input"
-          :label "Name*:"
-          :helptext "Unique name to identify the template. Use underscores and no special characters, e.g. Gene_proteins"
-          :warntext "Note: Will overwrite any existing template with the same name."
-          :state* name*]
-         [inline-input
-          :id "template-title-input"
-          :label "Title*:"
-          :helptext "Name that's displayed to the user. Arrows will be made into a symbol, e.g. Gene --> Proteins"
-          :state* title*]
-         [inline-input
-          :id "template-description-textarea"
-          :label "Description:"
-          :state* description*
-          :textarea? true]
-         [inline-input
-          :id "template-comment-input"
-          :label "Comment:"
-          :state* comment*]]
-        (into [:div.col-xs-12.col-xl-6-workaround.template-constraints]
-              (for [[index const] (map-indexed vector @constraints*)
-                    ;; Type constraints shouldn't be editable.
-                    :when (not (:type const))
-                    :let [const-meta (get @constraints-meta* index)
-                          set-const-meta! #(swap! constraints-meta* assoc index %)]]
-                [template-constraint const
-                 :index index
-                 :meta const-meta
-                 :set-meta! set-const-meta!
-                 :drag* drag*
-                 :constraints-meta* constraints-meta*]))]
-       [:div.template-actions
-        [:button.btn.btn-primary.btn-raised
-         {:on-click #(if-let [err (invalid?)]
-                       (reset! error* err)
-                       (do (reset! error* nil)
-                           (dispatch [:qb/save-template {:name @name*
-                                                         :title @title*
-                                                         :description @description*
-                                                         :comment @comment*}
-                                      (merge-vectors @constraints* @constraints-meta*)])))}
-         "Save template"]
-        (when-let [err @error*]
-          [:p.failure err])]])))
+    (reagent/create-class
+      {:display-name "create-template"
+       :component-will-unmount
+       (fn []
+         ;; Save local state to template-meta when dismounting, so we can restore it on mount.
+         (dispatch [:qb/update-template-meta (collect-inputs) (zipmap @constraints* @constraints-meta*)]))
+       :reagent-render
+       (fn []
+         (when (not= (count @constraints*) (count @constraints-meta*))
+           ;; Reset constraints-meta* if count differs from active constraints.
+           ;; This has to be done as a newly added/removed constraint can be at
+           ;; any point in the vector, causing the meta to go out of sync.
+           (reset! constraints-meta* (build-meta)))
+         [:div
+          [:p.template-intro "You can save your query as a template, allowing you to specify which constraints are "
+           [poppable {:data "Users of this template will be able to change the constraint operator and/or value. You can also make the editable constraint optional (either ON or OFF by default) so the user can decide by themselves whether to include it. You can change the order of constraints by drag and dropping."
+                      :children [:span [:strong "editable"] [icon "question"]]}]
+           "to rerun the query with only changes to these. Your template will be private to your account unless made public."]
+          [:div.row.create-template
+           [:div.col-xs-12.col-xl-6-workaround
+            [inline-input
+             :id "template-name-input"
+             :label "Name*:"
+             :helptext "Unique name to identify the template. Use underscores and no special characters, e.g. Gene_proteins"
+             :warntext "Note: Will overwrite any existing template with the same name."
+             :state* name*]
+            [inline-input
+             :id "template-title-input"
+             :label "Title*:"
+             :helptext "Name that's displayed to the user. Arrows will be made into a symbol, e.g. Gene --> Proteins"
+             :state* title*]
+            [inline-input
+             :id "template-description-textarea"
+             :label "Description:"
+             :state* description*
+             :textarea? true]
+            [inline-input
+             :id "template-comment-input"
+             :label "Comment:"
+             :state* comment*]]
+           (into [:div.col-xs-12.col-xl-6-workaround.template-constraints]
+                 (for [[index const] (map-indexed vector @constraints*)
+                       ;; Type constraints shouldn't be editable.
+                       :when (not (:type const))
+                       :let [const-meta (get @constraints-meta* index)
+                             set-const-meta! #(dispatch [:qb/update-template-meta-consts (zipmap @constraints* (swap! constraints-meta* assoc index %))])]]
+                   [template-constraint const
+                    :index index
+                    :meta const-meta
+                    :set-meta! set-const-meta!
+                    :drag* drag*
+                    :constraints-meta* constraints-meta*]))]
+          [:div.template-actions
+           [:button.btn.btn-primary.btn-raised
+            {:on-click #(if-let [err (invalid?)]
+                          (reset! error* err)
+                          (do (reset! error* nil)
+                              (dispatch [:qb/save-template (collect-inputs)
+                                         (merge-vectors @constraints* @constraints-meta*)])))}
+            "Save template"]
+           (when-let [err @error*]
+             [:p.failure err])]])})))
 
 (defn other-query-options []
   (let [tab-index (reagent/atom 3)] ;; TODO set back to 0
