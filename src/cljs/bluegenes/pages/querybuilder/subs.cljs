@@ -116,3 +116,10 @@
  :qb/template-meta
  (fn [db]
    (get-in db [:qb :template-meta])))
+
+(reg-sub
+ :qb/template-in-progress?
+ :<- [:qb/template-meta]
+ (fn [template-meta]
+   (boolean (some (comp not-empty template-meta)
+                  [:name :title :description :comment]))))

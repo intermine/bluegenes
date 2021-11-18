@@ -1000,11 +1000,17 @@
                               (dispatch [:qb/save-template (collect-inputs)
                                          (merge-vectors @constraints* @constraints-meta*)])))}
             "Save template"]
+           [:button.btn.btn-default.btn-raised
+            {:on-click (fn []
+                         (reset! error* nil)
+                         (doseq [a [name* title* description* comment*]]
+                           (reset! a "")))}
+            "Clear"]
            (when-let [err @error*]
              [:p.failure err])]])})))
 
 (defn other-query-options []
-  (let [tab-index (reagent/atom 3)] ;; TODO set back to 0
+  (let [tab-index (reagent/atom (if @(subscribe [:qb/template-in-progress?]) 3 0))]
     (fn []
       [:div.panel.panel-default
        [:div.panel-body
