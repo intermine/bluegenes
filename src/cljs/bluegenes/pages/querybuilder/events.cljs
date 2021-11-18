@@ -795,8 +795,8 @@
 
 (defn template->xml [model {:keys [name title description comment]} query]
   (xml/emit-str
-    (xml/element :template {:name name :title title :comment comment}
-      (xml/parse-str (im-query/->xml model (assoc query :longDescription description))))))
+   (xml/element :template {:name name :title title :comment comment}
+                (xml/parse-str (im-query/->xml model (assoc query :longDescription description))))))
 
 (comment
   (require '[re-frame.core :refer [subscribe]])

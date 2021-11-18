@@ -941,73 +941,73 @@
                             (empty-meta)))
         constraints-meta* (reagent/atom (build-meta))]
     (reagent/create-class
-      {:display-name "create-template"
-       :component-will-unmount
-       (fn []
+     {:display-name "create-template"
+      :component-will-unmount
+      (fn []
          ;; Save local state to template-meta when dismounting, so we can restore it on mount.
-         (dispatch [:qb/update-template-meta (collect-inputs) (zipmap @constraints* @constraints-meta*)]))
-       :reagent-render
-       (fn []
-         (when (not= (count @constraints*) (count @constraints-meta*))
+        (dispatch [:qb/update-template-meta (collect-inputs) (zipmap @constraints* @constraints-meta*)]))
+      :reagent-render
+      (fn []
+        (when (not= (count @constraints*) (count @constraints-meta*))
            ;; Reset constraints-meta* if count differs from active constraints.
            ;; This has to be done as a newly added/removed constraint can be at
            ;; any point in the vector, causing the meta to go out of sync.
-           (reset! constraints-meta* (build-meta)))
-         [:div
-          [:p.template-intro "You can save your query as a template, allowing you to specify which constraints are "
-           [poppable {:data "Users of this template will be able to change the constraint operator and/or value. You can also make the editable constraint optional (either ON or OFF by default) so the user can decide by themselves whether to include it. You can change the order of constraints by drag and dropping."
-                      :children [:span [:strong "editable"] [icon "question"]]}]
-           "to rerun the query with only changes to these. Your template will be private to your account unless made public."]
-          [:div.row.create-template
-           [:div.col-xs-12.col-xl-6-workaround
-            [inline-input
-             :id "template-name-input"
-             :label "Name*:"
-             :helptext "Unique name to identify the template. Use underscores and no special characters, e.g. Gene_proteins"
-             :warntext "Note: Will overwrite any existing template with the same name."
-             :state* name*]
-            [inline-input
-             :id "template-title-input"
-             :label "Title*:"
-             :helptext "Name that's displayed to the user. Arrows will be made into a symbol, e.g. Gene --> Proteins"
-             :state* title*]
-            [inline-input
-             :id "template-description-textarea"
-             :label "Description:"
-             :state* description*
-             :textarea? true]
-            [inline-input
-             :id "template-comment-input"
-             :label "Comment:"
-             :state* comment*]]
-           (into [:div.col-xs-12.col-xl-6-workaround.template-constraints]
-                 (for [[index const] (map-indexed vector @constraints*)
+          (reset! constraints-meta* (build-meta)))
+        [:div
+         [:p.template-intro "You can save your query as a template, allowing you to specify which constraints are "
+          [poppable {:data "Users of this template will be able to change the constraint operator and/or value. You can also make the editable constraint optional (either ON or OFF by default) so the user can decide by themselves whether to include it. You can change the order of constraints by drag and dropping."
+                     :children [:span [:strong "editable"] [icon "question"]]}]
+          "to rerun the query with only changes to these. Your template will be private to your account unless made public."]
+         [:div.row.create-template
+          [:div.col-xs-12.col-xl-6-workaround
+           [inline-input
+            :id "template-name-input"
+            :label "Name*:"
+            :helptext "Unique name to identify the template. Use underscores and no special characters, e.g. Gene_proteins"
+            :warntext "Note: Will overwrite any existing template with the same name."
+            :state* name*]
+           [inline-input
+            :id "template-title-input"
+            :label "Title*:"
+            :helptext "Name that's displayed to the user. Arrows will be made into a symbol, e.g. Gene --> Proteins"
+            :state* title*]
+           [inline-input
+            :id "template-description-textarea"
+            :label "Description:"
+            :state* description*
+            :textarea? true]
+           [inline-input
+            :id "template-comment-input"
+            :label "Comment:"
+            :state* comment*]]
+          (into [:div.col-xs-12.col-xl-6-workaround.template-constraints]
+                (for [[index const] (map-indexed vector @constraints*)
                        ;; Type constraints shouldn't be editable.
-                       :when (not (:type const))
-                       :let [const-meta (get @constraints-meta* index)
-                             set-const-meta! #(dispatch [:qb/update-template-meta-consts (zipmap @constraints* (swap! constraints-meta* assoc index %))])]]
-                   [template-constraint const
-                    :index index
-                    :meta const-meta
-                    :set-meta! set-const-meta!
-                    :drag* drag*
-                    :constraints-meta* constraints-meta*]))]
-          [:div.template-actions
-           [:button.btn.btn-primary.btn-raised
-            {:on-click #(if-let [err (invalid?)]
-                          (reset! error* err)
-                          (do (reset! error* nil)
-                              (dispatch [:qb/save-template (collect-inputs)
-                                         (merge-vectors @constraints* @constraints-meta*)])))}
-            "Save template"]
-           [:button.btn.btn-default.btn-raised
-            {:on-click (fn []
-                         (reset! error* nil)
-                         (doseq [a [name* title* description* comment*]]
-                           (reset! a "")))}
-            "Clear"]
-           (when-let [err @error*]
-             [:p.failure err])]])})))
+                      :when (not (:type const))
+                      :let [const-meta (get @constraints-meta* index)
+                            set-const-meta! #(dispatch [:qb/update-template-meta-consts (zipmap @constraints* (swap! constraints-meta* assoc index %))])]]
+                  [template-constraint const
+                   :index index
+                   :meta const-meta
+                   :set-meta! set-const-meta!
+                   :drag* drag*
+                   :constraints-meta* constraints-meta*]))]
+         [:div.template-actions
+          [:button.btn.btn-primary.btn-raised
+           {:on-click #(if-let [err (invalid?)]
+                         (reset! error* err)
+                         (do (reset! error* nil)
+                             (dispatch [:qb/save-template (collect-inputs)
+                                        (merge-vectors @constraints* @constraints-meta*)])))}
+           "Save template"]
+          [:button.btn.btn-default.btn-raised
+           {:on-click (fn []
+                        (reset! error* nil)
+                        (doseq [a [name* title* description* comment*]]
+                          (reset! a "")))}
+           "Clear"]
+          (when-let [err @error*]
+            [:p.failure err])]])})))
 
 (defn other-query-options []
   (let [tab-index (reagent/atom (if @(subscribe [:qb/template-in-progress?]) 3 0))
