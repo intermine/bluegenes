@@ -13,7 +13,8 @@
             [bluegenes.pages.templates.helpers :refer [categories-from-tags]]
             [bluegenes.components.top-scroll :as top-scroll]
             [bluegenes.route :as route]
-            [bluegenes.components.icons :refer [icon]]))
+            [bluegenes.components.icons :refer [icon]]
+            [goog.functions :refer [debounce]]))
 
 (defn categories []
   (let [categories (subscribe [:template-chooser-categories])
@@ -242,20 +243,26 @@
                 [:span ". Try "
                  [:a {:on-click
                       (fn []
-                        (dispatch [:template-chooser/set-text-filter ""])
-                        (dispatch [:template-chooser/set-category-filter nil]))} "removing the filters"]
+                        (dispatch [:template-chooser/clear-text-filter])
+                        (dispatch [:template-chooser/set-category-filter nil]))}
+                  "removing the filters"]
                  " to view more results. "]]))])))
 
 (defn template-filter []
-  (let [text-filter (subscribe [:template-chooser/text-filter])]
+  (let [input (reagent/atom @(subscribe [:template-chooser/text-filter]))
+        debounced (debounce #(dispatch [:template-chooser/set-text-filter %]) 500)
+        on-change (fn [e]
+                    (let [value (oget e :target :value)]
+                      (reset! input value)
+                      (debounced value)))]
     (fn []
       [:input.form-control.input-lg
-       {:type "text"
-        :value @text-filter
+       {:id "template-text-filter"
+        :type "text"
+        :value @input
         :placeholder "Filter text..."
         :autoFocus true
-        :on-change (fn [e]
-                     (dispatch [:template-chooser/set-text-filter (.. e -target -value)]))}])))
+        :on-change on-change}])))
 
 (defn filters []
   (let [me (reagent/atom nil)]

@@ -2,6 +2,8 @@
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [re-frame.core :refer [reg-event-db reg-event-fx reg-fx dispatch subscribe]]
             [re-frame.events]
+            [oops.core :refer [oset!]]
+            [goog.dom :as gdom]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
             [imcljs.fetch :as fetch]
             [bluegenes.route :as route]
@@ -66,8 +68,21 @@
 
 (reg-event-db
  :template-chooser/set-text-filter
- (fn [db [_ id]]
-   (assoc-in db [:components :template-chooser :text-filter] id)))
+ (fn [db [_ text]]
+   (assoc-in db [:components :template-chooser :text-filter] text)))
+
+;; We don't want to make the text filter a controlled input as we want to be
+;; able to debounce its event. Leading to this lesser evil of DOM manipulation.
+(reg-fx
+ ::clear-text-filter
+ (fn [_]
+   (oset! (gdom/getElement "template-text-filter") :value "")))
+
+(reg-event-fx
+ :template-chooser/clear-text-filter
+ (fn [{db :db} [_]]
+   {:db (assoc-in db [:components :template-chooser :text-filter] "")
+    ::clear-text-filter {}}))
 
 (reg-event-fx
  :templates/send-off-query
