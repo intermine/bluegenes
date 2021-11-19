@@ -94,6 +94,14 @@
                 :intent :template
                 :value (prepare-template-query (get-in db [:components :template-chooser :selected-template]))}]}))
 
+(reg-event-db
+ :templates/reset-template
+ (fn [db [_]]
+   (let [current-mine (:current-mine db)
+         id (get-in db [:components :template-chooser :selected-template-name])]
+     (assoc-in db [:components :template-chooser :selected-template]
+               (get-in db [:assets :templates current-mine id])))))
+
 (reg-event-fx
  :templates/edit-query
  (fn [{db :db} [_]]

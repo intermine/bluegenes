@@ -156,3 +156,11 @@
  :<- [:active-service]
  (fn [[template service]]
    (template-helpers/web-service-url service template)))
+
+(reg-sub
+ :template-chooser/changed-selected?
+ :<- [:selected-template]
+ :<- [:selected-template-name]
+ :<- [:templates]
+ (fn [[selected-tmpl tmpl-name all-templates]]
+   (not= selected-tmpl (get all-templates tmpl-name))))

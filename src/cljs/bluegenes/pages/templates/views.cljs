@@ -75,6 +75,7 @@
         fetching-preview? @(subscribe [:template-chooser/fetching-preview?])
         results-preview @(subscribe [:template-chooser/results-preview])
         preview-error @(subscribe [:template-chooser/preview-error])
+        changed-selected? @(subscribe [:template-chooser/changed-selected?])
         loading? (if preview-error
                    false
                    fetching-preview?)
@@ -101,6 +102,11 @@
          (str "View "
               results-count
               (if (> results-count 1) " rows" " row")))]
+      [:button.btn.btn-default.btn-raised
+       {:type "button"
+        :disabled (not changed-selected?)
+        :on-click (fn [] (dispatch [:templates/reset-template]))}
+       "Reset"]
       [:button.btn.btn-default.btn-raised
        {:type "button"
         :on-click (fn [] (dispatch [:templates/edit-query]))}
