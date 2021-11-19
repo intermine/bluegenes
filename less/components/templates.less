@@ -99,12 +99,26 @@
             width: 100%;
         }
 
-
-
         .template-filter {
+            margin: @spacer/2;
+            flex-grow: 1;
+
+            &-container {
+                display: flex;
+                justify-content: center;
+            }
+
+            &.text-filter {
+                padding-left: @spacer/2;
+            }
+
             .control-label {
                 margin-top: 1px;
                 color: darken(@body-background-color,50%);
+            }
+
+            .form-control {
+                width: 400px;
             }
         }
     }
@@ -112,7 +126,6 @@
     .template-categories {
         display: flex;
         flex-wrap: wrap;
-        border-bottom: solid 1px #ddd;
 
         &.nav {
             li {

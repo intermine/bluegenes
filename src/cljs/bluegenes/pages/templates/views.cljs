@@ -271,14 +271,15 @@
                              (let [nav-height (-> "#bluegenes-main-nav" js/$ (ocall :outerHeight true))]
                                (some-> @me (ocall :affix (clj->js {:offset {:top nav-height}})))))
       :reagent-render (fn [categories template-filter filter-state]
-                        [:div.template-filters.container-fluid
+                        [:div.template-filters
                          {:ref (fn [e] (some->> e js/$ (reset! me)))}
-                         [:div.template-filter
-                          [:label.control-label "Filter by category"]
-                          [categories]]
-                         [:div.template-filter
-                          [:label.control-label "Filter by text"]
-                          [template-filter filter-state]]])})))
+                         [:div.template-filter-container.container
+                          [:div.template-filter.text-filter
+                           [:label.control-label "Filter by text"]
+                           [template-filter filter-state]]
+                          [:div.template-filter
+                           [:label.control-label "Filter by category"]
+                           [categories]]]])})))
 
 (defn main []
   (let [im-templates (subscribe [:templates-by-category])
