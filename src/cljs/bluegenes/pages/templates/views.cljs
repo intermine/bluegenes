@@ -260,7 +260,7 @@
        {:id "template-text-filter"
         :type "text"
         :value @input
-        :placeholder "Filter text..."
+        :placeholder "Search for keywords"
         :autoFocus true
         :on-change on-change}])))
 
@@ -277,7 +277,7 @@
                           [:label.control-label "Filter by category"]
                           [categories]]
                          [:div.template-filter
-                          [:label.control-label "Filter by description"]
+                          [:label.control-label "Filter by text"]
                           [template-filter filter-state]]])})))
 
 (defn main []

@@ -3,17 +3,22 @@
   (:require [re-frame.core :as re-frame :refer [reg-sub]]
             [bluegenes.pages.templates.helpers :as template-helpers]
             [bluegenes.utils :refer [parse-template-rank]]
-            [clojure.string :as str]
-            [goog.string :as gstring]))
+            [clojure.string :as str]))
 
-(defn template-contains-string?
-  "Return true if a template's description contains a string"
-  [string [_ details]]
-  (if string
-    (if-let [description (:description details)]
-      (re-find (re-pattern (str "(?i)" (gstring/regExpEscape string))) description)
-      false)
-    true))
+(defn extract-tag-categories [tags]
+  (->> tags
+       (keep #(second (re-matches #"im:aspect:([^\s]+)" %)))
+       (str/join " ")))
+
+(defn template-contains-string? [s [_ template]]
+  (if (empty? s)
+    true
+    (let [ss (map str/lower-case (-> s str/trim (str/split #"\s+")))
+          {:keys [title description tags]} template
+          all-text (->> (extract-tag-categories tags)
+                        (str title " " description " ")
+                        (str/lower-case))]
+      (every? #(str/includes? all-text %) ss))))
 
 (reg-sub
  :templates
