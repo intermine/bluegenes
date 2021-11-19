@@ -144,3 +144,10 @@
  :selected-template-service
  (fn [db _]
    (get-in db [:components :template-chooser :selected-template-service])))
+
+(reg-sub
+ :template-chooser/web-service-url
+ :<- [:selected-template]
+ :<- [:active-service]
+ (fn [[template service]]
+   (template-helpers/web-service-url service template)))

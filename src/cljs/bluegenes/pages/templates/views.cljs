@@ -12,7 +12,8 @@
             [bluegenes.utils :refer [ascii-arrows ascii->svg-arrows]]
             [bluegenes.pages.templates.helpers :refer [categories-from-tags]]
             [bluegenes.components.top-scroll :as top-scroll]
-            [bluegenes.route :as route]))
+            [bluegenes.route :as route]
+            [bluegenes.components.icons :refer [icon]]))
 
 (defn categories []
   (let [categories (subscribe [:template-chooser-categories])
@@ -32,6 +33,39 @@
 
 (def css-transition-group
   (reagent/adapt-react-class js/ReactTransitionGroup.CSSTransitionGroup))
+
+(defn web-service-url []
+  (let [input-ref* (atom nil)
+        url @(subscribe [:template-chooser/web-service-url])]
+    (fn []
+      [:span.dropdown
+       [:a.dropdown-toggle.action-button
+        {:data-toggle "dropdown"
+         :role "button"}
+        [icon "file"] "Web service URL"]
+       [:div.dropdown-menu
+        [:form {:on-submit #(.preventDefault %)}
+         [:div.web-service-url-container
+          [:p "Use the URL below to fetch the first " [:strong "10"] " records for this template from the command line or a script " [:em "(authentication needed for private templates and lists)"] " :"]
+          [:input.form-control
+           {:type "text"
+            :ref (fn [el]
+                   (when el
+                     (reset! input-ref* el)
+                     (.focus el)
+                     (.select el)))
+            :autoFocus true
+            :readOnly true
+            :value url}]
+          [:button.btn.btn-raised
+           {:on-click (fn [_]
+                        (when-let [input-el @input-ref*]
+                          (.focus input-el)
+                          (.select input-el)
+                          (try
+                            (ocall js/document :execCommand "copy")
+                            (catch js/Error _))))}
+           "Copy"]]]]])))
 
 (defn preview-results
   "Preview results of template as configured by the user or default config"
@@ -74,7 +108,9 @@
         [:button.btn.btn-default.btn-raised
          {:type "button"
           :on-click (fn [] (dispatch [:templates/edit-template]))}
-         "Edit template"])]]))
+         "Edit template"])]
+     [:div.more-actions
+      [web-service-url]]]))
 
 (defn toggle []
   (fn [{:keys [status on-change]}]
