@@ -37,7 +37,7 @@
 
 (defn web-service-url []
   (let [input-ref* (atom nil)
-        url @(subscribe [:template-chooser/web-service-url])]
+        url (subscribe [:template-chooser/web-service-url])]
     (fn []
       [:span.dropdown
        [:a.dropdown-toggle.action-button
@@ -57,7 +57,7 @@
                      (.select el)))
             :autoFocus true
             :readOnly true
-            :value url}]
+            :value @url}]
           [:button.btn.btn-raised
            {:on-click (fn [_]
                         (when-let [input-el @input-ref*]
