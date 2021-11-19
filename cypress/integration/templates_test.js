@@ -62,7 +62,7 @@ describe("Templates Test", function() {
 
     it("can lookup a gene with a template search", function() {
         cy.get("#Gene_Protein").click().within(() => {
-            cy.get("input").clear().type("MA*{enter}",{delay:100});
+            cy.get(".constraint-input input").clear().type("MA*{enter}",{delay:100});
             cy.get(".view-results").click();
         })
         cy.url().should("include","/results");
