@@ -5,7 +5,7 @@ describe("Templates Test", function() {
 
     it("can filter templates by search", function() {
         cy.contains('Filter by text').next().type("organism proteins",{delay:100});
-        cy.get('.template').eq(0).should("have.id","Gene_Protein");
+        cy.get('.template').eq(0).should("have.id","All_Proteins_In_Organism_To_Publications");
         cy.get('.template').eq(1).should("have.id","Organism_Protein");
     });
 
