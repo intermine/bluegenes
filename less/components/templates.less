@@ -82,22 +82,13 @@
 
     .template-filters {
         background: darken(@body-background-color,3%);
-        //this padding stops content showing through at weird breakpoints;
-        // padding-top: @crazy-padding;
-        // position: fixed;
         z-index: 42; //a higher z-index than light tables is the answer. And 42 is always the answer.
-        // margin-top: -@crazy-padding;
-        // padding-bottom: 2px;
         box-shadow: 1px 1px 1px rgba(0,0,0,0.2);
-        // right: 0;
-        // left: 0;
         width: 100%;
 
-
-        &.affix {
-            top: 0;
-            width: 100%;
-        }
+        // Stick to top when scrolling past it.
+        position: sticky;
+        top: 0;
 
         .template-filter {
             margin: @spacer/2;

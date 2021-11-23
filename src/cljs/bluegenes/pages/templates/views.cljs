@@ -271,62 +271,23 @@
         :on-change on-change}])))
 
 (defn filters []
-  (let [me (reagent/atom nil)]
-    (reagent/create-class
-     {:component-did-mount (fn []
-                             (let [nav-height (-> "#bluegenes-main-nav" js/$ (ocall :outerHeight true))]
-                               (some-> @me (ocall :affix (clj->js {:offset {:top nav-height}})))))
-      :reagent-render (fn [categories template-filter filter-state]
-                        [:div.template-filters
-                         {:ref (fn [e] (some->> e js/$ (reset! me)))}
-                         [:div.template-filter-container.container
-                          [:div.template-filter.text-filter
-                           [:label.control-label "Filter by text"]
-                           [template-filter filter-state]]
-                          [:div.template-filter
-                           [:label.control-label "Filter by category"]
-                           [categories]]]])})))
+  [:div.template-filters
+   [:div.template-filter-container.container
+    [:div.template-filter.text-filter
+     [:label.control-label "Filter by text"]
+     [template-filter]]
+    [:div.template-filter
+     [:label.control-label "Filter by category"]
+     [categories]]]])
 
 (defn main []
-  (let [im-templates (subscribe [:templates-by-category])
-        filter-state (reagent/atom nil)
-        me (reagent/atom nil)
-        filters-are-fixed? (reagent/atom nil)
-        filter-height (reagent/atom nil)
-        on-resize (fn []
-                    ; Store the height of the child .template-filters element
-                    (reset! filter-height
-                            (-> @me
-                                (ocall :find ".template-filters")
-                                (ocall :outerHeight true))))
-        on-scroll (fn []
-                    ; Store whether the child .template-filers element is affixed or not
-                    (reset! filters-are-fixed?
-                            (-> @me
-                                (ocall :find ".template-filters")
-                                (ocall :hasClass "affix"))))]
-    (reagent/create-class
-     {:component-did-mount (fn []
-                              ; Call the resize function when the component mounts
-                             (on-resize)
-                              ; On resize update the known value of the child filters element
-                             (-> js/window js/$ (ocall :on "resize" on-resize))
-                              ; On scroll update the known value of the child filters element affixed status
-                             (-> js/window js/$ (ocall :on "scroll" on-scroll)))
-      :component-will-unmount (fn []
-                                 ; Remove the events when the component unmounts
-                                (-> js/window js/$ (ocall :off "resize" on-resize))
-                                (-> js/window js/$ (ocall :off "scroll" on-scroll)))
-      :reagent-render (fn []
-                        [:div.template-component-container
-                          ; Store a reference to this element so we can find the child filters container
-                         [:div {:ref (fn [e] (some->> e js/$ (reset! me)))}
-                          [filters categories template-filter filter-state]]
-                         [:div.container.template-container
-                           ; Dynamically push this container down when the filters element is fixed
-                          {:style {:padding-top (if @filters-are-fixed? (str @filter-height "px") 0)}}
-                          [:div.row
-                           [:div.col-xs-12.templates
-                            [:div.template-list
-                             [templates @im-templates]]]]]
-                         [top-scroll/main]])})))
+  (let [im-templates (subscribe [:templates-by-category])]
+    (fn []
+      [:div.template-component-container
+       [filters]
+       [:div.container.template-container
+        [:div.row
+         [:div.col-xs-12.templates
+          [:div.template-list
+           [templates @im-templates]]]]]
+       [top-scroll/main]])))
