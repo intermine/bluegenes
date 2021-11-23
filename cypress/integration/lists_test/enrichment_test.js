@@ -122,7 +122,7 @@ describe("Enrichment Test", function(){
         cy.wait("@resultsLoad");
         cy.get(".enrichment").should("exist").within(() => {
             cy.get(".dropdown").click();
-            cy.get(".list-selection").eq(0).click();
+            cy.get(".list-selection").eq(1).click();
         })
         cy.get('.enrichment-settings > .alert > p').should("include.text","One or more of the Genes in this list are missing from your background population. The background population should include all Genes that were tested as part of your experiment.")
     })
