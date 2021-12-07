@@ -62,8 +62,7 @@
                                                     {} ids)
                                          (rename-keys {:Default :Gene}))
                                      {:Gene ids}))
-   :url (merge {:tutorial "http://intermine.org/intermine-user-docs/"
-                :aboutUs "http://intermine.org/about-intermine/"
+   :url (merge {:aboutUs "http://intermine.org/about-intermine/"
                 :privacyPolicy "http://intermine.org/privacy-policy/"}
                (get-in web-properties [:project :url]))
    :support-email (get-in web-properties [:project :supportEmail])})
