@@ -43,7 +43,7 @@
                                       (map string/trim)
                                       (first))
    :regionsearch-example         (get-in web-properties [:genomicRegionSearch :defaultSpans])
-   :news                         (or (get-in web-properties [:project :news]) "https://intermineorg.wordpress.com/")
+   :news                         (get-in web-properties [:project :news])
    :rss                          (get-in web-properties [:project :rss])
    :citation                     (or (parse-citation (get-in web-properties [:project :citation])) "http://intermine.org/publications/")
    :credits                      (parse-credits (get-in web-properties [:project :credit]))
@@ -61,7 +61,12 @@
                                                       (assoc m (capitalize-kw k) v))
                                                     {} ids)
                                          (rename-keys {:Default :Gene}))
-                                     {:Gene ids}))})
+                                     {:Gene ids}))
+   :url (merge {:tutorial "http://intermine.org/intermine-user-docs/"
+                :aboutUs "http://intermine.org/about-intermine/"
+                :privacyPolicy "http://intermine.org/privacy-policy/"}
+               (get-in web-properties [:project :url]))
+   :support-email (get-in web-properties [:project :supportEmail])})
 ;   :default-query-example        {;;we need json queries to use the endpoint properly
                                   ;;https://github.com/intermine/intermine/issues/1770
                                   ;;note that the default query button won't appear

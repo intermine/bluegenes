@@ -119,7 +119,7 @@
     [:p [:strong "Contact us"] " with problems, comments, suggestions and any other queries."]]
    [:div.col-xs-12.col-sm-5.cta-block
     [:a.btn.btn-home
-     {:href @(subscribe [:current-mine/news])
+     {:href (or @(subscribe [:current-mine/news]) "https://intermineorg.wordpress.com/")
       :target "_blank"}
      "What's new"]
     [latest-news]]
