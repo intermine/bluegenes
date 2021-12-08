@@ -20,7 +20,6 @@
 (s/def :bluegenes.webproperties.project/credit (s/or :empty ::empty-non-string
                                                      :map (s/map-of ::integer-keyword :bluegenes.webproperties.project.credit/item)))
 
-
 (s/def :bluegenes.webproperties.customisation.homepage.cta.item/label string?)
 (s/def :bluegenes.webproperties.customisation.homepage.cta.item/text string?)
 
