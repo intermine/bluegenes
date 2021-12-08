@@ -226,6 +226,12 @@
    (get urls kw)))
 
 (reg-sub
+ :current-mine/customisation
+ :<- [:current-mine]
+ (fn [current-mine]
+   (:customisation current-mine)))
+
+(reg-sub
  :current-mine/notice
  :<- [:current-mine]
  (fn [current-mine]
