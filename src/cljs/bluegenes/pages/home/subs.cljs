@@ -1,5 +1,5 @@
 (ns bluegenes.pages.home.subs
-  (:require [re-frame.core :refer [reg-sub]]
+  (:require [re-frame.core :refer [reg-sub subscribe]]
             [clojure.string :as str]
             [bluegenes.events.blog :refer [get-rss-from-db]]))
 
@@ -70,3 +70,22 @@
  (fn [db]
    (let [rss (get-rss-from-db db)]
      (get-in db [:cache :rss rss]))))
+
+(reg-sub
+ :home/customisations
+ :<- [:current-mine/customisation]
+ (fn [custom]
+   (:homepage custom)))
+
+(reg-sub
+ :home/customisation
+ :<- [:home/customisations]
+ (fn [home [_ kw]]
+   (get home kw)))
+
+(reg-sub
+ :home/custom-cta
+ (fn [_]
+   (subscribe [:home/customisation :cta]))
+ (fn [cta]
+   cta))

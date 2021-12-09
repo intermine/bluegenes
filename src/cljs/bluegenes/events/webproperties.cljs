@@ -20,17 +20,18 @@
         ;; Otherwise, extract it from the href attribute.
         (second (re-find #"href=[\"']([^\"']+)" cit)))))
 
-(defn parse-credits
-  "Converts a web property credits object with numbered keys and object values
-  to a vector of maps."
-  [credits]
-  (if (s/valid? :bluegenes.webproperties.project/credit credits)
-    (->> credits
+(defn parse-numbered-properties
+  "Converts a web property object with numbered keys and object values to a
+  vector of maps in the correct order."
+  [object spec web-property-path]
+  (if (s/valid? spec object)
+    (->> object
          (map (juxt (comp js/parseInt name key) val))
          (into (sorted-map))
          (vals)
          (vec))
-    (do (.error js/console (str "Invalid web property project.credit: " (s/explain-str :bluegenes.webproperties.project/credit credits)))
+    (do (.error js/console
+                (str "Invalid web property " web-property-path ": " (s/explain-str spec object)))
         nil)))
 
 (defn web-properties-to-bluegenes
@@ -43,10 +44,12 @@
                                       (map string/trim)
                                       (first))
    :regionsearch-example         (get-in web-properties [:genomicRegionSearch :defaultSpans])
-   :news                         (or (get-in web-properties [:project :news]) "https://intermineorg.wordpress.com/")
+   :news                         (get-in web-properties [:project :news])
    :rss                          (get-in web-properties [:project :rss])
    :citation                     (or (parse-citation (get-in web-properties [:project :citation])) "http://intermine.org/publications/")
-   :credits                      (parse-credits (get-in web-properties [:project :credit]))
+   :credits                      (parse-numbered-properties (get-in web-properties [:project :credit])
+                                                            :bluegenes.webproperties.project/credit
+                                                            "project.credit")
    :oauth2-providers             (set (get-in web-properties [:oauth2_providers]))
    :idresolver-example           (let [ids (get-in web-properties [:bag :example :identifiers])]
                                    ;; ids can be one of the following:
@@ -61,13 +64,24 @@
                                                       (assoc m (capitalize-kw k) v))
                                                     {} ids)
                                          (rename-keys {:Default :Gene}))
-                                     {:Gene ids}))})
+                                     {:Gene ids}))
+   :url (merge {:aboutUs "http://intermine.org/about-intermine/"
+                :privacyPolicy "http://intermine.org/privacy-policy/"}
+               (get-in web-properties [:project :url]))
+
+   :support-email (get-in web-properties [:project :supportEmail])
+
+   :customisation (-> (clojure.walk/postwalk #(case % "true" true "false" false %)
+                                             (:bluegenes web-properties))
+                      (update-in [:homepage :cta] parse-numbered-properties
+                                 :bluegenes.webproperties.customisation.homepage/cta
+                                 "bluegenes.homepage.cta"))})
+
 ;   :default-query-example        {;;we need json queries to use the endpoint properly
                                   ;;https://github.com/intermine/intermine/issues/1770
                                   ;;note that the default query button won't appear
                                   ;;until we fix this issue
                                 ;}
-
 
 ; Fetch web properties
 (reg-event-db

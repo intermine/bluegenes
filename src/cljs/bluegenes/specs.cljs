@@ -20,6 +20,32 @@
 (s/def :bluegenes.webproperties.project/credit (s/or :empty ::empty-non-string
                                                      :map (s/map-of ::integer-keyword :bluegenes.webproperties.project.credit/item)))
 
+(s/def :bluegenes.webproperties.customisation.homepage.cta.item/label string?)
+(s/def :bluegenes.webproperties.customisation.homepage.cta.item/text string?)
+
+(s/def :bluegenes.webproperties.customisation.homepage.cta.item/route string?)
+(s/def :bluegenes.webproperties.customisation.homepage.cta.item/dispatch string?)
+(s/def :bluegenes.webproperties.customisation.homepage.cta.item/url string?)
+
+(s/def :bluegenes.webproperties.customisation.homepage.cta/route (s/keys :req-un [:bluegenes.webproperties.customisation.homepage.cta.item/label
+                                                                                  :bluegenes.webproperties.customisation.homepage.cta.item/route
+                                                                                  :bluegenes.webproperties.customisation.homepage.cta.item/text]))
+
+(s/def :bluegenes.webproperties.customisation.homepage.cta/dispatch (s/keys :req-un [:bluegenes.webproperties.customisation.homepage.cta.item/label
+                                                                                     :bluegenes.webproperties.customisation.homepage.cta.item/dispatch
+                                                                                     :bluegenes.webproperties.customisation.homepage.cta.item/text]))
+
+(s/def :bluegenes.webproperties.customisation.homepage.cta/url (s/keys :req-un [:bluegenes.webproperties.customisation.homepage.cta.item/label
+                                                                                :bluegenes.webproperties.customisation.homepage.cta.item/url
+                                                                                :bluegenes.webproperties.customisation.homepage.cta.item/text]))
+
+(s/def :bluegenes.webproperties.customisation.homepage.cta/item (s/or :route :bluegenes.webproperties.customisation.homepage.cta/route
+                                                                      :dispatch :bluegenes.webproperties.customisation.homepage.cta/dispatch
+                                                                      :url :bluegenes.webproperties.customisation.homepage.cta/url))
+
+(s/def :bluegenes.webproperties.customisation.homepage/cta (s/or :empty ::empty-non-string
+                                                                 :map (s/map-of ::integer-keyword :bluegenes.webproperties.customisation.homepage.cta/item)))
+
 ;;;; Below is old!
 
 ; Note: It's really worth revisiting this in the future. Creating specs for InterMine
