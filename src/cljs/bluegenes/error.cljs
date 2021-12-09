@@ -8,18 +8,13 @@
             [cljs-time.format :refer [unparse formatters]]
             [bluegenes.config :refer [server-vars]]))
 
-;; This email is used if no maintainerEmail is available, or when we wish to
-;; CC support (ie. when the failure is caused by a software problem).
-(def support-email "support@intermine.org")
-
 (defn mailto-string [error]
-  (let [maintainer-email (or @(subscribe [:registry/email]) support-email)
+  (let [support-email (or @(subscribe [:current-mine/support-email]) "support@intermine.org")
         current-url (oget js/window :location :href)
         service-url (get-in @(subscribe [:current-mine]) [:service :root])
         current-date (unparse (formatters :rfc822) (time/now))]
-    (str "mailto:" maintainer-email
+    (str "mailto:" support-email
          "?subject=" (gstring/urlEncode "[BLUEGENES] - Uncaught error")
-         "&cc=" support-email
          "&body=" (gstring/urlEncode
                    (str "Description:
 

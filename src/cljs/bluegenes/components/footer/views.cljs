@@ -7,10 +7,6 @@
             [bluegenes.components.icons :refer [icon]]
             [bluegenes.route :as route]))
 
-(def defaults
-  {:email "info@intermine.org"
-   :twitter "intermineorg"})
-
 (defn link [href label]
   [:a {:href href :target "_blank"} label])
 
@@ -18,12 +14,7 @@
   (->> vstring version-string->vec (str/join ".")))
 
 (defn main []
-  (let [mine-name         @(subscribe [:current-mine-human-name])
-        mine-twitter      @(subscribe [:registry/twitter])
-        mine-email        @(subscribe [:registry/email])
-        mine-citation     @(subscribe [:current-mine/citation])
-        mine-news         @(subscribe [:current-mine/news])
-        short-version     (nth (re-matches #"v?([0-9\.]+)(?:-.*)?" version/release) 1 "dev")
+  (let [short-version     (nth (re-matches #"v?([0-9\.]+)(?:-.*)?" version/release) 1 "dev")
         ;; Note that the following versions can be nil when switching mines.
         intermine-version (some-> @(subscribe [:version]) pretty-version)
         api-version       @(subscribe [:api-version])
@@ -51,27 +42,28 @@
         [:span.thin " | "]
         [link "https://bbsrc.ukri.org/" "BBSRC"]]]]
      [:div.section
-      [link "https://github.com/intermine/"
-       [poppable {:data [:span "Check out our open-source software"]
-                  :children [icon "github" 2]}]]
-      [link (str "mailto:" (or mine-email (:email defaults)))
-       [poppable {:data [:span (if (and mine-email (not= mine-email (:email defaults)))
-                                 (str "Send " mine-name " an email")
-                                 "Send us an email")]
-                  :children [icon "mail" 2]}]]
-      [link mine-news
-       [poppable {:data [:span "Read our blog"]
-                  :children [icon "blog" 2]}]]
-      [link (str "https://twitter.com/" (or mine-twitter (:twitter defaults)))
-       [poppable {:data [:span (if (and mine-twitter (not= mine-twitter (:twitter defaults)))
-                                 (str "Follow " mine-name " on Twitter")
-                                 "Follow us on Twitter")]
-                  :children [icon "twitter" 2]}]]
-      [link "http://chat.intermine.org/"
-       [poppable {:data [:span "Chat with us on Discord"]
-                  :children [icon "discord" 2]}]]]
+      (when-let [github-url @(subscribe [:current-mine/url :github])]
+        [link github-url
+         [poppable {:data [:span "Check out our open-source software"]
+                    :children [icon "github" 2]}]])
+      (when-let [email @(subscribe [:current-mine/support-email])]
+        [link (str "mailto:" email)
+         [poppable {:data [:span "Send us an email"]
+                    :children [icon "mail" 2]}]])
+      (when-let [news-url @(subscribe [:current-mine/news])]
+        [link news-url
+         [poppable {:data [:span "Read our blog"]
+                    :children [icon "blog" 2]}]])
+      (when-let [twitter-url @(subscribe [:current-mine/url :twitter])]
+        [link twitter-url
+         [poppable {:data [:span "Follow us on Twitter"]
+                    :children [icon "twitter" 2]}]])
+      (when-let [discord-url @(subscribe [:current-mine/url :discord])]
+        [link discord-url
+         [poppable {:data [:span "Chat with us on Discord"]
+                    :children [icon "discord" 2]}]])]
      [:div.section.column
-      [link mine-citation
-       (str "CITE " (some-> mine-name str/upper-case))]
-      [link "http://intermine.org/about-intermine/" "ABOUT US"]
-      [link "http://intermine.org/privacy-policy/" "PRIVACY POLICY"]]]))
+      [link @(subscribe [:current-mine/citation])
+       (str "CITE " (some-> @(subscribe [:current-mine-human-name]) str/upper-case))]
+      [link @(subscribe [:current-mine/url :aboutUs]) "ABOUT US"]
+      [link @(subscribe [:current-mine/url :privacyPolicy]) "PRIVACY POLICY"]]]))

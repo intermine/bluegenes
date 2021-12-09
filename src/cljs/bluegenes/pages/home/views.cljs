@@ -22,21 +22,24 @@
         release @(subscribe [:current-mine/release])]
     [:div.row.section.mine-intro
      [:div.col-xs-10.col-xs-offset-1
-      [:h2.text-center.text-uppercase.mine-name mine-name]
-      [:div.mine-release
-       ;; Only prepend 'v' if release starts with a digit.
-       (cond->> release
-         (some->> release (re-find #"^\d")) (str "v"))]
-      [:div.mine-description
-       (md-paragraph description)]
+      (when-not @(subscribe [:home/customisation :hideMineIntro])
+        [:<>
+         [:h2.text-center.text-uppercase.mine-name mine-name]
+         [:div.mine-release
+          ;; Only prepend 'v' if release starts with a digit.
+          (cond->> release
+            (some->> release (re-find #"^\d")) (str "v"))]
+         [:div.mine-description
+          (md-paragraph description)]])
       (when notice
         [:div.well.well-sm.well-warning.text-center
          [md-element notice]])
-      [:div.search
-       [search/main]
-       [:div.search-info
-        [icon "info"]
-        [:span "Genes, proteins, pathways, ontology terms, authors, etc."]]]]]))
+      (when-not @(subscribe [:home/customisation :hideSearch])
+        [:div.search
+         [search/main]
+         [:div.search-info
+          [icon "info"]
+          [:span "Genes, proteins, pathways, ontology terms, authors, etc."]]])]]))
 
 (defn template-queries []
   (let [categories @(subscribe [:templates-by-popularity/all-categories])
@@ -80,55 +83,66 @@
                [:a {:href link :target "_blank"} title]
                [:p (-> description gstring/unescapeEntities str/trim (subs 0 100))]])))))
 
+(defn convert-custom-cta
+  "Convert the custom CTA format used in web.properties to the one used for rendering."
+  [{:keys [label text]
+    route-value :route dispatch-value :dispatch url-value :url}]
+  {:label label
+   :props (cond
+            route-value {:href (route/href (keyword "bluegenes.route" route-value))}
+            dispatch-value {:on-click #(dispatch [(keyword dispatch-value)])
+                            :role "button"}
+            url-value {:href url-value
+                       :target "_blank"})
+   :body (md-paragraph text)})
+
+;; This MUST be a function, as otherwise `route/href` would get invoked when
+;; the namespace is required, which depends on a subscription which might not
+;; be registered in time, causing a crash.
+(defn default-cta []
+  [{:label "Analyse data"
+    :props {:href (route/href ::route/upload)}
+    :body [:p [:strong "Upload"] " your own sets of genes, proteins, transcripts or other data type to analyse against the integrated data."]}
+   {:label "Browse sources"
+    :props {:on-click #(dispatch [:home/query-data-sources])
+            :role "button"}
+    :body [:p "Browse the full set of data available including versions, publications and links to the " [:strong "original data"] "."]}
+   {:label "Build your own query"
+    :props {:href (route/href ::route/querybuilder)}
+    :body [:p "The " [:strong "Query Builder"] " allows you to select and combine data classes, apply filters and configure the result table.  For a full set of pre-built searches, see the " [:a {:href (route/href ::route/templates)} "Templates"] "."]}
+   {:label "Tutorials"
+    :props {:href "http://intermine.org/intermine-user-docs/"
+            :target "_blank"}
+    :body [:p "Learn more about InterMine and how to search and analyse the data with a comprehensive set of " [:strong "written and video tutorials"] ".  Please " [:a {:on-click #(dispatch [:home/scroll-to-feedback]) :role "button"} "contact us"] " if you can’t find what you need!"]}
+   {:label "Web services"
+    :props {:href "http://intermine.org/im-docs/docs/web-services/index"
+            :target "_blank"}
+    :body [:p "The " [:strong "InterMine API"] " has language bindings for Perl, Python, Ruby and Java, allowing you to easily run queries directly from scripts.  All queries available in the user interface can also be run through the API with results being returned in a number of formats."]}
+   {:label "Submit feedback"
+    :props {:on-click #(dispatch [:home/scroll-to-feedback])
+            :role "button"}
+    :body [:p [:strong "Contact us"] " with problems, comments, suggestions and any other queries."]}
+   {:label "What's new"
+    :props {:href (or @(subscribe [:current-mine/news]) "https://intermineorg.wordpress.com/")
+            :target "_blank"}
+    :body [latest-news]}
+   {:label "Cite us"
+    :props {:href @(subscribe [:current-mine/citation])
+            :target "_blank"}
+    :body [:p "Please help us to maintain funding: if we have helped your research please remember to cite us in your publications."]}])
+
 (defn call-to-action []
-  [:div.row.section.grid ;; Without grid class the 3rd row won't be on the same row.
-   ;; This isn't official bootstrap, so I can only imagine Gridlex is messing with things.
-   [:div.col-xs-12.col-sm-5.cta-block
-    [:a.btn.btn-home
-     {:href (route/href ::route/upload)}
-     "Analyse data"]
-    [:p [:strong "Upload"] " your own sets of genes, proteins, transcripts or other data type to analyse against the integrated data."]]
-   [:div.col-xs-12.col-sm-5.col-sm-offset-2.cta-block
-    [:a.btn.btn-home
-     {:on-click #(dispatch [:home/query-data-sources])
-      :role "button"}
-     "Browse sources"]
-    [:p "Browse the full set of data available including versions, publications and links to the " [:strong "original data"] "."]]
-   [:div.col-xs-12.col-sm-5.cta-block
-    [:a.btn.btn-home
-     {:href (route/href ::route/querybuilder)}
-     "Build your own query"]
-    [:p "The " [:strong "Query Builder"] " allows you to select and combine data classes, apply filters and configure the result table.  For a full set of pre-built searches, see the " [:a {:href (route/href ::route/templates)} "Templates"] "."]]
-   [:div.col-xs-12.col-sm-5.col-sm-offset-2.cta-block
-    [:a.btn.btn-home
-     {:href "http://intermine.org/intermine-user-docs/"
-      :target "_blank"}
-     "Tutorials"]
-    [:p "Learn more about InterMine and how to search and analyse the data with a comprehensive set of " [:strong "written and video tutorials"] ".  Please " [:a {:on-click #(dispatch [:home/scroll-to-feedback]) :role "button"} "contact us"] " if you can’t find what you need!"]]
-   [:div.col-xs-12.col-sm-5.cta-block
-    [:a.btn.btn-home
-     {:href "http://intermine.org/im-docs/docs/web-services/index"
-      :target "_blank"}
-     "Web services"]
-    [:p "The " [:strong "InterMine API"] " has language bindings for Perl, Python, Ruby and Java, allowing you to easily run queries directly from scripts.  All queries available in the user interface can also be run through the API with results being returned in a number of formats."]]
-   [:div.col-xs-12.col-sm-5.col-sm-offset-2.cta-block
-    [:a.btn.btn-home
-     {:on-click #(dispatch [:home/scroll-to-feedback])
-      :role "button"}
-     "Submit feedback"]
-    [:p [:strong "Contact us"] " with problems, comments, suggestions and any other queries."]]
-   [:div.col-xs-12.col-sm-5.cta-block
-    [:a.btn.btn-home
-     {:href @(subscribe [:current-mine/news])
-      :target "_blank"}
-     "What's new"]
-    [latest-news]]
-   [:div.col-xs-12.col-sm-5.col-sm-offset-2.cta-block
-    [:a.btn.btn-home
-     {:href @(subscribe [:current-mine/citation])
-      :target "_blank"}
-     "Cite us"]
-    [:p "Please help us to maintain funding: if we have helped your research please remember to cite us in your publications."]]])
+  (let [custom-cta @(subscribe [:home/custom-cta])
+        cta (if (seq custom-cta)
+              (map convert-custom-cta custom-cta)
+              (default-cta))]
+    (into [:div.row.section.grid] ;; Without grid class the 3rd row won't be on the same row.
+           ;; This isn't official bootstrap, so I can only imagine Gridlex is messing with things.
+          (for [[index {:keys [label props body]}] (map-indexed vector cta)]
+            [:div.col-xs-12.col-sm-5.cta-block
+             {:class (when (odd? index) :col-sm-offset-2)}
+             [:a.btn.btn-home props label]
+             body]))))
 
 (defn mine-selector-filter []
   (let [all-neighbourhoods @(subscribe [:home/all-registry-mine-neighbourhoods])
@@ -313,9 +327,9 @@
 (defn main []
   [:div.container.home
    [mine-intro]
-   [template-queries]
-   [call-to-action]
-   [mine-selector]
-   [external-tools]
-   [feedback]
-   [credits]])
+   (when-not @(subscribe [:home/customisation :hideTemplateQueries]) [template-queries])
+   (when-not @(subscribe [:home/customisation :hideCTA]) [call-to-action])
+   (when-not @(subscribe [:home/customisation :hideMineSelector]) [mine-selector])
+   (when-not @(subscribe [:home/customisation :hideAlternativeTools]) [external-tools])
+   (when-not @(subscribe [:home/customisation :hideFeedback]) [feedback])
+   (when-not @(subscribe [:home/customisation :hideCredits]) [credits])])

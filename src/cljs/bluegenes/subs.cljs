@@ -208,6 +208,30 @@
    (:oauth2-providers current-mine)))
 
 (reg-sub
+ :current-mine/support-email
+ :<- [:current-mine]
+ (fn [current-mine]
+   (:support-email current-mine)))
+
+(reg-sub
+ :current-mine/urls
+ :<- [:current-mine]
+ (fn [current-mine]
+   (:url current-mine)))
+
+(reg-sub
+ :current-mine/url
+ :<- [:current-mine/urls]
+ (fn [urls [_ kw]]
+   (get urls kw)))
+
+(reg-sub
+ :current-mine/customisation
+ :<- [:current-mine]
+ (fn [current-mine]
+   (:customisation current-mine)))
+
+(reg-sub
  :current-mine/notice
  :<- [:current-mine]
  (fn [current-mine]
@@ -335,20 +359,6 @@
  :<- [:current-mine-name]
  (fn [[registry current-mine]]
    (get-in registry [current-mine :description])))
-
-(reg-sub
- :registry/twitter
- :<- [:registry]
- :<- [:current-mine-name]
- (fn [[registry current-mine]]
-   (not-empty (get-in registry [current-mine :twitter]))))
-
-(reg-sub
- :registry/email
- :<- [:registry]
- :<- [:current-mine-name]
- (fn [[registry current-mine]]
-   (not-empty (get-in registry [current-mine :maintainerEmail]))))
 
 ;;;; Branding
 
