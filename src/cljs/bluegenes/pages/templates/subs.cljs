@@ -164,3 +164,9 @@
  :<- [:templates]
  (fn [[selected-tmpl tmpl-name all-templates]]
    (not= selected-tmpl (get all-templates tmpl-name))))
+
+(reg-sub
+ :template-chooser/authorized?
+ :<- [:selected-template]
+ (fn [template]
+   (:authorized template)))

@@ -458,20 +458,22 @@
 
 ; Fetch templates
 
-(reg-event-db
+(reg-event-fx
  :assets/success-fetch-templates
- (fn [db [_ mine-kw lists]]
-   (assoc-in db [:assets :templates mine-kw] lists)))
+ (fn [{db :db} [_ mine-kw next-evt templates]]
+   (cond-> {:db (assoc-in db [:assets :templates mine-kw] templates)
+            :dispatch-n []}
+     (vector? next-evt)
+     (update :dispatch-n conj next-evt))))
 
 ;; This event is also dispatched externally from other namespaces.
 (reg-event-fx
  :assets/fetch-templates
- (fn [{db :db} [evt]]
+ (fn [{db :db} [evt next-evt]]
    {:db db
-    :im-chan
-    {:chan (fetch/templates (get-in db [:mines (:current-mine db) :service]))
-     :on-success [:assets/success-fetch-templates (:current-mine db)]
-     :on-failure [:assets/failure evt]}}))
+    :im-chan {:chan (fetch/templates (get-in db [:mines (:current-mine db) :service]))
+              :on-success [:assets/success-fetch-templates (:current-mine db) next-evt]
+              :on-failure [:assets/failure evt]}}))
 
 ; Fetch summary fields
 

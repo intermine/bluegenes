@@ -6,9 +6,11 @@
             [goog.dom :as gdom]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
             [imcljs.fetch :as fetch]
+            [imcljs.save :as save]
             [bluegenes.route :as route]
             [bluegenes.components.ui.constraint :as constraint]
-            [bluegenes.pages.templates.helpers :refer [prepare-template-query]]))
+            [bluegenes.pages.templates.helpers :refer [prepare-template-query]]
+            [bluegenes.utils :refer [template->xml]]))
 
 ;; This effect handler is used from routes and has different behaviour
 ;; depending on if it's called from a different panel, or the template panel.
@@ -195,3 +197,62 @@
                            :counting? true)]
      {:db new-db
       :template-chooser/pipe-count count-chan})))
+
+(reg-event-fx
+ :templates/delete-template
+ (fn [{db :db} [_]]
+   (let [service (get-in db [:mines (:current-mine db) :service])
+         template-name (name (get-in db [:components :template-chooser :selected-template-name]))
+         template-details (get-in db [:components :template-chooser :selected-template])]
+     {:im-chan {:chan (save/delete-template service template-name)
+                :on-success [:templates/delete-template-success template-name template-details]
+                :on-failure [:templates/delete-template-failure template-name template-details]}})))
+
+(reg-event-fx
+ :templates/delete-template-success
+ (fn [{db :db} [_ template-name template-details _res]]
+   {:db (update-in db [:assets :templates (:current-mine db)]
+                   dissoc (keyword template-name))
+    :dispatch-n [[::route/navigate ::route/templates]
+                 [:messages/add
+                  {:markup (fn [id]
+                             [:span
+                              "The template "
+                              [:em template-name]
+                              " has been deleted. "
+                              [:a {:role "button"
+                                   :on-click #(dispatch [:templates/undo-delete-template
+                                                         template-name template-details id])}
+                               "Click here"]
+                              " to undo this action and restore the template."])
+                   :style "info"
+                   :timeout 10000}]]}))
+
+(reg-event-fx
+ :templates/undo-delete-template
+ (fn [{db :db} [_ template-name template-details message-id]]
+   (let [service (get-in db [:mines (:current-mine db) :service])
+         model (:model service)
+         ;; We're passing template-details as the query here. It's fine as it
+         ;; contains the expected query keys, and imcljs.query/->xml will only
+         ;; use the query-related keys, ignoring the rest.
+         template-query (template->xml model template-details template-details)]
+     {:im-chan {:chan (save/template service template-query)
+                :on-success [:templates/undo-delete-template-success template-name]
+                :on-failure [:qb/save-template-failure template-name]}
+      :dispatch [:messages/remove message-id]})))
+
+(reg-event-fx
+ :templates/undo-delete-template-success
+ (fn [{db :db} [_ template-name _res]]
+   {:dispatch [:assets/fetch-templates
+               [::route/navigate ::route/template {:template template-name}]]}))
+
+(reg-event-fx
+ :templates/delete-template-failure
+ (fn [{db :db} [_ template-name _template-details res]]
+   {:dispatch [:messages/add
+               {:markup [:span (str "Failed to delete template '" template-name "'. "
+                                    (or (get-in res [:body :error])
+                                        "Please check your connection and try again."))]
+                :style "warning"}]}))

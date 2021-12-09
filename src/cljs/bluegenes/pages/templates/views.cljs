@@ -79,7 +79,10 @@
         loading? (if preview-error
                    false
                    fetching-preview?)
-        results-count (:iTotalRecords results-preview)]
+        results-count (:iTotalRecords results-preview)
+        ;; This differs from authed? in that it's whether the logged in user is
+        ;; authorized to delete the template.
+        authorized? @(subscribe [:template-chooser/authorized?])]
     [:div.col-xs-8.preview
      [:div.preview-header
       [:h4 "Results Preview"]
@@ -115,7 +118,12 @@
         [:button.btn.btn-default.btn-raised
          {:type "button"
           :on-click (fn [] (dispatch [:templates/edit-template]))}
-         "Edit template"])]
+         "Edit template"])
+      (when authorized?
+        [:button.btn.btn-link
+         {:type "button"
+          :on-click (fn [] (dispatch [:templates/delete-template]))}
+         [icon "bin"]])]
      [:div.more-actions
       [web-service-url]]]))
 
