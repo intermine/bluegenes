@@ -286,7 +286,78 @@
           (when-let [{:keys [type message]} response]
             [:p {:class type} message])]]))))
 
+(defn template [{:keys [name title description comment rank
+                        tags]}]
+  [:tr
+   [:td [:input
+         {:type "checkbox"
+          :checked false
+          :on-click #()}]]
+   [:td.name-cell name]
+   [:td title]
+   [:td.description-cell description]
+   [:td.comment-cell comment]
+   [:td rank]
+   (-> [:td.tags-cell]
+       (into (for [tag tags]
+               [:code.start tag]))
+       (conj [:button.btn.btn-link.edit-tags-button
+              [icon "edit"]]))
+   [:td
+    [:a {:role "button"}
+     "View"]
+    " | "
+    [:a {:role "button"}
+     "Export"]
+    " | "
+    [:a {:role "button"}
+     "Precompute"]
+    " | "
+    [:a {:role "button"}
+     "Summarise"]]])
+
+(defn template-filter []
+  (let [value @(subscribe [::subs/template-filter])]
+    [:div
+     [:input.form-control
+      {:type "text"
+       :placeholder "Filter templates"
+       :on-change #(dispatch [::events/set-template-filter (oget % :target :value)])
+       :value value}]]))
+
+(defn manage-templates []
+  (let [filtered-templates @(subscribe [::subs/filtered-templates])
+        authorized-templates @(subscribe [::subs/authorized-templates])
+        text-filter @(subscribe [::subs/template-filter])]
+    [:div.well.well-lg.manage-templates
+     [:h3 "Manage templates"
+      [template-filter]]
+     (if (empty? filtered-templates)
+       (if (seq authorized-templates)
+         [:p (str "No templates matching filter: " text-filter)]
+         [:p "Templates you create will appear here."])
+       [:div.table-container
+        [:table.table.templates-table
+         [:thead
+          [:tr
+           [:th [:input
+                 {:type "checkbox"
+                  :checked false
+                  :on-click #()}]]
+           [:th "Name"]
+           [:th "Title"]
+           [:th "Description"]
+           [:th "Comment"]
+           [:th "Rank"]
+           [:th "Tags"]
+           [:th "Actions"]]]
+         [:tbody
+          (for [template-details filtered-templates]
+            ^{:key (:name template-details)}
+            [template template-details])]]])]))
+
 (defn main []
   [:div.admin-page.container
    [report-layout]
-   [set-notice]])
+   [set-notice]
+   [manage-templates]])

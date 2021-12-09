@@ -8,6 +8,7 @@
 (def ^:const child-id-prefix "child")
 
 (def root [:admin])
+(def manage-templates [:admin :manage-templates])
 
 (reg-event-db
  ::init
@@ -268,3 +269,11 @@
              {:type :failure
               :message (str "Failed to save changes to notice text. "
                             (not-empty (get-in res [:body :error])))})))
+
+;; Manage templates
+
+(reg-event-db
+ ::set-template-filter
+ (path manage-templates)
+ (fn [tmpl [_ text]]
+   (assoc tmpl :template-filter text)))

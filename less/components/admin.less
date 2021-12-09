@@ -1,4 +1,5 @@
 @import "../variables";
+@import "../datatype-colors";
 
 .admin-page {
     padding: 2*@spacer 0;
@@ -158,6 +159,54 @@
             // Make consistent with styling on homepage.
             h1, h2, h3, h4 {
                 font-weight: bold;
+            }
+        }
+    }
+
+    .manage-templates {
+        h3 {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .table-container {
+            max-height: 60vh;
+            overflow: auto;
+        }
+
+        .templates-table {
+            table-layout: fixed;
+            width: 100%;
+
+            thead th:first-child {
+                width: 2*@spacer;
+            }
+
+            .name-cell {
+                overflow-wrap: break-word;
+            }
+
+            .description-cell, .comment-cell {
+                font-size: 0.8em;
+            }
+
+            .tags-cell {
+                display: flex;
+                flex-wrap: wrap;
+            }
+
+            code.start {
+                color: inherit;
+                background-color: @color-Nuffink;
+                margin-bottom: 0.5*@spacer;
+                font-size: 0.7em;
+            }
+
+            .edit-tags-button {
+                display: inline;
+                padding: 0;
+                margin: 0;
+                fill: @highlight-color;
             }
         }
     }

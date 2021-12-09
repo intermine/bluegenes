@@ -1,7 +1,7 @@
 (ns bluegenes.pages.admin.subs
   (:require [re-frame.core :refer [reg-sub subscribe]]
             [clojure.string :as str]
-            [bluegenes.utils :refer [suitable-entities]]
+            [bluegenes.utils :refer [suitable-entities template-contains-string?]]
             [bluegenes.pages.reportpage.utils :as report-utils]
             [bluegenes.pages.querybuilder.views :refer [sort-classes filter-preferred]]))
 
@@ -111,3 +111,35 @@
     (subscribe [::available-class-names class])])
  (fn [[tools templates classes] [_ _class]]
    (report-utils/fallback-layout tools classes templates)))
+
+;; Manage templates
+
+(reg-sub
+ ::manage-templates
+ :<- [::root]
+ (fn [admin]
+   (:manage-templates admin)))
+
+(reg-sub
+ ::template-filter
+ :<- [::manage-templates]
+ (fn [manage-templates]
+   (:template-filter manage-templates)))
+
+(reg-sub
+ ::authorized-templates
+ :<- [:templates]
+ (fn [templates]
+   (->> templates
+        (filter (comp :authorized val)))))
+
+(reg-sub
+ ::filtered-templates
+ :<- [::authorized-templates]
+ :<- [::template-filter]
+ (fn [[authorized-templates text-filter]]
+   (->> authorized-templates
+        (filter (partial template-contains-string? text-filter))
+        (vals)
+        (sort-by (comp str/lower-case :name)))))
+

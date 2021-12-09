@@ -252,6 +252,21 @@
       ;; if it's a number, just return it.
       rank-num)))
 
+(defn extract-tag-categories [tags]
+  (->> tags
+       (keep #(second (re-matches #"im:aspect:([^\s]+)" %)))
+       (string/join " ")))
+
+(defn template-contains-string? [s [_ template]]
+  (if (empty? s)
+    true
+    (let [ss (map string/lower-case (-> s string/trim (string/split #"\s+")))
+          {:keys [name title description tags]} template
+          all-text (->> (extract-tag-categories tags)
+                        (str name " " title " " description " ")
+                        (string/lower-case))]
+      (every? #(string/includes? all-text %) ss))))
+
 (defn ascii-arrows
   "Returns a seq of all arrows present in a template title.
   Useful for checking whether there are any arrows present."
