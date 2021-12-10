@@ -286,13 +286,19 @@
           (when-let [{:keys [type message]} response]
             [:p {:class type} message])]]))))
 
+(defn template-checkbox [template-name]
+  (let [checked? @(subscribe [::subs/template-checked? template-name])]
+    [:td [:input
+          {:type "checkbox"
+           :checked checked?
+           :on-click #(dispatch [(if checked?
+                                   ::events/uncheck-template
+                                   ::events/check-template) template-name])}]]))
+
 (defn template [{:keys [name title description comment rank
                         tags]}]
   [:tr
-   [:td [:input
-         {:type "checkbox"
-          :checked false
-          :on-click #()}]]
+   [template-checkbox name]
    [:td.name-cell name]
    [:td title]
    [:td.description-cell description]
@@ -328,7 +334,8 @@
 (defn manage-templates []
   (let [filtered-templates @(subscribe [::subs/filtered-templates])
         authorized-templates @(subscribe [::subs/authorized-templates])
-        text-filter @(subscribe [::subs/template-filter])]
+        text-filter @(subscribe [::subs/template-filter])
+        none-checked? @(subscribe [::subs/no-templates-checked?])]
     [:div.well.well-lg.manage-templates
      [:h3 "Manage templates"
       [template-filter]]
@@ -340,10 +347,14 @@
         [:table.table.templates-table
          [:thead
           [:tr
-           [:th [:input
-                 {:type "checkbox"
-                  :checked false
-                  :on-click #()}]]
+           (let [all-checked? @(subscribe [::subs/all-templates-checked?])]
+             [:th [:input
+                   {:type "checkbox"
+                    :checked all-checked?
+                    :on-click #(dispatch [(if all-checked?
+                                            ::events/uncheck-all-templates
+                                            ::events/check-all-templates)
+                                          authorized-templates])}]])
            [:th "Name"]
            [:th "Title"]
            [:th "Description"]
@@ -354,10 +365,33 @@
          [:tbody
           (for [template-details filtered-templates]
             ^{:key (:name template-details)}
-            [template template-details])]]])]))
+            [template template-details])]]])
+     [:div.btn-group
+      [:button.btn.btn-default.btn-raised
+       {:disabled none-checked?}
+       "Delete"]
+      [:button.btn.btn-default.btn-raised
+       {:disabled none-checked?}
+       "Export"]]]))
+
+(defn import-templates []
+  (let [input (reagent/atom "")]
+    (fn []
+      [:div.well.well-lg
+       [:h3 "Import templates"]
+       [:p "Paste a template query (or multiple) in XML format below and press " [:strong "submit"] " to load the template(s) into your account."]
+       [:textarea.form-control
+        {:rows 10
+         :value @input
+         :on-change #(reset! input (oget % :target :value))}]
+       [:div.btn-group
+        [:button.btn.btn-raised
+         {:type "button"}
+         "Submit"]]])))
 
 (defn main []
   [:div.admin-page.container
    [report-layout]
    [set-notice]
-   [manage-templates]])
+   [manage-templates]
+   [import-templates]])

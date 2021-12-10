@@ -143,3 +143,27 @@
         (vals)
         (sort-by (comp str/lower-case :name)))))
 
+(reg-sub
+ ::checked-templates
+ :<- [::manage-templates]
+ (fn [manage-templates]
+   (:checked-templates manage-templates)))
+
+(reg-sub
+ ::template-checked?
+ :<- [::checked-templates]
+ (fn [checked-templates [_ template-name]]
+   (contains? checked-templates template-name)))
+
+(reg-sub
+ ::no-templates-checked?
+ :<- [::checked-templates]
+ (fn [checked-templates [_]]
+   (empty? checked-templates)))
+
+(reg-sub
+ ::all-templates-checked?
+ :<- [::checked-templates]
+ :<- [::authorized-templates]
+ (fn [[checked-templates authorized-templates] [_]]
+   (= (count checked-templates) (count authorized-templates))))

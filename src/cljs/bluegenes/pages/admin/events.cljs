@@ -8,7 +8,6 @@
 (def ^:const child-id-prefix "child")
 
 (def root [:admin])
-(def manage-templates [:admin :manage-templates])
 
 (reg-event-db
  ::init
@@ -272,8 +271,34 @@
 
 ;; Manage templates
 
+(def manage-templates [:admin :manage-templates])
+
 (reg-event-db
  ::set-template-filter
  (path manage-templates)
  (fn [tmpl [_ text]]
    (assoc tmpl :template-filter text)))
+
+(reg-event-db
+ ::check-template
+ (path manage-templates)
+ (fn [tmpl [_ template-name]]
+   (update tmpl :checked-templates (fnil conj #{}) template-name)))
+
+(reg-event-db
+ ::uncheck-template
+ (path manage-templates)
+ (fn [tmpl [_ template-name]]
+   (update tmpl :checked-templates (fnil disj #{}) template-name)))
+
+(reg-event-db
+ ::check-all-templates
+ (path manage-templates)
+ (fn [tmpl [_ authorized-templates]]
+   (assoc tmpl :checked-templates (into #{} (map :name (vals authorized-templates))))))
+
+(reg-event-db
+ ::uncheck-all-templates
+ (path manage-templates)
+ (fn [tmpl [_ _authorized-templates]]
+   (assoc tmpl :checked-templates #{})))
