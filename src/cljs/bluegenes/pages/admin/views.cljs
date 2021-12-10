@@ -6,7 +6,8 @@
             [bluegenes.components.icons :refer [icon]]
             [oops.core :refer [oget ocall]]
             [bluegenes.components.bootstrap :refer [poppable]]
-            [bluegenes.utils :refer [md-element]]))
+            [bluegenes.utils :refer [md-element]]
+            [bluegenes.route :as route]))
 
 (defn on-enter [f]
   (fn [e]
@@ -310,7 +311,8 @@
        (conj [:button.btn.btn-link.edit-tags-button
               [icon "edit"]]))
    [:td
-    [:a {:role "button"}
+    [:a {:role "button"
+         :href (route/href ::route/template {:template name})}
      "View"]
     " | "
     [:a {:role "button"}
@@ -389,9 +391,30 @@
          {:type "button"}
          "Submit"]]])))
 
+;; These use a qualified keyword as they're used several places. Make sure to
+;; check for references before renaming them/adding new ones.
+(def pills
+  [{:label "Report"
+    :value :admin.pill/report}
+   {:label "Home"
+    :value :admin.pill/home}
+   {:label "Templates"
+    :value :admin.pill/template}])
+
 (defn main []
-  [:div.admin-page.container
-   [report-layout]
-   [set-notice]
-   [manage-templates]
-   [import-templates]])
+  (let [active-pill @(subscribe [::subs/active-pill])]
+    [:div.admin-page.container
+     (into [:ul.nav.nav-pills]
+           (for [{:keys [label value]} pills]
+             [:li
+              {:class (when (= active-pill value) :active)}
+              [:a {:role "button"
+                   :on-click #(dispatch [::events/set-active-pill value])}
+               label]]))
+     (case active-pill
+       :admin.pill/report [report-layout]
+       :admin.pill/home [set-notice]
+       :admin.pill/template [:<>
+                             [manage-templates]
+                             [import-templates]]
+       nil)]))

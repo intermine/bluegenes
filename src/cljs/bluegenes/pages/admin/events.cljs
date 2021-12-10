@@ -19,6 +19,12 @@
          (assoc-in (concat root [:clean-hash]) (hash persisted-cats))))))
 
 (reg-event-db
+ ::set-active-pill
+ (path root)
+ (fn [admin [_ pill]]
+   (assoc admin :active-pill pill)))
+
+(reg-event-db
  ::set-categorize-class
  (path root)
  (fn [admin [_ class-kw]]

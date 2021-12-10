@@ -41,4 +41,6 @@
         :preview nil
         :im-query nil
         :enhance-query {}
-        :root-class nil}})
+        :root-class nil}
+
+   :admin {:active-pill :admin.pill/report}})

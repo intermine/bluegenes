@@ -11,6 +11,12 @@
    (:admin db)))
 
 (reg-sub
+ ::active-pill
+ :<- [::root]
+ (fn [admin]
+   (:active-pill admin)))
+
+(reg-sub
  ::responses
  :<- [::root]
  (fn [admin [_ kw]]
