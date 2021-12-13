@@ -2,27 +2,34 @@
   (:require [re-frame.core :refer [reg-event-db reg-fx reg-event-fx]]
             [re-frame.std-interceptors :refer [path]]
             [bluegenes.utils :refer [addvec remvec dissoc-in]]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [imcljs.fetch :as fetch]
+            [imcljs.save :as save]))
 
 (def ^:const category-id-prefix "cat")
 (def ^:const child-id-prefix "child")
 
 (def root [:admin])
 
-(reg-event-db
+(reg-event-fx
  ::init
- (fn [db [_]]
+ (fn [{db :db} [_]]
    (let [persisted-cats (get-in db [:mines (:current-mine db) :report-layout])]
-     (-> db
-         (update-in root dissoc :responses)
-         (assoc-in (concat root [:categories]) persisted-cats)
-         (assoc-in (concat root [:clean-hash]) (hash persisted-cats))))))
+     (cond-> {:db (-> db
+                      (update-in root dissoc :responses)
+                      (assoc-in (concat root [:categories]) persisted-cats)
+                      (assoc-in (concat root [:clean-hash]) (hash persisted-cats)))}
+       (= :admin.pill/template (get-in db (concat root [:active-pill])))
+       (assoc :dispatch-n [[::fetch-template-precomputes]
+                           [::fetch-template-summarises]])))))
 
-(reg-event-db
+(reg-event-fx
  ::set-active-pill
- (path root)
- (fn [admin [_ pill]]
-   (assoc admin :active-pill pill)))
+ (fn [{db :db} [_ pill]]
+   (cond-> {:db (assoc-in db (concat root [:active-pill]) pill)}
+     (= :admin.pill/template pill)
+     (assoc :dispatch-n [[::fetch-template-precomputes]
+                         [::fetch-template-summarises]]))))
 
 (reg-event-db
  ::set-categorize-class
@@ -277,7 +284,7 @@
 
 ;; Manage templates
 
-(def manage-templates [:admin :manage-templates])
+(def manage-templates (into root [:manage-templates]))
 
 (reg-event-db
  ::set-template-filter
@@ -308,3 +315,73 @@
  (path manage-templates)
  (fn [tmpl [_ _authorized-templates]]
    (assoc tmpl :checked-templates #{})))
+
+(reg-event-fx
+ ::fetch-template-precomputes
+ (fn [{db :db} [_]]
+   (let [service (get-in db [:mines (:current-mine db) :service])]
+     {:im-chan {:chan (fetch/precompute service)
+                :on-success [::fetch-template-properties-success :precomputes]
+                :on-failure [::fetch-template-properties-failure :precomputes]}})))
+
+(reg-event-fx
+ ::fetch-template-summarises
+ (fn [{db :db} [_]]
+   (let [service (get-in db [:mines (:current-mine db) :service])]
+     {:im-chan {:chan (fetch/summarise service)
+                :on-success [::fetch-template-properties-success :summarises]
+                :on-failure [::fetch-template-properties-failure :summarises]}})))
+
+(reg-event-db
+ ::fetch-template-properties-success
+ (path manage-templates)
+ (fn [tmpl [_ kw templates]]
+   (assoc tmpl kw templates)))
+
+(reg-event-fx
+ ::fetch-template-properties-failure
+ (fn [{db :db} [_ kw res]]
+   {:dispatch [:messages/add
+               {:markup [:span (str "Failed to acquire template " (name kw) ". ")
+                         (when-let [err (get-in res [:body :error])]
+                           [:code err])
+                         " You can still precompute/summarise templates, but if it's been done for a template in the past, it won't show up as so."]
+                :style "warning"}]}))
+
+(reg-event-fx
+ ::precompute-template
+ (fn [{db :db} [_ template-name]]
+   (let [service (get-in db [:mines (:current-mine db) :service])]
+     {:db (assoc-in db (concat manage-templates [:precomputes (keyword template-name)])
+                    :in-progress)
+      :im-chan {:chan (save/precompute service template-name)
+                :on-success [::template-action-success :precomputes]
+                :on-failure [::template-action-failure :precomputes template-name]}})))
+
+(reg-event-fx
+ ::summarise-template
+ (fn [{db :db} [_ template-name]]
+   (let [service (get-in db [:mines (:current-mine db) :service])]
+     {:db (assoc-in db (concat manage-templates [:summarises (keyword template-name)])
+                    :in-progress)
+      :im-chan {:chan (save/summarise service template-name)
+                :on-success [::template-action-success :summarises]
+                :on-failure [::template-action-failure :summarises template-name]}})))
+
+(reg-event-db
+ ::template-action-success
+ (path manage-templates)
+ (fn [tmpl [_ kw templatem]]
+   (update tmpl kw merge templatem)))
+
+(reg-event-fx
+ ::template-action-failure
+ (fn [{db :db} [_ kw template-name res]]
+   {:dispatch [:messages/add
+               {:markup [:span
+                         (case kw
+                           :precomputes "Failed to precompute "
+                           :summarises "Failed to summarise ")
+                         [:em template-name] ". "
+                         [:code (or (not-empty (get-in res [:body :error]))
+                                    "Please try again later.")]]}]}))

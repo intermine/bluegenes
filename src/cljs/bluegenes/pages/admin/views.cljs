@@ -298,31 +298,41 @@
 
 (defn template [{:keys [name title description comment rank
                         tags]}]
-  [:tr
-   [template-checkbox name]
-   [:td.name-cell name]
-   [:td title]
-   [:td.description-cell description]
-   [:td.comment-cell comment]
-   [:td rank]
-   (-> [:td.tags-cell]
-       (into (for [tag tags]
-               [:code.start tag]))
-       (conj [:button.btn.btn-link.edit-tags-button
-              [icon "edit"]]))
-   [:td
-    [:a {:role "button"
-         :href (route/href ::route/template {:template name})}
-     "View"]
-    " | "
-    [:a {:role "button"}
-     "Export"]
-    " | "
-    [:a {:role "button"}
-     "Precompute"]
-    " | "
-    [:a {:role "button"}
-     "Summarise"]]])
+  (let [precomputed-status (get @(subscribe [::subs/precomputes]) (keyword name))
+        summarised-status (get @(subscribe [::subs/summarises]) (keyword name))]
+    [:tr
+     [template-checkbox name]
+     [:td.name-cell name]
+     [:td title]
+     [:td.description-cell description]
+     [:td.comment-cell comment]
+     [:td rank]
+     (-> [:td.tags-cell]
+         (into (for [tag tags]
+                 [:code.start tag]))
+         (conj [:button.btn.btn-link.edit-tags-button
+                [icon "edit"]]))
+     [:td
+      [:a {:role "button"
+           :href (route/href ::route/template {:template name})}
+       "View"]
+      " | "
+      [:a {:role "button"}
+       "Export"]
+      " | "
+      (case precomputed-status
+        true "Precomputed"
+        :in-progress "Precomputing..."
+        [:a {:role "button"
+             :on-click #(dispatch [::events/precompute-template name])}
+         "Precompute"])
+      " | "
+      (case summarised-status
+        true "Summarised"
+        :in-progress "Summarising..."
+        [:a {:role "button"
+             :on-click #(dispatch [::events/summarise-template name])}
+         "Summarise"])]]))
 
 (defn template-filter []
   (let [value @(subscribe [::subs/template-filter])]

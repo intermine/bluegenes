@@ -173,3 +173,15 @@
  :<- [::authorized-templates]
  (fn [[checked-templates authorized-templates] [_]]
    (= (count checked-templates) (count authorized-templates))))
+
+(reg-sub
+ ::precomputes
+ :<- [::manage-templates]
+ (fn [manage-templates]
+   (:precomputes manage-templates)))
+
+(reg-sub
+ ::summarises
+ :<- [::manage-templates]
+ (fn [manage-templates]
+   (:summarises manage-templates)))
