@@ -11,13 +11,20 @@
 (defn write-prop [value]
   (pr-str value))
 
+(defn nil-assert
+  "Assert that a predicate returns truthy for x, returning x if it does and nil otherwise."
+  [x pred]
+  (if (pred x)
+    x
+    nil))
+
 (defn bg-properties-to-bluegenes
   "Returns a map generated from `bg-properties` to be merged with the current
   mine. Note that if a property is missing, its value will be nil. This is to
   ensure that deleted keys get their previous value overwritten with nil."
   [bg-properties]
-  {:report-layout (some-> (get bg-properties :layout.report) read-prop import-categories)
-   :notice (some-> (get bg-properties :notice) read-prop)})
+  {:report-layout (some-> (get bg-properties :layout.report) read-prop (nil-assert map?) import-categories)
+   :notice (some-> (get bg-properties :notice) read-prop (nil-assert string?))})
 
 ;; Note that making changes to bluegenes-properties will fail on the InterMine
 ;; backend if you're not authenticated as an admin.
