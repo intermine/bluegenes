@@ -261,9 +261,9 @@
   (if (empty? s)
     true
     (let [ss (map string/lower-case (-> s string/trim (string/split #"\s+")))
-          {:keys [name title description tags]} template
+          {:keys [name title description comment tags]} template
           all-text (->> (extract-tag-categories tags)
-                        (str name " " title " " description " ")
+                        (str name " " title " " description " " comment)
                         (string/lower-case))]
       (every? #(string/includes? all-text %) ss))))
 
