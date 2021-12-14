@@ -429,3 +429,28 @@
                          [:em template-name] ". "
                          [:code (or (not-empty (get-in res [:body :error]))
                                     "Please try again later.")]]}]}))
+
+(reg-event-fx
+ ::import-template
+ (fn [{db :db} [_ template-xml]]
+   (let [service (get-in db [:mines (:current-mine db) :service])]
+     {:im-chan {:chan (save/template service template-xml)
+                :on-success [::import-template-success]
+                :on-failure [::import-template-failure]}})))
+
+(reg-event-fx
+ ::import-template-success
+ (fn [{db :db} [_ _res]]
+   {:dispatch-n [[:assets/fetch-templates]
+                 [:messages/add
+                  {:markup [:span "Successfully imported templates."]
+                   :style "success"}]]}))
+
+(reg-event-fx
+ ::import-template-failure
+ (fn [{db :db} [_ res]]
+   {:dispatch [:messages/add
+               {:markup [:span "Failed to import templates. "
+                         [:code (or (not-empty (get-in res [:body :error]))
+                                    "Please try agan later.")]]
+                :style "warning"}]}))

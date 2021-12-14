@@ -431,7 +431,10 @@
          :on-change #(reset! input (oget % :target :value))}]
        [:div.btn-group
         [:button.btn.btn-raised
-         {:type "button"}
+         {:on-click (fn []
+                      (when-let [template-xml @input]
+                        (dispatch [::events/import-template template-xml]))
+                      (reset! input ""))}
          "Submit"]]])))
 
 ;; These use a qualified keyword as they're used several places. Make sure to
