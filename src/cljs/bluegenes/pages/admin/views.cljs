@@ -7,7 +7,8 @@
             [oops.core :refer [oget ocall]]
             [bluegenes.components.bootstrap :refer [poppable]]
             [bluegenes.utils :refer [md-element]]
-            [bluegenes.route :as route]))
+            [bluegenes.route :as route]
+            [bluegenes.components.select-tags :as select-tags]))
 
 (defn on-enter [f]
   (fn [e]
@@ -296,43 +297,75 @@
                                    ::events/uncheck-template
                                    ::events/check-template) template-name])}]]))
 
-(defn template [{:keys [name title description comment rank
-                        tags]}]
-  (let [precomputed-status (get @(subscribe [::subs/precomputes]) (keyword name))
-        summarised-status (get @(subscribe [::subs/summarises]) (keyword name))]
-    [:tr
-     [template-checkbox name]
-     [:td.name-cell name]
-     [:td title]
-     [:td.description-cell description]
-     [:td.comment-cell comment]
-     [:td rank]
-     (-> [:td.tags-cell]
-         (into (for [tag tags]
-                 [:code.start tag]))
-         (conj [:button.btn.btn-link.edit-tags-button
-                [icon "edit"]]))
-     [:td
-      [:a {:role "button"
-           :href (route/href ::route/template {:template name})}
-       "View"]
-      " | "
-      [:a {:role "button"}
-       "Export"]
-      " | "
-      (case precomputed-status
-        true "Precomputed"
-        :in-progress "Precomputing..."
-        [:a {:role "button"
-             :on-click #(dispatch [::events/precompute-template name])}
-         "Precompute"])
-      " | "
-      (case summarised-status
-        true "Summarised"
-        :in-progress "Summarising..."
-        [:a {:role "button"
-             :on-click #(dispatch [::events/summarise-template name])}
-         "Summarise"])]]))
+(defn template-tags [{:keys [tags]}]
+  (let [new-tags* (reagent/atom tags)
+        all-tags (subscribe [::subs/all-template-tags])]
+    (fn [{:keys [tags editing-tags? template-name]}]
+      (if @editing-tags?
+        [:td.tags-cell.is-editing
+         [:div.select-tags-container
+          [select-tags/main
+           :options @all-tags
+           :on-change #(reset! new-tags* %)
+           :value @new-tags*]]
+         [:div.btn-group
+          [:button.btn.btn-link.edit-tags-button
+           {:on-click (fn []
+                        (swap! editing-tags? not)
+                        (dispatch [::events/update-template-tags template-name tags @new-tags*]))}
+           [icon "checkmark"]]
+          [:button.btn.btn-link.edit-tags-button.edit-tags-button-cancel
+           {:on-click (fn []
+                        (reset! new-tags* tags)
+                        (swap! editing-tags? not))}
+           [icon "close"]]]]
+        (-> [:td.tags-cell]
+            (into (for [tag tags]
+                    [:code.start tag]))
+            (conj [:button.btn.btn-link.edit-tags-button
+                   {:on-click #(swap! editing-tags? not)}
+                   [icon "edit"]]))))))
+
+(defn template []
+  (let [editing-tags? (reagent/atom false)]
+    (fn [{:keys [name title description comment rank
+                 tags]}]
+      (let [precomputed-status (get @(subscribe [::subs/precomputes]) (keyword name))
+            summarised-status (get @(subscribe [::subs/summarises]) (keyword name))]
+        [:tr
+         [template-checkbox name]
+         [:td.name-cell name]
+         [:td title]
+         [:td.description-cell description]
+         [:td.comment-cell comment]
+         [:td rank]
+         [template-tags
+          {:tags tags
+           :editing-tags? editing-tags?
+           :template-name name}]
+         (if @editing-tags?
+           [:td.empty-cell]
+           [:td
+            [:a {:role "button"
+                 :href (route/href ::route/template {:template name})}
+             "View"]
+            " | "
+            [:a {:role "button"}
+             "Export"]
+            " | "
+            (case precomputed-status
+              true "Precomputed"
+              :in-progress "Precomputing..."
+              [:a {:role "button"
+                   :on-click #(dispatch [::events/precompute-template name])}
+               "Precompute"])
+            " | "
+            (case summarised-status
+              true "Summarised"
+              :in-progress "Summarising..."
+              [:a {:role "button"
+                   :on-click #(dispatch [::events/summarise-template name])}
+               "Summarise"])])]))))
 
 (defn template-filter []
   (let [value @(subscribe [::subs/template-filter])]
@@ -371,7 +404,7 @@
            [:th "Title"]
            [:th "Description"]
            [:th "Comment"]
-           [:th "Rank"]
+           [:th.rank-header "Rank"]
            [:th "Tags"]
            [:th "Actions"]]]
          [:tbody

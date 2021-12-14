@@ -4,7 +4,8 @@
             [bluegenes.utils :refer [addvec remvec dissoc-in]]
             [clojure.string :as str]
             [imcljs.fetch :as fetch]
-            [imcljs.save :as save]))
+            [imcljs.save :as save]
+            [clojure.set :as set]))
 
 (def ^:const category-id-prefix "cat")
 (def ^:const child-id-prefix "child")
@@ -382,6 +383,49 @@
                          (case kw
                            :precomputes "Failed to precompute "
                            :summarises "Failed to summarise ")
+                         [:em template-name] ". "
+                         [:code (or (not-empty (get-in res [:body :error]))
+                                    "Please try again later.")]]}]}))
+
+(reg-event-fx
+ ::update-template-tags
+ (fn [{db :db} [_ template-name old-tags new-tags]]
+   (let [old-tags (set old-tags)
+         new-tags (set new-tags)
+         tags-to-delete (set/difference old-tags new-tags)
+         tags-to-add (set/difference new-tags old-tags)
+         service (get-in db [:mines (:current-mine db) :service])
+         chans (->> [(when (seq tags-to-delete)
+                       (save/template-remove-tags service template-name tags-to-delete))
+                     (when (seq tags-to-add)
+                       (save/template-add-tags service template-name tags-to-add))]
+                    (filter some?))]
+     (if (seq chans)
+       {:im-chan {:chans chans
+                  :on-success [::fetch-template-tags template-name]
+                  :on-failure [::update-template-tags-failure template-name]}}
+       {}))))
+
+(reg-event-fx
+ ::fetch-template-tags
+ (fn [{db :db} [_ template-name]]
+   (let [service (get-in db [:mines (:current-mine db) :service])]
+     {:im-chan {:chan (fetch/template-tags service {:name template-name})
+                :on-success [::fetch-template-tags-success template-name]
+                ;; Fetch templates if we fail to fetch the template tags.
+                ;; If that also fails, it will show a proper error message.
+                :on-failure [:assets/fetch-templates nil]}})))
+
+(reg-event-db
+ ::fetch-template-tags-success
+ (fn [db [_ template-name tags]]
+   (assoc-in db [:assets :templates (:current-mine db) (keyword template-name) :tags] tags)))
+
+(reg-event-fx
+ ::update-template-tags-failure
+ (fn [{db :db} [_ template-name res]]
+   {:dispatch [:messages/add
+               {:markup [:span "Failed to update tags for "
                          [:em template-name] ". "
                          [:code (or (not-empty (get-in res [:body :error]))
                                     "Please try again later.")]]}]}))

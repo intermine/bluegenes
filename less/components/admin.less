@@ -186,6 +186,10 @@
                 width: 2*@spacer;
             }
 
+            thead th.rank-header {
+                width: 6*@spacer;
+            }
+
             .name-cell {
                 overflow-wrap: break-word;
             }
@@ -197,6 +201,16 @@
             .tags-cell {
                 display: flex;
                 flex-wrap: wrap;
+
+                &.is-editing {
+                    // We hardcode the width as we want the element to expand
+                    // beyond its parent's width.
+                    width: 300px;
+
+                    @media(max-width:@small-screen) {
+                        width: 250px;
+                    }
+                }
             }
 
             code.start {
@@ -211,6 +225,14 @@
                 padding: 0;
                 margin: 0;
                 fill: @highlight-color;
+
+                &-cancel {
+                    fill: @failure-text-color;
+                }
+            }
+
+            .select-tags-container {
+                width: 100%;
             }
         }
     }

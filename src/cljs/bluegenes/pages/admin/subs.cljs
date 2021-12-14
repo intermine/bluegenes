@@ -185,3 +185,11 @@
  :<- [::manage-templates]
  (fn [manage-templates]
    (:summarises manage-templates)))
+
+(reg-sub
+ ::all-template-tags
+ :<- [:templates]
+ (fn [all-templates]
+   (->> all-templates
+        (mapcat (fn [[_ {:keys [tags]}]] tags))
+        (set))))
