@@ -21,7 +21,8 @@
                       (assoc-in (concat root [:categories]) persisted-cats)
                       (assoc-in (concat root [:clean-hash]) (hash persisted-cats)))}
        (= :admin.pill/template (get-in db (concat root [:active-pill])))
-       (assoc :dispatch-n [[::fetch-template-precomputes]
+       (assoc :dispatch-n [[::uncheck-nonexisting-templates]
+                           [::fetch-template-precomputes]
                            [::fetch-template-summarises]])))))
 
 (reg-event-fx
@@ -29,7 +30,8 @@
  (fn [{db :db} [_ pill]]
    (cond-> {:db (assoc-in db (concat root [:active-pill]) pill)}
      (= :admin.pill/template pill)
-     (assoc :dispatch-n [[::fetch-template-precomputes]
+     (assoc :dispatch-n [[::uncheck-nonexisting-templates]
+                         [::fetch-template-precomputes]
                          [::fetch-template-summarises]]))))
 
 (reg-event-db
@@ -317,6 +319,13 @@
  (fn [tmpl [_]]
    (assoc tmpl :checked-templates #{})))
 
+(reg-event-db
+ ::uncheck-nonexisting-templates
+ (fn [db [_]]
+   (let [all-templates (get-in db [:assets :templates (:current-mine db)])]
+     (update-in db (concat manage-templates [:checked-templates])
+                (comp set (partial filter #(contains? all-templates (keyword %))))))))
+
 (reg-event-fx
  ::fetch-template-precomputes
  (fn [{db :db} [_]]
@@ -476,7 +485,8 @@
 (reg-event-fx
  ::delete-templates-failure
  (fn [{db :db} [_ res]]
-   {:dispatch-n [[:assets/fetch-templates] ; In case some were deleted.
+   {:dispatch-n [[:assets/fetch-templates ; In case some were deleted.
+                  [::uncheck-nonexisting-templates]]
                  [:messages/add
                   {:markup [:span "Failed to delete all selected templates. "
                             [:code (or (not-empty (get-in res [:body :error]))
