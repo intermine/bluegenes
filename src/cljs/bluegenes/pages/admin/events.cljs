@@ -314,7 +314,7 @@
 (reg-event-db
  ::uncheck-all-templates
  (path manage-templates)
- (fn [tmpl [_ _authorized-templates]]
+ (fn [tmpl [_]]
    (assoc tmpl :checked-templates #{})))
 
 (reg-event-fx
@@ -452,11 +452,47 @@
    {:dispatch [:messages/add
                {:markup [:span "Failed to import templates. "
                          [:code (or (not-empty (get-in res [:body :error]))
-                                    "Please try agan later.")]]
+                                    "Please try again later.")]]
                 :style "warning"}]}))
 
+(reg-event-fx
+ ::delete-templates
+ (fn [{db :db} [_ templates]]
+   (let [template-names (map :name templates)
+         service (get-in db [:mines (:current-mine db) :service])]
+     {:im-chan {:chans (map #(save/delete-template service %) template-names)
+                :on-success [::delete-templates-success]
+                :on-failure [::delete-templates-failure]}})))
+
+(reg-event-fx
+ ::delete-templates-success
+ (fn [{db :db} [_ _res]]
+   {:dispatch-n [[::uncheck-all-templates]
+                 [:assets/fetch-templates]
+                 [:messages/add
+                  {:markup [:span "Templates deleted successfully."]
+                   :style "success"}]]}))
+
+(reg-event-fx
+ ::delete-templates-failure
+ (fn [{db :db} [_ res]]
+   {:dispatch-n [[:assets/fetch-templates] ; In case some were deleted.
+                 [:messages/add
+                  {:markup [:span "Failed to delete all selected templates. "
+                            [:code (or (not-empty (get-in res [:body :error]))
+                                       "Please try again.")]]
+                   :style "warning"}]]}))
+
+;; Modal
+
 (reg-event-db
- ::export-templates
+ ::clear-modal
+ (path root)
+ (fn [admin [_]]
+   (assoc admin :modal nil)))
+
+(reg-event-db
+ ::export-templates-modal
  (fn [db [_ template-names]]
    (let [service (get-in db [:mines (:current-mine db) :service])
          model (:model service)
@@ -467,10 +503,11 @@
                {:type :export
                 :xml xml}))))
 
-;; Modal
-
 (reg-event-db
- ::clear-modal
- (path root)
- (fn [admin [_]]
-   (assoc admin :modal nil)))
+ ::delete-templates-modal
+ (fn [db [_ template-names]]
+   (let [all-templates (get-in db [:assets :templates (:current-mine db)])
+         template-objects (mapv #(get all-templates (keyword %)) template-names)]
+     (assoc-in db (concat root [:modal])
+               {:type :delete
+                :templates template-objects}))))

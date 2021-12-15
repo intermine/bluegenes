@@ -178,6 +178,7 @@
             overflow: auto;
         }
 
+        // Changes here should be made similarly to .modal-content below.
         .templates-table {
             table-layout: fixed;
             width: 100%;
@@ -254,12 +255,45 @@
 
         .modal-content {
 
+            // type: export
+
             pre {
                 // We want to see all the text instead of having to use
                 // horizontal scrolling.
                 white-space: pre-wrap;
                 max-height: 60vh;
                 overflow: auto;
+            }
+
+            // type: delete
+
+            .table-container {
+                max-height: 60vh;
+                overflow: auto;
+
+
+                // See other .templates-table further up.
+                .templates-table {
+                    .name-cell {
+                        overflow-wrap: break-word;
+                    }
+
+                    .description-cell, .comment-cell {
+                        font-size: 0.8em;
+                    }
+
+                    .tags-cell {
+                        display: flex;
+                        flex-wrap: wrap;
+                    }
+
+                    code.start {
+                        color: inherit;
+                        background-color: @color-Nuffink;
+                        margin-bottom: 0.5*@spacer;
+                        font-size: 0.7em;
+                    }
+                }
             }
         }
     }

@@ -300,7 +300,8 @@
 (defn template-tags [{:keys [tags]}]
   (let [new-tags* (reagent/atom tags)
         all-tags (subscribe [::subs/all-template-tags])]
-    (fn [{:keys [tags editing-tags? template-name]}]
+    (fn [{:keys [tags editing-tags? template-name]}
+         & {:keys [preview?]}]
       (if @editing-tags?
         [:td.tags-cell.is-editing
          [:div.select-tags-container
@@ -322,18 +323,21 @@
         (-> [:td.tags-cell]
             (into (for [tag tags]
                     [:code.start tag]))
-            (conj [:button.btn.btn-link.edit-tags-button
-                   {:on-click #(swap! editing-tags? not)}
-                   [icon "edit"]]))))))
+            (cond->
+              (not preview?)
+              (conj [:button.btn.btn-link.edit-tags-button
+                     {:on-click #(swap! editing-tags? not)}
+                     [icon "edit"]])))))))
 
 (defn template []
   (let [editing-tags? (reagent/atom false)]
     (fn [{:keys [name title description comment rank
-                 tags]}]
+                 tags]}
+         & {:keys [preview?]}]
       (let [precomputed-status (get @(subscribe [::subs/precomputes]) (keyword name))
             summarised-status (get @(subscribe [::subs/summarises]) (keyword name))]
         [:tr
-         [template-checkbox name]
+         (when-not preview? [template-checkbox name])
          [:td.name-cell name]
          [:td title]
          [:td.description-cell description]
@@ -342,15 +346,18 @@
          [template-tags
           {:tags tags
            :editing-tags? editing-tags?
-           :template-name name}]
-         (if @editing-tags?
-           [:td.empty-cell]
+           :template-name name}
+          :preview? preview?]
+         (cond
+           preview? nil
+           @editing-tags? [:td.empty-cell]
+           :else
            [:td
             [:a {:href (route/href ::route/template {:template name})}
              "View"]
             " | "
             [:a {:role "button"
-                 :on-click #(dispatch [::events/export-templates [name]])}
+                 :on-click #(dispatch [::events/export-templates-modal [name]])}
              "Export"]
             " | "
             (case precomputed-status
@@ -376,6 +383,35 @@
        :on-change #(dispatch [::events/set-template-filter (oget % :target :value)])
        :value value}]]))
 
+(defn templates-table [filtered-templates authorized-templates
+                       & {:keys [preview?]}]
+  [:div.table-container
+   [:table.table.templates-table
+    [:thead
+     [:tr
+      (when-not preview?
+        (let [all-checked? @(subscribe [::subs/all-templates-checked?])]
+          [:th [:input
+                {:type "checkbox"
+                 :checked all-checked?
+                 :on-click #(dispatch [(if all-checked?
+                                         ::events/uncheck-all-templates
+                                         ::events/check-all-templates)
+                                       authorized-templates])}]]))
+      [:th "Name"]
+      [:th "Title"]
+      [:th "Description"]
+      [:th "Comment"]
+      [:th.rank-header "Rank"]
+      [:th "Tags"]
+      (when-not preview?
+        [:th "Actions"])]]
+    [:tbody
+     (for [template-details filtered-templates]
+       ^{:key (:name template-details)}
+       [template template-details
+        :preview? preview?])]]])
+
 (defn manage-templates []
   (let [filtered-templates @(subscribe [::subs/filtered-templates])
         authorized-templates @(subscribe [::subs/authorized-templates])
@@ -388,36 +424,19 @@
        (if (seq authorized-templates)
          [:p (str "No templates matching filter: " text-filter)]
          [:p "Templates you create will appear here."])
-       [:div.table-container
-        [:table.table.templates-table
-         [:thead
-          [:tr
-           (let [all-checked? @(subscribe [::subs/all-templates-checked?])]
-             [:th [:input
-                   {:type "checkbox"
-                    :checked all-checked?
-                    :on-click #(dispatch [(if all-checked?
-                                            ::events/uncheck-all-templates
-                                            ::events/check-all-templates)
-                                          authorized-templates])}]])
-           [:th "Name"]
-           [:th "Title"]
-           [:th "Description"]
-           [:th "Comment"]
-           [:th.rank-header "Rank"]
-           [:th "Tags"]
-           [:th "Actions"]]]
-         [:tbody
-          (for [template-details filtered-templates]
-            ^{:key (:name template-details)}
-            [template template-details])]]])
+       [templates-table filtered-templates authorized-templates])
      [:div.btn-group
       [:button.btn.btn-default.btn-raised
-       {:disabled (empty? checked-templates)}
+       {:disabled (empty? checked-templates)
+        :on-click #(dispatch [::events/uncheck-all-templates])}
+       "Clear"]
+      [:button.btn.btn-danger.btn-raised
+       {:disabled (empty? checked-templates)
+        :on-click #(dispatch [::events/delete-templates-modal checked-templates])}
        "Delete"]
       [:button.btn.btn-default.btn-raised
        {:disabled (empty? checked-templates)
-        :on-click #(dispatch [::events/export-templates checked-templates])}
+        :on-click #(dispatch [::events/export-templates-modal checked-templates])}
        "Export"]]]))
 
 (defn import-templates []
@@ -442,7 +461,7 @@
   (let [clipboard (atom nil)
         msg (reagent/atom nil)]
     (fn []
-      (let [{:keys [type xml] :as modal-data} @(subscribe [::subs/modal])
+      (let [{:keys [type xml templates] :as modal-data} @(subscribe [::subs/modal])
             close-modal! (fn []
                            (dispatch [::events/clear-modal])
                            (reset! msg nil))]
@@ -463,41 +482,64 @@
                :on-click close-modal!}
               "×"]
              [:h3.modal-title.text-center
-              "Template Query XML"]]
+              (case type
+                :export "Template Query XML"
+                :delete "Delete templates"
+                nil)]]
 
-            [:div.modal-body
-             [:textarea.hidden-clipboard
-              {:ref #(reset! clipboard %)
-               :value xml
-               :read-only true}]
-             [:pre xml]]
+            (case type
+
+              :export
+              [:div.modal-body
+               [:textarea.hidden-clipboard
+                {:ref #(reset! clipboard %)
+                 :value xml
+                 :read-only true}]
+               [:pre xml]]
+
+              :delete
+              [:div.modal-body
+               [:p "Are you sure you want to delete the following "
+                [:strong (count templates)]
+                " templates?"]
+               [templates-table templates nil :preview? true]]
+
+              nil)
 
             [:div.modal-footer
              [:div.pull-left
               (when-let [{:keys [type text]} @msg]
                 [:p {:class type} text])]
-             [:div.btn-toolbar.pull-right
-              [:button.btn.btn-default
-               {:on-click close-modal!}
-               "Close"]
-              [:button.btn.btn-primary.btn-raised
-               {:on-click #(when-let [clip @clipboard]
-                             (.focus clip)
-                             (.select clip)
-                             (try
-                               (ocall js/document :execCommand "copy")
-                               (reset! msg {:type "success" :text "Copied to clipboard"})
-                               (catch js/Error _
-                                 (reset! msg {:type "failure" :text "Failed to copy to clipboard"}))))}
-               "Copy XML"]]]
-            #_[:div.modal-footer
+             (case type
+
+               :export
+               [:div.btn-toolbar.pull-right
+                [:button.btn.btn-default
+                 {:on-click close-modal!}
+                 "Close"]
+                [:button.btn.btn-primary.btn-raised
+                 {:on-click #(when-let [clip @clipboard]
+                               (.focus clip)
+                               (.select clip)
+                               (try
+                                 (ocall js/document :execCommand "copy")
+                                 (reset! msg {:type "success" :text "Copied to clipboard"})
+                                 (catch js/Error _
+                                   (reset! msg {:type "failure" :text "Failed to copy to clipboard"}))))}
+                 "Copy XML"]]
+
+               :delete
                [:div.btn-toolbar.pull-right
                 [:button.btn.btn-default
                  {:on-click close-modal!}
                  "Cancel"]
-                [:button.btn.btn-primary.btn-raised
-                 {:on-click #()} ; TODO delete templates
-                 "Delete templates"]]]]]]]))))
+                [:button.btn.btn-danger.btn-raised
+                 {:on-click (fn []
+                              (dispatch [::events/delete-templates templates])
+                              (close-modal!))}
+                 "Delete templates"]]
+
+               nil)]]]]]))))
 
 ;; These use a qualified keyword as they're used several places. Make sure to
 ;; check for references before renaming them/adding new ones.
