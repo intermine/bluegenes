@@ -377,15 +377,15 @@
   service for JSON format, and converts it to XML."
   [model template-objects]
   (xml/emit-str
-    (xml/element* :template-queries {}
+   (xml/element* :template-queries {}
                  (map (comp xml/parse-str #(template->xml model % %)) template-objects))))
 
 (comment
   "Use this to try out template->xml using nREPL."
   (require '[re-frame.core :refer [subscribe]])
   (template-objects->xml
-    @(subscribe [:current-model])
-    (map @(subscribe [:templates]) [:Foo_bar :Foo_bar_baz]))
+   @(subscribe [:current-model])
+   (map @(subscribe [:templates]) [:Foo_bar :Foo_bar_baz]))
   (template->xml @(subscribe [:current-model])
                  {:name "foo_bar"
                   :title "foo --> bar"
