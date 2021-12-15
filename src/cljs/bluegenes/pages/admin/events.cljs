@@ -1,7 +1,7 @@
 (ns bluegenes.pages.admin.events
   (:require [re-frame.core :refer [reg-event-db reg-fx reg-event-fx]]
             [re-frame.std-interceptors :refer [path]]
-            [bluegenes.utils :refer [addvec remvec dissoc-in]]
+            [bluegenes.utils :refer [addvec remvec dissoc-in template-objects->xml]]
             [clojure.string :as str]
             [imcljs.fetch :as fetch]
             [imcljs.save :as save]
@@ -454,3 +454,23 @@
                          [:code (or (not-empty (get-in res [:body :error]))
                                     "Please try agan later.")]]
                 :style "warning"}]}))
+
+(reg-event-db
+ ::export-templates
+ (fn [db [_ template-names]]
+   (let [service (get-in db [:mines (:current-mine db) :service])
+         model (:model service)
+         all-templates (get-in db [:assets :templates (:current-mine db)])
+         template-objects (map #(get all-templates (keyword %)) template-names)
+         xml (template-objects->xml model template-objects)]
+     (assoc-in db (concat root [:modal])
+               {:type :export
+                :xml xml}))))
+
+;; Modal
+
+(reg-event-db
+ ::clear-modal
+ (path root)
+ (fn [admin [_]]
+   (assoc admin :modal nil)))

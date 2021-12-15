@@ -162,12 +162,6 @@
    (contains? checked-templates template-name)))
 
 (reg-sub
- ::no-templates-checked?
- :<- [::checked-templates]
- (fn [checked-templates [_]]
-   (empty? checked-templates)))
-
-(reg-sub
  ::all-templates-checked?
  :<- [::checked-templates]
  :<- [::authorized-templates]
@@ -193,3 +187,11 @@
    (->> all-templates
         (mapcat (fn [[_ {:keys [tags]}]] tags))
         (set))))
+
+;; Modal
+
+(reg-sub
+ ::modal
+ :<- [::root]
+ (fn [admin]
+   (:modal admin)))

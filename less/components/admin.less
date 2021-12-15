@@ -236,4 +236,31 @@
             }
         }
     }
+
+    .fade.modal-backdrop {
+        pointer-events: none;
+
+        &.show {
+            opacity: 0.5;
+        }
+    }
+
+    .modal {
+        pointer-events: none;
+
+        &.in {
+            pointer-events: auto;
+        }
+
+        .modal-content {
+
+            pre {
+                // We want to see all the text instead of having to use
+                // horizontal scrolling.
+                white-space: pre-wrap;
+                max-height: 60vh;
+                overflow: auto;
+            }
+        }
+    }
 }

@@ -346,11 +346,11 @@
          (if @editing-tags?
            [:td.empty-cell]
            [:td
-            [:a {:role "button"
-                 :href (route/href ::route/template {:template name})}
+            [:a {:href (route/href ::route/template {:template name})}
              "View"]
             " | "
-            [:a {:role "button"}
+            [:a {:role "button"
+                 :on-click #(dispatch [::events/export-templates [name]])}
              "Export"]
             " | "
             (case precomputed-status
@@ -380,7 +380,7 @@
   (let [filtered-templates @(subscribe [::subs/filtered-templates])
         authorized-templates @(subscribe [::subs/authorized-templates])
         text-filter @(subscribe [::subs/template-filter])
-        none-checked? @(subscribe [::subs/no-templates-checked?])]
+        checked-templates @(subscribe [::subs/checked-templates])]
     [:div.well.well-lg.manage-templates
      [:h3 "Manage templates"
       [template-filter]]
@@ -413,10 +413,11 @@
             [template template-details])]]])
      [:div.btn-group
       [:button.btn.btn-default.btn-raised
-       {:disabled none-checked?}
+       {:disabled (empty? checked-templates)}
        "Delete"]
       [:button.btn.btn-default.btn-raised
-       {:disabled none-checked?}
+       {:disabled (empty? checked-templates)
+        :on-click #(dispatch [::events/export-templates checked-templates])}
        "Export"]]]))
 
 (defn import-templates []
@@ -436,6 +437,67 @@
                         (dispatch [::events/import-template template-xml]))
                       (reset! input ""))}
          "Submit"]]])))
+
+(defn modal []
+  (let [clipboard (atom nil)
+        msg (reagent/atom nil)]
+    (fn []
+      (let [{:keys [type xml] :as modal-data} @(subscribe [::subs/modal])
+            close-modal! (fn []
+                           (dispatch [::events/clear-modal])
+                           (reset! msg nil))]
+        [:<>
+         [:div.fade.modal-backdrop
+          {:class (when modal-data :show)}]
+         [:div.modal.fade.show
+          {:class (when modal-data :in)
+           :tab-index "-1"
+           :role "dialog"}
+          [:div.modal-dialog.modal-lg
+           [:div.modal-content
+
+            [:div.modal-header
+             [:button.close
+              {:aria-hidden "true"
+               :type "button"
+               :on-click close-modal!}
+              "×"]
+             [:h3.modal-title.text-center
+              "Template Query XML"]]
+
+            [:div.modal-body
+             [:textarea.hidden-clipboard
+              {:ref #(reset! clipboard %)
+               :value xml
+               :read-only true}]
+             [:pre xml]]
+
+            [:div.modal-footer
+             [:div.pull-left
+              (when-let [{:keys [type text]} @msg]
+                [:p {:class type} text])]
+             [:div.btn-toolbar.pull-right
+              [:button.btn.btn-default
+               {:on-click close-modal!}
+               "Close"]
+              [:button.btn.btn-primary.btn-raised
+               {:on-click #(when-let [clip @clipboard]
+                             (.focus clip)
+                             (.select clip)
+                             (try
+                               (ocall js/document :execCommand "copy")
+                               (reset! msg {:type "success" :text "Copied to clipboard"})
+                               (catch js/Error _
+                                 (reset! msg {:type "failure" :text "Failed to copy to clipboard"}))))}
+               "Copy XML"]]]
+            #_[:div.modal-footer
+               [:div.btn-toolbar.pull-right
+                [:button.btn.btn-default
+                 {:on-click close-modal!}
+                 "Cancel"]
+                [:button.btn.btn-primary.btn-raised
+                 {:on-click #()} ; TODO delete templates
+                 "Delete templates"]]]]]]]))))
 
 ;; These use a qualified keyword as they're used several places. Make sure to
 ;; check for references before renaming them/adding new ones.
@@ -463,4 +525,5 @@
        :admin.pill/template [:<>
                              [manage-templates]
                              [import-templates]]
-       nil)]))
+       nil)
+     [modal]]))

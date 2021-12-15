@@ -372,9 +372,20 @@
    (xml/element :template {:name name :title title :comment comment}
                 (xml/parse-str (im-query/->xml model (assoc query :longDescription description))))))
 
+(defn template-objects->xml
+  "Takes a collection of template objects, as returned by the templates web
+  service for JSON format, and converts it to XML."
+  [model template-objects]
+  (xml/emit-str
+    (xml/element* :template-queries {}
+                 (map (comp xml/parse-str #(template->xml model % %)) template-objects))))
+
 (comment
   "Use this to try out template->xml using nREPL."
   (require '[re-frame.core :refer [subscribe]])
+  (template-objects->xml
+    @(subscribe [:current-model])
+    (map @(subscribe [:templates]) [:Foo_bar :Foo_bar_baz]))
   (template->xml @(subscribe [:current-model])
                  {:name "foo_bar"
                   :title "foo --> bar"
