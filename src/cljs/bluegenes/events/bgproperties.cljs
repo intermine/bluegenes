@@ -3,7 +3,8 @@
             [imcljs.fetch :as fetch]
             [imcljs.save :as save]
             [cljs.reader :as reader]
-            [bluegenes.pages.admin.events :refer [import-categories]]))
+            [bluegenes.pages.admin.events :refer [import-categories]]
+            [bluegenes.utils :refer [compatible-version?]]))
 
 (defn read-prop [value]
   (reader/read-string value))
@@ -35,14 +36,17 @@
    (let [mine-kw (get db :current-mine)
          old-props (get-in db [:assets :bg-properties mine-kw])
          service (get-in db [:mines mine-kw :service])
-         value-edn (write-prop value)]
+         value-edn (write-prop value)
+         current-version (get-in db [:assets :intermine-version (:current-mine db)])]
      (cond
        (and (contains? old-props key)
             (= (get old-props key) value-edn))
        {:dispatch on-success} ; No changes made; do nothing!
 
        (contains? old-props key)
-       {:im-chan {:chan (save/update-bluegenes-properties service (name key) value-edn)
+       {:im-chan {:chan (save/update-bluegenes-properties service (name key) value-edn
+                                                          ;; This tells imcljs to use :put instead of :put-body, as the latter isn't supported until 5.0.4.
+                                                          nil (when-not (compatible-version? "5.0.4" current-version) true))
                   :on-success [:property/success key value-edn on-success]
                   :on-failure on-failure}}
 
