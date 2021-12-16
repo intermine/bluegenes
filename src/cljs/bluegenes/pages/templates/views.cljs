@@ -247,14 +247,16 @@
        (let [category-filter @(subscribe [:selected-template-category])
              text-filter @(subscribe [:template-chooser/text-filter])
              authorized-filter @(subscribe [:template-chooser/authorized-filter])
-             filters-active? (or (some? category-filter) (not (blank? text-filter)))]
+             filters-active? (or (some? category-filter)
+                                 (not (blank? text-filter))
+                                 authorized-filter)]
          (cond filters-active?
 
                [:span
                 [:span
                  (cond category-filter
                        (str " in the '" category-filter "' category"))
-                 (cond text-filter
+                 (cond (not-empty text-filter)
                        (str " containing the text '" text-filter "'"))
                  (cond authorized-filter
                        (str " which are owned by you"))
