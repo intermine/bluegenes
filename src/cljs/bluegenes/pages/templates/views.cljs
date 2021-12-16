@@ -14,7 +14,8 @@
             [bluegenes.components.top-scroll :as top-scroll]
             [bluegenes.route :as route]
             [bluegenes.components.icons :refer [icon]]
-            [goog.functions :refer [debounce]]))
+            [goog.functions :refer [debounce]]
+            [bluegenes.components.bootstrap :refer [poppable]]))
 
 (defn categories []
   (let [categories (subscribe [:template-chooser-categories])
@@ -243,22 +244,29 @@
       [:div.no-results
        [:svg.icon.icon-wondering [:use {:xlinkHref "#icon-wondering"}]]
        " No templates available"
-       (let [category-filter (subscribe [:selected-template-category])
-             text-filter (subscribe [:template-chooser/text-filter])
-             filters-active? (or (some? @category-filter) (not (blank? @text-filter)))]
+       (let [category-filter @(subscribe [:selected-template-category])
+             text-filter @(subscribe [:template-chooser/text-filter])
+             authorized-filter @(subscribe [:template-chooser/authorized-filter])
+             filters-active? (or (some? category-filter) (not (blank? text-filter)))]
          (cond filters-active?
 
                [:span
                 [:span
-                 (cond @category-filter
-                       (str " in the '" @category-filter "' category"))
-                 (cond @text-filter
-                       (str " containing the text '" @text-filter "'"))]
-                [:span ". Try "
+                 (cond category-filter
+                       (str " in the '" category-filter "' category"))
+                 (cond text-filter
+                       (str " containing the text '" text-filter "'"))
+                 (cond authorized-filter
+                       (str " which are owned by you"))
+                 "."]
+                [:br]
+                [:span "Try "
                  [:a {:on-click
                       (fn []
                         (dispatch [:template-chooser/clear-text-filter])
-                        (dispatch [:template-chooser/set-category-filter nil]))}
+                        (dispatch [:template-chooser/set-category-filter nil])
+                        (when authorized-filter
+                          (dispatch [:template-chooser/toggle-authorized-filter])))}
                   "removing the filters"]
                  " to view more results. "]]))])))
 
@@ -278,12 +286,23 @@
         :autoFocus true
         :on-change on-change}])))
 
+(defn authorized-filter []
+  (let [filter-authorized? @(subscribe [:template-chooser/authorized-filter])]
+    [:button.btn.btn-link.btn-slim
+     {:on-click #(dispatch [:template-chooser/toggle-authorized-filter])}
+     [poppable {:data "Click to toggle filtering of templates to only those owned by you"
+                :children [icon "user-circle" 2 (when filter-authorized? ["authorized"])]}]]))
+
 (defn filters []
   [:div.template-filters
    [:div.template-filter-container.container
     [:div.template-filter.text-filter
-     [:label.control-label "Filter by text"]
-     [template-filter]]
+     [:label.control-label
+      {:for "template-text-filter"}
+      "Filter by text"]
+     [:div.filter-input
+      [template-filter]
+      [authorized-filter]]]
     [:div.template-filter
      [:label.control-label "Filter by category"]
      [categories]]]])

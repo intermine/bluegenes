@@ -41,6 +41,11 @@
    (get-in db [:components :template-chooser :text-filter])))
 
 (reg-sub
+ :template-chooser/authorized-filter
+ (fn [db]
+   (get-in db [:components :template-chooser :authorized-filter])))
+
+(reg-sub
  :template-chooser-categories
  :<- [:templates]
  (fn [templates]
@@ -57,7 +62,8 @@
  :<- [:templates-by-rank]
  :<- [:selected-template-category]
  :<- [:template-chooser/text-filter]
- (fn [[sorted-templates category text-filter]]
+ :<- [:template-chooser/authorized-filter]
+ (fn [[sorted-templates category text-filter authorized-filter]]
    (let [filter-pred (fn [tag category] (= tag (str "im:aspect:" category)))
          filter-fn
          (fn [[id details]]
@@ -66,6 +72,8 @@
                           (:tags details)))
              true))]
      (->> sorted-templates
+          (filter (fn [[_ {:keys [authorized]}]]
+                    (if authorized-filter authorized true)))
           (filter filter-fn)
           (filter (partial template-contains-string? text-filter))))))
 

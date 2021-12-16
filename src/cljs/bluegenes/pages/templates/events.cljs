@@ -56,8 +56,8 @@
  :template-chooser/deselect-template
  (fn [db [_]]
    (update-in db [:components :template-chooser] select-keys
-              [:selected-template-category :text-filter])))
-;; Above keeps category and text filter, while the below clears them.
+              [:selected-template-category :text-filter :authorized-filter])))
+;; Above keeps filters, while the below clears them.
 (reg-event-db
  :template-chooser/clear-template
  (fn [db [_]]
@@ -72,6 +72,11 @@
  :template-chooser/set-text-filter
  (fn [db [_ text]]
    (assoc-in db [:components :template-chooser :text-filter] text)))
+
+(reg-event-db
+ :template-chooser/toggle-authorized-filter
+ (fn [db [_]]
+   (update-in db [:components :template-chooser :authorized-filter] not)))
 
 ;; We don't want to make the text filter a controlled input as we want to be
 ;; able to debounce its event. Leading to this lesser evil of DOM manipulation.

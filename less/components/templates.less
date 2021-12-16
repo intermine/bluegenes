@@ -105,6 +105,19 @@
 
             &.text-filter {
                 padding-left: @spacer/2;
+
+                .filter-input {
+                    display: flex;
+                    align-items: center;
+
+                    .icon {
+                        flex-shrink: 0;
+
+                        &.authorized {
+                            fill: @authorized-color;
+                        }
+                    }
+                }
             }
 
             .control-label {
@@ -113,7 +126,7 @@
             }
 
             .form-control {
-                width: 400px;
+                width: 350px;
             }
         }
     }
