@@ -1,7 +1,7 @@
 (ns bluegenes.pages.admin.events
   (:require [re-frame.core :refer [reg-event-db reg-fx reg-event-fx]]
             [re-frame.std-interceptors :refer [path]]
-            [bluegenes.utils :refer [addvec remvec dissoc-in template-objects->xml]]
+            [bluegenes.utils :refer [addvec remvec dissoc-in template-objects->xml compatible-version?]]
             [clojure.string :as str]
             [imcljs.fetch :as fetch]
             [imcljs.save :as save]
@@ -329,18 +329,24 @@
 (reg-event-fx
  ::fetch-template-precomputes
  (fn [{db :db} [_]]
-   (let [service (get-in db [:mines (:current-mine db) :service])]
-     {:im-chan {:chan (fetch/precompute service)
-                :on-success [::fetch-template-properties-success :precomputes]
-                :on-failure [::fetch-template-properties-failure :precomputes]}})))
+   (let [service (get-in db [:mines (:current-mine db) :service])
+         current-version (get-in db [:assets :intermine-version (:current-mine db)])]
+     (if (compatible-version? "5.0.4" current-version)
+       {:im-chan {:chan (fetch/precompute service)
+                  :on-success [::fetch-template-properties-success :precomputes]
+                  :on-failure [::fetch-template-properties-failure :precomputes]}}
+       {}))))
 
 (reg-event-fx
  ::fetch-template-summarises
  (fn [{db :db} [_]]
-   (let [service (get-in db [:mines (:current-mine db) :service])]
-     {:im-chan {:chan (fetch/summarise service)
-                :on-success [::fetch-template-properties-success :summarises]
-                :on-failure [::fetch-template-properties-failure :summarises]}})))
+   (let [service (get-in db [:mines (:current-mine db) :service])
+         current-version (get-in db [:assets :intermine-version (:current-mine db)])]
+     (if (compatible-version? "5.0.4" current-version)
+       {:im-chan {:chan (fetch/summarise service)
+                  :on-success [::fetch-template-properties-success :summarises]
+                  :on-failure [::fetch-template-properties-failure :summarises]}}
+       {}))))
 
 (reg-event-db
  ::fetch-template-properties-success

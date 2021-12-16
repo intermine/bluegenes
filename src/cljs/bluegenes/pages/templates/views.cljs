@@ -9,7 +9,7 @@
             [bluegenes.components.ui.results_preview :refer [preview-table]]
             [oops.core :refer [oget ocall]]
             [bluegenes.components.loader :refer [mini-loader]]
-            [bluegenes.utils :refer [ascii-arrows ascii->svg-arrows]]
+            [bluegenes.utils :refer [ascii-arrows ascii->svg-arrows compatible-version?]]
             [bluegenes.pages.templates.helpers :refer [categories-from-tags]]
             [bluegenes.components.top-scroll :as top-scroll]
             [bluegenes.route :as route]
@@ -289,10 +289,15 @@
         :on-change on-change}])))
 
 (defn authorized-filter []
-  (let [filter-authorized? @(subscribe [:template-chooser/authorized-filter])]
+  (let [filter-authorized? @(subscribe [:template-chooser/authorized-filter])
+        im-version @(subscribe [:current-intermine-version])
+        not-compatible? (not (compatible-version? "5.0.4" im-version))]
     [:button.btn.btn-link.btn-slim
-     {:on-click #(dispatch [:template-chooser/toggle-authorized-filter])}
-     [poppable {:data "Click to toggle filtering of templates to only those owned by you"
+     {:on-click #(dispatch [:template-chooser/toggle-authorized-filter])
+      :disabled not-compatible?}
+     [poppable {:data (if not-compatible?
+                        "This mine is running an older InterMine version which does not support filtering to templates owned by you."
+                        "Click to toggle filtering of templates to only those owned by you")
                 :children [icon "user-circle" 2 (when filter-authorized? ["authorized"])]}]]))
 
 (defn filters []

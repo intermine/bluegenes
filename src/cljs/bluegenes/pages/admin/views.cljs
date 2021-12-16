@@ -6,7 +6,7 @@
             [bluegenes.components.icons :refer [icon]]
             [oops.core :refer [oget ocall]]
             [bluegenes.components.bootstrap :refer [poppable]]
-            [bluegenes.utils :refer [md-element]]
+            [bluegenes.utils :refer [md-element compatible-version?]]
             [bluegenes.route :as route]
             [bluegenes.components.select-tags :as select-tags]))
 
@@ -416,15 +416,22 @@
   (let [filtered-templates @(subscribe [::subs/filtered-templates])
         authorized-templates @(subscribe [::subs/authorized-templates])
         text-filter @(subscribe [::subs/template-filter])
-        checked-templates @(subscribe [::subs/checked-templates])]
+        checked-templates @(subscribe [::subs/checked-templates])
+        im-version @(subscribe [:current-intermine-version])
+        not-compatible? (not (compatible-version? "5.0.4" im-version))]
     [:div.well.well-lg.manage-templates
      [:h3 "Manage templates"
       [template-filter]]
-     (if (empty? filtered-templates)
-       (if (seq authorized-templates)
-         [:p (str "No templates matching filter: " text-filter)]
-         [:p "Templates you create will appear here."])
-       [templates-table filtered-templates authorized-templates])
+
+     (cond
+       not-compatible? [:div.alert.alert-warning
+                        [:p "This mine is running an older InterMine version which does not support managing templates."]
+                        [:p "Please ask the mine admin to upgrade to 5.0.4 or above."]]
+       (and (empty? filtered-templates)
+            (seq authorized-templates)) [:p (str "No templates matching filter: " text-filter)]
+       (empty? filtered-templates) [:p "Templates you create will appear here."]
+       :else [templates-table filtered-templates authorized-templates])
+
      [:div.btn-group
       [:button.btn.btn-default.btn-raised
        {:disabled (empty? checked-templates)
