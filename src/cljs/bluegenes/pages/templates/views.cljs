@@ -298,6 +298,7 @@
      [poppable {:data (if not-compatible?
                         "This mine is running an older InterMine version which does not support filtering to templates owned by you."
                         "Click to toggle filtering of templates to only those owned by you")
+                :options {:data-placement "bottom"}
                 :children [icon "user-circle" 2 (when filter-authorized? ["authorized"])]}]]))
 
 (defn filters []

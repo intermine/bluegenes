@@ -231,7 +231,9 @@
       (update-in [:lists :selected-lists] empty)
       ;; The old by-id map is used to detect newly added lists.
       ;; During a mine change, this will mean all lists, which we don't want.
-      (update-in [:lists :by-id] empty)))
+      (update-in [:lists :by-id] empty)
+      ;; Clear admin page manage templates panel.
+      (assoc-in [:admin :manage-templates] nil)))
 
 (reg-event-fx
  :reboot
