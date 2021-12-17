@@ -148,10 +148,7 @@
  :fetch-report
  (fn [{db :db} [_ mine-kw type id]]
    (let [service (get-in db [:mines mine-kw :service])
-         attributes (->> (get-in service [:model :classes (keyword type) :attributes])
-                         (map (comp #(str type "." %) :name val)))
-         summary-fields (get-in db [:assets :summary-fields mine-kw (keyword type)])
-         views (vec (set/union (set attributes) (set summary-fields)))
+         views (get-in db [:assets :summary-fields mine-kw (keyword type)])
          q       {:from type
                   :select views
                   :joins (outer-join-classes type views)
