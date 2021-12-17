@@ -19,8 +19,8 @@
         - delete multiple templates (using checkboxes)
     - *Import templates* component allows you to paste in the XML of previously exported templates, and add them to your account
 - Customise BG home page and footer using `web.properties` (see [#765](https://github.com/intermine/bluegenes/pull/765) or [documentation](http://intermine.org/im-docs/)) (**REQUIRES INTERMINE 5.0.4+**)
-- Able to set custom non-root deploy path with `:bluegenes-deploy-path` in config
-- Able to use a different service root for BG backend with `:bluegenes-backend-service-root` in config
+- Able to set custom non-root deploy path with `:bluegenes-deploy-path` in [config](https://github.com/intermine/bluegenes/blob/dev/docs/configuring.md)
+- Able to use a different service root for BG backend with `:bluegenes-backend-service-root` in [config](https://github.com/intermine/bluegenes/blob/dev/docs/configuring.md)
 - New 404 catch-all page replacing the Jetty error page
 - Use only summary fields instead of union of summary fields and all attributes of class, for report page summary
 - Much less verbose and more readable errors when BG is started with an invalid config/envvars
