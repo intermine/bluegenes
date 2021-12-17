@@ -290,16 +290,18 @@
 
 (defn authorized-filter []
   (let [filter-authorized? @(subscribe [:template-chooser/authorized-filter])
+        authed? @(subscribe [:bluegenes.subs.auth/authenticated?])
         im-version @(subscribe [:current-intermine-version])
         not-compatible? (not (compatible-version? "5.0.4" im-version))]
-    [:button.btn.btn-link.btn-slim
-     {:on-click #(dispatch [:template-chooser/toggle-authorized-filter])
-      :disabled not-compatible?}
-     [poppable {:data (if not-compatible?
-                        "This mine is running an older InterMine version which does not support filtering to templates owned by you."
-                        "Click to toggle filtering of templates to only those owned by you")
-                :options {:data-placement "bottom"}
-                :children [icon "user-circle" 2 (when filter-authorized? ["authorized"])]}]]))
+    (when authed?
+      [:button.btn.btn-link.btn-slim
+       {:on-click #(dispatch [:template-chooser/toggle-authorized-filter])
+        :disabled not-compatible?}
+       [poppable {:data (if not-compatible?
+                          "This mine is running an older InterMine version which does not support filtering to templates owned by you."
+                          "Click to toggle filtering of templates to only those owned by you")
+                  :options {:data-placement "bottom"}
+                  :children [icon "user-circle" 2 (when filter-authorized? ["authorized"])]}]])))
 
 (defn filters []
   [:div.template-filters
