@@ -337,7 +337,7 @@
                  :class (when outer-join? "active")
                  :title (if outer-join?
                           (str "Show all " (plural parent-name) " and show " (plural referenced-name) " if they are present")
-                          (str "Show only " (plural parent-name) " if they have a " referenced-name))
+                          (str "Only show " (plural parent-name) " if they have an associated " referenced-name))
                  :on-click #(dispatch [(if outer-join?
                                          :qb/remove-outer-join
                                          :qb/add-outer-join) path])}
