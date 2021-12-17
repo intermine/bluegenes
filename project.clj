@@ -84,7 +84,7 @@
                  [com.fzakaria/slf4j-timbre "0.3.19"]
 
                  ; Intermine Assets
-                 [org.intermine/imcljs "1.4.5"]
+                 [org.intermine/imcljs "1.5.0"]
                  [org.intermine/im-tables "0.14.0"]
                  [org.intermine/bluegenes-tool-store "0.2.3"]]
 
