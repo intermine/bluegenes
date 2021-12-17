@@ -1,3 +1,35 @@
+## 1.3.0
+
+- Support for creating templates from query builder page
+- More features on templates page
+    - Edit template button, sending you to the query builder with your template loaded
+    - Reset button to set constraints back to default
+    - Delete button with option to undo deletion from alert (**REQUIRES INTERMINE 5.0.4+**)
+    - Web service URL when viewing a template
+    - Improved fuzziness of template text filter and visual look of the filter panel
+    - New filter for showing templates owned by the logged in user (**REQUIRES INTERMINE 5.0.4+**)
+- Admin page has been split into 3 sections: report, home and templates (new)
+    - *Manage templates* component (**REQUIRES INTERMINE 5.0.4+**) gives you an overview of the templates you own, with the option to
+        - view a template on the templates page
+        - export a template to XML
+        - precompute a template
+        - summarise a template
+        - edit tags of a template
+        - export multiple templates to XML (using checkboxes)
+        - delete multiple templates (using checkboxes)
+    - *Import templates* component allows you to paste in the XML of previously exported templates, and add them to your account
+- Customise BG home page and footer using `web.properties` (see [#765](https://github.com/intermine/bluegenes/pull/765) or [documentation](http://intermine.org/im-docs/)) (**REQUIRES INTERMINE 5.0.4+**)
+- Able to set custom non-root deploy path with `:bluegenes-deploy-path` in config
+- Able to use a different service root for BG backend with `:bluegenes-backend-service-root` in config
+- New 404 catch-all page replacing the Jetty error page
+- Use only summary fields instead of union of summary fields and all attributes of class, for report page summary
+- Much less verbose and more readable errors when BG is started with an invalid config/envvars
+- Better error messages when something goes wrong when using Bluegenes tool store
+- Limit length of report summary text with *show more* button
+- Fix recently created column for list constraint not working properly
+- Fix crash when receiving invalid bg-properties layout.report (for customised report layouts)
+- Fix report page layout config unable to grow beyond a specific size (**REQUIRES INTERMINE 5.0.4+**)
+
 ## 1.2.1
 
 - Fix authentication errors with 5XX response codes not being handled
