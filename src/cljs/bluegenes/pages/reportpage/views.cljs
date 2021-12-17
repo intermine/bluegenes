@@ -223,13 +223,35 @@
            [:pre.fasta-sequence fasta]]]]
         [fasta-download]])]))
 
-(defn anchor-if-url [x]
-  (if (string? x)
-    (let [s (str/trim x)]
-      (if (re-matches #"https?://[^\s]*" s)
-        [:a {:href s :target "_blank"} s]
-        x))
-    x))
+(defn anchor-if-url [x ?limit]
+  (let [limited (cond-> (str x)
+                  ?limit (-> (subs 0 ?limit)
+                             (str "...")))]
+    (if (string? x)
+      (let [s (str/trim x)]
+        (if (re-matches #"https?://[^\s]*" s)
+          [:a {:href s :target "_blank"}
+           limited]
+          limited))
+      limited)))
+
+(let [limit 200]
+  (defn summary-cell []
+    (let [show-more* (r/atom false)]
+      (fn [cell]
+        (let [too-long? (< limit (-> cell second str count))
+              cell-header (-> cell first (str/split " > ") last)
+              ?limit (when (and too-long? (not @show-more*)) limit)
+              cell-value (-> cell second (or "N/A") (anchor-if-url ?limit))]
+          [:<>
+           [:div.report-table-cell.report-table-header
+            cell-header]
+           [:div.report-table-cell
+            cell-value
+            (when too-long?
+              [:button.btn.btn-link.show-more-button
+               {:on-click #(swap! show-more* not)}
+               (if @show-more* "Show less" "Show more")])]])))))
 
 (defn summary []
   (let [{:keys [columnHeaders results]} @(subscribe [::subs/report-summary])
@@ -256,11 +278,7 @@
                      (case meta-type
                        :location [summary-location cell]
                        :fasta [summary-fasta cell]
-                       [:<>
-                        [:div.report-table-cell.report-table-header
-                         (-> cell first (str/split " > ") last)]
-                        [:div.report-table-cell
-                         (-> cell second (or "N/A") anchor-if-url)]])))))
+                       [summary-cell cell])))))
      [:div.hidden-lg.sidebar-collapsed
       [sidebar/main]]]))
 
