@@ -8,6 +8,7 @@
             [markdown-to-hiccup.core :as md]
             [goog.string :as gstring]
             [oops.core :refer [ocall]]
+            [clojure.data.xml :as xml]
             [bluegenes.config :refer [server-vars]]))
 
 (defn hiccup-anchors-newtab
@@ -251,6 +252,21 @@
       ;; if it's a number, just return it.
       rank-num)))
 
+(defn extract-tag-categories [tags]
+  (->> tags
+       (keep #(second (re-matches #"im:aspect:([^\s]+)" %)))
+       (string/join " ")))
+
+(defn template-contains-string? [s [_ template]]
+  (if (empty? s)
+    true
+    (let [ss (map string/lower-case (-> s string/trim (string/split #"\s+")))
+          {:keys [name title description comment tags]} template
+          all-text (->> (extract-tag-categories tags)
+                        (str name " " title " " description " " comment)
+                        (string/lower-case))]
+      (every? #(string/includes? all-text %) ss))))
+
 (defn ascii-arrows
   "Returns a seq of all arrows present in a template title.
   Useful for checking whether there are any arrows present."
@@ -339,3 +355,64 @@
         (string/split #"/")
         (first)
         (not-empty))))
+
+;; Example of what a template XML is expected to look like.
+
+; <template name="foo_bar" title="foo --&gt; bar" comment="">
+;    <query name="foo_bar" model="genomic" view="Gene.chromosome.primaryIdentifier Gene.chromosomeLocation.strand Gene.chromosomeLocation.start Gene.chromosomeLocation.end Gene.length Gene.symbol Gene.secondaryIdentifier" longDescription="For a specified organism, show the chromosomal location and sequence length for all genes." sortOrder="Gene.chromosome.primaryIdentifier asc">
+;       <constraint path="Gene.organism.name" editable="true" switchable="on" op="=" value="Drosophila melanogaster" />
+;    </query>
+; </template>
+
+(defn template->xml
+  "Generate a template XML string, for use with web services that expect a
+  template XML, e.g. for saving a template."
+  [model {:keys [name title description comment]} query]
+  (xml/emit-str
+   (xml/element :template {:name name :title title :comment comment}
+                (xml/parse-str (im-query/->xml model (assoc query :longDescription description))))))
+
+(defn template-objects->xml
+  "Takes a collection of template objects, as returned by the templates web
+  service for JSON format, and converts it to XML."
+  [model template-objects]
+  (xml/emit-str
+   (xml/element* :template-queries {}
+                 (map (comp xml/parse-str #(template->xml model % %)) template-objects))))
+
+(comment
+  "Use this to try out template->xml using nREPL."
+  (require '[re-frame.core :refer [subscribe]])
+  (template-objects->xml
+   @(subscribe [:current-model])
+   (map @(subscribe [:templates]) [:Foo_bar :Foo_bar_baz]))
+  (template->xml @(subscribe [:current-model])
+                 {:name "foo_bar"
+                  :title "foo --> bar"
+                  :comment ""
+                  :description "For a specified organism, show the chromosomal location and sequence length for all genes."}
+                 {:from "Gene",
+                  :select
+                  ["Gene.secondaryIdentifier"
+                   "Gene.symbol"
+                   "Gene.goAnnotation.ontologyTerm.parents.name"
+                   "Gene.goAnnotation.ontologyTerm.parents.identifier"
+                   "Gene.goAnnotation.ontologyTerm.name"
+                   "Gene.goAnnotation.ontologyTerm.identifier"],
+                  :constraintLogic "(A and B)",
+                  :where
+                  [{:op "=",
+                    :code "A",
+                    :value "DNA binding",
+                    :path "Gene.goAnnotation.ontologyTerm.parents.name"
+                    :editable true
+                    :switchable "on"}
+                   {:op "=",
+                    :code "B",
+                    :value "Drosophila melanogaster",
+                    :path "Gene.organism.name"
+                    :editable true}
+                   {:path "Gene.goAnnotation.ontologyTerm", :type "GOTerm"}
+                   {:path "Gene.goAnnotation.ontologyTerm.parents", :type "GOTerm"}],
+                  :sortOrder [{:path "Gene.secondaryIdentifier", :direction "ASC"}],
+                  :joins []}))

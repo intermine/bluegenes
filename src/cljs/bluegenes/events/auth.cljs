@@ -64,6 +64,7 @@
               (route/force-controllers-rerun))
       :dispatch-n [[:save-login current-mine identity]
                    [:assets/fetch-lists]
+                   [:assets/fetch-templates]
                    (when (seq ?renamedLists)
                      (renamedLists->message ?renamedLists))
                    ;; Restart router to rerun controllers.

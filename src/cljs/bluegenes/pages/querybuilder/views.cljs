@@ -4,13 +4,14 @@
             [clojure.string :as string :refer [split join lower-case]]
             [oops.core :refer [ocall oget]]
             [bluegenes.components.ui.constraint :refer [constraint]]
-            [bluegenes.components.bootstrap :refer [tooltip]]
+            [bluegenes.components.bootstrap :refer [tooltip poppable]]
             [imcljs.path :as im-path]
             [imcljs.query :refer [->xml]]
             [bluegenes.components.loader :refer [mini-loader]]
             [bluegenes.components.ui.results_preview :refer [preview-table]]
             [inflections.core :refer [ordinalize plural]]
-            [bluegenes.components.icons :refer [icon]]))
+            [bluegenes.components.icons :refer [icon]]
+            [bluegenes.pages.querybuilder.logic :refer [vec-swap-indices]]))
 
 (defn query=
   "Returns whether `queries` are all =, ignoring empty values like [] and nil."
@@ -535,7 +536,13 @@
                                   (let [new-order (move-vec-elem @order @selected* idx)]
                                     (reset! selected* idx)
                                     (dispatch [:qb/set-order new-order])))
-                 :on-drag-end (fn [] (reset! selected* nil))}
+                 :on-drag-end (fn [] (reset! selected* nil))
+                 ;; The remaining two listeners only exist to prevent the animation of the
+                 ;; dragged element returning to its original position. Silly, I know.
+                 :on-drop (fn [e]
+                            (ocall e :preventDefault))
+                 :on-drag-over (fn [e]
+                                 (ocall e :preventDefault))}
                 (into [:div.path-parts]
                       (let [model (assoc @current-model
                                          :type-constraints @current-constraints)]
@@ -799,18 +806,220 @@
         (when-let [{:keys [type text]} @(subscribe [:qb/import-result])]
           [:p {:class type} text])]])))
 
-(defn create-template [])
+(defn inline-input [& {:keys [id label helptext warntext state* textarea?]}]
+  [:div
+   [:div.input-group
+    [:label {:for id} label]
+    (if textarea?
+      [:textarea.form-control
+       {:id id
+        :rows 3
+        :value @state*
+        :on-change #(reset! state* (oget % :target :value))}]
+      [:input.form-control
+       {:id id
+        :type "text"
+        :value @state*
+        :on-change #(reset! state* (oget % :target :value))}])]
+   (when helptext
+     [:span.helptext helptext])
+   (when warntext
+     [:em.helptext warntext])])
+
+(defn toggle [& {:keys [label value on-change]}]
+  [:div.switch-container
+   [:span.switch-label label]
+   [:span.switch
+    [:input {:type "checkbox" :checked (boolean value)}]
+    [:span.slider.round {:on-click on-change}]]
+   [:span.switch-status (if value "ON" "OFF")]])
+
+(defn radio [& {:keys [label items value on-change]}]
+  (into [:div.radio-group
+         (when label
+           [:label label])]
+        (for [{lab :label val :value} items]
+          [:label.radio-inline
+           [:input {:type "radio"
+                    :checked (= val value)
+                    :on-change #(on-change val)}]
+           [:span.circle]
+           [:span.check]
+           lab])))
+
+(defn template-constraint [const & {:keys [index meta set-meta! drag* constraints-meta*]}]
+  (let [current-model @(subscribe [:current-model])
+        current-constraints @(subscribe [:qb/im-query-constraints])
+        model (assoc current-model :type-constraints current-constraints)
+        lists @(subscribe [:current-lists])]
+    [:div.const
+     {:draggable true
+      :on-drag-start (fn [e]
+                       (ocall e :stopPropagation)
+                       (reset! drag* index))
+      :on-drag-enter (fn [e]
+                       (ocall e :preventDefault)
+                       (ocall e :stopPropagation)
+                       (let [current @drag*
+                             target index]
+                         (when (not= current target)
+                           (reset! drag* index)
+                           (swap! constraints-meta* vec-swap-indices current target)
+                           (dispatch [:qb/swap-constraints-ordering current target]))))
+      :on-drag-end (fn [_e]
+                     (reset! drag* nil))
+      ;; The remaining two listeners only exist to prevent the animation of the
+      ;; dragged element returning to its original position. Silly, I know.
+      :on-drop (fn [e]
+                 (ocall e :preventDefault))
+      :on-drag-over (fn [e]
+                      (ocall e :preventDefault))}
+     [:div.const-reorder
+      [:span.drag-bar "≡"]]
+     [:div.const-group
+      {:class (when (:editable meta) :editable)}
+      [constraint
+       :model model
+       :typeahead? false
+       :path (:path const)
+       :value (or (:value const) (:values const))
+       :op (:op const)
+       :label (join " > " (take-last 2 (split (im-path/friendly model (:path const)) #" > ")))
+       ; :label (im-path/friendly model (:path const))
+       :code (:code const)
+       :hide-code? true
+       :label? true
+       :disabled true
+       :lists lists
+       :on-blur #()
+       :on-change #()]
+      [:div.const-options
+       (if (:editable meta)
+         [radio
+          :items [{:label "Required" :value nil}
+                  {:label "Optional: ON" :value "on"}
+                  {:label "Optional: OFF" :value "off"}]
+          :value (:switchable meta)
+          :on-change #(set-meta! (assoc meta :switchable %))]
+         ;; Empty div so flexbox sill works.
+         [:div])
+       [toggle
+        :label "Editable"
+        :value (:editable meta)
+        :on-change #(set-meta! (update meta :editable not))]]]]))
+
+(defn merge-vectors
+  "Takes two vectors of equal length containing only maps, and returns a new
+  vector containing the merged maps of the same index."
+  [v1 v2]
+  (mapv (fn [e1 e2]
+          (merge e1 e2))
+        v1 v2))
+
+(defn create-template []
+  (let [init-data (subscribe [:qb/template-meta])
+        name* (reagent/atom (or (:name @init-data) ""))
+        title* (reagent/atom (or (:title @init-data) ""))
+        description* (reagent/atom (or (:description @init-data) ""))
+        comment* (reagent/atom (or (:comment @init-data) ""))
+        collect-inputs (fn [] {:name @name*
+                               :title @title*
+                               :description @description*
+                               :comment @comment*})
+        invalid? #(cond
+                    (not (re-matches #"\w+" @name*)) "Invalid name. Must only consist of letters, numbers and underscores."
+                    (string/blank? @title*) "Title cannot be left blank.")
+        drag* (reagent/atom nil)
+        error* (reagent/atom nil)
+        ;; Currently active constraints.
+        constraints* (subscribe [:qb/im-query-constraints])
+        ;; Vector of maps corresponding to each constraint, in the same order.
+        ;; The map contains keys: editable=true|false [switchable=on|off]
+        empty-meta (fn [] (vec (repeat (count @constraints*) {})))
+        build-meta (fn [] (if-let [const->meta (-> @init-data :const->meta not-empty)]
+                            (mapv #(get const->meta % {}) @constraints*)
+                            (empty-meta)))
+        constraints-meta* (reagent/atom (build-meta))]
+    (reagent/create-class
+     {:display-name "create-template"
+      :component-will-unmount
+      (fn []
+         ;; Save local state to template-meta when dismounting, so we can restore it on mount.
+        (dispatch [:qb/update-template-meta (collect-inputs) (zipmap @constraints* @constraints-meta*)]))
+      :reagent-render
+      (fn []
+        (when (not= (count @constraints*) (count @constraints-meta*))
+           ;; Reset constraints-meta* if count differs from active constraints.
+           ;; This has to be done as a newly added/removed constraint can be at
+           ;; any point in the vector, causing the meta to go out of sync.
+          (reset! constraints-meta* (build-meta)))
+        [:div
+         [:p.template-intro "You can save your query as a template, allowing you to specify which constraints are "
+          [poppable {:data "Users of this template will be able to change the constraint operator and/or value. You can also make the editable constraint optional (either ON or OFF by default) so the user can decide by themselves whether to include it. You can change the order of constraints by drag and dropping."
+                     :children [:span [:strong "editable"] [icon "question"]]}]
+          "to rerun the query with only changes to these. Your template will be private to your account unless made public."]
+         [:div.row.create-template
+          [:div.col-xs-12.col-xl-6-workaround
+           [inline-input
+            :id "template-name-input"
+            :label "Name*:"
+            :helptext "Unique name to identify the template. Use underscores and no special characters, e.g. Gene_proteins"
+            :warntext "Note: Will overwrite any existing template with the same name."
+            :state* name*]
+           [inline-input
+            :id "template-title-input"
+            :label "Title*:"
+            :helptext "Name that's displayed to the user. Arrows will be made into a symbol, e.g. Gene --> Proteins"
+            :state* title*]
+           [inline-input
+            :id "template-description-textarea"
+            :label "Description:"
+            :state* description*
+            :textarea? true]
+           [inline-input
+            :id "template-comment-input"
+            :label "Comment:"
+            :state* comment*]]
+          (into [:div.col-xs-12.col-xl-6-workaround.template-constraints]
+                (for [[index const] (map-indexed vector @constraints*)
+                       ;; Type constraints shouldn't be editable.
+                      :when (not (:type const))
+                      :let [const-meta (get @constraints-meta* index)
+                            set-const-meta! #(dispatch [:qb/update-template-meta-consts (zipmap @constraints* (swap! constraints-meta* assoc index %))])]]
+                  [template-constraint const
+                   :index index
+                   :meta const-meta
+                   :set-meta! set-const-meta!
+                   :drag* drag*
+                   :constraints-meta* constraints-meta*]))]
+         [:div.template-actions
+          [:button.btn.btn-primary.btn-raised
+           {:on-click #(if-let [err (invalid?)]
+                         (reset! error* err)
+                         (do (reset! error* nil)
+                             (dispatch [:qb/save-template (collect-inputs)
+                                        (merge-vectors @constraints* @constraints-meta*)])))}
+           "Save template"]
+          [:button.btn.btn-default.btn-raised
+           {:on-click (fn []
+                        (reset! error* nil)
+                        (doseq [a [name* title* description* comment*]]
+                          (reset! a "")))}
+           "Clear"]
+          (when-let [err @error*]
+            [:p.failure err])]])})))
 
 (defn other-query-options []
-  (let [tab-index (reagent/atom 0)]
+  (let [tab-index (reagent/atom (if @(subscribe [:qb/template-in-progress?]) 3 0))
+        authed? (subscribe [:bluegenes.subs.auth/authenticated?])]
     (fn []
       [:div.panel.panel-default
        [:div.panel-body
         (into [:ul.nav.nav-tabs]
               (let [tabs ["Recent Queries"
                           "Saved Queries"
-                          "Import from XML"]]
-                          ; "Create Template"]]
+                          "Import from XML"
+                          "Create Template"]]
                 (for [[i title] (map-indexed vector tabs)]
                   [:li {:class (when (= @tab-index i) "active")}
                    [:a {:on-click #(do (when (= @tab-index
@@ -821,8 +1030,10 @@
         (case @tab-index
           0 [recent-queries]
           1 [saved-queries]
-          2 [import-from-xml])]])))
-          ; 3 [create-template])]])))
+          2 [import-from-xml]
+          3 (if @authed?
+              [create-template]
+              [:p "You need to be logged in to create templates."]))]])))
 
 (defn main []
   [:div.column-container

@@ -69,7 +69,7 @@
                 [:div.col-md-6
                  [:h4 [:svg.icon.icon-history [:use {:xlinkHref "#icon-history"}]] " Recently Created"]
                  [im-lists
-                  :lists (take 5 (sort-by :timestamp filtered-lists))
+                  :lists (take 5 (sort-by :timestamp > filtered-lists))
                   :on-change on-change]]
                 [:div.col-md-6
                  [:h4 [:svg.icon.icon-sort-alpha-asc [:use {:xlinkHref "#icon-sort-alpha-asc"}]] " All Lists"]

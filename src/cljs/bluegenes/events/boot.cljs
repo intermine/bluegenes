@@ -231,7 +231,9 @@
       (update-in [:lists :selected-lists] empty)
       ;; The old by-id map is used to detect newly added lists.
       ;; During a mine change, this will mean all lists, which we don't want.
-      (update-in [:lists :by-id] empty)))
+      (update-in [:lists :by-id] empty)
+      ;; Clear admin page manage templates panel.
+      (assoc-in [:admin :manage-templates] nil)))
 
 (reg-event-fx
  :reboot
@@ -428,7 +430,7 @@
      (= :lists-panel (:active-panel db))
      (update :dispatch-n conj [:lists/initialize]))))
 
-;; This event is also dispatched externally from bluegenes.pages.lists.events.
+;; This event is also dispatched externally from many other namespaces.
 (reg-event-fx
  :assets/fetch-lists
  (fn [{db :db} [evt next-evt]]
@@ -458,19 +460,22 @@
 
 ; Fetch templates
 
-(reg-event-db
+(reg-event-fx
  :assets/success-fetch-templates
- (fn [db [_ mine-kw lists]]
-   (assoc-in db [:assets :templates mine-kw] lists)))
+ (fn [{db :db} [_ mine-kw next-evt templates]]
+   (cond-> {:db (assoc-in db [:assets :templates mine-kw] templates)
+            :dispatch-n []}
+     (vector? next-evt)
+     (update :dispatch-n conj next-evt))))
 
+;; This event is also dispatched externally from other namespaces.
 (reg-event-fx
  :assets/fetch-templates
- (fn [{db :db} [evt]]
+ (fn [{db :db} [evt next-evt]]
    {:db db
-    :im-chan
-    {:chan (fetch/templates (get-in db [:mines (:current-mine db) :service]))
-     :on-success [:assets/success-fetch-templates (:current-mine db)]
-     :on-failure [:assets/failure evt]}}))
+    :im-chan {:chan (fetch/templates (get-in db [:mines (:current-mine db) :service]))
+              :on-success [:assets/success-fetch-templates (:current-mine db) next-evt]
+              :on-failure [:assets/failure evt]}}))
 
 ; Fetch summary fields
 

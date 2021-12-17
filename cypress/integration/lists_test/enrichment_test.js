@@ -90,7 +90,7 @@ describe("Enrichment Test", function(){
             cy.intercept("POST","/biotestmine/service/list/enrichment").as("enrichmentLoad");
             // The typing in command has many workarounds here because it's super flaky.
             cy.get(".text-filter > .form-control").type("x");
-            cy.get(".text-filter > .form-control").click().wait(500).clear().type("symbiosis{enter}",{delay:100}); //very flaky
+            cy.get(".text-filter > .form-control").click().wait(500).clear().type("symbiosis{enter}",{delay:200}); //very flaky
             cy.wait("@enrichmentLoad");
             cy.get(".enrichment-item").eq(0).should("include.text","symbiosis");
         })
@@ -122,7 +122,7 @@ describe("Enrichment Test", function(){
         cy.wait("@resultsLoad");
         cy.get(".enrichment").should("exist").within(() => {
             cy.get(".dropdown").click();
-            cy.get(".list-selection").eq(0).click();
+            cy.get(".list-selection").eq(1).click();
         })
         cy.get('.enrichment-settings > .alert > p').should("include.text","One or more of the Genes in this list are missing from your background population. The background population should include all Genes that were tested as part of your experiment.")
     })

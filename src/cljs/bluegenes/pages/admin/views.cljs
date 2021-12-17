@@ -6,7 +6,9 @@
             [bluegenes.components.icons :refer [icon]]
             [oops.core :refer [oget ocall]]
             [bluegenes.components.bootstrap :refer [poppable]]
-            [bluegenes.utils :refer [md-element]]))
+            [bluegenes.utils :refer [md-element compatible-version?]]
+            [bluegenes.route :as route]
+            [bluegenes.components.select-tags :as select-tags]))
 
 (defn on-enter [f]
   (fn [e]
@@ -286,7 +288,291 @@
           (when-let [{:keys [type message]} response]
             [:p {:class type} message])]]))))
 
+(defn template-checkbox [template-name]
+  (let [checked? @(subscribe [::subs/template-checked? template-name])]
+    [:td [:input
+          {:type "checkbox"
+           :checked checked?
+           :on-click #(dispatch [(if checked?
+                                   ::events/uncheck-template
+                                   ::events/check-template) template-name])}]]))
+
+(defn template-tags [{:keys [tags]}]
+  (let [new-tags* (reagent/atom tags)
+        all-tags (subscribe [::subs/all-template-tags])]
+    (fn [{:keys [tags editing-tags? template-name]}
+         & {:keys [preview?]}]
+      (if @editing-tags?
+        [:td.tags-cell.is-editing
+         [:div.select-tags-container
+          [select-tags/main
+           :options @all-tags
+           :on-change #(reset! new-tags* %)
+           :value @new-tags*]]
+         [:div.btn-group
+          [:button.btn.btn-link.edit-tags-button
+           {:on-click (fn []
+                        (swap! editing-tags? not)
+                        (dispatch [::events/update-template-tags template-name tags @new-tags*]))}
+           [icon "checkmark"]]
+          [:button.btn.btn-link.edit-tags-button.edit-tags-button-cancel
+           {:on-click (fn []
+                        (reset! new-tags* tags)
+                        (swap! editing-tags? not))}
+           [icon "close"]]]]
+        (-> [:td.tags-cell]
+            (into (for [tag tags]
+                    [:code.start tag]))
+            (cond->
+              (not preview?)
+              (conj [:button.btn.btn-link.edit-tags-button
+                     {:on-click #(swap! editing-tags? not)}
+                     [icon "edit"]])))))))
+
+(defn template []
+  (let [editing-tags? (reagent/atom false)]
+    (fn [{:keys [name title description comment rank
+                 tags]}
+         & {:keys [preview?]}]
+      (let [precomputed-status (get @(subscribe [::subs/precomputes]) (keyword name))
+            summarised-status (get @(subscribe [::subs/summarises]) (keyword name))]
+        [:tr
+         (when-not preview? [template-checkbox name])
+         [:td.name-cell name]
+         [:td title]
+         [:td.description-cell description]
+         [:td.comment-cell comment]
+         [:td rank]
+         [template-tags
+          {:tags tags
+           :editing-tags? editing-tags?
+           :template-name name}
+          :preview? preview?]
+         (cond
+           preview? nil
+           @editing-tags? [:td.empty-cell]
+           :else
+           [:td
+            [:a {:href (route/href ::route/template {:template name})}
+             "View"]
+            " | "
+            [:a {:role "button"
+                 :on-click #(dispatch [::events/export-templates-modal [name]])}
+             "Export"]
+            " | "
+            (case precomputed-status
+              true "Precomputed"
+              :in-progress "Precomputing..."
+              [:a {:role "button"
+                   :on-click #(dispatch [::events/precompute-template name])}
+               "Precompute"])
+            " | "
+            (case summarised-status
+              true "Summarised"
+              :in-progress "Summarising..."
+              [:a {:role "button"
+                   :on-click #(dispatch [::events/summarise-template name])}
+               "Summarise"])])]))))
+
+(defn template-filter []
+  (let [value @(subscribe [::subs/template-filter])]
+    [:div
+     [:input.form-control
+      {:type "text"
+       :placeholder "Filter templates"
+       :on-change #(dispatch [::events/set-template-filter (oget % :target :value)])
+       :value value}]]))
+
+(defn templates-table [filtered-templates authorized-templates
+                       & {:keys [preview?]}]
+  [:div.table-container
+   [:table.table.templates-table
+    [:thead
+     [:tr
+      (when-not preview?
+        (let [all-checked? @(subscribe [::subs/all-templates-checked?])]
+          [:th [:input
+                {:type "checkbox"
+                 :checked all-checked?
+                 :on-click #(dispatch [(if all-checked?
+                                         ::events/uncheck-all-templates
+                                         ::events/check-all-templates)
+                                       authorized-templates])}]]))
+      [:th "Name"]
+      [:th "Title"]
+      [:th "Description"]
+      [:th "Comment"]
+      [:th.rank-header "Rank"]
+      [:th "Tags"]
+      (when-not preview?
+        [:th "Actions"])]]
+    [:tbody
+     (for [template-details filtered-templates]
+       ^{:key (:name template-details)}
+       [template template-details
+        :preview? preview?])]]])
+
+(defn manage-templates []
+  (let [filtered-templates @(subscribe [::subs/filtered-templates])
+        authorized-templates @(subscribe [::subs/authorized-templates])
+        text-filter @(subscribe [::subs/template-filter])
+        checked-templates @(subscribe [::subs/checked-templates])
+        im-version @(subscribe [:current-intermine-version])
+        not-compatible? (not (compatible-version? "5.0.4" im-version))]
+    [:div.well.well-lg.manage-templates
+     [:h3 "Manage templates"
+      [template-filter]]
+
+     (cond
+       not-compatible? [:div.alert.alert-warning
+                        [:p "This mine is running an older InterMine version which does not support managing templates."]
+                        [:p "Please ask the mine admin to upgrade to 5.0.4 or above."]]
+       (and (empty? filtered-templates)
+            (seq authorized-templates)) [:p (str "No templates matching filter: " text-filter)]
+       (empty? filtered-templates) [:p "Templates you create will appear here."]
+       :else [templates-table filtered-templates authorized-templates])
+
+     [:div.btn-group
+      [:button.btn.btn-default.btn-raised
+       {:disabled (empty? checked-templates)
+        :on-click #(dispatch [::events/uncheck-all-templates])}
+       "Clear"]
+      [:button.btn.btn-danger.btn-raised
+       {:disabled (empty? checked-templates)
+        :on-click #(dispatch [::events/delete-templates-modal checked-templates])}
+       "Delete"]
+      [:button.btn.btn-default.btn-raised
+       {:disabled (empty? checked-templates)
+        :on-click #(dispatch [::events/export-templates-modal checked-templates])}
+       "Export"]]]))
+
+(defn import-templates []
+  (let [input (reagent/atom "")]
+    (fn []
+      [:div.well.well-lg
+       [:h3 "Import templates"]
+       [:p "Paste a template query (or multiple) in XML format below and press " [:strong "submit"] " to load the template(s) into your account."]
+       [:textarea.form-control
+        {:rows 10
+         :value @input
+         :on-change #(reset! input (oget % :target :value))}]
+       [:div.btn-group
+        [:button.btn.btn-raised
+         {:on-click (fn []
+                      (when-let [template-xml @input]
+                        (dispatch [::events/import-template template-xml]))
+                      (reset! input ""))}
+         "Submit"]]])))
+
+(defn modal []
+  (let [clipboard (atom nil)
+        msg (reagent/atom nil)]
+    (fn []
+      (let [{:keys [type xml templates] :as modal-data} @(subscribe [::subs/modal])
+            close-modal! (fn []
+                           (dispatch [::events/clear-modal])
+                           (reset! msg nil))]
+        [:<>
+         [:div.fade.modal-backdrop
+          {:class (when modal-data :show)}]
+         [:div.modal.fade.show
+          {:class (when modal-data :in)
+           :tab-index "-1"
+           :role "dialog"}
+          [:div.modal-dialog.modal-lg
+           [:div.modal-content
+
+            [:div.modal-header
+             [:button.close
+              {:aria-hidden "true"
+               :type "button"
+               :on-click close-modal!}
+              "×"]
+             [:h3.modal-title.text-center
+              (case type
+                :export "Template Query XML"
+                :delete "Delete templates"
+                nil)]]
+
+            (case type
+
+              :export
+              [:div.modal-body
+               [:textarea.hidden-clipboard
+                {:ref #(reset! clipboard %)
+                 :value xml
+                 :read-only true}]
+               [:pre xml]]
+
+              :delete
+              [:div.modal-body
+               [:p "Are you sure you want to delete the following "
+                [:strong (count templates)]
+                " templates?"]
+               [templates-table templates nil :preview? true]]
+
+              nil)
+
+            [:div.modal-footer
+             [:div.pull-left
+              (when-let [{:keys [type text]} @msg]
+                [:p {:class type} text])]
+             (case type
+
+               :export
+               [:div.btn-toolbar.pull-right
+                [:button.btn.btn-default
+                 {:on-click close-modal!}
+                 "Close"]
+                [:button.btn.btn-primary.btn-raised
+                 {:on-click #(when-let [clip @clipboard]
+                               (.focus clip)
+                               (.select clip)
+                               (try
+                                 (ocall js/document :execCommand "copy")
+                                 (reset! msg {:type "success" :text "Copied to clipboard"})
+                                 (catch js/Error _
+                                   (reset! msg {:type "failure" :text "Failed to copy to clipboard"}))))}
+                 "Copy XML"]]
+
+               :delete
+               [:div.btn-toolbar.pull-right
+                [:button.btn.btn-default
+                 {:on-click close-modal!}
+                 "Cancel"]
+                [:button.btn.btn-danger.btn-raised
+                 {:on-click (fn []
+                              (dispatch [::events/delete-templates templates])
+                              (close-modal!))}
+                 "Delete templates"]]
+
+               nil)]]]]]))))
+
+;; These use a qualified keyword as they're used several places. Make sure to
+;; check for references before renaming them/adding new ones.
+(def pills
+  [{:label "Report"
+    :value :admin.pill/report}
+   {:label "Home"
+    :value :admin.pill/home}
+   {:label "Templates"
+    :value :admin.pill/template}])
+
 (defn main []
-  [:div.admin-page.container
-   [report-layout]
-   [set-notice]])
+  (let [active-pill @(subscribe [::subs/active-pill])]
+    [:div.admin-page.container
+     (into [:ul.nav.nav-pills]
+           (for [{:keys [label value]} pills]
+             [:li
+              {:class (when (= active-pill value) :active)}
+              [:a {:role "button"
+                   :on-click #(dispatch [::events/set-active-pill value])}
+               label]]))
+     (case active-pill
+       :admin.pill/report [report-layout]
+       :admin.pill/home [set-notice]
+       :admin.pill/template [:<>
+                             [manage-templates]
+                             [import-templates]]
+       nil)
+     [modal]]))

@@ -111,3 +111,17 @@
  :<- [:qb/menu]
  (fn [qb-menu]
    (con-logic/qb-menu->type-constraints qb-menu)))
+
+(reg-sub
+ :qb/template-meta
+ (fn [db]
+   (get-in db [:qb :template-meta])))
+
+(reg-sub
+ :qb/template-in-progress?
+ :<- [:qb/template-meta]
+ (fn [template-meta]
+   (if (map? template-meta)
+     (boolean (some (comp not-empty template-meta)
+                    [:name :title :description :comment]))
+     false)))

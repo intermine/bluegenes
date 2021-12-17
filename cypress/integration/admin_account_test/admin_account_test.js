@@ -28,6 +28,7 @@ describe("Admin Account Test", function(){
 
     it("can set and clear homepage notice",function(){
         cy.visit("/biotestmine/admin"); //direct use of cy.visit can be flaky sometimes
+        cy.get(".admin-page .nav").contains('Home').click();
         cy.contains("Set homepage notice").parent().as("setHomepageNotice");
 
         cy.get("@setHomepageNotice").within(() => {
@@ -41,6 +42,7 @@ describe("Admin Account Test", function(){
         cy.contains("A new list has been added!");
 
         cy.visit("/biotestmine/admin");
+        cy.get(".admin-page .nav").contains('Home').click();
         cy.get("@setHomepageNotice").within(() => {
             cy.contains("Clear notice").click();
             cy.get(".success").should("include.text","Successfully saved changes to notice text.");

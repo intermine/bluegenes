@@ -56,6 +56,28 @@
                 margin-bottom: 0;
             }
         }
+
+        .btn-link {
+            padding: 8px 10px;
+        }
+
+        .more-actions {
+            .action-button {
+                font-weight: 400;
+                color: @highlight-color;
+                fill: @highlight-color;
+            }
+
+            .web-service-url-container {
+                padding: @spacer/4 @spacer/2;
+
+                p { padding: 0; }
+
+                input {
+                    width: 500px;
+                }
+            }
+        }
     }
 
     .view-results {
@@ -64,29 +86,47 @@
 
     .template-filters {
         background: darken(@body-background-color,3%);
-        //this padding stops content showing through at weird breakpoints;
-        // padding-top: @crazy-padding;
-        // position: fixed;
         z-index: 42; //a higher z-index than light tables is the answer. And 42 is always the answer.
-        // margin-top: -@crazy-padding;
-        // padding-bottom: 2px;
         box-shadow: 1px 1px 1px rgba(0,0,0,0.2);
-        // right: 0;
-        // left: 0;
         width: 100%;
 
-
-        &.affix {
-            top: 0;
-            width: 100%;
-        }
-
-
+        // Stick to top when scrolling past it.
+        position: sticky;
+        top: 0;
 
         .template-filter {
+            margin: @spacer/2;
+            flex-grow: 1;
+
+            &-container {
+                display: flex;
+                justify-content: center;
+            }
+
+            &.text-filter {
+                padding-left: @spacer/2;
+
+                .filter-input {
+                    display: flex;
+                    align-items: center;
+
+                    .icon {
+                        flex-shrink: 0;
+
+                        &.authorized {
+                            fill: @authorized-color;
+                        }
+                    }
+                }
+            }
+
             .control-label {
                 margin-top: 1px;
                 color: darken(@body-background-color,50%);
+            }
+
+            .form-control {
+                width: 350px;
             }
         }
     }
@@ -94,7 +134,6 @@
     .template-categories {
         display: flex;
         flex-wrap: wrap;
-        border-bottom: solid 1px #ddd;
 
         &.nav {
             li {

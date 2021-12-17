@@ -7,10 +7,11 @@
             [imcljs.fetch :as fetch]
             [imcljs.save :as save]
             [clojure.set :refer [difference]]
+            [bluegenes.route :as route]
             [bluegenes.pages.querybuilder.logic :as logic
              :refer [read-logic-string remove-code vec->list append-code]]
             [clojure.string :as str :refer [join split blank? starts-with?]]
-            [bluegenes.utils :refer [read-xml-query dissoc-in]]
+            [bluegenes.utils :refer [read-xml-query dissoc-in template->xml]]
             [oops.core :refer [oget]]
             [clojure.walk :refer [postwalk]]
             [bluegenes.components.ui.constraint :as constraint]))
@@ -168,6 +169,63 @@
                   :sort (:sortOrder query)
                   :joins (set (:joins query)))
       :dispatch [:qb/enhance-query-build-im-query true]})))
+
+;; The JSON representation of template constraints is a bit different from how
+;; it's in XML (why aren't they the same??) We follow the XML convention in BG.
+;; Here's the mapping from XML <=> JSON template constraint representations:
+;; editable=true|false <=> editable=true|false
+;; no switchable <=> switchable=false switched=LOCKED
+;; switchable=on <=> switchable=true switched=ON
+;; switchable=off <=> switchable=true switched=OFF
+(defn read-template-constraints [temp-consts]
+  (mapv (fn [{:keys [editable switched description] :as const}]
+          (if (:type const)
+            ;; Type constraints cannot be used as template constraints.
+            [const {}]
+            (let [const (dissoc const :editable :switchable :switched :description)
+                  switched (str/lower-case switched)]
+              [const
+               (-> {}
+                   (assoc :editable editable
+                          :description description)
+                   (cond-> (#{"on" "off"} switched)
+                     (assoc :switchable switched)))])))
+        temp-consts))
+
+(reg-event-fx
+ :qb/load-template
+ (fn [{db :db} [_ template-query]]
+   (let [[consts consts-meta] ((juxt (partial mapv first)
+                                     (partial mapv second))
+                               (read-template-constraints (:where template-query)))
+         query (assoc template-query :where consts)
+         query (im-query/sterilize-query query)
+         tree (treeify query)]
+     {:db (update db :qb assoc
+                  :enhance-query tree
+                  :menu tree
+                  :order (:select query)
+                  :root-class (keyword (:from query))
+                  :constraint-logic (read-logic-string (:constraintLogic query))
+                  :sort (:sortOrder query)
+                  :joins (set (:joins query))
+                  :template-meta (-> template-query
+                                     (select-keys [:name :title :comment :description])
+                                     ;; As we treeify the query, and :im-query:where is derived from that tree, we lose the ordering of constraints. Ideally, we want template constraints to appear in the same order they did in the template view, but supporting this ordering with the way the QB has been implemented with a tree, seems to be very error prone and difficult. The proper way to achieve that would be to change the QB to support ordering of constraints, which takes much more time. For now, we won't do this, so the ordering will be different, and we'll have to map each constraint to their corresponsive meta, which is done with this map.
+                                     (assoc :const->meta (zipmap consts consts-meta))))
+      :dispatch [:qb/enhance-query-build-im-query true]})))
+
+(reg-event-db
+ :qb/update-template-meta
+ (fn [db [_ template-details const->meta]]
+   (assoc-in db [:qb :template-meta]
+             (assoc template-details
+                    :const->meta const->meta))))
+
+(reg-event-db
+ :qb/update-template-meta-consts
+ (fn [db [_ const->meta]]
+   (assoc-in db [:qb :template-meta :const->meta] const->meta)))
 
 (reg-event-fx
  :qb/set-root-class
@@ -722,3 +780,41 @@
  :qb/clear-import-result
  (fn [db [_]]
    (update db :qb dissoc :import-result)))
+
+(reg-event-db
+ :qb/swap-constraints-ordering
+ (fn [db [_ i1 i2]]
+   (update-in db [:qb :im-query :where] logic/vec-swap-indices i1 i2)))
+
+(reg-event-fx
+ :qb/save-template
+ (fn [{db :db} [_ template-details template-constraints]]
+   (let [service (get-in db [:mines (:current-mine db) :service])
+         model (:model service)
+         query (assoc (get-in db [:qb :im-query])
+                      :where template-constraints)
+         template-query (template->xml model template-details query)]
+     {:im-chan {:chan (save/template service template-query)
+                :on-success [:qb/save-template-success (:name template-details)]
+                :on-failure [:qb/save-template-failure (:name template-details)]}})))
+
+(reg-event-fx
+ :qb/save-template-success
+ (fn [{db :db} [_ template-name _res]]
+   {:dispatch-n [[:assets/fetch-templates]
+                 [:messages/add
+                  {:markup [:span "Saved template: "
+                            [:a {:href (route/href ::route/template {:template template-name})}
+                             template-name]]
+                   :style "success"}]]}))
+
+;; Also dispatch from :templates/undo-delete-template
+(reg-event-fx
+ :qb/save-template-failure
+ (fn [{db :db} [_ template-name res]]
+   {:dispatch [:messages/add
+               {:markup [:span [:strong "Failed to save template " [:em template-name]] " "
+                         (when-let [err (get-in res [:body :error])]
+                           [:code err])]
+                :timeout 10000
+                :style "danger"}]}))

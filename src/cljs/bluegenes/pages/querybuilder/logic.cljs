@@ -131,3 +131,17 @@
                  (assoc x 1 (into {} children))))
              qb-menu)]
     (find-type-constraints loc)))
+
+(defn vec-swap-indices [v i1 i2]
+  (if (= i1 i2)
+    v
+    (let [e1 (nth v i1)
+          e2 (nth v i2)]
+      (-> v
+          (assoc i1 e2)
+          (assoc i2 e1)))))
+
+(defn vec-swap-vals [v val1 val2]
+  (let [replacem {val1 val2
+                  val2 val1}]
+    (mapv #(get replacem % %) v)))

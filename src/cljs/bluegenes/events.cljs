@@ -36,7 +36,8 @@
             [clojure.string :as str :refer [join split]]
             [cljs.core.async :refer [put! chan <! >! timeout close!]]
             [cljs-bean.core :refer [->clj]]
-            [bluegenes.utils :refer [read-registry-mine]]))
+            [bluegenes.utils :refer [read-registry-mine]]
+            [bluegenes.pages.templates.helpers :refer [prepare-template-query]]))
 
 ;; If a requirement exists for the target panel, it will be called with the db
 ;; as argument and its return value decides whether the panel will be changed.
@@ -245,7 +246,9 @@
 
 (defn get-active-constraints [db]
   (case (:active-panel db)
-    :templates-panel (get-in db [:components :template-chooser :selected-template :where])
+    :templates-panel (-> (get-in db [:components :template-chooser :selected-template])
+                         (prepare-template-query)
+                         (:where))
     nil))
 
 (reg-event-fx

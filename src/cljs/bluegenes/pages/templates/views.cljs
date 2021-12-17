@@ -9,10 +9,13 @@
             [bluegenes.components.ui.results_preview :refer [preview-table]]
             [oops.core :refer [oget ocall]]
             [bluegenes.components.loader :refer [mini-loader]]
-            [bluegenes.utils :refer [ascii-arrows ascii->svg-arrows]]
+            [bluegenes.utils :refer [ascii-arrows ascii->svg-arrows compatible-version?]]
             [bluegenes.pages.templates.helpers :refer [categories-from-tags]]
             [bluegenes.components.top-scroll :as top-scroll]
-            [bluegenes.route :as route]))
+            [bluegenes.route :as route]
+            [bluegenes.components.icons :refer [icon]]
+            [goog.functions :refer [debounce]]
+            [bluegenes.components.bootstrap :refer [poppable]]))
 
 (defn categories []
   (let [categories (subscribe [:template-chooser-categories])
@@ -33,16 +36,54 @@
 (def css-transition-group
   (reagent/adapt-react-class js/ReactTransitionGroup.CSSTransitionGroup))
 
+(defn web-service-url []
+  (let [input-ref* (atom nil)
+        url (subscribe [:template-chooser/web-service-url])]
+    (fn []
+      [:span.dropdown
+       [:a.dropdown-toggle.action-button
+        {:data-toggle "dropdown"
+         :role "button"}
+        [icon "file"] "Web service URL"]
+       [:div.dropdown-menu
+        [:form {:on-submit #(.preventDefault %)}
+         [:div.web-service-url-container
+          [:p "Use the URL below to fetch the first " [:strong "10"] " records for this template from the command line or a script " [:em "(authentication needed for private templates and lists)"] " :"]
+          [:input.form-control
+           {:type "text"
+            :ref (fn [el]
+                   (when el
+                     (reset! input-ref* el)
+                     (.focus el)
+                     (.select el)))
+            :autoFocus true
+            :readOnly true
+            :value @url}]
+          [:button.btn.btn-raised
+           {:on-click (fn [_]
+                        (when-let [input-el @input-ref*]
+                          (.focus input-el)
+                          (.select input-el)
+                          (try
+                            (ocall js/document :execCommand "copy")
+                            (catch js/Error _))))}
+           "Copy"]]]]])))
+
 (defn preview-results
   "Preview results of template as configured by the user or default config"
   []
-  (let [fetching-preview? @(subscribe [:template-chooser/fetching-preview?])
+  (let [authed? @(subscribe [:bluegenes.subs.auth/authenticated?])
+        fetching-preview? @(subscribe [:template-chooser/fetching-preview?])
         results-preview @(subscribe [:template-chooser/results-preview])
         preview-error @(subscribe [:template-chooser/preview-error])
+        changed-selected? @(subscribe [:template-chooser/changed-selected?])
         loading? (if preview-error
                    false
                    fetching-preview?)
-        results-count (:iTotalRecords results-preview)]
+        results-count (:iTotalRecords results-preview)
+        ;; This differs from authed? in that it's whether the logged in user is
+        ;; authorized to delete the template.
+        authorized? @(subscribe [:template-chooser/authorized?])]
     [:div.col-xs-8.preview
      [:div.preview-header
       [:h4 "Results Preview"]
@@ -67,8 +108,25 @@
               (if (> results-count 1) " rows" " row")))]
       [:button.btn.btn-default.btn-raised
        {:type "button"
+        :disabled (not changed-selected?)
+        :on-click (fn [] (dispatch [:templates/reset-template]))}
+       "Reset"]
+      [:button.btn.btn-default.btn-raised
+       {:type "button"
         :on-click (fn [] (dispatch [:templates/edit-query]))}
-       "Edit query"]]]))
+       "Edit query"]
+      (when authed?
+        [:button.btn.btn-default.btn-raised
+         {:type "button"
+          :on-click (fn [] (dispatch [:templates/edit-template]))}
+         "Edit template"])
+      (when authorized?
+        [:button.btn.btn-link
+         {:type "button"
+          :on-click (fn [] (dispatch [:templates/delete-template]))}
+         [icon "bin"]])]
+     [:div.more-actions
+      [web-service-url]]]))
 
 (defn toggle []
   (fn [{:keys [status on-change]}]
@@ -186,91 +244,85 @@
       [:div.no-results
        [:svg.icon.icon-wondering [:use {:xlinkHref "#icon-wondering"}]]
        " No templates available"
-       (let [category-filter (subscribe [:selected-template-category])
-             text-filter (subscribe [:template-chooser/text-filter])
-             filters-active? (or (some? @category-filter) (not (blank? @text-filter)))]
+       (let [category-filter @(subscribe [:selected-template-category])
+             text-filter @(subscribe [:template-chooser/text-filter])
+             authorized-filter @(subscribe [:template-chooser/authorized-filter])
+             filters-active? (or (some? category-filter)
+                                 (not (blank? text-filter))
+                                 authorized-filter)]
          (cond filters-active?
 
                [:span
                 [:span
-                 (cond @category-filter
-                       (str " in the '" @category-filter "' category"))
-                 (cond @text-filter
-                       (str " containing the text '" @text-filter "'"))]
-                [:span ". Try "
+                 (cond category-filter
+                       (str " in the '" category-filter "' category"))
+                 (cond (not-empty text-filter)
+                       (str " containing the text '" text-filter "'"))
+                 (cond authorized-filter
+                       (str " which are owned by you"))
+                 "."]
+                [:br]
+                [:span "Try "
                  [:a {:on-click
                       (fn []
-                        (dispatch [:template-chooser/set-text-filter ""])
-                        (dispatch [:template-chooser/set-category-filter nil]))} "removing the filters"]
+                        (dispatch [:template-chooser/clear-text-filter])
+                        (dispatch [:template-chooser/set-category-filter nil])
+                        (when authorized-filter
+                          (dispatch [:template-chooser/toggle-authorized-filter])))}
+                  "removing the filters"]
                  " to view more results. "]]))])))
 
 (defn template-filter []
-  (let [text-filter (subscribe [:template-chooser/text-filter])]
+  (let [input (reagent/atom @(subscribe [:template-chooser/text-filter]))
+        debounced (debounce #(dispatch [:template-chooser/set-text-filter %]) 500)
+        on-change (fn [e]
+                    (let [value (oget e :target :value)]
+                      (reset! input value)
+                      (debounced value)))]
     (fn []
       [:input.form-control.input-lg
-       {:type "text"
-        :value @text-filter
-        :placeholder "Filter text..."
+       {:id "template-text-filter"
+        :type "text"
+        :value @input
+        :placeholder "Search for keywords"
         :autoFocus true
-        :on-change (fn [e]
-                     (dispatch [:template-chooser/set-text-filter (.. e -target -value)]))}])))
+        :on-change on-change}])))
+
+(defn authorized-filter []
+  (let [filter-authorized? @(subscribe [:template-chooser/authorized-filter])
+        im-version @(subscribe [:current-intermine-version])
+        not-compatible? (not (compatible-version? "5.0.4" im-version))]
+    [:button.btn.btn-link.btn-slim
+     {:on-click #(dispatch [:template-chooser/toggle-authorized-filter])
+      :disabled not-compatible?}
+     [poppable {:data (if not-compatible?
+                        "This mine is running an older InterMine version which does not support filtering to templates owned by you."
+                        "Click to toggle filtering of templates to only those owned by you")
+                :options {:data-placement "bottom"}
+                :children [icon "user-circle" 2 (when filter-authorized? ["authorized"])]}]]))
 
 (defn filters []
-  (let [me (reagent/atom nil)]
-    (reagent/create-class
-     {:component-did-mount (fn []
-                             (let [nav-height (-> "#bluegenes-main-nav" js/$ (ocall :outerHeight true))]
-                               (some-> @me (ocall :affix (clj->js {:offset {:top nav-height}})))))
-      :reagent-render (fn [categories template-filter filter-state]
-                        [:div.template-filters.container-fluid
-                         {:ref (fn [e] (some->> e js/$ (reset! me)))}
-                         [:div.template-filter
-                          [:label.control-label "Filter by category"]
-                          [categories]]
-                         [:div.template-filter
-                          [:label.control-label "Filter by description"]
-                          [template-filter filter-state]]])})))
+  [:div.template-filters
+   [:div.template-filter-container.container
+    [:div.template-filter.text-filter
+     [:label.control-label
+      {:for "template-text-filter"}
+      "Filter by text"]
+     [:div.filter-input
+      [template-filter]
+      [authorized-filter]]]
+    [:div.template-filter
+     [:label.control-label "Filter by category"]
+     [categories]]]])
 
 (defn main []
-  (let [im-templates (subscribe [:templates-by-category])
-        filter-state (reagent/atom nil)
-        me (reagent/atom nil)
-        filters-are-fixed? (reagent/atom nil)
-        filter-height (reagent/atom nil)
-        on-resize (fn []
-                    ; Store the height of the child .template-filters element
-                    (reset! filter-height
-                            (-> @me
-                                (ocall :find ".template-filters")
-                                (ocall :outerHeight true))))
-        on-scroll (fn []
-                    ; Store whether the child .template-filers element is affixed or not
-                    (reset! filters-are-fixed?
-                            (-> @me
-                                (ocall :find ".template-filters")
-                                (ocall :hasClass "affix"))))]
-    (reagent/create-class
-     {:component-did-mount (fn []
-                              ; Call the resize function when the component mounts
-                             (on-resize)
-                              ; On resize update the known value of the child filters element
-                             (-> js/window js/$ (ocall :on "resize" on-resize))
-                              ; On scroll update the known value of the child filters element affixed status
-                             (-> js/window js/$ (ocall :on "scroll" on-scroll)))
-      :component-will-unmount (fn []
-                                 ; Remove the events when the component unmounts
-                                (-> js/window js/$ (ocall :off "resize" on-resize))
-                                (-> js/window js/$ (ocall :off "scroll" on-scroll)))
-      :reagent-render (fn []
-                        [:div.template-component-container
-                          ; Store a reference to this element so we can find the child filters container
-                         [:div {:ref (fn [e] (some->> e js/$ (reset! me)))}
-                          [filters categories template-filter filter-state]]
-                         [:div.container.template-container
-                           ; Dynamically push this container down when the filters element is fixed
-                          {:style {:padding-top (if @filters-are-fixed? (str @filter-height "px") 0)}}
-                          [:div.row
-                           [:div.col-xs-12.templates
-                            [:div.template-list
-                             [templates @im-templates]]]]]
-                         [top-scroll/main]])})))
+  (let [im-templates (subscribe [:templates-by-category])]
+    (fn []
+      [:div.template-component-container
+       [filters]
+       [:div.container.template-container
+        [:div.row
+         [:div.col-xs-12.templates
+          [:div.template-list
+           [templates @im-templates]]]]]
+       [top-scroll/main]])))

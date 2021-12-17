@@ -2,18 +2,8 @@
   (:require-macros [reagent.ratom :refer [reaction]])
   (:require [re-frame.core :as re-frame :refer [reg-sub]]
             [bluegenes.pages.templates.helpers :as template-helpers]
-            [bluegenes.utils :refer [parse-template-rank]]
-            [clojure.string :as str]
-            [goog.string :as gstring]))
-
-(defn template-contains-string?
-  "Return true if a template's description contains a string"
-  [string [_ details]]
-  (if string
-    (if-let [description (:description details)]
-      (re-find (re-pattern (str "(?i)" (gstring/regExpEscape string))) description)
-      false)
-    true))
+            [bluegenes.utils :refer [parse-template-rank template-contains-string?]]
+            [clojure.string :as str]))
 
 (reg-sub
  :templates
@@ -51,6 +41,11 @@
    (get-in db [:components :template-chooser :text-filter])))
 
 (reg-sub
+ :template-chooser/authorized-filter
+ (fn [db]
+   (get-in db [:components :template-chooser :authorized-filter])))
+
+(reg-sub
  :template-chooser-categories
  :<- [:templates]
  (fn [templates]
@@ -67,7 +62,8 @@
  :<- [:templates-by-rank]
  :<- [:selected-template-category]
  :<- [:template-chooser/text-filter]
- (fn [[sorted-templates category text-filter]]
+ :<- [:template-chooser/authorized-filter]
+ (fn [[sorted-templates category text-filter authorized-filter]]
    (let [filter-pred (fn [tag category] (= tag (str "im:aspect:" category)))
          filter-fn
          (fn [[id details]]
@@ -76,6 +72,8 @@
                           (:tags details)))
              true))]
      (->> sorted-templates
+          (filter (fn [[_ {:keys [authorized]}]]
+                    (if authorized-filter authorized true)))
           (filter filter-fn)
           (filter (partial template-contains-string? text-filter))))))
 
@@ -144,3 +142,24 @@
  :selected-template-service
  (fn [db _]
    (get-in db [:components :template-chooser :selected-template-service])))
+
+(reg-sub
+ :template-chooser/web-service-url
+ :<- [:selected-template]
+ :<- [:active-service]
+ (fn [[template service]]
+   (template-helpers/web-service-url service template)))
+
+(reg-sub
+ :template-chooser/changed-selected?
+ :<- [:selected-template]
+ :<- [:selected-template-name]
+ :<- [:templates]
+ (fn [[selected-tmpl tmpl-name all-templates]]
+   (not= selected-tmpl (get all-templates tmpl-name))))
+
+(reg-sub
+ :template-chooser/authorized?
+ :<- [:selected-template]
+ (fn [template]
+   (:authorized template)))

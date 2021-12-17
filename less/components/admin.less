@@ -1,9 +1,14 @@
 @import "../variables";
+@import "../datatype-colors";
 
 .admin-page {
     padding: 2*@spacer 0;
 
     @nav-pill-color: rgb(3, 155, 229);
+
+    .nav-pills {
+        margin-bottom: 2*@spacer;
+    }
 
     p .icon {
         margin: 0;
@@ -158,6 +163,137 @@
             // Make consistent with styling on homepage.
             h1, h2, h3, h4 {
                 font-weight: bold;
+            }
+        }
+    }
+
+    .manage-templates {
+        h3 {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .table-container {
+            max-height: 60vh;
+            overflow: auto;
+        }
+
+        // Changes here should be made similarly to .modal-content below.
+        .templates-table {
+            table-layout: fixed;
+            width: 100%;
+
+            thead th:first-child {
+                width: 2*@spacer;
+            }
+
+            thead th.rank-header {
+                width: 6*@spacer;
+            }
+
+            .name-cell {
+                overflow-wrap: break-word;
+            }
+
+            .description-cell, .comment-cell {
+                font-size: 0.8em;
+            }
+
+            .tags-cell {
+                display: flex;
+                flex-wrap: wrap;
+
+                &.is-editing {
+                    // We hardcode the width as we want the element to expand
+                    // beyond its parent's width.
+                    width: 300px;
+
+                    @media(max-width:@small-screen) {
+                        width: 250px;
+                    }
+                }
+            }
+
+            code.start {
+                color: inherit;
+                background-color: @color-Nuffink;
+                margin-bottom: 0.5*@spacer;
+                font-size: 0.7em;
+            }
+
+            .edit-tags-button {
+                display: inline;
+                padding: 0;
+                margin: 0;
+                fill: @highlight-color;
+
+                &-cancel {
+                    fill: @failure-text-color;
+                }
+            }
+
+            .select-tags-container {
+                width: 100%;
+            }
+        }
+    }
+
+    .fade.modal-backdrop {
+        pointer-events: none;
+
+        &.show {
+            opacity: 0.5;
+        }
+    }
+
+    .modal {
+        pointer-events: none;
+
+        &.in {
+            pointer-events: auto;
+        }
+
+        .modal-content {
+
+            // type: export
+
+            pre {
+                // We want to see all the text instead of having to use
+                // horizontal scrolling.
+                white-space: pre-wrap;
+                max-height: 60vh;
+                overflow: auto;
+            }
+
+            // type: delete
+
+            .table-container {
+                max-height: 60vh;
+                overflow: auto;
+
+
+                // See other .templates-table further up.
+                .templates-table {
+                    .name-cell {
+                        overflow-wrap: break-word;
+                    }
+
+                    .description-cell, .comment-cell {
+                        font-size: 0.8em;
+                    }
+
+                    .tags-cell {
+                        display: flex;
+                        flex-wrap: wrap;
+                    }
+
+                    code.start {
+                        color: inherit;
+                        background-color: @color-Nuffink;
+                        margin-bottom: 0.5*@spacer;
+                        font-size: 0.7em;
+                    }
+                }
             }
         }
     }

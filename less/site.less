@@ -482,7 +482,7 @@ p.failure.failure.failure {
 textarea.hidden-clipboard {
   position: fixed;
   top: 0;
-  left: 0;
+  left: -100%;
   width: 2em;
   height: 2em;
   padding: 0;
@@ -586,3 +586,15 @@ textarea.hidden-clipboard {
         -ms-filter:"alpha(opacity=100)";
     }
 }
+
+// Our CSS is sooo broken... This fixes alignment.
+.radio-group {
+    .radio-inline {
+        padding-left: 35px;
+    }
+
+    .radio span, label.radio-inline span {
+        top: -2px;
+    }
+}
+

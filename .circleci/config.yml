@@ -53,7 +53,14 @@ jobs:
     - run: pyenv versions
     - run: pyenv global 3.8.5
     - run: pip3 install intermine-boot
+    - restore_cache:
+        keys:
+        - biotestmine-e756d26
     - run: intermine_boot start local
+    - save_cache:
+        key: biotestmine-e756d26
+        paths:
+        - ~/.local/share/intermine_boot
     - checkout
     - restore_cache:
         keys:
