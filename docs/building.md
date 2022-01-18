@@ -224,6 +224,7 @@ To deploy a compiled JAR to Clojars, simply use the `deploy` alias which automat
     5. `docker push intermine/bluegenes:1.0.0`
     6. `docker push intermine/bluegenes:latest`
 7. Deploy the latest release to dokku with `git push dokku dev:master`.
+8. [Draft a new Github release using the newly pushed tag](https://github.com/intermine/bluegenes/tags). You may leave the title/description blank as this is redundant with the changelog.
 
 # Troubleshooting
 
