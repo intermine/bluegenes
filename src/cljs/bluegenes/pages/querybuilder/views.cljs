@@ -213,8 +213,8 @@
             ;; those which have `tag` as immediate parent.
             children (filter #(contains? (parents hier %) tag)
                              (descendants hier tag))
-            tag-count (get-in model [tag :count])
-            is-nonempty (when (number? tag-count) (pos? tag-count))]
+            {:keys [count displayName]} (get model tag)
+            is-nonempty (when (number? count) (pos? count))]
         [:li.haschildren.qb-group
          {:class (when @open? "expanded-group")}
          [:div.group-title
@@ -232,12 +232,12 @@
             [:a.qb-class
              {:class (when (empty? children) "no-icon")
               :on-click #(do (dispatch [:qb/set-root-class tag]) (close!))}
-             tag]
+             displayName]
             [:span.qb-class.empty-class
              {:class (when (empty? children) "no-icon")}
-             tag])
+             displayName])
           (when is-nonempty
-            [:span.class-count tag-count])]
+            [:span.class-count count])]
          (when (and (seq children) @open?)
            (into [:ul]
                  (for [child (sort children)]
