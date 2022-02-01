@@ -44,6 +44,11 @@
   [classes]
   (sort-by (comp string/lower-case :displayName val) compare classes))
 
+(defn filter-populated
+  [classes]
+  (filter (comp pos? :count val)
+          classes))
+
 (defn filter-preferred
   [classes]
   (filter #(contains? (-> % val :tags set) "im:preferredBagType")
@@ -52,7 +57,7 @@
 (defn root-class-dropdown []
   (let [model @(subscribe [:model])
         root-class @(subscribe [:qb/root-class])
-        classes (sort-classes model)
+        classes (-> model filter-populated sort-classes)
         preferred (filter-preferred classes)]
     (into [:select.form-control
            {:on-change (fn [e] (dispatch [:qb/set-root-class (oget e :target :value)]))
