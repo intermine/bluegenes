@@ -127,14 +127,27 @@
             [:svg.icon.icon-checkbox-unchecked [:use {:xlinkHref "#icon-checkbox-unchecked"}]])
           [:span.qb-label (:displayName properties)]]]))))
 
+(defn reverse-reference
+  "Return the properties of a `reverseReference` of `referencedType` if it
+  is or extends `originalType`. If not, return nil."
+  [model hier originalType [_ {:keys [referencedType reverseReference]}]]
+  (when (and reverseReference (isa? hier originalType (keyword referencedType)))
+    (let [refs+colls (->> [:references :collections]
+                          (map (get-in model [:classes (keyword referencedType)]))
+                          (apply merge))]
+      (get refs+colls (keyword reverseReference)))))
+
 (defn node []
   (let [menu (subscribe [:qb/menu])
         hier (subscribe [:current-model-hier])]
-    (fn [model [k properties] & [trail]]
+    (fn [model [k properties :as entry] & [trail]]
       (let [path (vec (conj trail (name k)))
             open? (get-in @menu path)
             str-path (join "." path)
-            sub (get-in @menu (conj path :subclass))]
+            sub (get-in @menu (conj path :subclass))
+            {:keys [displayName referencedType]} properties
+            class (im-path/class model (join "." (pop trail)))
+            rev-props (reverse-reference model @hier class entry)]
         [:li.haschildren.qb-group
          {:class (cond open? "expanded-group")}
          [:div.group-title
@@ -143,41 +156,76 @@
                          (dispatch [:qb/collapse-path path])
                          (dispatch [:qb/expand-path path])))}
           [icon (if open? "minus" "plus")]
-          [:span.qb-class (:displayName properties)]
-          [:span.label-button
-           {:on-click (fn [e]
-                        (ocall e :stopPropagation)
-                        (dispatch [:qb/enhance-query-add-summary-views path sub]))}
-           "Summary"]]
+          (when rev-props [icon "modal-folder-up" nil ["reverse-reference"]])
+          [:span.qb-class
+           {:class (when rev-props :empty-class)}
+           displayName]
+          (when-not rev-props
+            [:span.label-button
+             {:on-click (fn [e]
+                          (ocall e :stopPropagation)
+                          (dispatch [:qb/enhance-query-add-summary-views path sub]))}
+             "Summary"])]
          (when open?
-           (into [:ul]
-                 (concat
-                   ;; We remove :type-constraints from the model in these two instances
-                   ;; as we want to find the subclasses of the superclass. Otherwise the
-                   ;; list of subclasses would grow smaller when one is selected.
-                  (when (im-path/class? (dissoc model :type-constraints) str-path)
-                    (let [class (im-path/class (dissoc model :type-constraints) str-path)]
-                      (when-let [subclasses (seq (sort (descendants @hier class)))]
-                        [[:li
-                          [:span
-                           (into [:select.form-control
-                                  {:on-change (fn [e]
-                                                (dispatch [:qb/enhance-query-choose-subclass path (oget e :target :value) (:referencedType properties)]))
-                                   :value (or sub (:referencedType properties))}
-                                  [:option {:value (:referencedType properties)}
-                                   (:displayName properties)]
-                                  [:option {:disabled true :role "separator"}
-                                   "─────────────────────────"]]
-                                 (map (fn [subclass]
-                                        [:option {:value subclass}
-                                         (display-name model subclass)])
-                                      subclasses))]]])))
-                  (if sub
-                    (map (fn [i] [attribute model i path sub]) (sort-classes (remove (comp (partial = :id) first) (im-path/attributes model sub))))
-                    (map (fn [i] [attribute model i path sub]) (sort-classes (remove (comp (partial = :id) first) (im-path/attributes model (:referencedType properties))))))
-                  (if sub
-                    (map (fn [i] [node model i path false]) (sort-classes (im-path/relationships model sub)))
-                    (map (fn [i] [node model i path false]) (sort-classes (im-path/relationships model (:referencedType properties))))))))]))))
+           (let [class (im-path/class model (join "." trail))]
+             (into [:ul]
+                   (concat
+                     ;; We remove :type-constraints from the model in these two instances
+                     ;; as we want to find the subclasses of the superclass. Otherwise the
+                     ;; list of subclasses would grow smaller when one is selected.
+                    (when (im-path/class? (dissoc model :type-constraints) str-path)
+                      (let [class (im-path/class (dissoc model :type-constraints) str-path)]
+                        (when-let [subclasses (seq (sort (descendants @hier class)))]
+                          [[:li
+                            [:span
+                             (into [:select.form-control.input-sm
+                                    {:on-change (fn [e]
+                                                  (dispatch [:qb/enhance-query-choose-subclass path (oget e :target :value) referencedType]))
+                                     :value (or sub referencedType)}
+                                    [:option {:value referencedType}
+                                     displayName]
+                                    [:option {:disabled true :role "separator"}
+                                     "─────────────────────────"]]
+                                   (map (fn [subclass]
+                                          [:option {:value subclass}
+                                           (display-name model subclass)])
+                                        subclasses))]]])))
+                    ;; Reverse reference
+                    (if sub
+                      (map (fn [i]
+                             [node model i path false])
+                           (->> (im-path/relationships model sub)
+                                (filter (partial reverse-reference model @hier class))
+                                (sort-classes)))
+                      (map (fn [i]
+                             [node model i path false])
+                           (->> (im-path/relationships model referencedType)
+                                (filter (partial reverse-reference model @hier class))
+                                (sort-classes))))
+                    ;; Attributes
+                    (if sub
+                      (map (fn [i]
+                             [attribute model i path sub])
+                           (->> (im-path/attributes model sub)
+                                (remove (comp (partial = :id) first))
+                                (sort-classes)))
+                      (map (fn [i]
+                             [attribute model i path sub])
+                           (->> (im-path/attributes model referencedType)
+                                (remove (comp (partial = :id) first))
+                                (sort-classes))))
+                    ;; References and collections
+                    (if sub
+                      (map (fn [i]
+                             [node model i path false])
+                           (->> (im-path/relationships model sub)
+                                (remove (partial reverse-reference model @hier class))
+                                (sort-classes)))
+                      (map (fn [i]
+                             [node model i path false])
+                           (->> (im-path/relationships model referencedType)
+                                (remove (partial reverse-reference model @hier class))
+                                (sort-classes))))))))]))))
 
 (defn model-browser []
   (fn [model root-class]
