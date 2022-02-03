@@ -452,14 +452,15 @@
                         (reduce add-if-missing (get-in db [:qb :order]))
                         (remove (partial (complement within?) remaining-views))
                         vec)
+         new-joins (into #{} (filter #(get-in trimmed (split % #"\."))) (get-in db [:qb :joins]))
          current-codes (set (remove nil? (used-const-code (get-in db [:qb :enhance-query]))))
          remaining-codes (set (used-const-code trimmed))
          codes-to-remove (map symbol (clojure.set/difference current-codes remaining-codes))]
-
      {:db (update-in db [:qb] assoc
                      :enhance-query trimmed
                      :constraint-logic (reduce remove-code (get-in db [:qb :constraint-logic]) codes-to-remove)
-                     :order new-order)
+                     :order new-order
+                     :joins new-joins)
       :dispatch [:qb/enhance-query-build-im-query true]})))
 
 (defn subpath-of? [subpath path]
