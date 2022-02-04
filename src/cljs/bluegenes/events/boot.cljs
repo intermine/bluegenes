@@ -572,15 +572,21 @@
  (fn [{db :db} [_ {:keys [target data]}]]
    (let [{:keys [default-object-types default-organism]} (get-in db [:mines (:current-mine db)])]
      (case target
-       :upload {:dispatch [:bluegenes.components.idresolver.events/parse-staged-files
-                           nil
-                           (:externalids data)
-                           {:case-sensitive false
-                            :type (or (:class data)
-                                      (-> default-object-types first name))
-                            :organism (or (:organism data)
-                                          default-organism)
-                            :review-tab :matches}]}))))
+       :upload {:dispatch
+                (if (str/blank? (:externalids data))
+                  [:messages/add
+                   {:markup [:span "No identifiers specified when linking in to upload page. You have been redirected to the home page."]
+                    :style "warning"
+                    :timeout 0}]
+                  [:bluegenes.components.idresolver.events/parse-staged-files
+                   nil
+                   (:externalids data)
+                   {:case-sensitive false
+                    :type (or (:class data)
+                              (-> default-object-types first name))
+                    :organism (or (:organism data)
+                                  default-organism)
+                    :review-tab :matches}])}))))
 
 (reg-event-fx
  :assets/failure
