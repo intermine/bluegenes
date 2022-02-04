@@ -1,8 +1,10 @@
 (ns bluegenes.routes
-  (:require [compojure.core :as compojure :refer [GET defroutes context]]
+  (:require [compojure.core :as compojure :refer [GET POST defroutes context]]
             [compojure.route :refer [resources not-found]]
             [ring.util.response :as response :refer [response]]
             [ring.util.http-response :refer [found]]
+            [ring.middleware.params :refer [wrap-params]]
+            [ring.middleware.keyword-params :refer [wrap-keyword-params]]
             [bluegenes.ws.auth :as auth]
             [bluegenes.ws.ids :as ids]
             [bluegenes.ws.rss :as rss]
@@ -74,6 +76,19 @@
         (context "/auth" [] auth/routes)
         (context "/ids" [] ids/routes)
         (context "/rss" [] rss/routes))
+
+      ;; Linking in.
+      (wrap-params
+        (wrap-keyword-params
+          (context "/query" []
+            (GET "/portal.do" {params :params}
+              (-> (found (str (:bluegenes-deploy-path env) "/"))
+                  (assoc :session {:init {:linkIn {:target :upload
+                                                   :data params}}})))
+            (POST "/portal.do" {params :params}
+              (-> (found (str (:bluegenes-deploy-path env) "/"))
+                  (assoc :session {:init {:linkIn {:target :upload
+                                                   :data params}}}))))))
 
       ;; Dynamic routes for handling permanent URL resolution on configured mines.
       (apply compojure/routes

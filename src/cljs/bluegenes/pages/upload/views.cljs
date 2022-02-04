@@ -343,8 +343,7 @@
             "Save"])]]])))
 
 (defn wizard []
-  (let [view (subscribe [::subs/view])
-        panel-params (subscribe [:panel-params])]
+  (let [panel-params (subscribe [:panel-params])]
     (fn []
       [:div.wizard
        [breadcrumbs (:step @panel-params)]
@@ -354,13 +353,7 @@
           [upload-step])]])))
 
 (defn main []
-  (let [options (subscribe [::subs/stage-options])]
-    (reagent/create-class
-     {:component-did-mount
-      (fn [e]
-        (attach-body-events)
-        (dispatch [::evts/reset]))
-      :reagent-render
-      (fn []
-        [:div.container.idresolverupload
-         [wizard]])})))
+  (attach-body-events)
+  (fn []
+    [:div.container.idresolverupload
+     [wizard]]))

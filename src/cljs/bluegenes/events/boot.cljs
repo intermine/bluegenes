@@ -157,9 +157,11 @@
          ;; These could be passed from the Bluegenes backend and result in
          ;; events being dispatched.
          renamedLists (some-> @init-vars :renamedLists not-empty)
+         linkIn       (some-> @init-vars :linkIn not-empty)
          init-events (-> (some-> @init-vars :events not-empty)
                          (cond->
-                           renamedLists ((fnil conj []) (renamedLists->message renamedLists))))
+                           renamedLists ((fnil conj []) (renamedLists->message renamedLists))
+                           linkIn       ((fnil conj []) [:handle-link-in linkIn])))
          ;; Configured mines are also passed from the Bluegenes backend,
          ;; usually defined in config.edn.
          config-mines (init-config-mines)
@@ -564,6 +566,21 @@
  :assets/success-fetch-branding
  (fn [db [_ mine-kw branding-properties]]
    (assoc-in db [:mines mine-kw :branding] branding-properties)))
+
+(reg-event-fx
+ :handle-link-in
+ (fn [{db :db} [_ {:keys [target data]}]]
+   (let [{:keys [default-object-types default-organism]} (get-in db [:mines (:current-mine db)])]
+     (case target
+       :upload {:dispatch [:bluegenes.components.idresolver.events/parse-staged-files
+                           nil
+                           (:externalids data)
+                           {:case-sensitive false
+                            :type (or (:class data)
+                                      (-> default-object-types first name))
+                            :organism (or (:organism data)
+                                          default-organism)
+                            :review-tab :matches}]}))))
 
 (reg-event-fx
  :assets/failure
