@@ -570,7 +570,7 @@
 (reg-event-fx
  :handle-link-in
  (fn [{db :db} [_ {:keys [target data]}]]
-   (let [{:keys [default-object-types default-organism]} (get-in db [:mines (:current-mine db)])]
+   (let [{:keys [default-object-types]} (get-in db [:mines (:current-mine db)])]
      (case target
        :upload {:dispatch
                 (if (str/blank? (:externalids data))
@@ -584,8 +584,7 @@
                    {:case-sensitive false
                     :type (or (:class data)
                               (-> default-object-types first name))
-                    :organism (or (:extraValue data)
-                                  default-organism)
+                    :organism (:extraValue data)
                     :review-tab :matches}])}))))
 
 (reg-event-fx
