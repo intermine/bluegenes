@@ -78,17 +78,23 @@
         (context "/rss" [] rss/routes))
 
       ;; Linking in.
+      ;; Handles both configured mines and the /query path.
       (wrap-params
         (wrap-keyword-params
-          (context "/query" []
-            (GET "/portal.do" {params :params}
-              (-> (found (str (:bluegenes-deploy-path env) "/"))
-                  (assoc :session {:init {:linkIn {:target :upload
-                                                   :data params}}})))
-            (POST "/portal.do" {params :params}
-              (-> (found (str (:bluegenes-deploy-path env) "/"))
-                  (assoc :session {:init {:linkIn {:target :upload
-                                                   :data params}}}))))))
+          (apply compojure/routes
+                 (for [path (concat (map :namespace mines) ["query"])
+                       :let [redirect-path (str (:bluegenes-deploy-path env) "/"
+                                                (when-not (= path "query")
+                                                  path))]]
+                   (context (str "/" path) []
+                     (GET "/portal.do" {params :params}
+                        (-> (found redirect-path)
+                            (assoc :session {:init {:linkIn {:target :upload
+                                                             :data params}}})))
+                     (POST "/portal.do" {params :params}
+                       (-> (found redirect-path)
+                           (assoc :session {:init {:linkIn {:target :upload
+                                                            :data params}}}))))))))
 
       ;; Dynamic routes for handling permanent URL resolution on configured mines.
       (apply compojure/routes
