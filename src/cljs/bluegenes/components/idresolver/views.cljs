@@ -402,8 +402,11 @@
         list-name (subscribe [::subs/list-name])
         tab (subscribe [::subs/review-tab])
         stats (subscribe [::subs/stats])]
-    (when (pos? (:duplicates @stats))
-      (dispatch [::evts/update-option :review-tab :issues]))
+    ;; Select first tab with results.
+    (when-let [stats @stats]
+      (dispatch [::evts/update-option :review-tab
+                 (some #(when (pos? (get stats %)) %)
+                       [:matches :converted :other :issues :notFound])]))
     (fn [& {:keys [upgrade?]}]
       (let [{:keys [matches issues notFound converted duplicates all other]} @stats]
         [:div

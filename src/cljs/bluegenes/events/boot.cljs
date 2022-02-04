@@ -584,8 +584,7 @@
                    {:case-sensitive false
                     :type (or (:class data)
                               (-> default-object-types first name))
-                    :organism (:extraValue data)
-                    :review-tab :matches}])}))))
+                    :organism (:extraValue data)}])}))))
 
 (reg-event-fx
  :assets/failure

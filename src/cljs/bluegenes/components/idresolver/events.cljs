@@ -63,7 +63,6 @@
    (let [service (get-in db [:mines (get db :current-mine) :service])]
      {:db (-> db
               (assoc-in [:idresolver :stage :view] :review)
-              (assoc-in [:idresolver :stage :options :review-tab] :matches)
               (update :idresolver dissoc :response :error))
       :im-chan {:chan (fetch/resolve-identifiers service body)
                 :on-success [::store-identifiers type extra]
