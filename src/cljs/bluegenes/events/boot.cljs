@@ -584,7 +584,7 @@
                    {:case-sensitive false
                     :type (or (:class data)
                               (-> default-object-types first name))
-                    :organism (or (:organism data)
+                    :organism (or (:extraValue data)
                                   default-organism)
                     :review-tab :matches}])}))))
 
