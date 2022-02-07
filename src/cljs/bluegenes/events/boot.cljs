@@ -408,10 +408,12 @@
    ;; this turned out to be a very bad idea! This is because the model is used
    ;; to parse paths into classes, which means it has to be complete. This also
    ;; applies to the model hierarchy.
-   (-> db
-       (assoc-in [:mines mine-kw :service :model] model)
-       (assoc-in [:mines mine-kw :default-object-types] (sort (preferred-fields model)))
-       (assoc-in [:mines mine-kw :model-hier] (extends-hierarchy (:classes model))))))
+   (let [default-object-types (sort (preferred-fields model))]
+     (-> db
+         (assoc-in [:mines mine-kw :service :model] model)
+         (assoc-in [:mines mine-kw :default-object-types] default-object-types)
+         (assoc-in [:idresolver :stage :options :type] (-> default-object-types first name))
+         (assoc-in [:mines mine-kw :model-hier] (extends-hierarchy (:classes model)))))))
 
 (reg-event-fx
  :assets/fetch-model
