@@ -218,9 +218,7 @@
                  [:assets :summary-fields
                   (get db :current-mine) (keyword object-type)])]
      {:db db
-      :dispatch-n [; Clear upload page state
-                   [::reset]
-                   ; Re-fetch our lists so that it shows in Lists page
+      :dispatch-n [; Re-fetch our lists so that it shows in Lists page
                    [:assets/fetch-lists]
                    ; Show the list results in the Results page
                    [:results/history+
@@ -232,7 +230,9 @@
                              :select summary-fields
                              :where [{:path object-type
                                       :op "IN"
-                                      :value list-name}]}}]]})))
+                                      :value list-name}]}}]
+                   ; Clear upload page state
+                   [::reset]]})))
 
 (reg-event-fx
  ::save-list-failure
