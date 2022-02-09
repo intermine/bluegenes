@@ -59,8 +59,8 @@ describe("Search Test", function(){
 
         cy.get(".results > form").children().first().click();
         cy.url().should("include","/report");
+        cy.get('.report-page-heading > .start').should("include.text","Protein");
         cy.get('.report-table-body').within(() => {
-            cy.get(".report-table-cell").filter(':contains("protein")').its('length').should("be.gt", 0);;
             cy.get(".report-table-cell").filter(':contains("PLA")').its('length').should("be.gt", 0);;
         })
     });

@@ -123,7 +123,7 @@
                              :query [::route/navigate ::route/querybuilder]
                              :search [::route/navigate ::route/search]
                              :list [::route/navigate ::route/lists]
-                             :template [::route/navigate ::route/templates]
+                             :template [::route/go-back] ; for last template to be selected
                              :region [::route/navigate ::route/regions]
                              [::route/go-back]))}
      [icon "chevron-left"]
@@ -132,7 +132,7 @@
             :query "Query Builder"
             :search "Search"
             :list "Lists"
-            :template "Templates"
+            :template "Template"
             :region "Region Search"
             "previous page"))]))
 

@@ -1,7 +1,7 @@
 (ns bluegenes.pages.templates.subs
   (:require-macros [reagent.ratom :refer [reaction]])
   (:require [re-frame.core :as re-frame :refer [reg-sub]]
-            [bluegenes.pages.templates.helpers :as template-helpers]
+            [bluegenes.pages.templates.helpers :as template-helpers :refer [template-matches?]]
             [bluegenes.utils :refer [parse-template-rank template-contains-string?]]
             [clojure.string :as str]))
 
@@ -64,18 +64,11 @@
  :<- [:template-chooser/text-filter]
  :<- [:template-chooser/authorized-filter]
  (fn [[sorted-templates category text-filter authorized-filter]]
-   (let [filter-pred (fn [tag category] (= tag (str "im:aspect:" category)))
-         filter-fn
-         (fn [[id details]]
-           (if category
-             (some? (some (fn [tag] (filter-pred tag category))
-                          (:tags details)))
-             true))]
-     (->> sorted-templates
-          (filter (fn [[_ {:keys [authorized]}]]
-                    (if authorized-filter authorized true)))
-          (filter filter-fn)
-          (filter (partial template-contains-string? text-filter))))))
+   (filter (comp (partial template-matches? {:category category
+                                             :text text-filter
+                                             :authorized authorized-filter})
+                 val)
+           sorted-templates)))
 
 (defn popular-templates
   "Takes a sequence of sorted templates (presumably by rank) and returns a map
