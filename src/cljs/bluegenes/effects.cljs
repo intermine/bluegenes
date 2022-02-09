@@ -303,8 +303,11 @@
 ;; Only works on the template page, where each template element has an ID.
 (reg-fx
  :scroll-to-template
- (fn [template-id]
-   (gstyle/scrollIntoContainerView (gdom/getElement template-id) nil true)))
+ (fn [{:keys [id delay]}]
+   (let [scroll! #(gstyle/scrollIntoContainerView (gdom/getElement id) nil true)]
+     (if (number? delay)
+       (js/setTimeout scroll! delay)
+       (scroll!)))))
 
 ;; Nice resource for more easing functions: https://gist.github.com/gre/1650294
 ;; Update: Looks like there are some easing functions in `goog.fx.easing`.

@@ -9,8 +9,17 @@
             [imcljs.save :as save]
             [bluegenes.route :as route]
             [bluegenes.components.ui.constraint :as constraint]
-            [bluegenes.pages.templates.helpers :refer [prepare-template-query]]
+            [bluegenes.pages.templates.helpers :refer [prepare-template-query template-matches?]]
             [bluegenes.utils :refer [template->xml]]))
+
+(defn template-matches-filters? [db template-id]
+  (let [{:keys [selected-template-category text-filter authorized-filter]}
+        (get-in db [:components :template-chooser])
+        template (get-in db [:assets :templates (:current-mine db) template-id])]
+    (template-matches? {:category selected-template-category
+                        :text text-filter
+                        :authorized authorized-filter}
+                       template)))
 
 ;; This effect handler is used from routes and has different behaviour
 ;; depending on if it's called from a different panel, or the template panel.
@@ -19,8 +28,7 @@
  (fn [{db :db} [_ id]]
    (if (= :templates-panel (:active-panel db))
      {:dispatch [:template-chooser/choose-template id]}
-     {:dispatch-n [[:template-chooser/clear-template]
-                   [:set-active-panel :templates-panel
+     {:dispatch-n [[:set-active-panel :templates-panel
                     nil
                     ;; flush-dom makes the event wait for the page to update first.
                     ;; This is because we'll be scrolling to the template, so the
@@ -31,26 +39,43 @@
 (reg-event-fx
  :template-chooser/choose-template
  (fn [{db :db} [_ id {:keys [scroll?] :as _opts}]]
-   (let [current-mine (:current-mine db)
+   (let [matches-filters? (template-matches-filters? db id)
+         current-mine (:current-mine db)
          query (get-in db [:assets :templates current-mine id])]
-     (if (not-empty query)
-       (merge
-        {:db (update-in db [:components :template-chooser] assoc
-                        :selected-template query
-                        :selected-template-name id
-                        :selected-template-service (get-in db [:mines current-mine :service])
-                        :count nil
-                        :results-preview nil)
-         :dispatch-n [[:template-chooser/run-count]
-                      [:template-chooser/fetch-preview]]}
-        (when scroll?
-          {:scroll-to-template (name id)}))
+     (cond
+       (and matches-filters?
+            (not-empty query)) (merge
+                                {:db (update-in db [:components :template-chooser] assoc
+                                                :selected-template query
+                                                :selected-template-name id
+                                                :selected-template-service (get-in db [:mines current-mine :service])
+                                                :count nil
+                                                :results-preview nil)
+                                 :dispatch-n [[:template-chooser/run-count]
+                                              [:template-chooser/fetch-preview]]}
+                                (when scroll?
+                                  {:scroll-to-template {:id (name id)}}))
+
+       ;; Clear filters by using assoc-in instead of update-in assoc.
+       (not-empty query) {:db (assoc-in db [:components :template-chooser]
+                                        {:selected-template query
+                                         :selected-template-name id
+                                         :selected-template-service (get-in db [:mines current-mine :service])
+                                         :count nil
+                                         :results-preview nil})
+                          :dispatch-n [[:template-chooser/run-count]
+                                       [:template-chooser/fetch-preview]]
+                          ;; Will always scroll as this clause means the user cannot see the
+                          ;; template and likely chose it using the browser's back/forward.
+                          :scroll-to-template {:id (name id)
+                                               :delay 100}}
+
        ;; Template can't be found.
-       {:dispatch-n [[::route/navigate ::route/templates]
-                     [:messages/add
-                      {:markup [:span "The template " [:em (name id)] " does not exist. It's possible the ID has changed. Use the text filter above to find a template with a similar name."]
-                       :style "warning"
-                       :timeout 0}]]}))))
+       :else {:dispatch-n [[::route/navigate ::route/templates]
+                           [:messages/add
+                            {:markup [:span "The template " [:em (name id)] " does not exist. It's possible the ID has changed. Use the text filter above to find a template with a similar name."]
+                             :style "warning"
+                             :timeout 0}]]}))))
 
 (reg-event-db
  :template-chooser/deselect-template
