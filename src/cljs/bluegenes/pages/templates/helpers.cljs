@@ -5,14 +5,14 @@
             [clojure.string :as str]))
 
 (defn template-matches? [{:keys [category text authorized]} template]
-    (let [{tmpl-tags :tags tmpl-authorized :authorized} template]
-      (and (if category
-             (contains? (set tmpl-tags) (str "im:aspect:" category))
-             true)
-           (if authorized
-             tmpl-authorized
-             true)
-           (template-contains-string? text [nil template]))))
+  (let [{tmpl-tags :tags tmpl-authorized :authorized} template]
+    (and (if category
+           (contains? (set tmpl-tags) (str "im:aspect:" category))
+           true)
+         (if authorized
+           tmpl-authorized
+           true)
+         (template-contains-string? text [nil template]))))
 
 (defn categories-from-tags [tags]
   (->> tags
