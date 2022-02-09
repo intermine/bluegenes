@@ -232,7 +232,7 @@
                                       :op "IN"
                                       :value list-name}]}}]
                    ; Clear upload page state
-                   [::reset]]})))
+                   ^:flush-dom [::reset]]})))
 
 (reg-event-fx
  ::save-list-failure
@@ -289,3 +289,17 @@
                                 [:Gene gene-example]
                                 (first ids))]
      {:dispatch [::reset (name class-type) example]})))
+
+(reg-event-fx
+ ::redirect-missing-resolution
+ (fn [{db :db} [_]]
+   (let [resolution-response (get-in db [:idresolver :response])
+         resolution-error (get-in db [:idresolver :error])
+         parsing? (= (get-in db [:idresolver :stage :status :action]) :parsing)
+         parsed? (boolean (get-in db [:idresolver :stage :flags :parsed]))]
+     (if (and (empty? resolution-response)
+              (empty? resolution-error)
+              (not parsing?)
+              (not parsed?))
+       {:dispatch [::route/navigate ::route/upload-step {:step "input"}]}
+       {}))))

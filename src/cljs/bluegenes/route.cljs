@@ -188,7 +188,9 @@
        [{:parameters {:path [:step]}
          :start (fn [{{:keys [step]} :path}]
                   (dispatch [:set-active-panel :upload-panel
-                             {:step (keyword step)}]))}]}]]
+                             {:step (keyword step)}])
+                  (when (= step "save")
+                    (dispatch [:bluegenes.components.idresolver.events/redirect-missing-resolution])))}]}]]
     ["/upgrade"
      {:name ::upgrade
       :controllers

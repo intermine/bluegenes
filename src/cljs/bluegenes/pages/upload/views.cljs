@@ -316,10 +316,7 @@
 
         (some? @resolution-response) [idresolver/main]
 
-        @in-progress? [:div.wizard-loader [loader "IDENTIFIERS"]]
-
-        ;; Side-effects in view are bad. This should be done from event handler instead.
-        :else (dispatch [::route/navigate ::route/upload-step {:step "input"}])))))
+        @in-progress? [:div.wizard-loader [loader "IDENTIFIERS"]]))))
 
 (defn breadcrumbs []
   (let [response (subscribe [::subs/resolution-response])]
