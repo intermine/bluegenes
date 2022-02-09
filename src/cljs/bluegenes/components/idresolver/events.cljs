@@ -59,14 +59,13 @@
 
 (reg-event-fx
  ::resolve-identifiers
- (fn [{db :db} [_ body]]
+ (fn [{db :db} [_ {:keys [type extra] :as body}]]
    (let [service (get-in db [:mines (get db :current-mine) :service])]
      {:db (-> db
               (assoc-in [:idresolver :stage :view] :review)
-              (assoc-in [:idresolver :stage :options :review-tab] :matches)
               (update :idresolver dissoc :response :error))
       :im-chan {:chan (fetch/resolve-identifiers service body)
-                :on-success [::store-identifiers]
+                :on-success [::store-identifiers type extra]
                 :on-failure [::resolve-identifiers-failure]}})))
 
 (reg-event-db
@@ -95,13 +94,12 @@
 (reg-event-fx
  ::store-identifiers
  (datetime)
- (fn [{db :db now :datetime} [_ response]]
-   (let [{:keys [type organism]} (get-in db [:idresolver :stage :options])]
-     {:db (-> db
-              (assoc-in [:idresolver :response] response)
-              (assoc-in [:idresolver :stage :view] :review)
-              (assoc-in [:idresolver :save :list-name]
-                        (default-list-name type organism now)))})))
+ (fn [{db :db now :datetime} [_ type extra response]]
+   {:db (-> db
+            (assoc-in [:idresolver :response] response)
+            (assoc-in [:idresolver :stage :view] :review)
+            (assoc-in [:idresolver :save :list-name]
+                      (default-list-name type extra now)))}))
 
 (reg-event-db
  ::set-view
@@ -232,7 +230,9 @@
                              :select summary-fields
                              :where [{:path object-type
                                       :op "IN"
-                                      :value list-name}]}}]]})))
+                                      :value list-name}]}}]
+                   ; Clear upload page state
+                   ^:flush-dom [::reset]]})))
 
 (reg-event-fx
  ::save-list-failure
@@ -289,3 +289,17 @@
                                 [:Gene gene-example]
                                 (first ids))]
      {:dispatch [::reset (name class-type) example]})))
+
+(reg-event-fx
+ ::redirect-missing-resolution
+ (fn [{db :db} [_]]
+   (let [resolution-response (get-in db [:idresolver :response])
+         resolution-error (get-in db [:idresolver :error])
+         parsing? (= (get-in db [:idresolver :stage :status :action]) :parsing)
+         parsed? (boolean (get-in db [:idresolver :stage :flags :parsed]))]
+     (if (and (empty? resolution-response)
+              (empty? resolution-error)
+              (not parsing?)
+              (not parsed?))
+       {:dispatch [::route/navigate ::route/upload-step {:step "input"}]}
+       {}))))

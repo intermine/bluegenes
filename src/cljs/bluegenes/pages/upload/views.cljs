@@ -316,10 +316,7 @@
 
         (some? @resolution-response) [idresolver/main]
 
-        @in-progress? [:div.wizard-loader [loader "IDENTIFIERS"]]
-
-        ;; Side-effects in view are bad. This should be done from event handler instead.
-        :else (dispatch [::route/navigate ::route/upload-step {:step "input"}])))))
+        @in-progress? [:div.wizard-loader [loader "IDENTIFIERS"]]))))
 
 (defn breadcrumbs []
   (let [response (subscribe [::subs/resolution-response])]
@@ -343,8 +340,7 @@
             "Save"])]]])))
 
 (defn wizard []
-  (let [view (subscribe [::subs/view])
-        panel-params (subscribe [:panel-params])]
+  (let [panel-params (subscribe [:panel-params])]
     (fn []
       [:div.wizard
        [breadcrumbs (:step @panel-params)]
@@ -354,13 +350,7 @@
           [upload-step])]])))
 
 (defn main []
-  (let [options (subscribe [::subs/stage-options])]
-    (reagent/create-class
-     {:component-did-mount
-      (fn [e]
-        (attach-body-events)
-        (dispatch [::evts/reset]))
-      :reagent-render
-      (fn []
-        [:div.container.idresolverupload
-         [wizard]])})))
+  (attach-body-events)
+  (fn []
+    [:div.container.idresolverupload
+     [wizard]]))

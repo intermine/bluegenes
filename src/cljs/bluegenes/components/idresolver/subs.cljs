@@ -53,10 +53,12 @@
          (fn [db]
            (get-in db [:idresolver :stage :view])))
 
+;; Note: When making changes to this, make the same change in :bluegenes.components.idresolver.events/redirect-missing-resolution
 (reg-sub ::parsing?
          (fn [db]
            (= (get-in db [:idresolver :stage :status :action]) :parsing)))
 
+;; Note: When making changes to this, make the same change in :bluegenes.components.idresolver.events/redirect-missing-resolution
 (reg-sub ::parsed?
          (fn [db]
            (boolean (get-in db [:idresolver :stage :flags :parsed]))))

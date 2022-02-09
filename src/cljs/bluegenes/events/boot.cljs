@@ -157,9 +157,11 @@
          ;; These could be passed from the Bluegenes backend and result in
          ;; events being dispatched.
          renamedLists (some-> @init-vars :renamedLists not-empty)
+         linkIn       (some-> @init-vars :linkIn not-empty)
          init-events (-> (some-> @init-vars :events not-empty)
                          (cond->
-                           renamedLists ((fnil conj []) (renamedLists->message renamedLists))))
+                           renamedLists ((fnil conj []) (renamedLists->message renamedLists))
+                           linkIn       ((fnil conj []) [:handle-link-in linkIn])))
          ;; Configured mines are also passed from the Bluegenes backend,
          ;; usually defined in config.edn.
          config-mines (init-config-mines)
@@ -406,10 +408,12 @@
    ;; this turned out to be a very bad idea! This is because the model is used
    ;; to parse paths into classes, which means it has to be complete. This also
    ;; applies to the model hierarchy.
-   (-> db
-       (assoc-in [:mines mine-kw :service :model] model)
-       (assoc-in [:mines mine-kw :default-object-types] (sort (preferred-fields model)))
-       (assoc-in [:mines mine-kw :model-hier] (extends-hierarchy (:classes model))))))
+   (let [default-object-types (sort (preferred-fields model))]
+     (-> db
+         (assoc-in [:mines mine-kw :service :model] model)
+         (assoc-in [:mines mine-kw :default-object-types] default-object-types)
+         (assoc-in [:idresolver :stage :options :type] (-> default-object-types first name))
+         (assoc-in [:mines mine-kw :model-hier] (extends-hierarchy (:classes model)))))))
 
 (reg-event-fx
  :assets/fetch-model
@@ -564,6 +568,25 @@
  :assets/success-fetch-branding
  (fn [db [_ mine-kw branding-properties]]
    (assoc-in db [:mines mine-kw :branding] branding-properties)))
+
+(reg-event-fx
+ :handle-link-in
+ (fn [{db :db} [_ {:keys [target data]}]]
+   (let [{:keys [default-object-types]} (get-in db [:mines (:current-mine db)])]
+     (case target
+       :upload {:dispatch
+                (if (str/blank? (:externalids data))
+                  [:messages/add
+                   {:markup [:span "No identifiers specified when linking in to upload page. You have been redirected to the home page."]
+                    :style "warning"
+                    :timeout 0}]
+                  [:bluegenes.components.idresolver.events/parse-staged-files
+                   nil
+                   (:externalids data)
+                   {:case-sensitive false
+                    :type (or (:class data)
+                              (-> default-object-types first name))
+                    :organism (:extraValue data)}])}))))
 
 (reg-event-fx
  :assets/failure
