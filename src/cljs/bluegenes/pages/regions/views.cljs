@@ -288,7 +288,8 @@
   []
   (let [feature-types (subscribe [:regions/feature-types])
         to-search (subscribe [:regions/to-search])
-        search-example (subscribe [:regions/example-search])]
+        search-example (subscribe [:regions/example-search])
+        force-remount-extend-region (subscribe [:regions/force-remount-extend-region])]
     (fn []
       [:div.input-section
        ; Parameters section
@@ -296,6 +297,10 @@
         [region-input]
         [coordinate-system-selection]
         [strand-specific-selection]
+        ;; This is a clever trick to force `extend-region-selection` to
+        ;; remount, which causes its inputs to reload their state from app-db.
+        ;; Used to reset them back to defaults.
+        ^{:key @force-remount-extend-region}
         [extend-region-selection]
         [organism-selection]
         (let [example-text @search-example]
@@ -305,6 +310,9 @@
              :title (when (empty? example-text) "No example available")
              :on-click #(dispatch [:regions/set-to-search (str/replace example-text "\\n" "\n")])}
             "Show Example"]
+           [:button.btn.btn-default.btn-raised.btn-block
+            {:on-click #(dispatch [:regions/clear-inputs])}
+            "Clear"]
            [:button.btn.btn-primary.btn-raised.btn-block
             {:disabled (or (str/blank? @to-search)
                            (empty? (filter (fn [[name enabled?]] enabled?) @feature-types)))

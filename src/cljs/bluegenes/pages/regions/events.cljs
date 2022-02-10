@@ -105,14 +105,16 @@
                           (assoc total next (not status)))
                         {class-kw (not status)} descendants)))))
 
+(defn set-default-feature-types [db]
+  (let [model (get-in db [:mines (get db :current-mine) :service :model])
+        feature-types (entity/extended-by model :SequenceFeature)]
+    (assoc-in db [:regions :settings :feature-types]
+              (reduce (fn [total [name]]
+                        (assoc total (keyword name) true)) {} feature-types))))
+
 (reg-event-db
  :regions/select-all-feature-types
- (fn [db]
-   (let [model (get-in db [:mines (get db :current-mine) :service :model])
-         feature-types (entity/extended-by model :SequenceFeature)]
-     (assoc-in db [:regions :settings :feature-types]
-               (reduce (fn [total [name]]
-                         (assoc total (keyword name) true)) {} feature-types)))))
+ set-default-feature-types)
 
 (reg-event-db
  :regions/deselect-all-feature-types
@@ -296,19 +298,32 @@
 ;; We don't need an on-failure here as the organism dropdown
 ;; will still work, just not show the subset we have chromosome data for.
 
+(defn set-default-organism [db]
+  (let [organisms (get-in db [:regions :organisms])
+        default-organism (get-in db [:mines (:current-mine db) :default-organism])]
+    (assoc-in db [:regions :settings :organism]
+              (when (contains? organisms default-organism)
+                (some (fn [org]
+                        (when (or (= default-organism (:shortName org))
+                                  (= default-organism (:name org)))
+                          org))
+                      (get-in db [:cache :organisms]))))))
+
+
 ;; This is only dispatched the first time visiting the regions page for a mine.
 (reg-event-db
  :regions/fetch-organisms-success
  (fn [db [_ res]]
-   (let [organisms (reduce into #{} (:results res))
-         default-organism (get-in db [:mines (:current-mine db) :default-organism])]
+   (let [organisms (reduce into #{} (:results res))]
      (-> db
          (assoc-in [:regions :organisms] organisms)
-         (cond->
-           (contains? organisms default-organism)
-           (assoc-in [:regions :settings :organism]
-                     (some (fn [org]
-                             (when (or (= default-organism (:shortName org))
-                                       (= default-organism (:name org)))
-                               org))
-                           (get-in db [:cache :organisms]))))))))
+         (set-default-organism)))))
+
+(reg-event-db
+ :regions/clear-inputs
+ (fn [db [_]]
+   (-> db
+       (update :regions dissoc :to-search :settings)
+       (update-in [:regions :force-remount-extend-region] not)
+       (set-default-feature-types)
+       (set-default-organism))))

@@ -108,3 +108,8 @@
  :regions/organisms
  (fn [db]
    (get-in db [:regions :organisms])))
+
+(reg-sub
+ :regions/force-remount-extend-region
+ (fn [db]
+   (get-in db [:regions :force-remount-extend-region])))
