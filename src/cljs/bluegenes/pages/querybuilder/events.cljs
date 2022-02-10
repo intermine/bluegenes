@@ -435,20 +435,24 @@
          class (im-path/class model (join "." original-path-vec))
          summary-fields (get all-summary-fields (or (keyword subclass) class))
          adjusted-views (map (partial split-and-drop-first original-path-vec) summary-fields)
-         subclasses (get-all-subclasses (get-in db [:qb :menu]) original-path-vec)]
-     {:db (-> (reduce (fn [db path-vec]
-                        (if path-vec
-                          (-> db
-                              (update-in (into [:qb :enhance-query] path-vec) deep-merge {})
-                              (update-in [:qb :order] add-if-missing (join "." path-vec)))
-                          db))
-                      db
-                      adjusted-views)
-              (cond->
-                (seq subclasses) (update-in [:qb :enhance-query]
-                                            (partial reduce #(apply set-subclass %1 %2))
-                                            subclasses)))
-      :dispatch [:qb/enhance-query-build-im-query true]})))
+         subclasses (get-all-subclasses (get-in db [:qb :menu]) original-path-vec)
+         enhanced-db (-> (reduce (fn [db path-vec]
+                                   (if path-vec
+                                     (-> db
+                                         (update-in (into [:qb :enhance-query] path-vec) deep-merge {})
+                                         (update-in [:qb :order] add-if-missing (join "." path-vec)))
+                                     db))
+                                 db
+                                 adjusted-views)
+                         (cond->
+                           (seq subclasses) (update-in [:qb :enhance-query]
+                                                       (partial reduce #(apply set-subclass %1 %2))
+                                                       subclasses)))]
+     ;; We pass the db with updated :enhanced-query instead of updating the db
+     ;; here, to avoid an invalid state where the view updating causes a model
+     ;; walk to return nil due to :im-query not having a required type
+     ;; constraint (which only gets added in the next event).
+     {:dispatch [:qb/enhance-query-build-im-query true enhanced-db]})))
 
 (reg-event-fx
  :qb/enhance-query-remove-view
