@@ -57,7 +57,9 @@
       [:input {:type "text"
                :value search-term
                :placeholder "Type a new search term here"
-               :on-change #(dispatch [:search/set-search-term (oget % :target :value)])}]
+               :on-change #(dispatch [:search/set-search-term (oget % :target :value)])
+               :autoFocus true
+               :ref (fn [el] (when el (.focus el)))}]
       [:button "Search"]]]))
 
 (defn search-form
