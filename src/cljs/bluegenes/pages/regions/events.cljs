@@ -309,7 +309,6 @@
                           org))
                       (get-in db [:cache :organisms]))))))
 
-
 ;; This is only dispatched the first time visiting the regions page for a mine.
 (reg-event-db
  :regions/fetch-organisms-success
