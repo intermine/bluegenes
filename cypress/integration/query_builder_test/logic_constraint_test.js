@@ -7,7 +7,7 @@ describe("Query view test", function() {
       cy.get(".model-browser-root").within(() => {
        cy.selectFromDropdown("Protein");        
        cy.get("select").should("have.value", "Protein");
-       cy.contains("Summary").click();
+       cy.contains("Add summary").click();
      });
    
      cy.get(".query-view-column").within(() => {
@@ -22,7 +22,7 @@ describe("Query view test", function() {
       cy.get(".model-browser-root").within(() => {
         cy.selectFromDropdown("Gene");        
         cy.get("select").should("have.value", "Gene");
-        cy.contains("Summary").click();
+        cy.contains("Add summary").click();
       });
 
       cy.get(".query-view-column").within(() => {
@@ -40,7 +40,7 @@ describe("Query view test", function() {
     it("can change the constraint to outer join", function(){
       cy.get('.model-browser-root').within(() => {
           cy.selectFromDropdown("Gene");
-          cy.contains("Summary").click();
+          cy.contains("Add summary").click();
       });
 
       cy.get(".query-view-column").within(() => {
@@ -52,7 +52,7 @@ describe("Query view test", function() {
   it("can edit constraint logic", function(){
       cy.get('.model-browser-root').within(() => {
           cy.selectFromDropdown("Gene");
-          cy.contains("Summary").click();
+          cy.contains("Add summary").click();
       });
       cy.get('.model-browser').within(() => {
           cy.get(".qb-class").filter(':contains("Protein")').siblings(".label-button").click();
@@ -74,7 +74,7 @@ describe("Query view test", function() {
   it("can add NULL as a constraint in search results", function(){
       cy.get('.model-browser-root').within(() => {
           cy.selectFromDropdown("Gene");
-          cy.contains("Summary").click();
+          cy.contains("Add summary").click();
       });
 
       cy.get(".query-view-column").within(() => {
@@ -92,4 +92,4 @@ describe("Query view test", function() {
       })
   })
 });
-  
+

@@ -101,7 +101,7 @@ describe("User Account Test", function() {
         cy.visit("/biotestmine/querybuilder");
         cy.get(".model-browser-root").within(() => {
             cy.selectFromDropdown("Protein");        
-            cy.contains("Summary").click();
+            cy.contains("Add summary").click();
           });
     
           cy.get("div.panel-body").first().as("queryEditorTab").within(()=>{

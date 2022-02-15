@@ -7,7 +7,7 @@ describe("Model browser test", function() {
     it("can select data type and summary attributes with model browser", function() {
       cy.get(".model-browser-root").within(() => {
         cy.selectFromDropdown("Protein");
-        cy.contains("Summary").click();
+        cy.contains("Add summary").click();
       });
     });
 
@@ -15,7 +15,7 @@ describe("Model browser test", function() {
       cy.get(".model-browser-root").within(() => {
         cy.selectFromDropdown("Gene");        
         cy.get("select").should("have.value", "Gene");
-        cy.contains("Summary").click();
+        cy.contains("Add summary").click();
       });
 
       cy.get(".model-browser").within(() => {
@@ -37,7 +37,7 @@ describe("Model browser test", function() {
       cy.get(".model-browser-column").within(() => {
         cy.selectFromDropdown("Protein");        
         cy.get("select").should("have.value", "Protein");
-        cy.contains("Summary").click();
+        cy.contains("Add summary").click();
         cy.get('[title="Remove all selected attributes"]').click();
       });
     });
@@ -47,7 +47,7 @@ describe("Model browser test", function() {
       cy.get(".model-browser-column > h4").should("include.text","Model Browser");
       cy.contains("Data Model").click();
       cy.contains("Gene").click();
-      cy.contains("Summary").click();
+      cy.contains("Add summary").click();
 
       cy.get(".query-view-column").within(() => {
         cy.get(".qb-label").should("include.text","Gene");
@@ -64,4 +64,4 @@ describe("Model browser test", function() {
       cy.get(".model-browser-column > h4").should("include.text","Model Browser");
     });
 });
-  
+

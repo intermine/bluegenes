@@ -7,7 +7,7 @@ describe("Query view test", function() {
     //   cy.viewport(1000, 600);
     //   cy.get(".model-browser-root").within(() => {
     //     cy.selectFromDropdown("Protein");        
-    //     cy.contains("Summary").click();
+    //     cy.contains("Add summary").click();
     //   });
 
     //   cy.get("div.panel-body").first().as("queryEditorTab").within(()=>{
@@ -21,7 +21,7 @@ describe("Query view test", function() {
     it("can save, clear, and load query", function() {
       cy.get(".model-browser-root").within(() => {
         cy.selectFromDropdown("Protein");        
-        cy.contains("Summary").click();
+        cy.contains("Add summary").click();
       });
 
       cy.get("div.panel-body").first().as("queryEditorTab").within(()=>{
@@ -45,7 +45,7 @@ describe("Query view test", function() {
       cy.get(".model-browser-root").within(() => {
         cy.selectFromDropdown("Protein");        
         cy.get("select").should("have.value", "Protein");
-        cy.contains("Summary").click();
+        cy.contains("Add summary").click();
       });
 
       cy.get("div.panel-body").first().as("queryEditorTab").within(() => {
@@ -59,7 +59,7 @@ describe("Query view test", function() {
       cy.get(".model-browser-root").within(() => {
         cy.selectFromDropdown("Protein");        
         cy.get("select").should("have.value", "Protein");
-        cy.contains("Summary").click();
+        cy.contains("Add summary").click();
       });
 
       cy.get('.query-view-column').within(() => {
@@ -75,7 +75,7 @@ describe("Query view test", function() {
       cy.get(".model-browser-root").within(() => {
         cy.selectFromDropdown("Protein");        
         cy.get("select").should("have.value", "Protein");
-        cy.contains("Summary").click();
+        cy.contains("Add summary").click();
       });
 
       cy.get(".panel-body").eq(1).as("previewTab").within(() => {
@@ -90,7 +90,7 @@ describe("Query view test", function() {
       cy.get(".model-browser-root").within(() => {
         cy.selectFromDropdown("Protein");        
         cy.get("select").should("have.value", "Protein");
-        cy.contains("Summary").click();
+        cy.contains("Add summary").click();
       });
 
       cy.get('.query-view-column').within(() => {
@@ -105,7 +105,7 @@ describe("Query view test", function() {
     it('can rename a saved query', function(){
       cy.get('.model-browser-root').within(() => {
         cy.selectFromDropdown("Gene");        
-        cy.contains("Summary").click();
+        cy.contains("Add summary").click();
       });
  
       cy.get('.query-view-column').within(()=>{
@@ -127,7 +127,7 @@ describe("Query view test", function() {
     it('can delete a saved query', function(){
       cy.get('.model-browser-root').within(() => {
         cy.selectFromDropdown("Gene");        
-        cy.contains("Summary").click();
+        cy.contains("Add summary").click();
       });
 
       cy.get(".panel-body").first().as("queryEditorTab").within(() => {
@@ -160,4 +160,4 @@ describe("Query view test", function() {
       });
     });
 });
-  
+

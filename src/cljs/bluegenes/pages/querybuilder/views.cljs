@@ -164,8 +164,9 @@
             [:span.label-button
              {:on-click (fn [e]
                           (ocall e :stopPropagation)
-                          (dispatch [:qb/enhance-query-add-summary-views path sub]))}
-             "Summary"])]
+                          (dispatch [:qb/enhance-query-add-summary-views path sub]))
+              :title (str "Add summary fields of " str-path " to query view")}
+             "Add summary"])]
          (when open?
            (let [class (im-path/class model (join "." trail))]
              (into [:ul]
@@ -333,8 +334,8 @@
           (when @root-class
             [:button.label-button
              {:on-click #(dispatch [:qb/enhance-query-add-summary-views [(name @root-class)]])
-              :title (str "Summarise " @root-class " by adding its common attributes")}
-             "Summary"])]
+              :title (str "Add summary fields of " (name @root-class) " to query view")}
+             "Add summary"])]
          (if @root-class
            [model-browser
             (assoc @current-model :type-constraints @type-constraints)
