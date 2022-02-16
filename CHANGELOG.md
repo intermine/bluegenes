@@ -1,3 +1,19 @@
+## 1.4.0
+
+- Improvements and bugfixes for query builder
+    - Use displayName for classes in Data Browser
+    - More clearly convey empty classes in Data Browser
+    - Do not show empty classes in QB root class dropdown
+    - Distinguish reverse references by showing them top of list with an arrow
+    - Fix outer join not being removed when class with it is removed from view
+    - Fix crash caused by adding or summarising descendent of class with type/subclass constraint
+    - Rename *Summary* buttons to *Add summary*
+- Open first extant tab in upload page save step when matches tab isn't present
+- Make Back To Template button visible on results page after running template, return to templates page with the template still active
+- Autofocus search input on search page
+- Add clear button to region search page
+- Re-introduce old portal.do [linking in API](https://intermine.readthedocs.io/en/latest/webapp/linking-in/#list-of-identifiers) for directly opening upload page with specified IDs resolved
+
 ## 1.3.0
 
 - Support for creating templates from query builder page
