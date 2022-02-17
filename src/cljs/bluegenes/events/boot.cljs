@@ -408,11 +408,11 @@
    ;; this turned out to be a very bad idea! This is because the model is used
    ;; to parse paths into classes, which means it has to be complete. This also
    ;; applies to the model hierarchy.
-   (let [default-object-types (sort (preferred-fields model))]
+   (let [default-object-types (vec (sort (preferred-fields model)))]
      (-> db
          (assoc-in [:mines mine-kw :service :model] model)
          (assoc-in [:mines mine-kw :default-object-types] default-object-types)
-         (assoc-in [:idresolver :stage :options :type] (-> default-object-types first name))
+         (assoc-in [:idresolver :stage :options :type] (some-> default-object-types first name))
          (assoc-in [:mines mine-kw :model-hier] (extends-hierarchy (:classes model)))))))
 
 (reg-event-fx
@@ -573,20 +573,24 @@
  :handle-link-in
  (fn [{db :db} [_ {:keys [target data]}]]
    (case target
-     :upload (let [{:keys [default-object-types]} (get-in db [:mines (:current-mine db)])
-                   identifiers (or (:externalids data) (:externalid data))]
+     :upload (let [classes (get-in db [:mines (:current-mine db) :service :model :classes])
+                   identifiers (or (:externalids data) (:externalid data))
+                   error (cond
+                           (or (str/blank? identifiers) (str/blank? (:class data)))
+                           "Class and externalids parameters need to be specified when linking in to upload page. You have been redirected to the home page."
+                           (not (contains? classes (keyword (:class data))))
+                           "Invalid class specified when linking in to upload page. You have been redirected to the home page.")]
                {:dispatch
-                (if (str/blank? identifiers)
+                (if error
                   [:messages/add
-                   {:markup [:span "No identifiers specified when linking in to upload page. You have been redirected to the home page."]
+                   {:markup [:span error]
                     :style "warning"
                     :timeout 0}]
                   [:bluegenes.components.idresolver.events/parse-staged-files
                    nil
                    identifiers
                    {:case-sensitive false
-                    :type (or (:class data)
-                              (-> default-object-types first name))
+                    :type (:class data)
                     :organism (:extraValue data)}])}))))
 
 (reg-event-fx

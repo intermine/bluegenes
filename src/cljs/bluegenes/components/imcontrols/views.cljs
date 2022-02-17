@@ -69,14 +69,16 @@
              class-keys :class-keys} @current-mine]
         [:div.form-group
          [:select.form-control
-          {:value (or value (-> default-types first name))
+          {:value (or value (some-> default-types first name) "")
            :on-change (fn [e] (on-change (oget e :target :value)))}
-          (into
-           [:optgroup {:label "Popular"}]
-           (map
-            (fn [[class-kw {:keys [name displayName]}]]
-              [:option {:value name} displayName])
-            (sort-classes (select-keys (:classes @model) default-types))))
+          (if (seq default-types)
+            (into
+             [:optgroup {:label "Popular"}]
+             (map
+              (fn [[class-kw {:keys [name displayName]}]]
+                [:option {:value name} displayName])
+              (sort-classes (select-keys (:classes @model) default-types))))
+            [:option {:value "" :disabled true} "---------------"])
           (into
            [:optgroup {:label "All classes"}]
            (map
