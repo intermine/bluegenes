@@ -1,3 +1,7 @@
+## 1.4.1
+
+- Fix various crashes that occur when connected to a mine without any preferredbagtypes in model
+
 ## 1.4.0
 
 - Improvements and bugfixes for query builder
