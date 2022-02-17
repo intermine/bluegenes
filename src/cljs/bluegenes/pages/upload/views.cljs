@@ -295,7 +295,8 @@
              "Reset"]
             [:button.btn.btn-primary.btn-raised
              {:on-click (fn [] (dispatch [::evts/parse-staged-files @files @textbox-identifiers @options]))
-              :disabled (when (and (nil? @files) (nil? @textbox-identifiers)) true)}
+              :disabled (or (and (nil? @files) (nil? @textbox-identifiers))
+                            (nil? type))}
              "Continue"]]]]]))))
 
 (defn review-step []
@@ -311,7 +312,7 @@
                                     "Please check your connection and try again later.")]
                            [:hr]
                            [:button.btn.btn-primary.btn-raised
-                            {:on-click (fn [] (dispatch [::evts/reset]))}
+                            {:on-click (fn [] (dispatch [::evts/reset nil true]))}
                             "Reset"]]
 
         (some? @resolution-response) [idresolver/main]

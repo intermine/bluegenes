@@ -261,23 +261,23 @@
     ;;sending a blank string for the organism value
    ""))
 
-(reg-event-db
+(reg-event-fx
  ::reset
- (fn [db [_ example-type example-text]]
+ (fn [{db :db} [_ {example-type :type example-text :text} navigate?]]
    (let [mine-details (get-in db [:mines (get db :current-mine)])
          organism (validate-default-organism db (:default-organism mine-details))]
-     (assoc db :idresolver
-            {:stage {:files nil
-                     :textbox example-text
-                     :options {:case-sensitive false
-                               :type (or example-type
-                                         (-> mine-details
-                                             :default-object-types first name))
-                               :organism organism}
-                     :status nil
-                     :flags nil}
-             :response nil
-             :error nil}))))
+     (cond-> {:db (assoc db :idresolver
+                         {:stage {:files nil
+                                  :textbox example-text
+                                  :options {:case-sensitive false
+                                            :type (or example-type
+                                                      (some-> mine-details :default-object-types first name))
+                                            :organism organism}
+                                  :status nil
+                                  :flags nil}
+                          :response nil
+                          :error nil})}
+       navigate? (assoc :dispatch [::route/navigate ::route/upload-step {:step "input"}])))))
 
 (reg-event-fx
  ::load-example
@@ -288,7 +288,8 @@
          [class-type example] (if-let [gene-example (:Gene ids)]
                                 [:Gene gene-example]
                                 (first ids))]
-     {:dispatch [::reset (name class-type) example]})))
+     {:dispatch [::reset {:type (name class-type)
+                          :text example}]})))
 
 (reg-event-fx
  ::redirect-missing-resolution
