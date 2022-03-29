@@ -2,7 +2,7 @@
   (:require [re-frame.core :refer [subscribe dispatch]]
             [reagent.core :as r]
             [bluegenes.route :as route]
-            [bluegenes.components.icons :refer [icon]]
+            [bluegenes.components.icons :refer [icon icon-comp]]
             [bluegenes.components.navbar.nav :refer [mine-icon]]
             [bluegenes.components.search.typeahead :as search]
             [clojure.string :as str]
@@ -24,7 +24,7 @@
      [:div.col-xs-10.col-xs-offset-1
       (when-not @(subscribe [:home/customisation :hideMineIntro])
         [:<>
-         [:h2.text-center.text-uppercase.mine-name mine-name]
+         [:h1.text-center.mine-name mine-name]
          [:div.mine-release
           ;; Only prepend 'v' if release starts with a digit.
           (cond->> release
@@ -282,18 +282,26 @@
      [:div.row.row-center-cols
       [:div.col-xs-4
        [:a {:href url :target "_blank"}
-        [:img.img-responsive
-         {:src image}]]]
+        (if (string? image)
+          [:img.img-responsive
+           {:src image}]
+          image)]]
       [:div.col-xs-8
        (md-paragraph text)]]]
     [:div.col-xs-4
      [:a {:href url :target "_blank"}
-      [:img.img-responsive
-       {:src image}]]]))
+      (if (string? image)
+        [:img.img-responsive
+         {:src image}]
+        image)]]))
 
 (def credits-intermine
-  [{:text "[InterMine](http://intermine.org/) has been developed principally through support of the [Wellcome Trust](https://wellcome.ac.uk/). Complementary projects have been funded by the [NIH/NHGRI](https://www.nih.gov/) and the [BBSRC](https://bbsrc.ukri.org/)."
+  [{:text "The [InterMine](http://intermine.org/) integrated data warehouse has been developed principally through support of the [Wellcome Trust](https://wellcome.ac.uk/). Complementary projects have been funded by the [NIH/NHGRI](https://www.nih.gov/) and the [BBSRC](https://bbsrc.ukri.org/)."
     :image (str (:bluegenes-deploy-path @server-vars) "/images/intermine-logo.png")
+    :url "http://intermine.org/"}
+   {:text "The [BlueGenes](https://github.com/intermine/bluegenes) frontend for InterMine has been developed through the support of the [Wellcome Trust](https://wellcome.ac.uk/)."
+    :image [icon-comp "bluegenes-logo-text"
+            :style {:width 240 :height "auto"}]
     :url "http://intermine.org/"}])
 
 (defn credits-fallback []

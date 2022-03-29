@@ -187,7 +187,7 @@
                                            nil))))}
        [:a.dropdown-toggle
         {:data-toggle "dropdown" :role "button"}
-        [:span "LOGIN"]
+        [:span "Login"]
         [:svg.icon.icon-caret-down [:use {:xlinkHref "#icon-caret-down"}]]]
        [:div.dropdown-menu.login-form-dropdown
         (case @state*
@@ -328,11 +328,7 @@
                 :color @text-color
                 :fill @text-color}}
        [:ul
-        [:li.primary-nav.bluegenes-logo
-         [:a {:href (route/href ::route/home)}
-          [:svg.icon.icon-3x.icon-bluegenes-logo
-           [:use {:xlinkHref "#icon-bluegenes-logo"}]]
-          [:span.hidden-xs.hidden-sm "BLUEGENES"]]]
+        [mine-picker]
         ;; We want to show the nav buttons inside a container on small screens,
         ;; so it can be scrolled. But we don't want the nav buttons inside the
         ;; container on larger screens, so they can be placed more spaciously.
@@ -341,5 +337,4 @@
         [:div.nav-links.hidden-sm.hidden-md.hidden-lg
          [nav-buttons classes]]
         [:li.primary-nav.search.hidden-xs.hidden-sm [search/main]]
-        [mine-picker]
         [user]]])))
