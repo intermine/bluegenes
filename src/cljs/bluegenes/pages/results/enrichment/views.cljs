@@ -53,7 +53,7 @@
                      (str description " (" matches ")")]}])]
      [:div
       [:span.enrichment-p-value
-       (.toExponential p-value 6)]]]))
+       (.toExponential p-value 2)]]]))
 
 (defn has-text?
   "Return true if a label contains a string"
