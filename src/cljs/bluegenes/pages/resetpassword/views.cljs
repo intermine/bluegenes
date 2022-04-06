@@ -20,7 +20,7 @@
              [:div.reset-password-success
               [icon "checkmark"]
               [:h3 "Your password has been changed."]
-              [:p "Please use the " [:strong "LOGIN"] " button at the top-right to login with your new password."]]
+              [:p "Please use the " [:strong "Login"] " button at the top-right to login with your new password."]]
              [:div.well.well-lg
               [:h2 "Reset password"]
               [password-input {:label "New password"

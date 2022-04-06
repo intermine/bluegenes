@@ -63,7 +63,7 @@ describe("Enrichment Test", function(){
             cy.intercept("POST","/biotestmine/service/list/enrichment").as("enrichmentLoad");
             cy.get(".correction").find("select").select("Benjamini Hochberg");
             cy.wait("@enrichmentLoad");
-            cy.get(".enrichment-p-value").eq(0).should("have.text","1.783148e-7");
+            cy.get(".enrichment-p-value").eq(0).should("have.text","1.78e-7");
         })
     })
 
