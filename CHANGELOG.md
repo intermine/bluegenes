@@ -1,3 +1,13 @@
+## 1.4.2
+
+- Make mine logo and name prominent in header, moving Bluegenes logo to the credits section at the bottom of the home page
+- Ensure template constraints are removed from template queries displayed on report pages
+- Reduce p-value exponential decimal places to 2 on enrichment results displayed on results page
+- Improve support for HTTP clients using POST portal.do
+- Fix incorrect counts when saving a list from some templates or custom query results [#797](https://github.com/intermine/bluegenes/issues/797)
+    - This would also lead to additional items in the saved list, not present in the original result table
+    - These additional items would also be passed onto visualisation tools
+
 ## 1.4.1
 
 - Fix various crashes that occur when connected to a mine without any preferredbagtypes in model
