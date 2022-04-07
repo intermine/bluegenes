@@ -214,9 +214,9 @@ To deploy a compiled JAR to Clojars, simply use the `deploy` alias which automat
 1. Update the version number in **project.clj**.
 2. Don't forget to add the new version with notes to **CHANGELOG.md**.
 3. Commit this change and tag it using `git tag -a v1.0.0 -m "Release v1.0.0"`, replacing *1.0.0* with your version number.
-4. Push your commit and tag it using `git push origin` followed by `git push origin v1.0.0` (again, replace *1.0.0* with your version number). Make sure that you push to the intermine repository, not just your fork!
+4. Push your commit and tag using `git push origin` followed by `git push origin v1.0.0` (again, replace *1.0.0* with your version number). Make sure that you push to the intermine repository, not just your fork!
 5. Deploy a new uberjar to Clojars with `lein deploy`.
-6. Push a new docker image to dockerhub.
+6. Push a new docker image to dockerhub (before pushing, you'll probably want to quickly test it locally).
     1. `lein uberjar`
     2. `docker build -t bluegenes .`
     3. `docker tag bluegenes intermine/bluegenes:1.0.0` (remember to use your correct version number)
@@ -224,7 +224,7 @@ To deploy a compiled JAR to Clojars, simply use the `deploy` alias which automat
     5. `docker push intermine/bluegenes:1.0.0`
     6. `docker push intermine/bluegenes:latest`
 7. Deploy the latest release to dokku with `git push dokku dev:master`.
-8. [Draft a new Github release using the newly pushed tag](https://github.com/intermine/bluegenes/tags). You may leave the title/description blank as this is redundant with the changelog.
+8. [Draft a new Github release using the newly pushed tag](https://github.com/intermine/bluegenes/tags). It would be a good idea to follow the structure of previous releases; leave the title blank, and copy the description from what you added to the changelog. It's also useful to include links to the Clojars and Docker Hub releases.
 
 # Troubleshooting
 
