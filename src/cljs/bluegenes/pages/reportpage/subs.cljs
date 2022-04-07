@@ -3,7 +3,8 @@
             [imcljs.path :as im-path]
             [clojure.string :as string]
             [bluegenes.pages.reportpage.utils :as utils]
-            [bluegenes.components.tools.subs :as tools-subs]))
+            [bluegenes.components.tools.subs :as tools-subs]
+            [bluegenes.pages.templates.helpers :refer [prepare-template-query]]))
 
 (reg-sub
  ::report
@@ -140,7 +141,8 @@
  (fn [[model params templates] [_ template-name]]
    (let [{object-type :type object-id :id} params]
      (->> (get templates (keyword template-name))
-          (utils/init-template model object-type object-id)))))
+          (utils/init-template model object-type object-id)
+          (prepare-template-query)))))
 
 (reg-sub
  ::a-tool

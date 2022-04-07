@@ -24,7 +24,7 @@ describe(__filename, function() {
 		 	.click();
     cy.get(".logon.dropdown").click();
     cy.get(".logon.dropdown").contains('Logout').click({ force: true });
-	cy.get('.main-nav').should('to.contain', 'LOGIN');
+	cy.get('.main-nav').should('to.contain', 'Login');
 	});
 
 	it("it ensures password is not empty", function() {

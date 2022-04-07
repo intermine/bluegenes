@@ -2,7 +2,7 @@
   (:require [compojure.core :as compojure :refer [GET POST defroutes context]]
             [compojure.route :refer [resources not-found]]
             [ring.util.response :as response :refer [response]]
-            [ring.util.http-response :refer [found]]
+            [ring.util.http-response :refer [found see-other]]
             [ring.middleware.params :refer [wrap-params]]
             [ring.middleware.keyword-params :refer [wrap-keyword-params]]
             [bluegenes.ws.auth :as auth]
@@ -92,7 +92,7 @@
                          (assoc :session {:init {:linkIn {:target :upload
                                                           :data params}}})))
                    (POST "/portal.do" {params :params}
-                     (-> (found redirect-path)
+                     (-> (see-other redirect-path)
                          (assoc :session {:init {:linkIn {:target :upload
                                                           :data params}}}))))))))
 
