@@ -149,8 +149,12 @@
     ; :isLoading (seq? possible-values)
     :onChange (fn [value]
                 (on-blur (oget value :value)))
-    :value (when (not-empty value) {:value value :label value})
-    :options (map (fn [v] {:value v :label v}) (remove nil? possible-values))}])
+    :value (when-let [value (not-empty (if (boolean? value) (str value) value))]
+             {:value value :label value})
+    :options (map (fn [v]
+                    (let [v (if (boolean? v) (str v) v)]
+                      {:value v :label v}))
+                  (remove nil? possible-values))}])
 
 (defn select-multiple-constraint-input
   "Wraps `cljsjs/react-select` for use as constraint input for selecting
