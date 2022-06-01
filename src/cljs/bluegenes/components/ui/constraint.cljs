@@ -139,9 +139,10 @@
   "Wraps `cljsjs/react-select` for use as constraint input for selecting
   one value out of `possible-values`."
   [{:keys [model path value on-blur possible-values disabled]}]
-  [:> js/Select
+  [:> js/Select.Creatable
    {:className "constraint-select"
     :classNamePrefix "constraint-select"
+    :formatCreateLabel #(str "Use \"" % "\"")
     :placeholder (str "Choose "
                       (join " > " (take-last 2 (split (im-path/friendly model path) " > "))))
     :isDisabled disabled
@@ -160,9 +161,10 @@
   "Wraps `cljsjs/react-select` for use as constraint input for selecting
   multiple values out of `possible-values`."
   [{:keys [model path value on-blur possible-values disabled]}]
-  [:> js/Select
+  [:> js/Select.Creatable
    {:className "constraint-select"
     :classNamePrefix "constraint-select"
+    :formatCreateLabel #(str "Use \"" % "\"")
     :placeholder (str "Choose "
                       (join " > " (take-last 2 (split (im-path/friendly model path) " > "))))
     :isMulti true
