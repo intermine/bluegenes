@@ -429,6 +429,27 @@
             border-radius: 2px;
             cursor: pointer;
         }
+
+        .permissions {
+            align-self: center;
+            margin-right: 0.8em;
+        }
+
+        .permission {
+            background-color: #eee;
+            padding: 0.4em 0.4em;
+            margin: 0 0.2em;
+            border-width: 0 0 3px 0;
+            border-radius: 2px;
+
+            .icon {
+                margin: 0;
+
+                &.authorized {
+                    fill: @authorized-color;
+                }
+            }
+        }
     }
 
     .view {
