@@ -276,14 +276,15 @@
                 {:href (route/href ::route/results {:title title})}
                 title])
        [:span.list-size (str "[" size "]")]
-       (if authorized
+       (when authorized
          (if is-folder
            [icon "user-circle" nil ["authorized"]]
            [poppable {:data "This list is owned by you."
-                      :children [icon "user-circle" nil ["authorized"]]}])
+                      :children [icon "user-circle" nil ["authorized"]]}]))
+       (when (contains? (set tags) "im:public")
          (if is-folder
            [icon "globe"]
-           [poppable {:data "This list is not owned by you. You will not be able to edit or delete it, but you can still copy it or use it for set operations."
+           [poppable {:data "This is a public list, visible to all users whether logged in or not. Users that do not own it can still make a copy or use it for set operations."
                       :children [icon "globe"]}]))]
       [:p.list-description description]]
 

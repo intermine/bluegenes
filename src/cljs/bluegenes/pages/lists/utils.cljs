@@ -200,7 +200,7 @@
      identity
      (partial filter (case lists
                        :private (comp true? :authorized)
-                       :public (comp false? :authorized)
+                       :public #(contains? (-> % :tags set) "im:public")
                        :upgrade (comp #{"TO_UPGRADE"} :status))))
    ;; Filter by date.
    (if (nil? date)
