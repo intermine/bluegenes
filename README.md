@@ -53,4 +53,4 @@ If not, see <http://www.gnu.org/licenses/>.
 
 ## Credits
 
-Icons are a mix of [fontawesome](https://fontawesome.com/) and [icomoon](https://icomoon.io/) free icons. We also use the [bootstrap material design theme](http://fezvrasta.github.io/bootstrap-material-design/).
+Icons are a mix of [fontawesome](https://fontawesome.com/) and [icomoon](https://icomoon.io/) free icons. We also use the [bootstrap material design theme](https://mdbootstrap.com/).
