@@ -105,7 +105,7 @@
            fasta-action (check-fasta hier class-kw summary)]
        {:db (-> db
                 (assoc-in [:report :summary] summary)
-                (assoc-in [:report :title] (utils/title-column summary))
+                (assoc-in [:report :title] (utils/title-column type summary))
                 (assoc-in [:report :active-toc] utils/pre-section-id)
                 (assoc-in [:report :fasta] fasta-action)
                 (assoc :fetching-report? false))
