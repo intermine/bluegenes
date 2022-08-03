@@ -188,7 +188,7 @@
 (defn tags
   "UI element to visually output all aspect tags into each template card for easy scanning / identification of tags.
   ** Expects: vector of strings 'im:aspect:thetag'."
-  [tagvec]
+  [tagvec authorized]
   (let [aspects (for [category (categories-from-tags tagvec)]
                   [:span.tag-type
                    {:class (str "type-" category)
@@ -199,7 +199,17 @@
     ;; This element should still be present even when it has no contents.
     ;; The "View >>" button is absolute positioned, so otherwise it would
     ;; overlap with the template's description.
-    (into [:div.template-tags]
+    (into [:div.template-tags
+           [:div.permissions
+            (when (contains? (set tagvec) "im:public")
+              [:span.permission
+               [poppable {:data "This is a public template, visible to all users whether logged in or not."
+                          :children [icon "globe"]}]])
+            (when authorized
+              [:span.permission
+               [poppable {:data "This template is owned by you."
+                          :children [icon "user-circle" nil ["authorized"]]}]])]]
+
           (when (seq aspects)
             (cons "Categories: " aspects)))))
 
@@ -231,7 +241,7 @@
          "Close <<"]
         [:button.view
          "View >>"])
-      [tags (:tags query)]]]))
+      [tags (:tags query) (:authorized query)]]]))
 
 (defn templates
   "Outputs all the templates that match the user's chosen filters."

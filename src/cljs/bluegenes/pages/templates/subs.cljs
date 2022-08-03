@@ -77,8 +77,10 @@
   the top 50 ranked templates. The templates to each category are part of the
   same top 50 ranked templates, although reduced to the top 10 for each category."
   [sorted-templates]
-  (let [top-50-templates (take-while #(<= (-> % val :rank parse-template-rank) 50)
-                                     sorted-templates)
+  (let [top-50-templates (-> (take-while #(<= (-> % val :rank parse-template-rank) 50)
+                                         sorted-templates)
+                             ;; Fallback if no templates are ranked.
+                             seq (or (take 50 sorted-templates)))
         top-6-categories (->> top-50-templates
                               (mapcat (comp :tags val))
                               (filter #(str/starts-with? % "im:aspect:"))

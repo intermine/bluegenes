@@ -139,9 +139,10 @@
   "Wraps `cljsjs/react-select` for use as constraint input for selecting
   one value out of `possible-values`."
   [{:keys [model path value on-blur possible-values disabled]}]
-  [:> js/Select
+  [:> js/Select.Creatable
    {:className "constraint-select"
     :classNamePrefix "constraint-select"
+    :formatCreateLabel #(str "Use \"" % "\"")
     :placeholder (str "Choose "
                       (join " > " (take-last 2 (split (im-path/friendly model path) " > "))))
     :isDisabled disabled
@@ -149,16 +150,21 @@
     ; :isLoading (seq? possible-values)
     :onChange (fn [value]
                 (on-blur (oget value :value)))
-    :value (when (not-empty value) {:value value :label value})
-    :options (map (fn [v] {:value v :label v}) (remove nil? possible-values))}])
+    :value (when-let [value (not-empty (if (boolean? value) (str value) value))]
+             {:value value :label value})
+    :options (map (fn [v]
+                    (let [v (if (boolean? v) (str v) v)]
+                      {:value v :label v}))
+                  (remove nil? possible-values))}])
 
 (defn select-multiple-constraint-input
   "Wraps `cljsjs/react-select` for use as constraint input for selecting
   multiple values out of `possible-values`."
   [{:keys [model path value on-blur possible-values disabled]}]
-  [:> js/Select
+  [:> js/Select.Creatable
    {:className "constraint-select"
     :classNamePrefix "constraint-select"
+    :formatCreateLabel #(str "Use \"" % "\"")
     :placeholder (str "Choose "
                       (join " > " (take-last 2 (split (im-path/friendly model path) " > "))))
     :isMulti true

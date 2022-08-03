@@ -580,18 +580,21 @@
                            "Class and externalids parameters need to be specified when linking in to upload page. You have been redirected to the home page."
                            (not (contains? classes (keyword (:class data))))
                            "Invalid class specified when linking in to upload page. You have been redirected to the home page.")]
-               {:dispatch
-                (if error
-                  [:messages/add
-                   {:markup [:span error]
-                    :style "warning"
-                    :timeout 0}]
+               (if error
+                 {:dispatch [:messages/add
+                             {:markup [:span error]
+                              :style "warning"
+                              :timeout 0}]}
+                 {:db (update-in db [:idresolver :stage :options] assoc
+                                 :type (:class data)
+                                 :organism (:extraValue data))
+                  :dispatch
                   [:bluegenes.components.idresolver.events/parse-staged-files
                    nil
                    identifiers
                    {:case-sensitive false
                     :type (:class data)
-                    :organism (:extraValue data)}])}))))
+                    :organism (:extraValue data)}]})))))
 
 (reg-event-fx
  :assets/failure

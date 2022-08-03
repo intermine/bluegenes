@@ -2,7 +2,9 @@
   (:require [re-frame.core :as re-frame :refer [subscribe dispatch]]
             [oops.core :refer [ocall oget]]
             [bluegenes.route :as route]
-            [bluegenes.utils :refer [highlight-substring]]))
+            [bluegenes.utils :refer [highlight-substring]]
+            [imcljs.path :as im-path]
+            [clojure.string :as str]))
 
 (defn result-selection-control
   "UI control suggesting to the user that there is only one result selectable at any one time; there's no actual form functionality here."
@@ -32,70 +34,25 @@
      (when @category-filter?
        [result-selection-control result])
      [:span.result-type {:class (str "type-" type)} type]
-     (contents)]))
+     [contents]]))
 
-(defn show
-  "Helper: fetch a result from the data model, adding a highlight."
-  [row-data selector]
-  (let [row        (:fields (:result row-data))
-        string     (str (get row (keyword selector)))
-        term       (:search-term row-data)]
-    (when (not-empty string)
-      (into [:span]
-            (highlight-substring string term :searchterm)))))
-
-(defmulti result-row
-  "Result-row outputs nicely formatted type-specific results for common types
-  and has a default that just outputs all non id, type, and relevance fields."
-  (fn [row-data] (:type (:result row-data))))
-
-(defmethod result-row "Gene" [row-data]
+(defn result-row [row-data]
   [row-structure row-data
    (fn []
-     [:div.details
-      [:ul
-       [:li [:h6 "Organism"] [:span.organism (show row-data "organism.name")]]
-       [:li [:h6 " Symbol: "] (show row-data "symbol")]
-       (let [fields    (get-in row-data [:result :fields])
-             primary   (:primaryIdentifier fields)
-             secondary (:secondaryIdentifier fields)]
-         [:li.ids [:h6 " Identifiers: "]
-          (cond primary
-                (show row-data "primaryIdentifier"))
-          (cond (and secondary primary) ", ")
-          (cond secondary (show row-data "secondaryIdentifier"))])]])])
-
-(defmethod result-row "Protein" [row-data]
-  [row-structure row-data
-   (fn []
-     [:div.details
-      [:ul
-       [:li [:h6 "Organism:"] [:span.organism (show row-data "organism.name")]]
-       [:li [:h6 " Accession: "] (show row-data "primaryAccession")]
-       [:li.ids [:h6 " Identifiers: "] (show row-data "primaryIdentifier")]]])])
-
-(defmethod result-row "Publication" [row-data]
-  [row-structure row-data
-   (fn []
-     [:div.details
-      [:ul
-       [:li [:h6 "Author: "] (show row-data "firstAuthor")]
-       [:li [:h6 "Title:"] [:cite.publicationtitle " \"" (show row-data "title") "\""]]
-       [:li [:h6 "Journal: "] [:div (show row-data "journal") " pp. " (show row-data "pages")]]]])])
-
-(defmethod result-row "Author" [row-data]
-  [row-structure row-data
-   (fn []
-     [:div.details
-      [:ul
-       [:li (show row-data "name")]]])])
-
-;; format a row in a readable way when no other templates apply.
-(defmethod result-row :default [row-data]
-  [row-structure row-data
-   (fn []
-     [:div.details
-      (into [:ul]
-            (map (fn [[k _]]
-                   [:li [:h6.default-description k] [:div.default-value (show row-data k)]]))
-            (:fields (:result row-data)))])])
+     (let [model @(subscribe [:current-model])
+           summary-fields @(subscribe [:current-summary-fields])
+           {:keys [fields type]} (:result row-data)
+           result-fields (into {}
+                               (map (fn [[k v]] [(str type "." (name k)) v]))
+                               fields)]
+       [:div.details
+        (into [:ul]
+              (keep (fn [path]
+                      (when-let [field (find result-fields path)]
+                        [:li
+                         [:h6.default-description (str/join " > " (drop 1 (im-path/display-name model path)))]
+                         [:div.default-value
+                          (when-let [v (not-empty (str (val field)))]
+                            (into [:span]
+                                  (highlight-substring v (:search-term row-data) :searchterm)))]]))
+                    (get summary-fields (keyword type))))]))])

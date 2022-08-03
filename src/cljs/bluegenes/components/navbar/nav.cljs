@@ -121,8 +121,9 @@
 
 (defn login-form [{:keys [credentials on-reset-password on-register]}]
   (let [{:keys [error? thinking? message]} @(subscribe [:bluegenes.subs.auth/auth])
-        oauth2-providers @(subscribe [:current-mine/oauth2-providers])
         current-mine @(subscribe [:current-mine])
+        current-mine-name @(subscribe [:current-mine-name])
+        oauth2-providers @(subscribe [:current-mine/oauth2-providers])
         {:keys [username password]} @credentials
         submit-fn #(dispatch [:bluegenes.events.auth/login username password])]
     [:form.login-form
@@ -156,21 +157,22 @@
        :on-click #(do (dispatch [:bluegenes.events.auth/clear-error])
                       (on-register))}
       "Create new account"]
-     [:div.oauth2-providers
-      (when (contains? oauth2-providers "GOOGLE")
-        [:button.btn
-         {:type "button"
-          :on-click #(dispatch [:bluegenes.events.auth/oauth2 "GOOGLE"])}
-         [:img.google-signin
-          {:src (str (:bluegenes-deploy-path @server-vars) "/images/google-signin.png")
-           :alt "[Sign in with Google]"}]])
-      (when (contains? oauth2-providers "ELIXIR")
-        [:button.btn
-         {:type "button"
-          :on-click #(dispatch [:bluegenes.events.auth/oauth2 "ELIXIR"])}
-         [:img.elixir-login
-          {:src (str (:bluegenes-deploy-path @server-vars) "/images/elixir-login.png")
-           :alt "[ELIXIR Login]"}]])]]))
+     (when (= current-mine-name (read-default-ns))
+       [:div.oauth2-providers
+        (when (contains? oauth2-providers "GOOGLE")
+          [:button.btn
+           {:type "button"
+            :on-click #(dispatch [:bluegenes.events.auth/oauth2 "GOOGLE"])}
+           [:img.google-signin
+            {:src (str (:bluegenes-deploy-path @server-vars) "/images/google-signin.png")
+             :alt "[Sign in with Google]"}]])
+        (when (contains? oauth2-providers "ELIXIR")
+          [:button.btn
+           {:type "button"
+            :on-click #(dispatch [:bluegenes.events.auth/oauth2 "ELIXIR"])}
+           [:img.elixir-login
+            {:src (str (:bluegenes-deploy-path @server-vars) "/images/elixir-login.png")
+             :alt "[ELIXIR Login]"}]])])]))
 
 (defn anonymous []
   (let [credentials (reagent/atom {:username nil :password nil})
