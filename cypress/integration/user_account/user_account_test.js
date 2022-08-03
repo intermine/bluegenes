@@ -144,8 +144,17 @@ describe("User Account Test", function() {
             })
             cy.get("button").contains("Delete account").click();
         })
-        cy.intercept("POST","/api/auth/logout").as("logout");
-        cy.wait("@logout");
-        cy.get(".mine-intro").should("exist");
+        cy.openLoginDialogue();
+        cy.get(".login-form").should("contain", "Login to BioTestMine");
+        cy.get("input#email").type("test_user_account@mail.com");
+        cy.get("input[type='password']").type("newpassword");
+        cy.intercept('POST', '/api/auth/login').as('login');
+        cy.get(".login-form")
+          .find("button")
+          .contains('Login')
+          .click();
+        cy.wait('@login');
+        cy.get(".error-box")
+          .should('to.contain', 'Unknown username: test_user_account@mail.com');
     })
 });
