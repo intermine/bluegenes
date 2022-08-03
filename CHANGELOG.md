@@ -1,3 +1,19 @@
+## 1.4.3
+
+- Handle constraining attributes of type boolean
+- Allow constraining with custom value when possible values
+- Fix unable to set idresolver options when linking in
+- Display tabs on templates when public or owned by user
+- Make list authorized/public tabs both visible, and fix filtering
+- Homepage templates: Fallback if none are ranked
+- Collapse the arrows in homepage template names
+- Only enable oauth login when on default mine
+- Use summaryfields when displaying search result attributes
+- Report page: Do not use attribute of ref/coll of class for title
+- Update to result tables
+    - Make column summary shorter in height to avoid buttons ending up off-screen on smaller monitors
+    - Make cell an external link if it's a URL
+
 ## 1.4.2
 
 - Make mine logo and name prominent in header, moving Bluegenes logo to the credits section at the bottom of the home page
