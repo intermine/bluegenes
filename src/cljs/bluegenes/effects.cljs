@@ -60,7 +60,8 @@
 (reg-fx
  :document-title
  (fn [title]
-   (set! (.-title js/document) title)))
+   (set! (.-title js/document) title)
+   (js/gtag "event" "page_view" (clj->js {:page_title title}))))
 
 (comment
   "To update the document title, add the interceptor to any event that may
@@ -363,3 +364,12 @@
      (ocall a :click)
      (ocall js/window.URL :revokeObjectURL url)
      (ocall js/document.body :removeChild a))))
+
+;; Uses the gtag client to send event data for GA4. This will do nothing if a Google Analytics ID isn't configured.
+;; https://developers.google.com/tag-platform/gtagjs/reference#event
+(reg-fx
+ :track-event
+ (fn [[event-name params-map]]
+   (if params-map
+     (js/gtag "event" event-name (clj->js params-map))
+     (js/gtag "event" event-name))))

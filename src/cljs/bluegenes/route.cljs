@@ -287,7 +287,7 @@
   (ocall (js/$ "#vg-tooltip-element") "remove")
   ;; Track the page (new-match has :data, so can use anything from `routes`).
   (try
-    (js/ga "send" "pageview" (:path new-match))
+    (js/gtag "event" "page_view" (clj->js {:page_location (:path new-match)}))
     (catch js/Error _))
   ;; - Handle actual navigation.
   (if new-match

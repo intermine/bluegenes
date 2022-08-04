@@ -11,7 +11,7 @@
 (defn navigate-to-report
   "Navigate to the report page for the given item and reset the UI"
   [{:keys [type id] :as _item}]
-  (dispatch [:search/reset-selection])
+  (dispatch [:search/selected-result])
   (dispatch [::route/navigate ::route/report {:type type, :id id}]))
 
 (defn navigate-to-full-results

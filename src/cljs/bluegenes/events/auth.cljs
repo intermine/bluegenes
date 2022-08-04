@@ -68,7 +68,9 @@
                    (when (seq ?renamedLists)
                      (renamedLists->message ?renamedLists))
                    ;; Restart router to rerun controllers.
-                   [:bluegenes.events.boot/start-router]]})))
+                   [:bluegenes.events.boot/start-router]]
+      ;; This also tracks sign-ups, which immediately follows with login-success.
+      :track-event ["login"]})))
 
 (reg-event-db
  ::login-failure

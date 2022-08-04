@@ -43,10 +43,11 @@
           :quicksearch-selected-index
           (circular-index-finder direction result-index (count results)))))
 
-(reg-event-db
- :search/reset-selection
- (fn [db _]
-   (assoc db :quicksearch-selected-index -1)))
+(reg-event-fx
+ :search/selected-result
+ (fn [{db :db} _]
+   {:db (assoc db :quicksearch-selected-index -1)
+    :track-event ["search" {:search_term (:search-term db)}]}))
 
 (defn merge-filtered-facets
   "Sometimes we want to update our facets based on the currently active filter.
@@ -172,7 +173,8 @@
                              {:new-search? new-search?
                               :active-filter? active-filters?
                               :removed-filter? removed-filter?}]
-                :on-failure [:search/failure]}})))
+                :on-failure [:search/failure]}
+      :track-event ["search" {:search_term search-term}]})))
 
 (reg-event-fx
  :search/set-active-filter
