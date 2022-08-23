@@ -66,4 +66,6 @@
                (doseq [restore-fn vars]
                  (restore-fn))
                (reset! stubbed-variables '()))
-             (rf/dispatch-sync [:clear-db]))})
+             (rf/dispatch-sync [:clear-db])
+             ;; Stub for gtag tracking function.
+             (set! js/gtag (fn [])))})
