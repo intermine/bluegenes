@@ -92,6 +92,9 @@
     (when (= (:semantic-markup options) :report)
       (when-let [rdf-url (not-empty (fetch-rdf-link options))]
         [:link {:href rdf-url :rel "alternate" :type "application/rdf+xml" :title "RDF"}]))
+    (when-let [ga4-id (not-empty (:google-analytics env))]
+      [:script {:async true :src (str "https://www.googletagmanager.com/gtag/js?id=" ga4-id)}])
+    [:script "window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments)};"]
     (include-css "https://cdnjs.cloudflare.com/ajax/libs/gridlex/2.2.0/gridlex.min.css")
     (include-css "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css")
     (include-css (use-deployment-path bluegenes-css))
@@ -124,7 +127,6 @@
               :src "https://code.jquery.com/jquery-3.1.0.min.js"}]
     [:script {:crossorigin "anonymous"
               :src "https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"}]
-    [:script {:src "https://apis.google.com/js/api.js"}]
     ;; Graphing library
     [:script {:src "https://cdn.jsdelivr.net/npm/vega@5.20.2"}]
     [:script {:src "https://cdn.jsdelivr.net/npm/vega-lite@5.1.0"}]

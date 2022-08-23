@@ -297,8 +297,8 @@
         ;;set tracker up if we have a tracking id
        (do
          (try
-           (js/ga "create" analytics-id "auto")
-           (js/ga "send" "pageview")
+           (js/gtag "js" (js/Date.))
+           (js/gtag "config" analytics-id)
            (catch js/Error _))
          (.info js/console
                 "Google Analytics enabled. Tracking ID:"
