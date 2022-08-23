@@ -1,3 +1,7 @@
+## 1.4.4
+
+- Update Google Analytics from Universal Tracking (will be phased out July 2023) to GA4
+
 ## 1.4.3
 
 - Handle constraining attributes of type boolean

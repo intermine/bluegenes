@@ -27,7 +27,7 @@
               ;; and with much better errors.
               (?read-string) (:bluegenes-deploy-path))))
 
-(defproject org.intermine/bluegenes "1.4.3"
+(defproject org.intermine/bluegenes "1.4.4"
   :licence "LGPL-2.1-only"
   :description "Bluegenes is a Clojure-powered user interface for InterMine, the biological data warehouse"
   :url "http://www.intermine.org"
