@@ -1,3 +1,7 @@
+## 1.4.5
+
+- Update results table with expanded export modal functionality to support wider range of formats, preview and modifying contents
+
 ## 1.4.4
 
 - Update Google Analytics from Universal Tracking (will be phased out July 2023) to GA4
