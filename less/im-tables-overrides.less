@@ -126,6 +126,30 @@
             padding: 0.5em 1em;
         }
     }
+
+    .exporttable-body {
+        // BG's CSS loves breaking things! This reverts the changes that make it unusable.
+
+        label {
+            color: #444;
+
+        }
+
+        input[type="radio"] {
+            opacity: 1;
+            height: auto;
+            width: auto;
+            overflow: auto;
+        }
+
+        .radio label {
+            padding-left: 35px;
+        }
+
+        .optional-attributes > label input[type="checkbox"] {
+            margin-left: 15px;
+        }
+    }
 }
 
 .results-and-enrichment {
