@@ -13,4 +13,8 @@ RUN npm install;
 RUN lein uberjar;
 
 EXPOSE 5000
-CMD ["java", "-jar", "target/bluegenes.jar"]
+# Reset WORKDIR to / (matching the original distroless-based Dockerfile) so relative
+# paths BlueGenes resolves at runtime (e.g. "./tools") match compose.yaml's mount
+# target of /tools, instead of resolving under /bluegenes and never touching it.
+WORKDIR /
+CMD ["java", "-jar", "/bluegenes/target/bluegenes.jar"]
