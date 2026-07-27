@@ -2,12 +2,14 @@
   (:require [re-frame.core :refer [reg-event-db reg-event-fx]]
             [bluegenes.effects :as fx]))
 
-(def default-rss "https://intermineorg.wordpress.com/feed/")
+;; MDRMine has no blog of its own; so we will be using the url of the github releases atom feed for the project as a default
+;; and gives genuinely useful "what's new" content.
+(def default-rss "https://github.com/ecrin-github/mdrmine/releases.atom")
 
 (defn get-rss-from-db [db]
   (if-let [rss (not-empty (get-in db [:mines (:current-mine db) :rss]))]
     rss
-    default-rss))
+    default-rss)), 
 
 (reg-event-fx
  ::fetch-rss

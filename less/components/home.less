@@ -57,14 +57,16 @@
 
     .section {
         margin-top: @spacer*4;
-        margin-bottom: @spacer*5;
+        margin-bottom: 0;
 
         & > [class*='col-'] {
-            margin-bottom: @spacer*2.2;
+            margin-bottom: 0;
         }
 
-        h1, h2 {
+        h1, h2, h3, .h1, .h2, .h3 {
             color: @branding-color-secondary;
+            margin-top: 20px;
+            margin-bottom: 0;
         }
 
         .cta-block {

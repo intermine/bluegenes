@@ -281,10 +281,6 @@
     [:a {:href (route/href ::route/templates)}
      "Templates"]]
    [:li.primary-nav
-    {:class (classes :regions-panel large-screen?)}
-    [:a {:href (route/href ::route/regions)}
-     "Regions"]]
-   [:li.primary-nav
     {:class (classes :querybuilder-panel large-screen?)}
     [:a {:href (route/href ::route/querybuilder)}
      "Query\u00A0Builder"]]
