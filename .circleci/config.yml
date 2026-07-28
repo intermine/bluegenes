@@ -52,7 +52,7 @@ jobs:
     - run: sudo apt-get update -y
     - run: sudo apt-get install -y libgconf-2-4
     - run: pyenv versions
-    - run: pyenv global 3.8.5
+    - run: pyenv global 3.13.0
     - run: pip3 install intermine-boot
     - restore_cache:
         keys:
