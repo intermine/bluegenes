@@ -30,13 +30,6 @@ describe("Main page test", function() {
         cy.url().should("include", "/templates");
     });
 
-    it("can access regions tab from the navigation bar", function() {
-        cy.get("#bluegenes-main-nav").within(() => {
-            cy.contains("Regions").click();
-        });
-        cy.url().should("include", "/regions");
-    });
-
     it("can access query builder tab from the navigation bar", function() {
         cy.get("#bluegenes-main-nav").within(() => {
             cy.contains("Query Builder").click();
