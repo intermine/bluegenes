@@ -9,7 +9,7 @@
 (defn get-rss-from-db [db]
   (if-let [rss (not-empty (get-in db [:mines (:current-mine db) :rss]))]
     rss
-    default-rss)), 
+    default-rss)),
 
 (reg-event-fx
  ::fetch-rss
