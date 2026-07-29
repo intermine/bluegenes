@@ -137,7 +137,7 @@ describe("UI Test", function() {
   it("Perform a region search using existing example", function() {
     cy.server();
     cy.route("POST", "*/service/query/results").as("getData");
-    cy.contains("Regions").click();
+    cy.visit("/biotestmine/regions");
     cy.contains("Show Example").click();
     cy.get(".region-text > .form-control").should("not.be.empty");
     cy.get("button")
