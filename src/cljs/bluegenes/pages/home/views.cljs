@@ -123,7 +123,7 @@
             :role "button"}
     :body [:p [:strong "Contact us"] " with problems, comments, suggestions and any other queries."]}
    {:label "What's new"
-    :props {:href (or @(subscribe [:current-mine/news]) "https://intermineorg.wordpress.com/")
+    :props {:href (or @(subscribe [:current-mine/news]) "https://github.com/ecrin-github/mdrmine")
             :target "_blank"}
     :body [latest-news]}
    {:label "Cite us"
@@ -135,14 +135,18 @@
   (let [custom-cta @(subscribe [:home/custom-cta])
         cta (if (seq custom-cta)
               (map convert-custom-cta custom-cta)
-              (default-cta))]
-    (into [:div.row.section.grid] ;; Without grid class the 3rd row won't be on the same row.
+              (default-cta))
+        mine-name @(subscribe [:current-mine-human-name])]
+    [:<>
+     [:div.row.section
+      [:div.col-xs-12 [:h2.text-center (str "Explore " mine-name)]]]
+     (into [:div.row.section.grid] ;; Without grid class the 3rd row won't be on the same row.
            ;; This isn't official bootstrap, so I can only imagine Gridlex is messing with things.
-          (for [[index {:keys [label props body]}] (map-indexed vector cta)]
-            [:div.col-xs-12.col-sm-5.cta-block
-             {:class (when (odd? index) :col-sm-offset-2)}
-             [:a.btn.btn-home props label]
-             body]))))
+           (for [[index {:keys [label props body]}] (map-indexed vector cta)]
+             [:div.col-xs-12.col-sm-5.cta-block
+              {:class (when (odd? index) :col-sm-offset-2)}
+              [:a.btn.btn-home props label]
+              body]))]))
 
 (defn mine-selector-filter []
   (let [all-neighbourhoods @(subscribe [:home/all-registry-mine-neighbourhoods])

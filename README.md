@@ -2,6 +2,8 @@
 
 # BlueGenes
 
+> **This is [ECRIN](https://ecrin.org)'s fork of [intermine/bluegenes](https://github.com/intermine/bluegenes)**, maintained for the [MDRMine](https://github.com/ecrin-github/mdrmine) project's frontend. It carries MDRMine-specific customisations on top of upstream BlueGenes (see `git log` for what's changed).
+
 CircleCI: [![CircleCI](https://circleci.com/gh/intermine/bluegenes.svg?style=svg)](https://circleci.com/gh/intermine/bluegenes)
 
 _An InterMine Web-based GUI_
