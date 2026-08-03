@@ -8,9 +8,6 @@
             [clojure.string :as str]
             [bluegenes.utils :refer [ascii-arrows ascii->svg-arrows md-paragraph md-element
                                      get-mine-ns get-mine-url]]
-            [goog.string :as gstring]
-            [cljs-time.format :as time-format]
-            [cljs-time.coerce :as time-coerce]
             [oops.core :refer [oget]]
             [bluegenes.components.bootstrap :refer [poppable]]
             [bluegenes.config :refer [server-vars]]))
@@ -39,7 +36,7 @@
          [search/main]
          [:div.search-info
           [icon "info"]
-          [:span "Genes, proteins, pathways, ontology terms, authors, etc."]]])]]))
+          [:span "Studies, protocols, conditions, publications, interventions, etc."]]])]]))
 
 (defn template-queries []
   (let [categories @(subscribe [:templates-by-popularity/all-categories])
@@ -68,20 +65,6 @@
                    [[:span title]]))]))]
       [:a.more-queries {:href (route/href ::route/templates)}
        "More queries here"]]]))
-
-(def post-time-formatter (time-format/formatter "MMMM d, Y"))
-
-(defn latest-news []
-  (let [posts (take 3 (or @(subscribe [:home/latest-posts]) nil))]
-    (if (empty? posts)
-      [:p "Latest news from the InterMine community."]
-      (into [:ul.latest-news]
-            (for [{:keys [title link pubDate description]} posts]
-              [:li
-               [:span (time-format/unparse post-time-formatter
-                                           (time-coerce/from-string pubDate))]
-               [:a {:href link :target "_blank"} title]
-               [:p (-> description gstring/unescapeEntities str/trim (subs 0 100))]])))))
 
 (defn convert-custom-cta
   "Convert the custom CTA format used in web.properties to the one used for rendering."
@@ -121,15 +104,7 @@
    {:label "Submit feedback"
     :props {:on-click #(dispatch [:home/scroll-to-feedback])
             :role "button"}
-    :body [:p [:strong "Contact us"] " with problems, comments, suggestions and any other queries."]}
-   {:label "What's new"
-    :props {:href (or @(subscribe [:current-mine/news]) "https://github.com/ecrin-github/mdrmine")
-            :target "_blank"}
-    :body [latest-news]}
-   {:label "Cite us"
-    :props {:href @(subscribe [:current-mine/citation])
-            :target "_blank"}
-    :body [:p "Please help us to maintain funding: if we have helped your research please remember to cite us in your publications."]}])
+    :body [:p [:strong "Contact us"] " with problems, comments, suggestions and any other queries."]}])
 
 (defn call-to-action []
   (let [custom-cta @(subscribe [:home/custom-cta])

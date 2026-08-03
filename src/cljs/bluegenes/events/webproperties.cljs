@@ -45,7 +45,6 @@
                                       (first))
    :regionsearch-example         (get-in web-properties [:genomicRegionSearch :defaultSpans])
    :news                         (get-in web-properties [:project :news])
-   :rss                          (get-in web-properties [:project :rss])
    :citation                     (or (parse-citation (get-in web-properties [:project :citation])) "http://intermine.org/publications/")
    :credits                      (parse-numbered-properties (get-in web-properties [:project :credit])
                                                             :bluegenes.webproperties.project/credit

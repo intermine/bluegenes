@@ -335,9 +335,6 @@
                 color: inherit;
                 font-size: 13px;
                 font-weight: 500;
-                // Override the light background added for the feedback form
-                // (meant to mask a border there); the nav has no such border
-                // and its own dark background, so no mask is needed here.
                 // !important is needed because components/ui/inputs.less
                 // (which sets that background on the floated/focused state)
                 // is imported after this file, and both selectors have the

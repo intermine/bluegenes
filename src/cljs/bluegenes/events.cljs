@@ -6,7 +6,6 @@
             [bluegenes.events.boot]
             [bluegenes.events.auth]
             [bluegenes.events.registry]
-            [bluegenes.events.blog]
             [bluegenes.events.webproperties]
             [bluegenes.events.bgproperties]
             [bluegenes.components.idresolver.events]

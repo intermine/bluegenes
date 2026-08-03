@@ -133,9 +133,7 @@
       :controllers
       [{:start (fn []
                  (dispatch [:home/clear])
-                 (dispatch [:set-active-panel :home-panel
-                            nil
-                            [:bluegenes.events.blog/fetch-rss]]))}]}]
+                 (dispatch [:set-active-panel :home-panel]))}]}]
     ["/admin"
      {:name ::admin
       :controllers
