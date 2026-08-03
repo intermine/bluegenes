@@ -262,16 +262,24 @@
                      [:h3 "Thank you!"]
                      [:p "Your feedback has been submitted."]]
            [:div.col-xs-12.col-sm-10.col-sm-offset-1.col-md-8.col-md-offset-2.feedback
-            [:input.form-control
-             {:type "email"
-              :placeholder "Your email (optional)"
-              :value @email*
-              :on-change #(reset! email* (oget % :target :value))}]
-            [:textarea#feedbackform.form-control
-             {:placeholder "Your feedback here"
-              :rows 5
-              :value @text*
-              :on-change #(reset! text* (oget % :target :value))}]
+            [:div.floating-label-field
+             [:input.form-control
+              {:type "email"
+               :id "feedback-email"
+               ;; A non-empty placeholder is required for the
+               ;; `:placeholder-shown` CSS pseudo-class (used to float the
+               ;; label above) to work.
+               :placeholder " "
+               :value @email*
+               :on-change #(reset! email* (oget % :target :value))}]
+             [:label {:for "feedback-email"} "Your email (optional)"]]
+            [:div.floating-label-field
+             [:textarea#feedbackform.form-control
+              {:placeholder " "
+               :rows 5
+               :value @text*
+               :on-change #(reset! text* (oget % :target :value))}]
+             [:label {:for "feedbackform"} "Your feedback here"]]
             [:button.btn.btn-block
              {:on-click #(dispatch [:home/submit-feedback @email* @text*])}
              "Submit"]

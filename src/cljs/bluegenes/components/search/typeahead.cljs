@@ -87,7 +87,8 @@
   (reagent/create-class
    (let [results     (subscribe [:suggestion-results])
          error       (subscribe [:suggestion-error])
-         search-term (subscribe [:search-term])]
+         search-term (subscribe [:search-term])
+         input-id    (str (gensym "search-term-"))]
      {:component-did-mount
       (fn [e]
         (let [node (dom/dom-node e)]
@@ -97,11 +98,14 @@
               (dommy/listen! :blur (fn [] (dommy/remove-class! node :open))))))
       :reagent-render
       (fn []
-        [:div.dropdown
+        [:div.dropdown.floating-label-field
          [:input.typeahead-search
           {:type         "text"
+           :id           input-id
            :value        @search-term
-           :placeholder  "Search for any term"
+           ;; A non-empty placeholder is required for the `:placeholder-shown`
+           ;; CSS pseudo-class (used to float the label below) to work.
+           :placeholder  " "
            :on-change    (fn [e] (dispatch [:bounce-search (oget e :target :value)]))
            ;; Navigate to the main search results page if the user presses enter.
            :on-key-press (fn [e] (monitor-enter-key e))
@@ -114,6 +118,7 @@
                            ;; suggestions, it would be an empty vector.)
                            (when (nil? @results)
                              (dispatch [:bounce-search (oget e :target :value)])))}]
+         [:label {:for input-id} "Search for any term"]
          ;; The following icon button is hidden by default, so use CSS if you want it!
          [:svg.icon.icon-search.search-button
           {:on-click #(navigate-to-full-results)}

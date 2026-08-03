@@ -1,5 +1,48 @@
 @import "../../variables";
 
+// Floating label: the label sits over the input/textarea like a placeholder
+// by default, then floats above it on focus/input so it's never hidden
+// (accessibility: a screen reader user or a sighted user typing should
+// always be able to see/hear what the field is for).
+.floating-label-field {
+    position: relative;
+
+    label {
+        position: absolute;
+        left: 0;
+        top: 50%;
+        margin: 0;
+        padding: 0 3px;
+        font-size: 1em;
+        opacity: 0.6;
+        pointer-events: none;
+        transform: translateY(-50%);
+        transform-origin: left top;
+        transition: transform 0.15s ease-out, opacity 0.15s ease-out,
+                    font-size 0.15s ease-out;
+        white-space: nowrap;
+    }
+
+    // Textarea text starts at the top rather than being vertically
+    // centered, so its resting label position needs to match.
+    textarea + label {
+        top: 1.75em;
+        transform: none;
+    }
+
+    input:focus + label,
+    input:not(:placeholder-shown) + label,
+    textarea:focus + label,
+    textarea:not(:placeholder-shown) + label {
+        font-size: 0.75em;
+        opacity: 0.9;
+        // Move the label fully clear of the field's top border, and give it
+        // a background so the border doesn't visually cut through the text.
+        transform: translateY(-2.3em);
+        background: @body-background-color;
+    }
+}
+
 .toggle-show-password {
     position: relative;
 
