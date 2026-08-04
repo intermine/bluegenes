@@ -5,7 +5,7 @@
   "Define document title templates for each corresponding panel keyword.
   This should be a map with panel keyword keys and vector values. The vector
   will be joined and should consist of db pointers (explained below)."
-  (let [App    "InterMine BlueGenes"
+  (let [App    "crMDR"
         Mine   #(get-in % [:mines (:current-mine %) :name])
         Type   [:report :summary :rootClass]
         Name   [:report :title]

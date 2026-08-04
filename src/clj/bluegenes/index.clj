@@ -88,7 +88,7 @@
    [:head
     loader-style
     css-compiling-style
-    [:title "InterMine 2.0 BlueGenes"]
+    [:title "crMDR"]
     (when (= (:semantic-markup options) :report)
       (when-let [rdf-url (not-empty (fetch-rdf-link options))]
         [:link {:href rdf-url :rel "alternate" :type "application/rdf+xml" :title "RDF"}]))
@@ -136,7 +136,7 @@
 
 (defn loader []
   [:div#wrappy
-   [:div "LOADING INTERMINE"]
+   [:div "LOADING crMDR..."]
    [:div#loader
     [:div.worm.loader-organism]
     [:div.zebra.loader-organism]
