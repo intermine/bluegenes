@@ -1,10 +1,10 @@
 (ns bluegenes.pages.home.events
   (:require [re-frame.core :refer [reg-event-db reg-event-fx reg-fx]]
             [re-frame.std-interceptors :refer [path]]
-            [imcljs.save :as im-save]
             [clojure.string :as str]
             [goog.style :as gstyle]
-            [goog.dom :as gdom]))
+            [goog.dom :as gdom]
+            [bluegenes.effects :as fx]))
 
 (def root [:home])
 
@@ -53,13 +53,14 @@
 (reg-event-fx
  :home/submit-feedback
  (fn [{db :db} [_ email feedback]]
-   (let [service (get-in db [:mines (get db :current-mine) :service])]
-     (if (str/blank? feedback)
-       {:db (assoc-in db (concat root [:feedback-response]) {:type :failure
-                                                             :message "Feedback text can't be left blank."})}
-       {:im-chan {:chan (im-save/feedback service email feedback)
-                  :on-success [:home/feedback-success]
-                  :on-failure [:home/feedback-failure]}}))))
+   (if (str/blank? feedback)
+     {:db (assoc-in db (concat root [:feedback-response]) {:type :failure
+                                                           :message "Feedback text can't be left blank."})}
+     {::fx/http {:method :post
+                 :uri "/api/feedback/send"
+                 :json-params {:email email :feedback feedback}
+                 :on-success [:home/feedback-success]
+                 :on-failure [:home/feedback-failure]}})))
 
 (reg-event-db
  :home/feedback-success
