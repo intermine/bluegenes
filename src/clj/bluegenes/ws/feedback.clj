@@ -8,7 +8,10 @@
             [clojure.string :as str]
             [config.core :refer [env]]))
 
-(def feedback-destination "crr@ecrin.org")
+;; Overridable via FEEDBACK_DESTINATION env var, e.g. for testing with a
+;; personal address before a sending domain is verified with Resend (which
+;; restricts sending to only the account owner's own address until then).
+(def default-feedback-destination "crr@ecrin.org")
 ;; Resend's shared sending address; usable without verifying our own domain.
 (def sender-address "onboarding@resend.dev")
 
@@ -22,19 +25,21 @@
         (response/internal-server-error {:error "Email service is not configured."}))
 
     :else
-    (let [res (client/post
+    (let [feedback-destination (or (not-empty (:feedback-destination env)) default-feedback-destination)
+          params (cond-> {:from sender-address
+                          :to [feedback-destination]
+                          :subject "Feedback crMDR"
+                          :text (cond-> feedback
+                                  (not (str/blank? email))
+                                  (str "\n\n---\nSubmitted by: " email))}
+                  (not (str/blank? email)) (assoc :reply_to email))
+          res (client/post
                "https://api.resend.com/emails"
                {:headers {"Authorization" (str "Bearer " (:resend-api-key env))}
                 :content-type :json
                 :as :json
                 :throw-exceptions false
-                :form-params (cond-> {:from sender-address
-                                      :to [feedback-destination]
-                                      :subject "Feedback crMDR"
-                                      :text (cond-> feedback
-                                              (not (str/blank? email))
-                                              (str "\n\n---\nSubmitted by: " email))}
-                              (not (str/blank? email)) (assoc :reply_to email))})]
+                :form-params params})]
       (if (client/success? res)
         (response/ok {:status "Success"})
         (do (println "Resend API error:" (:status res) (:body res))
