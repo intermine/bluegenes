@@ -23,7 +23,7 @@
     [:footer.footer
      [:div.section.column
       [:span.version
-       "crMDR "
+       "BlueGenes "
        [:span
         ;; Secret way to access developer page. Sshhhh.
         {:on-click #(dispatch [::route/navigate ::route/debug {:panel "main"}])}
@@ -36,7 +36,11 @@
       [:div.column.inner
        [:span.thin "FUNDED BY"]
        [:span
-        [link "https://commission.europa.eu/" "European Commission"]]]]
+        [link "https://www.wellcome.ac.uk/" "Wellcome Trust"]
+        [:span.thin " | "]
+        [link "https://www.nih.gov/" "NIH"]
+        [:span.thin " | "]
+        [link "https://bbsrc.ukri.org/" "BBSRC"]]]]
      [:div.section
       (when-let [github-url @(subscribe [:current-mine/url :github])]
         [link github-url
@@ -60,6 +64,6 @@
                     :children [icon "discord" 2]}]])]
      [:div.section.column
       [link @(subscribe [:current-mine/citation])
-       (str "CITE " (some-> @(subscribe [:current-mine-human-name]) str/upper-case))]
+       "CITE INTERMINE"]
       [link @(subscribe [:current-mine/url :aboutUs]) "ABOUT US"]
       [link @(subscribe [:current-mine/url :privacyPolicy]) "PRIVACY POLICY"]]]))

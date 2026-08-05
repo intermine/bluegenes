@@ -46,7 +46,7 @@
     [:div.row.section
      [:div.col-xs-12
       [:h2.text-center "Go by Most Popular Queries"]]
-     [:div.col-xs-12.template-preview
+     [:div.col-xs-12.template-preview.section
       [:ul.nav.nav-tabs.template-tabs
        (doall
         (for [category categories]
@@ -236,7 +236,7 @@
                      [icon "checkmark"]
                      [:h3 "Thank you!"]
                      [:p "Your feedback has been submitted."]]
-           [:div.col-xs-12.col-sm-10.col-sm-offset-1.col-md-8.col-md-offset-2.feedback
+           [:div.col-xs-12.feedback.section
             [:div.floating-label-field
              [:input.form-control
               {:type "email"
@@ -314,7 +314,7 @@
      (when (empty? entries)
        [:div.col-xs-12.text-center
         [credits-fallback]])
-     [:div.col-xs-10.col-xs-offset-1
+     [:div.col-xs-10.col-xs-offset-1.section
       (into [:div.row.row-center-cols.row-space-cols]
             (for [entry all-entries]
               [credits-entry entry]))]]))

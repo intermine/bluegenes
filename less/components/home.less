@@ -69,8 +69,8 @@
             margin-bottom: 0;
         }
 
-        .cta-block {
-            margin-bottom: @spacer*4;
+        &.grid {
+            row-gap: @spacer*4;
         }
     }
 
@@ -249,7 +249,7 @@
         .more-queries {
             display: block;
             margin-top: @spacer*2;
-            margin-bottom: @spacer*4;
+            // margin-bottom: @spacer*4;
             text-transform: uppercase;
             font-size: 1.1em;
             font-weight: bold;
@@ -376,8 +376,6 @@
     }
 
     .feedback {
-        margin-bottom: @spacer*4 !important;
-
         input, textarea {
             font-size: 1em;
             border-radius: 0;
