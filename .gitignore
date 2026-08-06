@@ -31,3 +31,4 @@ prepros.cfg
 /.lsp/
 /*.jks
 /.lein-env
+/profiles.clj

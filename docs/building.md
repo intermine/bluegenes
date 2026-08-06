@@ -13,6 +13,24 @@ Start by installing the dependencies in [System Requirements](/docs/building.md#
 
     npm install
 
+## Local secrets and configuration (profiles.clj)
+
+Some local settings (which InterMine instance to point at, SMTP credentials
+for the homepage feedback form, etc.) shouldn't be committed to git. These go
+in a `profiles.clj` file at the project root, which is gitignored and picked
+up automatically by [lein-environ](https://github.com/weavejester/environ)
+whenever you run `lein dev`, `lein repl`, `lein prod`, etc. — no need to
+`export` anything or pass env vars manually.
+
+Copy the template to get started:
+
+    cp profiles.clj.example profiles.clj
+
+Then edit `profiles.clj` and fill in whichever values you need — see the
+comments in [`profiles.clj.example`](/profiles.clj.example) for what each key
+does. Everything in it is optional; only fill in what's relevant to what
+you're working on.
+
 ## Quickstart
 
 These commands are explained in more depth below, but if you know what you want, here's a quick reference of the most useful ones.

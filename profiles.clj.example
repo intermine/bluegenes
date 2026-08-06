@@ -1,0 +1,21 @@
+;; Copy this file to `profiles.clj` (same folder) and fill in real values.
+;; `profiles.clj` is gitignored — it's local-only and never committed.
+{:user
+ {:env
+  {;; Point BlueGenes at a specific InterMine instance instead of the
+   ;; default (FlyMine). See docs/configuring.md for more options.
+   :bluegenes-default-service-root "http://localhost:8081/mdrmine"
+   :bluegenes-default-mine-name "mdrmine"
+   :bluegenes-default-namespace "mdrmine"
+
+   ;; SMTP credentials used to send homepage feedback form submissions
+   ;; (src/clj/bluegenes/ws/feedback.clj). Any authenticated SMTP account
+   ;; works (Gmail with an App Password, a real mailbox, etc).
+   :smtp-host "smtp.example.com"
+   :smtp-port "587"
+   :smtp-user "you@example.com"
+   :smtp-password "your-app-password"
+
+   ;; Overrides where feedback emails are sent (defaults to crr@ecrin.org).
+   ;; Handy for testing so you don't spam the real inbox.
+   #_#_:feedback-destination "you@example.com"}}}

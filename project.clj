@@ -64,6 +64,9 @@
                  [metosin/ring-http-response "0.9.1"]
                  [metosin/muuntaja "0.6.7"]
 
+                 ; Email
+                 [com.draines/postal "2.0.5"]
+
                  ; Build tools
                  [yogthos/config "1.1.7"]
 
