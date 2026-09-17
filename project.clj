@@ -64,6 +64,12 @@
                  [metosin/ring-http-response "0.9.1"]
                  [metosin/muuntaja "0.6.7"]
 
+		 ; Explicit dependencies not picked up due to bug in dependency resolver
+		 ; Seen on ubuntu 26.04 possibly with upgrade from libmaven-resolver-java 1.6.3 to 1.9.25
+		 [org.eclipse.jetty/jetty-http "9.4.31.v20200723"]
+		 [org.eclipse.jetty/jetty-io "9.4.31.v20200723"]
+		 [org.eclipse.jetty/jetty-util "9.4.31.v20200723"]
+
                  ; Build tools
                  [yogthos/config "1.1.7"]
 
